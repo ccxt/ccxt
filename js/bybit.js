@@ -172,6 +172,7 @@ module.exports = class bybit extends Exchange {
                         // data
                         'v2/public/time': 1,
                         'v2/public/announcement': 1,
+                        'v3/public/time': 1,
                         // USDC endpoints
                         // option USDC
                         'option/usdc/openapi/public/v1/order-book': 1,
