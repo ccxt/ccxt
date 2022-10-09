@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled } = require ('./base/errors');
+const { AuthenticationError, ArgumentsRequired, ExchangeError, InsufficientFunds, InvalidOrder, DDoSProtection, InvalidNonce, PermissionDenied, BadRequest, BadSymbol, NotSupported, AccountNotEnabled } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -226,6 +226,7 @@ module.exports = class cryptocom extends Exchange {
                 },
             },
             'options': {
+                'createMarketBuyOrderRequiresPrice': true,
                 'defaultType': 'spot',
                 'accountsById': {
                     'funding': 'SPOT',
@@ -1045,24 +1046,104 @@ module.exports = class cryptocom extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @param {bool|undefined} params.postOnly true to place a post only order
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const uppercaseType = type.toUpperCase ();
         const request = {
             'instrument_name': market['id'],
             'side': side.toUpperCase (),
-            'type': uppercaseType,
-            'quantity': this.amountToPrecision (symbol, amount),
+            // 'side': BUY or SELL,
+            // 'type': LIMIT, MARKET, STOP_LOSS, STOP_LIMIT, TAKE_PROFIT, TAKE_PROFIT_LIMIT
+            // 'price': only for LIMIT and STOP_LIMIT
+            // 'quantity': for LIMIT, MARKET, STOP_LOSS, and TAKE_PROFIT (base)
+            // 'notional': for MARKET (BUY), STOP_LOSS (BUY), and TAKE_PROFIT (BUY) (amount to spend)
+            // 'time_in_force': GOOD_TILL_CANCEL, IMMEDIATE_OR_CANCEL, FILL_OR_KILL
+            // 'exec_inst': POST_ONLY or none
+            // 'trigger_price': for STOP_LOSS, STOP_LIMIT, TAKE_PROFIT, and TAKE_PROFIT_LIMIT
         };
-        if ((uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT')) {
-            request['price'] = this.priceToPrecision (symbol, price);
+        const uppercaseType = type.toUpperCase ();
+        const isLimitOrder = (uppercaseType === 'LIMIT') || (uppercaseType === 'STOP_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT');
+        const isMarketOrder = (uppercaseType === 'MARKET') || (uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT');
+        const stopLossPrice = this.safeString (params, 'stopLossPrice');
+        const takeProfitPrice = this.safeString (params, 'takeProfitPrice');
+        const isStopLossOrder = (stopLossPrice !== undefined) || (uppercaseType === 'STOP_LOSS') || (uppercaseType === 'STOP_LIMIT');
+        const isTakeProfitOrder = (takeProfitPrice !== undefined) || (uppercaseType === 'TAKE_PROFIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT');
+        if (isStopLossOrder && isTakeProfitOrder) {
+            throw new InvalidOrder (this.id + ' createOrder() does not support stop loss and take profit orders at the same time, please specify one.');
         }
-        const postOnly = this.safeValue (params, 'postOnly', false);
+        const isStopOrder = isStopLossOrder || isTakeProfitOrder;
+        const timeInForce = this.safeString (params, 'timeInForce');
+        const ioc = (timeInForce === 'IOC');
+        const fok = (timeInForce === 'FOK');
+        const gtc = (timeInForce === 'GTC');
+        const execInst = this.safeString (params, 'exec_inst');
+        const postOnly = this.isPostOnly (isMarketOrder, execInst === 'POST_ONLY', params);
+        if (isLimitOrder) {
+            request['type'] = 'LIMIT';
+            request['price'] = this.priceToPrecision (symbol, price);
+            request['quantity'] = this.amountToPrecision (symbol, amount);
+        } else {
+            if (side === 'buy') {
+                const createMarketBuyOrderRequiresPrice = this.safeValue (this.options, 'createMarketBuyOrderRequiresPrice', true);
+                if (price === undefined) {
+                    if (createMarketBuyOrderRequiresPrice) {
+                        throw new InvalidOrder (this.id + ' createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options["createMarketBuyOrderRequiresPrice"] = false and supply the total cost value in the "amount" argument (the exchange-specific behaviour)');
+                    } else {
+                        request['notional'] = this.costToPrecision (symbol, amount);
+                    }
+                } else {
+                    const cost = amount * price;
+                    request['notional'] = this.costToPrecision (symbol, cost);
+                }
+            } else {
+                request['quantity'] = this.amountToPrecision (symbol, amount);
+            }
+            request['type'] = 'MARKET';
+        }
+        if (isStopOrder) {
+            const triggerPrice = (stopLossPrice !== undefined) ? stopLossPrice : takeProfitPrice;
+            if (market['type'] === 'swap') {
+                request['ref_price'] = this.priceToPrecision (symbol, triggerPrice);
+            } else {
+                request['trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
+            }
+            if (isLimitOrder) {
+                if (isStopLossOrder) {
+                    // stop loss limit
+                    request['type'] = 'STOP_LIMIT';
+                } else {
+                    // take profit limit
+                    request['type'] = 'TAKE_PROFIT_LIMIT';
+                }
+            } else {
+                if (isStopLossOrder) {
+                    // stop loss market
+                    request['type'] = 'STOP_LOSS';
+                } else {
+                    // take profit market
+                    request['type'] = 'TAKE_PROFIT';
+                }
+            }
+        }
+        if (timeInForce !== undefined) {
+            if (isLimitOrder) {
+                if (ioc) {
+                    request['time_in_force'] = 'IMMEDIATE_OR_CANCEL';
+                }
+                if (fok) {
+                    request['time_in_force'] = 'FILL_OR_KILL';
+                }
+                if (gtc) {
+                    request['time_in_force'] = 'GOOD_TILL_CANCEL'; // default if unspecified
+                }
+            } else {
+                throw new InvalidOrder (this.id + ' createOrder() does not support timeInForce parameter with ' + uppercaseType + ' orders');
+            }
+        }
         if (postOnly) {
             request['exec_inst'] = 'POST_ONLY';
-            params = this.omit (params, [ 'postOnly' ]);
         }
         const [ marketType, marketTypeQuery ] = this.handleMarketTypeAndParams ('createOrder', market, params);
         let method = this.getSupportedMapping (marketType, {
@@ -1075,7 +1156,9 @@ module.exports = class cryptocom extends Exchange {
         if (marginMode !== undefined) {
             method = 'spotPrivatePostPrivateMarginCreateOrder';
         }
-        const response = await this[method] (this.extend (request, query));
+        params = this.extend (params, query);
+        params = this.omit (query, [ 'timeInForce', 'postOnly', 'stopLossPrice', 'takeProfitPrice', '' ]);
+        const response = await this[method] (this.extend (request, params));
         // {
         //     "id": 11,
         //     "method": "private/create-order",
@@ -1966,6 +2049,7 @@ module.exports = class cryptocom extends Exchange {
         const type = this.safeStringLower2 (order, 'type', 'order_type');
         const side = this.safeStringLower (order, 'side');
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
+        const stopPrice = this.safeString (order, 'trigger_price');
         const execInst = this.safeString (order, 'exec_inst');
         let postOnly = undefined;
         if (execInst !== undefined) {
@@ -1995,6 +2079,7 @@ module.exports = class cryptocom extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
+            'stopPrice': stopPrice,
             'amount': amount,
             'filled': filled,
             'remaining': undefined,
