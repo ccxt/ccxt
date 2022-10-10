@@ -3830,7 +3830,7 @@ module.exports = class mexc3 extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'network': network,
             'address': address,
-            'addressTo': undefined,
+            'addressTo': address,
             'addressFrom': undefined,
             'tag': undefined,
             'tagTo': undefined,
