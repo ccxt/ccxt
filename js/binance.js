@@ -4467,7 +4467,7 @@ module.exports = class binance extends Exchange {
         //     }
         //  ]
         //
-        const result = [];
+        const result = {};
         let withdrawFees = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -4485,11 +4485,11 @@ module.exports = class binance extends Exchange {
                 const fee = this.safeNumber (networkEntry, 'withdrawFee');
                 withdrawFees[networkCode] = fee;
             }
-            result.push ({
+            result[code] = {
                 'withdraw': withdrawFees,
                 'deposit': {},
                 'info': entry,
-            });
+            };
         }
         return result;
     }

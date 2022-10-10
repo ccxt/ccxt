@@ -6865,7 +6865,7 @@ Parameters
 Returns
 
 
- * An array of :ref:`transaction fee structures <transaction fee structure>`
+ * A dictionary of :ref:`transaction fee structures <transaction fee structure>` indexed by codes
 
 Transaction Fee Structure
 """""""""""""""""""""""""
