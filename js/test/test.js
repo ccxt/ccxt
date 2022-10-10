@@ -5,7 +5,7 @@
 const [processPath, , exchangeId = null, exchangeSymbol = null] = process.argv.filter ((x) => !x.startsWith ('--'))
 const verbose = process.argv.includes ('--verbose') || false
 const debug = process.argv.includes ('--debug') || false
-const extendedOrderTest = process.argv.includes ('--testOrders') || false
+const extendedOrderTest = true // process.argv.includes ('--testOrders') || false
 
 // ----------------------------------------------------------------------------
 
@@ -91,6 +91,18 @@ if (settings) {
 
 Object.assign (exchange, settings)
 
+// check auth keys in env var
+const requiredCredentials = exchange.requiredCredentials;
+for (const [credential, isRequired] of Object.entries (requiredCredentials)) {
+    if (isRequired && exchange[credential] === undefined) {
+        const credentialEnvName = (exchangeId + '_' + credential).toUpperCase () // example: KRAKEN_APIKEY
+        const credentialValue = process.env[credentialEnvName]
+        if (credentialValue) {
+            exchange[credential] = credentialValue
+        }
+    }
+}
+
 if (settings && settings.skip) {
     console.log ('[Skipped]', { 'exchange': exchangeId, 'symbol': exchangeSymbol || 'all' })
     process.exit ()
@@ -100,6 +112,7 @@ if (settings && settings.skip) {
 
 async function test (methodName, exchange, ... args) {
     console.log ('Testing', exchange.id, methodName, '(', ... args, ')')
+    if (methodName !== 'createOrder') return;
     if (exchange.has[methodName]) {
         return await (tests[methodName] (exchange, ... args))
     }
