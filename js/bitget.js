@@ -1137,6 +1137,9 @@ module.exports = class bitget extends Exchange {
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a `code` argument');
+        }
         const currency = this.currency (code);
         if (since === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a `since` argument');
@@ -1263,9 +1266,12 @@ module.exports = class bitget extends Exchange {
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a `code` argument');
+        }
         const currency = this.currency (code);
         if (since === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a `since` argument');
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a `since` argument');
         }
         const request = {
             'coin': currency['code'],
