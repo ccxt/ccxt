@@ -14,6 +14,117 @@ const isVerbose = true // process.argv.includes ('--verbose');
 
 // ----------------------------------------------------------------------------
 
+async function testCreateOrder(exchange, symbol) {
+    const method = 'createOrder';
+    if (!exchange.has[method]) {
+        console.log (warningPrefix, exchange.id, 'does not have method ', method, ' yet, skipping test...');
+        return;
+    }
+    // skip some exchanges
+    const skippedExchanges = [];
+    if (skippedExchanges.includes (exchange.id)) {
+        console.log (warningPrefix, exchange.id, 'found in ignored exchanges, skipping ' + method + ' test...');
+        return;
+    }
+    // as this test is in it's early stages, we'd better o make a whitelist of exchanges where this will be tested reliably. After some period, we will remove the whitelist and test all exchanges
+    const whitelistedExchanges = [ 'binance', 'ftx' ];
+    if (!whitelistedExchanges.includes (exchange.id)) {
+        console.log (warningPrefix, exchange.id, 'is not in whitelist for test, skipping ', method, ' test...');
+        return;
+    }
+    // ensure it has cancel (any) method, otherwise we should refrain from automatic test.
+    if (!exchange.has['cancelOrder'] && !exchange.has['cancelOrders'] && !exchange.has['cancelAllOrders']) {
+        assert (true, warningPrefix + ' ' +  exchange.id + ' does not have cancelOrder|cancelOrders|canelAllOrders method, which is needed to make tests for `createOrder` method. Skipping the test...');
+        return;
+    }
+
+    const limitPriceSafetyMultiplierFromMedian = 1.2;
+    const market = exchange.market (symbol);
+
+    // we need fetchBalance method to test out orders correctly
+    if (!exchange.has['fetchBalance']) {
+        assert (true, warningPrefix + ' ' +  exchange.id + ' does not have fetchBalance() method, which is needed to make tests for `createOrder` method. Skipping the test...');
+    }
+    // ensure there is enough balance of 'quote' asset, because at first we need to 'buy' the base asset
+    const balance = await exchange.fetchBalance ();
+    if (balance[market['quote']]['free'] === undefined) {
+        assert (true, warningPrefix + ' ' +  exchange.id + ' does not have enough balance of' + market['quote'] + ' in fetchBalance() which is required to test ' + method);
+    }
+    if (isVerbose) {
+        console.log ('fetched balance: ' + balance[market['quote']]['free']);
+    }
+    // get best bid & ask
+    const [bestBid, bestAsk] = await testCreateOrder_getBestBidAsk (exchange, symbol);
+    // get minimum order amount & cost
+    let [minimumAmountForBuy, minimumCostForBuy ] = getMinimumMarketCostAndAmountForBuy (exchange, market, bestAsk);
+    if (minimumAmountForBuy === undefined || minimumCostForBuy === undefined) {
+        assert (true, warningPrefix + ' ' +  exchange.id + ' can not determine minimum amount/cost of order for ' + symbol + ' market');
+    }
+    if (isVerbose) {
+        console.log ('minimum amount should be: ' + minimumAmountForBuy + ', minimum cost should be: ' + minimumCostForBuy);
+    }
+
+    // ************************************ //
+    // *********** [Scenario 1] *********** //
+    // ************************************ //
+    try{
+        // create limit order which IS GUARANTEED not to be filled (far from the best bid|ask price)
+        const limitBuyPrice_nonFillable = bestBid / limitPriceSafetyMultiplierFromMedian;
+        const buyOrder_nonFillable = await testCreateOrder_submitSafeOrder (exchange, symbol, 'limit', 'buy', minimumAmountForBuy, limitBuyPrice_nonFillable, {});
+        const buyOrder_nonFillable_fetched = await testCreateOrder_fetchOrder (exchange, symbol, buyOrder_nonFillable['id']);
+        // ensure that order is not filled
+        const isClosed = testCreateOrder_orderIs (exchange, buyOrder_nonFillable, 'closed');
+        const isClosedFetched = testCreateOrder_orderIs (exchange, buyOrder_nonFillable_fetched, 'closed');
+        assert (!isClosed, warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' order should not be filled, but it is. ' + JSON.stringify (buyOrder_nonFillable));
+        assert (!isClosedFetched, warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' order should not be filled, but it is. ' + JSON.stringify (buyOrder_nonFillable_fetched));
+        // cancel the order
+        await testCreateOrder_cancelOrder (exchange, symbol, buyOrder_nonFillable['id']);
+    } catch (e) {
+        assert (true, warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' ' + method + ' failed for Scenario 1: ' + e.message);
+    }
+    // *********** [Scenario 1 - END ] *********** //
+
+    // ************************************ //
+    // *********** [Scenario 2] *********** //
+    // ************************************ //
+    try{
+        // create limit/market order which IS GUARANTEED to have a fill (full or partial), then sell the bought amount
+        const limitBuyPrice_fillable = bestAsk * limitPriceSafetyMultiplierFromMedian;
+        const buyOrder_fillable = await testCreateOrder_submitSafeOrder (exchange, symbol, 'limit', 'buy', minimumAmountForBuy, limitBuyPrice_fillable, {});
+        // try to cancel remnant (if any) of order
+        testCreateOrder_tryCancelOrder (exchange, symbol, buyOrder_fillable);
+        // now, as order is closed/canceled, we can reliably fetch the order information
+        const buyOrder_filled_fetched = await testCreateOrder_fetchOrder (exchange, symbol, buyOrder_fillable['id']);
+        // we need to find out the amount of base asset that was bought
+        let amountToSell = undefined;
+        if (buyOrder_filled_fetched['filled'] === undefined) {
+            amountToSell = buyOrder_filled_fetched['filled'];
+        } else {
+            // if it was not reported, then the last step is to re-fetch balance and sell all target tokens (don't worry, it will not sell much, as the test reached here, it means that even the minimum sell amount execution had failed because of insufficient coins, so, all this will sell is whatever small amount exists in wallet)
+            const balance = await exchange.fetchBalance ();
+            amountToSell = balance[market['base']]['free'];
+        }
+        const sellOrder = await testCreateOrder_submitSafeOrder (exchange, symbol, 'market', 'sell', amountToSell, undefined, {'reduceOnly': true}); // we use 'reduceOnly' to ensure we don't open a margin-ed position accidentally
+        const sellOrder_fetched = await testCreateOrder_fetchOrder (exchange, symbol, sellOrder['id']);
+        // try to test that order was fully filled
+        const isClosed = testCreateOrder_orderIs(exchange, sellOrder_fetched, 'closed');
+        const isClosedFetched = testCreateOrder_orderIs(exchange, sellOrder_fetched, 'closed');
+        const isOpen = testCreateOrder_orderIs(exchange, sellOrder_fetched, 'open');
+        const isOpenFetched = testCreateOrder_orderIs(exchange, sellOrder_fetched, 'open');
+        assert (isClosed || isClosedFetched || (isOpen === undefined && isOpenFetched === undefined), warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' order should be filled, but it is not. ' + exchange.json (sellOrder_fetched));
+    } catch (e) {
+        assert (true, warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' ' + method + ' failed for Scenario 2: ' + e.message);
+    }
+    // *********** [Scenario 2 - END ] *********** //
+
+
+    // ***********
+    // above, we already tested 'limit' and 'market' orders. next, 'todo' is to create tests for other unified scenarios (spot, swap, trigger, positions, stoploss, takeprofit, etc)
+    // ***********
+}
+
+// ----------------------------------------------------------------------------
+
 async function testCreateOrder_getBestBidAsk (exchange, symbol) {
     // find out best bid/ask price to determine the entry prices
     let bestBid = undefined;
@@ -48,7 +159,7 @@ async function testCreateOrder_getBestBidAsk (exchange, symbol) {
     }
     //
     if (bestBid === undefined || bestAsk === undefined) {
-        throw new Error  (warningPrefix + ' ' +  exchange.id + ' could not get best bid/ask, skipping ' + method + ' test...');
+        assert (true, warningPrefix + ' ' +  exchange.id + ' could not get best bid/ask, skipping ' + method + ' test...');
     }
     // ensure values are correct
     assert ( (bestBid !== undefined) && (bestAsk !== undefined) && (bestBid > 0) || (bestAsk > 0) && (bestBid >= bestAsk), warningPrefix + ' ' +  exchange.id + ' best bid/ask seem incorrect. Bid:' + bestBid + ' Ask:' + bestAsk);
@@ -159,7 +270,7 @@ function testCreateOrder_orderIs (exchange, order, statusSlug) {
 
 // ----------------------------------------------------------------------------
 
-async function testCreateOrder_failsafeCreateOrder (exchange, symbol, orderType, side, amount, price = undefined, params = {}) {
+async function testCreateOrder_submitSafeOrder (exchange, symbol, orderType, side, amount, price = undefined, params = {}) {
     if (isVerbose) {
         console.log ('Executing createOrder', symbol, orderType, side, amount, price, params);
     }
@@ -171,46 +282,13 @@ async function testCreateOrder_failsafeCreateOrder (exchange, symbol, orderType,
         // if test failed for some reason, then we stop any futher testing and throw exception. However, before it, we should try to cancel that order, if possible.
         if (orderType !== 'market') // market order is not cancelable
         {
-            // we prefer to fetch the order, than using the `order` object returned by createOrder
-            const fetchedOrder = await testCreateOrder_fetchOrder (exchange, symbol, order['id']);
-            const isClosed = testCreateOrder_orderIs (exchange, fetchedOrder, 'closed');
-            const isOpen = testCreateOrder_orderIs (exchange, fetchedOrder, 'open');
-            if (isOpen === undefined && isClosed) {
-                console.log ('Even though `testOrder` has failed, the order was already closed, so we do not need to cancel it');
-            } else {
-                // if we have no indications that order was closed, then we try to cancel it
-                if (isOpen || isClosed === undefined) {
-                    try {
-                        await testCreateOrder_cancelOrder (exchange, symbol, order['id']);
-                    } catch (e2) {
-                        // if cancellation failed (maybe it was already become filled)
-                        console.log (warningPrefix + ' ' +  exchange.id + ' failed to cancel order after failed order-object test: ' + exchange.json (order));
-                    }
-                }
-            }
+            testCreateOrder_tryCancelOrder (exchange, symbol, order);
         }
         // now, we can throw the initial error
-        throw e;
+        assert (true, warningPrefix + ' ' +  exchange.id + ' failed to createOrder: ' + e.message);
     }
     return order;
 }
-
-/*
-async function testCreateOrder_getOrderWithInfo (exchange, symbol, orderType, side, amount, price = undefined, params = {}) {
-    const order = await testCreateOrder_failsafeCreateOrder (exchange, symbol, orderType, side, amount, price, params);
-    const originalId = order.id;
-    // from `createOrder` we are not guaranteed to have reliable order-status or any information at all, so we need to fetch for order id to get more precise information
-    const fetchedOrder = await testCreateOrder_fetchOrder (exchange, symbol, originalId);
-    if (fetchedOrder === undefined) {
-        throw new Error ('Abnormal error: order was not fetched. This exchange-test might be missing some information, thus this current test might not be fully reliable');
-    } else {
-        // for maximal informativeness, extend original order-info with fetched order-info
-        if (fetchedOrder !== undefined) {
-            order = exchange.deepExtend (order, fetchedOrder);
-        }
-    }
-    return order;
-}*/
 
 function getMinimumMarketCostAndAmountForBuy (exchange, market, askPrice = undefined) {
     // pre-define some coefficients, which will be used down below
@@ -263,16 +341,39 @@ function getMinimumMarketCostAndAmountForBuy (exchange, market, askPrice = undef
     return [ minimumAmountForBuy, minimumCostForBuy ];
 }
 
+async function testCreateOrder_tryCancelOrder (exchange, symbol, order) {
+    // fetch order for maximum accuracy
+    const order_fetched = await testCreateOrder_fetchOrder (exchange, symbol, order['id']);
+    // check their status
+    const isClosed = testCreateOrder_orderIs (exchange, order, 'closed');
+    const isClosedFetched = testCreateOrder_orderIs (exchange, order_fetched, 'closed');
+    const isOpen = testCreateOrder_orderIs (exchange, order, 'open');
+    const isOpenFetched = testCreateOrder_orderIs (exchange, order_fetched, 'open');
+    // if it was not reported as closed/filled, then try to cancel it
+    if ((isClosed === undefined && isClosedFetched === undefined) || (isOpen || isOpenFetched)) {
+        if (isVerbose) {
+            console.log ('trying to cancel the remaining amount of partially filled order...');
+        }
+        try {
+            await testCreateOrder_cancelOrder (exchange, symbol, order['id']);
+        } catch (e) {
+            // we don't throw exception here, because order might have been closed/filled already, before 'cancelOrder' call reaches server, so it is tolerable
+            console.log (warningPrefix + ' ' +  exchange['id'] + ' ' + symbol + ' order ' + order['id'] + ' a moment ago, order was reported as open, but could not be cancelled at this moment: ' + exchange.json (order) + '. Exception message: ' + e.message);
+        }
+    } else {
+        if (isVerbose) {
+            console.log ('order is already closed/filled, no need to cancel it');
+        }
+    }
+}
+
 function testCreateOrder_assert_and_check_status (exchange, symbol, order, fillStatus) {
     let orderIsOpen = undefined;
     const orderJsoned = exchange.json (order);
     const order_filled_amount = exchange.safeString (order, 'filled');
     const order_submited_amount = exchange.safeString (order, 'amount');
     if (fillStatus === 'fully_filled') {
-        // ensure that order has `closed` status
-        assert (order['status'] === 'closed' || order['status'] === undefined, warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' order status should be `closed`. ' + orderJsoned);
-        // ensure that `filled` amount is equal to `amount`
-        assert (order_filled_amount === undefined || order_submited_amount === undefined || Precise.stringEq (order_filled_amount, order_submited_amount), warningPrefix + ' ' +  exchange.id + ' order `filled` amount should be equal to `amount`. ' + orderJsoned);
+        
     } else if (fillStatus === 'open_or_closed') {
         // ensure it's `open` or `closed` (or undefined)
         assert ((order['status'] === 'open' || order['status'] === 'closed' || order['status'] === undefined), warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' order status should be either `open` or `closed`. ' + orderJsoned);
@@ -287,146 +388,6 @@ function testCreateOrder_assert_and_check_status (exchange, symbol, order, fillS
         orderIsOpen = statusIsOpen || orderHasPartialFill;
     }
     return orderIsOpen;
-}
-
-async function testCreateOrder(exchange, symbol) {
-    const method = 'createOrder';
-    if (!exchange.has[method]) {
-        console.log (warningPrefix, exchange.id, 'does not have method ', method, ' yet, skipping test...');
-        return;
-    }
-    // skip some exchanges
-    const skippedExchanges = [];
-    if (skippedExchanges.includes (exchange.id)) {
-        console.log (warningPrefix, exchange.id, 'found in ignored exchanges, skipping ' + method + ' test...');
-        return;
-    }
-    // as this test is in it's early stages, we'd better o make a whitelist of exchanges where this will be tested reliably. After some period, we will remove the whitelist and test all exchanges
-    const whitelistedExchanges = [ 'binance', 'ftx' ];
-    if (!whitelistedExchanges.includes (exchange.id)) {
-        console.log (warningPrefix, exchange.id, 'is not in whitelist for test, skipping ', method, ' test...');
-        return;
-    }
-    // ensure it has cancel (any) method, otherwise we should refrain from automatic test.
-    if (!exchange.has['cancelOrder'] && !exchange.has['cancelOrders'] && !exchange.has['cancelAllOrders']) {
-        throw new Error (warningPrefix + ' ' +  exchange.id + ' does not have cancelOrder|cancelOrders|canelAllOrders method, which is needed to make tests for `createOrder` method. Skipping the test...');
-        return;
-    }
-
-    const limitPriceSafetyMultiplierFromMedian = 1.2;
-    const market = exchange.market (symbol);
-
-    // we need fetchBalance method to test out orders correctly
-    if (!exchange.has['fetchBalance']) {
-        throw new Error (warningPrefix + ' ' +  exchange.id + ' does not have fetchBalance() method, which is needed to make tests for `createOrder` method. Skipping the test...');
-    }
-    // ensure there is enough balance of 'quote' asset, because at first we need to 'buy' the base asset
-    const balance = await exchange.fetchBalance ();
-    if (balance[market['quote']]['free'] === undefined) {
-        throw new Error (warningPrefix + ' ' +  exchange.id + ' does not have enough balance of' + market['quote'] + ' in fetchBalance() which is required to test ' + method);
-    }
-    if (isVerbose) {
-        console.log ('fetched balance: ' + balance[market['quote']]['free']);
-    }
-    // get best bid & ask
-    const [bestBid, bestAsk] = await testCreateOrder_getBestBidAsk (exchange, symbol);
-    // get minimum order amount & cost
-    let [minimumAmountForBuy, minimumCostForBuy ] = getMinimumMarketCostAndAmountForBuy (exchange, market, bestAsk);
-    if (minimumAmountForBuy === undefined || minimumCostForBuy === undefined) {
-        throw new Error (warningPrefix + ' ' +  exchange.id + ' can not determine minimum amount/cost of order for ' + symbol + ' market');
-    }
-    if (isVerbose) {
-        console.log ('minimum amount should be: ' + minimumAmountForBuy + ', minimum cost should be: ' + minimumCostForBuy);
-    }
-
-    // ************************************ //
-    // *********** [Scenario 1] *********** //
-    // ************************************ //
-    try{
-        // create limit order which IS GUARANTEED not to be filled (far from the best bid|ask price)
-        const limitBuyPrice_nonFillable = bestBid / limitPriceSafetyMultiplierFromMedian;
-        const buyOrder_nonFillable = await testCreateOrder_failsafeCreateOrder (exchange, symbol, 'limit', 'buy', minimumAmountForBuy, limitBuyPrice_nonFillable, {});
-        const buyOrder_nonFillable_fetched = await testCreateOrder_fetchOrder (exchange, symbol, buyOrder_nonFillable['id']);
-        // ensure that order is not filled
-        const isClosed = testCreateOrder_orderIs (exchange, buyOrder_nonFillable, 'closed');
-        const isClosedFetched = testCreateOrder_orderIs (exchange, buyOrder_nonFillable_fetched, 'closed');
-        assert (!isClosed, warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' order should not be filled, but it is. ' + JSON.stringify (buyOrder_nonFillable));
-        assert (!isClosedFetched, warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' order should not be filled, but it is. ' + JSON.stringify (buyOrder_nonFillable_fetched));
-        // cancel the order
-        await testCreateOrder_cancelOrder (exchange, symbol, buyOrder_nonFillable['id']);
-        // *********** [Scenario 1 - END ] *********** //
-    } catch (e) {
-        throw new Error (warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' ' + method + ' failed for Scenario 1: ' + e.message);
-    }
-    // ************************************ //
-    // *********** [Scenario 2] *********** //
-    // ************************************ //
-    try{
-        // create limit/market order which IS GUARANTEED to have a fill (full or partial), then sell the bought amount
-        const limitBuyPrice_fillable = bestAsk * limitPriceSafetyMultiplierFromMedian;
-        const buyOrder_fillable = await testCreateOrder_failsafeCreateOrder (exchange, symbol, 'limit', 'buy', minimumAmountForBuy, limitBuyPrice_fillable, {});
-        const buyOrder_fillable_fetched = await testCreateOrder_fetchOrder (exchange, symbol, buyOrder_fillable['id']);
-        
-
-        // zz 
-        // ensure that order is not filled
-        const bof_isClosed = testCreateOrder_orderIs (exchange, buyOrder_nonFillable, 'closed');
-        const bof_fetched_isClosed = testCreateOrder_orderIs (exchange, buyOrder_nonFillable_fetched, 'closed');
-        assert (!bonf_isClosed, warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' order should not be filled, but it is. ' + JSON.stringify (buyOrder_nonFillable));
-        assert (!bonf_fetched_isClosed, warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' order should not be filled, but it is. ' + JSON.stringify (buyOrder_nonFillable_fetched));
-        // cancel the order
-
-
-        const buyOrder_fillable_isOpen = testCreateOrder_assert_and_check_status (exchange, symbol, buyOrder_fillable, 'open_or_closed');
-
-        if (buyOrder_fillable_isOpen) {
-            // so, if order was only partially filled & still open, then try to cancel the remaining amount
-            try {
-                if (isVerbose) {
-                    console.log ('trying to cancel remaining amount of partially filled order...');
-                }
-                await testCreateOrder_cancelOrder (exchange, symbol, buyOrder_fillable['id']);
-            } catch (e) {
-                // we don't throw exception here, because it might have been cancelled/filled fully before 'cancelOrder' call reached server, so it is tolerable
-                console.log (warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' order ' + buyOrder_fillable['id'] + ' a moment ago, order was reported as open, but could not be cancelled at this moment, it might have already been filled fully. Message: ' + e.message);
-            }
-        }
-        //
-        // now, we need to sell the bought amount
-        try {
-            // at first, try to sell the 'whole' amount that was submited (independent from the fact, whether above we check the `partial fill` or cancel the existing order. because in this last second, even the partially filled order could have been fully filled, and from above information we have not an exact indication of the amount that is filled at this exact moment)
-            const sellOrder = await testCreateOrder_getOrderWithInfo (exchange, symbol, 'market', 'sell', minimumAmountForBuy, undefined, {'reduceOnly': true}); // we use 'reduceOnly' to ensure we don't open a margin-ed position accidentally
-            // try to test that order was fully filled
-            testCreateOrder_assert_and_check_status (exchange, symbol, sellOrder, 'fully_filled');
-        } catch (e) {
-            if (e instanceof ccxt.InsufficientFunds) {
-                console.log (warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' : tried to sell the ordered buy amount fully, however faced an error' + e.message + '; now, we will try to sell only reported bought amount exactly');
-                try {
-                    let reported_filled_amount = buyOrder_fillable['filled'];
-                    if (!reported_filled_amount) {
-                        // if it was not reported, then the last step is to re-fetch balance and sell all target tokens (don't worry, it will not sell much, as the test reached here, it means that even the minimum sell amount execution had failed because of insufficient coins, so, all this will sell is whatever small amount exists in wallet)
-                        const balance = await exchange.fetchBalance ();
-                        reported_filled_amount = balance[market['base']]['free'];
-                    }
-                    const sellOrderRepeated = await testCreateOrder_getOrderWithInfo (exchange, symbol, 'market', 'sell', reported_filled_amount, undefined, {'reduceOnly': true}); // we use 'reduceOnly' to ensure we don't open a margin-ed position accidentally
-                    // try to test that order was fully filled
-                    testCreateOrder_assert_and_check_status (exchange, symbol, sellOrderRepeated, 'fully_filled');
-                } catch (innerException) { 
-                    console.log (warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' : experienced unexpected error while making repeated sell order: ' + e.message);
-                }
-            } else {
-                console.log (warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' : experienced unexpected error: ' + e.message);
-            }
-        }
-    } catch (e) {
-        throw new Error (warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' ' + method + ' failed for Scenario 2: ' + e.message);
-    }
-    // *********** [Scenario 2 - END ] *********** //
-
-
-    // ***********
-    // above, we already tested 'limit' and 'market' orders. next, 'todo' is to create tests for other unified scenarios (spot, swap, trigger, positions, stoploss, takeprofit, etc)
-    // ***********
 }
 
 module.exports = testCreateOrder;
