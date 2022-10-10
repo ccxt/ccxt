@@ -532,6 +532,7 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
          * @param {object} params extra parameters specific to the mexc3 api endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -3569,6 +3570,7 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchDepositAddressesByNetwork
          * @description fetch a dictionary of addresses for a currency, indexed by network
+         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} params extra parameters specific to the mexc3 api endpoint
          * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure} indexed by the network
@@ -3645,6 +3647,7 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-history-supporting-network
          * @param {string} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch deposits for
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
@@ -3671,9 +3674,9 @@ module.exports = class mexc3 extends Exchange {
         // currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
         // due to that I'm applying the network parameter directly so the user can control it on its side
         currency = this.currency (code);
-        request['currency'] = currency['id'] + '-' + rawNetwork;
+        request['coin'] = currency['id'] + '-' + rawNetwork;
         if (since !== undefined) {
-            request['start_time'] = since;
+            request['startTime'] = since;
         }
         if (limit !== undefined) {
             if (limit > 1000) {
@@ -3706,6 +3709,7 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#withdraw-history-supporting-network
          * @param {string} code unified currency code
          * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
          * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
@@ -3724,7 +3728,7 @@ module.exports = class mexc3 extends Exchange {
             // 'limit': limit, // default 1000, maximum 1000
         };
         const currency = this.currency (code);
-        request['currency'] = currency['id'];
+        request['coin'] = currency['id'];
         if (since !== undefined) {
             request['startTime'] = since;
         }
@@ -4195,6 +4199,7 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#withdraw
          * @description make a withdrawal
+         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#withdraw
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
