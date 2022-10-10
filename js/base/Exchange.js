@@ -466,10 +466,13 @@ module.exports = class Exchange {
         const splitPath = path.split (/[^a-zA-Z0-9]/)
         const camelcaseSuffix  = splitPath.map (this.capitalize).join ('')
         const underscoreSuffix = splitPath.map ((x) => x.trim ().toLowerCase ()).filter ((x) => x.length > 0).join ('_')
-        const camelcasePrefix = [ paths[0] ].concat (paths.slice (1).map (this.capitalize)).join ('')
+        const camelcasePrefix = [ paths[0] ].concat (paths.slice (1).map ((x) => this.capitalize (x.split (/[^a-zA-Z0-9]/).map (this.capitalize).join ('')))).join ('')
         const underscorePrefix = [ paths[0] ].concat (paths.slice (1).map ((x) => x.trim ()).filter ((x) => x.length > 0)).join ('_')
         const camelcase  = camelcasePrefix + camelcaseMethod + this.capitalize (camelcaseSuffix)
-        const underscore = underscorePrefix + '_' + lowercaseMethod + '_' + underscoreSuffix
+        let underscore = underscorePrefix + '_' + lowercaseMethod
+        if (underscoreSuffix.length > 0) {
+            underscore += '_' + underscoreSuffix
+        }
         const typeArgument = (paths.length > 1) ? paths : paths[0]
         // handle call costs here
         const partial = async (params = {}, context = {}) => this[methodName] (path, typeArgument, uppercaseMethod, params, undefined, undefined, config, context)
