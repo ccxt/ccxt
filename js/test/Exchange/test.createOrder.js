@@ -367,27 +367,4 @@ async function testCreateOrder_tryCancelOrder (exchange, symbol, order) {
     }
 }
 
-function testCreateOrder_assert_and_check_status (exchange, symbol, order, fillStatus) {
-    let orderIsOpen = undefined;
-    const orderJsoned = exchange.json (order);
-    const order_filled_amount = exchange.safeString (order, 'filled');
-    const order_submited_amount = exchange.safeString (order, 'amount');
-    if (fillStatus === 'fully_filled') {
-        
-    } else if (fillStatus === 'open_or_closed') {
-        // ensure it's `open` or `closed` (or undefined)
-        assert ((order['status'] === 'open' || order['status'] === 'closed' || order['status'] === undefined), warningPrefix + ' ' +  exchange.id + ' ' + symbol + ' order status should be either `open` or `closed`. ' + orderJsoned);
-        // check if order was still open
-        const statusIsOpen = (order['status'] !== undefined && order['status'] !== 'closed');
-        // if order was partially filled, then close it
-        const orderAmountSubmited = exchange.safeString (order, 'amount');
-        const orderAmountFilled = exchange.safeString (order, 'filled');
-        // check if order had only partial fill (was not fully filled)
-        const orderHasPartialFill = (orderAmountSubmited !== undefined && orderAmountFilled !== undefined && Precise.stringGt (orderAmountSubmited, orderAmountFilled));
-        // if any of them was `true`, then order was still open
-        orderIsOpen = statusIsOpen || orderHasPartialFill;
-    }
-    return orderIsOpen;
-}
-
 module.exports = testCreateOrder;
