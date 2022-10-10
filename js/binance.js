@@ -1282,6 +1282,7 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchCurrencies
          * @description fetches all available currencies on an exchange
+         * @see https://binance-docs.github.io/apidocs/spot/en/#all-coins-39-information-user_data
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} an associative dictionary of currencies
          */
@@ -4378,7 +4379,8 @@ module.exports = class binance extends Exchange {
          * @method
          * @name binance#fetchTransactionFees
          * @description fetch transaction fees
-         * @param {[string]|undefined} codes not used by binance fetchTransactionFees ()
+         * @see https://binance-docs.github.io/apidocs/spot/en/#all-coins-39-information-user_data
+         * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
@@ -4465,26 +4467,31 @@ module.exports = class binance extends Exchange {
         //     }
         //  ]
         //
-        const withdrawFees = {};
+        const result = [];
+        let withdrawFees = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const currencyId = this.safeString (entry, 'coin');
             const code = this.safeCurrencyCode (currencyId);
+            if (codes !== undefined && codes.indexOf (code) === -1) {
+                continue;
+            }
             const networkList = this.safeValue (entry, 'networkList', []);
-            withdrawFees[code] = {};
+            withdrawFees = {};
             for (let j = 0; j < networkList.length; j++) {
                 const networkEntry = networkList[j];
                 const networkId = this.safeString (networkEntry, 'network');
                 const networkCode = this.safeCurrencyCode (networkId);
                 const fee = this.safeNumber (networkEntry, 'withdrawFee');
-                withdrawFees[code][networkCode] = fee;
+                withdrawFees[networkCode] = fee;
             }
+            result.push ({
+                'withdraw': withdrawFees,
+                'deposit': {},
+                'info': entry,
+            });
         }
-        return {
-            'withdraw': withdrawFees,
-            'deposit': {},
-            'info': response,
-        };
+        return result;
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
