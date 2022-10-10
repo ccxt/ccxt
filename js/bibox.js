@@ -1643,13 +1643,13 @@ module.exports = class bibox extends Exchange {
         // by default it will try load withdrawal fees of all currencies (with separate requests)
         // however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
         await this.loadMarkets ();
-        const withdrawFees = {};
-        const info = {};
+        const result = {};
         if (codes === undefined) {
             codes = Object.keys (this.currencies);
         }
         for (let i = 0; i < codes.length; i++) {
-            const code = codes[i];
+            const currencyId = codes[i];
+            const code = this.safeCurrencyCode (currencyId);
             const currency = this.currency (code);
             const request = {
                 'cmd': 'transfer/coinConfig',
@@ -1683,14 +1683,13 @@ module.exports = class bibox extends Exchange {
             const firstOuterResult = this.safeValue (outerResults, 0, {});
             const innerResults = this.safeValue (firstOuterResult, 'result', []);
             const firstInnerResult = this.safeValue (innerResults, 0, {});
-            info[code] = firstInnerResult;
-            withdrawFees[code] = this.safeNumber (firstInnerResult, 'withdraw_fee');
+            result[code] = {
+                'withdraw': this.safeNumber (firstInnerResult, 'withdraw_fee'),
+                'deposit': {},
+                'info': response,
+            };
         }
-        return {
-            'info': info,
-            'withdraw': withdrawFees,
-            'deposit': {},
-        };
+        return result;
     }
 
     sign (path, api = 'v1Public', method = 'GET', params = {}, headers = undefined, body = undefined) {
