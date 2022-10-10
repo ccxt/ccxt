@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ArgumentsRequired, ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied, NotSupported } = require ('./base/errors');
+const { ArgumentsRequired, ExchangeError, InvalidNonce, AuthenticationError, PermissionDenied, NotSupported, OrderNotFound } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -131,6 +131,7 @@ module.exports = class bit2c extends Exchange {
             'exceptions': {
                 'exact': {
                     'Please provide valid APIkey': AuthenticationError, // { "error" : "Please provide valid APIkey" }
+                    'No order found.': OrderNotFound, // { "Error" : "No order found." }
                 },
                 'broad': {
                     // { "error": "Please provide valid nonce in Request Nonce (1598218490) is not bigger than last nonce (1598218490)."}
@@ -853,8 +854,12 @@ module.exports = class bit2c extends Exchange {
         //
         //     { "error" : "please approve new terms of use on site." }
         //     { "error": "Please provide valid nonce in Request Nonce (1598218490) is not bigger than last nonce (1598218490)."}
+        //     { "Error" : "No order found." }
         //
-        const error = this.safeString (response, 'error');
+        let error = this.safeString (response, 'error');
+        if (error === undefined) {
+            error = this.safeString (response, 'Error');
+        }
         if (error !== undefined) {
             const feedback = this.id + ' ' + body;
             this.throwExactlyMatchedException (this.exceptions['exact'], error, feedback);
