@@ -1202,21 +1202,15 @@ class bitmart(Exchange):
         #         "low":"0.034986"
         #     }
         #
-        # contract
+        # swap
         #
         #     {
-        #         "low":"404.4",
-        #         "high":"404.4",
-        #         "open":"404.4",
-        #         "close":"404.4",
-        #         "last_price":"404.4",
-        #         "avg_price":"404.4",
-        #         "volume":"7670",
-        #         "timestamp":1598758441,
-        #         "rise_fall_rate":"0",
-        #         "rise_fall_value":"0",
-        #         "base_coin_volume":"76.7",
-        #         "quote_coin_volume":"31017.48"
+        #         "low_price": "20090.3",
+        #         "high_price": "20095.5",
+        #         "open_price": "20092.6",
+        #         "close_price": "20091.4",
+        #         "volume": "8748",
+        #         "timestamp": 1665002281
         #     }
         #
         # ws
@@ -1242,16 +1236,18 @@ class bitmart(Exchange):
         else:
             return [
                 self.safe_timestamp(ohlcv, 'timestamp'),
-                self.safe_number(ohlcv, 'open'),
-                self.safe_number(ohlcv, 'high'),
-                self.safe_number(ohlcv, 'low'),
-                self.safe_number(ohlcv, 'close'),
+                self.safe_number_2(ohlcv, 'open', 'open_price'),
+                self.safe_number_2(ohlcv, 'high', 'high_price'),
+                self.safe_number_2(ohlcv, 'low', 'low_price'),
+                self.safe_number_2(ohlcv, 'close', 'close_price'),
                 self.safe_number(ohlcv, 'volume'),
             ]
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        see https://developer-pro.bitmart.com/en/spot/#get-k-line
+        see https://developer-pro.bitmart.com/en/futures/#get-k-line
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int|None since: timestamp in ms of the earliest candle to fetch
@@ -1262,29 +1258,31 @@ class bitmart(Exchange):
         self.load_markets()
         market = self.market(symbol)
         type = market['type']
-        request = {}
         duration = self.parse_timeframe(timeframe)
-        if type == 'spot':
-            request['symbol'] = market['id']
-            request['step'] = self.timeframes[timeframe]
-            # the exchange will return an empty array if more than 500 candles is requested
-            maxLimit = 500
-            if limit is None:
-                limit = maxLimit
-            limit = min(maxLimit, limit)
-            now = int(self.milliseconds() / 1000)
-            if since is None:
-                start = now - limit * duration
-                request['from'] = start
-                request['to'] = now
-            else:
-                start = int(since / 1000) - 1
-                end = self.sum(start, limit * duration)
-                request['from'] = start
-                request['to'] = min(end, now)
-        elif (type == 'swap') or (type == 'future'):
-            raise NotSupported(self.id + ' fetchOHLCV() does not accept swap or future markets, only spot markets are allowed')
-        response = self.publicGetSpotV1SymbolsKline(self.extend(request, params))
+        request = {
+            'symbol': market['id'],
+            'step': self.timeframes[timeframe],
+        }
+        maxLimit = 500
+        if limit is None:
+            limit = maxLimit
+        limit = min(maxLimit, limit)
+        now = int(self.milliseconds() / 1000)
+        fromRequest = 'from' if (type == 'spot') else 'start_time'
+        toRequest = 'to' if (type == 'spot') else 'end_time'
+        if since is None:
+            start = now - limit * duration
+            request[fromRequest] = start
+            request[toRequest] = now
+        else:
+            start = int(since / 1000) - 1
+            end = self.sum(start, limit * duration)
+            request[fromRequest] = start
+            request[toRequest] = min(end, now)
+        method = 'publicGetSpotV1SymbolsKline'
+        if type == 'swap':
+            method = 'publicGetContractPublicKline'
+        response = getattr(self, method)(self.extend(request, params))
         #
         # spot
         #
@@ -1304,20 +1302,26 @@ class bitmart(Exchange):
         # swap
         #
         #     {
-        #         "errno":"OK",
-        #         "message":"OK",
-        #         "code":1000,
-        #         "trace":"32965074-5804-4655-b693-e953e36026a0",
-        #         "data":[
-        #             {"low":"404.4","high":"404.4","open":"404.4","close":"404.4","last_price":"404.4","avg_price":"404.4","volume":"7670","timestamp":1598758441,"rise_fall_rate":"0","rise_fall_value":"0","base_coin_volume":"76.7","quote_coin_volume":"31017.48"},
-        #             {"low":"404.1","high":"404.4","open":"404.4","close":"404.1","last_price":"404.1","avg_price":"404.15881086","volume":"12076","timestamp":1598758501,"rise_fall_rate":"-0.000741839762611276","rise_fall_value":"-0.3","base_coin_volume":"120.76","quote_coin_volume":"48806.2179994536"},
-        #             {"low":"404","high":"404.3","open":"404.1","close":"404","last_price":"404","avg_price":"404.08918918","volume":"740","timestamp":1598758561,"rise_fall_rate":"-0.000247463499133878","rise_fall_value":"-0.1","base_coin_volume":"7.4","quote_coin_volume":"2990.259999932"},
-        #         ]
+        #         "code": 1000,
+        #         "message": "Ok",
+        #         "data": [
+        #             {
+        #                 "low_price": "20090.3",
+        #                 "high_price": "20095.5",
+        #                 "open_price": "20092.6",
+        #                 "close_price": "20091.4",
+        #                 "volume": "8748",
+        #                 "timestamp": 1665002281
+        #             },
+        #             ...
+        #         ],
+        #         "trace": "96c989db-e0f5-46f5-bba6-60cfcbde699b"
         #     }
         #
         data = self.safe_value(response, 'data', {})
         klines = self.safe_value(data, 'klines', [])
-        return self.parse_ohlcvs(klines, market, timeframe, since, limit)
+        ohlcv = klines if (type == 'spot') else data
+        return self.parse_ohlcvs(ohlcv, market, timeframe, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         """

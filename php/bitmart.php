@@ -1222,21 +1222,15 @@ class bitmart extends Exchange {
         //         "low":"0.034986"
         //     }
         //
-        // contract
+        // swap
         //
         //     {
-        //         "low":"404.4",
-        //         "high":"404.4",
-        //         "open":"404.4",
-        //         "close":"404.4",
-        //         "last_price":"404.4",
-        //         "avg_price":"404.4",
-        //         "volume":"7670",
-        //         "timestamp":1598758441,
-        //         "rise_fall_rate":"0",
-        //         "rise_fall_value":"0",
-        //         "base_coin_volume":"76.7",
-        //         "quote_coin_volume":"31017.48"
+        //         "low_price" => "20090.3",
+        //         "high_price" => "20095.5",
+        //         "open_price" => "20092.6",
+        //         "close_price" => "20091.4",
+        //         "volume" => "8748",
+        //         "timestamp" => 1665002281
         //     }
         //
         // ws
@@ -1262,10 +1256,10 @@ class bitmart extends Exchange {
         } else {
             return array(
                 $this->safe_timestamp($ohlcv, 'timestamp'),
-                $this->safe_number($ohlcv, 'open'),
-                $this->safe_number($ohlcv, 'high'),
-                $this->safe_number($ohlcv, 'low'),
-                $this->safe_number($ohlcv, 'close'),
+                $this->safe_number_2($ohlcv, 'open', 'open_price'),
+                $this->safe_number_2($ohlcv, 'high', 'high_price'),
+                $this->safe_number_2($ohlcv, 'low', 'low_price'),
+                $this->safe_number_2($ohlcv, 'close', 'close_price'),
                 $this->safe_number($ohlcv, 'volume'),
             );
         }
@@ -1274,6 +1268,8 @@ class bitmart extends Exchange {
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+         * @see https://developer-pro.bitmart.com/en/spot/#get-k-line
+         * @see https://developer-pro.bitmart.com/en/futures/#get-k-line
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
@@ -1284,32 +1280,34 @@ class bitmart extends Exchange {
         $this->load_markets();
         $market = $this->market($symbol);
         $type = $market['type'];
-        $request = array();
         $duration = $this->parse_timeframe($timeframe);
-        if ($type === 'spot') {
-            $request['symbol'] = $market['id'];
-            $request['step'] = $this->timeframes[$timeframe];
-            // the exchange will return an empty array if more than 500 candles is requested
-            $maxLimit = 500;
-            if ($limit === null) {
-                $limit = $maxLimit;
-            }
-            $limit = min ($maxLimit, $limit);
-            $now = intval($this->milliseconds() / 1000);
-            if ($since === null) {
-                $start = $now - $limit * $duration;
-                $request['from'] = $start;
-                $request['to'] = $now;
-            } else {
-                $start = intval($since / 1000) - 1;
-                $end = $this->sum($start, $limit * $duration);
-                $request['from'] = $start;
-                $request['to'] = min ($end, $now);
-            }
-        } elseif (($type === 'swap') || ($type === 'future')) {
-            throw new NotSupported($this->id . ' fetchOHLCV () does not accept swap or future markets, only spot markets are allowed');
+        $request = array(
+            'symbol' => $market['id'],
+            'step' => $this->timeframes[$timeframe],
+        );
+        $maxLimit = 500;
+        if ($limit === null) {
+            $limit = $maxLimit;
         }
-        $response = $this->publicGetSpotV1SymbolsKline (array_merge($request, $params));
+        $limit = min ($maxLimit, $limit);
+        $now = intval($this->milliseconds() / 1000);
+        $fromRequest = ($type === 'spot') ? 'from' : 'start_time';
+        $toRequest = ($type === 'spot') ? 'to' : 'end_time';
+        if ($since === null) {
+            $start = $now - $limit * $duration;
+            $request[$fromRequest] = $start;
+            $request[$toRequest] = $now;
+        } else {
+            $start = intval($since / 1000) - 1;
+            $end = $this->sum($start, $limit * $duration);
+            $request[$fromRequest] = $start;
+            $request[$toRequest] = min ($end, $now);
+        }
+        $method = 'publicGetSpotV1SymbolsKline';
+        if ($type === 'swap') {
+            $method = 'publicGetContractPublicKline';
+        }
+        $response = $this->$method (array_merge($request, $params));
         //
         // spot
         //
@@ -1329,20 +1327,26 @@ class bitmart extends Exchange {
         // swap
         //
         //     {
-        //         "errno":"OK",
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"32965074-5804-4655-b693-e953e36026a0",
-        //         "data":array(
-        //             array("low":"404.4","high":"404.4","open":"404.4","close":"404.4","last_price":"404.4","avg_price":"404.4","volume":"7670","timestamp":1598758441,"rise_fall_rate":"0","rise_fall_value":"0","base_coin_volume":"76.7","quote_coin_volume":"31017.48"),
-        //             array("low":"404.1","high":"404.4","open":"404.4","close":"404.1","last_price":"404.1","avg_price":"404.15881086","volume":"12076","timestamp":1598758501,"rise_fall_rate":"-0.000741839762611276","rise_fall_value":"-0.3","base_coin_volume":"120.76","quote_coin_volume":"48806.2179994536"),
-        //             array("low":"404","high":"404.3","open":"404.1","close":"404","last_price":"404","avg_price":"404.08918918","volume":"740","timestamp":1598758561,"rise_fall_rate":"-0.000247463499133878","rise_fall_value":"-0.1","base_coin_volume":"7.4","quote_coin_volume":"2990.259999932"),
-        //         )
+        //         "code" => 1000,
+        //         "message" => "Ok",
+        //         "data" => array(
+        //             array(
+        //                 "low_price" => "20090.3",
+        //                 "high_price" => "20095.5",
+        //                 "open_price" => "20092.6",
+        //                 "close_price" => "20091.4",
+        //                 "volume" => "8748",
+        //                 "timestamp" => 1665002281
+        //             ),
+        //             ...
+        //         ),
+        //         "trace" => "96c989db-e0f5-46f5-bba6-60cfcbde699b"
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
         $klines = $this->safe_value($data, 'klines', array());
-        return $this->parse_ohlcvs($klines, $market, $timeframe, $since, $limit);
+        $ohlcv = ($type === 'spot') ? $klines : $data;
+        return $this->parse_ohlcvs($ohlcv, $market, $timeframe, $since, $limit);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
