@@ -112,7 +112,6 @@ if (settings && settings.skip) {
 
 async function test (methodName, exchange, ... args) {
     console.log ('Testing', exchange.id, methodName, '(', ... args, ')')
-    if (methodName !== 'createOrder') return;
     if (exchange.has[methodName]) {
         return await (tests[methodName] (exchange, ... args))
     }
@@ -317,7 +316,6 @@ async function testExchange (exchange) {
     await test ('fetchTransactionFees', exchange)
     await test ('fetchTradingFees', exchange)
     await test ('fetchStatus', exchange)
-    await test ('fetchOpenInterestHistory', exchange, symbol)
 
     await test ('fetchOrders', exchange, symbol)
     await test ('fetchOpenOrders', exchange, symbol)
@@ -341,6 +339,7 @@ async function testExchange (exchange) {
     await test ('fetchBorrowInterest', exchange, code, symbol)
 
     if (exchange.extendedTest) {
+
         await test ('InvalidNonce', exchange, symbol)
         await test ('OrderNotFound', exchange, symbol)
         await test ('InvalidOrder', exchange, symbol)
