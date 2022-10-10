@@ -1142,7 +1142,7 @@ module.exports = class bitget extends Exchange {
         }
         const currency = this.currency (code);
         if (since === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a `since` argument');
+            since = this.milliseconds () - 31556952000; // 1yr
         }
         const request = {
             'coin': currency['code'],
@@ -1271,7 +1271,7 @@ module.exports = class bitget extends Exchange {
         }
         const currency = this.currency (code);
         if (since === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a `since` argument');
+            since = this.milliseconds () - 31556952000; // 1yr
         }
         const request = {
             'coin': currency['code'],
