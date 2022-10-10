@@ -2282,6 +2282,7 @@ class bybit extends Exchange {
          * @param {array} $params extra parameters specific to the bybit api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
          */
+        $this->load_markets();
         $request = array();
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
@@ -2307,7 +2308,6 @@ class bybit extends Exchange {
                 $method = 'privatePostOptionUsdcOpenapiPrivateV1QueryWalletBalance';
             }
         }
-        $this->load_markets();
         $response = $this->$method (array_merge($request, $params));
         //
         //     {
