@@ -2304,6 +2304,7 @@ module.exports = class bybit extends Exchange {
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
+        await this.loadMarkets ();
         const request = {};
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
@@ -2329,7 +2330,6 @@ module.exports = class bybit extends Exchange {
                 method = 'privatePostOptionUsdcOpenapiPrivateV1QueryWalletBalance';
             }
         }
-        await this.loadMarkets ();
         const response = await this[method] (this.extend (request, params));
         //
         //     {
