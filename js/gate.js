@@ -29,6 +29,7 @@ module.exports = class gate extends Exchange {
                         'delivery': 'https://api.gateio.ws/api/v4',
                         'spot': 'https://api.gateio.ws/api/v4',
                         'options': 'https://api.gateio.ws/api/v4',
+                        'sub_accounts': 'https://api.gateio.ws/api/v4',
                     },
                     'private': {
                         'withdrawals': 'https://api.gateio.ws/api/v4',
@@ -38,6 +39,7 @@ module.exports = class gate extends Exchange {
                         'delivery': 'https://api.gateio.ws/api/v4',
                         'spot': 'https://api.gateio.ws/api/v4',
                         'options': 'https://api.gateio.ws/api/v4',
+                        'sub_accounts': 'https://api.gateio.ws/api/v4',
                     },
                 },
                 'test': {
@@ -208,6 +210,26 @@ module.exports = class gate extends Exchange {
                         'post': {
                             'transfers': 300,
                             'sub_account_transfers': 300,
+                        },
+                    },
+                    'sub_accounts': {
+                        'get': {
+                            '': 1,
+                            '{user_id}': 1,
+                            '{user_id}/keys': 1,
+                            '{user_id}/keys/{key}': 1,
+                        },
+                        'post': {
+                            '': 1,
+                            '{user_id}/keys': 1,
+                            '{user_id}/lock': 1,
+                            '{user_id}/unlock': 1,
+                        },
+                        'put': {
+                            '{user_id}/keys/{key}': 1,
+                        },
+                        'delete': {
+                            '{user_id}/keys/{key}': 1,
                         },
                     },
                     'spot': {
