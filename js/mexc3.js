@@ -3802,7 +3802,7 @@ module.exports = class mexc3 extends Exchange {
         //
         const id = this.safeString (transaction, 'id');
         const type = (id === undefined) ? 'deposit' : 'withdrawal';
-        const timestamp = this.safeNumber2 (transaction, 'insertTime', 'applyTime');
+        const timestamp = this.safeInteger2 (transaction, 'insertTime', 'applyTime');
         const currencyId = this.safeString (transaction, 'currency');
         const network = this.safeString (transaction, 'network');
         const code = this.safeCurrencyCode (currencyId, currency);
