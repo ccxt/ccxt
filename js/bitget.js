@@ -1325,7 +1325,7 @@ module.exports = class bitget extends Exchange {
         //         "uTime": "1656407940148"
         //     }
         //
-        const timestamp = this.safeString (transaction, 'cTime');
+        const timestamp = this.safeInteger (transaction, 'cTime');
         const networkId = this.safeString (transaction, 'chain');
         const currencyId = this.safeString (transaction, 'coin');
         const status = this.safeString (transaction, 'status');
