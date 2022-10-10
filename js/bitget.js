@@ -39,7 +39,9 @@ module.exports = class bitget extends Exchange {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
-                'fetchDeposits': false,
+                'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -72,7 +74,7 @@ module.exports = class bitget extends Exchange {
                 'fetchTransfer': false,
                 'fetchTransfers': undefined,
                 'fetchWithdrawal': false,
-                'fetchWithdrawals': false,
+                'fetchWithdrawals': true,
                 'reduceMargin': true,
                 'setLeverage': true,
                 'setMarginMode': true,
@@ -161,7 +163,11 @@ module.exports = class bitget extends Exchange {
                         'get': {
                             'account/getInfo': 20,
                             'account/assets': 2,
-                            'account/transferRecords': 1,
+                            'account/transferRecords': 4,
+                            'wallet/deposit-address': 4,
+                            'wallet/withdrawal-inner': 4,
+                            'wallet/withdrawal-list': 1,
+                            'wallet/deposit-list': 1,
                         },
                         'post': {
                             'account/bills': 2,
@@ -173,6 +179,8 @@ module.exports = class bitget extends Exchange {
                             'trade/open-orders': 1,
                             'trade/history': 1,
                             'trade/fills': 1,
+                            'wallet/transfer': 4,
+                            'wallet/withdrawal': 4,
                         },
                     },
                     'mix': {
@@ -735,6 +743,7 @@ module.exports = class bitget extends Exchange {
                     'invalid end time': BadRequest, // end time is a date 30 days ago; or end time is a date in the future
                     '20003': ExchangeError, // operation failed, {"status":"error","ts":1595730308979,"err_code":"bad-request","err_msg":"20003"}
                     '01001': ExchangeError, // order failed, {"status":"fail","err_code":"01001","err_msg":"系统异常，请稍后重试"}
+                    '43111': PermissionDenied, // {"code":"43111","msg":"参数错误 address not in address book","requestTime":1665394201164,"data":null}
                 },
                 'broad': {
                     'invalid size, valid range': ExchangeError,
@@ -755,6 +764,9 @@ module.exports = class bitget extends Exchange {
                 'broker': {
                     'spot': 'CCXT#',
                     'swap': 'CCXT#',
+                },
+                'withdraw': {
+                    'fillResponseFromRequest': true,
                 },
             },
         });
@@ -1110,6 +1122,299 @@ module.exports = class bitget extends Exchange {
             };
         }
         return result;
+    }
+
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @url https://bitgetlimited.github.io/apidoc/en/spot/#get-deposit-list
+         * @param {string|undefined} code unified currency code
+         * @param {int} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {string|undefined} params.pageNo pageNo default 1
+         * @param {string|undefined} params.pageSize pageSize default 20. Max 100
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        await this.loadMarkets ();
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDeposits() requires a `code` argument');
+        }
+        const currency = this.currency (code);
+        if (since === undefined) {
+            since = this.milliseconds () - 31556952000; // 1yr
+        }
+        const request = {
+            'coin': currency['code'],
+            'startTime': since,
+            'endTime': this.milliseconds (),
+        };
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        const response = await this.privateSpotGetWalletDepositList (this.extend (request, params));
+        //
+        //      {
+        //          "code": "00000",
+        //          "msg": "success",
+        //          "requestTime": 0,
+        //          "data": [{
+        //              "id": "925607360021839872",
+        //              "txId": "f73a4ac034da06b729f49676ca8801f406a093cf90c69b16e5a1cc9080df4ccb",
+        //              "coin": "USDT",
+        //              "type": "deposit",
+        //              "amount": "19.44800000",
+        //              "status": "success",
+        //              "toAddress": "TRo4JMfZ1XYHUgnLsUMfDEf8MWzcWaf8uh",
+        //              "fee": null,
+        //              "chain": "TRC20",
+        //              "confirm": null,
+        //              "cTime": "1656407912259",
+        //              "uTime": "1656407940148"
+        //          }]
+        //      }
+        //
+        const rawTransactions = this.safeValue (response, 'data', []);
+        return this.parseTransactions (rawTransactions, currency, since, limit);
+    }
+
+    async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#withdraw
+         * @description make a withdrawal
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string|undefined} tag
+         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {string} params.chain the chain to withdraw to
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        this.checkAddress (address);
+        const chain = this.safeString (params, 'chain');
+        if (chain === undefined) {
+            throw new ArgumentsRequired (this.id + ' withdraw() requires a chain parameter');
+        }
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'coin': currency['code'],
+            'address': address,
+            'chain': chain,
+            'amount': amount,
+        };
+        if (tag !== undefined) {
+            request['tag'] = tag;
+        }
+        const response = await this.privateSpotPostWalletWithdrawal (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "data": "888291686266343424"
+        //     }
+        //
+        const result = {
+            'id': this.safeString (response, 'data'),
+            'info': response,
+            'txid': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'network': undefined,
+            'addressFrom': undefined,
+            'address': undefined,
+            'addressTo': undefined,
+            'amount': undefined,
+            'type': 'withdrawal',
+            'currency': undefined,
+            'status': undefined,
+            'updated': undefined,
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'comment': undefined,
+            'fee': undefined,
+        };
+        const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
+        const fillResponseFromRequest = this.safeValue (withdrawOptions, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            result['currency'] = code;
+            result['timestamp'] = this.milliseconds ();
+            result['datetime'] = this.iso8601 (this.milliseconds ());
+            result['amount'] = amount;
+            result['tag'] = tag;
+            result['address'] = address;
+            result['addressTo'] = address;
+            result['network'] = chain;
+        }
+        return result;
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+         * @url https://bitgetlimited.github.io/apidoc/en/spot/#get-withdraw-list
+         * @param {string|undefined} code unified currency code
+         * @param {int} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {object} params extra parameters specific to the bitget api endpoint
+         * @param {string|undefined} params.pageNo pageNo default 1
+         * @param {string|undefined} params.pageSize pageSize default 20. Max 100
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        await this.loadMarkets ();
+        if (code === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchWithdrawals() requires a `code` argument');
+        }
+        const currency = this.currency (code);
+        if (since === undefined) {
+            since = this.milliseconds () - 31556952000; // 1yr
+        }
+        const request = {
+            'coin': currency['code'],
+            'startTime': since,
+            'endTime': this.milliseconds (),
+        };
+        if (limit !== undefined) {
+            request['pageSize'] = limit;
+        }
+        const response = await this.privateSpotGetWalletWithdrawalList (this.extend (request, params));
+        //
+        //      {
+        //          "code": "00000",
+        //          "msg": "success",
+        //          "requestTime": 0,
+        //          "data": [{
+        //              "id": "925607360021839872",
+        //              "txId": "f73a4ac034da06b729f49676ca8801f406a093cf90c69b16e5a1cc9080df4ccb",
+        //              "coin": "USDT",
+        //              "type": "deposit",
+        //              "amount": "19.44800000",
+        //              "status": "success",
+        //              "toAddress": "TRo4JMfZ1XYHUgnLsUMfDEf8MWzcWaf8uh",
+        //              "fee": null,
+        //              "chain": "TRC20",
+        //              "confirm": null,
+        //              "cTime": "1656407912259",
+        //              "uTime": "1656407940148"
+        //          }]
+        //      }
+        //
+        const rawTransactions = this.safeValue (response, 'data', []);
+        return this.parseTransactions (rawTransactions, currency, since, limit);
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        //     {
+        //         "id": "925607360021839872",
+        //         "txId": "f73a4ac034da06b729f49676ca8801f406a093cf90c69b16e5a1cc9080df4ccb",
+        //         "coin": "USDT",
+        //         "type": "deposit",
+        //         "amount": "19.44800000",
+        //         "status": "success",
+        //         "toAddress": "TRo4JMfZ1XYHUgnLsUMfDEf8MWzcWaf8uh",
+        //         "fee": null,
+        //         "chain": "TRC20",
+        //         "confirm": null,
+        //         "cTime": "1656407912259",
+        //         "uTime": "1656407940148"
+        //     }
+        //
+        const timestamp = this.safeInteger (transaction, 'cTime');
+        const networkId = this.safeString (transaction, 'chain');
+        const currencyId = this.safeString (transaction, 'coin');
+        const status = this.safeString (transaction, 'status');
+        return {
+            'id': this.safeString (transaction, 'id'),
+            'info': transaction,
+            'txid': this.safeString (transaction, 'txId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'network': networkId,
+            'addressFrom': undefined,
+            'address': this.safeString (transaction, 'toAddress'),
+            'addressTo': this.safeString (transaction, 'toAddress'),
+            'amount': this.safeNumber (transaction, 'amount'),
+            'type': this.safeString (transaction, 'type'),
+            'currency': this.safeCurrencyCode (currencyId),
+            'status': this.parseTransactionStatus (status),
+            'updated': this.safeNumber (transaction, 'uTime'),
+            'tagFrom': undefined,
+            'tag': undefined,
+            'tagTo': undefined,
+            'comment': undefined,
+            'fee': undefined,
+        };
+    }
+
+    parseTransactionStatus (status) {
+        const statuses = {
+            'success': 'ok',
+            'Pending': 'pending',
+            'pending_review': 'pending',
+            'pending_review_fail': 'failed',
+            'reject': 'failed',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
+    async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name bitget#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'coin': currency['code'],
+        };
+        const response = await this.privateSpotGetWalletDepositAddress (this.extend (request, params));
+        //
+        //     {
+        //         "code": "00000",
+        //         "msg": "success",
+        //         "data": {
+        //             "address": "1HPn8Rx2y6nNSfagQBKy27GB99Vbzg89wv",
+        //             "chain": "BTC-Bitcoin",
+        //             "coin": "BTC",
+        //             "tag": "",
+        //             "url": "https://btc.com/1HPn8Rx2y6nNSfagQBKy27GB99Vbzg89wv"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseDepositAddress (data, currency);
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        //
+        //    {
+        //        "address": "1HPn8Rx2y6nNSfagQBKy27GB99Vbzg89wv",
+        //        "chain": "BTC-Bitcoin",
+        //        "coin": "BTC",
+        //        "tag": "",
+        //        "url": "https://btc.com/1HPn8Rx2y6nNSfagQBKy27GB99Vbzg89wv"
+        //    }
+        //
+        const currencyId = this.safeString (depositAddress, 'coin');
+        const networkId = this.safeString (depositAddress, 'chain');
+        return {
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'address': this.safeString (depositAddress, 'address'),
+            'tag': this.safeString (depositAddress, 'tag'),
+            'network': networkId,
+            'info': depositAddress,
+        };
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
