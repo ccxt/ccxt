@@ -39,7 +39,7 @@ class ftx extends Exchange {
                 'doc' => 'https://github.com/ftexchange/ftx',
                 'fees' => 'https://ftexchange.zendesk.com/hc/en-us/articles/360024479432-Fees',
                 'referral' => array(
-                    'url' => 'https://ftx.com/#a=ccxt',
+                    'url' => 'https://ftx.com/referrals#a=1623029',
                     'discount' => 0.05,
                 ),
             ),
@@ -2452,20 +2452,23 @@ class ftx extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market);
         $liquidationPriceString = $this->safe_string($position, 'estimatedLiquidationPrice');
         $initialMarginPercentage = $this->safe_string($position, 'initialMarginRequirement');
-        $leverage = intval(Precise::string_div('1', $initialMarginPercentage, 0));
         // on ftx the entryPrice is actually the mark price
         $markPriceString = $this->safe_string($position, 'entryPrice');
         $notionalString = Precise::string_mul($contractsString, $markPriceString);
-        $initialMargin = Precise::string_mul($notionalString, $initialMarginPercentage);
+        $initialMargin = $this->safe_string($position, 'collateralUsed');
         $maintenanceMarginPercentageString = $this->safe_string($position, 'maintenanceMarginRequirement');
         $maintenanceMarginString = Precise::string_mul($notionalString, $maintenanceMarginPercentageString);
-        $unrealizedPnlString = $this->safe_string($position, 'unrealizedPnl');
+        $unrealizedPnlString = $this->safe_string($position, 'recentPnl');
         $percentage = $this->parse_number(Precise::string_mul(Precise::string_div($unrealizedPnlString, $initialMargin, 4), '100'));
         $entryPriceString = $this->safe_string($position, 'recentAverageOpenPrice');
         $difference = null;
         $collateral = null;
         $marginRatio = null;
-        if (($entryPriceString !== null) && (Precise::string_gt($liquidationPriceString, '0'))) {
+        $leverage = null;
+        if (Precise::string_eq($liquidationPriceString, '0')) {
+            // $position is fully collateralized
+            $collateral = $notionalString;
+        } elseif ($entryPriceString !== null) {
             // $collateral = maintenanceMargin ± ((markPrice - liquidationPrice) * size)
             if ($side === 'long') {
                 $difference = Precise::string_sub($markPriceString, $liquidationPriceString);
@@ -2474,6 +2477,7 @@ class ftx extends Exchange {
             }
             $loss = Precise::string_mul($difference, $contractsString);
             $collateral = Precise::string_add($loss, $maintenanceMarginString);
+            $leverage = $this->parse_number(Precise::string_div(Precise::string_add(Precise::string_div($notionalString, $collateral), '0.005'), '1', 2));
             $marginRatio = $this->parse_number(Precise::string_div($maintenanceMarginString, $collateral, 4));
         }
         // ftx has a weird definition of realizedPnl

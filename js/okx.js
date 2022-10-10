@@ -71,6 +71,7 @@ module.exports = class okx extends Exchange {
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': true,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
@@ -5463,6 +5464,48 @@ module.exports = class okx extends Exchange {
         };
     }
 
+    async fetchOpenInterest (symbol, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchOpenInterest
+         * @description Retrieves the open interest of a currency
+         * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-open-interest
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {object} params exchange specific parameters
+         * @returns {object} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['contract']) {
+            throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
+        }
+        const type = this.convertToInstrumentType (market['type']);
+        const uly = this.safeString (market['info'], 'uly');
+        const request = {
+            'instType': type,
+            'uly': uly,
+            'instId': market['id'],
+        };
+        const response = await this.publicGetPublicOpenInterest (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "instId": "BTC-USDT-SWAP",
+        //                 "instType": "SWAP",
+        //                 "oi": "2125419",
+        //                 "oiCcy": "21254.19",
+        //                 "ts": "1664005108969"
+        //             }
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOpenInterest (data[0], market);
+    }
+
     async fetchOpenInterestHistory (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -5517,19 +5560,36 @@ module.exports = class okx extends Exchange {
 
     parseOpenInterest (interest, market = undefined) {
         //
+        // fetchOpenInterestHistory
+        //
         //    [
         //        '1648221300000',  // timestamp
         //        '2183354317.945',  // open interest (USD)
         //        '74285877.617',  // volume (USD)
         //    ]
         //
-        const timestamp = this.safeNumber (interest, 0);
-        const openInterest = this.safeNumber (interest, 1);
+        // fetchOpenInterest
+        //
+        //     {
+        //         "instId": "BTC-USDT-SWAP",
+        //         "instType": "SWAP",
+        //         "oi": "2125419",
+        //         "oiCcy": "21254.19",
+        //         "ts": "1664005108969"
+        //     }
+        //
+        const id = this.safeString (interest, 'instId');
+        market = this.safeMarket (id, market);
+        const time = this.safeInteger (interest, 'ts');
+        const timestamp = this.safeNumber (interest, 0, time);
+        const numContracts = this.safeNumber (interest, 'oi');
+        const inCurrency = this.safeNumber (interest, 'oiCcy');
+        const openInterest = this.safeNumber (interest, 1, inCurrency);
         return {
-            'symbol': undefined,
+            'symbol': this.safeSymbol (id),
             'baseVolume': undefined,  // deprecated
             'quoteVolume': openInterest,  // deprecated
-            'openInterestAmount': undefined,
+            'openInterestAmount': numContracts,
             'openInterestValue': openInterest,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

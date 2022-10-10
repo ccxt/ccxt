@@ -119,7 +119,7 @@ class bybit extends Exchange {
                     'https://github.com/bybit-exchange',
                 ),
                 'fees' => 'https://help.bybit.com/hc/en-us/articles/360039261154',
-                'referral' => 'https://partner.bybit.com/b/ccxt',
+                'referral' => 'https://www.bybit.com/register?affiliate_id=35953',
             ),
             'api' => array(
                 'public' => array(
@@ -462,6 +462,7 @@ class bybit extends Exchange {
                     '10016' => '\\ccxt\\ExchangeError', // array("retCode":10016,"retMsg":"System error. Please try again later.")
                     '10017' => '\\ccxt\\BadRequest', // request path not found or request method is invalid
                     '10018' => '\\ccxt\\RateLimitExceeded', // exceed ip rate limit
+                    '10020' => '\\ccxt\\PermissionDenied', // array("retCode":10020,"retMsg":"your account is not a unified margin account, please update your account","result":null,"retExtInfo":null,"time":1664783731123)
                     '20001' => '\\ccxt\\OrderNotFound', // Order not exists
                     '20003' => '\\ccxt\\InvalidOrder', // missing parameter side
                     '20004' => '\\ccxt\\InvalidOrder', // invalid parameter side
@@ -558,6 +559,7 @@ class bybit extends Exchange {
                     // the below two issues are caused as described => issues/9149#issuecomment-1146559498, when response is such =>  array("ret_code":130021,"ret_msg":"oc_diff[1707966351], new_oc[1707966351] with ob[....]+AB[....]","ext_code":"","ext_info":"","result":null,"time_now":"1658395300.872766","rate_limit_status":99,"rate_limit_reset_ms":1658395300855,"rate_limit":100)
                     'oc_diff' => '\\ccxt\\InsufficientFunds',
                     'new_oc' => '\\ccxt\\InsufficientFunds',
+                    'openapi sign params error!' => '\\ccxt\\AuthenticationError', // array("retCode":10001,"retMsg":"empty value => apiTimestamparray() apiKeyarray() apiSignature[xxxxxxxxxxxxxxxxxxxxxxx] => openapi sign params error!","result":null,"retExtInfo":null,"time":1664789597123)
                 ),
             ),
             'precisionMode' => TICK_SIZE,
@@ -1609,7 +1611,7 @@ class bybit extends Exchange {
                 $methods = array(
                     'mark' => 'publicGetPublicLinearMarkPriceKline',
                     'index' => 'publicGetPublicLinearIndexPriceKline',
-                    'premium' => 'publicGetPublicLinearPremiumIndexKline',
+                    'premiumIndex' => 'publicGetPublicLinearPremiumIndexKline',
                 );
                 $method = $this->safe_value($methods, $price, 'publicGetPublicLinearKline');
             } else {
@@ -1617,7 +1619,7 @@ class bybit extends Exchange {
                 $methods = array(
                     'mark' => 'publicGetV2PublicMarkPriceKline',
                     'index' => 'publicGetV2PublicIndexPriceKline',
-                    'premium' => 'publicGetV2PublicPremiumPriceKline',
+                    'premiumIndex' => 'publicGetV2PublicPremiumPriceKline',
                 );
                 $method = $this->safe_value($methods, $price, 'publicGetV2PublicKlineList');
             }
@@ -1631,7 +1633,7 @@ class bybit extends Exchange {
             $methods = array(
                 'mark' => 'publicGetPerpetualUsdcOpenapiPublicV1MarkPriceKline',
                 'index' => 'publicGetPerpetualUsdcOpenapiPublicV1IndexPriceKline',
-                'premium' => 'publicGetPerpetualUsdcOpenapiPublicV1PremiumPriceKline',
+                'premiumIndex' => 'publicGetPerpetualUsdcOpenapiPublicV1PremiumPriceKline',
             );
             $method = $this->safe_value($methods, $price, 'publicGetPerpetualUsdcOpenapiPublicV1KlineList');
         }
@@ -1801,9 +1803,6 @@ class bybit extends Exchange {
     }
 
     public function fetch_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        if ($since === null && $limit === null) {
-            throw new ArgumentsRequired($this->id . ' fetchIndexOHLCV() requires a $since argument or a $limit argument');
-        }
         $request = array(
             'price' => 'index',
         );
@@ -1811,9 +1810,6 @@ class bybit extends Exchange {
     }
 
     public function fetch_mark_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        if ($since === null && $limit === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMarkOHLCV() requires a $since argument or a $limit argument');
-        }
         $request = array(
             'price' => 'mark',
         );
@@ -1821,9 +1817,6 @@ class bybit extends Exchange {
     }
 
     public function fetch_premium_index_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        if ($since === null && $limit === null) {
-            throw new ArgumentsRequired($this->id . ' fetchPremiumIndexOHLCV() requires a $since argument or a $limit argument');
-        }
         $request = array(
             'price' => 'premiumIndex',
         );
@@ -2289,6 +2282,7 @@ class bybit extends Exchange {
          * @param {array} $params extra parameters specific to the bybit api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
          */
+        $this->load_markets();
         $request = array();
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
@@ -2314,7 +2308,6 @@ class bybit extends Exchange {
                 $method = 'privatePostOptionUsdcOpenapiPrivateV1QueryWalletBalance';
             }
         }
-        $this->load_markets();
         $response = $this->$method (array_merge($request, $params));
         //
         //     {
@@ -2967,8 +2960,6 @@ class bybit extends Exchange {
         $isStopLossOrder = $stopLossPrice !== null;
         $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
         $isTakeProfitOrder = $takeProfitPrice !== null;
-        $isSlTpOrder = $isStopLossOrder || $isTakeProfitOrder;
-        $isStopOrder = $isSlTpOrder || $isTriggerOrder;
         if ($isTriggerOrder) {
             $request['trigger_by'] = 'LastPrice';
             $preciseStopPrice = $this->price_to_precision($symbol, $triggerPrice);
@@ -2994,12 +2985,12 @@ class bybit extends Exchange {
         $params = $this->omit($params, array( 'stop_px', 'stopPrice', 'base_price', 'basePrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId' ));
         $method = null;
         if ($market['future']) {
-            $method = $isStopOrder ? 'privatePostFuturesPrivateStopOrderCreate' : 'privatePostFuturesPrivateOrderCreate';
+            $method = $isTriggerOrder ? 'privatePostFuturesPrivateStopOrderCreate' : 'privatePostFuturesPrivateOrderCreate';
         } elseif ($market['linear']) {
-            $method = $isStopOrder ? 'privatePostPrivateLinearStopOrderCreate' : 'privatePostPrivateLinearOrderCreate';
+            $method = $isTriggerOrder ? 'privatePostPrivateLinearStopOrderCreate' : 'privatePostPrivateLinearOrderCreate';
         } else {
             // inverse swaps
-            $method = $isStopOrder ? 'privatePostV2PrivateStopOrderCreate' : 'privatePostV2PrivateOrderCreate';
+            $method = $isTriggerOrder ? 'privatePostV2PrivateStopOrderCreate' : 'privatePostV2PrivateOrderCreate';
         }
         $response = $this->$method (array_merge($request, $params));
         //
@@ -5232,6 +5223,7 @@ class bybit extends Exchange {
         } elseif ($api === 'private') {
             $this->check_required_credentials();
             $isOpenapi = mb_strpos($url, 'openapi') !== false;
+            $isV3UnifiedMargin = mb_strpos($url, 'unified/v3') !== false;
             $timestamp = (string) $this->nonce();
             if ($isOpenapi) {
                 if ($params) {
@@ -5249,6 +5241,31 @@ class bybit extends Exchange {
                     'X-BAPI-TIMESTAMP' => $timestamp,
                     'X-BAPI-SIGN' => $signature,
                 );
+            } elseif ($isV3UnifiedMargin) {
+                $headers = array(
+                    'Content-Type' => 'application/json',
+                    'X-BAPI-API-KEY' => $this->apiKey,
+                    'X-BAPI-SIGN-TYPE' => '2',
+                    'X-BAPI-TIMESTAMP' => $timestamp,
+                    'X-BAPI-RECV-WINDOW' => (string) $this->options['recvWindow'],
+                );
+                $query = $params;
+                $queryEncoded = $this->rawencode($query);
+                $auth_base = (string) $timestamp . $this->apiKey . (string) $this->options['recvWindow'];
+                $authFull = null;
+                if ($method === 'POST') {
+                    $body = $this->json($query);
+                    $authFull = $auth_base . $body;
+                    $brokerId = $this->safe_string($this->options, 'brokerId');
+                    if ($brokerId !== null) {
+                        $headers['Referer'] = $brokerId;
+                    }
+                } else {
+                    $authFull = $auth_base . $queryEncoded;
+                    $url .= '?' . $this->urlencode($query);
+                }
+                $signature = $this->hmac($this->encode($authFull), $this->encode($this->secret));
+                $headers['X-BAPI-SIGN'] = $signature;
             } else {
                 $query = array_merge($params, array(
                     'api_key' => $this->apiKey,

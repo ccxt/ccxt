@@ -33,7 +33,7 @@ module.exports = class ftx extends Exchange {
                 'doc': 'https://github.com/ftexchange/ftx',
                 'fees': 'https://ftexchange.zendesk.com/hc/en-us/articles/360024479432-Fees',
                 'referral': {
-                    'url': 'https://ftx.com/#a=ccxt',
+                    'url': 'https://ftx.com/referrals#a=1623029',
                     'discount': 0.05,
                 },
             },
@@ -2444,20 +2444,23 @@ module.exports = class ftx extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const liquidationPriceString = this.safeString (position, 'estimatedLiquidationPrice');
         const initialMarginPercentage = this.safeString (position, 'initialMarginRequirement');
-        const leverage = parseInt (Precise.stringDiv ('1', initialMarginPercentage, 0));
         // on ftx the entryPrice is actually the mark price
         const markPriceString = this.safeString (position, 'entryPrice');
         const notionalString = Precise.stringMul (contractsString, markPriceString);
-        const initialMargin = Precise.stringMul (notionalString, initialMarginPercentage);
+        const initialMargin = this.safeString (position, 'collateralUsed');
         const maintenanceMarginPercentageString = this.safeString (position, 'maintenanceMarginRequirement');
         const maintenanceMarginString = Precise.stringMul (notionalString, maintenanceMarginPercentageString);
-        const unrealizedPnlString = this.safeString (position, 'unrealizedPnl');
+        const unrealizedPnlString = this.safeString (position, 'recentPnl');
         const percentage = this.parseNumber (Precise.stringMul (Precise.stringDiv (unrealizedPnlString, initialMargin, 4), '100'));
         const entryPriceString = this.safeString (position, 'recentAverageOpenPrice');
         let difference = undefined;
         let collateral = undefined;
         let marginRatio = undefined;
-        if ((entryPriceString !== undefined) && (Precise.stringGt (liquidationPriceString, '0'))) {
+        let leverage = undefined;
+        if (Precise.stringEq (liquidationPriceString, '0')) {
+            // position is fully collateralized
+            collateral = notionalString;
+        } else if (entryPriceString !== undefined) {
             // collateral = maintenanceMargin ± ((markPrice - liquidationPrice) * size)
             if (side === 'long') {
                 difference = Precise.stringSub (markPriceString, liquidationPriceString);
@@ -2466,6 +2469,7 @@ module.exports = class ftx extends Exchange {
             }
             const loss = Precise.stringMul (difference, contractsString);
             collateral = Precise.stringAdd (loss, maintenanceMarginString);
+            leverage = this.parseNumber (Precise.stringDiv (Precise.stringAdd (Precise.stringDiv (notionalString, collateral), '0.005'), '1', 2));
             marginRatio = this.parseNumber (Precise.stringDiv (maintenanceMarginString, collateral, 4));
         }
         // ftx has a weird definition of realizedPnl

@@ -162,7 +162,7 @@ module.exports = class huobi extends Exchange {
                 },
                 'www': 'https://www.huobi.com',
                 'referral': {
-                    'url': 'https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223',
+                    'url': 'https://www.huobi.com/en-us/v/register/double-invite/?inviter_id=11343840&invite_code=6rmm2223',
                     'discount': 0.15,
                 },
                 'doc': [
