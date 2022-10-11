@@ -16,6 +16,7 @@ module.exports = class cex extends Exchange {
             'name': 'CEX.IO',
             'countries': [ 'GB', 'EU', 'CY', 'RU' ],
             'rateLimit': 1500,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
