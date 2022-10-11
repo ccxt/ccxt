@@ -1430,11 +1430,11 @@ module.exports = class binance extends Exchange {
                     fee = withdrawFee;
                 }
                 // precision:
-                const precisionFloat = this.safeString (networkItem, 'withdrawIntegerMultiple');
+                const precisionValue = this.safeString (networkItem, 'withdrawIntegerMultiple');
                 if (maxPrecision === undefined) {
-                    maxPrecision = precisionFloat;
-                } else {
-                    maxPrecision = Precise.stringMin (maxPrecision, precisionFloat);
+                    maxPrecision = precisionValue;
+                } else if (!Precise.stringEq (precisionValue, '0')) { // https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
+                    maxPrecision = Precise.stringMin (maxPrecision, precisionValue);
                 }
             }
             const trading = this.safeValue (entry, 'trading');
