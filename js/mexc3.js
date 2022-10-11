@@ -3627,7 +3627,7 @@ module.exports = class mexc3 extends Exchange {
                         const values = Object.values (response);
                         result = this.safeValue (values, 0);
                         if (result === undefined) {
-                            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find deposit address for ' + code);
+                            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find deposit address for ' + code + ', consider creating one using the MEXC platform');
                         }
                     }
                 }
