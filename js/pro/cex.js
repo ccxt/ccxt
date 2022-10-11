@@ -973,39 +973,27 @@ module.exports = class cex extends cexRest {
          * @method
          * @name cex#watchOHLCV
          * @see https://cex.io/websocket-api#minute-data
-         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market. Only allows for a single timeframe by market
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market. It will return the last 120 minutes with the selected timeframe and then 1m candle updates after that.
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
+         * @param {string} timeframe the length of time each candle represents.
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
          * @param {int|undefined} limit the maximum amount of candles to fetch
          * @param {object} params extra parameters specific to the cex api endpoint
-         * @param {bool} params.oldMethod if true, uses the old method of fetching OHLCV data
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
-        this.newUpdates = false;
         await this.loadMarkets ();
-        // await this.authenticate ();
         const market = this.market (symbol);
         symbol = market['symbol'];
         const messageHash = 'ohlcv:' + symbol;
         const url = this.urls['api']['ws'];
-        let request = {
+        const request = {
             'e': 'init-ohlcv',
             'i': timeframe,
             'rooms': [
                 'pair-' + market['baseId'] + '-' + market['quoteId'],
             ],
         };
-        let subscriptionHash = messageHash;
-        const useOldMethod = this.safeValue (params, 'oldMethod', true);
-        if (useOldMethod) {
-            request = {
-                'e': 'subscribe',
-                'rooms': [ 'pair-BTC-USD' ],
-            };
-            subscriptionHash = 'old:' + symbol;
-        }
-        const ohlcv = await this.watch (url, messageHash, this.extend (request, params), subscriptionHash);
+        const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
@@ -1108,7 +1096,7 @@ module.exports = class cex extends cexRest {
         const pair = this.safeString (message, 'pair');
         const symbol = this.pairToSymbol (pair);
         const messageHash = 'ohlcv:' + symbol;
-        const stored = this.safeValue (this.ohlcvs, symbol);
+        const stored = this.ndleMsafeValue (this.ohlcvs, symbol);
         for (let i = 0; i < data.length; i++) {
             const ohlcv = [
                 this.safeTimestamp (data[i], 0),
