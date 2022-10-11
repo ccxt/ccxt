@@ -1431,11 +1431,17 @@ module.exports = class binance extends Exchange {
                 }
                 // precision:
                 const precisionValue = this.safeString (networkItem, 'withdrawIntegerMultiple');
-                if (maxPrecision === undefined) {
-                    maxPrecision = precisionValue;
-                } else if (!Precise.stringEq (precisionValue, '0')) { // https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
-                    maxPrecision = Precise.stringMin (maxPrecision, precisionValue);
+                if (!Precise.stringEq (precisionValue, '0')) { // https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
+                    if (maxPrecision === undefined) {
+                        maxPrecision = precisionValue;
+                    } else {
+                        maxPrecision = Precise.stringMin (maxPrecision, precisionValue);
+                    }
                 }
+            }
+            let finalPrecision = undefined;
+            if (maxPrecision !== undefined) {
+                finalPrecision = this.parseNumber (this.numberToString (this.precisionFromString (maxPrecision)));
             }
             const trading = this.safeValue (entry, 'trading');
             const active = (isWithdrawEnabled && isDepositEnabled && trading);
@@ -1443,7 +1449,7 @@ module.exports = class binance extends Exchange {
                 'id': id,
                 'name': name,
                 'code': code,
-                'precision': this.parseNumber (this.numberToString (this.precisionFromString (maxPrecision))),
+                'precision': finalPrecision,
                 'info': entry,
                 'active': active,
                 'deposit': isDepositEnabled,
