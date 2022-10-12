@@ -1,6 +1,5 @@
 /* eslint-disable max-classes-per-file */
 
-'use strict';
 
 class BaseCache extends Array {
 

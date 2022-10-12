@@ -1,6 +1,5 @@
 /* eslint-disable max-classes-per-file */
 
-'use strict';
 
 import { iso8601 } from '../../base/functions/time.js';
 import { extend, deepExtend } from '../../base/functions/generic.js';
