@@ -643,13 +643,14 @@ module.exports = class aax extends Exchange {
                     resultItem['fees'][previousNetwork] = resultItem['fee'];
                     resultItem['fee'] = undefined;
                 }
-                resultItem['fees']['network'] = fee;
+                resultItem['fees'][network] = fee;
+                resultItem['networks'].push (network);
                 const previousPrecision = resultItem['precision'].toString ();
                 const previousDepositMin = resultItem['limits']['deposit']['min'].toString ();
                 const previousWithdrawMin = resultItem['limits']['withdraw']['min'].toString ();
                 resultItem['precision'] = Precise.stringMax (previousPrecision, precision);
-                resultItem['limits']['depositMin'] = Precise.stringMin (previousDepositMin, depositMin);
-                resultItem['limits']['withdrawMin'] = Precise.stringMin (previousWithdrawMin, withdrawMin);
+                resultItem['limits']['deposit']['min'] = Precise.stringMin (previousDepositMin, depositMin);
+                resultItem['limits']['withdraw']['min'] = Precise.stringMin (previousWithdrawMin, withdrawMin);
             } else {
                 const name = this.safeString (currency, 'displayName');
                 const enableWithdraw = this.safeValue (currency, 'enableWithdraw');
