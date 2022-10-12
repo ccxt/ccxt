@@ -1591,7 +1591,7 @@ module.exports = class huobi extends Exchange {
             const contractSize = this.safeNumber (market, 'contract_size');
             const maxAmount = this.safeNumber (market, 'max-order-amt');
             let minAmount = this.safeNumber (market, 'min-order-amt');
-            if (contract) {
+            if (contract && linear) {
                 minAmount = contractSize;
             }
             let pricePrecision = undefined;
