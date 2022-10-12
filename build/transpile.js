@@ -5,7 +5,7 @@
 import fs from 'fs'
 import log from 'ololog'
 import ansi from 'ansicolor'
-import * as errors from "../js/base/errors.js"
+import errors from "../js/base/errors.js"
 import {unCamelCase, precisionConstants, safeString, unique} from "../js/base/functions.js"
 import { Exchange } from '../js/base/Exchange.js'
 import { basename } from 'path'
