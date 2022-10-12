@@ -479,7 +479,7 @@ module.exports = class mexc extends Exchange {
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
                     'fee': this.safeNumber (chain, 'fee'),
-                    'precision': this.parseNumber (),
+                    'precision': this.parseNumber (minPrecision),
                     'limits': {
                         'withdraw': {
                             'min': withdrawMin,
