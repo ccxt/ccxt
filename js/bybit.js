@@ -2529,16 +2529,56 @@ module.exports = class bybit extends Exchange {
         //       "retMsg": "Success."
         //    }
         //
+        // Unified Margin
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "Success",
+        //         "result": {
+        //             "totalEquity": "112.21267421",
+        //             "accountIMRate": "0.6895",
+        //             "totalMarginBalance": "80.37711012",
+        //             "totalInitialMargin": "55.42180254",
+        //             "totalAvailableBalance": "24.95530758",
+        //             "accountMMRate": "0.0459",
+        //             "totalPerpUPL": "-16.69586570",
+        //             "totalWalletBalance": "97.07311619",
+        //             "totalMaintenanceMargin": "3.68580537",
+        //             "coin": [
+        //                 {
+        //                     "currencyCoin": "ETH",
+        //                     "availableToBorrow": "0.00000000",
+        //                     "borrowSize": "0.00000000",
+        //                     "bonus": "0.00000000",
+        //                     "accruedInterest": "0.00000000",
+        //                     "availableBalanceWithoutConvert": "0.00000000",
+        //                     "totalOrderIM": "",
+        //                     "equity": "0.00000000",
+        //                     "totalPositionMM": "",
+        //                     "usdValue": "0.00000000",
+        //                     "availableBalance": "0.02441165",
+        //                     "unrealisedPnl": "",
+        //                     "totalPositionIM": "",
+        //                     "marginBalanceWithoutConvert": "0.00000000",
+        //                     "walletBalance": "0.00000000",
+        //                     "cumRealisedPnl": "",
+        //                     "marginBalance": "0.07862610"
+        //                 }
+        //             ]
+        //         },
+        //         "time": 1657716037033
+        //     }
+        //
         const result = {
             'info': response,
         };
         const data = this.safeValue (response, 'result', {});
-        const balances = this.safeValue (data, 'balances');
+        const balances = this.safeValue2 (data, 'balances', 'coin');
         if (Array.isArray (balances)) {
             // spot balances
             for (let i = 0; i < balances.length; i++) {
                 const balance = balances[i];
-                const currencyId = this.safeString (balance, 'coin');
+                const currencyId = this.safeString2 (balance, 'coin', 'currencyCoin');
                 const code = this.safeCurrencyCode (currencyId);
                 const account = this.account ();
                 account['free'] = this.safeString (balance, 'availableBalance');
@@ -2590,7 +2630,11 @@ module.exports = class bybit extends Exchange {
             settle = this.safeString2 (params, 'settle', 'defaultSettle', settle);
             params = this.omit (params, [ 'settle', 'defaultSettle' ]);
             const isUsdcSettled = settle === 'USDC';
-            if (!isUsdcSettled) {
+            const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+            if (enableUnifiedMargin) {
+                // balance of unified margin account
+                method = 'privateGetUnifiedV3PrivateAccountWalletBalance';
+            } else if (!isUsdcSettled) {
                 // linear/inverse future/swap
                 method = 'privateGetV2PrivateWalletBalance';
                 const coin = this.safeString2 (params, 'coin', 'code');
