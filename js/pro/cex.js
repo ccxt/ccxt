@@ -118,6 +118,7 @@ module.exports = class cex extends cexRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const url = this.urls['api']['ws'];
         const messageHash = 'trades';
         const subscriptionHash = 'old:' + symbol;
@@ -140,6 +141,10 @@ module.exports = class cex extends cexRest {
         };
         const request = this.deepExtend (message, params);
         const trades = await this.watch (url, messageHash, request, subscriptionHash);
+        // assing symbol to the trades as message does not contain symbol information
+        for (let i = 0; i < trades.length; i++) {
+            trades[i]['symbol'] = symbol;
+        }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
@@ -177,7 +182,7 @@ module.exports = class cex extends cexRest {
             trade = trade.split (':');
         }
         const side = this.safeString (trade, 0);
-        const timestamp = this.safeString (trade, 1);
+        const timestamp = this.safeNumber (trade, 1);
         const amount = this.safeString (trade, 2);
         const price = this.safeString (trade, 3);
         const id = this.safeString (trade, 4);
@@ -388,7 +393,8 @@ module.exports = class cex extends cexRest {
         await this.authenticate (params);
         const url = this.urls['api']['ws'];
         const market = this.market (symbol);
-        const messageHash = 'orders:' + market['symbol'];
+        symbol = market['symbol'];
+        const messageHash = 'orders:' + symbol;
         const message = {
             'e': 'open-orders',
             'data': {
@@ -397,7 +403,7 @@ module.exports = class cex extends cexRest {
                     market['quoteId'],
                 ],
             },
-            'oid': market['symbol'],
+            'oid': symbol,
         };
         const request = this.deepExtend (message, params);
         const orders = await this.watch (url, messageHash, request, messageHash, request);
@@ -437,7 +443,7 @@ module.exports = class cex extends cexRest {
         };
         const request = this.deepExtend (message, params);
         const orders = await this.watch (url, messageHash, request, subscriptionHash, request);
-        return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
+        return this.filterBySymbolSinceLimit (orders, market['symbol'], since, limit, true);
     }
 
     handleTransaction (client, message) {
@@ -852,6 +858,7 @@ module.exports = class cex extends cexRest {
         await this.loadMarkets ();
         await this.authenticate ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const url = this.urls['api']['ws'];
         const messageHash = 'orderbook:' + symbol;
         const depth = (limit === undefined) ? 0 : limit;
@@ -1096,7 +1103,7 @@ module.exports = class cex extends cexRest {
         const pair = this.safeString (message, 'pair');
         const symbol = this.pairToSymbol (pair);
         const messageHash = 'ohlcv:' + symbol;
-        const stored = this.ndleMsafeValue (this.ohlcvs, symbol);
+        const stored = this.safeValue (this.ohlcvs, symbol);
         for (let i = 0; i < data.length; i++) {
             const ohlcv = [
                 this.safeTimestamp (data[i], 0),
