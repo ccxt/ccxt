@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.95.16'
+__version__ = '1.95.37'
 
 # -----------------------------------------------------------------------------
 
@@ -1306,18 +1306,18 @@ class Exchange(BaseExchange):
         warnOnFetchFundingFee = self.safe_value(self.options, 'warnOnFetchFundingFee', True)
         if warnOnFetchFundingFee:
             raise NotSupported(self.id + ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = False to suppress self warning')
-        return self.fetch_transaction_fee(code, params)
+        return await self.fetch_transaction_fee(code, params)
 
     async def fetch_funding_fees(self, codes=None, params={}):
         warnOnFetchFundingFees = self.safe_value(self.options, 'warnOnFetchFundingFees', True)
         if warnOnFetchFundingFees:
             raise NotSupported(self.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = False to suppress self warning')
-        return self.fetch_transaction_fees(codes, params)
+        return await self.fetch_transaction_fees(codes, params)
 
     async def fetch_transaction_fee(self, code, params={}):
         if not self.has['fetchTransactionFees']:
             raise NotSupported(self.id + ' fetchTransactionFee() is not supported yet')
-        return self.fetch_transaction_fees([code], params)
+        return await self.fetch_transaction_fees([code], params)
 
     async def fetch_transaction_fees(self, codes=None, params={}):
         raise NotSupported(self.id + ' fetchTransactionFees() is not supported yet')

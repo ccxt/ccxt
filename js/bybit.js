@@ -120,7 +120,7 @@ module.exports = class bybit extends Exchange {
                     'https://github.com/bybit-exchange',
                 ],
                 'fees': 'https://help.bybit.com/hc/en-us/articles/360039261154',
-                'referral': 'https://partner.bybit.com/b/ccxt',
+                'referral': 'https://www.bybit.com/register?affiliate_id=35953',
             },
             'api': {
                 'public': {
@@ -1625,7 +1625,7 @@ module.exports = class bybit extends Exchange {
                 const methods = {
                     'mark': 'publicGetPublicLinearMarkPriceKline',
                     'index': 'publicGetPublicLinearIndexPriceKline',
-                    'premium': 'publicGetPublicLinearPremiumIndexKline',
+                    'premiumIndex': 'publicGetPublicLinearPremiumIndexKline',
                 };
                 method = this.safeValue (methods, price, 'publicGetPublicLinearKline');
             } else {
@@ -1633,7 +1633,7 @@ module.exports = class bybit extends Exchange {
                 const methods = {
                     'mark': 'publicGetV2PublicMarkPriceKline',
                     'index': 'publicGetV2PublicIndexPriceKline',
-                    'premium': 'publicGetV2PublicPremiumPriceKline',
+                    'premiumIndex': 'publicGetV2PublicPremiumPriceKline',
                 };
                 method = this.safeValue (methods, price, 'publicGetV2PublicKlineList');
             }
@@ -1647,7 +1647,7 @@ module.exports = class bybit extends Exchange {
             const methods = {
                 'mark': 'publicGetPerpetualUsdcOpenapiPublicV1MarkPriceKline',
                 'index': 'publicGetPerpetualUsdcOpenapiPublicV1IndexPriceKline',
-                'premium': 'publicGetPerpetualUsdcOpenapiPublicV1PremiumPriceKline',
+                'premiumIndex': 'publicGetPerpetualUsdcOpenapiPublicV1PremiumPriceKline',
             };
             method = this.safeValue (methods, price, 'publicGetPerpetualUsdcOpenapiPublicV1KlineList');
         }
@@ -1819,9 +1819,6 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        if (since === undefined && limit === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchIndexOHLCV() requires a since argument or a limit argument');
-        }
         const request = {
             'price': 'index',
         };
@@ -1829,9 +1826,6 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        if (since === undefined && limit === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMarkOHLCV() requires a since argument or a limit argument');
-        }
         const request = {
             'price': 'mark',
         };
@@ -1839,9 +1833,6 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchPremiumIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        if (since === undefined && limit === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchPremiumIndexOHLCV() requires a since argument or a limit argument');
-        }
         const request = {
             'price': 'premiumIndex',
         };
@@ -2313,6 +2304,7 @@ module.exports = class bybit extends Exchange {
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
+        await this.loadMarkets ();
         const request = {};
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
@@ -2338,7 +2330,6 @@ module.exports = class bybit extends Exchange {
                 method = 'privatePostOptionUsdcOpenapiPrivateV1QueryWalletBalance';
             }
         }
-        await this.loadMarkets ();
         const response = await this[method] (this.extend (request, params));
         //
         //     {
@@ -2995,8 +2986,6 @@ module.exports = class bybit extends Exchange {
         const isStopLossOrder = stopLossPrice !== undefined;
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         const isTakeProfitOrder = takeProfitPrice !== undefined;
-        const isSlTpOrder = isStopLossOrder || isTakeProfitOrder;
-        const isStopOrder = isSlTpOrder || isTriggerOrder;
         if (isTriggerOrder) {
             request['trigger_by'] = 'LastPrice';
             const preciseStopPrice = this.priceToPrecision (symbol, triggerPrice);
@@ -3022,12 +3011,12 @@ module.exports = class bybit extends Exchange {
         params = this.omit (params, [ 'stop_px', 'stopPrice', 'base_price', 'basePrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId' ]);
         let method = undefined;
         if (market['future']) {
-            method = isStopOrder ? 'privatePostFuturesPrivateStopOrderCreate' : 'privatePostFuturesPrivateOrderCreate';
+            method = isTriggerOrder ? 'privatePostFuturesPrivateStopOrderCreate' : 'privatePostFuturesPrivateOrderCreate';
         } else if (market['linear']) {
-            method = isStopOrder ? 'privatePostPrivateLinearStopOrderCreate' : 'privatePostPrivateLinearOrderCreate';
+            method = isTriggerOrder ? 'privatePostPrivateLinearStopOrderCreate' : 'privatePostPrivateLinearOrderCreate';
         } else {
             // inverse swaps
-            method = isStopOrder ? 'privatePostV2PrivateStopOrderCreate' : 'privatePostV2PrivateOrderCreate';
+            method = isTriggerOrder ? 'privatePostV2PrivateStopOrderCreate' : 'privatePostV2PrivateOrderCreate';
         }
         const response = await this[method] (this.extend (request, params));
         //
