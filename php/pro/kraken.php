@@ -413,6 +413,7 @@ class kraken extends \ccxt\async\kraken {
                 $deltas = $this->safe_value($message[1], $key, array());
                 $timestamp = $this->handle_deltas($bookside, $deltas, $timestamp);
             }
+            $orderbook['symbol'] = $symbol;
             $orderbook['timestamp'] = $timestamp;
             $orderbook['datetime'] = $this->iso8601($timestamp);
             $client->resolve ($orderbook, $messageHash);
@@ -474,6 +475,7 @@ class kraken extends \ccxt\async\kraken {
                     $client->reject ($error, $messageHash);
                 }
             }
+            $orderbook['symbol'] = $symbol;
             $orderbook['timestamp'] = $timestamp;
             $orderbook['datetime'] = $this->iso8601($timestamp);
             $client->resolve ($orderbook, $messageHash);
