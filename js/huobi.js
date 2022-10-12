@@ -2773,7 +2773,7 @@ module.exports = class huobi extends Exchange {
                 const active = withdrawEnabled && depositEnabled;
                 const precision = this.parsePrecision (this.safeString (chain, 'withdrawPrecision'));
                 if (precision !== undefined) {
-                    minPrecision = (minPrecision === undefined) ? precision : Precise.stringMax (precision, minPrecision);
+                    minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (precision, minPrecision);
                 }
                 if (withdrawEnabled && !withdraw) {
                     withdraw = true;
