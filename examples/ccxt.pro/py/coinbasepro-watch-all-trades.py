@@ -6,7 +6,7 @@ from asyncio import run
 async def main():
     exchange = ccxt.pro.coinbasepro()
     method = 'watchTrades'
-    print('CCXT Pro version', ccxt.pro.__version__)
+    print('CCXT Pro version', ccxt.__version__)
     if exchange.has[method]:
         last_id = ''
         while True:

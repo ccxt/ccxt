@@ -2,7 +2,7 @@ import ccxt.pro
 from asyncio import run, gather
 
 
-print('CCXT Pro version', ccxt.pro.__version__)
+print('CCXT Pro version', ccxt.__version__)
 
 
 async def watch_order_book(exchange, symbol):
