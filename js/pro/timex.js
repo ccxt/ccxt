@@ -2,6 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 const timexRest = require ('../timex');
+const Precise = require ('../base/Precise');
 const { ArgumentsRequired, ExchangeError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheBySymbolById } = require ('./base/Cache');
 
@@ -13,13 +14,13 @@ module.exports = class timex extends timexRest {
             'has': {
                 'ws': true,
                 'watchBalance': true,
-                'watchTicker': true,
+                'watchTicker': false, // Documentation on how to subscribe but no response is received
                 'watchTickers': false,
                 'watchTrades': true,
                 'watchMyTrades': false,
                 'watchOrders': true,
                 'watchOrderBook': true,
-                'watchOHLCV': true,
+                'watchOHLCV': false,
             },
             'urls': {
                 'api': {
@@ -59,7 +60,7 @@ module.exports = class timex extends timexRest {
          * @method
          * @name timex#watchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @url https://docs.timex.io/websocket-api-general.html#subscribe-account-to-channels
+         * @see https://docs.timex.io/websocket-api-general.html#subscribe-account-to-channels
          * @param {object} params extra parameters specific to the timex api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
@@ -147,10 +148,10 @@ module.exports = class timex extends timexRest {
          * @method
          * @name timex#watchTicker
          * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @url https://docs.timex.io/websocket-api-list-patterns.html#ticker
+         * @see https://docs.timex.io/websocket-api-list-patterns.html#ticker
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the timex api endpoint
-         * @param {string} params.period period of ticker, I1, I5, I15, I30, H1, H2, H4, H6, H12, D1, W1
+         * @param {string} params.period period of ticker, can be sent in ccxt unified or format or exchange I1, I5, I15, I30, H1, H2, H4, H6, H12, D1, W1
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
@@ -158,8 +159,9 @@ module.exports = class timex extends timexRest {
         symbol = this.symbol (symbol);
         const url = this.urls['api']['ws'];
         const messageHash = 'ticker:' + symbol;
-        const period = this.safeString (params, 'period', 'D1');
-        params = this.omit (params, period);
+        let period = this.safeString (params, 'period', 'D1');
+        period = this.safeString (this.timeframes, period, period);
+        params = this.omit (params, 'period');
         const message = {
             'type': 'SUBSCRIBE',
             'requestId': this.requestId (),
@@ -174,7 +176,7 @@ module.exports = class timex extends timexRest {
          * @method
          * @name timex#watchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @url https://docs.timex.io/websocket-api-list-patterns.html#trade
+         * @see https://docs.timex.io/websocket-api-list-patterns.html#trade
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
@@ -197,47 +199,32 @@ module.exports = class timex extends timexRest {
 
     handleTrades (client, message) {
         //
-        //     {
-        //         subscriptionId: '6391be70-ec9e-408d-971a-ca6b78a47b6f',
-        //         message: {
-        //             event: {
-        //                 timestamp: '2022-09-10T16:46:26.584',
-        //                 type: 'TRADE',
-        //                 reference: '30688731',
-        //                 topics: ["BTC", "USDT","0x8370fbc6ddec1e18b4e41e72ed943e238458487c","0xdac17f958d2ee523a2206206994597c13d831ec7"],
-        //                 data: {
-        //                     id: 30688846,
-        //                     direction: "SELL",
-        //                     baseTokenAddress: "0x8370fbc6ddec1e18b4e41e72ed943e238458487c",
-        //                     quoteTokenAddress: "0xdac17f958d2ee523a2206206994597c13d831ec7",
-        //                     baseTokenSymbol: "BTC",
-        //                     quoteTokenSymbol: "USDT",
-        //                     baseTokenAmount: "500000000000000000",
-        //                     quoteTokenAmount: "1066450000000000000",
-        //                     makerAddress: "0xc2af39e7039462893d6e540be4dc6b1a447b42ab",
-        //                     takerAddress: "0xc2af39e7039462893d6e540be4dc6b1a447b42ab",
-        //                 }
-        //             },
-        //             payload: {
-        //                 id: 30688731,
-        //                 timestamp: '2022-09-10T16:46:26.525Z',
-        //                 direction: 'SELL',
-        //                 price: '21324',
-        //                 quantity: '0.006'
-        //             }
-        //           },
-        //         type: 'MESSAGE'
-        //     }
+        //      {
+        //          timestamp: '2022-09-10T16:46:26.584',
+        //          type: 'TRADE',
+        //          reference: '30688731',
+        //          topics: ["BTC", "USDT","0x8370fbc6ddec1e18b4e41e72ed943e238458487c","0xdac17f958d2ee523a2206206994597c13d831ec7"],
+        //          data: {
+        //              id: 30688846,
+        //              direction: "SELL",
+        //              baseTokenAddress: "0x8370fbc6ddec1e18b4e41e72ed943e238458487c",
+        //              quoteTokenAddress: "0xdac17f958d2ee523a2206206994597c13d831ec7",
+        //              baseTokenSymbol: "BTC",
+        //              quoteTokenSymbol: "USDT",
+        //              baseTokenAmount: "500000000000000000",
+        //              quoteTokenAmount: "1066450000000000000",
+        //              makerAddress: "0xc2af39e7039462893d6e540be4dc6b1a447b42ab",
+        //              takerAddress: "0xc2af39e7039462893d6e540be4dc6b1a447b42ab",
+        //          }
+        //      }
         //
-        const messageData = this.safeValue (message, 'message', {});
-        const event = this.safeValue (messageData, 'event', {});
-        const data = this.safeValue (event, 'data', {});
+        const data = this.safeValue (message, 'data', {});
         const base = this.safeString (data, 'baseTokenSymbol');
         const quote = this.safeString (data, 'quoteTokenSymbol');
         const marketId = base + quote;
         const symbol = this.safeSymbol (marketId);
         const market = this.safeMarket (marketId);
-        const dateTime = this.safeString (event, 'timestamp');
+        const dateTime = this.safeString (message, 'timestamp');
         const timestamp = this.parse8601 (dateTime);
         const messageHash = 'trades:' + symbol;
         let stored = this.safeValue (this.trades, symbol);
@@ -270,23 +257,37 @@ module.exports = class timex extends timexRest {
         //     }
         //
         const baseId = this.safeString (trade, 'baseTokenSymbol');
+        const base = this.safeCurrencyCode (baseId);
+        const baseTradeAmount = this.safeString (trade, 'baseTokenAmount');
+        const baseAmount = this.parseTradeAmount (baseId, baseTradeAmount);
         const quoteId = this.safeString (trade, 'quoteTokenSymbol');
-        const marketId = baseId + quoteId;
+        const quote = this.safeCurrencyCode (quoteId);
+        const symbol = base + '/' + quote;
+        const quoteTradeAmount = this.safeString (trade, 'quoteTokenAmount');
+        const quoteAmount = this.parseTradeAmount (quoteId, quoteTradeAmount);
+        const price = Precise.stringDiv (quoteAmount, baseAmount);
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString (trade, 'id'),
             'timestamp': undefined,
             'datetime': undefined,
-            'symbol': this.safeSymbol (marketId, market),
+            'symbol': symbol,
             'order': undefined,
             'type': undefined,
             'side': this.safeStringLower (trade, 'direction'),
-            'price': this.safeNumber (trade, 'quoteTokenAmount'),
-            'amount': this.safeNumber (trade, 'baseTokenAmount'),
+            'price': price,
+            'amount': baseAmount,
             'cost': undefined,
             'takerOrMaker': undefined,
             'fee': undefined,
         });
+    }
+
+    parseTradeAmount (code, amount) {
+        const currency = this.safeCurrency (code);
+        const tradeDecimals = this.safeString (currency['info'], 'tradeDecimals');
+        const tradePrecision = this.parsePrecision (tradeDecimals);
+        return Precise.stringMul (amount, tradePrecision);
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -294,7 +295,7 @@ module.exports = class timex extends timexRest {
          * @method
          * @name timex#watchOrders
          * @description watches information on multiple orders made by the user
-         * @url https://docs.timex.io/websocket-api-general.html#subscribe-account-to-channels
+         * @see https://docs.timex.io/websocket-api-general.html#subscribe-account-to-channels
          * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
@@ -421,7 +422,7 @@ module.exports = class timex extends timexRest {
          * @method
          * @name timex#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @url https://docs.timex.io/websocket-api-list-patterns.html#order-book
+         * @see https://docs.timex.io/websocket-api-list-patterns.html#order-book
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the timex api endpoint
