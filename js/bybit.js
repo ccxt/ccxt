@@ -4841,8 +4841,6 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchOpenInterestHistory
          * @description Gets the total amount of unsettled contracts. In other words, the total number of contracts held in open positions
-         * @see https://bybit-exchange.github.io/docs/futuresV2/inverse/#t-marketopeninterest
-         * @see https://bybit-exchange.github.io/docs/usdc/perpetual/#t-queryopeninterest
          * @param {string} symbol Unified market symbol
          * @param {string} timeframe "5m", 15m, 30m, 1h, 4h, 1d
          * @param {int} since Not used by Bybit
@@ -4851,7 +4849,7 @@ module.exports = class bybit extends Exchange {
          * @returns An array of open interest structures
          */
         if (timeframe === '1m') {
-            throw new BadRequest (this.id + ' fetchOpenInterestHistory() cannot use the 1m timeframe');
+            throw new BadRequest (this.id + 'fetchOpenInterestHistory cannot use the 1m timeframe');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -4862,12 +4860,7 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const isUsdcSettled = market['settle'] === 'USDC';
-        let method = 'publicGetV2PublicOpenInterest';
-        if (isUsdcSettled) {
-            method = 'publicGetPerpetualUsdcOpenapiPublicV1OpenInterest';
-        }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.publicGetV2PublicOpenInterest (this.extend (request, params));
         //
         //    {
         //        "ret_code": 0,
@@ -4884,20 +4877,6 @@ module.exports = class bybit extends Exchange {
         //        ],
         //        "time_now": "1645085118.727358"
         //    }
-        //
-        // USDC Settled
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "",
-        //         "result": [
-        //             {
-        //                 "symbol": "BTCPERP",
-        //                 "timestamp": "1664406000",
-        //                 "openInterest": "44142800000"
-        //             },
-        //         ]
-        //     }
         //
         const result = this.safeValue (response, 'result');
         return this.parseOpenInterests (result, market, since, limit);
@@ -4924,9 +4903,6 @@ module.exports = class bybit extends Exchange {
         const market = this.market (symbol);
         if (!market['contract']) {
             throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
-        }
-        if (market['option']) {
-            throw new NotSupported (this.id + ' fetchOpenInterest() option markets are currently not supported');
         }
         const request = {
             'symbol': market['id'],
