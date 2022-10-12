@@ -4297,7 +4297,7 @@ module.exports = class bybit extends Exchange {
         const direction = Precise.stringLt (amount, '0') ? 'out' : 'in';
         let before = undefined;
         if (after !== undefined && amount !== undefined) {
-            const difference = (direction === 'out') ? amount : '-' + amount;
+            const difference = (direction === 'out') ? amount : Precise.stringNeg (amount);
             before = Precise.stringAdd (after, difference);
         }
         const timestamp = this.parse8601 (this.safeString (item, 'exec_time'));
