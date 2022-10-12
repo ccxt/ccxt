@@ -30,7 +30,7 @@ import { Exchange }  from './js/base/Exchange.js'
 import { Precise }   from './js/base/Precise.js'
 import * as functions from './js/base/functions.js'
 import * as errors   from './js/base/errors.js'
-import { Exchange as wsExchange } from './js/pro/base/Exchange.js'
+import wsExchange from './js/pro/base/Exchange.js'
 
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
@@ -399,7 +399,7 @@ pro.exchanges = Object.keys (pro)
 
 //-----------------------------------------------------------------------------
 
-const ccxt = Object.assign ({ version, Exchange, Precise, 'exchanges': Object.keys (exchanges)}, exchanges, functions, errors)
+const ccxt = Object.assign ({ version, Exchange, Precise, 'exchanges': Object.keys (exchanges), 'pro': pro}, exchanges, functions, errors)
 
 export {
     version,
