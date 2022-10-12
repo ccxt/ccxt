@@ -2,13 +2,14 @@
 
 // ----------------------------------------------------------------------------
 
-const log = require ('ololog')
-    , testTicker = require ('../../../test/Exchange/test.ticker.js')
-    , errors = require ('../../../base/errors.js')
+import log from 'ololog';
+
+import testTicker from '../../../test/Exchange/test.ticker.js';
+import errors from '../../../base/errors.js';
 
 /*  ------------------------------------------------------------------------ */
 
-module.exports = async (exchange, symbol) => {
+export default async (exchange, symbol) => {
 
     // log (symbol.green, 'watching ticker...')
 
@@ -57,4 +58,4 @@ module.exports = async (exchange, symbol) => {
     }
 
     return response
-}
+};

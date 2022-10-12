@@ -2,15 +2,16 @@
 
 // ----------------------------------------------------------------------------
 
-const log = require ('ololog')
-    , assert = require ('assert')
-    , testBalance = require ('../../../test/Exchange/test.balance.js')
-    , errors = require ('../../../base/errors.js')
+import log from 'ololog';
+
+import assert from 'assert';
+import testBalance from '../../../test/Exchange/test.balance.js';
+import errors from '../../../base/errors.js';
 
 
 /*  ------------------------------------------------------------------------ */
 
-module.exports = async (exchange) => {
+export default async (exchange) => {
 
     const method = 'watchBalance'
 
@@ -96,4 +97,4 @@ module.exports = async (exchange) => {
     return balance
 
     */
-}
+};

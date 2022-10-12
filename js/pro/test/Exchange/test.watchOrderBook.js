@@ -2,13 +2,14 @@
 
 // ----------------------------------------------------------------------------
 
-const log = require ('ololog')
-    , testOrderBook = require ('../../../test/Exchange/test.orderbook.js')
-    , errors = require ('../../../base/errors.js')
+import log from 'ololog';
+
+import testOrderBook from '../../../test/Exchange/test.orderbook.js';
+import errors from '../../../base/errors.js';
 
 /*  ------------------------------------------------------------------------ */
 
-module.exports = async (exchange, symbol) => {
+export default async (exchange, symbol) => {
 
     // log (symbol.green, 'watching order book...')
 
@@ -56,4 +57,4 @@ module.exports = async (exchange, symbol) => {
     }
 
     return response
-}
+};

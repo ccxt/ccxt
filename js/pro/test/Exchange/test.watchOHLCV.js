@@ -2,14 +2,15 @@
 
 // ----------------------------------------------------------------------------
 
-const log = require ('ololog')
-    , assert = require ('assert')
-    , testOHLCV = require ('../../../test/Exchange/test.ohlcv.js')
-    , errors = require ('../../../base/errors.js')
+import log from 'ololog';
+
+import assert from 'assert';
+import testOHLCV from '../../../test/Exchange/test.ohlcv.js';
+import errors from '../../../base/errors.js';
 
 /*  ------------------------------------------------------------------------ */
 
-module.exports = async (exchange, symbol) => {
+export default async (exchange, symbol) => {
 
     // log (symbol.green, 'watching ohlcv...')
 
@@ -91,4 +92,4 @@ module.exports = async (exchange, symbol) => {
     }
 
     return response
-}
+};
