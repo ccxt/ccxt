@@ -1,13 +1,16 @@
-'use strict'
-
 import fs from 'fs';
+import log from 'ololog'
+import ccxt from '../../../ccxt.js' 
+import { dirname } from 'path'
+import { fileURLToPath } from 'url';
 
-const // eslint-disable-next-line import/no-dynamic-require, no-path-concat
-      log = require ('ololog').handleNodeErrors (),
-      ccxt = require (__dirname + '/../../../ccxt.js');
+log.handleNodeErrors()
 
 const [processPath, , exchangeId, exchangeSymbol] = process.argv.filter ((x) => !x.startsWith ('--'))
 const verbose = process.argv.includes ('--verbose') || false
+
+
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 // ----------------------------------------------------------------------------
 
@@ -60,21 +63,25 @@ const tests = {}
 
 // eslint-disable-next-line no-path-concat
 const pathToExchangeTests = __dirname + '/Exchange/'
-fs.readdirSync (pathToExchangeTests)
+
+const filteredFiles = fs.readdirSync (pathToExchangeTests)
     .filter ((file) => file.match (/test.[a-zA-Z0-9_-]+.js$/))
-    .forEach ((file) => {
-        const key = file.slice (5, -3)
-        // eslint-disable-next-line global-require, import/no-dynamic-require
-        tests[key] = require (pathToExchangeTests + file)
-    })
+
+for (const file of filteredFiles) {
+    const key = file.slice (5, -3)
+    const test = await import (pathToExchangeTests + file)
+    tests[key] = test.default 
+}
 
 //-----------------------------------------------------------------------------
 
 const keysGlobal = 'keys.json'
     , keysLocal = 'keys.local.json'
     , keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal
-    // eslint-disable-next-line import/no-dynamic-require, no-path-concat
-    , settings = require (__dirname + '/../../../' + keysFile)[exchangeId]
+
+const settingsFile = fs.readFileSync(keysFile)
+let settings = JSON.parse(settingsFile)
+settings = settings[exchangeId]
 
 if (settings) {
     for (const key in settings) {
