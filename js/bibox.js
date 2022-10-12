@@ -325,6 +325,12 @@ module.exports = class bibox extends Exchange {
                 'STAR': 'Starbase',
                 'TERN': 'Ternio-ERC20',
             },
+            'options': {
+                'typesByAccount': {
+                    'base': 'main',
+                    'credit': 'margin',
+                },
+            },
         });
     }
 
@@ -1700,9 +1706,9 @@ module.exports = class bibox extends Exchange {
          * @description transfer currency internally between wallets on the same account
          * @see https://biboxcom.github.io/api/spot/v3/en/#wallet-to-spot
          * @see https://biboxcom.github.io/api/spot/v3/en/#wallet-to-leverage
-         * @see https://api.bibox.com/v3.1/credit/transferAssets/credit2base
-         * @see https://biboxcom.github.io/api/futures/v3/en/#2-fund-transfer # TODO: USDT futures
-         * @see https://biboxcom.github.io/api/futures-coin/v3/en/#2-fund-transfer # TODO: Coin futures
+         * @see https://biboxcom.github.io/api/spot/v3/en/#leverage-to-wallet
+         * @see https://biboxcom.github.io/api/futures/v3/en/#2-fund-transfer
+         * @see https://biboxcom.github.io/api/futures-coin/v3/en/#2-fund-transfer
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
@@ -1718,11 +1724,11 @@ module.exports = class bibox extends Exchange {
         const toSpot = toAccount === 'spot';
         const toCross = toAccount === 'cross';
         const fromCross = fromAccount === 'cross';
-        const toIsolated = this.inArray (this.marketIds, toAccount);
-        const fromIsolated = this.inArray (this.marketIds, fromAccount);
+        const toIsolated = this.inArray (toAccount, this.symbols);
+        const fromIsolated = this.inArray (fromAccount, this.symbols);
         const toSwap = toAccount === 'swap';
         const fromSwap = fromAccount === 'swap';
-        let method = 'privatePostV3AssetsTransferSpot';
+        let method = 'v3PrivatePostAssetsTransferSpot';
         const request = {
             'amount': amount,
         };
@@ -1736,23 +1742,18 @@ module.exports = class bibox extends Exchange {
                 throw new BadRequest (this.id + ' cannot transfer from ' + fromAccount + ' to ' + toAccount);
             }
         } else if ((fromCross || fromIsolated) && toMain) {
-            method = 'privatePostV31AssetsTransferAssetsCreditToBase';
+            method = 'v3.1PrivatePostCreditTransferAssetsCredit2base';
             request['coin_symbol'] = currency['id'];
-            if (fromIsolated) {
-                request['pair'] = fromAccount;
-            }
+            request['pair'] = fromIsolated ? this.marketId (fromAccount) : '*_USDT';
         } else if ((toCross || toIsolated) && fromMain) {
-            method = 'privatePostV31AssetsTransferAssetsBaseToCredit';
+            method = 'v3.1PrivatePostCreditTransferAssetsBase2credit';
             request['coin_symbol'] = currency['id'];
-            if (toIsolated) {
-                request['pair'] = toAccount;
-            }
+            request['pair'] = toIsolated ? this.marketId (toAccount) : '*_USDT';
         } else if (toSwap || fromSwap) {
-            const settle = this.safeStringUpper (params, 'settle', 'USDT');
-            if (settle === 'USDT') {
-                method = 'privatePostV3CbuassetsTransfer';
+            if (code === 'USDT') {
+                method = 'v3PrivatePostCbuassetsTransfer';
             } else {
-                method = 'privatePostV3AssetsTransferCbc';
+                method = 'v3PrivatePostAssetsTransferCbc';
             }
             if (toMain) {
                 request['type'] = 1;
@@ -1766,8 +1767,78 @@ module.exports = class bibox extends Exchange {
             throw new BadRequest (this.id + ' cannot transfer from ' + fromAccount + ' to ' + toAccount);
         }
         const response = await this[method] (this.extend (request, params));
-        const result = this.safeValue (response, 'result', {});
-        return this.parseTransfer (result, currency);
+        //
+        // spot <-> main
+        //
+        //    {
+        //        state: '0',
+        //        id: '936177661049344000'
+        //    }
+        //
+        // main <-> leverage
+        //
+        //    {
+        //        result: '1620000000049',
+        //        cmd: 'transferAssets/base2credit',
+        //        state: '0'
+        //    }
+        //
+        // main <-> swap
+        //
+        //    {
+        //        state: '0',
+        //        result: '936190233517527040'
+        //    }
+        //
+        return this.parseTransfer (response, currency);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        // spot <-> main
+        //
+        //    {
+        //        state: '0',
+        //        id: '936177661049344000'
+        //    }
+        //
+        // main <-> leverage
+        //
+        //    {
+        //        result: '1620000000049',
+        //        cmd: 'transferAssets/base2credit',
+        //        state: '0'
+        //    }
+        //
+        // main <-> swap
+        //
+        //    {
+        //        state: '0',
+        //        result: '936190233517527040'
+        //    }
+        //
+        const cmd = this.safeString (transfer, 'cmd');
+        let fromAccount = undefined;
+        let toAccount = undefined;
+        if (cmd !== undefined) {
+            const accounts = this.safeString (cmd.split ('/'), 1);
+            const parts = accounts.split ('2');
+            fromAccount = this.safeString (parts, 0);
+            toAccount = this.safeString (parts, 1);
+            fromAccount = this.safeString (this.options['typesByAccount'], fromAccount, fromAccount);
+            toAccount = this.safeString (this.options['typesByAccount'], toAccount, toAccount);
+        }
+        return {
+            'info': transfer,
+            'id': this.safeString2 (transfer, 'id', 'result'),
+            'timestamp': undefined,
+            'datetime': undefined,
+            'currency': this.safeString (currency, 'code'),
+            'amount': undefined,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': undefined,
+        };
     }
 
     sign (path, api = 'v1Public', method = 'GET', params = {}, headers = undefined, body = undefined) {
