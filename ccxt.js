@@ -35,7 +35,7 @@ import wsExchange from './js/pro/base/Exchange.js'
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '1.95.39'
+const version = '1.95.40'
 
 Exchange.ccxtVersion = version
 

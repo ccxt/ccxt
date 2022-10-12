@@ -393,6 +393,7 @@ export default class kraken extends krakenRest {
                 const deltas = this.safeValue (message[1], key, []);
                 timestamp = this.handleDeltas (bookside, deltas, timestamp);
             }
+            orderbook['symbol'] = symbol;
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
             client.resolve (orderbook, messageHash);
@@ -454,6 +455,7 @@ export default class kraken extends krakenRest {
                     client.reject (error, messageHash);
                 }
             }
+            orderbook['symbol'] = symbol;
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
             client.resolve (orderbook, messageHash);
