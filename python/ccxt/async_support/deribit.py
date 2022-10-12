@@ -646,23 +646,27 @@ class deribit(Exchange):
                 kind = self.safe_string(market, 'kind')
                 settlementPeriod = self.safe_value(market, 'settlement_period')
                 swap = (settlementPeriod == 'perpetual')
-                future = not swap and (kind == 'future')
-                option = (kind == 'option')
-                symbol = base + '/' + quote + ':' + settle
+                future = not swap and (kind.find('future') >= 0)
+                option = (kind.find('option') >= 0)
+                isComboMarket = kind.find('combo') >= 0
                 expiry = self.safe_integer(market, 'expiration_timestamp')
                 strike = None
                 optionType = None
+                symbol = id
                 type = 'swap'
-                if option or future:
-                    symbol = symbol + '-' + self.yymmdd(expiry, '')
-                    if option:
-                        type = 'option'
-                        strike = self.safe_number(market, 'strike')
-                        optionType = self.safe_string(market, 'option_type')
-                        letter = 'C' if (optionType == 'call') else 'P'
-                        symbol = symbol + '-' + self.number_to_string(strike) + '-' + letter
-                    else:
-                        type = 'future'
+                if future:
+                    type = 'future'
+                elif option:
+                    type = 'option'
+                if not isComboMarket:
+                    symbol = base + '/' + quote + ':' + settle
+                    if option or future:
+                        symbol = symbol + '-' + self.yymmdd(expiry, '')
+                        if option:
+                            strike = self.safe_number(market, 'strike')
+                            optionType = self.safe_string(market, 'option_type')
+                            letter = 'C' if (optionType == 'call') else 'P'
+                            symbol = symbol + '-' + self.number_to_string(strike) + '-' + letter
                 minTradeAmount = self.safe_number(market, 'min_trade_amount')
                 tickSize = self.safe_number(market, 'tick_size')
                 result.append({
@@ -1056,10 +1060,9 @@ class deribit(Exchange):
         now = self.milliseconds()
         if since is None:
             if limit is None:
-                raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument or a limit argument')
-            else:
-                request['start_timestamp'] = now - (limit - 1) * duration * 1000
-                request['end_timestamp'] = now
+                limit = 1000  # at max, it provides 5000 bars, but we set generous default here
+            request['start_timestamp'] = now - (limit - 1) * duration * 1000
+            request['end_timestamp'] = now
         else:
             request['start_timestamp'] = since
             if limit is None:
@@ -2131,6 +2134,7 @@ class deribit(Exchange):
         currentTime = self.milliseconds()
         return {
             'info': position,
+            'id': None,
             'symbol': self.safe_string(market, 'symbol'),
             'timestamp': currentTime,
             'datetime': self.iso8601(currentTime),

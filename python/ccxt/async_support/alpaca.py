@@ -193,7 +193,7 @@ class alpaca(Exchange):
                     'GNSS',  # Genesis
                     'ERSX',  # ErisX
                 ],
-                'defaultTimeInForce': 'day',  # fok, gtc, ioc
+                'defaultTimeInForce': 'gtc',  # fok, gtc, ioc
                 'clientOrderId': 'ccxt_{id}',
             },
             'exceptions': {
@@ -517,8 +517,7 @@ class alpaca(Exchange):
         if type.find('limit') >= 0:
             request['limit_price'] = self.price_to_precision(symbol, price)
         defaultTIF = self.safe_string(self.options, 'defaultTimeInForce')
-        timeInForce = self.safe_string(params, 'timeInForce', defaultTIF)
-        request['time_in_force'] = timeInForce
+        request['time_in_force'] = self.safe_string(params, 'timeInForce', defaultTIF)
         params = self.omit(params, ['timeInForce', 'triggerPrice'])
         clientOrderIdprefix = self.safe_string(self.options, 'clientOrderId')
         uuid = self.uuid()

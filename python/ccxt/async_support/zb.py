@@ -3484,6 +3484,7 @@ class zb(Exchange):
         timestamp = self.safe_number(position, 'createTime')
         return {
             'info': position,
+            'id': None,
             'symbol': symbol,
             'contracts': self.parse_number(contracts),
             'contractSize': None,

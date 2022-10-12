@@ -26,7 +26,7 @@ CCXT – CryptoCurrency eXchange Trading Library
      :target: https://discord.gg/ccxt
      :alt: Discord
  
-.. image:: https://img.shields.io/badge/exchanges-122-blue.svg
+.. image:: https://img.shields.io/badge/exchanges-121-blue.svg
      :target: https://github.com/ccxt/ccxt/wiki/Exchange-Markets
      :alt: Supported Exchanges
  
@@ -53,15 +53,6 @@ Current feature list:
  * an out of the box unified API that is extremely easy to integrate
  * works in Node 10.4+, Python 3, PHP 7.0+, and web browsers
 
-Sponsored Promotion
--------------------
-
-
-.. image:: https://user-images.githubusercontent.com/1294454/106092533-865ce180-613f-11eb-8d67-0830771fde32.png
-     :target: https://ccxt.pro
-     :alt: CCXT Pro – A JavaScript / Python / PHP cryptocurrency exchange trading WebSocket API for professionals
-
-
 See Also
 --------
 
@@ -70,7 +61,7 @@ See Also
        :target: https://tab-trader.com/?utm_source=ccxt
        :alt: TabTrader
 
-   `TabTrader <https://tab-trader.com/?utm_source=ccxt>`__ – trading on all exchanges in one app. Avaliable on `Android <https://play.google.com/store/apps/details?id=com.tabtrader.android&referrer=utm_source%3Dccxt>`__ and `iOS <https://itunes.apple.com/app/apple-store/id1095716562?mt=8>`__\ !
+   `TabTrader <https://tab-trader.com/?utm_source=ccxt>`__ – trading on all exchanges in one app. Available on `Android <https://play.google.com/store/apps/details?id=com.tabtrader.android&referrer=utm_source%3Dccxt>`__ and `iOS <https://itunes.apple.com/app/apple-store/id1095716562?mt=8>`__\ !
  * .. image:: https://user-images.githubusercontent.com/1294454/114340585-8e35fa80-9b60-11eb-860f-4379125e2db6.png
        :target: https://www.freqtrade.io
        :alt: Freqtrade
@@ -101,11 +92,11 @@ Certified Cryptocurrency Exchanges
      - pro
      - discount
    * - .. image:: https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg
-          :target: https://www.binance.com/en/register?ref=D7YA7CLY
+          :target: https://accounts.binance.com/en/register?ref=D7YA7CLY
           :alt: binance
      
      - binance
-     - `Binance <https://www.binance.com/en/register?ref=D7YA7CLY>`__
+     - `Binance <https://accounts.binance.com/en/register?ref=D7YA7CLY>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://binance-docs.github.io/apidocs/spot/en
           :alt: API Version *
@@ -119,15 +110,15 @@ Certified Cryptocurrency Exchanges
           :alt: CCXT Pro
      
      - .. image:: https://img.shields.io/static/v1?label=Fee&message=%2d10%25&color=orange
-          :target: https://www.binance.com/en/register?ref=D7YA7CLY
+          :target: https://accounts.binance.com/en/register?ref=D7YA7CLY
           :alt: Sign up with Binance using CCXT's referral link for a 10% discount!
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
-          :target: https://www.binance.com/en/register?ref=D7YA7CLY
+          :target: https://accounts.binance.com/en/register?ref=D7YA7CLY
           :alt: binancecoinm
      
      - binancecoinm
-     - `Binance COIN-M <https://www.binance.com/en/register?ref=D7YA7CLY>`__
+     - `Binance COIN-M <https://accounts.binance.com/en/register?ref=D7YA7CLY>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://binance-docs.github.io/apidocs/delivery/en/
           :alt: API Version *
@@ -141,15 +132,15 @@ Certified Cryptocurrency Exchanges
           :alt: CCXT Pro
      
      - .. image:: https://img.shields.io/static/v1?label=Fee&message=%2d10%25&color=orange
-          :target: https://www.binance.com/en/register?ref=D7YA7CLY
+          :target: https://accounts.binance.com/en/register?ref=D7YA7CLY
           :alt: Sign up with Binance COIN-M using CCXT's referral link for a 10% discount!
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
-          :target: https://www.binance.com/en/register?ref=D7YA7CLY
+          :target: https://accounts.binance.com/en/register?ref=D7YA7CLY
           :alt: binanceusdm
      
      - binanceusdm
-     - `Binance USDⓈ-M <https://www.binance.com/en/register?ref=D7YA7CLY>`__
+     - `Binance USDⓈ-M <https://accounts.binance.com/en/register?ref=D7YA7CLY>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://binance-docs.github.io/apidocs/futures/en/
           :alt: API Version *
@@ -163,7 +154,7 @@ Certified Cryptocurrency Exchanges
           :alt: CCXT Pro
      
      - .. image:: https://img.shields.io/static/v1?label=Fee&message=%2d10%25&color=orange
-          :target: https://www.binance.com/en/register?ref=D7YA7CLY
+          :target: https://accounts.binance.com/en/register?ref=D7YA7CLY
           :alt: Sign up with Binance USDⓈ-M using CCXT's referral link for a 10% discount!
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg
@@ -208,11 +199,11 @@ Certified Cryptocurrency Exchanges
      
      - 
    * - .. image:: https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg
-          :target: https://partner.bybit.com/b/ccxt
+          :target: https://www.bybit.com/register?affiliate_id=35953
           :alt: bybit
      
      - bybit
-     - `Bybit <https://partner.bybit.com/b/ccxt>`__
+     - `Bybit <https://www.bybit.com/register?affiliate_id=35953>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://bybit-exchange.github.io/docs/inverse/
           :alt: API Version 2
@@ -226,28 +217,6 @@ Certified Cryptocurrency Exchanges
           :alt: CCXT Pro
      
      - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg
-          :target: https://ftx.com/#a=ccxt
-          :alt: ftx
-     
-     - ftx
-     - `FTX <https://ftx.com/#a=ccxt>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://github.com/ftexchange/ftx
-          :alt: API Version *
-     
-     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
-          :target: https://github.com/ccxt/ccxt/wiki/Certification
-          :alt: CCXT Certified
-     
-     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
-          :target: https://ccxt.pro
-          :alt: CCXT Pro
-     
-     - .. image:: https://img.shields.io/static/v1?label=Fee&message=%2d5%25&color=orange
-          :target: https://ftx.com/#a=ccxt
-          :alt: Sign up with FTX using CCXT's referral link for a 5% discount!
-     
    * - .. image:: https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg
           :target: https://www.gate.io/ref/2436035
           :alt: gate
@@ -271,11 +240,11 @@ Certified Cryptocurrency Exchanges
           :alt: Sign up with Gate.io using CCXT's referral link for a 20% discount!
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg
-          :target: https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223
+          :target: https://www.huobi.com/en-us/v/register/double-invite/?inviter_id=11343840&invite_code=6rmm2223
           :alt: huobi
      
      - huobi
-     - `Huobi <https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223>`__
+     - `Huobi <https://www.huobi.com/en-us/v/register/double-invite/?inviter_id=11343840&invite_code=6rmm2223>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://huobiapi.github.io/docs/spot/v1/cn/
           :alt: API Version 1
@@ -289,7 +258,7 @@ Certified Cryptocurrency Exchanges
           :alt: CCXT Pro
      
      - .. image:: https://img.shields.io/static/v1?label=Fee&message=%2d15%25&color=orange
-          :target: https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223
+          :target: https://www.huobi.com/en-us/v/register/double-invite/?inviter_id=11343840&invite_code=6rmm2223
           :alt: Sign up with Huobi using CCXT's referral link for a 15% discount!
      
    * - .. image:: https://user-images.githubusercontent.com/51840849/94481303-2f222100-01e0-11eb-97dd-bc14c5943a86.jpg
@@ -368,7 +337,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The CCXT library currently supports the following 116 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 115 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -380,13 +349,13 @@ The CCXT library currently supports the following 116 cryptocurrency exchange ma
      - certified
      - pro
    * - .. image:: https://user-images.githubusercontent.com/1294454/104140087-a27f2580-53c0-11eb-87c1-5d9e81208fe9.jpg
-          :target: https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB
+          :target: https://www.aax.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB
           :alt: aax
      
      - aax
-     - `AAX <https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB>`__
+     - `AAX <https://www.aax.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://www.aaxpro.com/apidoc/index.html
+          :target: https://www.aax.com/apidoc/index.html
           :alt: API Version 2
      
      - 
@@ -461,11 +430,11 @@ The CCXT library currently supports the following 116 cryptocurrency exchange ma
      - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg
-          :target: https://www.binance.com/en/register?ref=D7YA7CLY
+          :target: https://accounts.binance.com/en/register?ref=D7YA7CLY
           :alt: binance
      
      - binance
-     - `Binance <https://www.binance.com/en/register?ref=D7YA7CLY>`__
+     - `Binance <https://accounts.binance.com/en/register?ref=D7YA7CLY>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://binance-docs.github.io/apidocs/spot/en
           :alt: API Version *
@@ -479,11 +448,11 @@ The CCXT library currently supports the following 116 cryptocurrency exchange ma
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
-          :target: https://www.binance.com/en/register?ref=D7YA7CLY
+          :target: https://accounts.binance.com/en/register?ref=D7YA7CLY
           :alt: binancecoinm
      
      - binancecoinm
-     - `Binance COIN-M <https://www.binance.com/en/register?ref=D7YA7CLY>`__
+     - `Binance COIN-M <https://accounts.binance.com/en/register?ref=D7YA7CLY>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://binance-docs.github.io/apidocs/delivery/en/
           :alt: API Version *
@@ -512,11 +481,11 @@ The CCXT library currently supports the following 116 cryptocurrency exchange ma
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
-          :target: https://www.binance.com/en/register?ref=D7YA7CLY
+          :target: https://accounts.binance.com/en/register?ref=D7YA7CLY
           :alt: binanceusdm
      
      - binanceusdm
-     - `Binance USDⓈ-M <https://www.binance.com/en/register?ref=D7YA7CLY>`__
+     - `Binance USDⓈ-M <https://accounts.binance.com/en/register?ref=D7YA7CLY>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://binance-docs.github.io/apidocs/futures/en/
           :alt: API Version *
@@ -917,11 +886,11 @@ The CCXT library currently supports the following 116 cryptocurrency exchange ma
      - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg
-          :target: https://partner.bybit.com/b/ccxt
+          :target: https://www.bybit.com/register?affiliate_id=35953
           :alt: bybit
      
      - bybit
-     - `Bybit <https://partner.bybit.com/b/ccxt>`__
+     - `Bybit <https://www.bybit.com/register?affiliate_id=35953>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://bybit-exchange.github.io/docs/inverse/
           :alt: API Version 2
@@ -943,18 +912,6 @@ The CCXT library currently supports the following 116 cryptocurrency exchange ma
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://docs.byte-trade.com/#description
           :alt: API Version *
-     
-     - 
-     - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/102157692-fd406280-3e90-11eb-8d46-4511b617cd17.jpg
-          :target: https://cdax.io/invite?invite_code=esc74
-          :alt: cdax
-     
-     - cdax
-     - `CDAX <https://cdax.io/invite?invite_code=esc74>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://github.com/cloudapidoc/API_Docs
-          :alt: API Version 1
      
      - 
      - 
@@ -1220,29 +1177,26 @@ The CCXT library currently supports the following 116 cryptocurrency exchange ma
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg
-          :target: https://ftx.com/#a=ccxt
+          :target: https://ftx.com/referrals#a=1623029
           :alt: ftx
      
      - ftx
-     - `FTX <https://ftx.com/#a=ccxt>`__
+     - `FTX <https://ftx.com/referrals#a=1623029>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://github.com/ftexchange/ftx
           :alt: API Version *
      
-     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
-          :target: https://github.com/ccxt/ccxt/wiki/Certification
-          :alt: CCXT Certified
-     
+     - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/141506670-12f6115f-f425-4cd8-b892-b51d157ca01f.jpg
-          :target: https://ftx.com/#a=ccxt
+          :target: https://ftx.com/referrals#a=1623029
           :alt: ftxus
      
      - ftxus
-     - `FTX US <https://ftx.com/#a=ccxt>`__
+     - `FTX US <https://ftx.com/referrals#a=1623029>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://github.com/ftexchange/ftx
           :alt: API Version *
@@ -1328,11 +1282,11 @@ The CCXT library currently supports the following 116 cryptocurrency exchange ma
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg
-          :target: https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223
+          :target: https://www.huobi.com/en-us/v/register/double-invite/?inviter_id=11343840&invite_code=6rmm2223
           :alt: huobi
      
      - huobi
-     - `Huobi <https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223>`__
+     - `Huobi <https://www.huobi.com/en-us/v/register/double-invite/?inviter_id=11343840&invite_code=6rmm2223>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://huobiapi.github.io/docs/spot/v1/cn/
           :alt: API Version 1
@@ -1430,11 +1384,11 @@ The CCXT library currently supports the following 116 cryptocurrency exchange ma
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg
-          :target: https://www.kucoin.com/?rcode=E5wkqe
+          :target: https://www.kucoin.com/ucenter/signup?rcode=E5wkqe
           :alt: kucoin
      
      - kucoin
-     - `KuCoin <https://www.kucoin.com/?rcode=E5wkqe>`__
+     - `KuCoin <https://www.kucoin.com/ucenter/signup?rcode=E5wkqe>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://docs.kucoin.com
           :alt: API Version 2
@@ -1993,14 +1947,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.93.14/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@1.93.14/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.95.40/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@1.95.40/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.93.14/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.95.40/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

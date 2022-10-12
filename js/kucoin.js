@@ -87,7 +87,7 @@ module.exports = class kucoin extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg',
-                'referral': 'https://www.kucoin.com/?rcode=E5wkqe',
+                'referral': 'https://www.kucoin.com/ucenter/signup?rcode=E5wkqe',
                 'api': {
                     'public': 'https://api.kucoin.com',
                     'private': 'https://api.kucoin.com',
@@ -148,6 +148,8 @@ module.exports = class kucoin extends Exchange {
                         'accounts/transferable': 1,
                         'base-fee': 1,
                         'sub/user': 1,
+                        'user-info': 1,
+                        'sub/api-key': 1,
                         'sub-accounts': 1,
                         'sub-accounts/{subUserId}': 1,
                         'deposit-addresses': 1,
@@ -202,6 +204,9 @@ module.exports = class kucoin extends Exchange {
                         'margin/toggle-auto-lend': 1,
                         'bullet-private': 1,
                         'stop-order': 1,
+                        'sub/user': 1,
+                        'sub/api-key': 1,
+                        'sub/api-key/update': 1,
                     },
                     'delete': {
                         'withdrawals/{withdrawalId}': 1,
@@ -212,6 +217,7 @@ module.exports = class kucoin extends Exchange {
                         'stop-order/cancelOrderByClientOid': 1,
                         'stop-order/{orderId}': 1,
                         'stop-order/cancel': 1,
+                        'sub/api-key': 1,
                     },
                 },
                 'futuresPublic': {
@@ -1035,7 +1041,7 @@ module.exports = class kucoin extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '15m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#fetchOHLCV
@@ -2126,7 +2132,7 @@ module.exports = class kucoin extends Exchange {
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         let address = this.safeString (transaction, 'address');
-        const amount = this.safeNumber (transaction, 'amount');
+        const amount = this.safeString (transaction, 'amount');
         let txid = this.safeString (transaction, 'walletTxId');
         if (txid !== undefined) {
             const txidParts = txid.split ('@');
@@ -2142,23 +2148,20 @@ module.exports = class kucoin extends Exchange {
         }
         let type = (txid === undefined) ? 'withdrawal' : 'deposit';
         const rawStatus = this.safeString (transaction, 'status');
-        const status = this.parseTransactionStatus (rawStatus);
         let fee = undefined;
-        const feeCost = this.safeNumber (transaction, 'fee');
+        const feeCost = this.safeString (transaction, 'fee');
         if (feeCost !== undefined) {
             let rate = undefined;
             if (amount !== undefined) {
-                rate = feeCost / amount;
+                rate = Precise.stringDiv (feeCost, amount);
             }
             fee = {
-                'cost': feeCost,
-                'rate': rate,
+                'cost': this.parseNumber (feeCost),
+                'rate': this.parseNumber (rate),
                 'currency': code,
             };
         }
-        const tag = this.safeString (transaction, 'memo');
         let timestamp = this.safeInteger2 (transaction, 'createdAt', 'createAt');
-        const id = this.safeString2 (transaction, 'id', 'withdrawalId');
         let updated = this.safeInteger (transaction, 'updatedAt');
         const isV1 = !('createdAt' in transaction);
         // if it's a v1 structure
@@ -2171,10 +2174,10 @@ module.exports = class kucoin extends Exchange {
                 updated = updated * 1000;
             }
         }
-        const comment = this.safeString (transaction, 'remark');
+        const tag = this.safeString (transaction, 'memo');
         return {
-            'id': id,
             'info': transaction,
+            'id': this.safeString2 (transaction, 'id', 'withdrawalId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'network': undefined,
@@ -2185,11 +2188,11 @@ module.exports = class kucoin extends Exchange {
             'tagTo': tag,
             'tagFrom': undefined,
             'currency': code,
-            'amount': amount,
+            'amount': this.parseNumber (amount),
             'txid': txid,
             'type': type,
-            'status': status,
-            'comment': comment,
+            'status': this.parseTransactionStatus (rawStatus),
+            'comment': this.safeString (transaction, 'remark'),
             'fee': fee,
             'updated': updated,
         };

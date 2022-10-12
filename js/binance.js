@@ -158,7 +158,7 @@ module.exports = class binance extends Exchange {
                 },
                 'www': 'https://www.binance.com',
                 'referral': {
-                    'url': 'https://www.binance.com/en/register?ref=D7YA7CLY',
+                    'url': 'https://accounts.binance.com/en/register?ref=D7YA7CLY',
                     'discount': 0.1,
                 },
                 'doc': [
@@ -204,6 +204,7 @@ module.exports = class binance extends Exchange {
                         'margin/myTrades': 1,
                         'margin/maxBorrowable': 5, // Weight(IP): 50 => cost = 0.1 * 50 = 5
                         'margin/maxTransferable': 5,
+                        'margin/tradeCoeff': 1,
                         'margin/isolated/transfer': 0.1,
                         'margin/isolated/account': 1,
                         'margin/isolated/pair': 1,
@@ -219,15 +220,16 @@ module.exports = class binance extends Exchange {
                         'margin/rateLimit/order': 2,
                         'margin/dribblet': 0.1,
                         'loan/income': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
+                        'loan/ongoing/orders': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/ltv/adjustment/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/borrow/history': 2.6667, // Weight(UID): 400 => cost = 0.006667 * 400 ~= 2.6667
+                        'loan/repay/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'fiat/orders': 600.03, // Weight(UID): 90000 => cost = 0.006667 * 90000 = 600.03
                         'fiat/payments': 0.1,
                         'futures/transfer': 1,
                         'futures/loan/borrow/history': 1,
                         'futures/loan/repay/history': 1,
                         'futures/loan/wallet': 1,
-                        'futures/loan/configs': 1,
-                        'futures/loan/calcAdjustLevel': 5, // Weight(IP): 50 => cost = 0.1 * 50 = 5
-                        'futures/loan/calcMaxAdjustAmount': 5,
                         'futures/loan/adjustCollateral/history': 1,
                         'futures/loan/liquidationHistory': 1,
                         'rebate/taxQuery': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
@@ -350,6 +352,8 @@ module.exports = class binance extends Exchange {
                         'asset/dust-btc': 0.1,
                         'asset/transfer': 0.1,
                         'asset/get-funding-asset': 0.1,
+                        'asset/convert-transfer': 0.033335,
+                        'asset/convert-transfer/queryByPage': 0.033335,
                         'account/disableFastWithdrawSwitch': 0.1,
                         'account/enableFastWithdrawSwitch': 0.1,
                         // 'account/apiRestrictions/ipRestriction': 1, discontinued
@@ -364,6 +368,7 @@ module.exports = class binance extends Exchange {
                         'margin/isolated/transfer': 4.0002, // Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
                         'margin/isolated/account': 2.0001, // Weight(UID): 300 => cost = 0.006667 * 300 = 2.0001
                         'bnbBurn': 0.1,
+                        'sub-account/virtualSubAccount': 0.1,
                         'sub-account/margin/transfer': 4.0002, // Weight(UID): 600 => cost =  0.006667 * 600 = 4.0002
                         'sub-account/margin/enable': 0.1,
                         'sub-account/futures/enable': 0.1,
@@ -377,9 +382,6 @@ module.exports = class binance extends Exchange {
                         'userDataStream': 0.1,
                         'userDataStream/isolated': 0.1,
                         'futures/transfer': 0.1,
-                        'futures/loan/borrow': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
-                        'futures/loan/repay': 20.001,
-                        'futures/loan/adjustCollateral': 20.001,
                         // lending
                         'lending/customizedFixed/purchase': 0.1,
                         'lending/daily/purchase': 0.1,
@@ -426,6 +428,9 @@ module.exports = class binance extends Exchange {
                         'staking/redeem': 0.1,
                         'staking/setAutoStaking': 0.1,
                         'portfolio/repay': 20.001,
+                        'loan/borrow': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
+                        'loan/repay': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
+                        'loan/adjust/ltv': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                     },
                     'put': {
                         'userDataStream': 0.1,
@@ -523,6 +528,7 @@ module.exports = class binance extends Exchange {
                         'forceOrders': { 'cost': 20, 'noSymbol': 50 },
                         'adlQuantile': 5,
                         'orderAmendment': 1,
+                        'pmAccountInfo': 5,
                     },
                     'post': {
                         'positionSide/dual': 1,
@@ -613,6 +619,7 @@ module.exports = class binance extends Exchange {
                         'apiReferral/rebateVol': 1,
                         'apiReferral/traderSummary': 1,
                         'adlQuantile': 5,
+                        'pmAccountInfo': 5,
                     },
                     'post': {
                         'batchOrders': 5,
@@ -1023,6 +1030,8 @@ module.exports = class binance extends Exchange {
                     'Market is closed.': ExchangeNotAvailable, // {"code":-1013,"msg":"Market is closed."}
                     'Too many requests. Please try again later.': DDoSProtection, // {"msg":"Too many requests. Please try again later.","success":false}
                     'This action disabled is on this account.': AccountSuspended, // {"code":-2010,"msg":"This action disabled is on this account."}
+                    'This type of sub-account exceeds the maximum number limit': BadRequest, // {"code":-9000,"msg":"This type of sub-account exceeds the maximum number limit"}
+                    'This symbol is not permitted for this account.': PermissionDenied, // {"code":-2010,"msg":"This symbol is not permitted for this account."}
                     '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
                     '-1001': ExchangeNotAvailable, // {"code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'"}
                     '-1002': AuthenticationError, // {"code":-1002,"msg":"'You are not authorized to execute this request.'"}
@@ -1097,12 +1106,12 @@ module.exports = class binance extends Exchange {
                     '-3007': ExchangeError, // {"code":-3007,"msg":"You have pending transaction, please try again later.."}
                     '-3008': InsufficientFunds, // {"code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount."}
                     '-3009': BadRequest, // {"code":-3009,"msg":"This asset are not allowed to transfer into margin account currently."}
-                    '-3010': ExchangeError, // {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
+                    '-3010': BadRequest, // {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
                     '-3011': BadRequest, // {"code":-3011,"msg":"Your input date is invalid."}
-                    '-3012': ExchangeError, // {"code":-3012,"msg":"Borrow is banned for this asset."}
+                    '-3012': InsufficientFunds, // {"code":-3012,"msg":"Borrow is banned for this asset."}
                     '-3013': BadRequest, // {"code":-3013,"msg":"Borrow amount less than minimum borrow amount."}
                     '-3014': AccountSuspended, // {"code":-3014,"msg":"Borrow is banned for this account."}
-                    '-3015': ExchangeError, // {"code":-3015,"msg":"Repay amount exceeds borrow amount."}
+                    '-3015': BadRequest, // {"code":-3015,"msg":"Repay amount exceeds borrow amount."}
                     '-3016': BadRequest, // {"code":-3016,"msg":"Repay amount less than minimum repay amount."}
                     '-3017': ExchangeError, // {"code":-3017,"msg":"This asset are not allowed to transfer into margin account currently."}
                     '-3018': AccountSuspended, // {"code":-3018,"msg":"Transferring in has been banned for this account."}
@@ -1698,8 +1707,6 @@ module.exports = class binance extends Exchange {
             };
             if ('PRICE_FILTER' in filtersByType) {
                 const filter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
-                const tickSize = this.safeString (filter, 'tickSize');
-                entry['precision']['price'] = this.precisionFromString (tickSize);
                 // PRICE_FILTER reports zero values for maxPrice
                 // since they updated filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
@@ -2933,8 +2940,8 @@ module.exports = class binance extends Exchange {
         } else if (marketType === 'margin' || marginMode !== undefined) {
             method = 'sapiPostMarginOrder';
         }
-        // the next 5 lines are added to support for testing orders
-        if (market['spot']) {
+        if (market['spot'] || marketType === 'margin') {
+            // support for testing orders
             const test = this.safeValue (query, 'test', false);
             if (test) {
                 method += 'Test';
@@ -3021,7 +3028,10 @@ module.exports = class binance extends Exchange {
                     if (quoteOrderQty !== undefined) {
                         request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQty, TRUNCATE, precision, this.precisionMode);
                     } else if (price !== undefined) {
-                        request['quoteOrderQty'] = this.decimalToPrecision (amount * price, TRUNCATE, precision, this.precisionMode);
+                        const amountString = this.numberToString (amount);
+                        const priceString = this.numberToString (price);
+                        const quoteOrderQuantity = Precise.stringMul (amountString, priceString);
+                        request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQuantity, TRUNCATE, precision, this.precisionMode);
                     } else {
                         quantityIsRequired = true;
                     }
@@ -3432,7 +3442,7 @@ module.exports = class binance extends Exchange {
         const inverse = (type === 'delivery');
         let marginMode = undefined;
         [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
-        if (market['type'] === 'spot') {
+        if (type === 'spot' || type === 'margin') {
             method = 'privateGetMyTrades';
             if ((type === 'margin') || (marginMode !== undefined)) {
                 method = 'sapiGetMarginMyTrades';
@@ -5148,6 +5158,7 @@ module.exports = class binance extends Exchange {
         const hedged = positionSide !== 'BOTH';
         return {
             'info': position,
+            'id': undefined,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -5316,6 +5327,7 @@ module.exports = class binance extends Exchange {
         const hedged = positionSide !== 'BOTH';
         return {
             'info': position,
+            'id': undefined,
             'symbol': symbol,
             'contracts': contracts,
             'contractSize': contractSize,

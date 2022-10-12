@@ -1158,7 +1158,7 @@ class coinex(Exchange):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -2897,11 +2897,10 @@ class coinex(Exchange):
         market = self.market(symbol)
         if market['type'] != 'swap':
             raise BadSymbol(self.id + ' setMarginMode() supports swap contracts only')
-        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', marginMode)
         defaultPositionType = None
-        if defaultMarginMode == 'isolated':
+        if marginMode == 'isolated':
             defaultPositionType = 1
-        elif defaultMarginMode == 'cross':
+        elif marginMode == 'cross':
             defaultPositionType = 2
         leverage = self.safe_integer(params, 'leverage')
         maxLeverage = self.safe_integer(market['limits']['leverage'], 'max', 100)

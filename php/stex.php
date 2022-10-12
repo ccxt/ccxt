@@ -6,9 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\OrderNotFound;
 
 class stex extends Exchange {
 
@@ -767,7 +764,7 @@ class stex extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1d', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
@@ -1937,7 +1934,7 @@ class stex extends Exchange {
         //     }
         //
         $deposits = $this->safe_value($response, 'data', array());
-        return $this->parse_transactions($deposits, $code, $since, $limit);
+        return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
 
     public function fetch_withdrawal($id, $code = null, $params = array ()) {
@@ -2060,7 +2057,7 @@ class stex extends Exchange {
         //     }
         //
         $withdrawals = $this->safe_value($response, 'data', array());
-        return $this->parse_transactions($withdrawals, $code, $since, $limit);
+        return $this->parse_transactions($withdrawals, $currency, $since, $limit);
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {

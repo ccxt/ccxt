@@ -1163,6 +1163,9 @@ class bitso(Exchange):
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
         await self.load_markets()
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         response = await self.privateGetFundings(params)
         #
         #     {
@@ -1188,7 +1191,7 @@ class bitso(Exchange):
         #     }
         #
         transactions = self.safe_value(response, 'payload', [])
-        return self.parse_transactions(transactions, code, since, limit, params)
+        return self.parse_transactions(transactions, currency, since, limit, params)
 
     async def fetch_deposit_address(self, code, params={}):
         """

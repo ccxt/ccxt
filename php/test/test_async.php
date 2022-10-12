@@ -12,6 +12,8 @@ include_once 'test_position.php';
 include_once 'test_transaction.php';
 include_once 'test_account.php';
 
+use React\Async;
+
 function style($s, $style) {
     return $style . $s . "\033[0m";
 }
@@ -277,23 +279,19 @@ function test_symbol($exchange, $symbol, $code) {
     if ($exchange->has[$method]) {
         test_ticker($exchange, $symbol);
     }
-    if ($exchange->id === 'coinmarketcap') {
-        dump(var_export(yield $exchange->fetchGlobal()));
-    } else {
-        yield test_order_book($exchange, $symbol);
-        yield test_trades($exchange, $symbol);
-        yield test_ohlcvs($exchange, $symbol);
-        if ($exchange->check_required_credentials(false)) {
-            if ($exchange->has['signIn']) {
-                $exchange->sign_in();
-            }
-            test_orders($exchange, $symbol);
-            test_closed_orders($exchange, $symbol);
-            test_open_orders($exchange, $symbol);
-            test_transactions($exchange, $code);
-            $balance = yield $exchange->fetch_balance();
-            var_dump($balance);
+    yield from test_order_book($exchange, $symbol);
+    yield from test_trades($exchange, $symbol);
+    yield from test_ohlcvs($exchange, $symbol);
+    if ($exchange->check_required_credentials(false)) {
+        if ($exchange->has['signIn']) {
+            $exchange->sign_in();
         }
+        test_orders($exchange, $symbol);
+        test_closed_orders($exchange, $symbol);
+        test_open_orders($exchange, $symbol);
+        test_transactions($exchange, $code);
+        $balance = yield $exchange->fetch_balance();
+        var_dump($balance);
     }
 }
 
@@ -339,8 +337,8 @@ function try_all_proxies($exchange, $proxies) {
 
             $current_proxy = (++$current_proxy) % count($proxies);
 
-            yield load_exchange($exchange);
-            yield test_exchange($exchange);
+            yield from load_exchange($exchange);
+            yield from test_exchange($exchange);
             break;
         } catch (\ccxt\RequestTimeout $e) {
             dump(yellow('[Timeout Error] ' . $e->getMessage() . ' (ignoring)'));
@@ -487,10 +485,10 @@ function test_exchange($exchange) {
     if (strpos($symbol, '.d') === false) {
         dump(green('SYMBOL:'), green($symbol));
         dump(green('CODE:'), green($code));
-        yield test_symbol($exchange, $symbol, $code);
+        yield from test_symbol($exchange, $symbol, $code);
     }
 
-    yield test_accounts($exchange);
+    yield from test_accounts($exchange);
 }
 
 $proxies = array(
@@ -514,22 +512,21 @@ $main = function() use ($args, $exchanges, $proxies, $config, $common_codes) {
             dump(green('EXCHANGE:'), green($exchange->id));
 
             if (count($args) > 2) {
-                yield load_exchange($exchange);
+                yield from load_exchange($exchange);
                 $code = get_test_code($exchange, $common_codes);
-                yield test_symbol($exchange, $args[2], $code);
+                yield from test_symbol($exchange, $args[2], $code);
             } else {
-                yield try_all_proxies($exchange, $proxies);
+                yield from try_all_proxies($exchange, $proxies);
             }
         } else {
             echo $args[1] . " not found.\n";
         }
     } else {
         foreach ($exchanges as $id => $exchange) {
-            yield try_all_proxies($exchange, $proxies);
+            yield from try_all_proxies($exchange, $proxies);
         }
     }
 };
 
-$kernel = async\Exchange::get_kernel();
-$kernel->execute($main);
-$kernel->run();
+$promise = Async\coroutine($main);
+Async\await($promise);

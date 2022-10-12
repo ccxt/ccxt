@@ -6,12 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\InvalidAddress;
-use \ccxt\InvalidOrder;
-use \ccxt\OrderNotFound;
-use \ccxt\NotSupported;
 
 class mexc extends Exchange {
 
@@ -232,8 +226,8 @@ class mexc extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.2 / 100, // maker / taker
-                    'taker' => 0.2 / 100,
+                    'maker' => $this->parse_number('0.002'), // maker / taker
+                    'taker' => $this->parse_number('0.002'),
                 ),
             ),
             'options' => array(
@@ -262,10 +256,8 @@ class mexc extends Exchange {
                 ),
                 'defaultType' => 'spot', // spot, swap
                 'networks' => array(
-                    'TRX' => 'TRC-20',
-                    'TRC20' => 'TRC-20',
-                    'ETH' => 'ERC-20',
-                    'ERC20' => 'ERC-20',
+                    'TRX' => 'TRC20',
+                    'ETH' => 'ERC20',
                     'BEP20' => 'BEP20(BSC)',
                 ),
                 'accountsByType' => array(
@@ -1576,7 +1568,7 @@ class mexc extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $resultList = $this->safe_value($data, 'result_list', array());
-        return $this->parse_transactions($resultList, $code, $since, $limit);
+        return $this->parse_transactions($resultList, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1635,7 +1627,7 @@ class mexc extends Exchange {
         //
         $data = $this->safe_value($response, 'data', array());
         $resultList = $this->safe_value($data, 'result_list', array());
-        return $this->parse_transactions($resultList, $code, $since, $limit);
+        return $this->parse_transactions($resultList, $currency, $since, $limit);
     }
 
     public function parse_transaction($transaction, $currency = null) {
@@ -3020,7 +3012,7 @@ class mexc extends Exchange {
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $networks = $this->safe_value($this->options, 'networks', array());
-        $network = $this->safe_string_2($params, 'network', 'chain'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string_upper_2($params, 'network', 'chain'); // this line allows the user to specify either ERC20 or ETH
         $network = $this->safe_string($networks, $network, $network); // handle ETH > ERC-20 alias
         $this->check_address($address);
         $this->load_markets();

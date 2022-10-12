@@ -2558,7 +2558,6 @@ module.exports = class ascendex extends Exchange {
         const currentTime = this.safeInteger (contract, 'time');
         const nextFundingRate = this.safeNumber (contract, 'fundingRate');
         const nextFundingRateTimestamp = this.safeInteger (contract, 'nextFundingTime');
-        const previousFundingTimestamp = undefined;
         return {
             'info': contract,
             'symbol': symbol,
@@ -2569,11 +2568,14 @@ module.exports = class ascendex extends Exchange {
             'timestamp': currentTime,
             'datetime': this.iso8601 (currentTime),
             'previousFundingRate': undefined,
-            'nextFundingRate': nextFundingRate,
-            'previousFundingTimestamp': previousFundingTimestamp,
-            'nextFundingTimestamp': nextFundingRateTimestamp,
-            'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
-            'nextFundingDatetime': this.iso8601 (nextFundingRateTimestamp),
+            'nextFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'nextFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'nextFundingDatetime': undefined,
+            'fundingRate': nextFundingRate,
+            'fundingTimestamp': nextFundingRateTimestamp,
+            'fundingDatetime': this.iso8601 (nextFundingRateTimestamp),
         };
     }
 

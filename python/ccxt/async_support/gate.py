@@ -1470,7 +1470,8 @@ class gate(Exchange):
             tag = self.safe_string(entry, 'payment_id')
             result[network] = {
                 'info': entry,
-                'code': code,
+                'code': code,  # kept here for backward-compatibility, but will be removed soon
+                'currency': code,
                 'address': address,
                 'tag': tag,
             }
@@ -1519,7 +1520,8 @@ class gate(Exchange):
         self.check_address(address)
         return {
             'info': response,
-            'code': code,
+            'code': code,  # kept here for backward-compatibility, but will be removed soon
+            'currency': code,
             'address': address,
             'tag': tag,
             'network': None,
@@ -3827,6 +3829,7 @@ class gate(Exchange):
         percentage = Precise.string_mul(Precise.string_div(unrealisedPnl, initialMarginString), '100')
         return {
             'info': position,
+            'id': None,
             'symbol': self.safe_string(market, 'symbol'),
             'timestamp': None,
             'datetime': None,

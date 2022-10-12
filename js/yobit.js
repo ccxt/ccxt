@@ -231,6 +231,11 @@ module.exports = class yobit extends Exchange {
                 // 'fetchTickersMaxLength': 2048,
                 'fetchOrdersRequiresSymbol': true,
                 'fetchTickersMaxLength': 512,
+                'networks': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                    'BSC': 'BEP20',
+                },
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -1142,8 +1147,18 @@ module.exports = class yobit extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
+        let currencyId = currency['id'];
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+        if (network !== undefined) {
+            if (network !== 'ERC20') {
+                currencyId = currencyId + network.toLowerCase ();
+            }
+            params = this.omit (params, 'network');
+        }
         const request = {
-            'coinName': currency['id'],
+            'coinName': currencyId,
             'need_new': 0,
         };
         const response = await this.privatePostGetDepositAddress (this.extend (request, params));

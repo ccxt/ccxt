@@ -34,7 +34,7 @@ module.exports = class aax extends Exchange {
                 'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
-                'cancelOrders': false,
+                'cancelOrders': true,
                 'createDepositAddress': false,
                 'createOrder': true,
                 'createReduceOnlyOrder': false,
@@ -75,6 +75,8 @@ module.exports = class aax extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -137,10 +139,10 @@ module.exports = class aax extends Exchange {
                     'public': 'https://api.{hostname}',
                     'private': 'https://api.{hostname}',
                 },
-                'www': 'https://www.aaxpro.com', // string website URL
-                'doc': 'https://www.aaxpro.com/apidoc/index.html',
-                'fees': 'https://www.aaxpro.com/en-US/fees/',
-                'referral': 'https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB',
+                'www': 'https://www.aax.com', // string website URL
+                'doc': 'https://www.aax.com/apidoc/index.html',
+                'fees': 'https://www.aax.com/en-US/vip/',
+                'referral': 'https://www.aax.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB',
             },
             'api': {
                 'v1': {
@@ -1626,6 +1628,49 @@ module.exports = class aax extends Exchange {
         return this.parseOrder (data, market);
     }
 
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#cancelOrders
+         * @description cancel all open orders in a market
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {[object]} raw data of order ids queued for cancelation
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        let method = undefined;
+        if (market['spot']) {
+            method = 'privateDeleteSpotOrdersCancelAll';
+        } else if (market['contract']) {
+            method = 'privateDeleteFuturesOrdersCancelAll';
+        }
+        const clientOrderIds = this.safeValue (params, 'clientOrderIds');
+        // cannot cancel both by orderId and clientOrderId in the same request
+        // aax throws an error saying order not found
+        if (clientOrderIds !== undefined) {
+            params = this.omit (params, [ 'clientOrderIds' ]);
+            request['clOrdID'] = clientOrderIds.join (',');
+        } else if (ids !== undefined) {
+            request['orderID'] = ids.join (',');
+        }
+        //
+        //  {
+        //      "code": 1,
+        //      "data": [ "2gaB7mSf72", "2gaB79T5UA" ],
+        //      "message": "success",
+        //      "ts": 1663021367883
+        //  }
+        //
+        return await this[method] (this.extend (request, params));
+    }
+
     async cancelAllOrders (symbol = undefined, params = {}) {
         /**
          * @method
@@ -2333,7 +2378,7 @@ module.exports = class aax extends Exchange {
         //     "ts": 1573561743499
         // }
         const data = this.safeValue (response, 'data', []);
-        return this.parseTransactions (data, code, since, limit);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2386,7 +2431,7 @@ module.exports = class aax extends Exchange {
         //     "ts":1573561743499
         //  }
         const data = this.safeValue (response, 'data', []);
-        return this.parseTransactions (data, code, since, limit);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     parseTransactionStatusByType (status, type = undefined) {
@@ -2920,6 +2965,7 @@ module.exports = class aax extends Exchange {
         const marginRatio = Precise.stringDiv (maintenanceMargin, collateral);
         return {
             'info': position,
+            'id': undefined,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -3086,6 +3132,70 @@ module.exports = class aax extends Exchange {
             }));
         }
         return this.filterByArray (result, 'symbol', symbols, false);
+    }
+
+    async fetchOpenInterest (symbol, params = {}) {
+        /**
+         * @method
+         * @name aax#fetchOpenInterest
+         * @description Retrieves the open interest of a currency
+         * @see https://www.aax.com/apidoc/index.html#open-interest
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {object} params exchange specific parameters
+         * @returns {object} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['contract']) {
+            throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetFuturesPositionOpenInterest (this.extend (request, params));
+        //
+        //     {
+        //         "code": 1,
+        //         "data": {
+        //             "openInterest": "37137299.49007",
+        //             "openInterestUSD": "721016725.9898761994667",
+        //             "symbol": "BTCUSDTFP"
+        //         },
+        //         "message": "success",
+        //         "ts": 1664486817471
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const timestamp = this.safeInteger (response, 'ts');
+        const openInterest = this.parseOpenInterest (data, market);
+        return this.extend (openInterest, {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        });
+    }
+
+    parseOpenInterest (interest, market = undefined) {
+        //
+        //     {
+        //         "openInterest": "37137299.49007",
+        //         "openInterestUSD": "721016725.9898761994667",
+        //         "symbol": "BTCUSDTFP"
+        //     }
+        //
+        const id = this.safeString (interest, 'symbol');
+        market = this.safeMarket (id, market);
+        const amount = this.safeNumber (interest, 'openInterest');
+        const value = this.safeNumber (interest, 'openInterestUSD');
+        return {
+            'symbol': this.safeSymbol (id),
+            'openInterestAmount': amount,
+            'baseVolume': amount, // deprecated
+            'openInterestValue': value,
+            'quoteVolume': value, // deprecated
+            'timestamp': undefined,
+            'datetime': undefined,
+            'info': interest,
+        };
     }
 
     nonce () {

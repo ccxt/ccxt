@@ -2423,7 +2423,6 @@ class ascendex(Exchange):
         currentTime = self.safe_integer(contract, 'time')
         nextFundingRate = self.safe_number(contract, 'fundingRate')
         nextFundingRateTimestamp = self.safe_integer(contract, 'nextFundingTime')
-        previousFundingTimestamp = None
         return {
             'info': contract,
             'symbol': symbol,
@@ -2434,11 +2433,14 @@ class ascendex(Exchange):
             'timestamp': currentTime,
             'datetime': self.iso8601(currentTime),
             'previousFundingRate': None,
-            'nextFundingRate': nextFundingRate,
-            'previousFundingTimestamp': previousFundingTimestamp,
-            'nextFundingTimestamp': nextFundingRateTimestamp,
-            'previousFundingDatetime': self.iso8601(previousFundingTimestamp),
-            'nextFundingDatetime': self.iso8601(nextFundingRateTimestamp),
+            'nextFundingRate': None,
+            'previousFundingTimestamp': None,
+            'nextFundingTimestamp': None,
+            'previousFundingDatetime': None,
+            'nextFundingDatetime': None,
+            'fundingRate': nextFundingRate,
+            'fundingTimestamp': nextFundingRateTimestamp,
+            'fundingDatetime': self.iso8601(nextFundingRateTimestamp),
         }
 
     async def fetch_funding_rates(self, symbols=None, params={}):

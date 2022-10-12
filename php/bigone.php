@@ -6,8 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
 
 class bigone extends Exchange {
 
@@ -1330,7 +1328,7 @@ class bigone extends Exchange {
         //     }
         //
         $deposits = $this->safe_value($response, 'data', array());
-        return $this->parse_transactions($deposits, $code, $since, $limit);
+        return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1380,7 +1378,7 @@ class bigone extends Exchange {
         //     }
         //
         $withdrawals = $this->safe_value($response, 'data', array());
-        return $this->parse_transactions($withdrawals, $code, $since, $limit);
+        return $this->parse_transactions($withdrawals, $currency, $since, $limit);
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {

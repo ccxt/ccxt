@@ -6,16 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\InsufficientFunds;
-use \ccxt\InvalidAddress;
-use \ccxt\InvalidOrder;
-use \ccxt\OrderNotFound;
-use \ccxt\CancelPending;
-use \ccxt\RateLimitExceeded;
-use \ccxt\ExchangeNotAvailable;
-use \ccxt\InvalidNonce;
 
 class kraken extends Exchange {
 
@@ -111,30 +101,30 @@ class kraken extends Exchange {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
-                    'taker' => 0.26 / 100,
-                    'maker' => 0.16 / 100,
+                    'taker' => $this->parse_number('0.0026'),
+                    'maker' => $this->parse_number('0.0016'),
                     'tiers' => array(
                         'taker' => array(
-                            array( 0, 0.0026 ),
-                            array( 50000, 0.0024 ),
-                            array( 100000, 0.0022 ),
-                            array( 250000, 0.0020 ),
-                            array( 500000, 0.0018 ),
-                            array( 1000000, 0.0016 ),
-                            array( 2500000, 0.0014 ),
-                            array( 5000000, 0.0012 ),
-                            array( 10000000, 0.0001 ),
+                            array( $this->parse_number('0'), $this->parse_number('0.0026') ),
+                            array( $this->parse_number('50000'), $this->parse_number('0.0024') ),
+                            array( $this->parse_number('100000'), $this->parse_number('0.0022') ),
+                            array( $this->parse_number('250000'), $this->parse_number('0.0020') ),
+                            array( $this->parse_number('500000'), $this->parse_number('0.0018') ),
+                            array( $this->parse_number('1000000'), $this->parse_number('0.0016') ),
+                            array( $this->parse_number('2500000'), $this->parse_number('0.0014') ),
+                            array( $this->parse_number('5000000'), $this->parse_number('0.0012') ),
+                            array( $this->parse_number('10000000'), $this->parse_number('0.0001') ),
                         ),
                         'maker' => array(
-                            array( 0, 0.0016 ),
-                            array( 50000, 0.0014 ),
-                            array( 100000, 0.0012 ),
-                            array( 250000, 0.0010 ),
-                            array( 500000, 0.0008 ),
-                            array( 1000000, 0.0006 ),
-                            array( 2500000, 0.0004 ),
-                            array( 5000000, 0.0002 ),
-                            array( 10000000, 0.0 ),
+                            array( $this->parse_number('0'), $this->parse_number('0.0016') ),
+                            array( $this->parse_number('50000'), $this->parse_number('0.0014') ),
+                            array( $this->parse_number('100000'), $this->parse_number('0.0012') ),
+                            array( $this->parse_number('250000'), $this->parse_number('0.0010') ),
+                            array( $this->parse_number('500000'), $this->parse_number('0.0008') ),
+                            array( $this->parse_number('1000000'), $this->parse_number('0.0006') ),
+                            array( $this->parse_number('2500000'), $this->parse_number('0.0004') ),
+                            array( $this->parse_number('5000000'), $this->parse_number('0.0002') ),
+                            array( $this->parse_number('10000000'), $this->parse_number('0.0') ),
                         ),
                     ),
                 ),
@@ -356,46 +346,46 @@ class kraken extends Exchange {
         $response = $this->publicGetAssetPairs ($params);
         //
         //     {
-        //         "error":array(),
-        //         "result":{
-        //             "ADAETH":array(
-        //                 "altname":"ADAETH",
-        //                 "wsname":"ADA\/ETH",
-        //                 "aclass_base":"currency",
-        //                 "base":"ADA",
-        //                 "aclass_quote":"currency",
-        //                 "quote":"XETH",
-        //                 "lot":"unit",
-        //                 "pair_decimals":7,
-        //                 "lot_decimals":8,
-        //                 "lot_multiplier":1,
-        //                 "leverage_buy":array(),
-        //                 "leverage_sell":array(),
-        //                 "fees":[
-        //                     [0,0.26],
-        //                     [50000,0.24],
-        //                     [100000,0.22],
-        //                     [250000,0.2],
-        //                     [500000,0.18],
-        //                     [1000000,0.16],
-        //                     [2500000,0.14],
-        //                     [5000000,0.12],
-        //                     [10000000,0.1]
+        //         "error" => array(),
+        //         "result" => {
+        //             "ADAETH" => array(
+        //                 "altname" => "ADAETH",
+        //                 "wsname" => "ADA\/ETH",
+        //                 "aclass_base" => "currency",
+        //                 "base" => "ADA",
+        //                 "aclass_quote" => "currency",
+        //                 "quote" => "XETH",
+        //                 "lot" => "unit",
+        //                 "pair_decimals" => 7,
+        //                 "lot_decimals" => 8,
+        //                 "lot_multiplier" => 1,
+        //                 "leverage_buy" => array(),
+        //                 "leverage_sell" => array(),
+        //                 "fees" => [
+        //                     [0, 0.26],
+        //                     [50000, 0.24],
+        //                     [100000, 0.22],
+        //                     [250000, 0.2],
+        //                     [500000, 0.18],
+        //                     [1000000, 0.16],
+        //                     [2500000, 0.14],
+        //                     [5000000, 0.12],
+        //                     [10000000, 0.1]
         //                 ],
-        //                 "fees_maker":[
-        //                     [0,0.16],
-        //                     [50000,0.14],
-        //                     [100000,0.12],
-        //                     [250000,0.1],
-        //                     [500000,0.08],
-        //                     [1000000,0.06],
-        //                     [2500000,0.04],
-        //                     [5000000,0.02],
-        //                     [10000000,0]
+        //                 "fees_maker" => [
+        //                     [0, 0.16],
+        //                     [50000, 0.14],
+        //                     [100000, 0.12],
+        //                     [250000, 0.1],
+        //                     [500000, 0.08],
+        //                     [1000000, 0.06],
+        //                     [2500000, 0.04],
+        //                     [5000000, 0.02],
+        //                     [10000000, 0]
         //                 ],
-        //                 "fee_volume_currency":"ZUSD",
-        //                 "margin_call":80,
-        //                 "margin_stop":40,
+        //                 "fee_volume_currency" => "ZUSD",
+        //                 "margin_call" => 80,
+        //                 "margin_stop" => 40,
         //                 "ordermin" => "1"
         //             ),
         //         }
@@ -415,17 +405,17 @@ class kraken extends Exchange {
             $altname = $this->safe_string($market, 'altname');
             $makerFees = $this->safe_value($market, 'fees_maker', array());
             $firstMakerFee = $this->safe_value($makerFees, 0, array());
-            $firstMakerFeeRate = $this->safe_number($firstMakerFee, 1);
+            $firstMakerFeeRate = $this->safe_string($firstMakerFee, 1);
             $maker = null;
             if ($firstMakerFeeRate !== null) {
-                $maker = floatval($firstMakerFeeRate) / 100;
+                $maker = $this->parse_number(Precise::string_div($firstMakerFeeRate, '100'));
             }
             $takerFees = $this->safe_value($market, 'fees', array());
             $firstTakerFee = $this->safe_value($takerFees, 0, array());
-            $firstTakerFeeRate = $this->safe_number($firstTakerFee, 1);
+            $firstTakerFeeRate = $this->safe_string($firstTakerFee, 1);
             $taker = null;
             if ($firstTakerFeeRate !== null) {
-                $taker = floatval($firstTakerFeeRate) / 100;
+                $taker = $this->parse_number(Precise::string_div($firstTakerFeeRate, '100'));
             }
             $leverageBuy = $this->safe_value($market, 'leverage_buy', array());
             $leverageBuyLength = count($leverageBuy);
@@ -787,7 +777,7 @@ class kraken extends Exchange {
         $result = array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
-            $market = $this->markets_by_id[$id];
+            $market = $this->safe_market($id);
             $symbol = $market['symbol'];
             $ticker = $tickers[$id];
             $result[$symbol] = $this->parse_ticker($ticker, $market);
@@ -1309,10 +1299,9 @@ class kraken extends Exchange {
     public function find_market_by_altname_or_id($id) {
         if (is_array($this->marketsByAltname) && array_key_exists($id, $this->marketsByAltname)) {
             return $this->marketsByAltname[$id];
-        } elseif (is_array($this->markets_by_id) && array_key_exists($id, $this->markets_by_id)) {
-            return $this->markets_by_id[$id];
+        } else {
+            return $this->safe_market($id);
         }
-        return null;
     }
 
     public function get_delisted_market_by_id($id) {
@@ -1634,10 +1623,10 @@ class kraken extends Exchange {
 
     public function fetch_orders_by_ids($ids, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $response = $this->privatePostQueryOrders (array_merge(array(
+        $response = Async\await($this->privatePostQueryOrders (array_merge(array(
             'trades' => true, // whether or not to include trades in output (optional, default false)
             'txid' => implode(',', $ids), // comma delimited list of transaction $ids to query info about (20 maximum)
-        ), $params));
+        ), $params)));
         $result = $this->safe_value($response, 'result', array());
         $orders = array();
         $orderIds = is_array($result) ? array_keys($result) : array();

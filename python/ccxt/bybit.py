@@ -53,7 +53,7 @@ class bybit(Exchange):
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchBorrowInterest': True,
-                'fetchBorrowRate': False,
+                'fetchBorrowRate': True,
                 'fetchBorrowRateHistories': False,
                 'fetchBorrowRateHistory': False,
                 'fetchBorrowRates': False,
@@ -134,7 +134,7 @@ class bybit(Exchange):
                     'https://github.com/bybit-exchange',
                 ],
                 'fees': 'https://help.bybit.com/hc/en-us/articles/360039261154',
-                'referral': 'https://partner.bybit.com/b/ccxt',
+                'referral': 'https://www.bybit.com/register?affiliate_id=35953',
             },
             'api': {
                 'public': {
@@ -173,6 +173,16 @@ class bybit(Exchange):
                         'spot/quote/v1/ticker/24hr': 1,
                         'spot/quote/v1/ticker/price': 1,
                         'spot/quote/v1/ticker/book_ticker': 1,
+                        'spot/v3/public/symbols': 1,
+                        'spot/v3/public/quote/depth': 1,
+                        'spot/v3/public/quote/depth/merged': 1,
+                        'spot/v3/public/quote/trades': 1,
+                        'spot/v3/public/quote/kline': 1,
+                        'spot/v3/public/quote/ticker/24hr': 1,
+                        'spot/v3/public/quote/ticker/price': 1,
+                        'spot/v3/public/quote/ticker/bookTicker': 1,
+                        'spot/v3/public/server-time': 1,
+                        'spot/v3/public/infos': 1,
                         # data
                         'v2/public/time': 1,
                         'v2/public/announcement': 1,
@@ -183,6 +193,7 @@ class bybit(Exchange):
                         'option/usdc/openapi/public/v1/tick': 1,
                         'option/usdc/openapi/public/v1/delivery-price': 1,
                         'option/usdc/openapi/public/v1/query-trade-latest': 1,
+                        'option/usdc/openapi/public/v1/query-historical-volatility': 1,
                         # perpetual swap USDC
                         'perpetual/usdc/openapi/public/v1/order-book': 1,
                         'perpetual/usdc/openapi/public/v1/symbols': 1,
@@ -263,6 +274,17 @@ class bybit(Exchange):
                         'spot/v1/cross-margin/accounts/balance': 10,
                         'spot/v1/cross-margin/loan-info': 10,
                         'spot/v1/cross-margin/repay/history': 10,
+                        'spot/v3/private/order': 2.5,
+                        'spot/v3/private/open-orders': 2.5,
+                        'spot/v3/private/history-orders': 2.5,
+                        'spot/v3/private/my-trades': 2.5,
+                        'spot/v3/private/account': 2.5,
+                        'spot/v3/private/reference': 2.5,
+                        'spot/v3/private/record': 2.5,
+                        'spot/v3/private/cross-margin-orders': 10,
+                        'spot/v3/private/cross-margin-account': 10,
+                        'spot/v3/private/cross-margin-loan-info': 10,
+                        'spot/v3/private/cross-margin-repay-history': 10,
                         # account
                         'asset/v1/private/transfer/list': 50,  # 60 per minute = 1 per second => cost = 50 / 1 = 50
                         'asset/v1/private/sub-member/transfer/list': 50,
@@ -276,6 +298,7 @@ class bybit(Exchange):
                         'contract/v3/private/copytrading/order/list': 1,
                         'contract/v3/private/copytrading/position/list': 1,
                         'contract/v3/private/copytrading/wallet/balance': 1,
+                        'contract/v3/private/position/limit-info': 25,  # 120 per minute = 2 per second => cost = 50 / 2 = 25
                         # derivative
                         'unified/v3/private/order/unfilled-orders': 1,
                         'unified/v3/private/order/list': 1,
@@ -343,6 +366,14 @@ class bybit(Exchange):
                         'spot/v1/order': 2.5,
                         'spot/v1/cross-margin/loan': 10,
                         'spot/v1/cross-margin/repay': 10,
+                        'spot/v3/private/order': 2.5,
+                        'spot/v3/private/cancel-order': 2.5,
+                        'spot/v3/private/cancel-orders': 2.5,
+                        'spot/v3/private/cancel-orders-by-ids': 2.5,
+                        'spot/v3/private/purchase': 2.5,
+                        'spot/v3/private/redeem': 2.5,
+                        'spot/v3/private/cross-margin-loan': 10,
+                        'spot/v3/private/cross-margin-repay': 10,
                         # account
                         'asset/v1/private/transfer': 150,  # 20 per minute = 0.333 per second => cost = 50 / 0.3333 = 150
                         'asset/v1/private/sub-member/transfer': 150,
@@ -388,6 +419,7 @@ class bybit(Exchange):
                         'contract/v3/private/copytrading/position/close': 2.5,
                         'contract/v3/private/copytrading/position/set-leverage': 2.5,
                         'contract/v3/private/copytrading/wallet/transfer': 2.5,
+                        'contract/v3/private/copytrading/order/trading-stop': 2.5,
                         # derivative
                         'unified/v3/private/order/create': 2.5,
                         'unified/v3/private/order/replace': 2.5,
@@ -445,6 +477,7 @@ class bybit(Exchange):
                     '10016': ExchangeError,  # {"retCode":10016,"retMsg":"System error. Please try again later."}
                     '10017': BadRequest,  # request path not found or request method is invalid
                     '10018': RateLimitExceeded,  # exceed ip rate limit
+                    '10020': PermissionDenied,  # {"retCode":10020,"retMsg":"your account is not a unified margin account, please update your account","result":null,"retExtInfo":null,"time":1664783731123}
                     '20001': OrderNotFound,  # Order not exists
                     '20003': InvalidOrder,  # missing parameter side
                     '20004': InvalidOrder,  # invalid parameter side
@@ -541,6 +574,7 @@ class bybit(Exchange):
                     # the below two issues are caused as described: issues/9149#issuecomment-1146559498, when response is such:  {"ret_code":130021,"ret_msg":"oc_diff[1707966351], new_oc[1707966351] with ob[....]+AB[....]","ext_code":"","ext_info":"","result":null,"time_now":"1658395300.872766","rate_limit_status":99,"rate_limit_reset_ms":1658395300855,"rate_limit":100}
                     'oc_diff': InsufficientFunds,
                     'new_oc': InsufficientFunds,
+                    'openapi sign params error!': AuthenticationError,  # {"retCode":10001,"retMsg":"empty value: apiTimestamp[] apiKey[] apiSignature[xxxxxxxxxxxxxxxxxxxxxxx]: openapi sign params error!","result":null,"retExtInfo":null,"time":1664789597123}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -1532,11 +1566,10 @@ class bybit(Exchange):
         duration = self.parse_timeframe(timeframe)
         now = self.seconds()
         sinceTimestamp = None
+        if limit is None:
+            limit = 200  # default is 200 when requested with `since`
         if since is None:
-            if limit is None:
-                raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument or a limit argument')
-            else:
-                sinceTimestamp = now - limit * duration
+            sinceTimestamp = now - limit * duration
         else:
             sinceTimestamp = int(since / 1000)
         if limit is not None:
@@ -1553,7 +1586,7 @@ class bybit(Exchange):
                 methods = {
                     'mark': 'publicGetPublicLinearMarkPriceKline',
                     'index': 'publicGetPublicLinearIndexPriceKline',
-                    'premium': 'publicGetPublicLinearPremiumIndexKline',
+                    'premiumIndex': 'publicGetPublicLinearPremiumIndexKline',
                 }
                 method = self.safe_value(methods, price, 'publicGetPublicLinearKline')
             else:
@@ -1561,7 +1594,7 @@ class bybit(Exchange):
                 methods = {
                     'mark': 'publicGetV2PublicMarkPriceKline',
                     'index': 'publicGetV2PublicIndexPriceKline',
-                    'premium': 'publicGetV2PublicPremiumPriceKline',
+                    'premiumIndex': 'publicGetV2PublicPremiumPriceKline',
                 }
                 method = self.safe_value(methods, price, 'publicGetV2PublicKlineList')
         else:
@@ -1573,7 +1606,7 @@ class bybit(Exchange):
             methods = {
                 'mark': 'publicGetPerpetualUsdcOpenapiPublicV1MarkPriceKline',
                 'index': 'publicGetPerpetualUsdcOpenapiPublicV1IndexPriceKline',
-                'premium': 'publicGetPerpetualUsdcOpenapiPublicV1PremiumPriceKline',
+                'premiumIndex': 'publicGetPerpetualUsdcOpenapiPublicV1PremiumPriceKline',
             }
             method = self.safe_value(methods, price, 'publicGetPerpetualUsdcOpenapiPublicV1KlineList')
         # spot markets use the same interval format as ccxt
@@ -1739,24 +1772,18 @@ class bybit(Exchange):
         }
 
     def fetch_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        if since is None and limit is None:
-            raise ArgumentsRequired(self.id + ' fetchIndexOHLCV() requires a since argument or a limit argument')
         request = {
             'price': 'index',
         }
         return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     def fetch_mark_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        if since is None and limit is None:
-            raise ArgumentsRequired(self.id + ' fetchMarkOHLCV() requires a since argument or a limit argument')
         request = {
             'price': 'mark',
         }
         return self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(request, params))
 
     def fetch_premium_index_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
-        if since is None and limit is None:
-            raise ArgumentsRequired(self.id + ' fetchPremiumIndexOHLCV() requires a since argument or a limit argument')
         request = {
             'price': 'premiumIndex',
         }
@@ -2195,6 +2222,7 @@ class bybit(Exchange):
         :param dict params: extra parameters specific to the bybit api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
+        self.load_markets()
         request = {}
         type = None
         type, params = self.handle_market_type_and_params('fetchBalance', None, params)
@@ -2217,7 +2245,6 @@ class bybit(Exchange):
             else:
                 # usdc account
                 method = 'privatePostOptionUsdcOpenapiPrivateV1QueryWalletBalance'
-        self.load_markets()
         response = getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -2571,7 +2598,8 @@ class bybit(Exchange):
                 orderKey = 'stop_order_id'
             else:
                 orderKey = 'orderId' if isUsdcSettled else 'order_id'
-            params[orderKey] = id
+            if id is not None:  # The user can also use argument params["order_link_id"] and leave self as None
+                params[orderKey] = id
         if isUsdcSettled or market['future'] or market['inverse']:
             raise NotSupported(self.id + ' fetchOrder() supports spot markets and linear non-USDC perpetual swap markets only')
         else:
@@ -2824,8 +2852,6 @@ class bybit(Exchange):
         isStopLossOrder = stopLossPrice is not None
         takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
         isTakeProfitOrder = takeProfitPrice is not None
-        isSlTpOrder = isStopLossOrder or isTakeProfitOrder
-        isStopOrder = isSlTpOrder or isTriggerOrder
         if isTriggerOrder:
             request['trigger_by'] = 'LastPrice'
             preciseStopPrice = self.price_to_precision(symbol, triggerPrice)
@@ -2843,15 +2869,15 @@ class bybit(Exchange):
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['order_link_id'] = clientOrderId
-        params = self.omit(params, ['stop_px', 'stopPrice', 'basePrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId'])
+        params = self.omit(params, ['stop_px', 'stopPrice', 'base_price', 'basePrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId'])
         method = None
         if market['future']:
-            method = 'privatePostFuturesPrivateStopOrderCreate' if isStopOrder else 'privatePostFuturesPrivateOrderCreate'
+            method = 'privatePostFuturesPrivateStopOrderCreate' if isTriggerOrder else 'privatePostFuturesPrivateOrderCreate'
         elif market['linear']:
-            method = 'privatePostPrivateLinearStopOrderCreate' if isStopOrder else 'privatePostPrivateLinearOrderCreate'
+            method = 'privatePostPrivateLinearStopOrderCreate' if isTriggerOrder else 'privatePostPrivateLinearOrderCreate'
         else:
             # inverse swaps
-            method = 'privatePostV2PrivateStopOrderCreate' if isStopOrder else 'privatePostV2PrivateOrderCreate'
+            method = 'privatePostV2PrivateStopOrderCreate' if isTriggerOrder else 'privatePostV2PrivateOrderCreate'
         response = getattr(self, method)(self.extend(request, params))
         #
         #    {
@@ -2956,7 +2982,7 @@ class bybit(Exchange):
             method = 'privatePostFuturesPrivateStopOrderReplace' if isConditionalOrder else 'privatePostFuturesPrivateOrderReplace'
         else:
             # inverse swaps
-            method = 'privatePostV2PrivateSpotOrderReplace' if isConditionalOrder else 'privatePostV2PrivateOrderReplace'
+            method = 'privatePostV2PrivateStopOrderReplace' if isConditionalOrder else 'privatePostV2PrivateOrderReplace'
         response = getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -3035,9 +3061,11 @@ class bybit(Exchange):
         method = None
         if market['spot']:
             method = 'privateDeleteSpotV1Order'
-            request['orderId'] = id
+            if id is not None:  # The user can also use argument params["order_link_id"]
+                request['orderId'] = id
         elif isUsdcSettled:
-            request['orderId'] = id
+            if id is not None:  # The user can also use argument params["order_link_id"]
+                request['orderId'] = id
             if market['option']:
                 method = 'privatePostOptionUsdcOpenapiPrivateV1CancelOrder'
             else:
@@ -3052,7 +3080,7 @@ class bybit(Exchange):
         else:
             # inverse futures
             method = 'privatePostFuturesPrivateStopOrderCancel' if isConditional else 'privatePostFuturesPrivateOrderCancel'
-        if market['contract'] and not isUsdcSettled:
+        if market['contract'] and not isUsdcSettled and (id is not None):  # id is None check because the user can also use argument params["order_link_id"]
             if not isConditional:
                 request['order_id'] = id
             else:
@@ -4338,6 +4366,7 @@ class bybit(Exchange):
         percentage = Precise.string_mul(Precise.string_div(unrealisedPnl, initialMarginString), '100')
         return {
             'info': position,
+            'id': None,
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -4941,6 +4970,7 @@ class bybit(Exchange):
         elif api == 'private':
             self.check_required_credentials()
             isOpenapi = url.find('openapi') >= 0
+            isV3UnifiedMargin = url.find('unified/v3') >= 0
             timestamp = str(self.nonce())
             if isOpenapi:
                 if params:
@@ -4957,6 +4987,29 @@ class bybit(Exchange):
                     'X-BAPI-TIMESTAMP': timestamp,
                     'X-BAPI-SIGN': signature,
                 }
+            elif isV3UnifiedMargin:
+                headers = {
+                    'Content-Type': 'application/json',
+                    'X-BAPI-API-KEY': self.apiKey,
+                    'X-BAPI-SIGN-TYPE': '2',
+                    'X-BAPI-TIMESTAMP': timestamp,
+                    'X-BAPI-RECV-WINDOW': str(self.options['recvWindow']),
+                }
+                query = params
+                queryEncoded = self.rawencode(query)
+                auth_base = str(timestamp) + self.apiKey + str(self.options['recvWindow'])
+                authFull = None
+                if method == 'POST':
+                    body = self.json(query)
+                    authFull = auth_base + body
+                    brokerId = self.safe_string(self.options, 'brokerId')
+                    if brokerId is not None:
+                        headers['Referer'] = brokerId
+                else:
+                    authFull = auth_base + queryEncoded
+                    url += '?' + self.urlencode(query)
+                signature = self.hmac(self.encode(authFull), self.encode(self.secret))
+                headers['X-BAPI-SIGN'] = signature
             else:
                 query = self.extend(params, {
                     'api_key': self.apiKey,

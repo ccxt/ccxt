@@ -451,7 +451,7 @@ module.exports = class bytetrade extends Exchange {
             request['limit'] = limit; // default = maximum = 100
         }
         const response = await this.marketGetDepth (this.extend (request, params));
-        const timestamp = this.safeValue (response, 'timestamp');
+        const timestamp = this.safeInteger (response, 'timestamp');
         const orderbook = this.parseOrderBook (response, market['symbol'], timestamp);
         return orderbook;
     }
@@ -798,22 +798,11 @@ module.exports = class bytetrade extends Exchange {
 
     parseOrder (order, market = undefined) {
         const status = this.safeString (order, 'status');
-        let symbol = undefined;
-        const marketId = this.safeString (order, 'symbol');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        } else {
-            const baseId = this.safeString (order, 'base');
-            const quoteId = this.safeString (order, 'quote');
-            if ((baseId !== undefined) && (quoteId !== undefined)) {
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const baseId = this.safeString (order, 'base');
+        const quoteId = this.safeString (order, 'quote');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const symbol = base + '/' + quote;
         const timestamp = this.safeInteger (order, 'timestamp');
         const datetime = this.safeString (order, 'datetime');
         const lastTradeTimestamp = this.safeInteger (order, 'lastTradeTimestamp');

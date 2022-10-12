@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.93.14';
+$version = '1.95.40';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.93.14';
+    const VERSION = '1.95.40';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -106,7 +106,6 @@ class Exchange {
         'bw',
         'bybit',
         'bytetrade',
-        'cdax',
         'cex',
         'coinbase',
         'coinbaseprime',
@@ -335,6 +334,9 @@ class Exchange {
         'editLimitOrder' => 'edit_limit_order',
         'editOrder' => 'edit_order',
         'fetchPermissions' => 'fetch_permissions',
+        'fetchPosition' => 'fetch_position',
+        'fetchPositions' => 'fetch_positions',
+        'fetchPositionsRisk' => 'fetch_positions_risk',
         'fetchBidsAsks' => 'fetch_bids_asks',
         'parseBidAsk' => 'parse_bid_ask',
         'safeCurrency' => 'safe_currency',
@@ -352,6 +354,7 @@ class Exchange {
         'fetchTransactionFees' => 'fetch_transaction_fees',
         'getSupportedMapping' => 'get_supported_mapping',
         'fetchBorrowRate' => 'fetch_borrow_rate',
+        'handleOptionAndParams' => 'handle_option_and_params',
         'handleMarketTypeAndParams' => 'handle_market_type_and_params',
         'handleSubTypeAndParams' => 'handle_sub_type_and_params',
         'throwExactlyMatchedException' => 'throw_exactly_matched_exception',
@@ -2028,7 +2031,7 @@ class Exchange {
                 $result = (string) ($toNearest * static::decimal_to_precision($x / $toNearest, $roundingMode, 0, DECIMAL_PLACES, $paddingMode));
             }
             if ($roundingMode === TRUNCATE) {
-                $result = static::decimal_to_precision($x - $x % $toNearest, $roundingMode, 0, DECIMAL_PLACES, $paddingMode);
+                $result = static::decimal_to_precision($x - ( (int) $x % $toNearest), $roundingMode, 0, DECIMAL_PLACES, $paddingMode);
             }
             return $result;
         }
@@ -2069,7 +2072,7 @@ class Exchange {
                 $numPrecisionDigits = min(14, $numPrecisionDigits);
                 $result = number_format(round($x, $numPrecisionDigits, PHP_ROUND_HALF_UP), $numPrecisionDigits, '.', '');
             } elseif ($countingMode === SIGNIFICANT_DIGITS) {
-                $significantPosition = log(abs($x), 10) % 10;
+                $significantPosition = ((int) log( abs($x), 10)) % 10;
                 if ($significantPosition > 0) {
                     ++$significantPosition;
                 }
@@ -2837,38 +2840,40 @@ class Exchange {
         $feeSide = $this->safe_string($market, 'feeSide', 'quote');
         $key = 'quote';
         $cost = null;
+        $amountString = $this->number_to_string($amount);
+        $priceString = $this->number_to_string($price);
         if ($feeSide === 'quote') {
             // the fee is always in quote currency
-            $cost = $amount * $price;
+            $cost = Precise::string_mul($amountString, $priceString);
         } elseif ($feeSide === 'base') {
             // the fee is always in base currency
-            $cost = $amount;
+            $cost = $amountString;
         } elseif ($feeSide === 'get') {
             // the fee is always in the currency you get
-            $cost = $amount;
+            $cost = $amountString;
             if ($side === 'sell') {
-                $cost *= $price;
+                $cost = $priceString;
             } else {
                 $key = 'base';
             }
         } elseif ($feeSide === 'give') {
             // the fee is always in the currency you give
-            $cost = $amount;
+            $cost = $amountString;
             if ($side === 'buy') {
-                $cost *= $price;
+                $cost = Precise::string_mul($cost, $priceString);
             } else {
                 $key = 'base';
             }
         }
-        $rate = $market[$takerOrMaker];
+        $rate = $this->number_to_string($market[$takerOrMaker]);
         if ($cost !== null) {
-            $cost *= $rate;
+            $cost = Precise::string_mul($cost, $rate);
         }
         return array(
             'type' => $takerOrMaker,
             'currency' => $market[$key],
-            'rate' => $rate,
-            'cost' => $cost,
+            'rate' => $this->parse_number($rate),
+            'cost' => $this->parse_number($cost),
         );
     }
 
@@ -3498,6 +3503,18 @@ class Exchange {
         throw new NotSupported($this->id . ' fetchPermissions() is not supported yet');
     }
 
+    public function fetch_position($symbol, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchPosition() is not supported yet');
+    }
+
+    public function fetch_positions($symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchPositions() is not supported yet');
+    }
+
+    public function fetch_positions_risk($symbols = null, $params = array ()) {
+        throw new NotSupported($this->id . ' fetchPositionsRisk() is not supported yet');
+    }
+
     public function fetch_bids_asks($symbols = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchBidsAsks() is not supported yet');
     }
@@ -3696,6 +3713,29 @@ class Exchange {
         return $rate;
     }
 
+    public function handle_option_and_params($params, $methodName, $optionName, $defaultValue = null) {
+        // This method can be used to obtain method specific properties, i.e => $this->handleOptionAndParams ($params, 'fetchPosition', 'marginMode', 'isolated')
+        $defaultOptionName = 'default' . $this->capitalize ($optionName); // we also need to check the 'defaultXyzWhatever'
+        // check if $params contain the key
+        $value = $this->safe_string_2($params, $optionName, $defaultOptionName);
+        if ($value !== null) {
+            $params = $this->omit ($params, array( $optionName, $defaultOptionName ));
+        }
+        if ($value === null) {
+            // check if exchange-wide method options contain the key
+            $exchangeWideMethodOptions = $this->safe_value($this->options, $methodName);
+            if ($exchangeWideMethodOptions !== null) {
+                $value = $this->safe_string_2($exchangeWideMethodOptions, $optionName, $defaultOptionName);
+            }
+        }
+        if ($value === null) {
+            // check if exchange-wide options contain the key
+            $value = $this->safe_string_2($this->options, $optionName, $defaultOptionName);
+        }
+        $value = ($value !== null) ? $value : $defaultValue;
+        return array( $value, $params );
+    }
+
     public function handle_market_type_and_params($methodName, $market = null, $params = array ()) {
         $defaultType = $this->safe_string_2($this->options, 'defaultType', 'type', 'spot');
         $methodOptions = $this->safe_value($this->options, $methodName);
@@ -3758,8 +3798,10 @@ class Exchange {
         $keys = is_array($broad) ? array_keys($broad) : array();
         for ($i = 0; $i < count($keys); $i++) {
             $key = $keys[$i];
-            if (mb_strpos($string, $key) !== false) {
-                return $key;
+            if ($string !== null) { // #issues/12698
+                if (mb_strpos($string, $key) !== false) {
+                    return $key;
+                }
             }
         }
         return null;
