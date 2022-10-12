@@ -599,30 +599,30 @@ module.exports = class aax extends Exchange {
         const response = await this.publicGetCurrencies (params);
         //
         //     {
-        //         "code":1,
-        //         "data":[
+        //         "code": 1,
+        //         "data": [
         //             {
-        //                 "chain":"BTC",
-        //                 "displayName":"Bitcoin",
-        //                 "withdrawFee":"0.0004",
-        //                 "withdrawMin":"0.001",
-        //                 "otcFee":"0",
-        //                 "enableOTC":true,
-        //                 "visible":true,
-        //                 "enableTransfer":true,
-        //                 "transferMin":"0.00001",
-        //                 "depositMin":"0.0005",
-        //                 "enableWithdraw":true,
-        //                 "enableDeposit":true,
-        //                 "addrWithMemo":false,
-        //                 "withdrawPrecision":"0.00000001",
-        //                 "currency":"BTC",
-        //                 "network":"BTC", // ETH, ERC20, TRX, TRC20, OMNI, LTC, XRP, XLM, ...
-        //                 "minConfirm":"2"
+        //                 "chain": "BTC",
+        //                 "displayName": "Bitcoin",
+        //                 "withdrawFee": "0.0004",
+        //                 "withdrawMin": "0.001",
+        //                 "otcFee": "0",
+        //                 "enableOTC": true,
+        //                 "visible": true,
+        //                 "enableTransfer": true,
+        //                 "transferMin": "0.00001",
+        //                 "depositMin": "0.0005",
+        //                 "enableWithdraw": true,
+        //                 "enableDeposit": true,
+        //                 "addrWithMemo": false,
+        //                 "withdrawPrecision": "0.00000001",
+        //                 "currency": "BTC",
+        //                 "network": "BTC", // ETH, ERC20, TRX, TRC20, OMNI, LTC, XRP, XLM, ...
+        //                 "minConfirm": "2"
         //             },
         //         ],
-        //         "message":"success",
-        //         "ts":1624330530697
+        //         "message": "success",
+        //         "ts": 1624330530697
         //     }
         //
         const result = {};
