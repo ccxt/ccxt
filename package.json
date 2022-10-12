@@ -18,7 +18,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/carlosmiei/ccxt/tree/esm-migration"
+    "url": "https://github.com/ccxt/ccxt.git"
   },
   "readme": "README.md",
   "scripts": {
