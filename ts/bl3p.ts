@@ -133,7 +133,7 @@ export default class bl3p extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privatePostGENMKTMoneyInfo (params);
+        const response = await (this as any).privatePostGENMKTMoneyInfo (params);
         return this.parseBalance (response);
     }
 
@@ -160,7 +160,7 @@ export default class bl3p extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await this.publicGetMarketOrderbook (this.extend (request, params));
+        const response = await (this as any).publicGetMarketOrderbook (this.extend (request, params));
         const orderbook = this.safeValue (response, 'data');
         return this.parseOrderBook (orderbook, market['symbol'], undefined, 'bids', 'asks', 'price_int', 'amount_int');
     }
@@ -276,7 +276,7 @@ export default class bl3p extends Exchange {
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         const market = this.market (symbol);
-        const response = await this.publicGetMarketTrades (this.extend ({
+        const response = await (this as any).publicGetMarketTrades (this.extend ({
             'market': market['id'],
         }, params));
         const result = this.parseTrades (response['data']['trades'], market, since, limit);
@@ -292,7 +292,7 @@ export default class bl3p extends Exchange {
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await this.privatePostGENMKTMoneyInfo (params);
+        const response = await (this as any).privatePostGENMKTMoneyInfo (params);
         //
         //     {
         //         result: 'success',
@@ -364,7 +364,7 @@ export default class bl3p extends Exchange {
         if (type === 'limit') {
             order['price_int'] = parseInt (Precise.stringMul (priceString, '100000.0'));
         }
-        const response = await this.privatePostMarketMoneyOrderAdd (this.extend (order, params));
+        const response = await (this as any).privatePostMarketMoneyOrderAdd (this.extend (order, params));
         const orderId = this.safeString (response['data'], 'order_id');
         return {
             'info': response,

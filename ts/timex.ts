@@ -355,7 +355,7 @@ export default class timex extends Exchange {
         const request = {
             'address': address,
         };
-        const response = await this.managerGetDeposits (this.extend (request, params));
+        const response = await (this as any).managerGetDeposits (this.extend (request, params));
         //
         //     [
         //         {
@@ -390,7 +390,7 @@ export default class timex extends Exchange {
         const request = {
             'address': address,
         };
-        const response = await this.managerGetWithdrawals (this.extend (request, params));
+        const response = await (this as any).managerGetWithdrawals (this.extend (request, params));
         //
         //     [
         //         {

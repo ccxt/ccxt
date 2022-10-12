@@ -3216,7 +3216,7 @@ export default class ftx extends Exchange {
         const request = {
             'future_name': market['id'],
         };
-        const response = await this.publicGetFuturesFutureNameStats (this.extend (request, params));
+        const response = await (this as any).publicGetFuturesFutureNameStats (this.extend (request, params));
         //
         //     {
         //         "success": true,

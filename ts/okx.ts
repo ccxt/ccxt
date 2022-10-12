@@ -5485,7 +5485,7 @@ export default class okx extends Exchange {
             'uly': uly,
             'instId': market['id'],
         };
-        const response = await this.publicGetPublicOpenInterest (this.extend (request, params));
+        const response = await (this as any).publicGetPublicOpenInterest (this.extend (request, params));
         //
         //     {
         //         "code": "0",

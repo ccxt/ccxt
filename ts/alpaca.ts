@@ -373,7 +373,7 @@ export default class alpaca extends Exchange {
         const request = {
             'symbols': id,
         };
-        const response = await this.cryptoPublicGetCryptoLatestOrderbooks (this.extend (request, params));
+        const response = await (this as any).cryptoPublicGetCryptoLatestOrderbooks (this.extend (request, params));
         //
         //   {
         //       "orderbooks":{
@@ -603,7 +603,7 @@ export default class alpaca extends Exchange {
         const request = {
             'order_id': id,
         };
-        const response = await this.privateDeleteOrdersOrderId (this.extend (request, params));
+        const response = await (this as any).privateDeleteOrdersOrderId (this.extend (request, params));
         //
         //   {
         //       "code": 40410000,

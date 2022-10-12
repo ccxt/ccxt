@@ -158,7 +158,7 @@ export default class luno extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await this.exchangeGetMarkets (params);
+        const response = await (this as any).exchangeGetMarkets (params);
         //
         //     {
         //         "markets":[
@@ -248,7 +248,7 @@ export default class luno extends Exchange {
          * @param {object} params extra parameters specific to the luno api endpoint
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
          */
-        const response = await this.privateGetBalance (params);
+        const response = await (this as any).privateGetBalance (params);
         const wallets = this.safeValue (response, 'balance', []);
         const result = [];
         for (let i = 0; i < wallets.length; i++) {
@@ -304,7 +304,7 @@ export default class luno extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privateGetBalance (params);
+        const response = await (this as any).privateGetBalance (params);
         //
         //     {
         //         'balance': [
@@ -439,7 +439,7 @@ export default class luno extends Exchange {
         const request = {
             'id': id,
         };
-        const response = await this.privateGetOrdersId (this.extend (request, params));
+        const response = await (this as any).privateGetOrdersId (this.extend (request, params));
         return this.parseOrder (response);
     }
 
@@ -454,7 +454,7 @@ export default class luno extends Exchange {
             market = this.market (symbol);
             request['pair'] = market['id'];
         }
-        const response = await this.privateGetListorders (this.extend (request, params));
+        const response = await (this as any).privateGetListorders (this.extend (request, params));
         const orders = this.safeValue (response, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
     }
@@ -550,7 +550,7 @@ export default class luno extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await this.publicGetTickers (params);
+        const response = await (this as any).publicGetTickers (params);
         const tickers = this.indexBy (response['tickers'], 'pair');
         const ids = Object.keys (tickers);
         const result = {};
@@ -578,7 +578,7 @@ export default class luno extends Exchange {
         const request = {
             'pair': market['id'],
         };
-        const response = await this.publicGetTicker (this.extend (request, params));
+        const response = await (this as any).publicGetTicker (this.extend (request, params));
         // {
         //     "pair":"XBTAUD",
         //     "timestamp":1642201439301,
@@ -701,7 +701,7 @@ export default class luno extends Exchange {
         if (since !== undefined) {
             request['since'] = since;
         }
-        const response = await this.publicGetTrades (this.extend (request, params));
+        const response = await (this as any).publicGetTrades (this.extend (request, params));
         //
         //      {
         //          "trades":[
@@ -744,7 +744,7 @@ export default class luno extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetListtrades (this.extend (request, params));
+        const response = await (this as any).privateGetListtrades (this.extend (request, params));
         //
         //      {
         //          "trades":[
@@ -784,7 +784,7 @@ export default class luno extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.privateGetFeeInfo (this.extend (request, params));
+        const response = await (this as any).privateGetFeeInfo (this.extend (request, params));
         //
         //     {
         //          "maker_fee": "0.00250000",
@@ -918,7 +918,7 @@ export default class luno extends Exchange {
             'min_row': min_row,
             'max_row': max_row,
         };
-        const response = await this.privateGetAccountsIdTransactions (this.extend (params, request));
+        const response = await (this as any).privateGetAccountsIdTransactions (this.extend (params, request));
         const entries = this.safeValue (response, 'transactions', []);
         return this.parseLedger (entries, currency, since, limit);
     }

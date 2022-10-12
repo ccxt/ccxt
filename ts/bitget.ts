@@ -1153,7 +1153,7 @@ export default class bitget extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const response = await this.privateSpotGetWalletDepositList (this.extend (request, params));
+        const response = await (this as any).privateSpotGetWalletDepositList (this.extend (request, params));
         //
         //      {
         //          "code": "00000",
@@ -1208,7 +1208,7 @@ export default class bitget extends Exchange {
         if (tag !== undefined) {
             request['tag'] = tag;
         }
-        const response = await this.privateSpotPostWalletWithdrawal (this.extend (request, params));
+        const response = await (this as any).privateSpotPostWalletWithdrawal (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
@@ -1282,7 +1282,7 @@ export default class bitget extends Exchange {
         if (limit !== undefined) {
             request['pageSize'] = limit;
         }
-        const response = await this.privateSpotGetWalletWithdrawalList (this.extend (request, params));
+        const response = await (this as any).privateSpotGetWalletWithdrawalList (this.extend (request, params));
         //
         //      {
         //          "code": "00000",
@@ -1377,7 +1377,7 @@ export default class bitget extends Exchange {
         const request = {
             'coin': currency['code'],
         };
-        const response = await this.privateSpotGetWalletDepositAddress (this.extend (request, params));
+        const response = await (this as any).privateSpotGetWalletDepositAddress (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
@@ -2442,7 +2442,7 @@ export default class bitget extends Exchange {
             'productType': productType,
         };
         params = this.omit (query, [ 'code', 'marginCoin' ]);
-        const response = await this.privateMixPostOrderCancelAllOrders (this.extend (request, params));
+        const response = await (this as any).privateMixPostOrderCancelAllOrders (this.extend (request, params));
         //
         //     {
         //         "code": "00000",

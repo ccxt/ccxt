@@ -3151,7 +3151,7 @@ export default class aax extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetFuturesPositionOpenInterest (this.extend (request, params));
+        const response = await (this as any).publicGetFuturesPositionOpenInterest (this.extend (request, params));
         //
         //     {
         //         "code": 1,

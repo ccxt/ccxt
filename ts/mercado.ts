@@ -157,7 +157,7 @@ export default class mercado extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await this.publicGetCoins (params);
+        const response = await (this as any).publicGetCoins (params);
         //
         //     [
         //         "BCH",
@@ -256,7 +256,7 @@ export default class mercado extends Exchange {
         const request = {
             'coin': market['base'],
         };
-        const response = await this.publicGetCoinOrderbook (this.extend (request, params));
+        const response = await (this as any).publicGetCoinOrderbook (this.extend (request, params));
         return this.parseOrderBook (response, market['symbol']);
     }
 
@@ -314,7 +314,7 @@ export default class mercado extends Exchange {
         const request = {
             'coin': market['base'],
         };
-        const response = await this.publicGetCoinTicker (this.extend (request, params));
+        const response = await (this as any).publicGetCoinTicker (this.extend (request, params));
         const ticker = this.safeValue (response, 'ticker', {});
         //
         //     {
@@ -423,7 +423,7 @@ export default class mercado extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privatePostGetAccountInfo (params);
+        const response = await (this as any).privatePostGetAccountInfo (params);
         return this.parseBalance (response);
     }
 
@@ -488,7 +488,7 @@ export default class mercado extends Exchange {
             'coin_pair': market['id'],
             'order_id': id,
         };
-        const response = await this.privatePostCancelOrder (this.extend (request, params));
+        const response = await (this as any).privatePostCancelOrder (this.extend (request, params));
         //
         //     {
         //         response_data: {
@@ -616,7 +616,7 @@ export default class mercado extends Exchange {
             'coin_pair': market['id'],
             'order_id': parseInt (id),
         };
-        const response = await this.privatePostGetOrder (this.extend (request, params));
+        const response = await (this as any).privatePostGetOrder (this.extend (request, params));
         const responseData = this.safeValue (response, 'response_data', {});
         const order = this.safeValue (responseData, 'order');
         return this.parseOrder (order, market);
@@ -663,7 +663,7 @@ export default class mercado extends Exchange {
                 }
             }
         }
-        const response = await this.privatePostWithdrawCoin (this.extend (request, params));
+        const response = await (this as any).privatePostWithdrawCoin (this.extend (request, params));
         //
         //     {
         //         "response_data": {
@@ -765,7 +765,7 @@ export default class mercado extends Exchange {
             request['to'] = this.seconds ();
             request['from'] = request['to'] - (limit * this.parseTimeframe (timeframe));
         }
-        const response = await this.v4PublicNetGetCandles (this.extend (request, params));
+        const response = await (this as any).v4PublicNetGetCandles (this.extend (request, params));
         const candles = this.convertTradingViewToOHLCV (response, 't', 'o', 'h', 'l', 'c', 'v');
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
@@ -789,7 +789,7 @@ export default class mercado extends Exchange {
         const request = {
             'coin_pair': market['id'],
         };
-        const response = await this.privatePostListOrders (this.extend (request, params));
+        const response = await (this as any).privatePostListOrders (this.extend (request, params));
         const responseData = this.safeValue (response, 'response_data', {});
         const orders = this.safeValue (responseData, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
@@ -815,7 +815,7 @@ export default class mercado extends Exchange {
             'coin_pair': market['id'],
             'status_list': '[2]', // open only
         };
-        const response = await this.privatePostListOrders (this.extend (request, params));
+        const response = await (this as any).privatePostListOrders (this.extend (request, params));
         const responseData = this.safeValue (response, 'response_data', {});
         const orders = this.safeValue (responseData, 'orders', []);
         return this.parseOrders (orders, market, since, limit);
@@ -841,7 +841,7 @@ export default class mercado extends Exchange {
             'coin_pair': market['id'],
             'has_fills': true,
         };
-        const response = await this.privatePostListOrders (this.extend (request, params));
+        const response = await (this as any).privatePostListOrders (this.extend (request, params));
         const responseData = this.safeValue (response, 'response_data', {});
         const ordersRaw = this.safeValue (responseData, 'orders', []);
         const orders = this.parseOrders (ordersRaw, market, since, limit);
