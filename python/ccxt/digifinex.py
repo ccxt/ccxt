@@ -299,7 +299,7 @@ class digifinex(Exchange):
             deposit = depositStatus > 0
             withdraw = withdrawStatus > 0
             active = deposit and withdraw
-            fee = self.safe_number(currency, 'withdraw_fee_rate')
+            fee = self.safe_number(currency, 'min_withdraw_fee')  # withdraw_fee_rate was zero for all currencies, so self was the worst case scenario
             minWithdraw = self.safe_number(currency, 'min_withdraw_amount')
             minDeposit = self.safe_number(currency, 'min_deposit_amount')
             networkId = self.safe_string(currency, 'chain')

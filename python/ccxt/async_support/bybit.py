@@ -135,7 +135,7 @@ class bybit(Exchange):
                     'https://github.com/bybit-exchange',
                 ],
                 'fees': 'https://help.bybit.com/hc/en-us/articles/360039261154',
-                'referral': 'https://partner.bybit.com/b/ccxt',
+                'referral': 'https://www.bybit.com/register?affiliate_id=35953',
             },
             'api': {
                 'public': {
@@ -2224,6 +2224,7 @@ class bybit(Exchange):
         :param dict params: extra parameters specific to the bybit api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
+        await self.load_markets()
         request = {}
         type = None
         type, params = self.handle_market_type_and_params('fetchBalance', None, params)
@@ -2246,7 +2247,6 @@ class bybit(Exchange):
             else:
                 # usdc account
                 method = 'privatePostOptionUsdcOpenapiPrivateV1QueryWalletBalance'
-        await self.load_markets()
         response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
@@ -2854,8 +2854,6 @@ class bybit(Exchange):
         isStopLossOrder = stopLossPrice is not None
         takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
         isTakeProfitOrder = takeProfitPrice is not None
-        isSlTpOrder = isStopLossOrder or isTakeProfitOrder
-        isStopOrder = isSlTpOrder or isTriggerOrder
         if isTriggerOrder:
             request['trigger_by'] = 'LastPrice'
             preciseStopPrice = self.price_to_precision(symbol, triggerPrice)
@@ -2876,12 +2874,12 @@ class bybit(Exchange):
         params = self.omit(params, ['stop_px', 'stopPrice', 'base_price', 'basePrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId'])
         method = None
         if market['future']:
-            method = 'privatePostFuturesPrivateStopOrderCreate' if isStopOrder else 'privatePostFuturesPrivateOrderCreate'
+            method = 'privatePostFuturesPrivateStopOrderCreate' if isTriggerOrder else 'privatePostFuturesPrivateOrderCreate'
         elif market['linear']:
-            method = 'privatePostPrivateLinearStopOrderCreate' if isStopOrder else 'privatePostPrivateLinearOrderCreate'
+            method = 'privatePostPrivateLinearStopOrderCreate' if isTriggerOrder else 'privatePostPrivateLinearOrderCreate'
         else:
             # inverse swaps
-            method = 'privatePostV2PrivateStopOrderCreate' if isStopOrder else 'privatePostV2PrivateOrderCreate'
+            method = 'privatePostV2PrivateStopOrderCreate' if isTriggerOrder else 'privatePostV2PrivateOrderCreate'
         response = await getattr(self, method)(self.extend(request, params))
         #
         #    {

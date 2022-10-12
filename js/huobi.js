@@ -153,7 +153,6 @@ export default class huobi extends Exchange {
                     'status': 'https://{hostname}',
                     'contract': 'https://{hostname}',
                     'spot': 'https://{hostname}',
-                    'market': 'https://{hostname}',
                     'public': 'https://{hostname}',
                     'private': 'https://{hostname}',
                     'v2Public': 'https://{hostname}',
@@ -161,7 +160,7 @@ export default class huobi extends Exchange {
                 },
                 'www': 'https://www.huobi.com',
                 'referral': {
-                    'url': 'https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223',
+                    'url': 'https://www.huobi.com/en-us/v/register/double-invite/?inviter_id=11343840&invite_code=6rmm2223',
                     'discount': 0.15,
                 },
                 'doc': [
@@ -237,18 +236,6 @@ export default class huobi extends Exchange {
                         'etp/redemption': 5, // 杠杆ETP换出
                         'etp/{transactId}/cancel': 10, // 杠杆ETP单个撤单
                         'etp/batch-cancel': 50, // 杠杆ETP批量撤单
-                    },
-                },
-                'market': {
-                    'get': {
-                        'history/kline': 1, // 获取K线数据
-                        'detail/merged': 1, // 获取聚合行情(Ticker)
-                        'depth': 1, // 获取 Market Depth 数据
-                        'trade': 1, // 获取 Trade Detail 数据
-                        'history/trade': 1, // 批量获取最近的交易记录
-                        'detail': 1, // 获取 Market Detail 24小时成交量数据
-                        'tickers': 1,
-                        'etp': 1, // 获取杠杆ETP实时净值
                     },
                 },
                 'public': {
@@ -362,19 +349,26 @@ export default class huobi extends Exchange {
                             'v2/market-status': 1,
                             'v1/common/symbols': 1,
                             'v1/common/currencys': 1,
+                            'v2/settings/common/currencies': 1,
                             'v2/reference/currencies': 1,
                             'v1/common/timestamp': 1,
                             'v1/common/exchange': 1, // order limits
+                            'v1/settings/common/chains': 1,
+                            'v1/settings/common/currencys': 1,
+                            'v1/settings/common/symbols': 1,
+                            'v2/settings/common/symbols': 1,
+                            'v1/settings/common/market-symbols': 1,
                             // Market Data
                             'market/history/candles': 1,
                             'market/history/kline': 1,
                             'market/detail/merged': 1,
                             'market/tickers': 1,
+                            'market/detail': 1,
                             'market/depth': 1,
                             'market/trade': 1,
                             'market/history/trade': 1,
                             'market/detail/': 1,
-                            'market/etp': 1,
+                            'market/etp': 1, // Get real-time equity of leveraged ETP
                             // ETP
                             'v2/etp/reference': 1,
                             'v2/etp/rebalance': 1,
@@ -396,6 +390,7 @@ export default class huobi extends Exchange {
                             'v2/account/withdraw/address': 1,
                             'v2/reference/currencies': 1,
                             'v1/query/deposit-withdraw': 1,
+                            'v1/query/withdraw/client-order-id': 1,
                             // Sub user management
                             'v2/user/api-key': 1,
                             'v2/user/uid': 1,
@@ -410,6 +405,7 @@ export default class huobi extends Exchange {
                             'v1/order/openOrders': 0.4,
                             'v1/order/orders/{order-id}': 0.4,
                             'v1/order/orders/getClientOrder': 0.4,
+                            'v1/order/orders/{order-id}/matchresult': 0.4,
                             'v1/order/orders/{order-id}/matchresults': 0.4,
                             'v1/order/orders': 0.4,
                             'v1/order/history': 1,
@@ -429,6 +425,7 @@ export default class huobi extends Exchange {
                             'v2/account/repayment': 5,
                             // Stable Coin Exchange
                             'v1/stable-coin/quote': 1,
+                            'v1/stable_coin/exchange_rate': 1,
                             // ETP
                             'v2/etp/transactions': 5,
                             'v2/etp/transaction': 5,
@@ -501,6 +498,7 @@ export default class huobi extends Exchange {
                             'index/market/history/mark_price_kline': 1,
                             'market/detail/merged': 1,
                             'market/detail/batch_merged': 1,
+                            'v2/market/detail/batch_merged': 1,
                             'market/trade': 1,
                             'market/history/trade': 1,
                             'api/v1/contract_risk_info': 1,
@@ -527,6 +525,8 @@ export default class huobi extends Exchange {
                             'swap-ex/market/history/kline': 1,
                             'index/market/history/swap_mark_price_kline': 1,
                             'swap-ex/market/detail/merged': 1,
+                            'v2/swap-ex/market/detail/batch_merged': 1,
+                            'index/market/history/swap_premium_index_kline': 1,
                             'swap-ex/market/detail/batch_merged': 1,
                             'swap-ex/market/trade': 1,
                             'swap-ex/market/history/trade': 1,
@@ -545,7 +545,6 @@ export default class huobi extends Exchange {
                             'swap-api/v1/swap_batch_funding_rate': 1,
                             'swap-api/v1/swap_historical_funding_rate': 1,
                             'swap-api/v3/swap_liquidation_orders': 1,
-                            'index/market/history/swap_premium_index_kline': 1,
                             'index/market/history/swap_estimated_rate_kline': 1,
                             'index/market/history/swap_basis': 1,
                             // Swap Market Data interface
@@ -559,6 +558,7 @@ export default class huobi extends Exchange {
                             'index/market/history/linear_swap_mark_price_kline': 1,
                             'linear-swap-ex/market/detail/merged': 1,
                             'linear-swap-ex/market/detail/batch_merged': 1,
+                            'v2/linear-swap-ex/market/detail/batch_merged': 1,
                             'linear-swap-ex/market/trade': 1,
                             'linear-swap-ex/market/history/trade': 1,
                             'linear-swap-api/v1/swap_risk_info': 1,
@@ -2316,23 +2316,30 @@ export default class huobi extends Exchange {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol for ' + marketType + ' orders');
             }
-            request['contract_code'] = market['id'];
+            request['contract'] = market['id'];
             request['trade_type'] = 0; // 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
+            if (since !== undefined) {
+                request['start_time'] = since; // a date within 120 days from today
+                // request['end_time'] = this.sum (request['start_time'], 172800000); // 48 hours window
+            }
+            if (limit !== undefined) {
+                request['page_size'] = limit; // default 100, max 500
+            }
             if (market['linear']) {
                 let marginMode = undefined;
                 [ marginMode, params ] = this.handleMarginModeAndParams ('fetchMyTrades', params);
                 marginMode = (marginMode === undefined) ? 'cross' : marginMode;
                 if (marginMode === 'isolated') {
-                    method = 'contractPrivatePostLinearSwapApiV1SwapMatchresultsExact';
+                    method = 'contractPrivatePostLinearSwapApiV3SwapMatchresultsExact';
                 } else if (marginMode === 'cross') {
-                    method = 'contractPrivatePostLinearSwapApiV1SwapCrossMatchresultsExact';
+                    method = 'contractPrivatePostLinearSwapApiV3SwapCrossMatchresultsExact';
                 }
             } else if (market['inverse']) {
                 if (marketType === 'future') {
-                    method = 'contractPrivatePostApiV1ContractMatchresultsExact';
+                    method = 'contractPrivatePostApiV3ContractMatchresultsExact';
                     request['symbol'] = market['settleId'];
                 } else if (marketType === 'swap') {
-                    method = 'contractPrivatePostSwapApiV1SwapMatchresultsExact';
+                    method = 'contractPrivatePostSwapApiV3SwapMatchresultsExact';
                 } else {
                     throw new NotSupported (this.id + ' fetchMyTrades() does not support ' + marketType + ' markets');
                 }
@@ -3422,32 +3429,31 @@ export default class huobi extends Exchange {
             // POST /api/v1/contract_hisorders inverse futures ----------------
             // 'symbol': market['settleId'], // BTC, ETH, ...
             // 'order_type': '1', // 1 limit，3 opponent，4 lightning, 5 trigger order, 6 pst_only, 7 optimal_5, 8 optimal_10, 9 optimal_20, 10 fok, 11 ioc
-            // POST /swap-api/v1/swap_hisorders inverse swap ------------------
-            // POST /linear-swap-api/v1/swap_hisorders linear isolated --------
-            // POST /linear-swap-api/v1/swap_cross_hisorders linear cross -----
-            'contract_code': market['id'],
-            'trade_type': 0, // 0 all, 1 buy long, 2 sell short, 3 buy short, 4 sell long, 5 sell liquidation, 6 buy liquidation, 7 Delivery long, 8 Delivery short 11 reduce positions to close long, 12 reduce positions to close short
-            'type': 1, // 1 all orders, 2 finished orders
-            'status': '0', // comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
-            'create_date': 90, // in days?
-            // 'page_index': 1,
-            // 'page_size': limit, // default 20, max 50
-            // 'sort_by': 'create_date', // create_date descending, update_time descending
+            // POST /swap-api/v3/swap_hisorders inverse swap ------------------
+            // POST /linear-swap-api/v3/swap_hisorders linear isolated --------
+            // POST /linear-swap-api/v3/swap_cross_hisorders linear cross -----
+            'contract': market['id'],
+            'trade_type': 0, // 0:All; 1: Open long; 2: Open short; 3: Close short; 4: Close long; 5: Liquidate long positions; 6: Liquidate short positions, 17:buy(one-way mode), 18:sell(one-way mode)
+            'type': 1, // 1:All Orders,2:Order in Finished Status
+            'status': '0', // support multiple query seperated by ',',such as '3,4,5', 0: all. 3. Have sumbmitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled;
         };
+        if (since !== undefined) {
+            request['start_time'] = since; // max 90 days back
+            // request['end_time'] = since + 172800000; // 48 hours window
+        }
         let method = undefined;
-        request['contract_code'] = market['id'];
         if (market['linear']) {
             let marginMode = undefined;
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchContractOrders', params);
             marginMode = (marginMode === undefined) ? 'cross' : marginMode;
             method = this.getSupportedMapping (marginMode, {
-                'isolated': 'contractPrivatePostLinearSwapApiV1SwapHisorders',
-                'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossHisorders',
+                'isolated': 'contractPrivatePostLinearSwapApiV3SwapHisorders',
+                'cross': 'contractPrivatePostLinearSwapApiV3SwapCrossHisorders',
             });
         } else if (market['inverse']) {
             method = this.getSupportedMapping (marketType, {
-                'future': 'contractPrivatePostApiV1ContractHisorders',
-                'swap': 'contractPrivatePostSwapApiV1SwapHisorders',
+                'future': 'contractPrivatePostApiV3ContractHisorders',
+                'swap': 'contractPrivatePostSwapApiV3SwapHisorders',
             });
             if (marketType === 'future') {
                 request['symbol'] = market['settleId'];
@@ -3506,8 +3512,7 @@ export default class huobi extends Exchange {
         //         "ts": 1604370617322
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        const orders = this.safeValue (data, 'orders', []);
+        const orders = this.safeValue (response, 'data', []);
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -5513,9 +5518,7 @@ export default class huobi extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         if (typeof api === 'string') {
             // signing implementation for the old endpoints
-            if (api === 'market') {
-                url += api;
-            } else if ((api === 'public') || (api === 'private')) {
+            if ((api === 'public') || (api === 'private')) {
                 url += this.version;
             } else if ((api === 'v2Public') || (api === 'v2Private')) {
                 url += 'v2';
@@ -5658,8 +5661,11 @@ export default class huobi extends Exchange {
         const request = {
             'type': '30,31',
         };
+        if (since !== undefined) {
+            request['start_date'] = since;
+        }
         if (market['linear']) {
-            method = 'contractPrivatePostLinearSwapApiV1SwapFinancialRecordExact';
+            method = 'contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact';
             //
             // {
             //   status: 'ok',
@@ -5685,43 +5691,42 @@ export default class huobi extends Exchange {
             [ marginMode, params ] = this.handleMarginModeAndParams ('fetchFundingHistory', params);
             marginMode = (marginMode === undefined) ? 'cross' : marginMode;
             if (marginMode === 'isolated') {
-                request['margin_account'] = market['id'];
+                request['mar_acct'] = market['id'];
             } else {
-                request['margin_account'] = market['quoteId'];
+                request['mar_acct'] = market['quoteId'];
             }
         } else {
             if (marketType === 'swap') {
-                method = 'contractPrivatePostSwapApiV1SwapFinancialRecordExact';
-                request['contract_code'] = market['id'];
+                method = 'contractPrivatePostSwapApiV3SwapFinancialRecordExact';
+                request['contract'] = market['id'];
+                //
+                //     {
+                //         "code": 200,
+                //         "msg": "",
+                //         "data": [
+                //             {
+                //                 "query_id": 138798248,
+                //                 "id": 117840,
+                //                 "type": 5,
+                //                 "amount": -0.024464850000000000,
+                //                 "ts": 1638758435635,
+                //                 "contract_code": "BTC-USDT-211210",
+                //                 "asset": "USDT",
+                //                 "margin_account": "USDT",
+                //                 "face_margin_account": ""
+                //             }
+                //         ],
+                //         "ts": 1604312615051
+                //     }
+                //
             } else {
-                throw new ExchangeError (this.id + ' fetchFundingHistory() only makes sense for swap contracts');
+                method = 'contractPrivatePostApiV3ContractFinancialRecordExact';
+                request['symbol'] = market['id'];
             }
-            //
-            // swap
-            //     {
-            //       status: 'ok',
-            //       data: {
-            //         financial_record: [
-            //           {
-            //             id: '1667436164',
-            //             symbol: 'BTC',
-            //             type: '30',
-            //             amount: '3.9755491985E-8',
-            //             ts: '1641168097323',
-            //             contract_code: 'BTC-USD'
-            //           },
-            //         ],
-            //         remain_size: '0',
-            //         next_id: null
-            //       },
-            //       ts: '1641190296379'
-            //     }
-            //
         }
         const response = await this[method] (this.extend (request, query));
-        const data = this.safeValue (response, 'data', {});
-        const financialRecord = this.safeValue (data, 'financial_record', []);
-        return this.parseIncomes (financialRecord, market, since, limit);
+        const data = this.safeValue (response, 'data', []);
+        return this.parseIncomes (data, market, since, limit);
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {

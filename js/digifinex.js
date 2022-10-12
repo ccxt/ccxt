@@ -288,7 +288,7 @@ export default class digifinex extends Exchange {
             const deposit = depositStatus > 0;
             const withdraw = withdrawStatus > 0;
             const active = deposit && withdraw;
-            const fee = this.safeNumber (currency, 'withdraw_fee_rate');
+            const fee = this.safeNumber (currency, 'min_withdraw_fee'); // withdraw_fee_rate was zero for all currencies, so this was the worst case scenario
             const minWithdraw = this.safeNumber (currency, 'min_withdraw_amount');
             const minDeposit = this.safeNumber (currency, 'min_deposit_amount');
             const networkId = this.safeString (currency, 'chain');

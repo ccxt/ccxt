@@ -286,7 +286,7 @@ class digifinex extends Exchange {
             $deposit = $depositStatus > 0;
             $withdraw = $withdrawStatus > 0;
             $active = $deposit && $withdraw;
-            $fee = $this->safe_number($currency, 'withdraw_fee_rate');
+            $fee = $this->safe_number($currency, 'min_withdraw_fee'); // withdraw_fee_rate was zero for all currencies, so this was the worst case scenario
             $minWithdraw = $this->safe_number($currency, 'min_withdraw_amount');
             $minDeposit = $this->safe_number($currency, 'min_deposit_amount');
             $networkId = $this->safe_string($currency, 'chain');

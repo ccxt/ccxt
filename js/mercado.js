@@ -69,17 +69,12 @@ export default class mercado extends Exchange {
                 'withdraw': true,
             },
             'timeframes': {
-                '1m': '1m',
-                '5m': '5m',
                 '15m': '15m',
-                '30m': '30m',
                 '1h': '1h',
-                '6h': '6h',
-                '12h': '12h',
+                '3h': '3h',
                 '1d': '1d',
-                '3d': '3d',
                 '1w': '1w',
-                '2w': '2w',
+                '1M': '1M',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg',
@@ -87,11 +82,13 @@ export default class mercado extends Exchange {
                     'public': 'https://www.mercadobitcoin.net/api',
                     'private': 'https://www.mercadobitcoin.net/tapi',
                     'v4Public': 'https://www.mercadobitcoin.com.br/v4',
+                    'v4PublicNet': 'https://api.mercadobitcoin.net/api/v4',
                 },
                 'www': 'https://www.mercadobitcoin.com.br',
                 'doc': [
                     'https://www.mercadobitcoin.com.br/api-doc',
                     'https://www.mercadobitcoin.com.br/trade-api',
+                    'https://api.mercadobitcoin.net/api/v4/docs/',
                 ],
             },
             'api': {
@@ -125,6 +122,11 @@ export default class mercado extends Exchange {
                 'v4Public': {
                     'get': [
                         '{coin}/candle/',
+                    ],
+                },
+                'v4PublicNet': {
+                    'get': [
+                        'candles',
                     ],
                 },
             },
@@ -726,16 +728,16 @@ export default class mercado extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined) {
         return [
-            this.safeTimestamp (ohlcv, 'timestamp'),
-            this.safeNumber (ohlcv, 'open'),
-            this.safeNumber (ohlcv, 'high'),
-            this.safeNumber (ohlcv, 'low'),
-            this.safeNumber (ohlcv, 'close'),
-            this.safeNumber (ohlcv, 'volume'),
+            this.safeTimestamp (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '15m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name mercado#fetchOHLCV
@@ -750,21 +752,21 @@ export default class mercado extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'precision': this.timeframes[timeframe],
-            'coin': market['id'].toLowerCase (),
+            'resolution': this.timeframes[timeframe],
+            'symbol': market['base'] + '-' + market['quote'], // exceptional endpoint, that needs custom symbol syntax
         };
-        if (limit !== undefined && since !== undefined) {
+        if (limit === undefined) {
+            limit = 100; // set some default limit, as it's required if user doesn't provide it
+        }
+        if (since !== undefined) {
             request['from'] = parseInt (since / 1000);
             request['to'] = this.sum (request['from'], limit * this.parseTimeframe (timeframe));
-        } else if (since !== undefined) {
-            request['from'] = parseInt (since / 1000);
-            request['to'] = this.sum (this.seconds (), 1);
-        } else if (limit !== undefined) {
+        } else {
             request['to'] = this.seconds ();
             request['from'] = request['to'] - (limit * this.parseTimeframe (timeframe));
         }
-        const response = await this.v4PublicGetCoinCandle (this.extend (request, params));
-        const candles = this.safeValue (response, 'candles', []);
+        const response = await this.v4PublicNetGetCandles (this.extend (request, params));
+        const candles = this.convertTradingViewToOHLCV (response, 't', 'o', 'h', 'l', 'c', 'v');
         return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
@@ -861,7 +863,7 @@ export default class mercado extends Exchange {
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.urls['api'][api] + '/';
         const query = this.omit (params, this.extractParams (path));
-        if (api === 'public' || (api === 'v4Public')) {
+        if ((api === 'public') || (api === 'v4Public') || (api === 'v4PublicNet')) {
             url += this.implodeParams (path, params);
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);

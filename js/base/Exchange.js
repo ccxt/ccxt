@@ -2096,7 +2096,7 @@ export default class Exchange {
         if (warnOnFetchFundingFee) {
             throw new NotSupported (this.id + ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning');
         }
-        return this.fetchTransactionFee (code, params);
+        return await this.fetchTransactionFee (code, params);
     }
 
     async fetchFundingFees (codes = undefined, params = {}) {
@@ -2104,14 +2104,14 @@ export default class Exchange {
         if (warnOnFetchFundingFees) {
             throw new NotSupported (this.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');
         }
-        return this.fetchTransactionFees (codes, params);
+        return await this.fetchTransactionFees (codes, params);
     }
 
     async fetchTransactionFee (code, params = {}) {
         if (!this.has['fetchTransactionFees']) {
             throw new NotSupported (this.id + ' fetchTransactionFee() is not supported yet');
         }
-        return this.fetchTransactionFees ([ code ], params);
+        return await this.fetchTransactionFees ([ code ], params);
     }
 
     async fetchTransactionFees (codes = undefined, params = {}) {

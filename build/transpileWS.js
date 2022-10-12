@@ -227,25 +227,17 @@ class CCXTProTranspiler extends Transpiler {
         log.bright.cyan ('Exporting WS TypeScript class names →', file.yellow)
         
         const commonImports = [
-            '        exchanges: exchanges,',
-            '        Exchange: ExchangePro,'
+            '        export const exchanges: string[];',
+            '        class Exchange  extends ExchangePro {};'
         ]
 
         const replacements = [
             {
                 file:file,
-                regex: /\/[\n]{2}(?:\s+ class [^\s]+Pro extends [^\s]+ \{\}[\r]?[\n])+/,
-                replacement: "/\n\n" + Object.keys (classes).map (className => {
-                    const baseClass = classes[className].replace (/[a-z0-9_]+Rest/, 'ExchangePro')
-                    return '    class ' + className + 'Pro  extends ' + baseClass + " {}"
-                }).join ("\n") + "\n"
-            },
-            {
-                file:file,
-                regex: /\n\n\s+const\spro\s=\s{[^}]+}/,
-                replacement: "\n\n    const pro = {\n" + commonImports.join('\n') + '\n' + Object.keys (classes).map (className => {
-                    return '        ' + className + ': ' + className + 'Pro,'
-                }).join ("\n") + "\n    }"
+                regex: /\n\n\s+export\snamespace\spro\s{\n\s+[\s\S]+}/,
+                replacement: "\n\n    export namespace pro {\n" + commonImports.join('\n') + '\n' + Object.keys (classes).map (className => {
+                    return '        class ' + className + ' extends Exchange {};'
+                }).join ("\n") + "\n    }\n}"
             }
         ]
 

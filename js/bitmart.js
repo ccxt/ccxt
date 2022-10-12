@@ -25,7 +25,7 @@ export default class bitmart extends Exchange {
                 'spot': true,
                 'margin': true,
                 'swap': undefined, // has but unimplemented
-                'future': undefined, // has but unimplemented
+                'future': false,
                 'option': undefined,
                 'borrowMargin': true,
                 'cancelAllOrders': true,
@@ -1240,21 +1240,15 @@ export default class bitmart extends Exchange {
         //         "low":"0.034986"
         //     }
         //
-        // contract
+        // swap
         //
         //     {
-        //         "low":"404.4",
-        //         "high":"404.4",
-        //         "open":"404.4",
-        //         "close":"404.4",
-        //         "last_price":"404.4",
-        //         "avg_price":"404.4",
-        //         "volume":"7670",
-        //         "timestamp":1598758441,
-        //         "rise_fall_rate":"0",
-        //         "rise_fall_value":"0",
-        //         "base_coin_volume":"76.7",
-        //         "quote_coin_volume":"31017.48"
+        //         "low_price": "20090.3",
+        //         "high_price": "20095.5",
+        //         "open_price": "20092.6",
+        //         "close_price": "20091.4",
+        //         "volume": "8748",
+        //         "timestamp": 1665002281
         //     }
         //
         // ws
@@ -1280,10 +1274,10 @@ export default class bitmart extends Exchange {
         } else {
             return [
                 this.safeTimestamp (ohlcv, 'timestamp'),
-                this.safeNumber (ohlcv, 'open'),
-                this.safeNumber (ohlcv, 'high'),
-                this.safeNumber (ohlcv, 'low'),
-                this.safeNumber (ohlcv, 'close'),
+                this.safeNumber2 (ohlcv, 'open', 'open_price'),
+                this.safeNumber2 (ohlcv, 'high', 'high_price'),
+                this.safeNumber2 (ohlcv, 'low', 'low_price'),
+                this.safeNumber2 (ohlcv, 'close', 'close_price'),
                 this.safeNumber (ohlcv, 'volume'),
             ];
         }
@@ -1294,6 +1288,8 @@ export default class bitmart extends Exchange {
          * @method
          * @name bitmart#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://developer-pro.bitmart.com/en/spot/#get-k-line
+         * @see https://developer-pro.bitmart.com/en/futures/#get-k-line
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
@@ -1304,32 +1300,34 @@ export default class bitmart extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const type = market['type'];
-        const request = {};
         const duration = this.parseTimeframe (timeframe);
-        if (type === 'spot') {
-            request['symbol'] = market['id'];
-            request['step'] = this.timeframes[timeframe];
-            // the exchange will return an empty array if more than 500 candles is requested
-            const maxLimit = 500;
-            if (limit === undefined) {
-                limit = maxLimit;
-            }
-            limit = Math.min (maxLimit, limit);
-            const now = parseInt (this.milliseconds () / 1000);
-            if (since === undefined) {
-                const start = now - limit * duration;
-                request['from'] = start;
-                request['to'] = now;
-            } else {
-                const start = parseInt (since / 1000) - 1;
-                const end = this.sum (start, limit * duration);
-                request['from'] = start;
-                request['to'] = Math.min (end, now);
-            }
-        } else if ((type === 'swap') || (type === 'future')) {
-            throw new NotSupported (this.id + ' fetchOHLCV () does not accept swap or future markets, only spot markets are allowed');
+        const request = {
+            'symbol': market['id'],
+            'step': this.timeframes[timeframe],
+        };
+        const maxLimit = 500;
+        if (limit === undefined) {
+            limit = maxLimit;
         }
-        const response = await this.publicGetSpotV1SymbolsKline (this.extend (request, params));
+        limit = Math.min (maxLimit, limit);
+        const now = parseInt (this.milliseconds () / 1000);
+        const fromRequest = (type === 'spot') ? 'from' : 'start_time';
+        const toRequest = (type === 'spot') ? 'to' : 'end_time';
+        if (since === undefined) {
+            const start = now - limit * duration;
+            request[fromRequest] = start;
+            request[toRequest] = now;
+        } else {
+            const start = parseInt (since / 1000) - 1;
+            const end = this.sum (start, limit * duration);
+            request[fromRequest] = start;
+            request[toRequest] = Math.min (end, now);
+        }
+        let method = 'publicGetSpotV1SymbolsKline';
+        if (type === 'swap') {
+            method = 'publicGetContractPublicKline';
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
@@ -1349,20 +1347,26 @@ export default class bitmart extends Exchange {
         // swap
         //
         //     {
-        //         "errno":"OK",
-        //         "message":"OK",
-        //         "code":1000,
-        //         "trace":"32965074-5804-4655-b693-e953e36026a0",
-        //         "data":[
-        //             {"low":"404.4","high":"404.4","open":"404.4","close":"404.4","last_price":"404.4","avg_price":"404.4","volume":"7670","timestamp":1598758441,"rise_fall_rate":"0","rise_fall_value":"0","base_coin_volume":"76.7","quote_coin_volume":"31017.48"},
-        //             {"low":"404.1","high":"404.4","open":"404.4","close":"404.1","last_price":"404.1","avg_price":"404.15881086","volume":"12076","timestamp":1598758501,"rise_fall_rate":"-0.000741839762611276","rise_fall_value":"-0.3","base_coin_volume":"120.76","quote_coin_volume":"48806.2179994536"},
-        //             {"low":"404","high":"404.3","open":"404.1","close":"404","last_price":"404","avg_price":"404.08918918","volume":"740","timestamp":1598758561,"rise_fall_rate":"-0.000247463499133878","rise_fall_value":"-0.1","base_coin_volume":"7.4","quote_coin_volume":"2990.259999932"},
-        //         ]
+        //         "code": 1000,
+        //         "message": "Ok",
+        //         "data": [
+        //             {
+        //                 "low_price": "20090.3",
+        //                 "high_price": "20095.5",
+        //                 "open_price": "20092.6",
+        //                 "close_price": "20091.4",
+        //                 "volume": "8748",
+        //                 "timestamp": 1665002281
+        //             },
+        //             ...
+        //         ],
+        //         "trace": "96c989db-e0f5-46f5-bba6-60cfcbde699b"
         //     }
         //
         const data = this.safeValue (response, 'data', {});
         const klines = this.safeValue (data, 'klines', []);
-        return this.parseOHLCVs (klines, market, timeframe, since, limit);
+        const ohlcv = (type === 'spot') ? klines : data;
+        return this.parseOHLCVs (ohlcv, market, timeframe, since, limit);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1545,9 +1549,14 @@ export default class bitmart extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    parseBalance (response) {
-        const data = this.safeValue (response, 'data', {});
-        const wallet = this.safeValue2 (data, 'wallet', 'accounts', []);
+    parseBalance (response, marketType) {
+        let wallet = undefined;
+        if (marketType === 'swap') {
+            wallet = this.safeValue (response, 'data', []);
+        } else {
+            const data = this.safeValue (response, 'data', {});
+            wallet = this.safeValue (data, 'wallet', []);
+        }
         const result = { 'info': response };
         for (let i = 0; i < wallet.length; i++) {
             const balance = wallet[i];
@@ -1555,8 +1564,8 @@ export default class bitmart extends Exchange {
             currencyId = this.safeString (balance, 'coin_code', currencyId);
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeString2 (balance, 'available', 'available_vol');
-            account['used'] = this.safeString2 (balance, 'frozen', 'freeze_vol');
+            account['free'] = this.safeString2 (balance, 'available', 'available_balance');
+            account['used'] = this.safeString2 (balance, 'frozen', 'frozen_balance');
             result[code] = account;
         }
         return this.safeBalance (result);
@@ -1572,11 +1581,9 @@ export default class bitmart extends Exchange {
          */
         await this.loadMarkets ();
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        if ((marketType === 'swap') || (marketType === 'future')) {
-            throw new NotSupported (this.id + ' fetchBalance () does not accept swap or future balances, only spot and account balances are allowed');
-        }
         const method = this.getSupportedMapping (marketType, {
             'spot': 'privateGetSpotV1Wallet',
+            'swap': 'privateGetContractPrivateAssetsDetail',
             'account': 'privateGetAccountV1Wallet',
         });
         const response = await this[method] (query);
@@ -1610,31 +1617,26 @@ export default class bitmart extends Exchange {
         //         }
         //     }
         //
-        // contract
+        // swap
         //
         //     {
         //         "code": 1000,
-        //         "trace":"886fb6ae-456b-4654-b4e0-d681ac05cea1",
-        //         "message": "OK",
-        //         "data": {
-        //             "accounts": [
-        //                 {
-        //                     "account_id": 10,
-        //                     "coin_code": "USDT",
-        //                     "freeze_vol": "1201.8",
-        //                     "available_vol": "8397.65",
-        //                     "cash_vol": "0",
-        //                     "realised_vol": "-0.5",
-        //                     "unrealised_vol": "-0.5",
-        //                     "earnings_vol": "-0.5",
-        //                     "created_at": "2018-07-13T16:48:49+08:00",
-        //                     "updated_at": "2018-07-13T18:34:45.900387+08:00"
-        //                 }
-        //             ]
-        //         }
+        //         "message": "Ok",
+        //         "data": [
+        //             {
+        //                 "currency": "USDT",
+        //                 "available_balance": "0",
+        //                 "frozen_balance": "0",
+        //                 "unrealized": "0",
+        //                 "equity": "0",
+        //                 "position_deposit": "0"
+        //             },
+        //             ...
+        //         ],
+        //         "trace": "f9da3a39-cf45-42e7-914d-294f565dfc33"
         //     }
         //
-        return this.parseBalance (response);
+        return this.parseBalance (response, marketType);
     }
 
     parseTradingFee (fee, market = undefined) {

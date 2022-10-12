@@ -129,7 +129,7 @@ class bybit extends Exchange {
                     'https://github.com/bybit-exchange',
                 ),
                 'fees' => 'https://help.bybit.com/hc/en-us/articles/360039261154',
-                'referral' => 'https://partner.bybit.com/b/ccxt',
+                'referral' => 'https://www.bybit.com/register?affiliate_id=35953',
             ),
             'api' => array(
                 'public' => array(
@@ -2324,6 +2324,7 @@ class bybit extends Exchange {
              * @param {array} $params extra parameters specific to the bybit api endpoint
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
+            Async\await($this->load_markets());
             $request = array();
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
@@ -2349,7 +2350,6 @@ class bybit extends Exchange {
                     $method = 'privatePostOptionUsdcOpenapiPrivateV1QueryWalletBalance';
                 }
             }
-            Async\await($this->load_markets());
             $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //     {
@@ -3012,8 +3012,6 @@ class bybit extends Exchange {
             $isStopLossOrder = $stopLossPrice !== null;
             $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
             $isTakeProfitOrder = $takeProfitPrice !== null;
-            $isSlTpOrder = $isStopLossOrder || $isTakeProfitOrder;
-            $isStopOrder = $isSlTpOrder || $isTriggerOrder;
             if ($isTriggerOrder) {
                 $request['trigger_by'] = 'LastPrice';
                 $preciseStopPrice = $this->price_to_precision($symbol, $triggerPrice);
@@ -3039,12 +3037,12 @@ class bybit extends Exchange {
             $params = $this->omit($params, array( 'stop_px', 'stopPrice', 'base_price', 'basePrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId' ));
             $method = null;
             if ($market['future']) {
-                $method = $isStopOrder ? 'privatePostFuturesPrivateStopOrderCreate' : 'privatePostFuturesPrivateOrderCreate';
+                $method = $isTriggerOrder ? 'privatePostFuturesPrivateStopOrderCreate' : 'privatePostFuturesPrivateOrderCreate';
             } elseif ($market['linear']) {
-                $method = $isStopOrder ? 'privatePostPrivateLinearStopOrderCreate' : 'privatePostPrivateLinearOrderCreate';
+                $method = $isTriggerOrder ? 'privatePostPrivateLinearStopOrderCreate' : 'privatePostPrivateLinearOrderCreate';
             } else {
                 // inverse swaps
-                $method = $isStopOrder ? 'privatePostV2PrivateStopOrderCreate' : 'privatePostV2PrivateOrderCreate';
+                $method = $isTriggerOrder ? 'privatePostV2PrivateStopOrderCreate' : 'privatePostV2PrivateOrderCreate';
             }
             $response = Async\await($this->$method (array_merge($request, $params)));
             //
