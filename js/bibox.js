@@ -1703,7 +1703,7 @@ module.exports = class bibox extends Exchange {
         /**
          * @method
          * @name bibox#transfer
-         * @description transfer currency internally between wallets on the same account
+         * @description transfer currency internally between wallets on the same account, transfers must be made to/from account "main"
          * @see https://biboxcom.github.io/api/spot/v3/en/#wallet-to-spot
          * @see https://biboxcom.github.io/api/spot/v3/en/#wallet-to-leverage
          * @see https://biboxcom.github.io/api/spot/v3/en/#leverage-to-wallet
@@ -1711,8 +1711,8 @@ module.exports = class bibox extends Exchange {
          * @see https://biboxcom.github.io/api/futures-coin/v3/en/#2-fund-transfer
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
-         * @param {string} fromAccount account to transfer from
-         * @param {string} toAccount account to transfer to
+         * @param {string} fromAccount main, spot, cross, swap or an isolated margin market symbol (ex: XRP/USDT)
+         * @param {string} toAccount main, spot, cross, swap or an isolated margin market symbol (ex: XRP/USDT)
          * @param {object} params extra parameters specific to the bibox api endpoint
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
