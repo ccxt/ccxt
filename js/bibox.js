@@ -1699,10 +1699,10 @@ module.exports = class bibox extends Exchange {
          * @name bibox#transfer
          * @description transfer currency internally between wallets on the same account
          * @see https://biboxcom.github.io/api/spot/v3/en/#wallet-to-spot
-         * @see https://api.bibox.com/v3.1/credit/transferAssets/base2credit
+         * @see https://biboxcom.github.io/api/spot/v3/en/#wallet-to-leverage
          * @see https://api.bibox.com/v3.1/credit/transferAssets/credit2base
-         * @see https://api.bibox.com/v3/cbuassets/transfer # TODO: USDT futures
-         * @see https://api.bibox.com/v3/assets/transfer/cbc # TODO: Coin futures
+         * @see https://biboxcom.github.io/api/futures/v3/en/#2-fund-transfer # TODO: USDT futures
+         * @see https://biboxcom.github.io/api/futures-coin/v3/en/#2-fund-transfer # TODO: Coin futures
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
@@ -1720,16 +1720,21 @@ module.exports = class bibox extends Exchange {
         const fromCross = fromAccount === 'cross';
         const toIsolated = this.inArray (this.marketIds, toAccount);
         const fromIsolated = this.inArray (this.marketIds, fromAccount);
+        const toSwap = toAccount === 'swap';
+        const fromSwap = fromAccount === 'swap';
         let method = 'privatePostV3AssetsTransferSpot';
         const request = {
             'amount': amount,
         };
-        if (fromMain && toSpot) {
+        if (toSpot || fromSpot) {
             request['symbol'] = currency['id'];
-            request['type'] = 0;
-        } else if (fromSpot && toMain) {
-            request['symbol'] = currency['id'];
-            request['type'] = 1;
+            if (fromMain) {
+                request['type'] = 0;
+            } else if (toMain) {
+                request['type'] = 1;
+            } else {
+                throw new BadRequest (this.id + ' cannot transfer from ' + fromAccount + ' to ' + toAccount);
+            }
         } else if ((fromCross || fromIsolated) && toMain) {
             method = 'privatePostV31AssetsTransferAssetsCreditToBase';
             request['coin_symbol'] = currency['id'];
@@ -1742,6 +1747,21 @@ module.exports = class bibox extends Exchange {
             if (toIsolated) {
                 request['pair'] = toAccount;
             }
+        } else if (toSwap || fromSwap) {
+            const settle = this.safeStringUpper (params, 'settle', 'USDT');
+            if (settle === 'USDT') {
+                method = 'privatePostV3CbuassetsTransfer';
+            } else {
+                method = 'privatePostV3AssetsTransferCbc';
+            }
+            if (toMain) {
+                request['type'] = 1;
+            } else if (fromMain) {
+                request['type'] = 0;
+            } else {
+                throw new BadRequest (this.id + ' cannot transfer from ' + fromAccount + ' to ' + toAccount);
+            }
+            request['symbol'] = currency['id'];
         } else {
             throw new BadRequest (this.id + ' cannot transfer from ' + fromAccount + ' to ' + toAccount);
         }
