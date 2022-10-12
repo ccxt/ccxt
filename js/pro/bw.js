@@ -41,12 +41,6 @@ module.exports = class bw extends bwRest {
         });
     }
 
-    requestId () {
-        const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
-        this.options['requestId'] = requestId;
-        return requestId;
-    }
-
     getWsUrl () {
         let url = this.urls['api']['ws']['nonChina'];
         const useChinaUrl = this.safeValue (this.options, 'useChinaUrl', false);
