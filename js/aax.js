@@ -629,39 +629,63 @@ module.exports = class aax extends Exchange {
         const data = this.safeValue (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const currency = data[i];
-            const id = this.safeString (currency, 'chain');
-            const name = this.safeString (currency, 'displayName');
+            const id = this.safeString (currency, 'currency');
             const code = this.safeCurrencyCode (id);
-            const enableWithdraw = this.safeValue (currency, 'enableWithdraw');
-            const enableDeposit = this.safeValue (currency, 'enableDeposit');
-            const fee = this.safeNumber (currency, 'withdrawFee');
-            const visible = this.safeValue (currency, 'visible');
-            const active = (enableWithdraw && enableDeposit && visible);
-            const deposit = (enableDeposit && visible);
-            const withdraw = (enableWithdraw && visible);
             const network = this.safeString (currency, 'network');
-            result[code] = {
-                'id': id,
-                'name': name,
-                'code': code,
-                'precision': this.safeNumber (currency, 'withdrawPrecision'),
-                'info': currency,
-                'active': active,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': fee,
-                'network': network,
-                'limits': {
-                    'deposit': {
-                        'min': this.safeNumber (currency, 'depositMin'),
-                        'max': undefined,
+            const resultItem = this.safeValue (result, code);
+            const fee = this.safeNumber (currency, 'withdrawFee');
+            const precision = this.safeString (currency, 'withdrawPrecision');
+            const depositMin = this.safeString (currency, 'depositMin');
+            const withdrawMin = this.safeString (currency, 'withdrawMin');
+            if (resultItem !== undefined) {
+                if (resultItem['fee'] !== undefined) {
+                    const previousNetwork = this.safeString (resultItem['networks'], 0);
+                    resultItem['fees'][previousNetwork] = resultItem['fee'];
+                    resultItem['fee'] = undefined;
+                }
+                resultItem['fees']['network'] = fee;
+                const previousPrecision = resultItem['precision'].toString ();
+                const previousDepositMin = resultItem['limits']['deposit']['min'].toString ();
+                const previousWithdrawMin = resultItem['limits']['withdraw']['min'].toString ();
+                resultItem['precision'] = Precise.stringMax (previousPrecision, precision);
+                resultItem['limits']['depositMin'] = Precise.stringMin (previousDepositMin, depositMin);
+                resultItem['limits']['withdrawMin'] = Precise.stringMin (previousWithdrawMin, withdrawMin);
+            } else {
+                const name = this.safeString (currency, 'displayName');
+                const enableWithdraw = this.safeValue (currency, 'enableWithdraw');
+                const enableDeposit = this.safeValue (currency, 'enableDeposit');
+                const visible = this.safeValue (currency, 'visible');
+                const active = (enableWithdraw && enableDeposit && visible);
+                const deposit = (enableDeposit && visible);
+                const withdraw = (enableWithdraw && visible);
+                result[code] = {
+                    'info': currency,
+                    'id': id,
+                    'name': name,
+                    'code': code,
+                    'precision': this.parseNumber (precision),
+                    'active': active,
+                    'deposit': deposit,
+                    'withdraw': withdraw,
+                    'fee': fee,
+                    'fees': {},
+                    'networks': [ network ],
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.parseNumber (depositMin),
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.parseNumber (withdrawMin),
+                            'max': undefined,
+                        },
                     },
-                    'withdraw': {
-                        'min': this.safeNumber (currency, 'withdrawMin'),
-                        'max': undefined,
-                    },
-                },
-            };
+                };
+            }
         }
         return result;
     }
