@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import { Exchange } from './base/Exchange.js';
-import { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder, ArgumentsRequired } from './base/errors.js';
+import { ExchangeError, DDoSProtection, AuthenticationError, InvalidOrder } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
 
@@ -430,7 +430,7 @@ export default class lbank extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = 1000, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = 1000, params = {}) {
         /**
          * @method
          * @name lbank#fetchOHLCV
@@ -444,11 +444,12 @@ export default class lbank extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (since === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a `since` argument');
-        }
         if (limit === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a `limit` argument');
+            limit = 100; // as it's defined in lbank2
+        }
+        if (since === undefined) {
+            const duration = this.parseTimeframe (timeframe);
+            since = this.milliseconds () - duration * 1000 * limit;
         }
         const request = {
             'symbol': market['id'],

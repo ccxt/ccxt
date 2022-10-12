@@ -1569,6 +1569,7 @@ export default class btcex extends Exchange {
         const marginType = this.safeString (position, 'margin_type');
         return {
             'info': position,
+            'id': undefined,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': undefined,
             'datetime': undefined,

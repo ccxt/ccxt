@@ -6,11 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\InvalidOrder;
-use \ccxt\OrderNotFound;
-use \ccxt\NotSupported;
 
 class bitfinex2 extends Exchange {
 
@@ -2479,9 +2474,9 @@ class bitfinex2 extends Exchange {
             $errorCode = $this->number_to_string($response[1]);
             $errorText = $response[2];
             $feedback = $this->id . ' ' . $errorText;
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorText, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorCode, $feedback);
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $errorText, $feedback);
-            $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorText, $feedback);
             throw new ExchangeError($this->id . ' ' . $errorText . ' (#' . $errorCode . ')');
         }
         return $response;

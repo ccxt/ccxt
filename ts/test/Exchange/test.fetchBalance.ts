@@ -11,8 +11,14 @@ export default async (exchange) => {
         console.log (exchange.id, method + '() is not supported');
         return;
     }
-    console.log ('fetching balance...');
-    const response = await exchange[method] ();
-    testBalance (exchange, response);
-    return response;
-};
+
+    console.log ('fetching balance...')
+
+    const response = await exchange[method] ()
+
+    testBalance (exchange, response)
+
+    console.log ('fetched balance items:', Object.keys(response).length)
+
+    return response
+}

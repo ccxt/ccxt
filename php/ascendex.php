@@ -6,11 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\BadSymbol;
-use \ccxt\InvalidOrder;
 
 class ascendex extends Exchange {
 
@@ -22,7 +17,7 @@ class ascendex extends Exchange {
             // 8 requests per minute = 0.13333 per second => rateLimit = 750
             // testing 400 works
             'rateLimit' => 400,
-            'certified' => true,
+            'certified' => false,
             'pro' => true,
             // new metainfo interface
             'has' => array(
@@ -342,7 +337,8 @@ class ascendex extends Exchange {
     public function get_account($params = array ()) {
         // get current or provided bitmax sub-$account
         $account = $this->safe_value($params, 'account', $this->options['account']);
-        return strtolower($account).capitalize ();
+        $lowercaseAccount = strtolower($account);
+        return $this->capitalize($lowercaseAccount);
     }
 
     public function fetch_currencies($params = array ()) {
@@ -2517,7 +2513,6 @@ class ascendex extends Exchange {
         $currentTime = $this->safe_integer($contract, 'time');
         $nextFundingRate = $this->safe_number($contract, 'fundingRate');
         $nextFundingRateTimestamp = $this->safe_integer($contract, 'nextFundingTime');
-        $previousFundingTimestamp = null;
         return array(
             'info' => $contract,
             'symbol' => $symbol,
@@ -2528,11 +2523,14 @@ class ascendex extends Exchange {
             'timestamp' => $currentTime,
             'datetime' => $this->iso8601($currentTime),
             'previousFundingRate' => null,
-            'nextFundingRate' => $nextFundingRate,
-            'previousFundingTimestamp' => $previousFundingTimestamp,
-            'nextFundingTimestamp' => $nextFundingRateTimestamp,
-            'previousFundingDatetime' => $this->iso8601($previousFundingTimestamp),
-            'nextFundingDatetime' => $this->iso8601($nextFundingRateTimestamp),
+            'nextFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'nextFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+            'nextFundingDatetime' => null,
+            'fundingRate' => $nextFundingRate,
+            'fundingTimestamp' => $nextFundingRateTimestamp,
+            'fundingDatetime' => $this->iso8601($nextFundingRateTimestamp),
         );
     }
 

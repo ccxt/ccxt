@@ -9,9 +9,10 @@ export default async (exchange) => {
         return;
     }
     if (exchange.has[method]) {
-        const fees = await exchange[method] ();
-        console.log (fees);
-        return fees;
+        const fees = await exchange[method] ()
+        const length = Object.keys (fees['withdraw']).length
+        console.log ('fetched items:', length)
+        return fees
     } else {
         console.log (method + '() is not supported');
     }

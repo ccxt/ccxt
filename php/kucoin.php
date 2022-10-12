@@ -6,9 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\InvalidOrder;
 
 class kucoin extends Exchange {
 
@@ -89,7 +86,7 @@ class kucoin extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg',
-                'referral' => 'https://www.kucoin.com/?rcode=E5wkqe',
+                'referral' => 'https://www.kucoin.com/ucenter/signup?rcode=E5wkqe',
                 'api' => array(
                     'public' => 'https://api.kucoin.com',
                     'private' => 'https://api.kucoin.com',
@@ -150,6 +147,8 @@ class kucoin extends Exchange {
                         'accounts/transferable' => 1,
                         'base-fee' => 1,
                         'sub/user' => 1,
+                        'user-info' => 1,
+                        'sub/api-key' => 1,
                         'sub-accounts' => 1,
                         'sub-accounts/{subUserId}' => 1,
                         'deposit-addresses' => 1,
@@ -204,6 +203,9 @@ class kucoin extends Exchange {
                         'margin/toggle-auto-lend' => 1,
                         'bullet-private' => 1,
                         'stop-order' => 1,
+                        'sub/user' => 1,
+                        'sub/api-key' => 1,
+                        'sub/api-key/update' => 1,
                     ),
                     'delete' => array(
                         'withdrawals/{withdrawalId}' => 1,
@@ -214,6 +216,7 @@ class kucoin extends Exchange {
                         'stop-order/cancelOrderByClientOid' => 1,
                         'stop-order/{orderId}' => 1,
                         'stop-order/cancel' => 1,
+                        'sub/api-key' => 1,
                     ),
                 ),
                 'futuresPublic' => array(
@@ -1021,7 +1024,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '15m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
@@ -1123,6 +1126,7 @@ class kucoin extends Exchange {
         $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
         $network = $this->safe_string_lower($networks, $network, $network); // handle ERC20>ETH alias
         if ($network !== null) {
+            $network = strtolower($network);
             $request['chain'] = $network;
             $params = $this->omit($params, 'network');
         }
@@ -2079,7 +2083,7 @@ class kucoin extends Exchange {
         $currencyId = $this->safe_string($transaction, 'currency');
         $code = $this->safe_currency_code($currencyId, $currency);
         $address = $this->safe_string($transaction, 'address');
-        $amount = $this->safe_number($transaction, 'amount');
+        $amount = $this->safe_string($transaction, 'amount');
         $txid = $this->safe_string($transaction, 'walletTxId');
         if ($txid !== null) {
             $txidParts = explode('@', $txid);
@@ -2095,23 +2099,20 @@ class kucoin extends Exchange {
         }
         $type = ($txid === null) ? 'withdrawal' : 'deposit';
         $rawStatus = $this->safe_string($transaction, 'status');
-        $status = $this->parse_transaction_status($rawStatus);
         $fee = null;
-        $feeCost = $this->safe_number($transaction, 'fee');
+        $feeCost = $this->safe_string($transaction, 'fee');
         if ($feeCost !== null) {
             $rate = null;
             if ($amount !== null) {
-                $rate = $feeCost / $amount;
+                $rate = Precise::string_div($feeCost, $amount);
             }
             $fee = array(
-                'cost' => $feeCost,
-                'rate' => $rate,
+                'cost' => $this->parse_number($feeCost),
+                'rate' => $this->parse_number($rate),
                 'currency' => $code,
             );
         }
-        $tag = $this->safe_string($transaction, 'memo');
         $timestamp = $this->safe_integer_2($transaction, 'createdAt', 'createAt');
-        $id = $this->safe_string_2($transaction, 'id', 'withdrawalId');
         $updated = $this->safe_integer($transaction, 'updatedAt');
         $isV1 = !(is_array($transaction) && array_key_exists('createdAt', $transaction));
         // if it's a v1 structure
@@ -2124,10 +2125,10 @@ class kucoin extends Exchange {
                 $updated = $updated * 1000;
             }
         }
-        $comment = $this->safe_string($transaction, 'remark');
+        $tag = $this->safe_string($transaction, 'memo');
         return array(
-            'id' => $id,
             'info' => $transaction,
+            'id' => $this->safe_string_2($transaction, 'id', 'withdrawalId'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'network' => null,
@@ -2138,11 +2139,11 @@ class kucoin extends Exchange {
             'tagTo' => $tag,
             'tagFrom' => null,
             'currency' => $code,
-            'amount' => $amount,
+            'amount' => $this->parse_number($amount),
             'txid' => $txid,
             'type' => $type,
-            'status' => $status,
-            'comment' => $comment,
+            'status' => $this->parse_transaction_status($rawStatus),
+            'comment' => $this->safe_string($transaction, 'remark'),
             'fee' => $fee,
             'updated' => $updated,
         );
@@ -2791,11 +2792,15 @@ class kucoin extends Exchange {
          * @param {int|null} $since the earliest time in ms to fetch borrrow interest for
          * @param {int|null} $limit the maximum number of structures to retrieve
          * @param {array} $params extra parameters specific to the kucoin api endpoint
+         * @param {string|null} $params->marginMode 'cross' or 'isolated' default is 'cross'
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-interest-structure borrow interest structures}
          */
         $this->load_markets();
-        $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
-        $marginMode = $this->safe_string($params, 'marginMode', $defaultMarginMode); // cross or isolated
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBorrowInterest', $params);
+        if ($marginMode === null) {
+            $marginMode = 'cross'; // cross as default $marginMode
+        }
         $request = array();
         $method = 'privateGetMarginBorrowOutstanding';
         if ($marginMode === 'isolated') {
@@ -2962,6 +2967,7 @@ class kucoin extends Exchange {
          * @param {string|null} $symbol unified $market $symbol, required for isolated margin
          * @param {array} $params extra parameters specific to the kucoin api endpoints
          * @param {string} $params->timeInForce either IOC or FOK
+         * @param {string|null} $params->marginMode 'cross' or 'isolated' default is 'cross'
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
          */
         $this->load_markets();
@@ -2970,8 +2976,11 @@ class kucoin extends Exchange {
             'currency' => $currency['id'],
             'size' => $this->currency_to_precision($code, $amount),
         );
-        $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
-        $marginMode = $this->safe_string($params, 'marginMode', $defaultMarginMode); // cross or isolated
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('borrowMargin', $params);
+        if ($marginMode === null) {
+            $marginMode = 'cross'; // cross as default $marginMode
+        }
         $method = 'privatePostMarginBorrow';
         $timeInForce = $this->safe_string_n($params, array( 'timeInForce', 'type', 'borrowStrategy' ), 'IOC');
         $timeInForceRequest = 'type';
@@ -2985,7 +2994,7 @@ class kucoin extends Exchange {
             $method = 'privatePostIsolatedBorrow';
         }
         $request[$timeInForceRequest] = $timeInForce;
-        $params = $this->omit($params, array( 'marginMode', 'timeInForce', 'type', 'borrowStrategy' ));
+        $params = $this->omit($params, array( 'timeInForce', 'type', 'borrowStrategy' ));
         $response = $this->$method (array_merge($request, $params));
         //
         // Cross
@@ -3027,8 +3036,9 @@ class kucoin extends Exchange {
          * @param {float} $amount the $amount to repay
          * @param {string|null} $symbol unified $market $symbol
          * @param {array} $params extra parameters specific to the kucoin api endpoints
-         * @param {string} $params->sequence cross margin repay $sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
-         * @param {string} $params->seqStrategy isolated margin repay $sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
+         * @param {string|null} $params->sequence cross margin repay $sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST' default is 'RECENTLY_EXPIRE_FIRST'
+         * @param {string|null} $params->seqStrategy isolated margin repay $sequence, either 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST' default is 'RECENTLY_EXPIRE_FIRST'
+         * @param {string|null} $params->marginMode 'cross' or 'isolated' default is 'cross'
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
          */
         $this->load_markets();
@@ -3039,8 +3049,11 @@ class kucoin extends Exchange {
             // 'sequence' => 'RECENTLY_EXPIRE_FIRST',  // Cross => 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
             // 'seqStrategy' => 'RECENTLY_EXPIRE_FIRST',  // Isolated => 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
         );
-        $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
-        $marginMode = $this->safe_string($params, 'marginMode', $defaultMarginMode); // cross or isolated
+        $marginMode = null;
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('repayMargin', $params);
+        if ($marginMode === null) {
+            $marginMode = 'cross'; // cross as default $marginMode
+        }
         $method = 'privatePostMarginRepayAll';
         $sequence = $this->safe_string_2($params, 'sequence', 'seqStrategy', 'RECENTLY_EXPIRE_FIRST');
         $sequenceRequest = 'sequence';
@@ -3054,7 +3067,7 @@ class kucoin extends Exchange {
             $method = 'privatePostIsolatedRepayAll';
         }
         $request[$sequenceRequest] = $sequence;
-        $params = $this->omit($params, array( 'marginMode', 'sequence', 'seqStrategy' ));
+        $params = $this->omit($params, array( 'sequence', 'seqStrategy' ));
         $response = $this->$method (array_merge($request, $params));
         //
         //     {

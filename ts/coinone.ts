@@ -309,15 +309,11 @@ export default class coinone extends Exchange {
         const timestamp = this.safeTimestamp (response, 'timestamp');
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            let symbol = id;
-            let market = undefined;
-            if (id in this.markets_by_id) {
-                market = this.markets_by_id[id];
-                symbol = market['symbol'];
-                const ticker = response[id];
-                result[symbol] = this.parseTicker (ticker, market);
-                result[symbol]['timestamp'] = timestamp;
-            }
+            const market = this.safeMarket (id);
+            const symbol = market['symbol'];
+            const ticker = response[id];
+            result[symbol] = this.parseTicker (ticker, market);
+            result[symbol]['timestamp'] = timestamp;
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
@@ -529,7 +525,7 @@ export default class coinone extends Exchange {
         //         "orderId": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
         //     }
         //
-        return this.parseOrder (response);
+        return this.parseOrder (response, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -642,24 +638,9 @@ export default class coinone extends Exchange {
             }
         }
         status = this.parseOrderStatus (status);
-        let symbol = undefined;
-        let base = undefined;
-        let quote = undefined;
-        const marketId = this.safeStringLower (order, 'currency');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                base = this.safeCurrencyCode (marketId);
-                quote = 'KRW';
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-            base = market['base'];
-            quote = market['quote'];
-        }
+        const symbol = market['symbol'];
+        const base = market['base'];
+        const quote = market['quote'];
         let fee = undefined;
         const feeCostString = this.safeString (order, 'fee');
         if (feeCostString !== undefined) {

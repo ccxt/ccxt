@@ -70,6 +70,7 @@ export default class okx extends Exchange {
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': true,
                 'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
@@ -150,6 +151,8 @@ export default class okx extends Exchange {
                         'market/books': 1,
                         'market/candles': 0.5,
                         'market/history-candles': 1,
+                        'market/history-mark-price-candles': 120,
+                        'market/history-index-candles': 120,
                         'market/index-candles': 1,
                         'market/mark-price-candles': 1,
                         'market/trades': 1,
@@ -1208,7 +1211,7 @@ export default class okx extends Exchange {
                     if (maxPrecision === undefined) {
                         maxPrecision = precision;
                     } else {
-                        maxPrecision = Precise.stringMax (maxPrecision, precision);
+                        maxPrecision = Precise.stringMin (maxPrecision, precision);
                     }
                     networks[network] = {
                         'id': networkId,
@@ -2042,9 +2045,6 @@ export default class okx extends Exchange {
         } else {
             marginMode = defaultMarginMode;
             margin = this.safeValue (params, 'margin', false);
-        }
-        if (margin === true && market['spot'] && !market['margin']) {
-            throw new NotSupported (this.id + ' does not support margin trading for ' + symbol + ' market');
         }
         if (spot) {
             if (margin) {
@@ -3368,11 +3368,7 @@ export default class okx extends Exchange {
         const after = this.parseNumber (afterString);
         const status = 'ok';
         const marketId = this.safeString (item, 'instId');
-        let symbol = undefined;
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId, undefined, '-');
         return {
             'id': id,
             'info': item,
@@ -4278,6 +4274,7 @@ export default class okx extends Exchange {
         const marginRatio = this.parseNumber (Precise.stringDiv (maintenanceMarginString, collateralString, 4));
         return {
             'info': position,
+            'id': undefined,
             'symbol': symbol,
             'notional': notional,
             'marginMode': marginMode,
@@ -5466,6 +5463,48 @@ export default class okx extends Exchange {
         };
     }
 
+    async fetchOpenInterest (symbol, params = {}) {
+        /**
+         * @method
+         * @name okx#fetchOpenInterest
+         * @description Retrieves the open interest of a currency
+         * @see https://www.okx.com/docs-v5/en/#rest-api-public-data-get-open-interest
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {object} params exchange specific parameters
+         * @returns {object} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['contract']) {
+            throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
+        }
+        const type = this.convertToInstrumentType (market['type']);
+        const uly = this.safeString (market['info'], 'uly');
+        const request = {
+            'instType': type,
+            'uly': uly,
+            'instId': market['id'],
+        };
+        const response = await this.publicGetPublicOpenInterest (this.extend (request, params));
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "instId": "BTC-USDT-SWAP",
+        //                 "instType": "SWAP",
+        //                 "oi": "2125419",
+        //                 "oiCcy": "21254.19",
+        //                 "ts": "1664005108969"
+        //             }
+        //         ],
+        //         "msg": ""
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseOpenInterest (data[0], market);
+    }
+
     async fetchOpenInterestHistory (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -5520,18 +5559,37 @@ export default class okx extends Exchange {
 
     parseOpenInterest (interest, market = undefined) {
         //
+        // fetchOpenInterestHistory
+        //
         //    [
         //        '1648221300000',  // timestamp
         //        '2183354317.945',  // open interest (USD)
         //        '74285877.617',  // volume (USD)
         //    ]
         //
-        const timestamp = this.safeNumber (interest, 0);
-        const openInterest = this.safeNumber (interest, 1);
+        // fetchOpenInterest
+        //
+        //     {
+        //         "instId": "BTC-USDT-SWAP",
+        //         "instType": "SWAP",
+        //         "oi": "2125419",
+        //         "oiCcy": "21254.19",
+        //         "ts": "1664005108969"
+        //     }
+        //
+        const id = this.safeString (interest, 'instId');
+        market = this.safeMarket (id, market);
+        const time = this.safeInteger (interest, 'ts');
+        const timestamp = this.safeNumber (interest, 0, time);
+        const numContracts = this.safeNumber (interest, 'oi');
+        const inCurrency = this.safeNumber (interest, 'oiCcy');
+        const openInterest = this.safeNumber (interest, 1, inCurrency);
         return {
-            'symbol': undefined,
-            'baseVolume': undefined,
-            'quoteVolume': openInterest,
+            'symbol': this.safeSymbol (id),
+            'baseVolume': undefined,  // deprecated
+            'quoteVolume': openInterest,  // deprecated
+            'openInterestAmount': numContracts,
+            'openInterestValue': openInterest,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,

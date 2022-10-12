@@ -170,7 +170,7 @@ export default class bytetrade extends Exchange {
          * @param {object} params extra parameters specific to the bytetrade api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const currencies = await (this as any).publicGetCurrencies (params);
+        const currencies = await this.publicGetCurrencies (params);
         const result = {};
         for (let i = 0; i < currencies.length; i++) {
             const currency = currencies[i];
@@ -278,7 +278,7 @@ export default class bytetrade extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const markets = await (this as any).publicGetSymbols (params);
+        const markets = await this.publicGetSymbols (params);
         //
         //     [
         //         {
@@ -427,7 +427,7 @@ export default class bytetrade extends Exchange {
         const request = {
             'userid': this.apiKey,
         };
-        const response = await (this as any).publicGetBalance (this.extend (request, params));
+        const response = await this.publicGetBalance (this.extend (request, params));
         return this.parseBalance (response);
     }
 
@@ -449,8 +449,8 @@ export default class bytetrade extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default = maximum = 100
         }
-        const response = await (this as any).marketGetDepth (this.extend (request, params));
-        const timestamp = this.safeValue (response, 'timestamp');
+        const response = await this.marketGetDepth (this.extend (request, params));
+        const timestamp = this.safeInteger (response, 'timestamp');
         const orderbook = this.parseOrderBook (response, market['symbol'], timestamp);
         return orderbook;
     }
@@ -519,7 +519,7 @@ export default class bytetrade extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).marketGetTickers (this.extend (request, params));
+        const response = await this.marketGetTickers (this.extend (request, params));
         //
         //     [
         //         {
@@ -561,7 +561,7 @@ export default class bytetrade extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).marketGetDepth (params);
+        const response = await this.marketGetDepth (params);
         return this.parseTickers (response, symbols);
     }
 
@@ -575,7 +575,7 @@ export default class bytetrade extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).marketGetTickers (params);
+        const response = await this.marketGetTickers (params);
         return this.parseTickers (response, symbols);
     }
 
@@ -624,7 +624,7 @@ export default class bytetrade extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).marketGetKlines (this.extend (request, params));
+        const response = await this.marketGetKlines (this.extend (request, params));
         //
         //     [
         //         [1591505760000,"242.7","242.76","242.69","242.76","0.1892"],
@@ -733,7 +733,7 @@ export default class bytetrade extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default = 100, maximum = 500
         }
-        const response = await (this as any).marketGetTrades (this.extend (request, params));
+        const response = await this.marketGetTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -746,7 +746,7 @@ export default class bytetrade extends Exchange {
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetSymbols (params);
+        const response = await this.publicGetSymbols (params);
         //
         //     [
         //         {
@@ -797,22 +797,11 @@ export default class bytetrade extends Exchange {
 
     parseOrder (order, market = undefined) {
         const status = this.safeString (order, 'status');
-        let symbol = undefined;
-        const marketId = this.safeString (order, 'symbol');
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-        } else {
-            const baseId = this.safeString (order, 'base');
-            const quoteId = this.safeString (order, 'quote');
-            if ((baseId !== undefined) && (quoteId !== undefined)) {
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-        }
+        const baseId = this.safeString (order, 'base');
+        const quoteId = this.safeString (order, 'quote');
+        const base = this.safeCurrencyCode (baseId);
+        const quote = this.safeCurrencyCode (quoteId);
+        const symbol = base + '/' + quote;
         const timestamp = this.safeInteger (order, 'timestamp');
         const datetime = this.safeString (order, 'datetime');
         const lastTradeTimestamp = this.safeInteger (order, 'lastTradeTimestamp');
@@ -1040,7 +1029,7 @@ export default class bytetrade extends Exchange {
         const request = {
             'trObj': this.json (fatty),
         };
-        const response = await (this as any).publicPostTransactionCreateorder (request);
+        const response = await this.publicPostTransactionCreateorder (request);
         const timestamp = this.milliseconds ();
         const statusCode = this.safeString (response, 'code');
         const status = (statusCode === '0') ? 'open' : 'failed';
@@ -1088,7 +1077,7 @@ export default class bytetrade extends Exchange {
             request['symbol'] = market['id'];
         }
         request['id'] = id;
-        const response = await (this as any).publicGetOrders (this.extend (request, params));
+        const response = await this.publicGetOrders (this.extend (request, params));
         return this.parseOrder (response, market);
     }
 
@@ -1121,7 +1110,7 @@ export default class bytetrade extends Exchange {
         if (since !== undefined) {
             request['since'] = since;
         }
-        const response = await (this as any).publicGetOrdersOpen (this.extend (request, params));
+        const response = await this.publicGetOrdersOpen (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -1154,7 +1143,7 @@ export default class bytetrade extends Exchange {
         if (since !== undefined) {
             request['since'] = since;
         }
-        const response = await (this as any).publicGetOrdersClosed (this.extend (request, params));
+        const response = await this.publicGetOrdersClosed (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -1187,7 +1176,7 @@ export default class bytetrade extends Exchange {
         if (since !== undefined) {
             request['since'] = since;
         }
-        const response = await (this as any).publicGetOrdersAll (this.extend (request, params));
+        const response = await this.publicGetOrdersAll (this.extend (request, params));
         return this.parseOrders (response, market, since, limit);
     }
 
@@ -1274,7 +1263,7 @@ export default class bytetrade extends Exchange {
         const request = {
             'trObj': this.json (fatty),
         };
-        const response = await (this as any).publicPostTransactionCancelorder (request);
+        const response = await this.publicPostTransactionCancelorder (request);
         const timestamp = this.milliseconds ();
         const statusCode = this.safeString (response, 'code');
         const status = (statusCode === '0') ? 'canceled' : 'failed';
@@ -1328,7 +1317,7 @@ export default class bytetrade extends Exchange {
         if (since !== undefined) {
             request['since'] = since;
         }
-        const response = await (this as any).publicGetOrdersTrades (this.extend (request, params));
+        const response = await this.publicGetOrdersTrades (this.extend (request, params));
         return this.parseTrades (response, market, since, limit);
     }
 
@@ -1361,7 +1350,7 @@ export default class bytetrade extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).publicGetDeposits (this.extend (request, params));
+        const response = await this.publicGetDeposits (this.extend (request, params));
         return this.parseTransactions (response, currency, since, limit);
     }
 
@@ -1394,7 +1383,7 @@ export default class bytetrade extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).publicGetWithdrawals (this.extend (request, params));
+        const response = await this.publicGetWithdrawals (this.extend (request, params));
         return this.parseTransactions (response, currency, since, limit);
     }
 
@@ -1477,7 +1466,7 @@ export default class bytetrade extends Exchange {
             'userid': this.apiKey,
             'code': currency['id'],
         };
-        const response = await (this as any).publicGetDepositaddress (request);
+        const response = await this.publicGetDepositaddress (request);
         const firstAddress = this.safeValue (response, 0);
         const address = this.safeString (firstAddress, 'address');
         const tag = this.safeString (firstAddress, 'tag');

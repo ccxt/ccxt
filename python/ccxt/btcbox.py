@@ -104,10 +104,10 @@ class btcbox(Exchange):
                 },
             },
             'markets': {
-                'BTC/JPY': {'id': 'btc', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', 'baseId': 'btc', 'quoteId': 'jpy', 'taker': 0.05 / 100, 'maker': 0.05 / 100, 'type': 'spot', 'spot': True},
-                'ETH/JPY': {'id': 'eth', 'symbol': 'ETH/JPY', 'base': 'ETH', 'quote': 'JPY', 'baseId': 'eth', 'quoteId': 'jpy', 'taker': 0.10 / 100, 'maker': 0.10 / 100, 'type': 'spot', 'spot': True},
-                'LTC/JPY': {'id': 'ltc', 'symbol': 'LTC/JPY', 'base': 'LTC', 'quote': 'JPY', 'baseId': 'ltc', 'quoteId': 'jpy', 'taker': 0.10 / 100, 'maker': 0.10 / 100, 'type': 'spot', 'spot': True},
-                'BCH/JPY': {'id': 'bch', 'symbol': 'BCH/JPY', 'base': 'BCH', 'quote': 'JPY', 'baseId': 'bch', 'quoteId': 'jpy', 'taker': 0.10 / 100, 'maker': 0.10 / 100, 'type': 'spot', 'spot': True},
+                'BTC/JPY': {'id': 'btc', 'symbol': 'BTC/JPY', 'base': 'BTC', 'quote': 'JPY', 'baseId': 'btc', 'quoteId': 'jpy', 'taker': self.parse_number('0.0005'), 'maker': self.parse_number('0.0005'), 'type': 'spot', 'spot': True},
+                'ETH/JPY': {'id': 'eth', 'symbol': 'ETH/JPY', 'base': 'ETH', 'quote': 'JPY', 'baseId': 'eth', 'quoteId': 'jpy', 'taker': self.parse_number('0.0010'), 'maker': self.parse_number('0.0010'), 'type': 'spot', 'spot': True},
+                'LTC/JPY': {'id': 'ltc', 'symbol': 'LTC/JPY', 'base': 'LTC', 'quote': 'JPY', 'baseId': 'ltc', 'quoteId': 'jpy', 'taker': self.parse_number('0.0010'), 'maker': self.parse_number('0.0010'), 'type': 'spot', 'spot': True},
+                'BCH/JPY': {'id': 'bch', 'symbol': 'BCH/JPY', 'base': 'BCH', 'quote': 'JPY', 'baseId': 'bch', 'quoteId': 'jpy', 'taker': self.parse_number('0.0010'), 'maker': self.parse_number('0.0010'), 'type': 'spot', 'spot': True},
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {

@@ -1129,7 +1129,7 @@ export default class liquid extends Exchange {
         const orderId = this.safeString (order, 'id');
         const timestamp = this.safeTimestamp (order, 'created_at');
         const marketId = this.safeString (order, 'product_id');
-        market = this.safeValue (this.markets_by_id, marketId);
+        market = this.safeMarket (marketId, market);
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const amount = this.safeString (order, 'quantity');
         const filled = this.safeString (order, 'filled_quantity');

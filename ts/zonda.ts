@@ -4,6 +4,7 @@
 import { Exchange } from './base/Exchange.js';
 import { InvalidNonce, InsufficientFunds, AuthenticationError, InvalidOrder, ExchangeError, OrderNotFound, AccountSuspended, BadSymbol, OrderImmediatelyFillable, RateLimitExceeded, OnMaintenance, PermissionDenied } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
+import { Precise } from './base/Precise.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -187,52 +188,52 @@ export default class zonda extends Exchange {
                     'tierBased': false,
                 },
                 'fiat': {
-                    'maker': 0.30 / 100,
-                    'taker': 0.43 / 100,
+                    'maker': this.parseNumber ('0.0030'),
+                    'taker': this.parseNumber ('0.0043'),
                     'percentage': true,
                     'tierBased': true,
                     'tiers': {
                         'taker': [
-                            [ 0.0043, 0 ],
-                            [ 0.0042, 1250 ],
-                            [ 0.0041, 3750 ],
-                            [ 0.0040, 7500 ],
-                            [ 0.0039, 10000 ],
-                            [ 0.0038, 15000 ],
-                            [ 0.0037, 20000 ],
-                            [ 0.0036, 25000 ],
-                            [ 0.0035, 37500 ],
-                            [ 0.0034, 50000 ],
-                            [ 0.0033, 75000 ],
-                            [ 0.0032, 100000 ],
-                            [ 0.0031, 150000 ],
-                            [ 0.0030, 200000 ],
-                            [ 0.0029, 250000 ],
-                            [ 0.0028, 375000 ],
-                            [ 0.0027, 500000 ],
-                            [ 0.0026, 625000 ],
-                            [ 0.0025, 875000 ],
+                            [ this.parseNumber ('0.0043'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('0.0042'), this.parseNumber ('1250') ],
+                            [ this.parseNumber ('0.0041'), this.parseNumber ('3750') ],
+                            [ this.parseNumber ('0.0040'), this.parseNumber ('7500') ],
+                            [ this.parseNumber ('0.0039'), this.parseNumber ('10000') ],
+                            [ this.parseNumber ('0.0038'), this.parseNumber ('15000') ],
+                            [ this.parseNumber ('0.0037'), this.parseNumber ('20000') ],
+                            [ this.parseNumber ('0.0036'), this.parseNumber ('25000') ],
+                            [ this.parseNumber ('0.0035'), this.parseNumber ('37500') ],
+                            [ this.parseNumber ('0.0034'), this.parseNumber ('50000') ],
+                            [ this.parseNumber ('0.0033'), this.parseNumber ('75000') ],
+                            [ this.parseNumber ('0.0032'), this.parseNumber ('100000') ],
+                            [ this.parseNumber ('0.0031'), this.parseNumber ('150000') ],
+                            [ this.parseNumber ('0.0030'), this.parseNumber ('200000') ],
+                            [ this.parseNumber ('0.0029'), this.parseNumber ('250000') ],
+                            [ this.parseNumber ('0.0028'), this.parseNumber ('375000') ],
+                            [ this.parseNumber ('0.0027'), this.parseNumber ('500000') ],
+                            [ this.parseNumber ('0.0026'), this.parseNumber ('625000') ],
+                            [ this.parseNumber ('0.0025'), this.parseNumber ('875000') ],
                         ],
                         'maker': [
-                            [ 0.0030, 0 ],
-                            [ 0.0029, 1250 ],
-                            [ 0.0028, 3750 ],
-                            [ 0.0028, 7500 ],
-                            [ 0.0027, 10000 ],
-                            [ 0.0026, 15000 ],
-                            [ 0.0025, 20000 ],
-                            [ 0.0025, 25000 ],
-                            [ 0.0024, 37500 ],
-                            [ 0.0023, 50000 ],
-                            [ 0.0023, 75000 ],
-                            [ 0.0022, 100000 ],
-                            [ 0.0021, 150000 ],
-                            [ 0.0021, 200000 ],
-                            [ 0.0020, 250000 ],
-                            [ 0.0019, 375000 ],
-                            [ 0.0018, 500000 ],
-                            [ 0.0018, 625000 ],
-                            [ 0.0017, 875000 ],
+                            [ this.parseNumber ('0.0030'), this.parseNumber ('0') ],
+                            [ this.parseNumber ('0.0029'), this.parseNumber ('1250') ],
+                            [ this.parseNumber ('0.0028'), this.parseNumber ('3750') ],
+                            [ this.parseNumber ('0.0028'), this.parseNumber ('7500') ],
+                            [ this.parseNumber ('0.0027'), this.parseNumber ('10000') ],
+                            [ this.parseNumber ('0.0026'), this.parseNumber ('15000') ],
+                            [ this.parseNumber ('0.0025'), this.parseNumber ('20000') ],
+                            [ this.parseNumber ('0.0025'), this.parseNumber ('25000') ],
+                            [ this.parseNumber ('0.0024'), this.parseNumber ('37500') ],
+                            [ this.parseNumber ('0.0023'), this.parseNumber ('50000') ],
+                            [ this.parseNumber ('0.0023'), this.parseNumber ('75000') ],
+                            [ this.parseNumber ('0.0022'), this.parseNumber ('100000') ],
+                            [ this.parseNumber ('0.0021'), this.parseNumber ('150000') ],
+                            [ this.parseNumber ('0.0021'), this.parseNumber ('200000') ],
+                            [ this.parseNumber ('0.0020'), this.parseNumber ('250000') ],
+                            [ this.parseNumber ('0.0019'), this.parseNumber ('375000') ],
+                            [ this.parseNumber ('0.0018'), this.parseNumber ('500000') ],
+                            [ this.parseNumber ('0.0018'), this.parseNumber ('625000') ],
+                            [ this.parseNumber ('0.0017'), this.parseNumber ('875000') ],
                         ],
                     },
                 },
@@ -980,35 +981,29 @@ export default class zonda extends Exchange {
         const timestamp = this.safeInteger (item, 'time');
         const balance = this.safeValue (item, 'balance', {});
         const currencyId = this.safeString (balance, 'currency');
-        const code = this.safeCurrencyCode (currencyId);
         const change = this.safeValue (item, 'change', {});
-        let amount = this.safeNumber (change, 'total');
+        let amount = this.safeString (change, 'total');
         let direction = 'in';
-        if (amount < 0) {
+        if (Precise.stringLt (amount, '0')) {
             direction = 'out';
-            amount = -amount;
+            amount = Precise.stringNeg (amount);
         }
-        const id = this.safeString (item, 'historyId');
         // there are 2 undocumented api calls: (v1_01PrivateGetPaymentsDepositDetailId and v1_01PrivateGetPaymentsWithdrawalDetailId)
         // that can be used to enrich the transfers with txid, address etc (you need to use info.detailId as a parameter)
-        const referenceId = this.safeString (item, 'detailId');
-        const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
         const fundsBefore = this.safeValue (item, 'fundsBefore', {});
-        const before = this.safeNumber (fundsBefore, 'total');
         const fundsAfter = this.safeValue (item, 'fundsAfter', {});
-        const after = this.safeNumber (fundsAfter, 'total');
         return {
             'info': item,
-            'id': id,
+            'id': this.safeString (item, 'historyId'),
             'direction': direction,
             'account': undefined,
-            'referenceId': referenceId,
+            'referenceId': this.safeString (item, 'detailId'),
             'referenceAccount': undefined,
-            'type': type,
-            'currency': code,
+            'type': this.parseLedgerEntryType (this.safeString (item, 'type')),
+            'currency': this.safeCurrencyCode (currencyId),
             'amount': amount,
-            'before': before,
-            'after': after,
+            'before': this.safeNumber (fundsBefore, 'total'),
+            'after': this.safeNumber (fundsAfter, 'total'),
             'status': 'ok',
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

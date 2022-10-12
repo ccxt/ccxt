@@ -868,7 +868,8 @@ export default class buda extends Exchange {
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
             fee = {
                 'cost': feeCost,
-                'code': feeCurrencyCode,
+                'code': feeCurrencyCode, // kept here for backward-compatibility, but will be removed soon
+                'currency': feeCurrencyCode,
             };
         }
         return this.safeOrder ({

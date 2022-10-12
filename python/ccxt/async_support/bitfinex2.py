@@ -2355,9 +2355,9 @@ class bitfinex2(Exchange):
             errorCode = self.number_to_string(response[1])
             errorText = response[2]
             feedback = self.id + ' ' + errorText
+            self.throw_broadly_matched_exception(self.exceptions['broad'], errorText, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorText, feedback)
-            self.throw_broadly_matched_exception(self.exceptions['broad'], errorText, feedback)
             raise ExchangeError(self.id + ' ' + errorText + '(#' + errorCode + ')')
         return response
 

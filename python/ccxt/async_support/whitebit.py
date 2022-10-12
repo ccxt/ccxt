@@ -308,9 +308,10 @@ class whitebit(Exchange):
         #     ]
         #
         promises = await asyncio.gather(*promises)
-        marginMarkets = promises[0]
+        marginMarketsResponse = promises[0]
         response = promises[1]
         markets = self.safe_value(response, 'result', [])
+        marginMarkets = self.safe_value(marginMarketsResponse, 'result', [])
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -676,7 +677,7 @@ class whitebit(Exchange):
         #          ]
         #      }
         #
-        timestamp = self.safe_integer(response, 'timestamp')
+        timestamp = self.parse_number(Precise.string_mul(self.safe_string(response, 'timestamp'), '1000'))
         return self.parse_order_book(response, symbol, timestamp)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):

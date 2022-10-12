@@ -652,7 +652,7 @@ export default class phemex extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const v2Products = await (this as any).publicGetCfgV2Products (params);
+        const v2Products = await this.publicGetCfgV2Products (params);
         //
         //     {
         //         "code":0,
@@ -730,7 +730,7 @@ export default class phemex extends Exchange {
         //         }
         //     }
         //
-        const v1Products = await (this as any).v1GetExchangePublicProducts (params);
+        const v1Products = await this.v1GetExchangePublicProducts (params);
         const v1ProductsData = this.safeValue (v1Products, 'data', []);
         //
         //     {
@@ -799,7 +799,7 @@ export default class phemex extends Exchange {
          * @param {object} params extra parameters specific to the phemex api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await (this as any).publicGetCfgV2Products (params);
+        const response = await this.publicGetCfgV2Products (params);
         //
         //     {
         //         "code":0,
@@ -875,7 +875,7 @@ export default class phemex extends Exchange {
         ];
     }
 
-    customParseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, market = undefined) {
+    parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, market = undefined) {
         const result = {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -913,7 +913,7 @@ export default class phemex extends Exchange {
             'symbol': market['id'],
             // 'id': 123456789, // optional request id
         };
-        const response = await (this as any).v1GetMdOrderbook (this.extend (request, params));
+        const response = await this.v1GetMdOrderbook (this.extend (request, params));
         //
         //     {
         //         "error": null,
@@ -942,9 +942,9 @@ export default class phemex extends Exchange {
         const result = this.safeValue (response, 'result', {});
         const book = this.safeValue (result, 'book', {});
         const timestamp = this.safeIntegerProduct (result, 'timestamp', 0.000001);
-        const orderbook = this.customParseOrderBook (book, symbol, timestamp, 'bids', 'asks', 0, 1, market);
+        const orderbook = this.parseOrderBook (book, symbol, timestamp, 'bids', 'asks', 0, 1, market);
         orderbook['nonce'] = this.safeInteger (result, 'sequence');
-        return orderbook as any;
+        return orderbook;
     }
 
     toEn (n, scale) {
@@ -953,7 +953,7 @@ export default class phemex extends Exchange {
         precise.decimals = precise.decimals - scale;
         precise.reduce ();
         const stringValue = precise.toString ();
-        return this.parseToInt (parseFloat (stringValue));
+        return parseInt (parseFloat (stringValue));
     }
 
     toEv (amount, market = undefined) {
@@ -1051,27 +1051,31 @@ export default class phemex extends Exchange {
         };
         const duration = this.parseTimeframe (timeframe);
         const now = this.seconds ();
-        // the exchange does not return the last 1m candle
+        const maxLimit = 2000; // maximum limit, we shouldn't sent request of more than it
+        if (limit === undefined) {
+            limit = 100; // set default, as exchange doesn't have any defaults and needs something to be set
+        } else {
+            limit = Math.min (limit, maxLimit);
+        }
         if (since !== undefined) {
-            if (limit === undefined) {
-                limit = 2000; // max 2000
-            }
-            since = this.parseToInt (since / 1000);
+            limit = Math.min (limit, maxLimit);
+            since = parseInt (since / 1000);
             request['from'] = since;
             // time ranges ending in the future are not accepted
             // https://github.com/ccxt/ccxt/issues/8050
             request['to'] = Math.min (now, this.sum (since, duration * limit));
-        } else if (limit !== undefined) {
-            limit = Math.min (limit, 2000);
-            request['from'] = now - duration * this.sum (limit, 1);
-            request['to'] = now;
         } else {
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since argument, or a limit argument, or both');
+            if (limit < maxLimit) {
+                // whenever making a request with `now`, that expects current latest bar to be included, the exchange does not return the last 1m candle and thus excludes one bar. So, we have to add `1` to user's set `limit` amount to get that amount of bars back
+                limit = limit + 1;
+            }
+            request['from'] = now - duration * limit;
+            request['to'] = now;
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
         request['symbol'] = market['id'];
-        const response = await (this as any).publicGetMdKline (this.extend (request, params));
+        const response = await this.publicGetMdKline (this.extend (request, params));
         //
         //     {
         //         "code":0,
@@ -1245,7 +1249,7 @@ export default class phemex extends Exchange {
             'symbol': market['id'],
             // 'id': 123456789, // optional request id
         };
-        const response = await (this as any).v1GetMdTrade (this.extend (request, params));
+        const response = await this.v1GetMdTrade (this.extend (request, params));
         //
         //     {
         //         "error": null,
@@ -1385,8 +1389,8 @@ export default class phemex extends Exchange {
                     }
                 }
                 fee = {
-                    'cost': this.parseNumber (feeCostString),
-                    'rate': this.parseNumber (feeRateString),
+                    'cost': feeCostString,
+                    'rate': feeRateString,
                     'currency': feeCurrencyCode,
                 };
             }
@@ -2535,7 +2539,7 @@ export default class phemex extends Exchange {
             request['chainName'] = network;
             params = this.omit (params, 'network');
         }
-        const response = await (this as any).privateGetPhemexUserWalletsV2DepositAddress (this.extend (request, params));
+        const response = await this.privateGetPhemexUserWalletsV2DepositAddress (this.extend (request, params));
         //     {
         //         "code":0,
         //         "msg":"OK",
@@ -2574,7 +2578,7 @@ export default class phemex extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const response = await (this as any).privateGetExchangeWalletsDepositList (params);
+        const response = await this.privateGetExchangeWalletsDepositList (params);
         //
         //     {
         //         "code":0,
@@ -2615,7 +2619,7 @@ export default class phemex extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const response = await (this as any).privateGetExchangeWalletsWithdrawList (params);
+        const response = await this.privateGetExchangeWalletsWithdrawList (params);
         //
         //     {
         //         "code":0,
@@ -2748,7 +2752,7 @@ export default class phemex extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await (this as any).privateGetAccountsAccountPositions (this.extend (request, params));
+        const response = await this.privateGetAccountsAccountPositions (this.extend (request, params));
         //
         //     {
         //         "code":0,"msg":"",
@@ -2946,6 +2950,7 @@ export default class phemex extends Exchange {
         const marginRatio = Precise.stringDiv (maintenanceMarginString, collateral);
         return {
             'info': position,
+            'id': undefined,
             'symbol': symbol,
             'contracts': this.parseNumber (contracts),
             'contractSize': contractSize,
@@ -2997,7 +3002,7 @@ export default class phemex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).privateGetApiDataFuturesFundingFees (this.extend (request, params));
+        const response = await this.privateGetApiDataFuturesFundingFees (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -3056,7 +3061,7 @@ export default class phemex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).v1GetMdTicker24hr (this.extend (request, params));
+        const response = await this.v1GetMdTicker24hr (this.extend (request, params));
         //
         //     {
         //         "error": null,
@@ -3145,7 +3150,7 @@ export default class phemex extends Exchange {
             'symbol': market['id'],
             'posBalanceEv': this.toEv (amount, market),
         };
-        const response = await (this as any).privatePostPositionsAssign (this.extend (request, params));
+        const response = await this.privatePostPositionsAssign (this.extend (request, params));
         //
         //     {
         //         "code": 0,
@@ -3220,7 +3225,7 @@ export default class phemex extends Exchange {
             'symbol': market['id'],
             'leverage': leverage,
         };
-        return await (this as any).privatePutPositionsLeverage (this.extend (request, params));
+        return await this.privatePutPositionsLeverage (this.extend (request, params));
     }
 
     async fetchLeverageTiers (symbols = undefined, params = {}) {
@@ -3233,7 +3238,7 @@ export default class phemex extends Exchange {
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).publicGetCfgV2Products (params);
+        const response = await this.publicGetCfgV2Products (params);
         //
         //     {
         //         "code":0,
@@ -3412,7 +3417,7 @@ export default class phemex extends Exchange {
             'symbol': market['id'],
             'leverage': leverage,
         };
-        return await (this as any).privatePutPositionsLeverage (this.extend (request, params));
+        return await this.privatePutPositionsLeverage (this.extend (request, params));
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
@@ -3446,7 +3451,7 @@ export default class phemex extends Exchange {
                 'moveOp': direction,
                 'amountEv': scaledAmmount,
             };
-            const response = await (this as any).privatePostAssetsTransfer (this.extend (request, params));
+            const response = await this.privatePostAssetsTransfer (this.extend (request, params));
             //
             //     {
             //         code: '0',
@@ -3471,7 +3476,7 @@ export default class phemex extends Exchange {
                 'currency': currency['id'],
                 'bizType': this.safeString (params, 'bizType', 'SPOT'),
             };
-            const response = await (this as any).privatePostAssetsUniversalTransfer (this.extend (request, params));
+            const response = await this.privatePostAssetsUniversalTransfer (this.extend (request, params));
             //
             //     {
             //         code: '0',
@@ -3525,7 +3530,7 @@ export default class phemex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).privateGetAssetsTransfer (this.extend (request, params));
+        const response = await this.privateGetAssetsTransfer (this.extend (request, params));
         //
         //     {
         //         "code": 0,

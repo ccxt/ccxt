@@ -51,7 +51,7 @@ Exchanges
 
 
 
-The CCXT library currently supports the following 116 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 115 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -63,13 +63,13 @@ The CCXT library currently supports the following 116 cryptocurrency exchange ma
      - certified
      - pro
    * - .. image:: https://user-images.githubusercontent.com/1294454/104140087-a27f2580-53c0-11eb-87c1-5d9e81208fe9.jpg
-          :target: https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB
+          :target: https://www.aax.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB
           :alt: aax
      
      - aax
-     - `AAX <https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB>`__
+     - `AAX <https://www.aax.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://www.aaxpro.com/apidoc/index.html
+          :target: https://www.aax.com/apidoc/index.html
           :alt: API Version 2
      
      - 
@@ -77,6 +77,18 @@ The CCXT library currently supports the following 116 cryptocurrency exchange ma
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
+   * - .. image:: https://user-images.githubusercontent.com/1294454/187234005-b864db3d-f1e3-447a-aaf9-a9fc7b955d07.jpg
+          :target: https://alpaca.markets
+          :alt: alpaca
+     
+     - alpaca
+     - `Alpaca <https://alpaca.markets>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://alpaca.markets/docs/
+          :alt: API Version *
+     
+     - 
+     - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/112027508-47984600-8b48-11eb-9e17-d26459cc36c6.jpg
           :target: https://ascendex.com/en-us/register?inviteCode=EL6BXBQM
           :alt: ascendex
@@ -87,10 +99,7 @@ The CCXT library currently supports the following 116 cryptocurrency exchange ma
           :target: https://ascendex.github.io/ascendex-pro-api/#ascendex-pro-api-documentation
           :alt: API Version 2
      
-     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
-          :target: https://github.com/ccxt/ccxt/wiki/Certification
-          :alt: CCXT Certified
-     
+     - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
@@ -135,11 +144,11 @@ The CCXT library currently supports the following 116 cryptocurrency exchange ma
      - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/29604020-d5483cdc-87ee-11e7-94c7-d1a8d9169293.jpg
-          :target: https://www.binance.com/en/register?ref=D7YA7CLY
+          :target: https://accounts.binance.com/en/register?ref=D7YA7CLY
           :alt: binance
      
      - binance
-     - `Binance <https://www.binance.com/en/register?ref=D7YA7CLY>`__
+     - `Binance <https://accounts.binance.com/en/register?ref=D7YA7CLY>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://binance-docs.github.io/apidocs/spot/en
           :alt: API Version *
@@ -153,11 +162,11 @@ The CCXT library currently supports the following 116 cryptocurrency exchange ma
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
-          :target: https://www.binance.com/en/register?ref=D7YA7CLY
+          :target: https://accounts.binance.com/en/register?ref=D7YA7CLY
           :alt: binancecoinm
      
      - binancecoinm
-     - `Binance COIN-M <https://www.binance.com/en/register?ref=D7YA7CLY>`__
+     - `Binance COIN-M <https://accounts.binance.com/en/register?ref=D7YA7CLY>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://binance-docs.github.io/apidocs/delivery/en/
           :alt: API Version *
@@ -186,11 +195,11 @@ The CCXT library currently supports the following 116 cryptocurrency exchange ma
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/117738721-668c8d80-b205-11eb-8c49-3fad84c4a07f.jpg
-          :target: https://www.binance.com/en/register?ref=D7YA7CLY
+          :target: https://accounts.binance.com/en/register?ref=D7YA7CLY
           :alt: binanceusdm
      
      - binanceusdm
-     - `Binance USDⓈ-M <https://www.binance.com/en/register?ref=D7YA7CLY>`__
+     - `Binance USDⓈ-M <https://accounts.binance.com/en/register?ref=D7YA7CLY>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://binance-docs.github.io/apidocs/futures/en/
           :alt: API Version *
@@ -591,11 +600,11 @@ The CCXT library currently supports the following 116 cryptocurrency exchange ma
      - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/51840849/76547799-daff5b80-649e-11ea-87fb-3be9bac08954.jpg
-          :target: https://partner.bybit.com/b/ccxt
+          :target: https://www.bybit.com/register?affiliate_id=35953
           :alt: bybit
      
      - bybit
-     - `Bybit <https://partner.bybit.com/b/ccxt>`__
+     - `Bybit <https://www.bybit.com/register?affiliate_id=35953>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://bybit-exchange.github.io/docs/inverse/
           :alt: API Version 2
@@ -617,18 +626,6 @@ The CCXT library currently supports the following 116 cryptocurrency exchange ma
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://docs.byte-trade.com/#description
           :alt: API Version *
-     
-     - 
-     - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/102157692-fd406280-3e90-11eb-8d46-4511b617cd17.jpg
-          :target: https://cdax.io/invite?invite_code=esc74
-          :alt: cdax
-     
-     - cdax
-     - `CDAX <https://cdax.io/invite?invite_code=esc74>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://github.com/cloudapidoc/API_Docs
-          :alt: API Version 1
      
      - 
      - 
@@ -798,10 +795,7 @@ The CCXT library currently supports the following 116 cryptocurrency exchange ma
           :target: https://currency.com/api
           :alt: API Version 2
      
-     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
-          :target: https://github.com/ccxt/ccxt/wiki/Certification
-          :alt: CCXT Certified
-     
+     - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
@@ -897,29 +891,26 @@ The CCXT library currently supports the following 116 cryptocurrency exchange ma
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg
-          :target: https://ftx.com/#a=ccxt
+          :target: https://ftx.com/referrals#a=1623029
           :alt: ftx
      
      - ftx
-     - `FTX <https://ftx.com/#a=ccxt>`__
+     - `FTX <https://ftx.com/referrals#a=1623029>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://github.com/ftexchange/ftx
           :alt: API Version *
      
-     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
-          :target: https://github.com/ccxt/ccxt/wiki/Certification
-          :alt: CCXT Certified
-     
+     - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/141506670-12f6115f-f425-4cd8-b892-b51d157ca01f.jpg
-          :target: https://ftx.com/#a=ccxt
+          :target: https://ftx.com/referrals#a=1623029
           :alt: ftxus
      
      - ftxus
-     - `FTX US <https://ftx.com/#a=ccxt>`__
+     - `FTX US <https://ftx.com/referrals#a=1623029>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://github.com/ftexchange/ftx
           :alt: API Version *
@@ -1005,11 +996,11 @@ The CCXT library currently supports the following 116 cryptocurrency exchange ma
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/76137448-22748a80-604e-11ea-8069-6e389271911d.jpg
-          :target: https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223
+          :target: https://www.huobi.com/en-us/v/register/double-invite/?inviter_id=11343840&invite_code=6rmm2223
           :alt: huobi
      
      - huobi
-     - `Huobi <https://www.huobi.com/en-us/topic/double-reward/?invite_code=6rmm2223>`__
+     - `Huobi <https://www.huobi.com/en-us/v/register/double-invite/?inviter_id=11343840&invite_code=6rmm2223>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://huobiapi.github.io/docs/spot/v1/cn/
           :alt: API Version 1
@@ -1107,11 +1098,11 @@ The CCXT library currently supports the following 116 cryptocurrency exchange ma
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg
-          :target: https://www.kucoin.com/?rcode=E5wkqe
+          :target: https://www.kucoin.com/ucenter/signup?rcode=E5wkqe
           :alt: kucoin
      
      - kucoin
-     - `KuCoin <https://www.kucoin.com/?rcode=E5wkqe>`__
+     - `KuCoin <https://www.kucoin.com/ucenter/signup?rcode=E5wkqe>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://docs.kucoin.com
           :alt: API Version 2
@@ -1544,18 +1535,6 @@ The CCXT library currently supports the following 116 cryptocurrency exchange ma
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://docs.woo.org/
           :alt: API Version 1
-     
-     - 
-     - 
-   * - .. image:: https://user-images.githubusercontent.com/51840849/87489843-bb469280-c64c-11ea-91aa-69c6326506af.jpg
-          :target: https://xena.exchange
-          :alt: xena
-     
-     - xena
-     - `Xena Exchange <https://xena.exchange>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://support.xena.exchange/support/solutions/44000808700
-          :alt: API Version *
      
      - 
      - 
@@ -3178,6 +3157,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
  * ``fetchCanceledOrders ([symbol[, since[, limit[, params]]]])``
  * ``fetchClosedOrders ([symbol[, since[, limit[, params]]]])``
  * ``fetchMyTrades ([symbol[, since[, limit[, params]]]])``
+ * ``fetchOpenInterest ([symbol[, params]])``
  * ...
 
 .. code-block:: text
@@ -4477,6 +4457,28 @@ Funding Rate History Structure
        datetime: "2022-01-23T16:00:00.000Z"
    }
 
+Open Interest
+-------------
+
+ *contract only*
+
+Use the ``fetchOpenInterest`` method to get the current open interest for a symbol from the exchange.
+
+.. code-block:: JavaScript
+
+   fetchOpenInterest (symbol, params = {})
+
+Parameters
+
+
+ * **symbol** (String) Unified CCXT market symbol (e.g. ``"BTC/USDT:USDT"``\ )
+ * **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. ``{"endTime": 1645807945000}``\ )
+
+Returns
+
+
+ * A dictionary of :ref:`open interest structures <open interest structure>`
+
 Open Interest History
 ---------------------
 
@@ -4511,8 +4513,10 @@ Open Interest Structure
 
    {
        symbol: 'BTC/USDT',
-       baseVolume: 80872.801,
-       quoteVolume: 3508262107.38,
+       baseVolume: 80872.801, // deprecated
+       quoteVolume: 3508262107.38, // deprecated
+       openInterestAmount: 80872.801,
+       openInterestValue: 3508262107.38,
        timestamp: 1649379000000,
        datetime: '2022-04-08T00:50:00.000Z',
        info: {

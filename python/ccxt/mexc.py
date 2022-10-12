@@ -241,8 +241,8 @@ class mexc(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.2 / 100,  # maker / taker
-                    'taker': 0.2 / 100,
+                    'maker': self.parse_number('0.002'),  # maker / taker
+                    'taker': self.parse_number('0.002'),
                 },
             },
             'options': {
@@ -271,10 +271,8 @@ class mexc(Exchange):
                 },
                 'defaultType': 'spot',  # spot, swap
                 'networks': {
-                    'TRX': 'TRC-20',
-                    'TRC20': 'TRC-20',
-                    'ETH': 'ERC-20',
-                    'ERC20': 'ERC-20',
+                    'TRX': 'TRC20',
+                    'ETH': 'ERC20',
                     'BEP20': 'BEP20(BSC)',
                 },
                 'accountsByType': {
@@ -1517,7 +1515,7 @@ class mexc(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         resultList = self.safe_value(data, 'result_list', [])
-        return self.parse_transactions(resultList, code, since, limit)
+        return self.parse_transactions(resultList, currency, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         """
@@ -1572,7 +1570,7 @@ class mexc(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         resultList = self.safe_value(data, 'result_list', [])
-        return self.parse_transactions(resultList, code, since, limit)
+        return self.parse_transactions(resultList, currency, since, limit)
 
     def parse_transaction(self, transaction, currency=None):
         #
@@ -2870,7 +2868,7 @@ class mexc(Exchange):
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string_2(params, 'network', 'chain')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string_upper_2(params, 'network', 'chain')  # self line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network, network)  # handle ETH > ERC-20 alias
         self.check_address(address)
         self.load_markets()

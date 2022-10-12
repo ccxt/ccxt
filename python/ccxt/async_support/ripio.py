@@ -117,8 +117,8 @@ class ripio(Exchange):
                 'trading': {
                     'tierBased': True,
                     'percentage': True,
-                    'taker': 0.0 / 100,
-                    'maker': 0.0 / 100,
+                    'taker': self.parse_number('0.0'),
+                    'maker': self.parse_number('0.0'),
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -936,97 +936,71 @@ class ripio(Exchange):
         #     }
         #
         #     {
-        #         "order_id":"d6b60c01-8624-44f2-9e6c-9e8cd677ea5c",
-        #         "pair":"BTC_USDC",
-        #         "side":"BUY",
-        #         "amount":"0.00200",
-        #         "notional":"50",
-        #         "fill_or_kill":false,
-        #         "all_or_none":false,
-        #         "order_type":"MARKET",
-        #         "status":"OPEN",
-        #         "created_at":1601730306,
-        #         "filled":"0.00000",
-        #         "fill_price":10593.99,
-        #         "fee":0.0,
-        #         "fills":[
+        #         "order_id": "d6b60c01-8624-44f2-9e6c-9e8cd677ea5c",
+        #         "pair": "BTC_USDC",
+        #         "side": "BUY",
+        #         "amount": "0.00200",
+        #         "notional": "50",
+        #         "fill_or_kill": False,
+        #         "all_or_none": False,
+        #         "order_type": "MARKET",
+        #         "status": "OPEN",
+        #         "created_at": 1601730306,
+        #         "filled": "0.00000",
+        #         "fill_price": 10593.99,
+        #         "fee": 0.0,
+        #         "fills": [
         #             {
-        #                 "pair":"BTC_USDC",
-        #                 "exchanged":0.002,
-        #                 "match_price":10593.99,
-        #                 "maker_fee":0.0,
-        #                 "taker_fee":0.0,
-        #                 "timestamp":1601730306942
+        #                 "pair": "BTC_USDC",
+        #                 "exchanged": 0.002,
+        #                 "match_price": 10593.99,
+        #                 "maker_fee": 0.0,
+        #                 "taker_fee": 0.0,
+        #                 "timestamp": 1601730306942
         #             }
         #         ],
-        #         "filled_at":"2020-10-03T13:05:06.942186Z",
-        #         "limit_price":"0.000000",
-        #         "stop_price":null,
-        #         "distance":null
+        #         "filled_at": "2020-10-03T13:05:06.942186Z",
+        #         "limit_price": "0.000000",
+        #         "stop_price": null,
+        #         "distance": null
         #     }
         #
         id = self.safe_string(order, 'order_id')
-        amount = self.safe_number(order, 'amount')
-        cost = self.safe_number(order, 'notional')
+        amount = self.safe_string(order, 'amount')
+        cost = self.safe_string(order, 'notional')
         type = self.safe_string_lower(order, 'order_type')
         priceField = 'fill_price' if (type == 'market') else 'limit_price'
-        price = self.safe_number(order, priceField)
+        price = self.safe_string(order, priceField)
         side = self.safe_string_lower(order, 'side')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         timestamp = self.safe_timestamp(order, 'created_at')
-        average = self.safe_value(order, 'fill_price')
-        filled = self.safe_number(order, 'filled')
-        remaining = None
+        average = self.safe_string(order, 'fill_price')
+        filled = self.safe_string(order, 'filled')
         fills = self.safe_value(order, 'fills')
-        trades = None
-        lastTradeTimestamp = None
-        if fills is not None:
-            numFills = len(fills)
-            if numFills > 0:
-                filled = 0
-                cost = 0
-                trades = self.parse_trades(fills, market, None, None, {
-                    'order': id,
-                    'side': side,
-                })
-                for i in range(0, len(trades)):
-                    trade = trades[i]
-                    filled = self.sum(trade['amount'], filled)
-                    cost = self.sum(trade['cost'], cost)
-                    lastTradeTimestamp = trade['timestamp']
-                if (average is None) and (filled > 0):
-                    average = cost / filled
-        if filled is not None:
-            if (cost is None) and (price is not None):
-                cost = price * filled
-            if amount is not None:
-                remaining = max(0, amount - filled)
         marketId = self.safe_string(order, 'pair')
-        symbol = self.safe_symbol(marketId, market, '_')
-        stopPrice = self.safe_number(order, 'stop_price')
-        return {
+        return self.safe_order({
+            'info': order,
             'id': id,
             'clientOrderId': None,
-            'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': symbol,
+            'lastTradeTimestamp': None,
+            'symbol': self.safe_symbol(marketId, market, '_'),
             'type': type,
             'timeInForce': None,
             'postOnly': None,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
+            'stopPrice': self.safe_string(order, 'stop_price'),
             'amount': amount,
             'cost': cost,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': None,
             'status': status,
             'fee': None,
-            'trades': trades,
-        }
+            'trades': fills,
+        }, market)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         """

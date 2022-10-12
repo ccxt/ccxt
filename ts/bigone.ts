@@ -1363,7 +1363,7 @@ export default class bigone extends Exchange {
         //     }
         //
         const deposits = this.safeValue (response, 'data', []);
-        return this.parseTransactions (deposits, code, since, limit);
+        return this.parseTransactions (deposits, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1415,7 +1415,7 @@ export default class bigone extends Exchange {
         //     }
         //
         const withdrawals = this.safeValue (response, 'data', []);
-        return this.parseTransactions (withdrawals, code, since, limit);
+        return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {

@@ -75,7 +75,6 @@ export default class btcalpha extends Exchange {
                 'withdraw': false,
             },
             'timeframes': {
-                '1m': '1',
                 '5m': '5',
                 '15m': '15',
                 '30m': '30',
@@ -148,7 +147,7 @@ export default class btcalpha extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).publicGetPairs (params);
+        const response = await this.publicGetPairs (params);
         //
         //    [
         //        {
@@ -246,7 +245,7 @@ export default class btcalpha extends Exchange {
             request['limit_sell'] = limit;
             request['limit_buy'] = limit;
         }
-        const response = await (this as any).publicGetOrderbookPairName (this.extend (request, params));
+        const response = await this.publicGetOrderbookPairName (this.extend (request, params));
         return this.parseOrderBook (response, market['symbol'], undefined, 'buy', 'sell', 'price', 'amount');
     }
 
@@ -331,7 +330,7 @@ export default class btcalpha extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const trades = await (this as any).publicGetExchanges (this.extend (request, params));
+        const trades = await this.publicGetExchanges (this.extend (request, params));
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -347,7 +346,11 @@ export default class btcalpha extends Exchange {
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetDeposits (params);
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const response = await this.privateGetDeposits (params);
         //
         //     [
         //         {
@@ -358,7 +361,7 @@ export default class btcalpha extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactions (response, code, since, limit, { 'type': 'deposit' });
+        return this.parseTransactions (response, currency, since, limit, { 'type': 'deposit' });
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -379,7 +382,7 @@ export default class btcalpha extends Exchange {
             currency = this.currency (code);
             request['currency_id'] = currency['id'];
         }
-        const response = await (this as any).privateGetWithdraws (this.extend (request, params));
+        const response = await this.privateGetWithdraws (this.extend (request, params));
         //
         //     [
         //         {
@@ -391,7 +394,7 @@ export default class btcalpha extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactions (response, code, since, limit, { 'type': 'withdrawal' });
+        return this.parseTransactions (response, currency, since, limit, { 'type': 'withdrawal' });
     }
 
     parseTransaction (transaction, currency = undefined) {
@@ -493,9 +496,9 @@ export default class btcalpha extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            request['since'] = this.parseToInt (since / 1000);
+            request['since'] = parseInt (since / 1000);
         }
-        const response = await (this as any).publicGetChartsPairTypeChart (this.extend (request, params));
+        const response = await this.publicGetChartsPairTypeChart (this.extend (request, params));
         //
         //     [
         //         {"time":1591296000,"open":0.024746,"close":0.024728,"low":0.024728,"high":0.024753,"volume":16.624},
@@ -529,7 +532,7 @@ export default class btcalpha extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privateGetWallets (params);
+        const response = await this.privateGetWallets (params);
         return this.parseBalance (response);
     }
 
@@ -635,7 +638,7 @@ export default class btcalpha extends Exchange {
             'amount': amount,
             'price': this.priceToPrecision (symbol, price),
         };
-        const response = await (this as any).privatePostOrder (this.extend (request, params));
+        const response = await this.privatePostOrder (this.extend (request, params));
         if (!response['success']) {
             throw new InvalidOrder (this.id + ' ' + this.json (response));
         }
@@ -659,7 +662,7 @@ export default class btcalpha extends Exchange {
         const request = {
             'order': id,
         };
-        const response = await (this as any).privatePostOrderCancel (this.extend (request, params));
+        const response = await this.privatePostOrderCancel (this.extend (request, params));
         return response;
     }
 
@@ -676,7 +679,7 @@ export default class btcalpha extends Exchange {
         const request = {
             'id': id,
         };
-        const order = await (this as any).privateGetOrderId (this.extend (request, params));
+        const order = await this.privateGetOrderId (this.extend (request, params));
         return this.parseOrder (order);
     }
 
@@ -701,7 +704,7 @@ export default class btcalpha extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const orders = await (this as any).privateGetOrdersOwn (this.extend (request, params));
+        const orders = await this.privateGetOrdersOwn (this.extend (request, params));
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -759,7 +762,7 @@ export default class btcalpha extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const trades = await (this as any).privateGetExchangesOwn (this.extend (request, params));
+        const trades = await this.privateGetExchangesOwn (this.extend (request, params));
         return this.parseTrades (trades, undefined, since, limit);
     }
 

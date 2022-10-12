@@ -392,28 +392,10 @@ export default class coincheck extends Exchange {
         const id = this.safeString (trade, 'id');
         const priceString = this.safeString (trade, 'rate');
         const marketId = this.safeString (trade, 'pair');
-        market = this.safeValue (this.markets_by_id, marketId, market);
-        let symbol = undefined;
-        let baseId = undefined;
-        let quoteId = undefined;
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-                baseId = market['baseId'];
-                quoteId = market['quoteId'];
-                symbol = market['symbol'];
-            } else {
-                const ids = marketId.split ('_');
-                baseId = ids[0];
-                quoteId = ids[1];
-                const base = this.safeCurrencyCode (baseId);
-                const quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            }
-        }
-        if (symbol === undefined) {
-            symbol = this.safeSymbol (undefined, market);
-        }
+        market = this.safeMarket (marketId, market, '_');
+        const baseId = market['baseId'];
+        const quoteId = market['quoteId'];
+        const symbol = market['symbol'];
         let takerOrMaker = undefined;
         let amountString = undefined;
         let costString = undefined;
@@ -477,26 +459,26 @@ export default class coincheck extends Exchange {
         //
         //      {
         //          "success": true,
-        //          "transactions": [
-        //                              {
-        //                                  "id": 38,
-        //                                  "order_id": 49,
-        //                                  "created_at": "2015-11-18T07:02:21.000Z",
-        //                                  "funds": {
-        //                                      "btc": "0.1",
-        //                                      "jpy": "-4096.135"
-        //                                          },
-        //                                  "pair": "btc_jpy",
-        //                                  "rate": "40900.0",
-        //                                  "fee_currency": "JPY",
-        //                                  "fee": "6.135",
-        //                                  "liquidity": "T",
-        //                                  "side": "buy"
-        //                               },
-        //                          ]
+        //          "data": [
+        //                      {
+        //                          "id": 38,
+        //                          "order_id": 49,
+        //                          "created_at": "2015-11-18T07:02:21.000Z",
+        //                          "funds": {
+        //                              "btc": "0.1",
+        //                              "jpy": "-4096.135"
+        //                                  },
+        //                          "pair": "btc_jpy",
+        //                          "rate": "40900.0",
+        //                          "fee_currency": "JPY",
+        //                          "fee": "6.135",
+        //                          "liquidity": "T",
+        //                          "side": "buy"
+        //                       },
+        //                  ]
         //      }
         //
-        const transactions = this.safeValue (response, 'transactions', []);
+        const transactions = this.safeValue (response, 'data', []);
         return this.parseTrades (transactions, market, since, limit);
     }
 

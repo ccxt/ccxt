@@ -6,9 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\AddressPending;
-use \ccxt\InvalidOrder;
 
 class upbit extends Exchange {
 
@@ -1613,9 +1610,9 @@ class upbit extends Exchange {
          */
         $this->load_markets();
         $currency = $this->currency($code);
-        $response = $this->privateGetDepositsCoinAddress (array_merge(array(
+        $response = Async\await($this->privateGetDepositsCoinAddress (array_merge(array(
             'currency' => $currency['id'],
-        ), $params));
+        ), $params)));
         //
         //     {
         //         "currency" => "BTC",

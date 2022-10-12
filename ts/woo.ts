@@ -254,7 +254,7 @@ export default class woo extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await (this as any).v1PublicGetInfo (params);
+        const response = await this.v1PublicGetInfo (params);
         //
         // {
         //     rows: [
@@ -376,7 +376,7 @@ export default class woo extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).v1PublicGetMarketTrades (this.extend (request, params));
+        const response = await this.v1PublicGetMarketTrades (this.extend (request, params));
         //
         // {
         //     success: true,
@@ -495,7 +495,7 @@ export default class woo extends Exchange {
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).v1PrivateGetClientInfo (params);
+        const response = await this.v1PrivateGetClientInfo (params);
         //
         //     {
         //         "application":{
@@ -544,7 +544,7 @@ export default class woo extends Exchange {
          * @returns {object} an associative dictionary of currencies
          */
         const result = {};
-        const tokenResponse = await (this as any).v1PublicGetToken (params);
+        const tokenResponse = await this.v1PublicGetToken (params);
         //
         // {
         //     rows: [
@@ -709,7 +709,10 @@ export default class woo extends Exchange {
                         if (price === undefined) {
                             throw new InvalidOrder (this.id + " createOrder() requires the price argument for market buy orders to calculate total order cost. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or alternatively, supply the total cost value in the 'order_amount' in  exchange-specific parameters");
                         } else {
-                            request['order_amount'] = this.costToPrecision (symbol, amount * price);
+                            const amountString = this.numberToString (amount);
+                            const priceString = this.numberToString (price);
+                            const orderAmount = Precise.stringMul (amountString, priceString);
+                            request['order_amount'] = this.costToPrecision (symbol, orderAmount);
                         }
                     } else {
                         request['order_amount'] = this.costToPrecision (symbol, cost);
@@ -726,7 +729,7 @@ export default class woo extends Exchange {
             request['client_order_id'] = clientOrderId;
         }
         params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
-        const response = await (this as any).v1PrivatePostOrder (this.extend (request, params));
+        const response = await this.v1PrivatePostOrder (this.extend (request, params));
         // {
         //     success: true,
         //     timestamp: '1641383206.489',
@@ -772,7 +775,7 @@ export default class woo extends Exchange {
             market = this.market (symbol);
         }
         request['symbol'] = market['id'];
-        const response = await (this as any).v1PrivateDeleteOrder (this.extend (request, params));
+        const response = await this.v1PrivateDeleteOrder (this.extend (request, params));
         //
         // { success: true, status: 'CANCEL_SENT' }
         //
@@ -802,7 +805,7 @@ export default class woo extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).v1PrivateDeleteOrders (this.extend (request, params));
+        const response = await this.v1PrivateDeleteOrders (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -893,7 +896,7 @@ export default class woo extends Exchange {
         if (since !== undefined) {
             request['start_t'] = since;
         }
-        const response = await (this as any).v1PrivateGetOrders (this.extend (request, params));
+        const response = await this.v1PrivateGetOrders (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -1020,7 +1023,7 @@ export default class woo extends Exchange {
             limit = Math.min (limit, 1000);
             request['max_level'] = limit;
         }
-        const response = await (this as any).v1PrivateGetOrderbookSymbol (this.extend (request, params));
+        const response = await this.v1PrivateGetOrderbookSymbol (this.extend (request, params));
         //
         // {
         //   success: true,
@@ -1041,7 +1044,7 @@ export default class woo extends Exchange {
         return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
-    async fetchOHLCV (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchOHLCV
@@ -1062,7 +1065,7 @@ export default class woo extends Exchange {
         if (limit !== undefined) {
             request['limit'] = Math.min (limit, 1000);
         }
-        const response = await (this as any).v1PrivateGetKline (this.extend (request, params));
+        const response = await this.v1PrivateGetKline (this.extend (request, params));
         // {
         //     success: true,
         //     rows: [
@@ -1129,7 +1132,7 @@ export default class woo extends Exchange {
         const request = {
             'oid': id,
         };
-        const response = await (this as any).v1PrivateGetOrderOidTrades (this.extend (request, params));
+        const response = await this.v1PrivateGetOrderOidTrades (this.extend (request, params));
         // {
         //     success: true,
         //     rows: [
@@ -1173,7 +1176,7 @@ export default class woo extends Exchange {
         if (since !== undefined) {
             request['start_t'] = since;
         }
-        const response = await (this as any).v1PrivateGetClientTrades (this.extend (request, params));
+        const response = await this.v1PrivateGetClientTrades (this.extend (request, params));
         // {
         //     "success": true,
         //     "meta": {
@@ -1209,7 +1212,7 @@ export default class woo extends Exchange {
          * @param {object} params extra parameters specific to the woo api endpoint
          * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
          */
-        const response = await (this as any).v1PrivateGetSubAccountAssets (params);
+        const response = await this.v1PrivateGetSubAccountAssets (params);
         //
         //     {
         //         rows: [{
@@ -1257,7 +1260,7 @@ export default class woo extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).v2PrivateGetClientHolding (params);
+        const response = await this.v2PrivateGetClientHolding (params);
         //
         // {
         //     holding: [
@@ -1320,7 +1323,7 @@ export default class woo extends Exchange {
         const request = {
             'token': codeForExchange,
         };
-        const response = await (this as any).v1PrivateGetAssetDeposit (this.extend (request, params));
+        const response = await this.v1PrivateGetAssetDeposit (this.extend (request, params));
         // {
         //     success: true,
         //     address: '3Jmtjx5544T4smrit9Eroe4PCrRkpDeKjP',
@@ -1357,7 +1360,7 @@ export default class woo extends Exchange {
         if (transactionType !== undefined) {
             request['type'] = transactionType;
         }
-        const response = await (this as any).v1PrivateGetAssetHistory (this.extend (request, params));
+        const response = await this.v1PrivateGetAssetHistory (this.extend (request, params));
         // {
         //     rows: [
         //       {
@@ -1589,7 +1592,7 @@ export default class woo extends Exchange {
             'from_application_id': fromAccount,
             'to_application_id': toAccount,
         };
-        const response = await (this as any).v1PrivatePostAssetMainSubTransfer (this.extend (request, params));
+        const response = await this.v1PrivatePostAssetMainSubTransfer (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1722,7 +1725,7 @@ export default class woo extends Exchange {
             'token': currency['id'], // interest token that you want to repay
             'amount': this.currencyToPrecision (code, amount),
         };
-        const response = await (this as any).v1PrivatePostInterestRepay (this.extend (request, params));
+        const response = await this.v1PrivatePostInterestRepay (this.extend (request, params));
         //
         //     {
         //         "success": true,
@@ -1827,7 +1830,7 @@ export default class woo extends Exchange {
         const code = this.safeCurrencyCode ('USD');
         const id = this.safeString (income, 'id');
         const timestamp = this.safeTimestamp (income, 'updated_time');
-        const rate = this.safeNumber (income, 'funding_rate');
+        const rate = this.safe_number (income, 'funding_rate');
         return {
             'info': income,
             'symbol': symbol,
@@ -1862,7 +1865,7 @@ export default class woo extends Exchange {
         if (since !== undefined) {
             request['start_t'] = since;
         }
-        const response = await (this as any).v1PrivateGetFundingFeeHistory (this.extend (request, params));
+        const response = await this.v1PrivateGetFundingFeeHistory (this.extend (request, params));
         //
         //     {
         //         "rows":[
@@ -1934,7 +1937,7 @@ export default class woo extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).v1PublicGetFundingRateSymbol (this.extend (request, params));
+        const response = await this.v1PublicGetFundingRateSymbol (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -1953,7 +1956,7 @@ export default class woo extends Exchange {
     async fetchFundingRates (symbols, params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await (this as any).v1PublicGetFundingRates (params);
+        const response = await this.v1PublicGetFundingRates (params);
         //
         //     {
         //         "success":true,
@@ -1984,9 +1987,9 @@ export default class woo extends Exchange {
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
-            request['start_t'] = this.parseToInt (since / 1000);
+            request['start_t'] = parseInt (since / 1000);
         }
-        const response = await (this as any).v1PublicGetFundingRateHistory (this.extend (request, params));
+        const response = await this.v1PublicGetFundingRateHistory (this.extend (request, params));
         //
         //     {
         //         "success":true,
@@ -2026,8 +2029,8 @@ export default class woo extends Exchange {
 
     async fetchLeverage (symbol, params = {}) {
         await this.loadMarkets ();
-        const response = await (this as any).v1PrivateGetClientInfo (params);
-        // //
+        const response = await this.v1PrivateGetClientInfo (params);
+        //
         //     {
         //         "success": true,
         //         "application": {
@@ -2063,7 +2066,7 @@ export default class woo extends Exchange {
         const request = {
             'leverage': leverage,
         };
-        return await (this as any).v1PrivatePostClientLeverage (this.extend (request, params));
+        return await this.v1PrivatePostClientLeverage (this.extend (request, params));
     }
 
     async fetchPosition (symbol = undefined, params = {}) {
@@ -2072,7 +2075,7 @@ export default class woo extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await (this as any).v1PrivateGetPositionSymbol (this.extend (request, params));
+        const response = await this.v1PrivateGetPositionSymbol (this.extend (request, params));
         //
         //     {
         //         "symbol":"PERP_ETC_USDT",
@@ -2093,7 +2096,7 @@ export default class woo extends Exchange {
 
     async fetchPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        const response = await (this as any).v1PrivateGetPositions (params);
+        const response = await this.v1PrivateGetPositions (params);
         //
         //     {
         //         "positions":[
@@ -2154,6 +2157,7 @@ export default class woo extends Exchange {
         const notional = Precise.stringMul (size, markPrice);
         return {
             'info': position,
+            'id': undefined,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

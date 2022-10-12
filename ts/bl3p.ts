@@ -99,7 +99,6 @@ export default class bl3p extends Exchange {
             },
             'markets': {
                 'BTC/EUR': { 'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'BTC', 'quoteId': 'EUR', 'maker': 0.0025, 'taker': 0.0025, 'type': 'spot', 'spot': true },
-                'LTC/EUR': { 'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR', 'baseId': 'LTC', 'quoteId': 'EUR', 'maker': 0.0025, 'taker': 0.0025, 'type': 'spot', 'spot': true },
             },
             'precisionMode': TICK_SIZE,
         });
@@ -134,16 +133,16 @@ export default class bl3p extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostGENMKTMoneyInfo (params);
+        const response = await this.privatePostGENMKTMoneyInfo (params);
         return this.parseBalance (response);
     }
 
     parseBidAsk (bidask, priceKey = 0, amountKey = 1) {
-        const price = this.safeNumber (bidask, priceKey);
-        const size = this.safeNumber (bidask, amountKey);
+        const price = this.safeString (bidask, priceKey);
+        const size = this.safeString (bidask, amountKey);
         return [
-            price / 100000.0,
-            size / 100000000.0,
+            this.parseNumber (Precise.stringDiv (price, '100000.0')),
+            this.parseNumber (Precise.stringDiv (size, '100000000.0')),
         ];
     }
 
@@ -161,7 +160,7 @@ export default class bl3p extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const response = await (this as any).publicGetMarketOrderbook (this.extend (request, params));
+        const response = await this.publicGetMarketOrderbook (this.extend (request, params));
         const orderbook = this.safeValue (response, 'data');
         return this.parseOrderBook (orderbook, market['symbol'], undefined, 'bids', 'asks', 'price_int', 'amount_int');
     }
@@ -223,7 +222,7 @@ export default class bl3p extends Exchange {
         const request = {
             'market': market['id'],
         };
-        const ticker = await (this as any).publicGetMarketTicker (this.extend (request, params));
+        const ticker = await this.publicGetMarketTicker (this.extend (request, params));
         //
         // {
         //     "currency":"BTC",
@@ -277,7 +276,7 @@ export default class bl3p extends Exchange {
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         const market = this.market (symbol);
-        const response = await (this as any).publicGetMarketTrades (this.extend ({
+        const response = await this.publicGetMarketTrades (this.extend ({
             'market': market['id'],
         }, params));
         const result = this.parseTrades (response['data']['trades'], market, since, limit);
@@ -293,7 +292,7 @@ export default class bl3p extends Exchange {
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await (this as any).privatePostGENMKTMoneyInfo (params);
+        const response = await this.privatePostGENMKTMoneyInfo (params);
         //
         //     {
         //         result: 'success',
@@ -354,16 +353,18 @@ export default class bl3p extends Exchange {
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const market = this.market (symbol);
+        const amountString = this.numberToString (amount);
+        const priceString = this.numberToString (price);
         const order = {
             'market': market['id'],
-            'amount_int': this.parseToInt (amount * 100000000),
+            'amount_int': parseInt (Precise.stringMul (amountString, '100000000')),
             'fee_currency': market['quote'],
             'type': (side === 'buy') ? 'bid' : 'ask',
         };
         if (type === 'limit') {
-            order['price_int'] = this.parseToInt (price * 100000.0);
+            order['price_int'] = parseInt (Precise.stringMul (priceString, '100000.0'));
         }
-        const response = await (this as any).privatePostMarketMoneyOrderAdd (this.extend (order, params));
+        const response = await this.privatePostMarketMoneyOrderAdd (this.extend (order, params));
         const orderId = this.safeString (response['data'], 'order_id');
         return {
             'info': response,
@@ -384,7 +385,7 @@ export default class bl3p extends Exchange {
         const request = {
             'order_id': id,
         };
-        return await (this as any).privatePostMarketMoneyOrderCancel (this.extend (request, params));
+        return await this.privatePostMarketMoneyOrderCancel (this.extend (request, params));
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

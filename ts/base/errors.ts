@@ -1,6 +1,6 @@
-/* eslint-disable */
-// import errorHierarchy from './errorHierarchy.js.js';
+/* eslint-disable max-classes-per-file */
 
+import { errorHierarchy } from './errorHierarchy.js';
 // Commented out since I'm not sure this is mandatory anymore
 // and does not work out of the box with esm
 
@@ -46,7 +46,6 @@
 
 //     return namespace
 // }
-/* eslint-disable */
 class BaseError extends Error {
     constructor (message) {
         super (message);
@@ -229,14 +228,15 @@ class RequestTimeout extends NetworkError {
         this.name = 'RequestTimeout';
     }
 }
-
 /*  ------------------------------------------------------------------------ */
-
 // export default subclass (
 //     // Root class
 //     Error,
 //     // Derived class hierarchy
 //     errorHierarchy
 // )
+const errors = { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending };
 
 export { BaseError, ExchangeError, PermissionDenied, AccountNotEnabled, AccountSuspended, ArgumentsRequired, BadRequest, BadSymbol, MarginModeAlreadySet, BadResponse, NullResponse, InsufficientFunds, InvalidAddress, InvalidOrder, OrderNotFound, OrderNotCached, CancelPending, OrderImmediatelyFillable, OrderNotFillable, DuplicateOrderId, NotSupported, NetworkError, DDoSProtection, RateLimitExceeded, ExchangeNotAvailable, OnMaintenance, InvalidNonce, RequestTimeout, AuthenticationError, AddressPending };
+
+export default errors;

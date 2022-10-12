@@ -6,13 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\BadSymbol;
-use \ccxt\InvalidOrder;
-use \ccxt\OrderNotFound;
-use \ccxt\DDoSProtection;
 
 class bitmex extends Exchange {
 
@@ -2170,12 +2163,17 @@ class bitmex extends Exchange {
         } elseif ($market['quote'] === 'USDT') {
             $resultValue = Precise::string_mul($value, '0.000001');
         } else {
-            $currency = $this->currency($market['quote']);
+            $currency = null;
+            $quote = $market['quote'];
+            if ($quote !== null) {
+                $currency = $this->currency($market['quote']);
+            }
             if ($currency !== null) {
                 $resultValue = Precise::string_mul($value, $this->number_to_string($currency['precision']));
             }
         }
-        return floatval($resultValue);
+        $resultValue = ($resultValue !== null) ? floatval($resultValue) : null;
+        return $resultValue;
     }
 
     public function is_fiat($currency) {

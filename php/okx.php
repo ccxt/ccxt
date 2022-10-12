@@ -6,12 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\InvalidAddress;
-use \ccxt\InvalidOrder;
-use \ccxt\NotSupported;
 
 class okx extends Exchange {
 
@@ -76,6 +70,7 @@ class okx extends Exchange {
                 'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => true,
                 'fetchOpenInterestHistory' => true,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
@@ -156,6 +151,8 @@ class okx extends Exchange {
                         'market/books' => 1,
                         'market/candles' => 0.5,
                         'market/history-candles' => 1,
+                        'market/history-mark-price-candles' => 120,
+                        'market/history-index-candles' => 120,
                         'market/index-candles' => 1,
                         'market/mark-price-candles' => 1,
                         'market/trades' => 1,
@@ -1203,7 +1200,7 @@ class okx extends Exchange {
                     if ($maxPrecision === null) {
                         $maxPrecision = $precision;
                     } else {
-                        $maxPrecision = Precise::string_max($maxPrecision, $precision);
+                        $maxPrecision = Precise::string_min($maxPrecision, $precision);
                     }
                     $networks[$network] = array(
                         'id' => $networkId,
@@ -2019,9 +2016,6 @@ class okx extends Exchange {
         } else {
             $marginMode = $defaultMarginMode;
             $margin = $this->safe_value($params, 'margin', false);
-        }
-        if ($margin === true && $market['spot'] && !$market['margin']) {
-            throw new NotSupported($this->id . ' does not support $margin trading for ' . $symbol . ' market');
         }
         if ($spot) {
             if ($margin) {
@@ -3325,11 +3319,7 @@ class okx extends Exchange {
         $after = $this->parse_number($afterString);
         $status = 'ok';
         $marketId = $this->safe_string($item, 'instId');
-        $symbol = null;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId, null, '-');
         return array(
             'id' => $id,
             'info' => $item,
@@ -4215,6 +4205,7 @@ class okx extends Exchange {
         $marginRatio = $this->parse_number(Precise::string_div($maintenanceMarginString, $collateralString, 4));
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $symbol,
             'notional' => $notional,
             'marginMode' => $marginMode,
@@ -5370,6 +5361,46 @@ class okx extends Exchange {
         );
     }
 
+    public function fetch_open_interest($symbol, $params = array ()) {
+        /**
+         * Retrieves the open interest of a currency
+         * @see https://www.okx.com/docs-v5/en/#rest-api-public-$data-get-open-interest
+         * @param {string} $symbol Unified CCXT $market $symbol
+         * @param {array} $params exchange specific parameters
+         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure)
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['contract']) {
+            throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
+        }
+        $type = $this->convert_to_instrument_type($market['type']);
+        $uly = $this->safe_string($market['info'], 'uly');
+        $request = array(
+            'instType' => $type,
+            'uly' => $uly,
+            'instId' => $market['id'],
+        );
+        $response = $this->publicGetPublicOpenInterest (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "0",
+        //         "data" => array(
+        //             {
+        //                 "instId" => "BTC-USDT-SWAP",
+        //                 "instType" => "SWAP",
+        //                 "oi" => "2125419",
+        //                 "oiCcy" => "21254.19",
+        //                 "ts" => "1664005108969"
+        //             }
+        //         ),
+        //         "msg" => ""
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_open_interest($data[0], $market);
+    }
+
     public function fetch_open_interest_history($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
         /**
          * Retrieves the open interest history of a $currency
@@ -5422,18 +5453,37 @@ class okx extends Exchange {
 
     public function parse_open_interest($interest, $market = null) {
         //
+        // fetchOpenInterestHistory
+        //
         //    array(
         //        '1648221300000',  // $timestamp
         //        '2183354317.945',  // open $interest (USD)
         //        '74285877.617',  // volume (USD)
         //    )
         //
-        $timestamp = $this->safe_number($interest, 0);
-        $openInterest = $this->safe_number($interest, 1);
+        // fetchOpenInterest
+        //
+        //     {
+        //         "instId" => "BTC-USDT-SWAP",
+        //         "instType" => "SWAP",
+        //         "oi" => "2125419",
+        //         "oiCcy" => "21254.19",
+        //         "ts" => "1664005108969"
+        //     }
+        //
+        $id = $this->safe_string($interest, 'instId');
+        $market = $this->safe_market($id, $market);
+        $time = $this->safe_integer($interest, 'ts');
+        $timestamp = $this->safe_number($interest, 0, $time);
+        $numContracts = $this->safe_number($interest, 'oi');
+        $inCurrency = $this->safe_number($interest, 'oiCcy');
+        $openInterest = $this->safe_number($interest, 1, $inCurrency);
         return array(
-            'symbol' => null,
-            'baseVolume' => null,
-            'quoteVolume' => $openInterest,
+            'symbol' => $this->safe_symbol($id),
+            'baseVolume' => null,  // deprecated
+            'quoteVolume' => $openInterest,  // deprecated
+            'openInterestAmount' => $numContracts,
+            'openInterestValue' => $openInterest,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,

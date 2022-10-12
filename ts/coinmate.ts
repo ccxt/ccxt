@@ -143,8 +143,8 @@ export default class coinmate extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'maker': 0.12 / 100,
-                    'taker': 0.25 / 100,
+                    'maker': this.parseNumber ('0.0012'),
+                    'taker': this.parseNumber ('0.0025'),
                     'tiers': {
                         'taker': [
                             [ this.parseNumber ('0'), this.parseNumber ('0.0035') ],
@@ -191,6 +191,7 @@ export default class coinmate extends Exchange {
                     'Not enough account balance available': InsufficientFunds,
                     'Incorrect order ID': InvalidOrder,
                     'Minimum Order Size ': InvalidOrder,
+                    'max allowed precision': InvalidOrder, // {"error":true,"errorMessage":"USDT_EUR - max allowed precision is 4 decimal places","data":null}
                     'TOO MANY REQUESTS': RateLimitExceeded,
                     'Access denied.': AuthenticationError, // {"error":true,"errorMessage":"Access denied.","data":null}
                 },
