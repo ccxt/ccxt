@@ -573,7 +573,7 @@ class mexc3 extends Exchange {
                 $code = $this->safe_currency_code($id);
                 $name = $this->safe_string($currency, 'full_name');
                 $currencyActive = false;
-                $currencyPrecision = null;
+                $minPrecision = null;
                 $currencyFee = null;
                 $currencyWithdrawMin = null;
                 $currencyWithdrawMax = null;
@@ -605,6 +605,10 @@ class mexc3 extends Exchange {
                     if ($isWithdrawEnabled) {
                         $withdrawEnabled = true;
                     }
+                    $precision = $this->parse_precision($this->safe_string($chain, 'precision'));
+                    if ($precision !== null) {
+                        $minPrecision = ($minPrecision === null) ? $precision : Precise::string_min($precision, $minPrecision);
+                    }
                     $networks[$network] = array(
                         'info' => $chain,
                         'id' => $networkId,
@@ -613,7 +617,7 @@ class mexc3 extends Exchange {
                         'deposit' => $isDepositEnabled,
                         'withdraw' => $isWithdrawEnabled,
                         'fee' => $this->safe_number($chain, 'fee'),
-                        'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'precision'))),
+                        'precision' => $this->parse_number($precision),
                         'limits' => array(
                             'withdraw' => array(
                                 'min' => $withdrawMin,
@@ -628,7 +632,6 @@ class mexc3 extends Exchange {
                     $defaultNetwork = $this->safe_value_2($networks, 'NONE', $networkKeysLength - 1);
                     if ($defaultNetwork !== null) {
                         $currencyFee = $defaultNetwork['fee'];
-                        $currencyPrecision = $defaultNetwork['precision'];
                     }
                 }
                 $result[$code] = array(
@@ -640,7 +643,7 @@ class mexc3 extends Exchange {
                     'deposit' => $depositEnabled,
                     'withdraw' => $withdrawEnabled,
                     'fee' => $currencyFee,
-                    'precision' => $currencyPrecision,
+                    'precision' => $this->parse_number($minPrecision),
                     'limits' => array(
                         'amount' => array(
                             'min' => null,

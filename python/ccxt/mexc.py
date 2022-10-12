@@ -440,7 +440,7 @@ class mexc(Exchange):
             code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'full_name')
             currencyActive = False
-            currencyPrecision = None
+            minPrecision = None
             currencyFee = None
             currencyWithdrawMin = None
             currencyWithdrawMax = None
@@ -468,6 +468,9 @@ class mexc(Exchange):
                     depositEnabled = True
                 if isWithdrawEnabled:
                     withdrawEnabled = True
+                precision = self.parse_precision(self.safe_string(chain, 'precision'))
+                if precision is not None:
+                    minPrecision = precision if (minPrecision is None) else Precise.string_min(precision, minPrecision)
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
@@ -476,7 +479,7 @@ class mexc(Exchange):
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
                     'fee': self.safe_number(chain, 'fee'),
-                    'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'precision'))),
+                    'precision': self.parse_number(minPrecision),
                     'limits': {
                         'withdraw': {
                             'min': withdrawMin,
@@ -490,7 +493,6 @@ class mexc(Exchange):
                 defaultNetwork = self.safe_value_2(networks, 'NONE', networkKeysLength - 1)
                 if defaultNetwork is not None:
                     currencyFee = defaultNetwork['fee']
-                    currencyPrecision = defaultNetwork['precision']
             result[code] = {
                 'id': id,
                 'code': code,
@@ -500,7 +502,7 @@ class mexc(Exchange):
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': currencyFee,
-                'precision': currencyPrecision,
+                'precision': self.parse_number(minPrecision),
                 'limits': {
                     'amount': {
                         'min': None,

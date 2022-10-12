@@ -2794,7 +2794,7 @@ class huobi extends Exchange {
                     $active = $withdrawEnabled && $depositEnabled;
                     $precision = $this->parse_precision($this->safe_string($chain, 'withdrawPrecision'));
                     if ($precision !== null) {
-                        $minPrecision = ($minPrecision === null) ? $precision : Precise::string_max($precision, $minPrecision);
+                        $minPrecision = ($minPrecision === null) ? $precision : Precise::string_min($precision, $minPrecision);
                     }
                     if ($withdrawEnabled && !$withdraw) {
                         $withdraw = true;

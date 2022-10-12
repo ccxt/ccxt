@@ -2655,7 +2655,7 @@ class huobi(Exchange):
                 active = withdrawEnabled and depositEnabled
                 precision = self.parse_precision(self.safe_string(chain, 'withdrawPrecision'))
                 if precision is not None:
-                    minPrecision = precision if (minPrecision is None) else Precise.string_max(precision, minPrecision)
+                    minPrecision = precision if (minPrecision is None) else Precise.string_min(precision, minPrecision)
                 if withdrawEnabled and not withdraw:
                     withdraw = True
                 elif not withdrawEnabled:
