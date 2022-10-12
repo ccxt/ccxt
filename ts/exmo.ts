@@ -427,7 +427,7 @@ export default class exmo extends Exchange {
          * @returns {object} a list of [transaction fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fees-structure}
          */
         await this.loadMarkets ();
-        const currencyList = await this.publicGetCurrencyListExtended (params);
+        const currencyList = await (this as any).publicGetCurrencyListExtended (params);
         //
         //     [
         //         {"name":"VLX","description":"Velas"},
@@ -436,7 +436,7 @@ export default class exmo extends Exchange {
         //         {"name":"USD","description":"US Dollar"}
         //     ]
         //
-        const cryptoList = await this.publicGetPaymentsProvidersCryptoList (params);
+        const cryptoList = await (this as any).publicGetPaymentsProvidersCryptoList (params);
         //
         //     {
         //         "BTC":[
@@ -506,7 +506,7 @@ export default class exmo extends Exchange {
          * @returns {object} an associative dictionary of currencies
          */
         //
-        const currencyList = await this.publicGetCurrencyListExtended (params);
+        const currencyList = await (this as any).publicGetCurrencyListExtended (params);
         //
         //     [
         //         {"name":"VLX","description":"Velas"},
@@ -515,7 +515,7 @@ export default class exmo extends Exchange {
         //         {"name":"USD","description":"US Dollar"}
         //     ]
         //
-        const cryptoList = await this.publicGetPaymentsProvidersCryptoList (params);
+        const cryptoList = await (this as any).publicGetPaymentsProvidersCryptoList (params);
         //
         //     {
         //         "BTC":[
@@ -1247,7 +1247,7 @@ export default class exmo extends Exchange {
          */
         await this.loadMarkets ();
         const request = { 'order_id': id };
-        return await this.privatePostOrderCancel (this.extend (request, params));
+        return await (this as any).privatePostOrderCancel (this.extend (request, params));
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

@@ -1946,7 +1946,7 @@ export default class ftx extends Exchange {
             //
             //     { success: true, result: [ 'billy', 'bob', 'gina' ] }
             //
-            return await this.privateDeleteBulkOrdersByClientId (params);
+            return await (this as any).privateDeleteBulkOrdersByClientId (params);
         } else {
             const request = {
                 'orderIds': ids,
@@ -1954,7 +1954,7 @@ export default class ftx extends Exchange {
             //
             //     { success: true, result: [ 181542119006, 181542179014 ] }
             //
-            return await this.privateDeleteBulkOrders (this.extend (request, params));
+            return await (this as any).privateDeleteBulkOrders (this.extend (request, params));
         }
     }
 

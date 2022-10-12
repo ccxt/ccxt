@@ -330,7 +330,7 @@ export default class btcalpha extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const trades = await this.publicGetExchanges (this.extend (request, params));
+        const trades = await (this as any).publicGetExchanges (this.extend (request, params));
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -679,7 +679,7 @@ export default class btcalpha extends Exchange {
         const request = {
             'id': id,
         };
-        const order = await this.privateGetOrderId (this.extend (request, params));
+        const order = await (this as any).privateGetOrderId (this.extend (request, params));
         return this.parseOrder (order);
     }
 
@@ -704,7 +704,7 @@ export default class btcalpha extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const orders = await this.privateGetOrdersOwn (this.extend (request, params));
+        const orders = await (this as any).privateGetOrdersOwn (this.extend (request, params));
         return this.parseOrders (orders, market, since, limit);
     }
 
@@ -762,7 +762,7 @@ export default class btcalpha extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const trades = await this.privateGetExchangesOwn (this.extend (request, params));
+        const trades = await (this as any).privateGetExchangesOwn (this.extend (request, params));
         return this.parseTrades (trades, undefined, since, limit);
     }
 

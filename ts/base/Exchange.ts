@@ -140,7 +140,7 @@ import {Market, OrderBook, Trade, Fee, Ticker} from './types'
 export {Market, OrderBook, Trade, Fee, Ticker} from './types'
 
 // ----------------------------------------------------------------------------
-export class Exchange {
+export default class Exchange {
     options: {};
     fetchOptions: any;
     userAgents: any;

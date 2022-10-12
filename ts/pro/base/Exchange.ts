@@ -5,6 +5,19 @@ import { OrderBook, IndexedOrderBook, CountedOrderBook } from './OrderBook.js';
 import { inflate64, inflate, gunzip } from './functions.js';;
 
 export default class Exchange extends BaseExchange {
+    
+    newUpdates = true
+    options = {}
+    log = undefined
+    ping = undefined
+    verbose = undefined
+    clients = {}
+    timeframes = undefined
+    tokenBucket = undefined
+    handleMessage = undefined
+    enableRateLimit = undefined
+    streaming = undefined
+
     constructor (options = {}) {
         super (options);
         this.newUpdates = options.newUpdates || true;
@@ -155,8 +168,8 @@ export default class Exchange extends BaseExchange {
         const clients = Object.values (this.clients || {});
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i];
-            delete this.clients[client.url];
-            await client.close ();
+            delete this.clients[(client as any).url];
+            await (client as any).close ();
         }
     }
 

@@ -352,7 +352,7 @@ export default class poloniex extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const markets = await this.publicGetMarkets (params);
+        const markets = await (this as any).publicGetMarkets (params);
         //
         //     [
         //         {
@@ -749,7 +749,7 @@ export default class poloniex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const trades = await this.publicGetMarketsSymbolTrades (this.extend (request, params));
+        const trades = await (this as any).publicGetMarketsSymbolTrades (this.extend (request, params));
         //
         //     [
         //         {
@@ -1067,7 +1067,7 @@ export default class poloniex extends Exchange {
             params = this.omit (params, 'clientOrderId');
         }
         // remember the timestamp before issuing the request
-        let response = await this.privatePostOrders (this.extend (request, params));
+        let response = await (this as any).privatePostOrders (this.extend (request, params));
         //
         //     {
         //         "id" : "78923648051920896",
@@ -1098,7 +1098,7 @@ export default class poloniex extends Exchange {
         }
         request['id'] = id;
         params = this.omit (params, 'clientOrderId');
-        return await this.privateDeleteOrdersId (this.extend (request, params));
+        return await (this as any).privateDeleteOrdersId (this.extend (request, params));
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
@@ -1206,7 +1206,7 @@ export default class poloniex extends Exchange {
         const request = {
             'id': id,
         };
-        const trades = await this.privateGetOrdersIdTrades (this.extend (request, params));
+        const trades = await (this as any).privateGetOrdersIdTrades (this.extend (request, params));
         //
         //     [
         //         {

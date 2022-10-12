@@ -426,7 +426,7 @@ export default class coinbase extends Exchange {
     }
 
     async fetchTransactionsWithMethod (method, code = undefined, since = undefined, limit = undefined, params = {}) {
-        const request = await this.prepareAccountRequestWithCurrencyCode (code, limit, params);
+        const request = await (this as any).prepareAccountRequestWithCurrencyCode (code, limit, params);
         await this.loadMarkets ();
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
         const response = await (this as any)[method] (this.extend (request, query));
@@ -1054,7 +1054,7 @@ export default class coinbase extends Exchange {
         if (code !== undefined) {
             currency = this.currency (code);
         }
-        const request = await this.prepareAccountRequestWithCurrencyCode (code, limit, params);
+        const request = await (this as any).prepareAccountRequestWithCurrencyCode (code, limit, params);
         const query = this.omit (params, [ 'account_id', 'accountId' ]);
         // for pagination use parameter 'starting_after'
         // the value for the next page can be obtained from the result of the previous call in the 'pagination' field

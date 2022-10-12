@@ -652,7 +652,7 @@ export default class phemex extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const v2Products = await this.publicGetCfgV2Products (params);
+        const v2Products = await (this as any).publicGetCfgV2Products (params);
         //
         //     {
         //         "code":0,
@@ -3225,7 +3225,7 @@ export default class phemex extends Exchange {
             'symbol': market['id'],
             'leverage': leverage,
         };
-        return await this.privatePutPositionsLeverage (this.extend (request, params));
+        return await (this as any).privatePutPositionsLeverage (this.extend (request, params));
     }
 
     async fetchLeverageTiers (symbols = undefined, params = {}) {
@@ -3417,7 +3417,7 @@ export default class phemex extends Exchange {
             'symbol': market['id'],
             'leverage': leverage,
         };
-        return await this.privatePutPositionsLeverage (this.extend (request, params));
+        return await (this as any).privatePutPositionsLeverage (this.extend (request, params));
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {

@@ -983,7 +983,7 @@ export default class bitso extends Exchange {
         const request = {
             'oid': id,
         };
-        return await this.privateDeleteOrdersOid (this.extend (request, params));
+        return await (this as any).privateDeleteOrdersOid (this.extend (request, params));
     }
 
     async cancelOrders (ids, symbol = undefined, params = {}) {

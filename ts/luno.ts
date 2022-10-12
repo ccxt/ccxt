@@ -855,7 +855,7 @@ export default class luno extends Exchange {
         const request = {
             'order_id': id,
         };
-        return await this.privatePostStoporder (this.extend (request, params));
+        return await (this as any).privatePostStoporder (this.extend (request, params));
     }
 
     async fetchLedgerByEntries (code = undefined, entry = -1, limit = 1, params = {}) {
