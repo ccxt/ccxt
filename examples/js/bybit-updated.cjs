@@ -1,6 +1,6 @@
 'use strict';
 
-const ccxt = require ('../../ccxt');
+const ccxt = require ('../../dist/ccxt.bundle.cjs');
 
 console.log ('CCXT Version:', ccxt.version)
 

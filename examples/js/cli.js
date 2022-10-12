@@ -5,7 +5,7 @@ import asTable from 'as-table'
 import log from 'ololog'
 import util from 'util'
 import { execSync } from 'child_process'
-import { ccxt } from '../../ccxt.js'
+import ccxt from '../../ccxt.js'
 import { Agent } from 'https'
 
 ansi.nice
@@ -51,9 +51,12 @@ process.on ('unhandledRejection', e => { log2.bright.red.error (e); log2.red.err
 const keysGlobal = path.resolve ('keys.json')
 const keysLocal = path.resolve ('keys.local.json')
 
-let globalKeysFile = fs.existsSync (keysGlobal) ? keysGlobal : false
-let localKeysFile = fs.existsSync (keysLocal) ? keysLocal : globalKeysFile
-let settings = localKeysFile ? (require (localKeysFile)[exchangeId] || {}) : {}
+const keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal
+const settingsFile  = fs.readFileSync(keysFile);
+// eslint-disable-next-line import/no-dynamic-require, no-path-concat
+let settings = JSON.parse(settingsFile)
+settings = settings[exchangeId] || {}
+
 
 //-----------------------------------------------------------------------------
 
