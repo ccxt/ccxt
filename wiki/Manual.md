@@ -1611,7 +1611,6 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
 - `fetchCanceledOrders ([symbol[, since[, limit[, params]]]])`
 - `fetchClosedOrders ([symbol[, since[, limit[, params]]]])`
 - `fetchMyTrades ([symbol[, since[, limit[, params]]]])`
-- `fetchOpenInterest ([symbol[, params]])`
 - ...
 
 ```text
@@ -2849,25 +2848,6 @@ Returns
 }
 ```
 
-## Open Interest
-
-*contract only*
-
-Use the `fetchOpenInterest` method to get the open interest for a symbol from the exchange.
-
-```JavaScript
-fetchOpenInterest (symbol, params = {})
-```
-
-Parameters
-
-- **symbol** (String) Unified CCXT market symbol (e.g. `"BTC/USDT:USDT"`)
-- **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. `{"endTime": 1645807945000}`)
-
-Returns
-
-- A dictionary of [open interest structures](#open-interest-structure)
-
 ## Open Interest History
 
 *contract only*
@@ -2897,10 +2877,8 @@ Returns
 ```JavaScript
 {
     symbol: 'BTC/USDT',
-    baseVolume: 80872.801,  // deprecated
-    quoteVolume: 3508262107.38,  // deprecated
-    openInterestAmount: 80872.801,
-    openInterestValue: 3508262107.38,
+    baseVolume: 80872.801,
+    quoteVolume: 3508262107.38,
     timestamp: 1649379000000,
     datetime: '2022-04-08T00:50:00.000Z',
     info: {
