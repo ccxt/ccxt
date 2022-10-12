@@ -16,6 +16,7 @@ module.exports = class bw extends Exchange {
             'countries': [ 'CN' ],
             'rateLimit': 1500,
             'version': 'v1',
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
