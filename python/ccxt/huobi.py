@@ -3818,6 +3818,10 @@ class huobi(Exchange):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the huobi api endpoint
+        :param float|None params['stopPrice']: *spot and margin only* The price at which a trigger order is triggered at
+        :param str|None params['operator']: *spot and margin only* gte or lte, trigger price condition
+        :param str|None params['offset']: *contract only* 'open', 'close', or 'both', required in hedge mode
+        :param bool|None params['postOnly']: *contract only* True or False
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
@@ -3931,8 +3935,6 @@ class huobi(Exchange):
 
     def create_contract_order(self, symbol, type, side, amount, price=None, params={}):
         offset = self.safe_string(params, 'offset')
-        if offset is None:
-            raise ArgumentsRequired(self.id + ' createOrder() requires a string offset parameter for contract orders, open or close')
         stopPrice = self.safe_string(params, 'stopPrice')
         if stopPrice is not None:
             raise NotSupported(self.id + ' createOrder() supports tp_trigger_price + tp_order_price for take profit orders and/or sl_trigger_price + sl_order price for stop loss orders, stop orders are supported only with open long orders and open short orders')
@@ -3945,7 +3947,7 @@ class huobi(Exchange):
             # 'price': self.price_to_precision(symbol, price),  # optional
             'volume': self.amount_to_precision(symbol, amount),
             'direction': side,  # buy, sell
-            'offset': offset,  # open, close
+            # 'offset': offset,  # open, close, both
             #
             #     direction buy, offset open = open long
             #     direction sell, offset close = close long
