@@ -4029,6 +4029,10 @@ module.exports = class huobi extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the huobi api endpoint
+         * @param {float|undefined} params.stopPrice *spot and margin only* The price at which a trigger order is triggered at
+         * @param {string|undefined} params.operator *spot and margin only* gte or lte, trigger price condition
+         * @param {string|undefined} params.offset *contract only* 'open', 'close', or 'both', required in hedge mode
+         * @param {bool|undefined} params.postOnly *contract only* true or false
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
