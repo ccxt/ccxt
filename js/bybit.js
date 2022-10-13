@@ -2754,7 +2754,10 @@ export default class bybit extends Exchange {
                 if (price === undefined && cost === undefined) {
                     throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
                 } else {
-                    amount = (cost !== undefined) ? cost : amount * price;
+                    const amountString = this.numberToString (amount);
+                    const priceString = this.numberToString (price);
+                    const quoteAmount = Precise.stringMul (amountString, priceString);
+                    amount = (cost !== undefined) ? cost : this.parseNumber (quoteAmount);
                 }
             }
         }
@@ -2787,27 +2790,29 @@ export default class bybit extends Exchange {
             request['agentSource'] = brokerId;
         }
         const response = await this.privatePostSpotV1Order (this.extend (request, params));
+        //
         //    {
-        //        "ret_code":0,
-        //        "ret_msg":"",
-        //        "ext_code":null,
-        //        "ext_info":null,
-        //        "result":{
-        //           "accountId":"24478790",
-        //           "symbol":"ETHUSDT",
-        //           "symbolName":"ETHUSDT",
-        //           "orderLinkId":"1652266305358517",
-        //           "orderId":"1153687819821127168",
-        //           "transactTime":"1652266305365",
-        //           "price":"80",
-        //           "origQty":"0.05",
-        //           "executedQty":"0",
-        //           "status":"NEW",
-        //           "timeInForce":"GTC",
-        //           "type":"LIMIT",
-        //           "side":"BUY"
+        //        "ret_code": 0,
+        //        "ret_msg": "",
+        //        "ext_code": null,
+        //        "ext_info": null,
+        //        "result": {
+        //           "accountId": "24478790",
+        //           "symbol": "ETHUSDT",
+        //           "symbolName": "ETHUSDT",
+        //           "orderLinkId": "1652266305358517",
+        //           "orderId": "1153687819821127168",
+        //           "transactTime": "1652266305365",
+        //           "price": "80",
+        //           "origQty": "0.05",
+        //           "executedQty": "0",
+        //           "status": "NEW",
+        //           "timeInForce": "GTC",
+        //           "type": "LIMIT",
+        //           "side": "BUY"
         //        }
         //    }
+        //
         const order = this.safeValue (response, 'result', {});
         return this.parseOrder (order);
     }
@@ -4314,13 +4319,13 @@ export default class bybit extends Exchange {
         //
         const currencyId = this.safeString (item, 'coin');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const amount = this.safeNumber (item, 'amount');
-        const after = this.safeNumber (item, 'wallet_balance');
-        const direction = (amount < 0) ? 'out' : 'in';
+        const amount = this.safeString (item, 'amount');
+        const after = this.safeString (item, 'wallet_balance');
+        const direction = Precise.stringLt (amount, '0') ? 'out' : 'in';
         let before = undefined;
         if (after !== undefined && amount !== undefined) {
-            const difference = (direction === 'out') ? amount : -amount;
-            before = this.sum (after, difference);
+            const difference = (direction === 'out') ? amount : Precise.stringNeg (amount);
+            before = Precise.stringAdd (after, difference);
         }
         const timestamp = this.parse8601 (this.safeString (item, 'exec_time'));
         const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
@@ -4333,9 +4338,9 @@ export default class bybit extends Exchange {
             'referenceAccount': undefined,
             'referenceId': referenceId,
             'status': undefined,
-            'amount': amount,
-            'before': before,
-            'after': after,
+            'amount': this.parseNumber (amount),
+            'before': this.parseNumber (before),
+            'after': this.parseNumber (after),
             'fee': undefined,
             'direction': direction,
             'timestamp': timestamp,

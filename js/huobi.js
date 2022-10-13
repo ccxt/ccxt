@@ -1588,6 +1588,16 @@ export default class huobi extends Exchange {
                 }
             }
             const contractSize = this.safeNumber (market, 'contract_size');
+            let minCost = this.safeNumber (market, 'min-order-value');
+            const maxAmount = this.safeNumber (market, 'max-order-amt');
+            let minAmount = this.safeNumber (market, 'min-order-amt');
+            if (contract) {
+                if (linear) {
+                    minAmount = contractSize;
+                } else if (inverse) {
+                    minCost = contractSize;
+                }
+            }
             let pricePrecision = undefined;
             let amountPrecision = undefined;
             let costPrecision = undefined;
@@ -1605,9 +1615,6 @@ export default class huobi extends Exchange {
                 maker = (base === 'OMG') ? this.parseNumber ('0') : this.parseNumber ('0.002');
                 taker = (base === 'OMG') ? this.parseNumber ('0') : this.parseNumber ('0.002');
             }
-            const minAmount = this.safeNumber (market, 'min-order-amt');
-            const maxAmount = this.safeNumber (market, 'max-order-amt');
-            const minCost = this.safeNumber (market, 'min-order-value', 0);
             let active = undefined;
             if (spot) {
                 const state = this.safeString (market, 'state');
@@ -2772,7 +2779,7 @@ export default class huobi extends Exchange {
                 const active = withdrawEnabled && depositEnabled;
                 const precision = this.parsePrecision (this.safeString (chain, 'withdrawPrecision'));
                 if (precision !== undefined) {
-                    minPrecision = (minPrecision === undefined) ? precision : Precise.stringMax (precision, minPrecision);
+                    minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (precision, minPrecision);
                 }
                 if (withdrawEnabled && !withdraw) {
                     withdraw = true;
@@ -4028,6 +4035,10 @@ export default class huobi extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the huobi api endpoint
+         * @param {float|undefined} params.stopPrice *spot and margin only* The price at which a trigger order is triggered at
+         * @param {string|undefined} params.operator *spot and margin only* gte or lte, trigger price condition
+         * @param {string|undefined} params.offset *contract only* 'open', 'close', or 'both', required in hedge mode
+         * @param {bool|undefined} params.postOnly *contract only* true or false
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -4154,9 +4165,6 @@ export default class huobi extends Exchange {
 
     async createContractOrder (symbol, type, side, amount, price = undefined, params = {}) {
         const offset = this.safeString (params, 'offset');
-        if (offset === undefined) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a string offset parameter for contract orders, open or close');
-        }
         const stopPrice = this.safeString (params, 'stopPrice');
         if (stopPrice !== undefined) {
             throw new NotSupported (this.id + ' createOrder() supports tp_trigger_price + tp_order_price for take profit orders and/or sl_trigger_price + sl_order price for stop loss orders, stop orders are supported only with open long orders and open short orders');
@@ -4170,7 +4178,7 @@ export default class huobi extends Exchange {
             // 'price': this.priceToPrecision (symbol, price), // optional
             'volume': this.amountToPrecision (symbol, amount),
             'direction': side, // buy, sell
-            'offset': offset, // open, close
+            // 'offset': offset, // open, close, both
             //
             //     direction buy, offset open = open long
             //     direction sell, offset close = close long
