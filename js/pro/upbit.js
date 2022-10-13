@@ -139,7 +139,8 @@ module.exports = class upbit extends upbitRest {
         const options = this.safeValue (this.options, 'watchOrderBook', {});
         const limit = this.safeInteger (options, 'limit', 15);
         if (type === 'SNAPSHOT') {
-            this.orderbooks[symbol] = this.orderBook ({}, limit);
+            const orderbook = this.orderBook ({}, limit);
+            this.orderbooks[symbol] = orderbook;
         }
         const orderBook = this.orderbooks[symbol];
         // upbit always returns a snapshot of 15 topmost entries
@@ -147,6 +148,7 @@ module.exports = class upbit extends upbitRest {
         // therefore we reset the orderbook on each update
         // and reinitialize it again with new bidasks
         orderBook.reset ({});
+        orderBook['symbol'] = symbol;
         const bids = orderBook['bids'];
         const asks = orderBook['asks'];
         const data = this.safeValue (message, 'orderbook_units', []);
