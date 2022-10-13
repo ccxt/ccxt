@@ -1567,6 +1567,14 @@ class huobi(Exchange):
                     expiry = self.safe_integer(market, 'delivery_time')
                     symbol += '-' + self.yymmdd(expiry)
             contractSize = self.safe_number(market, 'contract_size')
+            minCost = self.safe_number(market, 'min-order-value')
+            maxAmount = self.safe_number(market, 'max-order-amt')
+            minAmount = self.safe_number(market, 'min-order-amt')
+            if contract:
+                if linear:
+                    minAmount = contractSize
+                elif inverse:
+                    minCost = contractSize
             pricePrecision = None
             amountPrecision = None
             costPrecision = None
@@ -1582,9 +1590,6 @@ class huobi(Exchange):
             if spot:
                 maker = self.parse_number('0') if (base == 'OMG') else self.parse_number('0.002')
                 taker = self.parse_number('0') if (base == 'OMG') else self.parse_number('0.002')
-            minAmount = self.safe_number(market, 'min-order-amt')
-            maxAmount = self.safe_number(market, 'max-order-amt')
-            minCost = self.safe_number(market, 'min-order-value', 0)
             active = None
             if spot:
                 state = self.safe_string(market, 'state')

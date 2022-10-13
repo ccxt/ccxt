@@ -1606,6 +1606,16 @@ class huobi extends Exchange {
                     }
                 }
                 $contractSize = $this->safe_number($market, 'contract_size');
+                $minCost = $this->safe_number($market, 'min-order-value');
+                $maxAmount = $this->safe_number($market, 'max-order-amt');
+                $minAmount = $this->safe_number($market, 'min-order-amt');
+                if ($contract) {
+                    if ($linear) {
+                        $minAmount = $contractSize;
+                    } elseif ($inverse) {
+                        $minCost = $contractSize;
+                    }
+                }
                 $pricePrecision = null;
                 $amountPrecision = null;
                 $costPrecision = null;
@@ -1623,9 +1633,6 @@ class huobi extends Exchange {
                     $maker = ($base === 'OMG') ? $this->parse_number('0') : $this->parse_number('0.002');
                     $taker = ($base === 'OMG') ? $this->parse_number('0') : $this->parse_number('0.002');
                 }
-                $minAmount = $this->safe_number($market, 'min-order-amt');
-                $maxAmount = $this->safe_number($market, 'max-order-amt');
-                $minCost = $this->safe_number($market, 'min-order-value', 0);
                 $active = null;
                 if ($spot) {
                     $state = $this->safe_string($market, 'state');
