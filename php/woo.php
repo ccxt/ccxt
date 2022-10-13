@@ -605,6 +605,7 @@ class woo extends Exchange {
             $networks = $networksByCurrencyId[$currencyId];
             $code = $this->safe_currency_code($currencyId);
             $name = null;
+            $minPrecision = null;
             $resultingNetworks = array();
             for ($j = 0; $j < count($networks); $j++) {
                 $network = $networks[$j];
@@ -612,7 +613,10 @@ class woo extends Exchange {
                 $networkId = $this->safe_string($network, 'token');
                 $splitted = explode('_', $networkId);
                 $unifiedNetwork = $splitted[0];
-                $precision = $this->parse_number($this->parse_precision($this->safe_string($network, 'decimals')));
+                $precision = $this->parse_precision($this->safe_string($network, 'decimals'));
+                if ($precision !== null) {
+                    $minPrecision = ($minPrecision === null) ? $precision : Precise::string_min($precision, $minPrecision);
+                }
                 $resultingNetworks[$unifiedNetwork] = array(
                     'id' => $networkId,
                     'network' => $unifiedNetwork,
@@ -630,7 +634,7 @@ class woo extends Exchange {
                     'deposit' => null,
                     'withdraw' => null,
                     'fee' => null,
-                    'precision' => $precision, // will be filled down below
+                    'precision' => $this->parse_number($precision),
                     'info' => $network,
                 );
             }
@@ -638,7 +642,7 @@ class woo extends Exchange {
                 'id' => $currencyId,
                 'name' => $name,
                 'code' => $code,
-                'precision' => null,
+                'precision' => $this->parse_number($minPrecision),
                 'active' => null,
                 'fee' => null,
                 'networks' => $resultingNetworks,
@@ -652,7 +656,7 @@ class woo extends Exchange {
                         'max' => null,
                     ),
                 ),
-                'info' => $networks, // will be filled down below
+                'info' => $networks,
             );
         }
         return $result;

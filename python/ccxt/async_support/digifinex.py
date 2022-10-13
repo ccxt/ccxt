@@ -238,6 +238,12 @@ class digifinex(Exchange):
             },
         })
 
+    def safe_network(self, networkId):
+        if networkId is None:
+            return None
+        else:
+            return networkId.upper()
+
     async def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
@@ -293,12 +299,48 @@ class digifinex(Exchange):
             deposit = depositStatus > 0
             withdraw = withdrawStatus > 0
             active = deposit and withdraw
-            fee = self.safe_number(currency, 'withdraw_fee_rate')
+            fee = self.safe_number(currency, 'min_withdraw_fee')  # withdraw_fee_rate was zero for all currencies, so self was the worst case scenario
+            minWithdraw = self.safe_number(currency, 'min_withdraw_amount')
+            minDeposit = self.safe_number(currency, 'min_deposit_amount')
+            networkId = self.safe_string(currency, 'chain')
+            network = {
+                'id': networkId,
+                'network': self.safe_network(networkId),
+                'name': None,
+                'active': active,
+                'fee': fee,
+                'precision': self.parse_number('0.00000001'),  # todo fix hardcoded value
+                'deposit': deposit,
+                'withdraw': withdraw,
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': minWithdraw,
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': minDeposit,
+                        'max': None,
+                    },
+                },
+                'info': currency,
+            }
             if code in result:
                 if isinstance(result[code]['info'], list):
                     result[code]['info'].append(currency)
                 else:
                     result[code]['info'] = [result[code]['info'], currency]
+                if withdraw:
+                    result[code]['withdraw'] = True
+                    result[code]['limits']['withdraw']['min'] = min(result[code]['limits']['withdraw']['min'], minWithdraw)
+                if deposit:
+                    result[code]['deposit'] = True
+                    result[code]['limits']['deposit']['min'] = min(result[code]['limits']['deposit']['min'], minDeposit)
+                if active:
+                    result[code]['active'] = True
             else:
                 result[code] = {
                     'id': id,
@@ -317,11 +359,17 @@ class digifinex(Exchange):
                             'max': None,
                         },
                         'withdraw': {
-                            'min': self.safe_number(currency, 'min_withdraw_amount'),
+                            'min': minWithdraw,
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': minDeposit,
                             'max': None,
                         },
                     },
+                    'networks': {},
                 }
+            result[code]['networks'][networkId] = network
         return result
 
     async def fetch_markets(self, params={}):

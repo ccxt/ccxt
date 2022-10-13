@@ -147,6 +147,7 @@ module.exports = class upbit extends upbitRest {
         // therefore we reset the orderbook on each update
         // and reinitialize it again with new bidasks
         orderBook.reset ({});
+        orderBook['symbol'] = symbol;
         const bids = orderBook['bids'];
         const asks = orderBook['asks'];
         const data = this.safeValue (message, 'orderbook_units', []);

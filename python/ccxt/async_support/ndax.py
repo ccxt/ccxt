@@ -69,6 +69,7 @@ class ndax(Exchange):
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
+                'fetchTickers': False,
                 'fetchTime': False,
                 'fetchTrades': True,
                 'fetchTradingFee': False,

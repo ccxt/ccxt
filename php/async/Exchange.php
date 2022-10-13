@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.95.5';
+$version = '2.0.9';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.95.5';
+    const VERSION = '2.0.9';
 
     public $browser;
     public $marketsLoading = null;
@@ -1499,26 +1499,32 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function fetch_funding_fee($code, $params = array ()) {
-        $warnOnFetchFundingFee = $this->safe_value($this->options, 'warnOnFetchFundingFee', true);
-        if ($warnOnFetchFundingFee) {
-            throw new NotSupported($this->id . ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning');
-        }
-        return $this->fetch_transaction_fee($code, $params);
+        return Async\async(function () use ($code, $params) {
+            $warnOnFetchFundingFee = $this->safe_value($this->options, 'warnOnFetchFundingFee', true);
+            if ($warnOnFetchFundingFee) {
+                throw new NotSupported($this->id . ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning');
+            }
+            return Async\await($this->fetch_transaction_fee($code, $params));
+        }) ();
     }
 
     public function fetch_funding_fees($codes = null, $params = array ()) {
-        $warnOnFetchFundingFees = $this->safe_value($this->options, 'warnOnFetchFundingFees', true);
-        if ($warnOnFetchFundingFees) {
-            throw new NotSupported($this->id . ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');
-        }
-        return $this->fetch_transaction_fees($codes, $params);
+        return Async\async(function () use ($codes, $params) {
+            $warnOnFetchFundingFees = $this->safe_value($this->options, 'warnOnFetchFundingFees', true);
+            if ($warnOnFetchFundingFees) {
+                throw new NotSupported($this->id . ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');
+            }
+            return Async\await($this->fetch_transaction_fees($codes, $params));
+        }) ();
     }
 
     public function fetch_transaction_fee($code, $params = array ()) {
-        if (!$this->has['fetchTransactionFees']) {
-            throw new NotSupported($this->id . ' fetchTransactionFee() is not supported yet');
-        }
-        return $this->fetch_transaction_fees(array( $code ), $params);
+        return Async\async(function () use ($code, $params) {
+            if (!$this->has['fetchTransactionFees']) {
+                throw new NotSupported($this->id . ' fetchTransactionFee() is not supported yet');
+            }
+            return Async\await($this->fetch_transaction_fees(array( $code ), $params));
+        }) ();
     }
 
     public function fetch_transaction_fees($codes = null, $params = array ()) {
