@@ -439,19 +439,16 @@ module.exports = class kucoinfutures extends kucoin {
             const inverse = this.safeValue (market, 'isInverse');
             const status = this.safeString (market, 'status');
             const multiplier = this.safeString (market, 'multiplier');
-            const contractSize = this.parseNumber (Precise.stringAbs (multiplier));
             const tickSize = this.safeNumber (market, 'tickSize');
             const lotSize = this.safeNumber (market, 'lotSize');
-            const maxQuantity = this.safeNumber (market, 'maxOrderQty');
             let limitAmountMin = lotSize;
             if (limitAmountMin === undefined) {
                 limitAmountMin = this.safeNumber (market, 'baseMinSize');
             }
-            let limitAmountMax = maxQuantity;
+            let limitAmountMax = this.safeNumber (market, 'maxOrderQty');
             if (limitAmountMax === undefined) {
                 limitAmountMax = this.safeNumber (market, 'baseMaxSize');
             }
-            let limitPriceMin = tickSize;
             let limitPriceMax = this.safeNumber (market, 'maxPrice');
             if (limitPriceMax === undefined) {
                 const baseMinSizeString = this.safeString (market, 'baseMinSize');
@@ -479,7 +476,7 @@ module.exports = class kucoinfutures extends kucoin {
                 'inverse': inverse,
                 'taker': this.safeNumber (market, 'takerFeeRate'),
                 'maker': this.safeNumber (market, 'makerFeeRate'),
-                'contractSize': contractSize,
+                'contractSize': this.parseNumber (Precise.stringAbs (multiplier)),
                 'expiry': expiry,
                 'expiryDatetime': this.iso8601 (expiry),
                 'strike': undefined,
@@ -498,7 +495,7 @@ module.exports = class kucoinfutures extends kucoin {
                         'max': limitAmountMax,
                     },
                     'price': {
-                        'min': limitPriceMin,
+                        'min': tickSize,
                         'max': limitPriceMax,
                     },
                     'cost': {
