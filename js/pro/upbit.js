@@ -139,8 +139,7 @@ module.exports = class upbit extends upbitRest {
         const options = this.safeValue (this.options, 'watchOrderBook', {});
         const limit = this.safeInteger (options, 'limit', 15);
         if (type === 'SNAPSHOT') {
-            const orderbook = this.orderBook ({}, limit);
-            this.orderbooks[symbol] = orderbook;
+            this.orderbooks[symbol] = this.orderBook ({}, limit);
         }
         const orderBook = this.orderbooks[symbol];
         // upbit always returns a snapshot of 15 topmost entries
