@@ -1589,6 +1589,16 @@ module.exports = class huobi extends Exchange {
                 }
             }
             const contractSize = this.safeNumber (market, 'contract_size');
+            let minCost = this.safeNumber (market, 'min-order-value');
+            const maxAmount = this.safeNumber (market, 'max-order-amt');
+            let minAmount = this.safeNumber (market, 'min-order-amt');
+            if (contract) {
+                if (linear) {
+                    minAmount = contractSize;
+                } else if (inverse) {
+                    minCost = contractSize;
+                }
+            }
             let pricePrecision = undefined;
             let amountPrecision = undefined;
             let costPrecision = undefined;
@@ -1606,9 +1616,6 @@ module.exports = class huobi extends Exchange {
                 maker = (base === 'OMG') ? this.parseNumber ('0') : this.parseNumber ('0.002');
                 taker = (base === 'OMG') ? this.parseNumber ('0') : this.parseNumber ('0.002');
             }
-            const minAmount = this.safeNumber (market, 'min-order-amt');
-            const maxAmount = this.safeNumber (market, 'max-order-amt');
-            const minCost = this.safeNumber (market, 'min-order-value', 0);
             let active = undefined;
             if (spot) {
                 const state = this.safeString (market, 'state');
