@@ -274,6 +274,7 @@ class mexc(Exchange):
                     'TRX': 'TRC20',
                     'ETH': 'ERC20',
                     'BEP20': 'BEP20(BSC)',
+                    'BSC': 'BEP20(BSC)',
                 },
                 'accountsByType': {
                     'spot': 'MAIN',
