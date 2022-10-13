@@ -4158,6 +4158,7 @@ module.exports = class huobi extends Exchange {
     }
 
     async createContractOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        const offset = this.safeString (params, 'offset');
         const stopPrice = this.safeString (params, 'stopPrice');
         if (stopPrice !== undefined) {
             throw new NotSupported (this.id + ' createOrder() supports tp_trigger_price + tp_order_price for take profit orders and/or sl_trigger_price + sl_order price for stop loss orders, stop orders are supported only with open long orders and open short orders');
