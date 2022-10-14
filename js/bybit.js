@@ -3867,22 +3867,8 @@ module.exports = class bybit extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (market['spot'] || (market['settle'] === 'USDC')) {
-            throw new NotSupported (this.id + ' fetchOrders() does not support ' + market['type'] + ' markets or USDC markets, use exchange.fetchOpenOrders () and exchange.fetchClosedOrders () instead');
-        }
-        let method = undefined;
-        const isStop = this.safeValue (params, 'stop', false);
-        const orderType = this.safeStringLower (params, 'orderType');
-        const stopOrderId = this.safeString (params, 'stop_order_id'); // might want to filter by id
-        const isConditionalOrder = isStop || (stopOrderId !== undefined) || (orderType === 'stop' || orderType === 'conditional');
-        params = this.omit (params, [ 'orderType', 'stop', 'orderType' ]);
-        if (market['linear']) {
-            method = isConditionalOrder ? 'privateGetPrivateLinearStopOrderList' : 'privateGetPrivateLinearOrderList';
-        } else if (market['future']) {
-            method = isConditionalOrder ? 'privateGetFuturesPrivateStopOrderList' : 'privateGetFuturesPrivateOrderList';
-        } else {
-            // inverse swap
-            method = isConditionalOrder ? 'privateGetV2PrivateStopOrderList' : 'privateGetV2PrivateOrderList';
+        if (market['spot']) {
+            throw new NotSupported (this.id + ' fetchOrders() does not support ' + market['type'] + ' markets, use exchange.fetchOpenOrders () and exchange.fetchClosedOrders () instead');
         }
         const request = {
             'symbol': market['id'],
@@ -3897,6 +3883,35 @@ module.exports = class bybit extends Exchange {
             // 'stop_order_id': 'string',
             // 'stop_order_status': 'Untriggered',
         };
+        let method = undefined;
+        const isStop = this.safeValue (params, 'stop', false);
+        const orderType = this.safeStringLower (params, 'orderType');
+        const stopOrderId = this.safeString (params, 'stop_order_id'); // might want to filter by id
+        const isConditionalOrder = isStop || (stopOrderId !== undefined) || (orderType === 'stop' || orderType === 'conditional');
+        params = this.omit (params, [ 'orderType', 'stop', 'orderType' ]);
+        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+        if (enableUnifiedMargin) {
+            method = 'privateGetUnifiedV3PrivateOrderList';
+            if (market['option']) {
+                request['category'] = 'option';
+            } else if (market['linear']) {
+                request['category'] = 'linear';
+            } else {
+                throw new NotSupported (this.id + ' fetchOrders() does not allow inverse market orders for ' + symbol + ' markets');
+            }
+            if (isConditionalOrder) {
+                request['orderFilter'] = 'StopOrder';
+            }
+        } else if (market['settle'] === 'USDC') {
+            throw new NotSupported (this.id + ' fetchOrders() does not support ' + market['type'] + ' USDC markets, use exchange.fetchOpenOrders () and exchange.fetchClosedOrders () instead');
+        } else if (market['linear']) {
+            method = isConditionalOrder ? 'privateGetPrivateLinearStopOrderList' : 'privateGetPrivateLinearOrderList';
+        } else if (market['future']) {
+            method = isConditionalOrder ? 'privateGetFuturesPrivateStopOrderList' : 'privateGetFuturesPrivateOrderList';
+        } else {
+            // inverse swap
+            method = isConditionalOrder ? 'privateGetV2PrivateStopOrderList' : 'privateGetV2PrivateOrderList';
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
@@ -3987,8 +4002,52 @@ module.exports = class bybit extends Exchange {
         //         "rate_limit":"600"
         //     }
         //
+        // Unified Margin
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "Success",
+        //         "result": {
+        //         "nextPageCursor": "7d17d359-4e38-4d3a-9a31-29791ef2dfd7%3A1657711949928%2C7d17d359-4e38-4d3a-9a31-29791ef2dfd7%3A1657711949928",
+        //         "category": "linear",
+        //         "list": [
+        //             {
+        //                 "symbol": "ETHUSDT",
+        //                 "orderType": "Market",
+        //                 "orderLinkId": "",
+        //                 "orderId": "7d17d359-4e38-4d3a-9a31-29791ef2dfd7",
+        //                 "stopOrderType": "UNKNOWN",
+        //                 "orderStatus": "Filled",
+        //                 "takeProfit": "",
+        //                 "cumExecValue": "536.92500000",
+        //                 "blockTradeId": "",
+        //                 "rejectReason": "EC_NoError",
+        //                 "price": "1127.10000000",
+        //                 "createdTime": 1657711949928,
+        //                 "tpTriggerBy": "UNKNOWN",
+        //                 "timeInForce": "ImmediateOrCancel",
+        //                 "basePrice": "",
+        //                 "leavesValue": "0.00000000",
+        //                 "updatedTime": 1657711949945,
+        //                 "side": "Buy",
+        //                 "triggerPrice": "",
+        //                 "cumExecFee": "0.32215500",
+        //                 "slTriggerBy": "UNKNOWN",
+        //                 "leavesQty": "0.0000",
+        //                 "closeOnTrigger": false,
+        //                 "cumExecQty": "0.5000",
+        //                 "reduceOnly": false,
+        //                 "qty": "0.5000",
+        //                 "stopLoss": "",
+        //                 "triggerBy": "UNKNOWN",
+        //                 "orderIM": ""
+        //             }]
+        //         },
+        //         "time": 1657713451741
+        //     }
+        //
         const result = this.safeValue (response, 'result', {});
-        const data = this.safeValue (result, 'data', []);
+        const data = this.safeValue2 (result, 'data', 'list', []);
         return this.parseOrders (data, market, since, limit);
     }
 
