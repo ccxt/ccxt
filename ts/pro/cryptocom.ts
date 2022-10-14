@@ -1,13 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
-import cryptocomRest from '../cryptocom.js';
+import { cryptocomBridge } from './bridge/bridge.js';
 import { AuthenticationError, NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class cryptocom extends cryptocomRest {
+export default class cryptocom extends cryptocomBridge {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

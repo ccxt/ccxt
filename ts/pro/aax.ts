@@ -1,13 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
-import aaxRest from '../aax.js';
+import { aaxBridge } from './bridge/bridge.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
 import { NotSupported, AuthenticationError } from '../base/errors.js';
-
 //  ---------------------------------------------------------------------------
 
-export default class aax extends aaxRest {
+export default class aax extends aaxBridge {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -48,8 +47,8 @@ export default class aax extends aaxRest {
             'stream': messageHash,
         };
         const request = this.deepExtend (subscribe, params);
-        const ohlcv = await this.watch (url, messageHash, request, messageHash);
-        if (this.newUpdates) {
+        const ohlcv = await this.ws.watch (url, messageHash, request, messageHash);
+        if (this.ws.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -108,7 +107,7 @@ export default class aax extends aaxRest {
             'stream': name,
         };
         const request = this.extend (subscribe, params);
-        return await this.watch (url, messageHash, request, name);
+        return await this.wsConnector.watch (url, messageHash, request, name);
     }
 
     handleTickers (client, message) {
@@ -171,8 +170,8 @@ export default class aax extends aaxRest {
             'stream': messageHash,
         };
         const request = this.extend (subscribe, params);
-        const trades = await this.watch (url, messageHash, request, messageHash);
-        if (this.newUpdates) {
+        const trades = await this.wsConnector.watch (url, messageHash, request, messageHash);
+        if (this.wsConnector.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -221,7 +220,7 @@ export default class aax extends aaxRest {
             'stream': messageHash,
         };
         const request = this.extend (subscribe, params);
-        const orderbook = await this.watch (url, messageHash, request, messageHash);
+        const orderbook = await this.wsConnector.watch (url, messageHash, request, messageHash);
         return orderbook.limit (limit);
     }
 
@@ -265,7 +264,7 @@ export default class aax extends aaxRest {
         const snapshot = this.parseOrderBook (message, symbol, timestamp);
         let orderbook = undefined;
         if (!(symbol in this.orderbooks)) {
-            orderbook = this.orderBook (snapshot, limit);
+            orderbook = this.wsConnector.orderBook (snapshot, limit);
             this.orderbooks[symbol] = orderbook;
         } else {
             orderbook = this.orderbooks[symbol];
@@ -283,7 +282,7 @@ export default class aax extends aaxRest {
 
     async handshake (params = {}) {
         const url = this.urls['api']['ws']['private'];
-        const client = this.client (url);
+        const client = this.wsConnector.client (url);
         const event = 'handshake';
         const future = client.future (event);
         const authenticated = this.safeValue (client.subscriptions, event);
@@ -296,7 +295,7 @@ export default class aax extends aaxRest {
             };
             const request = this.extend (query, params);
             const messageHash = requestId.toString ();
-            const response = await this.watch (url, messageHash, request, event);
+            const response = await this.wsConnector.watch (url, messageHash, request, event);
             future.resolve (response);
         }
         return await future;
@@ -304,7 +303,7 @@ export default class aax extends aaxRest {
 
     async authenticate (params = {}) {
         const url = this.urls['api']['ws']['private'];
-        const client = this.client (url);
+        const client = this.wsConnector.client (url);
         const event = 'login';
         const future = client.future (event);
         const authenticated = this.safeValue (client.subscriptions, event);
@@ -324,7 +323,7 @@ export default class aax extends aaxRest {
             };
             const request = this.extend (query, params);
             const messageHash = requestId.toString ();
-            const response = await this.watch (url, messageHash, request, event);
+            const response = await this.wsConnector.watch (url, messageHash, request, event);
             //
             //     {
             //         data: {
@@ -385,7 +384,7 @@ export default class aax extends aaxRest {
             'cid': requestId,
         };
         const request = this.deepExtend (subscribe, query);
-        return await this.watch (url, messageHash, request, channel);
+        return await this.wsConnector.watch (url, messageHash, request, channel);
     }
 
     handleBalance (client, message) {
@@ -453,8 +452,8 @@ export default class aax extends aaxRest {
             'cid': requestId,
         };
         const request = this.deepExtend (subscribe, query);
-        const orders = await this.watch (url, messageHash, request, messageHash);
-        if (this.newUpdates) {
+        const orders = await this.wsConnector.watch (url, messageHash, request, messageHash);
+        if (this.wsConnector.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
@@ -604,7 +603,7 @@ export default class aax extends aaxRest {
     }
 
     handlePing (client, message) {
-        this.spawn (this.pong, client, message);
+        this.wsConnector.spawn (this.pong, client, message);
     }
 
     handleNotification (client, message) {

@@ -2,13 +2,13 @@
 //  ---------------------------------------------------------------------------
 
 import { Precise } from '../base/Precise.js';
-import bybitRest from '../bybit.js';
+import { bybitBridge } from './bridge/bridge.js';
 import { AuthenticationError, BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class bybit extends bybitRest {
+export default class bybit extends bybitBridge {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

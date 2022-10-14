@@ -1,13 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
-import bitstampRest from '../bitstamp.js';
+import { bitstampBridge } from './bridge/bridge.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class bitstamp extends bitstampRest {
+export default class bitstamp extends bitstampBridge {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

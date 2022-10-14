@@ -1,13 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
-import bitvavoRest from '../bitvavo.js';
+import { bitvavoBridge } from './bridge/bridge.js';
 import { AuthenticationError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class bitvavo extends bitvavoRest {
+export default class bitvavo extends bitvavoBridge {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

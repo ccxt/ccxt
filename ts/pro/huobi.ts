@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import huobiRest from '../huobi.js';
+import { huobiBridge } from './bridge/bridge.js';
 import {
     ExchangeError,
     InvalidNonce,
@@ -14,7 +14,7 @@ import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './bas
 
 //  ---------------------------------------------------------------------------
 
-export default class huobi extends huobiRest {
+export default class huobi extends huobiBridge {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

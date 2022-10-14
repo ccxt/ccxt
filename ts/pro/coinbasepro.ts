@@ -1,13 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
-import coinbaseproRest from '../coinbasepro.js';
+import { coinbaseproBridge } from './bridge/bridge.js';
 import { BadSymbol } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class coinbasepro extends coinbaseproRest {
+export default class coinbasepro extends coinbaseproBridge {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

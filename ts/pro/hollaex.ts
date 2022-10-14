@@ -1,13 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
-import hollaexRest from '../hollaex.js';
+import { hollaexBridge } from './bridge/bridge.js';
 import { AuthenticationError, BadSymbol, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class hollaex extends hollaexRest {
+export default class hollaex extends hollaexBridge {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

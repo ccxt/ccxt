@@ -1,12 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
-import upbitRest from '../upbit.js';
+import { upbitBridge } from './bridge/bridge.js';
 import { ArrayCache } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class upbit extends upbitRest {
+export default class upbit extends upbitBridge {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

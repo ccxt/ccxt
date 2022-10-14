@@ -1,13 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
-import bitfinexRest from '../bitfinex.js';
+import { bitfinexBridge } from './bridge/bridge.js';
 import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class bitfinex extends bitfinexRest {
+export default class bitfinex extends bitfinexBridge {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

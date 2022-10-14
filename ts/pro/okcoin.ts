@@ -1,13 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
-import okcoinRest from '../okcoin.js';
+import { okcoinBridge } from './bridge/bridge.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class okcoin extends okcoinRest {
+export default class okcoin extends okcoinBridge {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

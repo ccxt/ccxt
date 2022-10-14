@@ -1,13 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
-import exmoRest from '../exmo.js';
+import { exmoBridge } from './bridge/bridge.js';
 import { NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class exmo extends exmoRest {
+export default class exmo extends exmoBridge {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

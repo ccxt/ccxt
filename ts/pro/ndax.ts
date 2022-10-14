@@ -1,12 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
-import ndaxRest from '../ndax.js';
+import { ndaxBridge } from './bridge/bridge.js';
 import { ArrayCache } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class ndax extends ndaxRest {
+export default class ndax extends ndaxBridge {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

@@ -1,13 +1,13 @@
 
 // ----------------------------------------------------------------------------
 
-import bitoproRest from '../bitopro.js';
+import { bitoproBridge } from './bridge/bridge.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache } from './base/Cache.js';
 
 // ----------------------------------------------------------------------------
 
-export default class bitopro extends bitoproRest {
+export default class bitopro extends bitoproBridge {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

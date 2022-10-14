@@ -1,12 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
-import ripioRest from '../ripio.js';
+import { ripioBridge } from './bridge/bridge.js';
 import { ArrayCache } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class ripio extends ripioRest {
+export default class ripio extends ripioBridge {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

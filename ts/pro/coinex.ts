@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import { Precise } from '../base/Precise.js';
-import coinexRest from '../coinex.js';
+import { coinexBridge } from './bridge/bridge.js';
 import {
     AuthenticationError,
     BadRequest,
@@ -15,7 +15,7 @@ import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './bas
 
 //  ---------------------------------------------------------------------------
 
-export default class coinex extends coinexRest {
+export default class coinex extends coinexBridge {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

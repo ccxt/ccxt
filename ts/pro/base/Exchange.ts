@@ -1,26 +1,26 @@
-import BaseExchange from '../../base/Exchange.js';
-import { throttle } from '../../base/functions.js';
+import { throttle, safeValue, extend } from '../../base/functions.js';
 import WsClient from './WsClient.js';
 import { OrderBook, IndexedOrderBook, CountedOrderBook } from './OrderBook.js';
 import { inflate64, inflate, gunzip } from './functions.js';;
 
-export default class Exchange extends BaseExchange {
+export default class Exchange  {
     
     newUpdates = true
     options = {}
-    log = undefined
+    wsLog = undefined
     ping = undefined
-    verbose = undefined
+    wsVerbose = undefined
     clients = {}
-    timeframes = undefined
+    // timeframes = undefined
     tokenBucket = undefined
-    handleMessage = undefined
+    // handleMessage = undefined
     enableRateLimit = undefined
     streaming = undefined
 
     constructor (options = {}) {
-        super (options);
-        this.newUpdates = options.newUpdates || true;
+        this.newUpdates = (options as any).newUpdates || true;
+        this.wsLog = (options as any).wsLog || undefined;
+        this.wsVerbose = (options as any).verbose || undefined;
     }
 
     inflate (data) {
@@ -46,20 +46,24 @@ export default class Exchange extends BaseExchange {
     countedOrderBook (snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
         return new CountedOrderBook (snapshot, depth);
     }
+    
+    // handleMessage(client, message) {
+
+    // }
 
     client (url) {
         this.clients = this.clients || {};
         if (!this.clients[url]) {
-            const onMessage = this.handleMessage.bind (this);
+            const onMessage = (this as any).handleMessage.bind (this);
             const onError = this.onError.bind (this);
             const onClose = this.onClose.bind (this);
             const onConnected = this.onConnected.bind (this);
             // decide client type here: ws / signalr / socketio
-            const wsOptions = this.safeValue (this.options, 'ws', {});
-            const options = this.extend (this.streaming, {
-                'log': this.log ? this.log.bind (this) : this.log,
+            const wsOptions = safeValue (this.options, 'ws', {});
+            const options = extend (this.streaming, {
+                'log': this.wsLog ? this.wsLog.bind (this) : this.wsLog,
                 'ping': this.ping ? this.ping.bind (this) : this.ping,
-                'verbose': this.verbose,
+                'verbose': this.wsVerbose,
                 'throttle': throttle (this.tokenBucket),
             }, wsOptions);
             this.clients[url] = new WsClient (url, onMessage, onError, onClose, onConnected, options);
@@ -123,8 +127,8 @@ export default class Exchange extends BaseExchange {
         connected.then (() => {
             if (!client.subscriptions[subscribeHash]) {
                 client.subscriptions[subscribeHash] = subscription || true;
-                const options = this.safeValue (this.options, 'ws');
-                const cost = this.safeValue (options, 'cost', 1);
+                const options = safeValue (this.options, 'ws');
+                const cost = safeValue (options, 'cost', 1);
                 if (message) {
                     if (this.enableRateLimit && client.throttle) {
                         // add cost here |
@@ -171,18 +175,6 @@ export default class Exchange extends BaseExchange {
             delete this.clients[(client as any).url];
             await (client as any).close ();
         }
-    }
-
-    findTimeframe (timeframe, timeframes = undefined) {
-        timeframes = timeframes || this.timeframes;
-        const keys = Object.keys (timeframes);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            if (timeframes[key] === timeframe) {
-                return key;
-            }
-        }
-        return undefined;
     }
 
     formatScientificNotationFTX (n) {

@@ -1,13 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
-import idexRest from '../idex.js';
+import { idexBridge } from './bridge/bridge.js';
 import { InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class idex extends idexRest {
+export default class idex extends idexBridge {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

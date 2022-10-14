@@ -1,14 +1,14 @@
 
 //  ---------------------------------------------------------------------------
 
-import whitebitRest from '../whitebit.js';
+import { whitebitBridge } from './bridge/bridge.js';
 import { Precise } from '../base/Precise.js';
 import { AuthenticationError, BadRequest, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class whitebit extends whitebitRest {
+export default class whitebit extends whitebitBridge {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

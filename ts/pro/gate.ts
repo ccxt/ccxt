@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import gateRest from '../gate.js';
+import { gateBridge } from './bridge/bridge.js';
 import {
     AuthenticationError,
     BadRequest,
@@ -13,7 +13,7 @@ import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './bas
 
 //  ---------------------------------------------------------------------------
 
-export default class gate extends gateRest {
+export default class gate extends gateBridge {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
