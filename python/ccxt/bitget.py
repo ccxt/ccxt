@@ -76,6 +76,8 @@ class bitget(Exchange):
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
@@ -3151,42 +3153,6 @@ class bitget(Exchange):
             raise ArgumentsRequired(self.id + ' addMargin() requires a holdSide parameter, either long or short')
         return self.modify_margin_helper(symbol, amount, 'add', params)
 
-    def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
-        signed = api[0] == 'private'
-        endpoint = api[1]
-        pathPart = '/api/spot/v1' if (endpoint == 'spot') else '/api/mix/v1'
-        request = '/' + self.implode_params(path, params)
-        payload = pathPart + request
-        url = self.implode_hostname(self.urls['api'][endpoint]) + payload
-        query = self.omit(params, self.extract_params(path))
-        if not signed and (method == 'GET'):
-            keys = list(query.keys())
-            keysLength = len(keys)
-            if keysLength > 0:
-                url = url + '?' + self.urlencode(query)
-        if signed:
-            self.check_required_credentials()
-            timestamp = str(self.milliseconds())
-            auth = timestamp + method + payload
-            if method == 'POST':
-                body = self.json(params)
-                auth += body
-            else:
-                if params:
-                    query = '?' + self.urlencode(self.keysort(params))
-                    url += query
-                    auth += query
-            signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
-            headers = {
-                'ACCESS-KEY': self.apiKey,
-                'ACCESS-SIGN': signature,
-                'ACCESS-TIMESTAMP': timestamp,
-                'ACCESS-PASSPHRASE': self.password,
-            }
-            if method == 'POST':
-                headers['Content-Type'] = 'application/json'
-        return {'url': url, 'method': method, 'body': body, 'headers': headers}
-
     def fetch_leverage(self, symbol, params={}):
         """
         fetch the set leverage for a market
@@ -3256,6 +3222,60 @@ class bitget(Exchange):
         }
         return self.privateMixPostAccountSetMarginMode(self.extend(request, params))
 
+    def fetch_open_interest(self, symbol, params={}):
+        """
+        Retrieves the open interest of a currency
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-open-interest
+        :param str symbol: Unified CCXT market symbol
+        :param dict params: exchange specific parameters
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure:
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['contract']:
+            raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.publicMixGetMarketOpenInterest(self.extend(request, params))
+        #
+        #     {
+        #         "code": "00000",
+        #         "msg": "success",
+        #         "requestTime": 0,
+        #         "data": {
+        #             "symbol": "BTCUSDT_UMCBL",
+        #             "amount": "130818.967",
+        #             "timestamp": "1663399151127"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_open_interest(data, market)
+
+    def parse_open_interest(self, interest, market=None):
+        #
+        #     {
+        #         "symbol": "BTCUSDT_UMCBL",
+        #         "amount": "130818.967",
+        #         "timestamp": "1663399151127"
+        #     }
+        #
+        timestamp = self.safe_integer(interest, 'timestamp')
+        id = self.safe_string(interest, 'symbol')
+        market = self.safe_market(id, market)
+        amount = self.safe_number(interest, 'amount')
+        return {
+            'symbol': self.safe_symbol(id),
+            'baseVolume': amount,  # deprecated
+            'quoteVolume': None,  # deprecated
+            'openInterestAmount': amount,
+            'openInterestValue': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'info': interest,
+        }
+
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:
             return  # fallback to default error handler
@@ -3295,3 +3315,39 @@ class bitget(Exchange):
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
         if nonZeroErrorCode or nonEmptyMessage:
             raise ExchangeError(feedback)  # unknown message
+
+    def sign(self, path, api=[], method='GET', params={}, headers=None, body=None):
+        signed = api[0] == 'private'
+        endpoint = api[1]
+        pathPart = '/api/spot/v1' if (endpoint == 'spot') else '/api/mix/v1'
+        request = '/' + self.implode_params(path, params)
+        payload = pathPart + request
+        url = self.implode_hostname(self.urls['api'][endpoint]) + payload
+        query = self.omit(params, self.extract_params(path))
+        if not signed and (method == 'GET'):
+            keys = list(query.keys())
+            keysLength = len(keys)
+            if keysLength > 0:
+                url = url + '?' + self.urlencode(query)
+        if signed:
+            self.check_required_credentials()
+            timestamp = str(self.milliseconds())
+            auth = timestamp + method + payload
+            if method == 'POST':
+                body = self.json(params)
+                auth += body
+            else:
+                if params:
+                    query = '?' + self.urlencode(self.keysort(params))
+                    url += query
+                    auth += query
+            signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256, 'base64')
+            headers = {
+                'ACCESS-KEY': self.apiKey,
+                'ACCESS-SIGN': signature,
+                'ACCESS-TIMESTAMP': timestamp,
+                'ACCESS-PASSPHRASE': self.password,
+            }
+            if method == 'POST':
+                headers['Content-Type'] = 'application/json'
+        return {'url': url, 'method': method, 'body': body, 'headers': headers}
