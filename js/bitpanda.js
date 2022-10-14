@@ -17,6 +17,7 @@ module.exports = class bitpanda extends Exchange {
             'countries': [ 'AT' ], // Austria
             'rateLimit': 300,
             'version': 'v1',
+            'pro': true,
             // new metainfo interface
             'has': {
                 'CORS': undefined,
