@@ -631,36 +631,52 @@ module.exports = class aax extends Exchange {
             const currency = data[i];
             const id = this.safeString (currency, 'currency');
             const code = this.safeCurrencyCode (id);
-            const network = this.safeString (currency, 'network');
+            const networkId = this.safeString (currency, 'network');
+            const enableWithdraw = this.safeValue (currency, 'enableWithdraw');
+            const enableDeposit = this.safeValue (currency, 'enableDeposit');
+            const visible = this.safeValue (currency, 'visible');
+            const active = (enableWithdraw && enableDeposit && visible);
+            const network = {
+                'info': currency,
+                'id': networkId,
+                'network': this.safeCurrencyCode (networkId),
+                'limits': {
+                    'withdraw': {
+                        'min': this.safeNumber (currency, 'withdrawMin'),
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': this.safeNumber (currency, 'depositMin'),
+                        'max': undefined,
+                    },
+                },
+                'active': active,
+                'withdraw': enableWithdraw && visible,
+                'deposit': enableDeposit && visible,
+                'fee': this.safeNumber (currency, 'withdrawFee'),
+                'precision': this.safeNumber (currency, 'withdrawPrecision'),
+            };
             const resultItem = this.safeValue (result, code);
-            const fee = this.safeNumber (currency, 'withdrawFee');
+            const fee = this.safeString (currency, 'withdrawFee');
             const precision = this.safeString (currency, 'withdrawPrecision');
             const depositMin = this.safeString (currency, 'depositMin');
             const withdrawMin = this.safeString (currency, 'withdrawMin');
             if (resultItem !== undefined) {
-                if (resultItem['fee'] !== undefined) {
-                    const previousNetwork = this.safeString (resultItem['networks'], 0);
-                    resultItem['fees'][previousNetwork] = resultItem['fee'];
-                    resultItem['fee'] = undefined;
-                }
-                resultItem['fees'][network] = fee;
                 resultItem['networks'].push (network);
                 const previousPrecision = resultItem['precision'].toString ();
                 const previousDepositMin = resultItem['limits']['deposit']['min'].toString ();
                 const previousWithdrawMin = resultItem['limits']['withdraw']['min'].toString ();
-                resultItem['precision'] = Precise.stringMax (previousPrecision, precision);
-                resultItem['limits']['deposit']['min'] = Precise.stringMin (previousDepositMin, depositMin);
-                resultItem['limits']['withdraw']['min'] = Precise.stringMin (previousWithdrawMin, withdrawMin);
+                const previousFee = resultItem['fee'].toString ();
+                resultItem['precision'] = this.parseNumber (Precise.stringMax (previousPrecision, precision));
+                resultItem['limits']['deposit']['min'] = this.parseNumber (Precise.stringMin (previousDepositMin, depositMin));
+                resultItem['limits']['withdraw']['min'] = this.parseNumber (Precise.stringMin (previousWithdrawMin, withdrawMin));
+                resultItem['fee'] = this.parseNumber (Precise.stringMin (previousFee, fee));
             } else {
                 const name = this.safeString (currency, 'displayName');
-                const enableWithdraw = this.safeValue (currency, 'enableWithdraw');
-                const enableDeposit = this.safeValue (currency, 'enableDeposit');
-                const visible = this.safeValue (currency, 'visible');
-                const active = (enableWithdraw && enableDeposit && visible);
                 const deposit = (enableDeposit && visible);
                 const withdraw = (enableWithdraw && visible);
                 result[code] = {
-                    'info': currency,
+                    'info': {},
                     'id': id,
                     'name': name,
                     'code': code,
@@ -668,8 +684,7 @@ module.exports = class aax extends Exchange {
                     'active': active,
                     'deposit': deposit,
                     'withdraw': withdraw,
-                    'fee': fee,
-                    'fees': {},
+                    'fee': this.parseNumber (fee),
                     'networks': [ network ],
                     'limits': {
                         'amount': {
