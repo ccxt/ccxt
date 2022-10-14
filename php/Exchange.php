@@ -3749,8 +3749,8 @@ class Exchange {
         }
         $marketType = ($market === null) ? $methodType : $market['type'];
         $type = $this->safe_string_2($params, 'defaultType', 'type', $marketType);
-        $params = $this->omit ($params, array( 'defaultType', 'type' ));
-        return array( $type, $params );
+        $query = $this->omit ($params, array( 'defaultType', 'type' ));
+        return array( $type, $query );
     }
 
     public function handle_sub_type_and_params($methodName, $market = null, $params = array ()) {
