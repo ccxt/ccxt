@@ -2053,7 +2053,7 @@ module.exports = class Exchange {
         if (key in mapping) {
             return mapping[key];
         } else {
-            throw new NotSupported (this.id + ' ' + key + ' does not have a value in mapping');
+            throw new NotSupported (this.id + ' ' + key + ' does not have a value in mapping. Key must be one of the values: ' + Object.keys (mapping).join (', '));
         }
     }
 

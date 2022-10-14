@@ -3696,7 +3696,7 @@ class Exchange {
         if (is_array($mapping) && array_key_exists($key, $mapping)) {
             return $mapping[$key];
         } else {
-            throw new NotSupported($this->id . ' ' . $key . ' does not have a value in mapping');
+            throw new NotSupported($this->id . ' ' . $key . ' does not have a value in mapping. Key must be one of ' . implode(', ', array_keys($mapping)));
         }
     }
 

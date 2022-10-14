@@ -2811,7 +2811,7 @@ class Exchange(object):
         if key in mapping:
             return mapping[key]
         else:
-            raise NotSupported(self.id + ' ' + key + ' does not have a value in mapping')
+            raise NotSupported(self.id + ' ' + key + ' does not have a value in mapping. Key must be one of ' + str(mapping.keys()))
 
     def fetch_borrow_rate(self, code, params={}):
         self.load_markets()
