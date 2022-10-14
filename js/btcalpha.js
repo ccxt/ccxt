@@ -648,7 +648,7 @@ module.exports = class btcalpha extends Exchange {
         const orderAmount = order['amount'].toString ();
         amount = Precise.stringGt (orderAmount, '0') ? order['amount'] : amount;
         return this.extend (order, {
-            'amount': amount,
+            'amount': this.parseNumber (amount),
         });
     }
 
