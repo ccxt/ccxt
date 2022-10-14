@@ -3767,8 +3767,21 @@ module.exports = class bybit extends Exchange {
         const isConditional = isStop || (orderType === 'stop') || (orderType === 'conditional');
         params = this.omit (params, [ 'stop', 'orderType' ]);
         let method = undefined;
+        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
         if (type === 'spot') {
             method = 'privateDeleteSpotOrderBatchCancel';
+        } else if (enableUnifiedMargin) {
+            method = 'privatePostUnifiedV3PrivateOrderCancelAll';
+            if (market['option']) {
+                request['category'] = 'option';
+            } else if (market['linear']) {
+                request['category'] = 'linear';
+            } else {
+                throw new NotSupported (this.id + ' cancelAllOrders() does not allow inverse market orders for ' + symbol + ' markets');
+            }
+            if (isConditional) {
+                request['orderFilter'] = 'StopOrder';
+            }
         } else if (isUsdcSettled) {
             method = (type === 'option') ? 'privatePostOptionUsdcOpenapiPrivateV1CancelAll' : 'privatePostPerpetualUsdcOpenapiPrivateV1CancelAll';
         } else if (type === 'future') {
@@ -3843,6 +3856,37 @@ module.exports = class bybit extends Exchange {
         //        "rate_limit_reset_ms":1652183017986,
         //        "rate_limit":100
         //    }
+        //
+        // Unified Margin
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [{
+        //                     "category": "option",
+        //                     "symbol": "BTC-24JUN22-45000-P",
+        //                     "orderId": "bd5f3b34-d64d-4b60-8188-438fbea4c552",
+        //                     "orderLinkId": "ac4e3b34-d64d-4b60-8188-438fbea4c552",
+        //                 }, {
+        //                     "category": "option",
+        //                     "symbol": "BTC-24JUN22-45000-P",
+        //                     "orderId": "4ddd727a-2af8-430e-a293-42895e594d18",
+        //                     "orderLinkId": "5cee727a-2af8-430e-a293-42895e594d18",
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {
+        //             "list": [{
+        //                 "code": 0,
+        //                 "msg": "OK"
+        //             }, {
+        //                 "code": 0,
+        //                 "msg": "OK"
+        //             }]
+        //         },
+        //         "time": 1657200736570
+        //     }
         //
         const result = this.safeValue (response, 'result', []);
         if (!Array.isArray (result)) {
