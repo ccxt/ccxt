@@ -2632,7 +2632,7 @@ class mexc3(Exchange):
             #     }
             #
         elif type == 'swap':
-            response = self.contractPrivateGetAccountAssets(params)
+            response = await self.contractPrivateGetAccountAssets(params)
             #
             #     {
             #         "success":true,

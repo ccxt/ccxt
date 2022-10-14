@@ -2822,7 +2822,7 @@ class mexc3 extends Exchange {
                 //     }
                 //
             } elseif ($type === 'swap') {
-                $response = $this->contractPrivateGetAccountAssets ($params);
+                $response = Async\await($this->contractPrivateGetAccountAssets ($params));
                 //
                 //     {
                 //         "success":true,
