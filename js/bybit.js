@@ -4886,102 +4886,74 @@ module.exports = class bybit extends Exchange {
         /**
          * @method
          * @name bybit#fetchOpenInterest
-         * @description Retrieves the open interest of a currency
-         * @see https://bybit-exchange.github.io/docs/futuresV2/inverse/#t-marketopeninterest
-         * @see https://bybit-exchange.github.io/docs/usdc/perpetual/#t-queryopeninterest
+         * @description Retrieves the open interest of a derivative trading pair
+         * @see https://bybit-exchange.github.io/docs/derivativesV3/contract/#t-dv_marketopeninterest
          * @param {string} symbol Unified CCXT market symbol
          * @param {object} params exchange specific parameters
-         * @param {string|undefined} params.timeframe "5m", 15m, 30m, 1h, 4h, 1d
-         * @param {int|undefined} params.limit The number of open interest structures to return. Max 200, default 50
+         * @param {string|undefined} params.interval "5m", 15m, 30m, 1h, 4h, 1d
+         * @param {string|undefined} params.category "linear" or "inverse"
          * @returns {object} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
          */
-        const timeframe = this.safeString (params, 'timeframe', '1h');
+        const timeframe = this.safeString (params, 'interval', '1h');
         if (timeframe === '1m') {
             throw new BadRequest (this.id + ' fetchOpenInterest() cannot use the 1m timeframe');
         }
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        let market = this.market (symbol);
         if (!market['contract']) {
             throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
         }
+        const defaultSubType = this.safeString (this.options, 'defaultSubType', 'linear');
+        const category = this.safeString (params, 'category', defaultSubType);
         const request = {
             'symbol': market['id'],
-            'period': timeframe,
+            'interval': timeframe,
+            'category': category,
         };
-        const limit = this.safeInteger (params, 'limit');
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        const isUsdcSettled = market['settle'] === 'USDC';
-        let method = 'publicGetV2PublicOpenInterest';
-        if (isUsdcSettled) {
-            method = 'publicGetPerpetualUsdcOpenapiPublicV1OpenInterest';
-        }
-        const response = await this[method] (this.extend (request, params));
-        //
-        //    {
-        //        "ret_code": 0,
-        //        "ret_msg": "OK",
-        //        "ext_code": "",
-        //        "ext_info": "",
-        //        "result": [
-        //            {
-        //                "open_interest": 805604444,
-        //                "timestamp": 1645056000,
-        //                "symbol": "BTCUSD"
-        //            },
-        //            ...
-        //        ],
-        //        "time_now": "1645085118.727358"
-        //    }
-        //
-        // USDC Settled
+        const response = await this.publicGetDerivativesV3PublicOpenInterest (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
-        //         "retMsg": "",
-        //         "result": [
-        //             {
-        //                 "symbol": "BTCPERP",
-        //                 "timestamp": "1664406000",
-        //                 "openInterest": "44142800000"
-        //             },
-        //         ]
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "symbol": "BTCUSDT",
+        //             "category": "linear",
+        //             "list": [
+        //                 {
+        //                     "openInterest": "64757.62400000",
+        //                     "timestamp": "1665784800000"
+        //                 },
+        //                 ...
+        //             ]
+        //         },
+        //         "retExtInfo": null,
+        //         "time": 1665784849646
         //     }
         //
-        const result = this.safeValue (response, 'result');
-        return this.parseOpenInterest (result[0], market);
+        const result = this.safeValue (response, 'result', {});
+        const id = this.safeString (result, 'symbol');
+        market = this.safeMarket (id, market);
+        const data = this.safeValue (result, 'list', []);
+        return this.parseOpenInterest (data[0], market);
     }
 
     parseOpenInterest (interest, market = undefined) {
         //
-        // fetchOpenInterestHistory, fetchOpenInterest
-        //
         //    {
-        //        "open_interest": 805604444,
-        //        "timestamp": 1645056000,
-        //        "symbol": "BTCUSD"
+        //        "openInterest": 64757.62400000,
+        //        "timestamp": 1665784800000,
         //    }
         //
-        // USDC Settled: fetchOpenInterestHistory, fetchOpenInterest
-        //
-        //     {
-        //         "symbol": "BTCPERP",
-        //         "timestamp": "1664406000",
-        //         "openInterest": "44142800000"
-        //     }
-        //
-        const id = this.safeString (interest, 'symbol');
-        market = this.safeMarket (id, market);
-        const timestamp = this.safeTimestamp (interest, 'timestamp');
-        const numContracts = this.safeString (interest, 'open_interest');
+        const timestamp = this.safeInteger (interest, 'timestamp');
+        const numContracts = this.safeString (interest, 'openInterest');
         const contractSize = this.safeString (market, 'contractSize');
+        const value = this.parseNumber (Precise.stringMul (numContracts, contractSize));
         return {
-            'symbol': this.safeSymbol (id),
-            'baseVolume': Precise.stringMul (numContracts, contractSize),  // deprecated
+            'symbol': this.safeSymbol (market['id']),
+            'baseVolume': value,  // deprecated
             'quoteVolume': undefined,  // deprecated
-            'openInterestAmount': this.safeNumber2 (interest, 'open_interest', 'openInterest'),
-            'openInterestValue': undefined,
+            'openInterestAmount': this.parseNumber (numContracts),
+            'openInterestValue': value,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
