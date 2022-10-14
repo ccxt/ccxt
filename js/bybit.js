@@ -3651,7 +3651,7 @@ module.exports = class bybit extends Exchange {
             } else if (market['linear']) {
                 request['category'] = 'linear';
             } else {
-                throw new NotSupported (this.id + ' cancelOrder does not allow inverse market orders for ' + symbol + ' markets');
+                throw new NotSupported (this.id + ' cancelOrder() does not allow inverse market orders for ' + symbol + ' markets');
             }
         } else if (isUsdcSettled) {
             if (id !== undefined) { // The user can also use argument params["order_link_id"]
@@ -4092,7 +4092,23 @@ module.exports = class bybit extends Exchange {
         [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         const request = {};
         let method = undefined;
-        if ((type === 'swap' || type === 'future') && !isUsdcSettled) {
+        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+        if (enableUnifiedMargin) {
+            const isStop = this.safeValue (params, 'stop', false);
+            const isConditional = isStop || (type === 'stop') || (type === 'conditional');
+            params = this.omit (params, [ 'stop' ]);
+            method = 'privateGetUnifiedV3PrivateOrderUnfilledOrders';
+            if (market['option']) {
+                request['category'] = 'option';
+            } else if (market['linear']) {
+                request['category'] = 'linear';
+            } else {
+                throw new NotSupported (this.id + ' fetchOpenOrders() does not allow inverse market orders for ' + symbol + ' markets');
+            }
+            if (isConditional) {
+                request['orderFilter'] = 'StopOrder';
+            }
+        } else if ((type === 'swap' || type === 'future') && !isUsdcSettled) {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument for ' + symbol + ' markets');
             }
@@ -4119,7 +4135,7 @@ module.exports = class bybit extends Exchange {
         const orders = await this[method] (this.extend (request, params));
         let result = this.safeValue (orders, 'result', []);
         if (!Array.isArray (result)) {
-            const dataList = this.safeValue (result, 'dataList');
+            const dataList = this.safeValue2 (result, 'dataList', 'list');
             if (dataList === undefined) {
                 return this.parseOrder (result, market);
             }
@@ -4155,6 +4171,51 @@ module.exports = class bybit extends Exchange {
         //        }
         //     ]
         //  }
+        //
+        // Unified Margin
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "Success",
+        //         "result": {
+        //             "nextPageCursor": "135ccc0d-8136-4e1b-8af3-07b11ee158d1%3A1665565610526%2C135ccc0d-8136-4e1b-8af3-07b11ee158d1%3A1665565610526",
+        //             "category": "linear",
+        //             "list": [
+        //                 {
+        //                     "symbol": "ETHUSDT",
+        //                     "orderType": "Limit",
+        //                     "orderLinkId": "test0000005",
+        //                     "orderId": "135ccc0d-8136-4e1b-8af3-07b11ee158d1",
+        //                     "stopOrderType": "UNKNOWN",
+        //                     "orderStatus": "New",
+        //                     "takeProfit": "",
+        //                     "cumExecValue": "0.00000000",
+        //                     "blockTradeId": "",
+        //                     "price": "700.00000000",
+        //                     "createdTime": 1665565610526,
+        //                     "tpTriggerBy": "UNKNOWN",
+        //                     "timeInForce": "GoodTillCancel",
+        //                     "basePrice": "",
+        //                     "updatedTime": 1665565610533,
+        //                     "side": "Buy",
+        //                     "triggerPrice": "",
+        //                     "cumExecFee": "0.00000000",
+        //                     "slTriggerBy": "UNKNOWN",
+        //                     "leavesQty": "0.1000",
+        //                     "closeOnTrigger": false,
+        //                     "cumExecQty": "0.00000000",
+        //                     "reduceOnly": false,
+        //                     "qty": "0.1000",
+        //                     "stopLoss": "",
+        //                     "triggerBy": "UNKNOWN",
+        //                     "orderIM": "0.00000000"
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": null,
+        //         "time": 1665565614320
+        //     }
+        //
         return this.parseOrders (result, market, since, limit);
     }
 
