@@ -3139,9 +3139,6 @@ module.exports = class bybit extends Exchange {
     async createUnifiedMarginOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // if (type === 'market') {
-        //     throw new NotSupported (this.id + 'createOrder does not allow market orders for ' + symbol + ' markets');
-        // }
         if (!market['linear'] && !market['option']) {
             throw new NotSupported (this.id + ' createOrder does not allow inverse market orders for ' + symbol + ' markets');
         }
@@ -3201,15 +3198,12 @@ module.exports = class bybit extends Exchange {
             const isTakeProfitOrder = takeProfitPrice !== undefined;
             const isStopOrder = isStopLossOrder || isTakeProfitOrder;
             if (isStopOrder) {
-                request['orderFilter'] = 'StopOrder';
                 request['triggerBy'] = 'LastPrice';
                 const stopPx = isStopLossOrder ? stopLossPrice : takeProfitPrice;
                 const preciseStopPrice = this.priceToPrecision (symbol, stopPx);
                 request['triggerPrice'] = preciseStopPrice;
                 const delta = this.numberToString (market['precision']['price']);
                 request['basePrice'] = isStopLossOrder ? Precise.stringSub (preciseStopPrice, delta) : Precise.stringAdd (preciseStopPrice, delta);
-            } else {
-                request['orderFilter'] = 'Order';
             }
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
@@ -3640,10 +3634,24 @@ module.exports = class bybit extends Exchange {
         params = this.omit (params, [ 'orderType', 'stop' ]);
         const isUsdcSettled = market['settle'] === 'USDC';
         let method = undefined;
+        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
         if (market['spot']) {
             method = 'privateDeleteSpotV1Order';
             if (id !== undefined) { // The user can also use argument params["order_link_id"]
                 request['orderId'] = id;
+            }
+        } else if (enableUnifiedMargin) {
+            method = 'privatePostUnifiedV3PrivateOrderCancel';
+            request['orderFilter'] = isConditional ? 'StopOrder' : 'Order';
+            if (id !== undefined) { // The user can also use argument params["orderLinkId"]
+                request['orderId'] = id;
+            }
+            if (market['option']) {
+                request['category'] = 'option';
+            } else if (market['linear']) {
+                request['category'] = 'linear';
+            } else {
+                throw new NotSupported (this.id + ' cancelOrder does not allow inverse market orders for ' + symbol + ' markets');
             }
         } else if (isUsdcSettled) {
             if (id !== undefined) { // The user can also use argument params["order_link_id"]
@@ -3665,7 +3673,7 @@ module.exports = class bybit extends Exchange {
             // inverse futures
             method = isConditional ? 'privatePostFuturesPrivateStopOrderCancel' : 'privatePostFuturesPrivateOrderCancel';
         }
-        if (market['contract'] && !isUsdcSettled && (id !== undefined)) { // id === undefined check because the user can also use argument params["order_link_id"]
+        if (market['contract'] && !enableUnifiedMargin && !isUsdcSettled && (id !== undefined)) { // id === undefined check because the user can also use argument params["order_link_id"]
             if (!isConditional) {
                 request['order_id'] = id;
             } else {
@@ -3708,6 +3716,18 @@ module.exports = class bybit extends Exchange {
         //        "rate_limit_reset_ms":1652192814876,
         //        "rate_limit":100
         //     }
+        //
+        // Unified Margin
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "orderId": "42c86d66331e41998d12c2440ce90c1a",
+        //             "orderLinkId": "e80d558e-ed"
+        //         }
+        //     }
+        //
         const result = this.safeValue (response, 'result', {});
         return this.parseOrder (result, market);
     }
