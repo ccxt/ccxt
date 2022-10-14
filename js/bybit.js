@@ -4104,7 +4104,12 @@ module.exports = class bybit extends Exchange {
             const closeStatus = defaultStatuses.join (',');
             const status = this.safeString2 (params, 'order_status', 'status', closeStatus);
             params = this.omit (params, [ 'order_status', 'status' ]);
-            params['order_status'] = status;
+            const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+            if (enableUnifiedMargin) {
+                params['orderStatus'] = status;
+            } else {
+                params['order_status'] = status;
+            }
             return await this.fetchOrders (symbol, since, limit, params);
         }
         const request = {};
@@ -5960,7 +5965,11 @@ module.exports = class bybit extends Exchange {
                     }
                 } else {
                     authFull = auth_base + queryEncoded;
-                    url += '?' + this.urlencode (query);
+                    if (path === 'unified/v3/private/order/list') {
+                        url += '?' + this.rawencode (query);
+                    } else {
+                        url += '?' + this.urlencode (query);
+                    }
                 }
                 const signature = this.hmac (this.encode (authFull), this.encode (this.secret));
                 headers['X-BAPI-SIGN'] = signature;
