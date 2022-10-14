@@ -5109,6 +5109,7 @@ module.exports = class bybit extends Exchange {
         let type = undefined;
         let isLinear = undefined;
         let isUsdcSettled = undefined;
+        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
         if (Array.isArray (symbols)) {
             const length = symbols.length;
             if (length !== 1) {
@@ -5134,7 +5135,16 @@ module.exports = class bybit extends Exchange {
         }
         params = this.omit (params, [ 'settle', 'defaultSettle', 'subType' ]);
         let method = undefined;
-        if (isUsdcSettled) {
+        if (enableUnifiedMargin) {
+            method = 'privateGetUnifiedV3PrivatePositionList';
+            if (type === 'option') {
+                request['category'] = 'option';
+            } else if (isLinear) {
+                request['category'] = 'linear';
+            } else {
+                throw new NotSupported (this.id + ' fetchPositions() does not allow inverse market');
+            }
+        } else if (isUsdcSettled) {
             method = 'privatePostOptionUsdcOpenapiPrivateV1QueryPosition';
             request['category'] = (type === 'option') ? 'OPTION' : 'PERPETUAL';
         } else if (type === 'future') {
@@ -5162,6 +5172,8 @@ module.exports = class bybit extends Exchange {
         // usdc contracts
         if ('dataList' in result) {
             result = this.safeValue (result, 'dataList', []);
+        } else if ('list' in result) {
+            result = this.safeValue (result, 'list', []);
         }
         let positions = undefined;
         if (!Array.isArray (result)) {
