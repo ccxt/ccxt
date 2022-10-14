@@ -2176,7 +2176,7 @@ module.exports = class bybit extends Exchange {
         const result = this.safeValue (response, 'result', []);
         let timestamp = this.safeTimestamp (response, 'time_now');
         if (timestamp === undefined) {
-            timestamp = this.safeInteger (response, 'time');
+            timestamp = this.safeInteger (result, 'time');
         }
         const bidsKey = market['spot'] ? 'bids' : 'Buy';
         const asksKey = market['spot'] ? 'asks' : 'Sell';
