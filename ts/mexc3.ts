@@ -2800,7 +2800,7 @@ export default class mexc3 extends Exchange {
             //     }
             //
         } else if (type === 'swap') {
-            const response = this.contractPrivateGetAccountAssets (params);
+            const response = await (this as any).contractPrivateGetAccountAssets (params);
             //
             //     {
             //         "success":true,

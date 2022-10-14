@@ -251,7 +251,7 @@ export default class whitebit extends whitebitBridge {
         const method = 'market_subscribe';
         const messageHash = 'ticker:' + symbol;
         // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
-        return await this.ws.watchMultipleSubscription (messageHash, method, symbol, false, params);
+        return await this.watchMultipleSubscription (messageHash, method, symbol, false, params);
     }
 
     handleTicker (client, message) {
@@ -725,12 +725,13 @@ export default class whitebit extends whitebitBridge {
         const id = this.nonce ();
         const client = this.safeValue (this.ws.clients, url);
         let request = undefined;
+        let marketIds = [];
         if (client === undefined) {
             const subscription = {};
             const market = this.market (symbol);
             const marketId = market['id'];
             subscription[marketId] = true;
-            let marketIds = [ marketId ];
+            marketIds = [ marketId ];
             if (isNested) {
                 marketIds = [ marketIds ];
             }
@@ -756,9 +757,9 @@ export default class whitebit extends whitebitBridge {
                 return await this.ws.watch (url, messageHash, request, method, subscription);
             } else {
                 // resubscribe
-                let marketIds = Object.keys (subscription);
+                const marketIdsList = Object.keys (subscription);
                 if (isNested) {
-                    marketIds = [ marketIds ];
+                    marketIds = [ marketIdsList ];
                 }
                 const resubRequest = {
                     'id': id,

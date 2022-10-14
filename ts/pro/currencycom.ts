@@ -422,7 +422,7 @@ export default class currencycom extends currencycomBridge {
         const timestamp = this.safeInteger (data, 'ts');
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
-            orderbook = this.orderBook ();
+            orderbook = this.ws.orderBook ();
         }
         orderbook.reset ({
             'timestamp': timestamp,

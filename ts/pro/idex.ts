@@ -300,7 +300,7 @@ export default class idex extends idexBridge {
                         const symbol = this.safeSymbol (marketId);
                         if (!(symbol in this.orderbooks)) {
                             const orderbook = this.ws.countedOrderBook ({});
-                            orderbook.cache = [];
+                            (orderbook as any).cache = [];
                             this.orderbooks[symbol] = orderbook;
                         }
                         this.ws.spawn (this.fetchOrderBookSnapshot, client, symbol);
@@ -394,7 +394,7 @@ export default class idex extends idexBridge {
             subscription['limit'] = limit;
         }
         // 1. Connect to the WebSocket API endpoint and subscribe to the L2 Order Book for the target market.
-        const orderbook = await this.subscribe (subscribeObject, messageHash, subscription);
+        const orderbook = await this.subscribe (subscribeObject, messageHash, (subscription as any));
         return orderbook.limit (limit);
     }
 

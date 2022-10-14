@@ -139,7 +139,13 @@ import { Precise } from './Precise.js'
 // 
 
 // import types
+import {Market, OrderBook, Trade, Fee, Ticker} from './types'
 export {Market, OrderBook, Trade, Fee, Ticker} from './types'
+
+
+// ----------------------------------------------------------------------------
+// move this elsewhere
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from 'ts/pro/base/Cache.js'
 
 // ----------------------------------------------------------------------------
 export default class Exchange {
@@ -191,10 +197,10 @@ export default class Exchange {
     orderbooks   = {}
     tickers      = {}
     orders       = undefined
-    trades       = []
+    trades: ArrayCache
     transactions = {}
-    ohlcvs       = []
-    myTrades     = undefined
+    ohlcvs: ArrayCacheByTimestamp
+    myTrades: ArrayCacheBySymbolById
     positions    = {}
     urls = {}
 
@@ -613,9 +619,9 @@ export default class Exchange {
         this.orderbooks   = {}
         this.tickers      = {}
         this.orders       = undefined
-        this.trades       = {}
+        this.trades       = undefined
         this.transactions = {}
-        this.ohlcvs       = {}
+        this.ohlcvs       = undefined
         this.myTrades     = undefined
         this.positions    = {}
         // web3 and cryptography flags
@@ -2296,11 +2302,11 @@ export default class Exchange {
         throw new NotSupported (this.id + ' fetchPermissions() is not supported yet');
     }
 
-    async fetchPosition (symbol, params = {}) {
+    async fetchPosition (symbol, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchPosition() is not supported yet');
     }
 
-    async fetchPositions (symbols = undefined, params = {}) {
+    async fetchPositions (symbols = undefined, params = {}): Promise<any> {
         throw new NotSupported (this.id + ' fetchPositions() is not supported yet');
     }
 

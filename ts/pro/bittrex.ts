@@ -178,7 +178,7 @@ export default class bittrex extends bittrexBridge {
             future = client.future (messageHash);
             client.subscriptions[messageHash] = future;
             const request = this.createSignalRQuery (params);
-            const response = await this.signalrGetNegotiate (this.extend (request, params));
+            const response = await (this as any).signalrGetNegotiate (this.extend (request, params));
             //
             //     {
             //         Url: '/signalr/v1.1/signalr',
@@ -207,7 +207,7 @@ export default class bittrex extends bittrexBridge {
         const request = this.createSignalRQuery (this.extend (negotiation['request'], {
             'connectionToken': connectionToken,
         }));
-        return await this.signalrGetStart (request);
+        return await (this as any).signalrGetStart (request);
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -631,7 +631,7 @@ export default class bittrex extends bittrexBridge {
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
-        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        this.orderbooks[symbol] = this.ws.orderBook ({}, limit);
         this.ws.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }
 
@@ -677,7 +677,7 @@ export default class bittrex extends bittrexBridge {
         const limit = this.safeInteger (message, 'depth');
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
-            orderbook = this.orderBook ({}, limit);
+            orderbook = this.ws.orderBook ({}, limit);
         }
         if (orderbook['nonce'] !== undefined) {
             this.handleOrderBookMessage (client, message, orderbook);
@@ -825,7 +825,7 @@ export default class bittrex extends bittrexBridge {
                 } else {
                     const A = this.safeValue (M[i], 'A', []);
                     for (let k = 0; k < A.length; k++) {
-                        const inflated = this.inflate64 (A[k]);
+                        const inflated = this.ws.inflate64 (A[k]);
                         const update = JSON.parse (inflated);
                         method.call (this, client, update);
                     }

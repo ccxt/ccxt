@@ -870,7 +870,7 @@ export default class coinex extends coinexBridge {
             'timestamp': timestamp,
             'lastTradeTimestamp': this.safeTimestamp (order, 'last_deal_time'),
             'symbol': market['symbol'],
-            'type': type === 1 ? 'limit' : 'market',
+            'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,

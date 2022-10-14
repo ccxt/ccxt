@@ -2,11 +2,11 @@
 
 // ----------------------------------------------------------------------------
 
-import log from 'ololog';
+import log from 'ololog'
 
-import assert from 'assert';
-import testOrder from '../../../test/Exchange/test.order.js';
-import errors from '../../../base/errors.js';
+import assert from 'assert'
+import testOrder from '../../../test/Exchange/test.order.js'
+import errors from '../../../base/errors.js'
 
 /*  ------------------------------------------------------------------------ */
 
@@ -36,7 +36,7 @@ export default async (exchange, symbol) => {
 
             assert (response instanceof Array)
 
-            log (exchange.iso8601 (now), exchange.id, symbol.green, method, Object.values (response).length.toString ().green, 'orders')
+            log (exchange.iso8601 (now), exchange.id, symbol.green, method, (Object.values (response).length.toString () as any).green, 'orders')
 
             // log.noLocate (asTable (response))
 
@@ -55,4 +55,4 @@ export default async (exchange, symbol) => {
     }
 
     return response
-};
+}

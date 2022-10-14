@@ -1258,7 +1258,7 @@ export default class bybit extends bybitBridge {
                 channel = isStopOrder ? 'stop_order' : 'order';
             }
             const reqParams = [ channel ];
-            orders = await this.ws.watchContractPrivate (url, messageHash, reqParams, params);
+            orders = await this.watchContractPrivate (url, messageHash, reqParams, params);
         }
         if (this.ws.newUpdates) {
             limit = orders.getLimit (symbol, limit);
@@ -1655,8 +1655,7 @@ export default class bybit extends bybitBridge {
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
             future = client.future ('authenticated');
-            let expires = this.milliseconds () + 10000;
-            expires = expires.toString ();
+            const expires = (this.milliseconds () + 10000).toString ();
             const path = 'GET/realtime';
             const auth = path + expires;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'hex');

@@ -10,7 +10,10 @@ import WebSocket from 'ws';
 const WebSocketPlatform = isNode ? WebSocket : window.WebSocket;
 
 export default class WsClient extends Client {
-
+    connectionStarted:number;
+    protocols: any;
+    options:any;
+    startedConnecting: boolean;
     createConnection () {
         if (this.verbose) {
             this.log (new Date (), 'connecting to', this.url)

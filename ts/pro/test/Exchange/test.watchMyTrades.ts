@@ -33,7 +33,7 @@ export default async (exchange, symbol) => {
 
             assert (response instanceof Array)
 
-            log (exchange.iso8601 (now), exchange.id, symbol.green, method, Object.values (response).length.toString ().green, 'trades')
+            log (exchange.iso8601 (now), exchange.id, symbol.green, method, (Object.values (response).length.toString () as any).green, 'trades')
 
             // log.noLocate (asTable (response))
 

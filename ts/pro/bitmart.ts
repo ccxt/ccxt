@@ -329,7 +329,7 @@ export default class bitmart extends bitmartBridge {
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
             const parsed = this.parseOHLCV (candle, market);
-            parsed[0] = parseInt (parsed[0] / durationInMs) * durationInMs;
+            parsed[0] = parseInt ((parsed[0] / durationInMs).toString ()) * durationInMs;
             this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
             let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
             if (stored === undefined) {
@@ -434,7 +434,7 @@ export default class bitmart extends bitmartBridge {
             const symbol = this.safeSymbol (marketId);
             let orderbook = this.safeValue (this.orderbooks, symbol);
             if (orderbook === undefined) {
-                orderbook = this.orderBook ({}, limit);
+                orderbook = this.ws.orderBook ({}, limit);
                 this.orderbooks[symbol] = orderbook;
             }
             orderbook.reset ({});

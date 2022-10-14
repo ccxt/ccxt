@@ -875,7 +875,7 @@ export default class phemex extends Exchange {
         ];
     }
 
-    parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, market = undefined) {
+    customParseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1, market = undefined) {
         const result = {
             'symbol': symbol,
             'timestamp': timestamp,
@@ -942,9 +942,9 @@ export default class phemex extends Exchange {
         const result = this.safeValue (response, 'result', {});
         const book = this.safeValue (result, 'book', {});
         const timestamp = this.safeIntegerProduct (result, 'timestamp', 0.000001);
-        const orderbook = this.parseOrderBook (book, symbol, timestamp, 'bids', 'asks', 0, 1, market);
+        const orderbook = this.customParseOrderBook (book, symbol, timestamp, 'bids', 'asks', 0, 1, market);
         orderbook['nonce'] = this.safeInteger (result, 'sequence');
-        return orderbook;
+        return orderbook as any;
     }
 
     toEn (n, scale) {

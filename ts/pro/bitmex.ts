@@ -1192,7 +1192,7 @@ export default class bitmex extends bitmexBridge {
         const error = this.safeValue (message, 'error');
         if (error !== undefined) {
             const request = this.safeValue (message, 'request', {});
-            const args = this.safeString (request, 'args', []);
+            const args = this.safeValue (request, 'args', []);
             const numArgs = args.length;
             if (numArgs > 0) {
                 const messageHash = args[0];

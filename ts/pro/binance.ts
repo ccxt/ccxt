@@ -819,11 +819,11 @@ export default class binance extends binanceBridge {
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i];
-            const subscriptionKeys = Object.keys (client.subscriptions);
+            const subscriptionKeys = Object.keys ((client as any).subscriptions);
             for (let j = 0; j < subscriptionKeys.length; j++) {
                 const subscribeType = subscriptionKeys[j];
                 if (subscribeType === type) {
-                    return this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
+                    return this.ws.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
                 }
             }
         }

@@ -257,7 +257,8 @@ export default class coinbasepro extends coinbaseproBridge {
         const feeCurrency = market['quote'];
         let feeCost = undefined;
         if ((parsed['cost'] !== undefined) && (feeRate !== undefined)) {
-            feeCost = parsed['cost'] * feeRate;
+            const cost = this.safeNumber (parsed, 'cost');
+            feeCost = cost * feeRate;
         }
         parsed['fee'] = {
             'rate': feeRate,
@@ -624,7 +625,7 @@ export default class coinbasepro extends coinbaseproBridge {
         const subscription = this.safeValue (client.subscriptions, messageHash, {});
         const limit = this.safeInteger (subscription, 'limit');
         if (type === 'snapshot') {
-            this.orderbooks[symbol] = this.orderBook ({}, limit);
+            this.orderbooks[symbol] = this.ws.orderBook ({}, limit);
             const orderbook = this.orderbooks[symbol];
             this.handleDeltas (orderbook['asks'], this.safeValue (message, 'asks', []));
             this.handleDeltas (orderbook['bids'], this.safeValue (message, 'bids', []));

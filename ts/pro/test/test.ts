@@ -1,16 +1,18 @@
-import fs from 'fs';
+import fs from 'fs'
 import log from 'ololog'
-import ccxt from '../../../ccxt.js' 
 import { dirname } from 'path'
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from 'url'
 
-log.handleNodeErrors()
+import { Agent } from 'https'
+import ccxt from '../../../ccxt.js'
 
-const [processPath, , exchangeId, exchangeSymbol] = process.argv.filter ((x) => !x.startsWith ('--'))
+log.handleNodeErrors ()
+
+const [ processPath, , exchangeId, exchangeSymbol ] = process.argv.filter ((x) => !x.startsWith ('--'))
 const verbose = process.argv.includes ('--verbose') || false
 
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
+const __dirname = dirname (fileURLToPath (import.meta.url))
 
 // ----------------------------------------------------------------------------
 
@@ -25,8 +27,6 @@ log.bright ('\nTESTING', { exchangeId, symbol }, '\n')
 // ----------------------------------------------------------------------------
 
 const enableRateLimit = true
-
-import { Agent } from 'https';
 
 const ecdhCurve = 'auto'
 const agent = new Agent ({ ecdhCurve })
@@ -70,7 +70,7 @@ const filteredFiles = fs.readdirSync (pathToExchangeTests)
 for (const file of filteredFiles) {
     const key = file.slice (5, -3)
     const test = await import (pathToExchangeTests + file)
-    tests[key] = test.default 
+    tests[key] = test.default
 }
 
 //-----------------------------------------------------------------------------
@@ -79,8 +79,8 @@ const keysGlobal = 'keys.json'
     , keysLocal = 'keys.local.json'
     , keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal
 
-const settingsFile = fs.readFileSync(keysFile)
-let settings = JSON.parse(settingsFile)
+const settingsFile = fs.readFileSync (keysFile)
+let settings = JSON.parse (settingsFile as any)
 settings = settings[exchangeId]
 
 if (settings) {
@@ -138,7 +138,7 @@ function getTestSymbol (exchange, symbols) {
             const active = exchange.safeValue (market, 'active')
             if (active || (active === undefined)) {
                 symbol = s
-                break;
+                break
             }
         }
     }
@@ -206,9 +206,9 @@ async function testExchange (exchange) {
             const markets = Object.values (exchange.markets)
             const activeMarkets = markets.filter ((market) => (market['base'] === codes[i]))
             if (activeMarkets.length) {
-                const activeSymbols = activeMarkets.map (market => market['symbol'])
+                const activeSymbols = activeMarkets.map ((market) => market['symbol'])
                 symbol = getTestSymbol (exchange, activeSymbols)
-                break;
+                break
             }
         }
     }
@@ -216,7 +216,7 @@ async function testExchange (exchange) {
     if (symbol === undefined) {
         const markets = Object.values (exchange.markets)
         const activeMarkets = markets.filter ((market) => !exchange.safeValue (market, 'active', false))
-        const activeSymbols = activeMarkets.map (market => market['symbol'])
+        const activeSymbols = activeMarkets.map ((market) => market['symbol'])
         symbol = getTestSymbol (exchange, activeSymbols)
     }
 
@@ -243,7 +243,7 @@ async function test () {
 
     await exchange.loadMarkets ()
     exchange.verbose = verbose
-    await testExchange (exchange, exchangeSymbol)
+    await testExchange (exchange)
     console.log (new Date (), 'Done.')
     process.exit ()
 }

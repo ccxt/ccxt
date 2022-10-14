@@ -223,7 +223,7 @@ export default class gate extends gateBridge {
         const symbol = this.safeSymbol (marketId);
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
-            orderbook = this.orderBook ({});
+            orderbook = this.ws.orderBook ({});
             this.orderbooks[symbol] = orderbook;
         }
         const messageHash = channel + ':' + symbol;
@@ -664,9 +664,9 @@ export default class gate extends gateBridge {
     }
 
     handleBalance (client, message) {
-        const messageHash = message['method'];
+        // const messageHash = message['method'];
         const result = message['params'][0];
-        this.handleBalanceMessage (client, messageHash, result);
+        this.handleBalanceMessage (client, result);
     }
 
     handleBalanceMessage (client, message) {
