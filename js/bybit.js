@@ -548,6 +548,7 @@ module.exports = class bybit extends Exchange {
                     '34026': ExchangeError, // the limit is no change
                     '34036': BadRequest, // {"ret_code":34036,"ret_msg":"leverage not modified","ext_code":"","ext_info":"","result":null,"time_now":"1652376449.258918","rate_limit_status":74,"rate_limit_reset_ms":1652376449255,"rate_limit":75}
                     '35015': BadRequest, // {"ret_code":35015,"ret_msg":"Qty not in range","ext_code":"","ext_info":"","result":null,"time_now":"1652277215.821362","rate_limit_status":99,"rate_limit_reset_ms":1652277215819,"rate_limit":100}
+                    '110043': BadRequest, // {"retCode":110043,"retMsg":"leverage not modified","result":{},"retExtInfo":null,"time":1665720465151}
                     '130006': InvalidOrder, // {"ret_code":130006,"ret_msg":"The number of contracts exceeds maximum limit allowed: too large","ext_code":"","ext_info":"","result":null,"time_now":"1658397095.099030","rate_limit_status":99,"rate_limit_reset_ms":1658397095097,"rate_limit":100}
                     '130021': InsufficientFunds, // {"ret_code":130021,"ret_msg":"orderfix price failed for CannotAffordOrderCost.","ext_code":"","ext_info":"","result":null,"time_now":"1644588250.204878","rate_limit_status":98,"rate_limit_reset_ms":1644588250200,"rate_limit":100} |  {"ret_code":130021,"ret_msg":"oc_diff[1707966351], new_oc[1707966351] with ob[....]+AB[....]","ext_code":"","ext_info":"","result":null,"time_now":"1658395300.872766","rate_limit_status":99,"rate_limit_reset_ms":1658395300855,"rate_limit":100} caused issues/9149#issuecomment-1146559498
                     '130074': InvalidOrder, // {"ret_code":130074,"ret_msg":"expect Rising, but trigger_price[190000000] \u003c= current[211280000]??LastPrice","ext_code":"","ext_info":"","result":null,"time_now":"1655386638.067076","rate_limit_status":97,"rate_limit_reset_ms":1655386638065,"rate_limit":100}
@@ -5063,33 +5064,53 @@ module.exports = class bybit extends Exchange {
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         const isUsdcSettled = market['settle'] === 'USDC';
+        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
         let method = undefined;
-        if (isUsdcSettled) {
-            method = 'privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave';
-        } else if (market['future']) {
-            method = 'privatePostFuturesPrivatePositionLeverageSave';
-        } else if (market['linear']) {
-            method = 'privatePostPrivateLinearPositionSetLeverage';
-        } else {
-            // inverse swaps
-            method = 'privatePostV2PrivatePositionLeverageSave';
-        }
         const request = {
             'symbol': market['id'],
         };
-        leverage = isUsdcSettled ? leverage.toString () : parseInt (leverage);
+        if (enableUnifiedMargin) {
+            // only support linear and option
+            method = 'privatePostUnifiedV3PrivatePositionSetLeverage';
+            if (market['option']) {
+                request['category'] = 'option';
+            } else if (market['linear']) {
+                request['category'] = 'linear';
+            } else {
+                throw new NotSupported (this.id + ' setLeverage() leverage didn\'t support inverse market in unified margin');
+            }
+        } else {
+            if (isUsdcSettled) {
+                method = 'privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave';
+            } else if (market['future']) {
+                method = 'privatePostFuturesPrivatePositionLeverageSave';
+            } else if (market['linear']) {
+                method = 'privatePostPrivateLinearPositionSetLeverage';
+            } else {
+                // inverse swaps
+                method = 'privatePostV2PrivatePositionLeverageSave';
+            }
+        }
+        leverage = (enableUnifiedMargin || isUsdcSettled) ? leverage.toString () : parseInt (leverage);
         const isLinearSwap = market['swap'] && market['linear'];
-        const requiresBuyAndSellLeverage = !isUsdcSettled && (isLinearSwap || market['future']);
+        const requiresBuyAndSellLeverage = enableUnifiedMargin || (!isUsdcSettled && (isLinearSwap || market['future']));
         if (requiresBuyAndSellLeverage) {
-            const buyLeverage = this.safeNumber (params, 'buy_leverage');
-            const sellLeverage = this.safeNumber (params, 'sell_leverage');
-            if (buyLeverage !== undefined && sellLeverage !== undefined) {
-                if ((buyLeverage < 1) || (buyLeverage > 100) || (sellLeverage < 1) || (sellLeverage > 100)) {
-                    throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 100');
+            const buyLeverage = this.safeNumber2 (params, 'buy_leverage', 'buyLeverage');
+            const sellLeverage = this.safeNumber2 (params, 'sell_leverage', 'sellLeverage');
+            if (enableUnifiedMargin) {
+                if (buyLeverage === undefined || sellLeverage === undefined) {
+                    request['buyLeverage'] = leverage;
+                    request['sellLeverage'] = leverage;
                 }
             } else {
-                request['buy_leverage'] = leverage;
-                request['sell_leverage'] = leverage;
+                if (buyLeverage !== undefined && sellLeverage !== undefined) {
+                    if ((buyLeverage < 1) || (buyLeverage > 100) || (sellLeverage < 1) || (sellLeverage > 100)) {
+                        throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 100');
+                    }
+                } else {
+                    request['buy_leverage'] = leverage;
+                    request['sell_leverage'] = leverage;
+                }
             }
         } else {
             // requires leverage
