@@ -489,9 +489,33 @@ async function exportEverything () {
             regex: /exchanges \= \[[^\]]+\]/,
             replacement: "exchanges = [\n" + "    '" + wsIds.join ("',\n    '") + "'," + "\n]",
         },
+        // ts imports
+        {
+            file: './ts/pro/bridge/bridge.ts',
+            regex:  /(?:((import)\s(\w+)\sfrom\s+'(\.\.\/){2}\w+\.js';\n))+/g,
+            replacement: wsIds.map (id => "import " + id + 'Rest from ' + " '../../" + id + ".js'").join("\n") + "\n"
+        },
+        {
+            file: './ts/pro/bridge/bridge.ts',
+            regex:  /export class [\s\S]+/g,
+            replacement: wsIds.map (id =>
+       
+`export class ${id}Bridge extends ${id}Rest {
+    ws: WSConnector;
+    constructor (config = {}) {
+        super (config);
+        (config as any).handleMessage = this.handleMessage;
+        this.ws = new WSConnector (config);
+    }
+    handleMessage (client, message) {} // stub to override
+    }
+//---------------------------------------------------------------------
+`                
+        ).join("\n") + "\n"
+        },
     ]
 
-    // exportExchanges (replacements, unlimitedLog)
+    exportExchanges (replacements, unlimitedLog)
 
     // strategically placed exactly here (we can require it AFTER the export)
     const module = await import('../ccxt.js')
