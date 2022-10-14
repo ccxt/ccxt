@@ -2635,7 +2635,7 @@ module.exports = class bybit extends Exchange {
         const timeInForce = this.parseTimeInForce (this.safeString2 (order, 'time_in_force', 'timeInForce'));
         const stopPrice = this.safeStringN (order, [ 'trigger_price', 'stop_px', 'stopPrice', 'triggerPrice' ]);
         const postOnly = (timeInForce === 'PO');
-        if (market['spot'] && type === 'market' && side === 'buy' && filled !== '0') {
+        if ((market['spot'] && type === 'market') && (side === 'buy') && (filled !== '0')) {
             amount = filled;
         }
         return this.safeOrder ({
