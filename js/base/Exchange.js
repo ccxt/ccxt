@@ -2053,7 +2053,8 @@ module.exports = class Exchange {
         if (key in mapping) {
             return mapping[key];
         } else {
-            throw new NotSupported (this.id + ' ' + key + ' does not have a value in mapping');
+            const keys = Object.keys (mapping);
+            throw new NotSupported (this.id + ' ' + key + ' does not have a value in mapping. Key must be one of the values: ' + keys.join (', '));
         }
     }
 
