@@ -64,6 +64,7 @@ module.exports = class bybit extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': true,
+                'fetchPosition': true,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': true,
                 'fetchTicker': true,
@@ -3175,7 +3176,7 @@ module.exports = class bybit extends Exchange {
         }
         const isMarket = lowerCaseType === 'market';
         const isLimit = lowerCaseType === 'limit';
-        if (isLimit !== undefined) {
+        if (isLimit) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         const exchangeSpecificParam = this.safeString (params, 'time_in_force');
@@ -5021,6 +5022,81 @@ module.exports = class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         return this.parseTransaction (result, currency);
+    }
+
+    async fetchPosition (symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchPosition
+         * @description fetch data on a single open contract trade position
+         * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchPosition() requires a symbol argument');
+        }
+        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+        if (!enableUnifiedMargin) {
+            throw new NotSupported (this.id + ' fetchPosition() only support unified margin account');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (market['option']) {
+            request['category'] = 'option';
+        } else if (market['linear']) {
+            request['category'] = 'linear';
+        } else {
+            throw new NotSupported (this.id + ' fetchPosition() does not allow inverse market orders for ' + symbol + ' markets');
+        }
+        const response = await this.privateGetUnifiedV3PrivatePositionList (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "Success",
+        //         "result": {
+        //             "nextPageCursor": "0%3A1657711949945%2C0%3A1657711949945",
+        //             "category": "linear",
+        //             "list": [
+        //                 {
+        //                     "symbol": "ETHUSDT",
+        //                     "leverage": "10",
+        //                     "updatedTime": 1657711949945,
+        //                     "side": "Buy",
+        //                     "positionValue": "536.92500000",
+        //                     "takeProfit": "",
+        //                     "tpslMode": "Full",
+        //                     "riskId": 11,
+        //                     "trailingStop": "",
+        //                     "entryPrice": "1073.85000000",
+        //                     "unrealisedPnl": "",
+        //                     "markPrice": "1080.65000000",
+        //                     "size": "0.5000",
+        //                     "positionStatus": "normal",
+        //                     "stopLoss": "",
+        //                     "cumRealisedPnl": "-0.32215500",
+        //                     "positionMM": "2.97456450",
+        //                     "createdTime": 1657711949928,
+        //                     "positionIdx": 0,
+        //                     "positionIM": "53.98243950"
+        //                 }
+        //             ]
+        //         },
+        //         "time": 1657713693182
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const positions = this.safeValue (result, 'list', []);
+        const timestamp = this.safeInteger (response, 'time');
+        const first = this.safeValue (positions, 0);
+        const position = this.parsePosition (first);
+        return this.extend (position, {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        });
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
