@@ -2156,7 +2156,7 @@ class bybit extends Exchange {
         $result = $this->safe_value($response, 'result', array());
         $timestamp = $this->safe_timestamp($response, 'time_now');
         if ($timestamp === null) {
-            $timestamp = $this->safe_integer($response, 'time');
+            $timestamp = $this->safe_integer($result, 'time');
         }
         $bidsKey = $market['spot'] ? 'bids' : 'Buy';
         $asksKey = $market['spot'] ? 'asks' : 'Sell';

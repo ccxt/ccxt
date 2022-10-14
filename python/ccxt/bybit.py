@@ -2103,7 +2103,7 @@ class bybit(Exchange):
         result = self.safe_value(response, 'result', [])
         timestamp = self.safe_timestamp(response, 'time_now')
         if timestamp is None:
-            timestamp = self.safe_integer(response, 'time')
+            timestamp = self.safe_integer(result, 'time')
         bidsKey = 'bids' if market['spot'] else 'Buy'
         asksKey = 'asks' if market['spot'] else 'Sell'
         priceKey = 0 if market['spot'] else 'price'
