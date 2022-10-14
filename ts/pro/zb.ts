@@ -46,7 +46,7 @@ export default class zb extends zbBridge {
             'messageHash': messageHash,
             'method': method,
         };
-        return await this.watch (url, messageHash, message, messageHash, subscription);
+        return await this.ws.watch (url, messageHash, message, messageHash, subscription);
     }
 
     async watchTicker (symbol, params = {}) {
@@ -86,7 +86,7 @@ export default class zb extends zbBridge {
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         const trades = await this.watchPublic ('trades', symbol, this.handleTrades, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -147,7 +147,7 @@ export default class zb extends zbBridge {
             'messageHash': messageHash,
             'method': this.handleOrderBook,
         };
-        const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
+        const orderbook = await this.ws.watch (url, messageHash, message, messageHash, subscription);
         return orderbook.limit (limit);
     }
 
@@ -187,7 +187,7 @@ export default class zb extends zbBridge {
         const symbol = this.safeString (subscription, 'symbol');
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
-            orderbook = this.orderBook ({}, limit);
+            orderbook = this.ws.orderBook ({}, limit);
             this.orderbooks[symbol] = orderbook;
         }
         const timestamp = this.safeInteger (message, 'lastTime');

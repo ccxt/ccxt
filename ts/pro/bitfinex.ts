@@ -50,12 +50,12 @@ export default class bitfinex extends bitfinexBridge {
             'symbol': marketId,
             'messageHash': messageHash,
         };
-        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        return await this.ws.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         const trades = await this.subscribe ('trades', symbol, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -388,7 +388,7 @@ export default class bitfinex extends bitfinexBridge {
 
     async authenticate (params = {}) {
         const url = this.urls['api']['ws']['private'];
-        const client = this.client (url);
+        const client = this.ws.client (url);
         const future = client.future ('authenticated');
         const method = 'auth';
         const authenticated = this.safeValue (client.subscriptions, method);
@@ -407,7 +407,7 @@ export default class bitfinex extends bitfinexBridge {
                     'wallet',
                 ],
             };
-            this.spawn (this.watch, url, method, request, 1);
+            this.ws.spawn (this.ws.watch, url, method, request, 1);
         }
         return await future;
     }
@@ -433,15 +433,15 @@ export default class bitfinex extends bitfinexBridge {
         await this.loadMarkets ();
         const url = this.urls['api']['ws']['private'];
         await this.authenticate ();
-        return await this.watch (url, id, undefined, 1);
+        return await this.ws.watch (url, id, undefined, 1);
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         await this.authenticate ();
         const url = this.urls['api']['ws']['private'];
-        const orders = await this.watch (url, 'os', undefined, 1);
-        if (this.newUpdates) {
+        const orders = await this.ws.watch (url, 'os', undefined, 1);
+        if (this.ws.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);

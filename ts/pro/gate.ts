@@ -126,7 +126,7 @@ export default class gate extends gateBridge {
             subscription[fetchingOrderBookSnapshot] = true;
             const messageHash = subscription['messageHash'];
             client.subscriptions[messageHash] = subscription;
-            this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+            this.ws.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
         }
     }
 
@@ -155,7 +155,7 @@ export default class gate extends gateBridge {
                         numAttempts = this.sum (numAttempts, 1);
                         subscription['numAttempts'] = numAttempts;
                         client.subscriptions[messageHash] = subscription;
-                        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+                        this.ws.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
                     }
                 } else {
                     // throw upon failing to synchronize in maxAttempts
@@ -233,7 +233,7 @@ export default class gate extends gateBridge {
         if (!isFetchingOrderBookSnapshot) {
             subscription[fetchingOrderBookSnapshot] = true;
             client.subscriptions[messageHash] = subscription;
-            this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+            this.ws.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
         }
         if (orderbook['nonce'] === undefined) {
             orderbook.cache.push (message);
@@ -402,7 +402,7 @@ export default class gate extends gateBridge {
         const url = this.getUrlByMarketType (type, market['inverse']);
         const payload = [ marketId ];
         const trades = await this.subscribePublic (url, method, messageHash, payload);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -467,7 +467,7 @@ export default class gate extends gateBridge {
         const url = this.getUrlByMarketType (type, market['inverse']);
         const payload = [ interval, marketId ];
         const ohlcv = await this.subscribePublic (url, method, messageHash, payload);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -528,7 +528,7 @@ export default class gate extends gateBridge {
 
     async authenticate (params = {}) {
         const url = this.urls['api']['ws'];
-        const client = this.client (url);
+        const client = this.ws.client (url);
         const future = client.future ('authenticated');
         const method = 'server.sign';
         const authenticate = this.safeValue (client.subscriptions, method);
@@ -545,7 +545,7 @@ export default class gate extends gateBridge {
                 'id': requestId,
                 'method': this.handleAuthenticationMessage,
             };
-            this.spawn (this.watch, url, requestId, authenticateMessage, method, subscribe);
+            this.ws.spawn (this.ws.watch, url, requestId, authenticateMessage, method, subscribe);
         }
         return await future;
     }
@@ -581,7 +581,7 @@ export default class gate extends gateBridge {
         // uid required for non spot markets
         const requiresUid = (type !== 'spot');
         const trades = await this.subscribePrivate (url, method, messageHash, payload, requiresUid);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
@@ -766,7 +766,7 @@ export default class gate extends gateBridge {
         // uid required for non spot markets
         const requiresUid = (type !== 'spot');
         const orders = await this.subscribePrivate (url, method, messageHash, payload, requiresUid);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
@@ -903,7 +903,7 @@ export default class gate extends gateBridge {
     }
 
     handleBalanceSubscription (client, message) {
-        this.spawn (this.fetchBalanceSnapshot, client, message);
+        this.ws.spawn (this.fetchBalanceSnapshot, client, message);
     }
 
     async fetchBalanceSnapshot (client, message) {
@@ -1115,7 +1115,7 @@ export default class gate extends gateBridge {
             'messageHash': messageHash,
         };
         subscription = this.extend (subscription, subscriptionParams);
-        return await this.watch (url, messageHash, request, messageHash, subscription);
+        return await this.ws.watch (url, messageHash, request, messageHash, subscription);
     }
 
     async subscribePrivate (url, channel, messageHash, payload = undefined, requiresUid = false) {
@@ -1156,6 +1156,6 @@ export default class gate extends gateBridge {
             'id': requestId,
             'messageHash': messageHash,
         };
-        return await this.watch (url, messageHash, request, messageHash, subscription);
+        return await this.ws.watch (url, messageHash, request, messageHash, subscription);
     }
 }

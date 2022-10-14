@@ -42,7 +42,7 @@ export default class kucoin extends kucoinBridge {
     }
 
     async negotiate (params = {}) {
-        const client = this.client ('ws');
+        const client = this.ws.client ('ws');
         const messageHash = 'negotiate';
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
@@ -120,7 +120,7 @@ export default class kucoin extends kucoinBridge {
         };
         const request = this.extend (subscribe, params);
         const subscriptionHash = topic;
-        return await this.watch (url, messageHash, request, subscriptionHash, subscription);
+        return await this.ws.watch (url, messageHash, request, subscriptionHash, subscription);
     }
 
     async watchTicker (symbol, params = {}) {
@@ -218,7 +218,7 @@ export default class kucoin extends kucoinBridge {
         const topic = '/market/candles:' + market['id'] + '_' + period;
         const messageHash = topic;
         const ohlcv = await this.subscribe (negotiation, topic, messageHash, undefined, symbol, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -275,7 +275,7 @@ export default class kucoin extends kucoinBridge {
         const topic = '/market/match:' + market['id'];
         const messageHash = topic;
         const trades = await this.subscribe (negotiation, topic, messageHash, undefined, symbol, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -361,7 +361,7 @@ export default class kucoin extends kucoinBridge {
                 numAttempts = this.sum (numAttempts, 1);
                 subscription['numAttempts'] = numAttempts;
                 client.subscriptions[messageHash] = subscription;
-                this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+                this.ws.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
             }
         } else {
             if (messageHash in client.subscriptions) {
@@ -584,7 +584,7 @@ export default class kucoin extends kucoinBridge {
             messageHash = messageHash + ':' + market['symbol'];
         }
         const orders = await this.subscribe (negotiation, topic, messageHash, undefined, undefined, this.extend (request, params));
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
@@ -702,7 +702,7 @@ export default class kucoin extends kucoinBridge {
             messageHash = messageHash + ':' + market['symbol'];
         }
         const trades = await this.subscribe (negotiation, topic, messageHash, undefined, undefined, this.extend (request, params));
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
@@ -836,7 +836,7 @@ export default class kucoin extends kucoinBridge {
     }
 
     handleBalanceSubscription (client, message, subscription) {
-        this.spawn (this.fetchBalanceSnapshot, client, message);
+        this.ws.spawn (this.fetchBalanceSnapshot, client, message);
     }
 
     async fetchBalanceSnapshot (client, message) {

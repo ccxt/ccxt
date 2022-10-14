@@ -10,7 +10,28 @@ import {
 } from '../../base/functions.js';
 
 export default class Client {
-
+    connected: Promise<any>
+    futures: {}
+    rejections: {}
+    keepAlive: number
+    connection: any
+    connectionTimeout: any
+    verbose: boolean
+    connectionTimer: any
+    lastPong: any
+    maxPingPongMisses: any
+    pingInterval: any
+    connectionEstablished: any
+    gunzip: any
+    error: any
+    inflate: any
+    url: string
+    isConnected: boolean
+    onConnectedCallback: any
+    onMessageCallback: any
+    onErrorCallback: any
+    onCloseCallback: any
+    ping: any
     constructor (url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config = {}) {
         const defaults = {
             url,
@@ -103,7 +124,7 @@ export default class Client {
         throw new NotSupported ('connect() not implemented yet');
     }
 
-    isOpen () {
+    isOpen (): boolean {
         throw new NotSupported ('isOpen() not implemented yet');
     }
 
@@ -151,7 +172,7 @@ export default class Client {
         if (this.keepAlive && this.isOpen ()) {
             const now = milliseconds ()
             this.lastPong = this.lastPong || now
-            if ((this.lastPong + this.keepAlive * this.maxPingPongMisses) < now) {
+            if ((this.lastPong + this.keepAlive as any * this.maxPingPongMisses) < now) {
                 this.onError (new RequestTimeout ('Connection to ' + this.url + ' timed out due to a ping-pong keepalive missing on time'))
             } else {
                 if (this.ping) {
@@ -176,8 +197,8 @@ export default class Client {
             this.log (new Date (), 'onOpen')
         }
         this.connectionEstablished = milliseconds ()
-        this.isConnected = true
-        this.connected.resolve (this.url)
+        this.isConnected = true;
+        (this as any).connected.resolve (this.url)
         // this.connection.terminate () // debugging
         this.clearConnectionTimeout ()
         this.setPingInterval ()

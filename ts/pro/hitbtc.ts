@@ -54,7 +54,7 @@ export default class hitbtc extends hitbtcBridge {
             'id': requestId,
         };
         const request = this.deepExtend (subscribe, params);
-        return await this.watch (url, messageHash, request, messageHash);
+        return await this.ws.watch (url, messageHash, request, messageHash);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -192,7 +192,7 @@ export default class hitbtc extends hitbtcBridge {
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         const trades = await this.watchPublic (symbol, 'trades', undefined, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -262,7 +262,7 @@ export default class hitbtc extends hitbtcBridge {
         };
         const requestParams = this.deepExtend (request, params);
         const ohlcv = await this.watchPublic (symbol, 'ohlcv', period, requestParams);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);

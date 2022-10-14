@@ -94,7 +94,7 @@ export default class bittrex extends bittrexBridge {
             'negotiation': negotiation,
         }, subscription);
         const url = this.getSignalRUrl (negotiation);
-        return await this.watch (url, messageHash, request, messageHash, subscription);
+        return await this.ws.watch (url, messageHash, request, messageHash, subscription);
     }
 
     async authenticate (params = {}) {
@@ -105,7 +105,7 @@ export default class bittrex extends bittrexBridge {
 
     async sendRequestToAuthenticate (negotiation, expired = false, params = {}) {
         const url = this.getSignalRUrl (negotiation);
-        const client = this.client (url);
+        const client = this.ws.client (url);
         const messageHash = 'authenticate';
         let future = this.safeValue (client.subscriptions, messageHash);
         if ((future === undefined) || expired) {
@@ -119,7 +119,7 @@ export default class bittrex extends bittrexBridge {
                 'negotiation': negotiation,
                 'method': this.handleAuthenticate,
             };
-            this.spawn (this.watch, url, messageHash, request, requestId, subscription);
+            this.ws.spawn (this.ws.watch, url, messageHash, request, requestId, subscription);
         }
         return await future;
     }
@@ -152,7 +152,7 @@ export default class bittrex extends bittrexBridge {
         //
         // resend the authentication request and refresh the subscription
         //
-        this.spawn (this.handleAuthenticationExpiringHelper);
+        this.ws.spawn (this.handleAuthenticationExpiringHelper);
     }
 
     createSignalRQuery (params = {}) {
@@ -171,7 +171,7 @@ export default class bittrex extends bittrexBridge {
     }
 
     async negotiate (params = {}) {
-        const client = this.client (this.urls['api']['ws']);
+        const client = this.ws.client (this.urls['api']['ws']);
         const messageHash = 'negotiate';
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
@@ -214,7 +214,7 @@ export default class bittrex extends bittrexBridge {
         await this.loadMarkets ();
         const authentication = await this.authenticate ();
         const orders = await this.subscribeToOrders (authentication, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
@@ -313,7 +313,7 @@ export default class bittrex extends bittrexBridge {
             'params': params,
             'negotiation': negotiation,
         };
-        return await this.watch (url, messageHash, request, messageHash, subscription);
+        return await this.ws.watch (url, messageHash, request, messageHash, subscription);
     }
 
     handleHeartbeat (client, message) {
@@ -372,7 +372,7 @@ export default class bittrex extends bittrexBridge {
         await this.loadMarkets ();
         const negotiation = await this.negotiate ();
         const ohlcv = await this.subscribeToOHLCV (negotiation, symbol, timeframe, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -433,7 +433,7 @@ export default class bittrex extends bittrexBridge {
         await this.loadMarkets ();
         const negotiation = await this.negotiate ();
         const trades = await this.subscribeToTrades (negotiation, symbol, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -491,7 +491,7 @@ export default class bittrex extends bittrexBridge {
         await this.loadMarkets ();
         const authentication = await this.authenticate ();
         const trades = await this.subscribeToMyTrades (authentication, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
@@ -603,7 +603,7 @@ export default class bittrex extends bittrexBridge {
                         numAttempts = this.sum (numAttempts, 1);
                         subscription['numAttempts'] = numAttempts;
                         client.subscriptions[messageHash] = subscription;
-                        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+                        this.ws.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
                     }
                 } else {
                     // throw upon failing to synchronize in maxAttempts
@@ -632,7 +632,7 @@ export default class bittrex extends bittrexBridge {
             delete this.orderbooks[symbol];
         }
         this.orderbooks[symbol] = this.orderBook ({}, limit);
-        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+        this.ws.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }
 
     handleDelta (bookside, delta) {
@@ -720,7 +720,7 @@ export default class bittrex extends bittrexBridge {
 
     handleSystemStatus (client, message) {
         // send signalR protocol start() call
-        this.spawn (this.handleSystemStatusHelper);
+        this.ws.spawn (this.handleSystemStatusHelper);
         return message;
     }
 

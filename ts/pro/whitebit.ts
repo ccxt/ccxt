@@ -84,7 +84,7 @@ export default class whitebit extends whitebitBridge {
         const reqParams = [ marketId, interval ];
         const method = 'candles_subscribe';
         const ohlcv = await this.watchPublic (messageHash, method, reqParams, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -251,7 +251,7 @@ export default class whitebit extends whitebitBridge {
         const method = 'market_subscribe';
         const messageHash = 'ticker:' + symbol;
         // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
-        return await this.watchMultipleSubscription (messageHash, method, symbol, false, params);
+        return await this.ws.watchMultipleSubscription (messageHash, method, symbol, false, params);
     }
 
     handleTicker (client, message) {
@@ -322,7 +322,7 @@ export default class whitebit extends whitebitBridge {
         const method = 'trades_subscribe';
         // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
         const trades = await this.watchMultipleSubscription (messageHash, method, symbol, false, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -393,7 +393,7 @@ export default class whitebit extends whitebitBridge {
         const messageHash = 'myTrades:' + symbol;
         const method = 'deals_subscribe';
         const trades = await this.watchMultipleSubscription (messageHash, method, symbol, true, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
@@ -495,7 +495,7 @@ export default class whitebit extends whitebitBridge {
         const messageHash = 'orders:' + symbol;
         const method = 'ordersPending_subscribe';
         const trades = await this.watchMultipleSubscription (messageHash, method, symbol, false, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
@@ -716,14 +716,14 @@ export default class whitebit extends whitebitBridge {
             'params': reqParams,
         };
         const message = this.extend (request, params);
-        return await this.watch (url, messageHash, message, messageHash);
+        return await this.ws.watch (url, messageHash, message, messageHash);
     }
 
     async watchMultipleSubscription (messageHash, method, symbol, isNested = false, params = {}) {
         await this.loadMarkets ();
         const url = this.urls['api']['ws'];
         const id = this.nonce ();
-        const client = this.safeValue (this.clients, url);
+        const client = this.safeValue (this.ws.clients, url);
         let request = undefined;
         if (client === undefined) {
             const subscription = {};
@@ -740,7 +740,7 @@ export default class whitebit extends whitebitBridge {
                 'params': marketIds,
             };
             const message = this.extend (request, params);
-            return await this.watch (url, messageHash, message, method, subscription);
+            return await this.ws.watch (url, messageHash, message, method, subscription);
         } else {
             const subscription = this.safeValue (client.subscriptions, method, {});
             let hasSymbolSubscription = true;
@@ -753,7 +753,7 @@ export default class whitebit extends whitebitBridge {
             }
             if (hasSymbolSubscription) {
                 // already subscribed to this market(s)
-                return await this.watch (url, messageHash, request, method, subscription);
+                return await this.ws.watch (url, messageHash, request, method, subscription);
             } else {
                 // resubscribe
                 let marketIds = Object.keys (subscription);
@@ -768,7 +768,7 @@ export default class whitebit extends whitebitBridge {
                 if (method in client.subscriptions) {
                     delete client.subscriptions[method];
                 }
-                return await this.watch (url, messageHash, resubRequest, method, subscription);
+                return await this.ws.watch (url, messageHash, resubRequest, method, subscription);
             }
         }
     }
@@ -784,18 +784,18 @@ export default class whitebit extends whitebitBridge {
             'params': reqParams,
         };
         const message = this.extend (request, params);
-        return await this.watch (url, messageHash, message, messageHash);
+        return await this.ws.watch (url, messageHash, message, messageHash);
     }
 
     async authenticate (params = {}) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
         const messageHash = 'login';
-        const client = this.client (url);
+        const client = this.ws.client (url);
         const future = client.future ('authenticated');
         const authenticated = this.safeValue (client.subscriptions, messageHash);
         if (authenticated === undefined) {
-            const authToken = await this.v4PrivatePostProfileWebsocketToken ();
+            const authToken = await (this as any).v4PrivatePostProfileWebsocketToken ();
             //
             //   {
             //       websocket_token: '$2y$10$lxCvTXig/XrcTBFY1bdFseCKQmFTDtCpEzHNVnXowGplExFxPJp9y'
@@ -815,7 +815,7 @@ export default class whitebit extends whitebitBridge {
                 'id': id,
                 'method': this.handleAuthenticate,
             };
-            this.spawn (this.watch, url, messageHash, request, messageHash, subscription);
+            this.ws.spawn (this.ws.watch, url, messageHash, request, messageHash, subscription);
         }
         return await future;
     }
@@ -903,7 +903,7 @@ export default class whitebit extends whitebitBridge {
         const subs = client.subscriptions;
         const values = Object.values (subs);
         for (let i = 0; i < values.length; i++) {
-            const subscription = values[i];
+            const subscription = values[i] as any;
             if (subscription !== true) {
                 const subId = this.safeInteger (subscription, 'id');
                 if ((subId !== undefined) && (subId === id)) {

@@ -339,7 +339,7 @@ export default class phemex extends phemexBridge {
             'params': [],
         };
         const request = this.deepExtend (subscribe, params);
-        return await this.watch (url, messageHash, request, subscriptionHash);
+        return await this.ws.watch (url, messageHash, request, subscriptionHash);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -358,8 +358,8 @@ export default class phemex extends phemexBridge {
             ],
         };
         const request = this.deepExtend (subscribe, params);
-        const trades = await this.watch (url, messageHash, request, messageHash);
-        if (this.newUpdates) {
+        const trades = await this.ws.watch (url, messageHash, request, messageHash);
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -381,7 +381,7 @@ export default class phemex extends phemexBridge {
             ],
         };
         const request = this.deepExtend (subscribe, params);
-        const orderbook = await this.watch (url, messageHash, request, messageHash);
+        const orderbook = await this.ws.watch (url, messageHash, request, messageHash);
         return orderbook.limit (limit);
     }
 
@@ -402,8 +402,8 @@ export default class phemex extends phemexBridge {
             ],
         };
         const request = this.deepExtend (subscribe, params);
-        const ohlcv = await this.watch (url, messageHash, request, messageHash);
-        if (this.newUpdates) {
+        const ohlcv = await this.ws.watch (url, messageHash, request, messageHash);
+        if (this.ws.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -490,7 +490,7 @@ export default class phemex extends phemexBridge {
             messageHash = messageHash + ':' + type;
         }
         const trades = await this.subscribePrivate (type, messageHash, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
@@ -578,7 +578,7 @@ export default class phemex extends phemexBridge {
             messageHash = messageHash + ':' + type;
         }
         const orders = await this.subscribePrivate (type, messageHash, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
@@ -1016,13 +1016,13 @@ export default class phemex extends phemexBridge {
             'id': requestId,
             'messageHash': messageHash,
         };
-        return await this.watch (url, messageHash, request, channel, subscription);
+        return await this.ws.watch (url, messageHash, request, channel, subscription);
     }
 
     async authenticate (params = {}) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
-        const client = this.client (url);
+        const client = this.ws.client (url);
         const time = this.seconds ();
         const messageHash = 'authenticated';
         const future = client.future (messageHash);
@@ -1041,7 +1041,7 @@ export default class phemex extends phemexBridge {
                 'id': time,
                 'method': this.handleAuthenticate,
             };
-            this.spawn (this.watch, url, messageHash, request, messageHash, subscription);
+            this.ws.spawn (this.ws.watch, url, messageHash, request, messageHash, subscription);
         }
         return await future;
     }

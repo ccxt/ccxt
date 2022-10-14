@@ -47,7 +47,7 @@ export default class bitopro extends bitoproBridge {
 
     async watchPublic (path, messageHash, marketId) {
         const url = this.urls['ws']['public'] + '/' + path + '/' + marketId;
-        return await this.watch (url, messageHash, undefined, messageHash);
+        return await this.ws.watch (url, messageHash, undefined, messageHash);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -111,7 +111,7 @@ export default class bitopro extends bitoproBridge {
         const market = this.market (symbol);
         const messageHash = 'TRADE' + ':' + symbol;
         const trades = await this.watchPublic ('trades', messageHash, market['id'], limit);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -197,7 +197,7 @@ export default class bitopro extends bitoproBridge {
     }
 
     authenticate (url) {
-        if ((this.clients !== undefined) && (url in this.clients)) {
+        if ((this.ws.clients !== undefined) && (url in this.ws.clients)) {
             return;
         }
         this.checkRequiredCredentials ();
@@ -224,7 +224,7 @@ export default class bitopro extends bitoproBridge {
             'X-BITOPRO-SIGNATURE': signature,
         };
         // instantiate client
-        this.client (url);
+        this.ws.client (url);
         this.options['ws']['options']['headers'] = originalHeaders;
     }
 
@@ -234,7 +234,7 @@ export default class bitopro extends bitoproBridge {
         const messageHash = 'ACCOUNT_BALANCE';
         const url = this.urls['ws']['private'] + '/' + 'account-balance';
         this.authenticate (url);
-        return await this.watch (url, messageHash, undefined, messageHash);
+        return await this.ws.watch (url, messageHash, undefined, messageHash);
     }
 
     handleBalance (client, message) {

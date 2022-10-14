@@ -68,7 +68,7 @@ export default class coinbasepro extends coinbaseproBridge {
             ],
         };
         const request = this.extend (subscribe, params);
-        return await this.watch (url, messageHash, request, messageHash);
+        return await this.ws.watch (url, messageHash, request, messageHash);
     }
 
     async watchTicker (symbol, params = {}) {
@@ -79,7 +79,7 @@ export default class coinbasepro extends coinbaseproBridge {
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         const name = 'matches';
         const trades = await this.subscribe (name, symbol, name, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -93,7 +93,7 @@ export default class coinbasepro extends coinbaseproBridge {
         const messageHash = 'myTrades';
         const authentication = this.authenticate ();
         const trades = await this.subscribe (name, symbol, messageHash, this.extend (params, authentication));
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -107,7 +107,7 @@ export default class coinbasepro extends coinbaseproBridge {
         const messageHash = 'orders';
         const authentication = this.authenticate ();
         const orders = await this.subscribe (name, symbol, messageHash, this.extend (params, authentication));
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
@@ -135,7 +135,7 @@ export default class coinbasepro extends coinbaseproBridge {
             'marketId': market['id'],
             'limit': limit,
         };
-        const orderbook = await this.watch (url, messageHash, request, messageHash, subscription);
+        const orderbook = await this.ws.watch (url, messageHash, request, messageHash, subscription);
         return orderbook.limit (limit);
     }
 

@@ -47,7 +47,7 @@ export default class idex extends idexBridge {
                 subscribeObject,
             ],
         };
-        return await this.watch (url, messageHash, request, messageHash, subscription);
+        return await this.ws.watch (url, messageHash, request, messageHash, subscription);
     }
 
     async subscribePrivate (subscribeObject, messageHash) {
@@ -60,7 +60,7 @@ export default class idex extends idexBridge {
                 subscribeObject,
             ],
         };
-        return await this.watch (url, messageHash, request, messageHash);
+        return await this.ws.watch (url, messageHash, request, messageHash);
     }
 
     async watchTicker (symbol, params = {}) {
@@ -139,7 +139,7 @@ export default class idex extends idexBridge {
         };
         const messageHash = name + ':' + market['id'];
         const trades = await this.subscribe (subscribeObject, messageHash);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -227,7 +227,7 @@ export default class idex extends idexBridge {
         };
         const messageHash = name + ':' + market['id'];
         const ohlcv = await this.subscribe (subscribeObject, messageHash);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -303,7 +303,7 @@ export default class idex extends idexBridge {
                             orderbook.cache = [];
                             this.orderbooks[symbol] = orderbook;
                         }
-                        this.spawn (this.fetchOrderBookSnapshot, client, symbol);
+                        this.ws.spawn (this.fetchOrderBookSnapshot, client, symbol);
                     }
                 }
                 break;
@@ -485,7 +485,7 @@ export default class idex extends idexBridge {
             messageHash = name + ':' + marketId;
         }
         const orders = await this.subscribePrivate (subscribeObject, messageHash);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
@@ -611,7 +611,7 @@ export default class idex extends idexBridge {
             messageHash = name + ':' + code;
         }
         const transactions = await this.subscribePrivate (subscribeObject, messageHash);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = transactions.getLimit (code, limit);
         }
         return this.filterBySinceLimit (transactions, since, limit, 'timestamp', true);

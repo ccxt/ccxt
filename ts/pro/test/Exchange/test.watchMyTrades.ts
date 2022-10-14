@@ -1,12 +1,9 @@
-'use strict'
-
 // ----------------------------------------------------------------------------
 
-import log from 'ololog';
-
-import assert from 'assert';
-import testTrade from '../../../test/Exchange/test.trade.js';
-import errors from '../../../base/errors.js';
+import log from 'ololog'
+import assert from 'assert'
+import testTrade from '../../../test/Exchange/test.trade.js'
+import errors from '../../../base/errors.js'
 
 /*  ------------------------------------------------------------------------ */
 
@@ -61,4 +58,4 @@ export default async (exchange, symbol) => {
     }
 
     return response
-};
+}

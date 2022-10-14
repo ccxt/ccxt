@@ -230,7 +230,7 @@ export default class coinex extends coinexBridge {
             'id': this.requestId (),
         };
         const request = this.deepExtend (subscribe, params);
-        return await this.watch (url, messageHash, request, messageHash);
+        return await this.ws.watch (url, messageHash, request, messageHash);
     }
 
     handleBalance (client, message) {
@@ -389,7 +389,7 @@ export default class coinex extends coinexBridge {
             ],
         };
         const request = this.deepExtend (subscribe, params);
-        return await this.watch (url, messageHash, request, messageHash, request);
+        return await this.ws.watch (url, messageHash, request, messageHash, request);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -417,7 +417,7 @@ export default class coinex extends coinexBridge {
             'id': this.requestId (),
         };
         const request = this.deepExtend (message, params);
-        const trades = await this.watch (url, messageHash, request, messageHash, request);
+        const trades = await this.ws.watch (url, messageHash, request, messageHash, request);
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
@@ -464,7 +464,7 @@ export default class coinex extends coinexBridge {
             ],
         };
         const request = this.deepExtend (subscribe, params);
-        const orderbook = await this.watch (url, messageHash, request, messageHash);
+        const orderbook = await this.ws.watch (url, messageHash, request, messageHash);
         return orderbook.limit (limit);
     }
 
@@ -498,8 +498,8 @@ export default class coinex extends coinexBridge {
             ],
         };
         const request = this.deepExtend (subscribe, params);
-        const ohlcvs = await this.watch (url, messageHash, request, messageHash);
-        if (this.newUpdates) {
+        const ohlcvs = await this.ws.watch (url, messageHash, request, messageHash);
+        if (this.ws.newUpdates) {
             limit = ohlcvs.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcvs, since, limit, 0, true);
@@ -622,8 +622,8 @@ export default class coinex extends coinexBridge {
         }
         const url = this.urls['api']['ws'][type];
         const request = this.deepExtend (message, query);
-        const orders = await this.watch (url, messageHash, request, messageHash, request);
-        if (this.newUpdates) {
+        const orders = await this.ws.watch (url, messageHash, request, messageHash, request);
+        if (this.ws.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
@@ -951,7 +951,7 @@ export default class coinex extends coinexBridge {
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('authenticate', undefined, params);
         const url = this.urls['api']['ws'][type];
-        const client = this.client (url);
+        const client = this.ws.client (url);
         const time = this.milliseconds ();
         if (type === 'spot') {
             const messageHash = 'authenticated:spot';
@@ -976,7 +976,7 @@ export default class coinex extends coinexBridge {
                 ],
                 'id': requestId,
             };
-            this.spawn (this.watch, url, messageHash, request, requestId, subscribe);
+            this.ws.spawn (this.ws.watch, url, messageHash, request, requestId, subscribe);
             return future;
         } else {
             const messageHash = 'authenticated:swap';
@@ -1001,7 +1001,7 @@ export default class coinex extends coinexBridge {
                 ],
                 'id': requestId,
             };
-            this.spawn (this.watch, url, messageHash, request, requestId, subscribe);
+            this.ws.spawn (this.ws.watch, url, messageHash, request, requestId, subscribe);
             return future;
         }
     }

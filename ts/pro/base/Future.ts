@@ -1,4 +1,4 @@
-'use strict'
+// @ts-nocheck
 
 export default function Future () {
 

@@ -65,7 +65,7 @@ export default class bitmart extends bitmartBridge {
             'op': 'subscribe',
             'args': [ messageHash ],
         };
-        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        return await this.ws.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
     async subscribePrivate (channel, symbol, params = {}) {
@@ -78,12 +78,12 @@ export default class bitmart extends bitmartBridge {
             'op': 'subscribe',
             'args': [ messageHash ],
         };
-        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        return await this.ws.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         const trades = await this.subscribe ('trade', symbol, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -104,7 +104,7 @@ export default class bitmart extends bitmartBridge {
         }
         const channel = 'spot/user/order';
         const orders = await this.subscribePrivate (channel, symbol, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
@@ -288,7 +288,7 @@ export default class bitmart extends bitmartBridge {
         const interval = this.safeString (timeframes, timeframe);
         const name = 'kline' + interval;
         const ohlcv = await this.subscribe (name, symbol, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -449,7 +449,7 @@ export default class bitmart extends bitmartBridge {
         this.checkRequiredCredentials ();
         const url = this.implodeHostname (this.urls['api']['ws']['private']);
         const messageHash = 'login';
-        const client = this.client (url);
+        const client = this.ws.client (url);
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
             future = client.future ('authenticated');
@@ -466,7 +466,7 @@ export default class bitmart extends bitmartBridge {
                     signature,
                 ],
             };
-            this.spawn (this.watch, url, messageHash, request, messageHash, future);
+            this.ws.spawn (this.ws.watch, url, messageHash, request, messageHash, future);
         }
         return await future;
     }

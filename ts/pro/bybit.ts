@@ -496,7 +496,7 @@ export default class bybit extends bybitBridge {
             const reqParams = [ channel ];
             ohlcv = await this.watchContractPublic (url, messageHash, reqParams, params);
         }
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -797,7 +797,7 @@ export default class bybit extends bybitBridge {
                 snapshot['nonce'] = nonce;
                 let orderbook = undefined;
                 if (!(symbol in this.orderbooks)) {
-                    orderbook = this.orderBook (snapshot);
+                    orderbook = this.ws.orderBook (snapshot);
                     this.orderbooks[symbol] = orderbook;
                 } else {
                     orderbook = this.orderbooks[symbol];
@@ -888,7 +888,7 @@ export default class bybit extends bybitBridge {
             const reqParams = [ channel ];
             trades = await this.watchContractPublic (url, messageHash, reqParams, params);
         }
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -1121,7 +1121,7 @@ export default class bybit extends bybitBridge {
         params = this.cleanParams (params);
         let trades = undefined;
         if (type === 'spot') {
-            trades = await this.watchSpotPrivate (url, messageHash, params);
+            trades = await this.ws.watchSpotPrivate (url, messageHash, params);
         } else {
             let channel = undefined;
             if (isUsdcSettled) {
@@ -1130,9 +1130,9 @@ export default class bybit extends bybitBridge {
                 channel = 'execution';
             }
             const reqParams = [ channel ];
-            trades = await this.watchContractPrivate (url, messageHash, reqParams, params);
+            trades = await this.ws.watchContractPrivate (url, messageHash, reqParams, params);
         }
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -1246,7 +1246,7 @@ export default class bybit extends bybitBridge {
         params = this.cleanParams (params);
         let orders = undefined;
         if (type === 'spot') {
-            orders = await this.watchSpotPrivate (url, messageHash, params);
+            orders = await this.ws.watchSpotPrivate (url, messageHash, params);
         } else {
             let channel = undefined;
             if (isUsdcSettled) {
@@ -1259,9 +1259,9 @@ export default class bybit extends bybitBridge {
                 channel = isStopOrder ? 'stop_order' : 'order';
             }
             const reqParams = [ channel ];
-            orders = await this.watchContractPrivate (url, messageHash, reqParams, params);
+            orders = await this.ws.watchContractPrivate (url, messageHash, reqParams, params);
         }
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
@@ -1610,7 +1610,7 @@ export default class bybit extends bybitBridge {
             'args': reqParams,
         };
         const message = this.extend (request, params);
-        return await this.watch (url, messageHash, message, messageHash);
+        return await this.ws.watch (url, messageHash, message, messageHash);
     }
 
     async watchSpotPublic (url, channel, messageHash, reqParams = {}, params = {}) {
@@ -1623,7 +1623,7 @@ export default class bybit extends bybitBridge {
             'params': reqParams,
         };
         const message = this.extend (request, params);
-        return await this.watch (url, messageHash, message, messageHash);
+        return await this.ws.watch (url, messageHash, message, messageHash);
     }
 
     async watchSpotPrivate (url, messageHash, params = {}) {
@@ -1631,10 +1631,9 @@ export default class bybit extends bybitBridge {
         // sending the authentication message automatically
         // subscribes to all 3 private topics.
         this.checkRequiredCredentials ();
-        let expires = this.milliseconds () + 10000;
-        expires = expires.toString ();
+        const expires = this.milliseconds () + 10000;
         const path = 'GET/realtime';
-        const auth = path + expires;
+        const auth = path + expires.toString ();
         const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256', 'hex');
         const request = {
             'op': 'auth',
@@ -1642,7 +1641,7 @@ export default class bybit extends bybitBridge {
                 this.apiKey, expires, signature,
             ],
         };
-        return await this.watch (url, messageHash, request, channel);
+        return await this.ws.watch (url, messageHash, request, channel);
     }
 
     async watchContractPrivate (url, messageHash, reqParams, params = {}) {
@@ -1653,7 +1652,7 @@ export default class bybit extends bybitBridge {
     async authenticateContract (url, params = {}) {
         this.checkRequiredCredentials ();
         const messageHash = 'login';
-        const client = this.client (url);
+        const client = this.ws.client (url);
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
             future = client.future ('authenticated');
@@ -1668,7 +1667,7 @@ export default class bybit extends bybitBridge {
                     this.apiKey, expires, signature,
                 ],
             };
-            this.spawn (this.watch, url, messageHash, request, messageHash, future);
+            this.ws.spawn (this.ws.watch, url, messageHash, request, messageHash, future);
         }
         return await future;
     }

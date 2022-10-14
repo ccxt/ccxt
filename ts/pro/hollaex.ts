@@ -107,7 +107,7 @@ export default class hollaex extends hollaexBridge {
         symbol = market['symbol'];
         const messageHash = 'trade' + ':' + market['id'];
         const trades = await this.watchPublic (messageHash, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -159,7 +159,7 @@ export default class hollaex extends hollaexBridge {
             messageHash += ':' + market['id'];
         }
         const trades = await this.watchPrivate (messageHash, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
@@ -231,7 +231,7 @@ export default class hollaex extends hollaexBridge {
             messageHash += ':' + market['id'];
         }
         const orders = await this.watchPrivate (messageHash, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
@@ -380,7 +380,7 @@ export default class hollaex extends hollaexBridge {
             'args': [ messageHash ],
         };
         const message = this.extend (request, params);
-        return await this.watch (url, messageHash, message, messageHash);
+        return await this.ws.watch (url, messageHash, message, messageHash);
     }
 
     async watchPrivate (messageHash, params = {}) {
@@ -408,7 +408,7 @@ export default class hollaex extends hollaexBridge {
             'args': [ messageHash ],
         };
         const message = this.extend (request, params);
-        return await this.watch (signedUrl, messageHash, message, messageHash);
+        return await this.ws.watch (signedUrl, messageHash, message, messageHash);
     }
 
     handleErrorMessage (client, message) {
@@ -550,11 +550,11 @@ export default class hollaex extends hollaexBridge {
 
     onError (client, error) {
         this.options['ws-expires'] = undefined;
-        super.onError (client, error);
+        this.ws.onError (client, error);
     }
 
     onClose (client, error) {
         this.options['ws-expires'] = undefined;
-        super.onClose (client, error);
+        this.ws.onClose (client, error);
     }
 }

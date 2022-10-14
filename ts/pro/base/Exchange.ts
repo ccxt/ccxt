@@ -7,9 +7,9 @@ export default class Exchange  {
     
     newUpdates = true
     options = {}
-    wsLog = undefined
+    log = undefined
     ping = undefined
-    wsVerbose = undefined
+    verbose = undefined
     clients = {}
     // timeframes = undefined
     tokenBucket = undefined
@@ -19,8 +19,8 @@ export default class Exchange  {
 
     constructor (options = {}) {
         this.newUpdates = (options as any).newUpdates || true;
-        this.wsLog = (options as any).wsLog || undefined;
-        this.wsVerbose = (options as any).verbose || undefined;
+        this.log = (options as any).wsLog || undefined;
+        this.verbose = (options as any).verbose || undefined;
     }
 
     inflate (data) {
@@ -61,9 +61,9 @@ export default class Exchange  {
             // decide client type here: ws / signalr / socketio
             const wsOptions = safeValue (this.options, 'ws', {});
             const options = extend (this.streaming, {
-                'log': this.wsLog ? this.wsLog.bind (this) : this.wsLog,
+                'log': this.log ? this.log.bind (this) : this.log,
                 'ping': this.ping ? this.ping.bind (this) : this.ping,
-                'verbose': this.wsVerbose,
+                'verbose': this.verbose,
                 'throttle': throttle (this.tokenBucket),
             }, wsOptions);
             this.clients[url] = new WsClient (url, onMessage, onError, onClose, onConnected, options);

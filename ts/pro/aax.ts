@@ -107,7 +107,7 @@ export default class aax extends aaxBridge {
             'stream': name,
         };
         const request = this.extend (subscribe, params);
-        return await this.wsConnector.watch (url, messageHash, request, name);
+        return await this.ws.watch (url, messageHash, request, name);
     }
 
     handleTickers (client, message) {
@@ -170,8 +170,8 @@ export default class aax extends aaxBridge {
             'stream': messageHash,
         };
         const request = this.extend (subscribe, params);
-        const trades = await this.wsConnector.watch (url, messageHash, request, messageHash);
-        if (this.wsConnector.newUpdates) {
+        const trades = await this.ws.watch (url, messageHash, request, messageHash);
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -220,7 +220,7 @@ export default class aax extends aaxBridge {
             'stream': messageHash,
         };
         const request = this.extend (subscribe, params);
-        const orderbook = await this.wsConnector.watch (url, messageHash, request, messageHash);
+        const orderbook = await this.ws.watch (url, messageHash, request, messageHash);
         return orderbook.limit (limit);
     }
 
@@ -264,7 +264,7 @@ export default class aax extends aaxBridge {
         const snapshot = this.parseOrderBook (message, symbol, timestamp);
         let orderbook = undefined;
         if (!(symbol in this.orderbooks)) {
-            orderbook = this.wsConnector.orderBook (snapshot, limit);
+            orderbook = this.ws.orderBook (snapshot, limit);
             this.orderbooks[symbol] = orderbook;
         } else {
             orderbook = this.orderbooks[symbol];
@@ -282,7 +282,7 @@ export default class aax extends aaxBridge {
 
     async handshake (params = {}) {
         const url = this.urls['api']['ws']['private'];
-        const client = this.wsConnector.client (url);
+        const client = this.ws.client (url);
         const event = 'handshake';
         const future = client.future (event);
         const authenticated = this.safeValue (client.subscriptions, event);
@@ -295,7 +295,7 @@ export default class aax extends aaxBridge {
             };
             const request = this.extend (query, params);
             const messageHash = requestId.toString ();
-            const response = await this.wsConnector.watch (url, messageHash, request, event);
+            const response = await this.ws.watch (url, messageHash, request, event);
             future.resolve (response);
         }
         return await future;
@@ -303,7 +303,7 @@ export default class aax extends aaxBridge {
 
     async authenticate (params = {}) {
         const url = this.urls['api']['ws']['private'];
-        const client = this.wsConnector.client (url);
+        const client = this.ws.client (url);
         const event = 'login';
         const future = client.future (event);
         const authenticated = this.safeValue (client.subscriptions, event);
@@ -323,7 +323,7 @@ export default class aax extends aaxBridge {
             };
             const request = this.extend (query, params);
             const messageHash = requestId.toString ();
-            const response = await this.wsConnector.watch (url, messageHash, request, event);
+            const response = await this.ws.watch (url, messageHash, request, event);
             //
             //     {
             //         data: {
@@ -384,7 +384,7 @@ export default class aax extends aaxBridge {
             'cid': requestId,
         };
         const request = this.deepExtend (subscribe, query);
-        return await this.wsConnector.watch (url, messageHash, request, channel);
+        return await this.ws.watch (url, messageHash, request, channel);
     }
 
     handleBalance (client, message) {
@@ -452,8 +452,8 @@ export default class aax extends aaxBridge {
             'cid': requestId,
         };
         const request = this.deepExtend (subscribe, query);
-        const orders = await this.wsConnector.watch (url, messageHash, request, messageHash);
-        if (this.wsConnector.newUpdates) {
+        const orders = await this.ws.watch (url, messageHash, request, messageHash);
+        if (this.ws.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
@@ -603,7 +603,7 @@ export default class aax extends aaxBridge {
     }
 
     handlePing (client, message) {
-        this.wsConnector.spawn (this.pong, client, message);
+        this.ws.spawn (this.pong, client, message);
     }
 
     handleNotification (client, message) {

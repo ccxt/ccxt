@@ -1,5 +1,5 @@
 /* eslint-disable max-classes-per-file */
-
+// @ts-nocheck
 // ----------------------------------------------------------------------------
 //
 // Upto 10x faster after initializing memory for the floating point array

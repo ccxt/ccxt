@@ -54,7 +54,7 @@ export default class ascendex extends ascendexBridge {
             'op': 'sub',
         };
         const message = this.extend (request, params);
-        return await this.watch (url, messageHash, message, messageHash);
+        return await this.ws.watch (url, messageHash, message, messageHash);
     }
 
     async watchPrivate (channel, messageHash, params = {}) {
@@ -70,7 +70,7 @@ export default class ascendex extends ascendexBridge {
         };
         const message = this.extend (request, params);
         await this.authenticate (url, params);
-        return await this.watch (url, messageHash, message, channel);
+        return await this.ws.watch (url, messageHash, message, channel);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -85,7 +85,7 @@ export default class ascendex extends ascendexBridge {
             'ch': channel,
         };
         const ohlcv = await this.watchPublic (channel, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -136,7 +136,7 @@ export default class ascendex extends ascendexBridge {
             'ch': channel,
         });
         const trades = await this.watchPublic (channel, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -462,7 +462,7 @@ export default class ascendex extends ascendexBridge {
             messageHash = messageHash + ':' + symbol;
         }
         const orders = await this.watchPrivate (channel, messageHash, query);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
@@ -873,7 +873,7 @@ export default class ascendex extends ascendexBridge {
             delete this.orderbooks[symbol];
         }
         this.orderbooks[symbol] = this.orderBook ({});
-        this.spawn (this.watchOrderBookSnapshot, symbol);
+        this.ws.spawn (this.ws.watchOrderBookSnapshot, symbol);
     }
 
     async pong (client, message) {
@@ -884,13 +884,13 @@ export default class ascendex extends ascendexBridge {
     }
 
     handlePing (client, message) {
-        this.spawn (this.pong, client, message);
+        this.ws.spawn (this.pong, client, message);
     }
 
     async authenticate (url, params = {}) {
         this.checkRequiredCredentials ();
         const messageHash = 'authenticated';
-        const client = this.client (url);
+        const client = this.ws.client (url);
         let future = this.safeValue (client.futures, messageHash);
         if (future === undefined) {
             future = client.future ('authenticated');
@@ -910,7 +910,7 @@ export default class ascendex extends ascendexBridge {
                 'key': this.apiKey,
                 'sig': signature,
             };
-            this.spawn (this.watch, url, messageHash, this.extend (request, params));
+            this.ws.spawn (this.ws.watch, url, messageHash, this.extend (request, params));
         }
         return await future;
     }

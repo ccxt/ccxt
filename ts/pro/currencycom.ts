@@ -309,7 +309,7 @@ export default class currencycom extends currencycomBridge {
             'messageHash': messageHash,
             'symbol': symbol,
         });
-        return await this.watch (url, messageHash, request, messageHash, subscription);
+        return await this.ws.watch (url, messageHash, request, messageHash, subscription);
     }
 
     async watchPrivate (destination, params = {}) {
@@ -331,7 +331,7 @@ export default class currencycom extends currencycomBridge {
         const subscription = this.extend (request, {
             'messageHash': messageHash,
         });
-        return await this.watch (url, messageHash, request, messageHash, subscription);
+        return await this.ws.watch (url, messageHash, request, messageHash, subscription);
     }
 
     async watchBalance (params = {}) {
@@ -357,12 +357,12 @@ export default class currencycom extends currencycomBridge {
             'messageHash': messageHash,
             'symbol': symbol,
         });
-        return await this.watch (url, messageHash, request, messageHash, subscription);
+        return await this.ws.watch (url, messageHash, request, messageHash, subscription);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         const trades = await this.watchPublic ('trades.subscribe', symbol, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -386,7 +386,7 @@ export default class currencycom extends currencycomBridge {
             },
         };
         const ohlcv = await this.watchPublic (messageHash, symbol, this.extend (request, params));
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);

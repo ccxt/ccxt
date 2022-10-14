@@ -63,7 +63,7 @@ export default class exmo extends exmoBridge {
             'id': this.requestId (),
         };
         const request = this.deepExtend (subscribe, query);
-        return await this.watch (url, messageHash, request, messageHash, request);
+        return await this.ws.watch (url, messageHash, request, messageHash, request);
     }
 
     handleBalance (client, message) {
@@ -223,7 +223,7 @@ export default class exmo extends exmoBridge {
             'id': this.requestId (),
         };
         const request = this.deepExtend (message, params);
-        return await this.watch (url, messageHash, request, messageHash, request);
+        return await this.ws.watch (url, messageHash, request, messageHash, request);
     }
 
     handleTicker (client, message) {
@@ -281,7 +281,7 @@ export default class exmo extends exmoBridge {
             'id': this.requestId (),
         };
         const request = this.deepExtend (message, params);
-        const trades = await this.watch (url, messageHash, request, messageHash, request);
+        const trades = await this.ws.watch (url, messageHash, request, messageHash, request);
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
@@ -353,7 +353,7 @@ export default class exmo extends exmoBridge {
             'id': this.requestId (),
         };
         const request = this.deepExtend (message, query);
-        const trades = await this.watch (url, messageHash, request, messageHash, request);
+        const trades = await this.ws.watch (url, messageHash, request, messageHash, request);
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
     }
 
@@ -474,7 +474,7 @@ export default class exmo extends exmoBridge {
             ],
         };
         const request = this.deepExtend (subscribe, params);
-        const orderbook = await this.watch (url, messageHash, request, messageHash);
+        const orderbook = await this.ws.watch (url, messageHash, request, messageHash);
         return orderbook.limit (limit);
     }
 
@@ -646,7 +646,7 @@ export default class exmo extends exmoBridge {
     async authenticate (params = {}) {
         const [ type, query ] = this.handleMarketTypeAndParams ('authenticate', undefined, params);
         const url = this.urls['api']['ws'][type];
-        const client = this.client (url);
+        const client = this.ws.client (url);
         const time = this.milliseconds ();
         const messageHash = 'authenticated';
         const future = client.future ('authenticated');
@@ -663,7 +663,7 @@ export default class exmo extends exmoBridge {
                 'sign': sign,
                 'nonce': time,
             };
-            this.spawn (this.watch, url, messageHash, this.extend (request, query), messageHash);
+            this.ws.spawn (this.ws.watch, url, messageHash, this.extend (request, query), messageHash);
         }
         return await future;
     }

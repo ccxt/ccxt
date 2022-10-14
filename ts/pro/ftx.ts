@@ -56,7 +56,7 @@ export default class ftx extends ftxBridge {
             'market': marketId,
         };
         const messageHash = channel + ':' + marketId;
-        return await this.watch (url, messageHash, request, messageHash);
+        return await this.ws.watch (url, messageHash, request, messageHash);
     }
 
     async watchPrivate (channel, symbol = undefined, params = {}) {
@@ -72,12 +72,12 @@ export default class ftx extends ftxBridge {
             'op': 'subscribe',
             'channel': channel,
         };
-        return await this.watch (url, messageHash, request, channel);
+        return await this.ws.watch (url, messageHash, request, channel);
     }
 
     authenticate (params = {}) {
         const url = this.implodeParams (this.urls['api']['ws'], { 'hostname': this.hostname });
-        const client = this.client (url);
+        const client = this.ws.client (url);
         const authenticate = 'authenticate';
         const method = 'login';
         if (!(authenticate in client.subscriptions)) {
@@ -102,7 +102,7 @@ export default class ftx extends ftxBridge {
                 'op': method,
             };
             // ftx does not reply to this message
-            const future = this.watch (url, method, message);
+            const future = this.ws.watch (url, method, message);
             future.resolve (true);
         }
         return client.future (method);
@@ -116,7 +116,7 @@ export default class ftx extends ftxBridge {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const trades = await this.watchPublic (market['symbol'], 'trades');
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (market['symbol'], limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -430,7 +430,7 @@ export default class ftx extends ftxBridge {
             symbol = market['symbol'];
         }
         const orders = await this.watchPrivate ('orders', symbol);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
@@ -511,7 +511,7 @@ export default class ftx extends ftxBridge {
             symbol = market['symbol'];
         }
         const trades = await this.watchPrivate ('fills', symbol);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);

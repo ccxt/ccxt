@@ -39,8 +39,8 @@ export default class ripio extends ripioBridge {
             'messageHash': messageHash,
             'method': this.handleTrade,
         };
-        const trades = await this.watch (url, messageHash, undefined, messageHash, subscription);
-        if (this.newUpdates) {
+        const trades = await this.ws.watch (url, messageHash, undefined, messageHash, subscription);
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -100,7 +100,7 @@ export default class ripio extends ripioBridge {
             'messageHash': messageHash,
             'method': this.handleTicker,
         };
-        return await this.watch (url, messageHash, undefined, messageHash, subscription);
+        return await this.ws.watch (url, messageHash, undefined, messageHash, subscription);
     }
 
     handleTicker (client, message, subscription) {
@@ -146,7 +146,7 @@ export default class ripio extends ripioBridge {
         const name = 'orderbook';
         const messageHash = name + '_' + market['id'].toLowerCase ();
         const url = this.urls['api']['ws'] + messageHash + '/' + this.options['uuid'];
-        const client = this.client (url);
+        const client = this.ws.client (url);
         const subscription = {
             'name': name,
             'symbol': symbol,
@@ -161,7 +161,7 @@ export default class ripio extends ripioBridge {
             // fetch the snapshot in a separate async call after a warmup delay
             this.delay (delay, this.fetchOrderBookSnapshot, client, subscription);
         }
-        const orderbook = await this.watch (url, messageHash, undefined, messageHash, subscription);
+        const orderbook = await this.ws.watch (url, messageHash, undefined, messageHash, subscription);
         return orderbook.limit (limit);
     }
 
@@ -270,7 +270,7 @@ export default class ripio extends ripioBridge {
         const messageId = this.safeString (message, 'messageId');
         if (messageId !== undefined) {
             // the exchange requires acknowledging each received message
-            this.spawn (this.ack, client, messageId);
+            this.ws.spawn (this.ack, client, messageId);
         }
         const keys = Object.keys (client.subscriptions);
         const firstKey = this.safeString (keys, 0);

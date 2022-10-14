@@ -180,8 +180,9 @@ export default class kraken extends krakenBridge {
             const messageHash = name + ':' + timeframe + ':' + wsName;
             let timestamp = this.safeFloat (candle, 1);
             timestamp -= duration;
+            const ts = timestamp * 1000;
             const result = [
-                parseInt (timestamp * 1000),
+                parseInt (ts.toString ()),
                 this.safeFloat (candle, 2),
                 this.safeFloat (candle, 3),
                 this.safeFloat (candle, 4),
@@ -225,7 +226,7 @@ export default class kraken extends krakenBridge {
             },
         };
         const request = this.deepExtend (subscribe, params);
-        return await this.watch (url, messageHash, request, messageHash);
+        return await this.ws.watch (url, messageHash, request, messageHash);
     }
 
     async watchTicker (symbol, params = {}) {
@@ -235,7 +236,7 @@ export default class kraken extends krakenBridge {
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         const name = 'trade';
         const trades = await this.watchPublic (name, symbol, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -277,8 +278,8 @@ export default class kraken extends krakenBridge {
             },
         };
         const request = this.deepExtend (subscribe, params);
-        const ohlcv = await this.watch (url, messageHash, request, messageHash);
-        if (this.newUpdates) {
+        const ohlcv = await this.ws.watch (url, messageHash, request, messageHash);
+        if (this.ws.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -312,7 +313,7 @@ export default class kraken extends krakenBridge {
         await this.loadMarkets ();
         const event = 'heartbeat';
         const url = this.urls['api']['ws']['public'];
-        return await this.watch (url, event);
+        return await this.ws.watch (url, event);
     }
 
     handleHeartbeat (client, message) {
@@ -509,11 +510,11 @@ export default class kraken extends krakenBridge {
 
     async authenticate (params = {}) {
         const url = this.urls['api']['ws']['private'];
-        const client = this.client (url);
+        const client = this.ws.client (url);
         const authenticated = 'authenticated';
         let subscription = this.safeValue (client.subscriptions, authenticated);
         if (subscription === undefined) {
-            const response = await this.privatePostGetWebSocketsToken (params);
+            const response = await (this as any).privatePostGetWebSocketsToken (params);
             //
             //     {
             //         "error":[],
@@ -548,8 +549,8 @@ export default class kraken extends krakenBridge {
             },
         };
         const request = this.deepExtend (subscribe, params);
-        const result = await this.watch (url, messageHash, request, subscriptionHash);
-        if (this.newUpdates) {
+        const result = await this.ws.watch (url, messageHash, request, subscriptionHash);
+        if (this.ws.newUpdates) {
             limit = result.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (result, symbol, since, limit, true);

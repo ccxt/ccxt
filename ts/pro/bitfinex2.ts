@@ -46,14 +46,14 @@ export default class bitfinex2 extends bitfinex2Bridge {
         const market = this.market (symbol);
         const marketId = market['id'];
         const url = this.urls['api']['ws']['public'];
-        const client = this.client (url);
+        const client = this.ws.client (url);
         const messageHash = channel + ':' + marketId;
         const request = {
             'event': 'subscribe',
             'channel': channel,
             'symbol': marketId,
         };
-        const result = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash, { 'checksum': false });
+        const result = await this.ws.watch (url, messageHash, this.deepExtend (request, params), messageHash, { 'checksum': false });
         const checksum = this.safeValue (this.options, 'checksum', true);
         if (checksum && !client.subscriptions[messageHash]['checksum'] && (channel === 'book')) {
             client.subscriptions[messageHash]['checksum'] = true;
@@ -69,7 +69,7 @@ export default class bitfinex2 extends bitfinex2Bridge {
         await this.loadMarkets ();
         await this.authenticate ();
         const url = this.urls['api']['ws']['private'];
-        return await this.watch (url, messageHash, undefined, 1);
+        return await this.ws.watch (url, messageHash, undefined, 1);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -98,8 +98,8 @@ export default class bitfinex2 extends bitfinex2Bridge {
         };
         const url = this.urls['api']['ws']['public'];
         // not using subscribe here because this message has a different format
-        const ohlcv = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
-        if (this.newUpdates) {
+        const ohlcv = await this.ws.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        if (this.ws.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -200,7 +200,7 @@ export default class bitfinex2 extends bitfinex2Bridge {
          * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         const trades = await this.subscribe ('trades', symbol, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -224,7 +224,7 @@ export default class bitfinex2 extends bitfinex2Bridge {
             messageHash += ':' + market['id'];
         }
         const trades = await this.subscribePrivate (messageHash);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
@@ -839,7 +839,7 @@ export default class bitfinex2 extends bitfinex2Bridge {
 
     async authenticate (params = {}) {
         const url = this.urls['api']['ws']['private'];
-        const client = this.client (url);
+        const client = this.ws.client (url);
         const future = client.future ('authenticated');
         const method = 'auth';
         const authenticated = this.safeValue (client.subscriptions, method);
@@ -854,7 +854,7 @@ export default class bitfinex2 extends bitfinex2Bridge {
                 'authPayload': payload,
                 'event': method,
             };
-            this.spawn (this.watch, url, method, request, 1);
+            this.ws.spawn (this.ws.watch, url, method, request, 1);
         }
         return await future;
     }
@@ -894,7 +894,7 @@ export default class bitfinex2 extends bitfinex2Bridge {
             messageHash += ':' + market['id'];
         }
         const orders = await this.subscribePrivate (messageHash);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);

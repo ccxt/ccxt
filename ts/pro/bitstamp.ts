@@ -64,7 +64,7 @@ export default class bitstamp extends bitstampBridge {
             'params': params,
         };
         const message = this.extend (request, params);
-        const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
+        const orderbook = await this.ws.watch (url, messageHash, message, messageHash, subscription);
         return orderbook.limit (limit);
     }
 
@@ -207,8 +207,8 @@ export default class bitstamp extends bitstampBridge {
             'params': params,
         };
         const message = this.extend (request, params);
-        const trades = await this.watch (url, messageHash, message, messageHash, subscription);
-        if (this.newUpdates) {
+        const trades = await this.ws.watch (url, messageHash, message, messageHash, subscription);
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -320,7 +320,7 @@ export default class bitstamp extends bitstampBridge {
             'params': params,
         };
         const orders = await this.subscribePrivate (subscription, messageHash, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
@@ -421,7 +421,7 @@ export default class bitstamp extends bitstampBridge {
             const limit = this.safeInteger (subscription, 'limit');
             this.orderbooks[symbol] = this.orderBook ({}, limit);
             // fetch the snapshot in a separate async call
-            this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+            this.ws.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
         }
     }
 
@@ -600,6 +600,6 @@ export default class bitstamp extends bitstampBridge {
             },
         };
         subscription['messageHash'] = messageHash;
-        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        return await this.ws.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 }

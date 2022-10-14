@@ -166,7 +166,7 @@ export default class huobi extends huobiBridge {
         const messageHash = 'market.' + market['id'] + '.trade.detail';
         const url = this.getUrlByMarketType (market['type'], market['linear']);
         const trades = await this.subscribePublic (url, symbol, messageHash, undefined, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -222,7 +222,7 @@ export default class huobi extends huobiBridge {
         const messageHash = 'market.' + market['id'] + '.kline.' + interval;
         const url = this.getUrlByMarketType (market['type'], market['linear']);
         const ohlcv = await this.subscribePublic (url, symbol, messageHash, undefined, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -331,7 +331,7 @@ export default class huobi extends huobiBridge {
                         numAttempts = this.sum (numAttempts, 1);
                         subscription['numAttempts'] = numAttempts;
                         client.subscriptions[messageHash] = subscription;
-                        this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
+                        this.ws.spawn (this.ws.watchOrderBookSnapshot, client, message, subscription);
                     }
                 } else {
                     // throw upon failing to synchronize in maxAttempts
@@ -376,7 +376,7 @@ export default class huobi extends huobiBridge {
             'numAttempts': attempts,
             'method': this.handleOrderBookSnapshot,
         };
-        const orderbook = await this.watch (url, requestId, request, requestId, snapshotSubscription);
+        const orderbook = await this.ws.watch (url, requestId, request, requestId, snapshotSubscription);
         return orderbook.limit (limit);
     }
 
@@ -405,7 +405,7 @@ export default class huobi extends huobiBridge {
                         numAttempts = this.sum (numAttempts, 1);
                         subscription['numAttempts'] = numAttempts;
                         client.subscriptions[messageHash] = subscription;
-                        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+                        this.ws.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
                     }
                 } else {
                     // throw upon failing to synchronize in maxAttempts
@@ -571,9 +571,9 @@ export default class huobi extends huobiBridge {
         }
         this.orderbooks[symbol] = this.orderBook ({}, limit);
         if (this.markets[symbol]['spot'] === true) {
-            this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
+            this.ws.spawn (this.ws.watchOrderBookSnapshot, client, message, subscription);
         } else {
-            this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+            this.ws.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
         }
     }
 
@@ -618,7 +618,7 @@ export default class huobi extends huobiBridge {
             messageHash = orderMessageHash + ':' + 'trade';
         }
         trades = await this.subscribePrivate (channel, messageHash, type, subType, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
@@ -695,7 +695,7 @@ export default class huobi extends huobiBridge {
             messageHash = this.safeString (channelAndMessageHash, 1);
         }
         const orders = await this.subscribePrivate (channel, messageHash, type, subType, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (orders, since, limit);
@@ -1579,7 +1579,7 @@ export default class huobi extends huobiBridge {
     }
 
     handlePing (client, message) {
-        this.spawn (this.pong, client, message);
+        this.ws.spawn (this.pong, client, message);
     }
 
     handleAuthenticate (client, message) {
@@ -1962,7 +1962,7 @@ export default class huobi extends huobiBridge {
         if (method !== undefined) {
             subscription['method'] = method;
         }
-        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        return await this.ws.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 
     async subscribePrivate (channel, messageHash, type, subtype, params = {}, subscriptionParams = {}) {
@@ -1998,7 +1998,7 @@ export default class huobi extends huobiBridge {
             this.options['ws']['gunzip'] = false;
         }
         await this.authenticate (authParams);
-        return await this.watch (url, messageHash, this.extend (request, params), channel, extendedSubsription);
+        return await this.ws.watch (url, messageHash, this.extend (request, params), channel, extendedSubsription);
     }
 
     async authenticate (params = {}) {
@@ -2011,7 +2011,7 @@ export default class huobi extends huobiBridge {
         this.checkRequiredCredentials ();
         const messageHash = 'auth';
         const relativePath = url.replace ('wss://' + hostname, '');
-        const client = this.client (url);
+        const client = this.ws.client (url);
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
             future = client.future (messageHash);
@@ -2062,7 +2062,7 @@ export default class huobi extends huobiBridge {
                     'Signature': signature,
                 };
             }
-            await this.watch (url, messageHash, request, messageHash, future);
+            await this.ws.watch (url, messageHash, request, messageHash, future);
         }
         return await future;
     }

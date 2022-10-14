@@ -47,7 +47,7 @@ export default class upbit extends upbitBridge {
             },
         ];
         const messageHash = channel + ':' + marketId;
-        return await this.watch (url, messageHash, request, messageHash);
+        return await this.ws.watch (url, messageHash, request, messageHash);
     }
 
     async watchTicker (symbol, params = {}) {
@@ -56,7 +56,7 @@ export default class upbit extends upbitBridge {
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         const trades = await this.watchPublic (symbol, 'trade');
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);

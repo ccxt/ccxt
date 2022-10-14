@@ -94,12 +94,12 @@ export default class okx extends okxBridge {
                 this.deepExtend (firstArgument, params),
             ],
         };
-        return await this.watch (url, messageHash, request, messageHash);
+        return await this.ws.watch (url, messageHash, request, messageHash);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         const trades = await this.subscribe ('public', 'trades', symbol, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -189,7 +189,7 @@ export default class okx extends okxBridge {
         const interval = this.timeframes[timeframe];
         const name = 'candle' + interval;
         const ohlcv = await this.subscribe ('public', name, symbol, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -478,7 +478,7 @@ export default class okx extends okxBridge {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws']['private'];
         const messageHash = 'login';
-        const client = this.client (url);
+        const client = this.ws.client (url);
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
             future = client.future ('authenticated');
@@ -498,7 +498,7 @@ export default class okx extends okxBridge {
                     },
                 ],
             };
-            this.spawn (this.watch, url, messageHash, request, messageHash, future);
+            this.ws.spawn (this.ws.watch, url, messageHash, request, messageHash, future);
         }
         return await future;
     }
@@ -597,7 +597,7 @@ export default class okx extends okxBridge {
             'instType': uppercaseType,
         };
         const orders = await this.subscribe ('private', 'orders', symbol, this.extend (request, params));
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);

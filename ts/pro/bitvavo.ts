@@ -49,7 +49,7 @@ export default class bitvavo extends bitvavoBridge {
             ],
         };
         const message = this.extend (request, params);
-        return await this.watch (url, messageHash, message, messageHash);
+        return await this.ws.watch (url, messageHash, message, messageHash);
     }
 
     async watchTicker (symbol, params = {}) {
@@ -95,7 +95,7 @@ export default class bitvavo extends bitvavoBridge {
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
         const trades = await this.watchPublic ('trades', symbol, params);
-        if (this.newUpdates) {
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -148,8 +148,8 @@ export default class bitvavo extends bitvavoBridge {
             ],
         };
         const message = this.extend (request, params);
-        const ohlcv = await this.watch (url, messageHash, message, messageHash);
-        if (this.newUpdates) {
+        const ohlcv = await this.ws.watch (url, messageHash, message, messageHash);
+        if (this.ws.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -224,7 +224,7 @@ export default class bitvavo extends bitvavoBridge {
             'params': params,
         };
         const message = this.extend (request, params);
-        const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
+        const orderbook = await this.ws.watch (url, messageHash, message, messageHash, subscription);
         return orderbook.limit (limit);
     }
 
@@ -295,7 +295,7 @@ export default class bitvavo extends bitvavoBridge {
                 const options = this.safeValue (this.options, 'watchOrderBookSnapshot', {});
                 const delay = this.safeInteger (options, 'delay', this.rateLimit);
                 // fetch the snapshot in a separate async call after a warmup delay
-                this.delay (delay, this.watchOrderBookSnapshot, client, message, subscription);
+                this.delay (delay, this.ws.watchOrderBookSnapshot, client, message, subscription);
             }
             orderbook.cache.push (message);
         } else {
@@ -315,7 +315,7 @@ export default class bitvavo extends bitvavoBridge {
             'action': name,
             'market': marketId,
         };
-        const orderbook = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        const orderbook = await this.ws.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
         return orderbook.limit (limit);
     }
 
@@ -414,8 +414,8 @@ export default class bitvavo extends bitvavoBridge {
                 },
             ],
         };
-        const orders = await this.watch (url, messageHash, request, subscriptionHash);
-        if (this.newUpdates) {
+        const orders = await this.ws.watch (url, messageHash, request, subscriptionHash);
+        if (this.ws.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
@@ -442,8 +442,8 @@ export default class bitvavo extends bitvavoBridge {
                 },
             ],
         };
-        const trades = await this.watch (url, messageHash, request, subscriptionHash);
-        if (this.newUpdates) {
+        const trades = await this.ws.watch (url, messageHash, request, subscriptionHash);
+        if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
@@ -547,7 +547,7 @@ export default class bitvavo extends bitvavoBridge {
 
     async authenticate (params = {}) {
         const url = this.urls['api']['ws'];
-        const client = this.client (url);
+        const client = this.ws.client (url);
         const future = client.future ('authenticated');
         const action = 'authenticate';
         const authenticated = this.safeValue (client.subscriptions, action);
@@ -564,7 +564,7 @@ export default class bitvavo extends bitvavoBridge {
                     'signature': signature,
                     'timestamp': timestamp,
                 };
-                this.spawn (this.watch, url, action, request, action);
+                this.ws.spawn (this.ws.watch, url, action, request, action);
             } catch (e) {
                 client.reject (e, 'authenticated');
                 // allows further authentication attempts
