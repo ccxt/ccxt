@@ -3055,8 +3055,11 @@ module.exports = class bybit extends Exchange {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const isUsdcSettled = (market['settle'] === 'USDC');
+        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
         if (market['spot']) {
             return await this.createSpotOrder (symbol, type, side, amount, price, params);
+        } else if (enableUnifiedMargin) {
+            return await this.createUnifiedMarginOrder (symbol, type, side, amount, price, params);
         } else if (isUsdcSettled) {
             return await this.createUsdcOrder (symbol, type, side, amount, price, params);
         } else {
@@ -3129,6 +3132,107 @@ module.exports = class bybit extends Exchange {
         //           "side":"BUY"
         //        }
         //    }
+        const order = this.safeValue (response, 'result', {});
+        return this.parseOrder (order);
+    }
+
+    async createUnifiedMarginOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        // if (type === 'market') {
+        //     throw new NotSupported (this.id + 'createOrder does not allow market orders for ' + symbol + ' markets');
+        // }
+        if (!market['linear'] && !market['option']) {
+            throw new NotSupported (this.id + ' createOrder does not allow inverse market orders for ' + symbol + ' markets');
+        }
+        if (price === undefined && type === 'limit') {
+            throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for limit orders');
+        }
+        const lowerCaseType = type.toLowerCase ();
+        const request = {
+            'symbol': market['id'],
+            'side': this.capitalize (side),
+            'orderType': this.capitalize (lowerCaseType), // limit or market
+            'timeInForce': 'GoodTillCancel', // ImmediateOrCancel, FillOrKill, PostOnly
+            'qty': this.amountToPrecision (symbol, amount),
+            // 'takeProfit': 123.45, // take profit price, only take effect upon opening the position
+            // 'stopLoss': 123.45, // stop loss price, only take effect upon opening the position
+            // 'reduceOnly': false, // reduce only, required for linear orders
+            // when creating a closing order, bybit recommends a True value for
+            //  closeOnTrigger to avoid failing due to insufficient available margin
+            // 'closeOnTrigger': false, required for linear orders
+            // 'orderLinkId': 'string', // unique client order id, max 36 characters
+            // 'triggerPrice': 123.45, // trigger price, required for conditional orders
+            // 'triggerBy': 'MarkPrice', // IndexPrice, MarkPrice
+            // 'tptriggerby': 'MarkPrice', // IndexPrice, MarkPrice
+            // 'slTriggerBy': 'MarkPrice', // IndexPrice, MarkPrice
+            // 'mmp': false // market maker protection
+            // 'positionIdx': 0, // Position mode. unified margin account is only available in One-Way mode, which is 0
+            // 'basePrice': '0', // It will be used to compare with the value of triggerPrice, to decide whether your conditional order will be triggered by crossing trigger price from upper side or lower side. Mainly used to identify the expected direction of the current conditional order.
+            // 'iv': '0', // Implied volatility, for options only; parameters are passed according to the real value; for example, for 10%, 0.1 is passed
+        };
+        if (market['linear']) {
+            request['category'] = 'linear';
+        } else {
+            request['category'] = 'option';
+        }
+        const isMarket = lowerCaseType === 'market';
+        const isLimit = lowerCaseType === 'limit';
+        if (isLimit !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const exchangeSpecificParam = this.safeString (params, 'time_in_force');
+        const timeInForce = this.safeStringLower (params, 'timeInForce');
+        const postOnly = this.isPostOnly (isMarket, exchangeSpecificParam === 'PostOnly', params);
+        if (postOnly) {
+            request['timeInForce'] = 'PostOnly';
+        } else if (timeInForce === 'gtc') {
+            request['timeInForce'] = 'GoodTillCancel';
+        } else if (timeInForce === 'fok') {
+            request['timeInForce'] = 'FillOrKill';
+        } else if (timeInForce === 'ioc') {
+            request['timeInForce'] = 'ImmediateOrCancel';
+        }
+        if (market['swap']) {
+            const triggerPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
+            const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
+            const isStopLossOrder = stopLossPrice !== undefined;
+            const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+            const isTakeProfitOrder = takeProfitPrice !== undefined;
+            const isStopOrder = isStopLossOrder || isTakeProfitOrder;
+            if (isStopOrder) {
+                request['orderFilter'] = 'StopOrder';
+                request['triggerBy'] = 'LastPrice';
+                const stopPx = isStopLossOrder ? stopLossPrice : takeProfitPrice;
+                const preciseStopPrice = this.priceToPrecision (symbol, stopPx);
+                request['triggerPrice'] = preciseStopPrice;
+                const delta = this.numberToString (market['precision']['price']);
+                request['basePrice'] = isStopLossOrder ? Precise.stringSub (preciseStopPrice, delta) : Precise.stringAdd (preciseStopPrice, delta);
+            } else {
+                request['orderFilter'] = 'Order';
+            }
+        }
+        const clientOrderId = this.safeString (params, 'clientOrderId');
+        if (clientOrderId !== undefined) {
+            request['orderLinkId'] = clientOrderId;
+        } else if (market['option']) {
+            // mandatory field for options
+            request['orderLinkId'] = this.uuid16 ();
+        }
+        params = this.omit (params, [ 'stopPrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'clientOrderId' ]);
+        const response = await this.privatePostUnifiedV3PrivateOrderCreate (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "orderId": "e10b0716-7c91-4091-b98a-1fa0f401c7d5",
+        //             "orderLinkId": "test0000003"
+        //         },
+        //         "retExtInfo": null,
+        //         "time": 1664441344238
+        //     }
+        //
         const order = this.safeValue (response, 'result', {});
         return this.parseOrder (order);
     }
