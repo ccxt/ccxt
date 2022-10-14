@@ -29,6 +29,7 @@ module.exports = class ftx extends ftxRest {
             'options': {
                 'ordersLimit': 1000,
                 'tradesLimit': 1000,
+                'orderBookDepth': 100,
             },
             'streaming': {
                 // ftx does not support built-in ws protocol-level ping-pong
@@ -238,8 +239,9 @@ module.exports = class ftx extends ftxRest {
         const marketId = this.safeString (message, 'market');
         const symbol = this.safeSymbol (marketId);
         const orderbook = this.safeValue (this.orderbooks, symbol);
+        const orderBookDepth = this.safeNumber (this.options, 'orderBookDepth', 100);
         if (orderbook === undefined) {
-            this.orderbooks[symbol] = this.orderBook ({}, 100);
+            this.orderbooks[symbol] = this.orderBook ({}, orderBookDepth);
         } else {
             orderbook.reset ({});
         }
@@ -279,6 +281,8 @@ module.exports = class ftx extends ftxRest {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const orderbook = this.orderbooks[symbol];
+        const orderBookDepth = this.safeNumber (this.options, 'orderBookDepth', 100);
+        orderbook.limit (orderBookDepth);
         const storedAsks = orderbook['asks'];
         const storedBids = orderbook['bids'];
         this.handleDeltas (storedAsks, this.safeValue (data, 'asks', []));
