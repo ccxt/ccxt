@@ -741,23 +741,48 @@ module.exports = class gate extends gateRest {
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#watchOrders
+         * @description watches information on multiple orders made by the user
+         * @see https://www.gate.io/docs/developers/apiv4/ws/en/#orders-channel
+         * @see https://www.gate.io/docs/developers/futures/ws/en/#orders-api
+         * @see https://www.gate.io/docs/developers/options/ws/en/#orders-channel
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the gate api endpoint
+         * @param {string} params.type spot, margin, swap, future, or option. Required if listening to all symbols.
+         * @param {boolean} params.isInverse if future, listen to inverse or linear contracts
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
+        let type = undefined;
+        let market = undefined;
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument');
+            const [ defaultType ] = this.handleMarketTypeAndParams ('watchOrders', undefined, params);
+            type = defaultType;
+        } else {
+            await this.loadMarkets (false, params);
+            market = this.market (symbol);
+            symbol = market['symbol'];
+            type = market['type'];
         }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        symbol = market['symbol'];
-        let type = 'spot';
-        if (market['future'] || market['swap']) {
-            type = 'futures';
-        } else if (market['option']) {
-            type = 'options';
-        }
-        const method = type + '.orders';
+        const typeId = this.getSupportedMapping (type, {
+            'spot': 'spot',
+            'margin': 'spot',
+            'future': 'futures',
+            'swap': 'futures',
+            'option': 'options',
+        });
+        const method = typeId + '.orders';
         let messageHash = method;
-        messageHash = method + ':' + market['id'];
-        const url = this.getUrlByMarketType (market['type'], market['inverse']);
-        const payload = [ market['id'] ];
+        let payload = [ '!all' ];
+        if (symbol !== undefined) {
+            messageHash = method + ':' + market['id'];
+            payload = [ market['id'] ];
+        }
+        const isInverse = this.safeValue (params, 'isInverse', false);
+        const url = this.getUrlByMarketType (type, isInverse);
         // uid required for non spot markets
         const requiresUid = (type !== 'spot');
         const orders = await this.subscribePrivate (url, method, messageHash, payload, requiresUid);
@@ -834,6 +859,7 @@ module.exports = class gate extends gateRest {
                 const messageHash = channel + ':' + keys[i];
                 client.resolve (this.orders, messageHash);
             }
+            client.resolve (this.orders, channel);
         }
     }
 
