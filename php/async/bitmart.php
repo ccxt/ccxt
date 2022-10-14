@@ -1011,7 +1011,8 @@ class bitmart extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            return $this->parse_order_book($data, $symbol, null, 'buys', 'sells', 'price', 'amount');
+            $timestamp = $this->safe_integer($data, 'timestamp');
+            return $this->parse_order_book($data, $symbol, $timestamp, 'buys', 'sells', 'price', 'amount');
         }) ();
     }
 

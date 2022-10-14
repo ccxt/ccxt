@@ -979,7 +979,8 @@ class bitmart(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        return self.parse_order_book(data, symbol, None, 'buys', 'sells', 'price', 'amount')
+        timestamp = self.safe_integer(data, 'timestamp')
+        return self.parse_order_book(data, symbol, timestamp, 'buys', 'sells', 'price', 'amount')
 
     def parse_trade(self, trade, market=None):
         #
