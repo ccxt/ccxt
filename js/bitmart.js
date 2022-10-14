@@ -1003,7 +1003,8 @@ module.exports = class bitmart extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        return this.parseOrderBook (data, symbol, undefined, 'buys', 'sells', 'price', 'amount');
+        const timestamp = this.safeInteger (data, 'timestamp');
+        return this.parseOrderBook (data, symbol, timestamp, 'buys', 'sells', 'price', 'amount');
     }
 
     parseTrade (trade, market = undefined) {
