@@ -79,6 +79,7 @@ class okx extends Exchange {
                 'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => true,
                 'fetchOpenInterestHistory' => true,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
@@ -2095,7 +2096,10 @@ class okx extends Exchange {
                         if ($createMarketBuyOrderRequiresPrice) {
                             if ($price !== null) {
                                 if ($notional === null) {
-                                    $notional = $amount * $price;
+                                    $amountString = $this->number_to_string($amount);
+                                    $priceString = $this->number_to_string($price);
+                                    $quoteAmount = Precise::string_mul($amountString, $priceString);
+                                    $notional = $this->parse_number($quoteAmount);
                                 }
                             } elseif ($notional === null) {
                                 throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total $order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)");
@@ -5476,6 +5480,48 @@ class okx extends Exchange {
         );
     }
 
+    public function fetch_open_interest($symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * Retrieves the open interest of a currency
+             * @see https://www.okx.com/docs-v5/en/#rest-api-public-$data-get-open-interest
+             * @param {string} $symbol Unified CCXT $market $symbol
+             * @param {array} $params exchange specific parameters
+             * @return {array} an open interest structurearray(@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure)
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['contract']) {
+                throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
+            }
+            $type = $this->convert_to_instrument_type($market['type']);
+            $uly = $this->safe_string($market['info'], 'uly');
+            $request = array(
+                'instType' => $type,
+                'uly' => $uly,
+                'instId' => $market['id'],
+            );
+            $response = Async\await($this->publicGetPublicOpenInterest (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => "0",
+            //         "data" => array(
+            //             {
+            //                 "instId" => "BTC-USDT-SWAP",
+            //                 "instType" => "SWAP",
+            //                 "oi" => "2125419",
+            //                 "oiCcy" => "21254.19",
+            //                 "ts" => "1664005108969"
+            //             }
+            //         ),
+            //         "msg" => ""
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_open_interest($data[0], $market);
+        }) ();
+    }
+
     public function fetch_open_interest_history($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
@@ -5530,18 +5576,37 @@ class okx extends Exchange {
 
     public function parse_open_interest($interest, $market = null) {
         //
+        // fetchOpenInterestHistory
+        //
         //    array(
         //        '1648221300000',  // $timestamp
         //        '2183354317.945',  // open $interest (USD)
         //        '74285877.617',  // volume (USD)
         //    )
         //
-        $timestamp = $this->safe_number($interest, 0);
-        $openInterest = $this->safe_number($interest, 1);
+        // fetchOpenInterest
+        //
+        //     {
+        //         "instId" => "BTC-USDT-SWAP",
+        //         "instType" => "SWAP",
+        //         "oi" => "2125419",
+        //         "oiCcy" => "21254.19",
+        //         "ts" => "1664005108969"
+        //     }
+        //
+        $id = $this->safe_string($interest, 'instId');
+        $market = $this->safe_market($id, $market);
+        $time = $this->safe_integer($interest, 'ts');
+        $timestamp = $this->safe_number($interest, 0, $time);
+        $numContracts = $this->safe_number($interest, 'oi');
+        $inCurrency = $this->safe_number($interest, 'oiCcy');
+        $openInterest = $this->safe_number($interest, 1, $inCurrency);
         return array(
-            'symbol' => null,
-            'baseVolume' => null,
-            'quoteVolume' => $openInterest,
+            'symbol' => $this->safe_symbol($id),
+            'baseVolume' => null,  // deprecated
+            'quoteVolume' => $openInterest,  // deprecated
+            'openInterestAmount' => $numContracts,
+            'openInterestValue' => $openInterest,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,

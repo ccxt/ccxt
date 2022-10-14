@@ -137,7 +137,7 @@ class gate(Exchange):
                 'public': {
                     'wallet': {
                         'get': {
-                            'wallet/currency_chains': 1.5,
+                            'currency_chains': 1.5,
                         },
                     },
                     'spot': {
