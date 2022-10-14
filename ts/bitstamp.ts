@@ -624,7 +624,7 @@ export default class bitstamp extends Exchange {
         //     }
         //
         const microtimestamp = this.safeInteger (response, 'microtimestamp');
-        const timestamp = parseInt (microtimestamp / 1000);
+        const timestamp = parseInt ((microtimestamp / 1000).toString ());
         const orderbook = this.parseOrderBook (response, market['symbol'], timestamp);
         orderbook['nonce'] = microtimestamp;
         return orderbook;
@@ -1001,14 +1001,14 @@ export default class bitstamp extends Exchange {
                 request['limit'] = 1000; // we need to specify an allowed amount of `limit` if no `since` is set and there is no default limit by exchange
             } else {
                 limit = 1000;
-                const start = parseInt (since / 1000);
+                const start = parseInt ((since / 1000).toString ());
                 request['start'] = start;
                 request['end'] = this.sum (start, limit * duration);
                 request['limit'] = limit;
             }
         } else {
             if (since !== undefined) {
-                const start = parseInt (since / 1000);
+                const start = parseInt ((since / 1000).toString ());
                 request['start'] = start;
                 request['end'] = this.sum (start, limit * duration);
             }

@@ -115,7 +115,7 @@ export default class bitstamp extends bitstampBridge {
         this.handleDeltas (orderbook['asks'], this.safeValue (data, 'asks', []));
         this.handleDeltas (orderbook['bids'], this.safeValue (data, 'bids', []));
         orderbook['nonce'] = microtimestamp;
-        const timestamp = parseInt (microtimestamp / 1000);
+        const timestamp = parseInt ((microtimestamp / 1000).toString ());
         orderbook['timestamp'] = timestamp;
         orderbook['datetime'] = this.iso8601 (timestamp);
         return orderbook;
@@ -234,7 +234,7 @@ export default class bitstamp extends bitstampBridge {
             return super.parseTrade (trade, market);
         }
         const id = this.safeString (trade, 'id');
-        const timestamp = parseInt (microtimestamp / 1000);
+        const timestamp = parseInt ((microtimestamp / 1000).toString ());
         const price = this.safeFloat (trade, 'price');
         const amount = this.safeFloat (trade, 'amount');
         let cost = undefined;
@@ -249,8 +249,8 @@ export default class bitstamp extends bitstampBridge {
         if ((symbol === undefined) && (market !== undefined)) {
             symbol = market['symbol'];
         }
-        let side = this.safeInteger (trade, 'type');
-        side = (side === 0) ? 'buy' : 'sell';
+        const rawSide = this.safeInteger (trade, 'type');
+        const side = (rawSide === 0) ? 'buy' : 'sell';
         return {
             'info': trade,
             'timestamp': timestamp,
@@ -413,13 +413,13 @@ export default class bitstamp extends bitstampBridge {
         }
         if (type === 'order_book') {
             const limit = this.safeInteger (subscription, 'limit', 100);
-            this.orderbooks[symbol] = this.orderBook ({}, limit);
+            this.orderbooks[symbol] = this.ws.orderBook ({}, limit);
         } else if (type === 'detail_order_book') {
             const limit = this.safeInteger (subscription, 'limit', 100);
-            this.orderbooks[symbol] = this.indexedOrderBook ({}, limit);
+            this.orderbooks[symbol] = this.ws.indexedOrderBook ({}, limit);
         } else if (type === 'diff_order_book') {
             const limit = this.safeInteger (subscription, 'limit');
-            this.orderbooks[symbol] = this.orderBook ({}, limit);
+            this.orderbooks[symbol] = this.ws.orderBook ({}, limit);
             // fetch the snapshot in a separate async call
             this.ws.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
         }
@@ -568,7 +568,7 @@ export default class bitstamp extends bitstampBridge {
         const time = this.milliseconds ();
         const expiresIn = this.safeInteger (this.options, 'expiresIn');
         if (time > expiresIn) {
-            const response = await this.privatePostWebsocketsToken (params);
+            const response = await (this as any).privatePostWebsocketsToken (params);
             //
             // {
             //     "valid_sec":60,

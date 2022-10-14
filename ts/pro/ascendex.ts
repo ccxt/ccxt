@@ -264,7 +264,7 @@ export default class ascendex extends ascendexBridge {
         const messageHash = channel + ':' + marketId;
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
-            orderbook = this.orderBook ({});
+            orderbook = this.ws.orderBook ({});
         }
         if (orderbook['nonce'] === undefined) {
             orderbook.cache.push (message);
@@ -872,8 +872,8 @@ export default class ascendex extends ascendexBridge {
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
-        this.orderbooks[symbol] = this.orderBook ({});
-        this.ws.spawn (this.ws.watchOrderBookSnapshot, symbol);
+        this.orderbooks[symbol] = this.ws.orderBook ({});
+        this.ws.spawn (this.watchOrderBookSnapshot, symbol);
     }
 
     async pong (client, message) {

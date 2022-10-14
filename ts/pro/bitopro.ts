@@ -98,7 +98,7 @@ export default class bitopro extends bitoproBridge {
         const messageHash = event + ':' + symbol;
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
-            orderbook = this.orderBook ({});
+            orderbook = this.ws.orderBook ({});
         }
         const timestamp = this.safeInteger (message, 'timestamp');
         const snapshot = this.parseOrderBook (message, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
@@ -110,7 +110,7 @@ export default class bitopro extends bitoproBridge {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const messageHash = 'TRADE' + ':' + symbol;
-        const trades = await this.watchPublic ('trades', messageHash, market['id'], limit);
+        const trades = await this.watchPublic ('trades', messageHash, market['id']);
         if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }

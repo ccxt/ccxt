@@ -324,7 +324,7 @@ export default class binance extends binanceBridge {
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
-        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        this.orderbooks[symbol] = this.ws.orderBook ({}, limit);
         // fetch the snapshot in a separate async call
         this.ws.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }
@@ -767,7 +767,7 @@ export default class binance extends binanceBridge {
                 'listenKey': this.safeString (response, 'listenKey'),
                 'lastAuthenticatedTime': time,
             });
-            this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
+            this.ws.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
         }
     }
 

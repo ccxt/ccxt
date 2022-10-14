@@ -14,6 +14,7 @@ const {
     , indexBy
     , sortBy
     , sortBy2
+    , safeFloat2
     , groupBy
     , aggregate
     , uuid
@@ -107,6 +108,8 @@ const {
     , parseDate
     , ymd
     , isArray
+    , base64ToString
+    , crc32
     , TRUNCATE
     , ROUND
     , DECIMAL_PLACES
@@ -136,7 +139,6 @@ import { Precise } from './Precise.js'
 // 
 
 // import types
-import {Market, OrderBook, Trade, Fee, Ticker} from './types'
 export {Market, OrderBook, Trade, Fee, Ticker} from './types'
 
 // ----------------------------------------------------------------------------
@@ -189,9 +191,9 @@ export default class Exchange {
     orderbooks   = {}
     tickers      = {}
     orders       = undefined
-    trades       = {}
+    trades       = []
     transactions = {}
-    ohlcvs       = {}
+    ohlcvs       = []
     myTrades     = undefined
     positions    = {}
     urls = {}
@@ -289,6 +291,7 @@ export default class Exchange {
     safeString = safeString
     safeString2 = safeString2
     safeFloat = safeFloat
+    safeFloat2 = safeFloat2
     seconds = seconds
     milliseconds = milliseconds
     binaryToBase16 = binaryToBase16
@@ -364,6 +367,8 @@ export default class Exchange {
     parseDate = parseDate
     ymd = ymd
     isArray = isArray
+    base64ToString = base64ToString
+    crc32 = crc32
 
     describe () {
         return {
@@ -1167,6 +1172,19 @@ export default class Exchange {
         parseFundingRateHistory(info, market = undefined) {
             return undefined;
         }
+        
+        findTimeframe (timeframe, timeframes = undefined) {
+            timeframes = timeframes || this.timeframes;
+            const keys = Object.keys (timeframes);
+            for (let i = 0; i < keys.length; i++) {
+                const key = keys[i];
+                if (timeframes[key] === timeframe) {
+                    return key;
+                }
+            }
+            return undefined;
+        }
+
 
     /* eslint-enable */
     // ------------------------------------------------------------------------
@@ -1212,7 +1230,7 @@ export default class Exchange {
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
     parseToInt (number: string | number) {
-        // Solve Common parseInt misuse ex: parseInt (since / 1000)
+        // Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())
         // using a number as parameter which is not valid in ts
         const stringifiedNumber = number.toString ();
         const convertedNumber = parseFloat (stringifiedNumber) as any;
@@ -2513,7 +2531,7 @@ export default class Exchange {
         return [ value, params ];
     }
 
-    handleMarketTypeAndParams (methodName, market = undefined, params = {}) {
+    handleMarketTypeAndParams (methodName, market = undefined, params = {}): [string, object] {
         const defaultType = this.safeString2 (this.options, 'defaultType', 'type', 'spot');
         const methodOptions = this.safeValue (this.options, methodName);
         let methodType = defaultType;
@@ -3185,6 +3203,6 @@ export default class Exchange {
     }
 }
 
-// export {
-//     Exchange,
-// };
+export {
+    Exchange,
+};

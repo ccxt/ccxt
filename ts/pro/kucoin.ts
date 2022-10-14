@@ -51,7 +51,7 @@ export default class kucoin extends kucoinBridge {
             let response = undefined;
             const throwException = false;
             if (this.checkRequiredCredentials (throwException)) {
-                response = await this.privatePostBulletPrivate ();
+                response = await (this as any).privatePostBulletPrivate ();
                 //
                 //     {
                 //         code: "200000",
@@ -70,7 +70,7 @@ export default class kucoin extends kucoinBridge {
                 //     }
                 //
             } else {
-                response = await this.publicPostBulletPublic ();
+                response = await (this as any).publicPostBulletPublic ();
             }
             client.resolve (response, messageHash);
             // const data = this.safeValue (response, 'data', {});
@@ -516,7 +516,7 @@ export default class kucoin extends kucoinBridge {
                 const options = this.safeValue (this.options, 'fetchOrderBookSnapshot', {});
                 const delay = this.safeInteger (options, 'delay', this.rateLimit);
                 // fetch the snapshot in a separate async call after a warmup delay
-                this.delay (delay, this.fetchOrderBookSnapshot, client, message, subscription);
+                this.ws.delay (delay, this.fetchOrderBookSnapshot, client, message, subscription);
             }
             // 1. After receiving the websocket Level 2 data flow, cache the data.
             orderbook.cache.push (message);
@@ -528,11 +528,11 @@ export default class kucoin extends kucoinBridge {
 
     handleOrderBookSubscription (client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
-        const limit = this.safeString (subscription, 'limit');
+        const limit = this.safeInteger (subscription, 'limit');
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
-        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        this.orderbooks[symbol] = this.ws.orderBook ({}, limit);
         // moved snapshot initialization to handleOrderBook to fix
         // https://github.com/ccxt/ccxt/issues/6820
         // the general idea is to fetch the snapshot after the first delta

@@ -379,7 +379,7 @@ export default class kraken extends krakenBridge {
         // if this is a snapshot
         if ('as' in message[1]) {
             // todo get depth from marketsByWsName
-            this.orderbooks[symbol] = this.orderBook ({}, depth);
+            this.orderbooks[symbol] = this.ws.orderBook ({}, depth);
             const orderbook = this.orderbooks[symbol];
             const sides = {
                 'as': 'asks',
@@ -486,7 +486,8 @@ export default class kraken extends krakenBridge {
             const price = parseFloat (delta[0]);
             const amount = parseFloat (delta[1]);
             const oldTimestamp = timestamp ? timestamp : 0;
-            timestamp = Math.max (oldTimestamp, parseInt (parseFloat (delta[2]) * 1000));
+            const calc = (parseFloat (delta[2].toString ()) * 1000).toString ();
+            timestamp = Math.max (oldTimestamp, parseInt (calc));
             bookside.store (price, amount);
         }
         return timestamp;

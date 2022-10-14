@@ -293,10 +293,10 @@ export default class bitfinex extends bitfinexBridge {
             const limit = this.safeInteger (subscription, 'len');
             if (isRaw) {
                 // raw order books
-                this.orderbooks[symbol] = this.indexedOrderBook ({}, limit);
+                this.orderbooks[symbol] = this.ws.indexedOrderBook ({}, limit);
             } else {
                 // P0, P1, P2, P3, P4
-                this.orderbooks[symbol] = this.countedOrderBook ({}, limit);
+                this.orderbooks[symbol] = this.ws.countedOrderBook ({}, limit);
             }
             const orderbook = this.orderbooks[symbol];
             if (isRaw) {

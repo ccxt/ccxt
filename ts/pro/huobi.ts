@@ -331,7 +331,7 @@ export default class huobi extends huobiBridge {
                         numAttempts = this.sum (numAttempts, 1);
                         subscription['numAttempts'] = numAttempts;
                         client.subscriptions[messageHash] = subscription;
-                        this.ws.spawn (this.ws.watchOrderBookSnapshot, client, message, subscription);
+                        this.ws.spawn (this.watchOrderBookSnapshot, client, message, subscription);
                     }
                 } else {
                     // throw upon failing to synchronize in maxAttempts
@@ -553,7 +553,7 @@ export default class huobi extends huobiBridge {
             const size = this.safeString (parts, 3);
             const sizeParts = size.split ('_');
             const limit = this.safeNumber (sizeParts, 1);
-            orderbook = this.orderBook ({}, limit);
+            orderbook = this.ws.orderBook ({}, limit);
         }
         if (orderbook['nonce'] === undefined) {
             orderbook.cache.push (message);
@@ -569,9 +569,9 @@ export default class huobi extends huobiBridge {
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
-        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        this.orderbooks[symbol] = this.ws.orderBook ({}, limit);
         if (this.markets[symbol]['spot'] === true) {
-            this.ws.spawn (this.ws.watchOrderBookSnapshot, client, message, subscription);
+            this.ws.spawn (this.watchOrderBookSnapshot, client, message, subscription);
         } else {
             this.ws.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
         }
@@ -996,7 +996,7 @@ export default class huobi extends huobiBridge {
         const clientOrderId = this.safeString2 (order, 'clientOrderId', 'client_order_id');
         const price = this.safeString2 (order, 'orderPrice', 'price');
         const filled = this.safeString (order, 'execAmt');
-        let typeSide = this.safeString (order, 'type');
+        const typeSide = this.safeString (order, 'type');
         const feeCost = this.safeString (order, 'fee');
         let fee = undefined;
         if (feeCost !== undefined) {
@@ -1008,14 +1008,15 @@ export default class huobi extends huobiBridge {
         }
         const avgPrice = this.safeString (order, 'trade_avg_price');
         const rawTrades = this.safeValue (order, 'trade');
+        let typeSideParts = [];
         if (typeSide !== undefined) {
-            typeSide = typeSide.split ('-');
+            typeSideParts = typeSide.split ('-');
         }
-        let type = this.safeStringLower (typeSide, 1);
+        let type = this.safeStringLower (typeSideParts, 1);
         if (type === undefined) {
             type = this.safeString (order, 'order_price_type');
         }
-        let side = this.safeStringLower (typeSide, 0);
+        let side = this.safeStringLower (typeSideParts, 0);
         if (side === undefined) {
             side = this.safeString (order, 'direction');
         }
@@ -1891,16 +1892,17 @@ export default class huobi extends huobiBridge {
         const order = this.safeString (trade, 'orderId');
         const timestamp = this.safeInteger (trade, 'tradeTime');
         const market = this.market (symbol);
-        let orderType = this.safeString (trade, 'orderType');
+        const orderType = this.safeString (trade, 'orderType');
         const aggressor = this.safeValue (trade, 'aggressor');
         let takerOrMaker = undefined;
         if (aggressor !== undefined) {
             takerOrMaker = aggressor ? 'taker' : 'maker';
         }
         let type = undefined;
+        let orderTypeParts = [];
         if (orderType !== undefined) {
-            orderType = orderType.split ('-');
-            type = this.safeString (orderType, 1);
+            orderTypeParts = orderType.split ('-');
+            type = this.safeString (orderTypeParts, 1);
         }
         let fee = undefined;
         const feeCurrency = this.safeCurrencyCode (this.safeString (trade, 'feeCurrency'));

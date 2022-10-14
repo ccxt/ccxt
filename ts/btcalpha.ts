@@ -496,7 +496,7 @@ export default class btcalpha extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            request['since'] = parseInt (since / 1000);
+            request['since'] = parseInt ((since / 1000).toString ());
         }
         const response = await (this as any).publicGetChartsPairTypeChart (this.extend (request, params));
         //

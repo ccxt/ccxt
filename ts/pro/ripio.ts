@@ -154,12 +154,12 @@ export default class ripio extends ripioBridge {
             'method': this.handleOrderBook,
         };
         if (!(messageHash in client.subscriptions)) {
-            this.orderbooks[symbol] = this.orderBook ({});
+            this.orderbooks[symbol] = this.ws.orderBook ({});
             client.subscriptions[messageHash] = subscription;
             const options = this.safeValue (this.options, 'fetchOrderBookSnapshot', {});
             const delay = this.safeInteger (options, 'delay', this.rateLimit);
             // fetch the snapshot in a separate async call after a warmup delay
-            this.delay (delay, this.fetchOrderBookSnapshot, client, subscription);
+            this.ws.delay (delay, this.fetchOrderBookSnapshot, client, subscription);
         }
         const orderbook = await this.ws.watch (url, messageHash, undefined, messageHash, subscription);
         return orderbook.limit (limit);
@@ -231,8 +231,8 @@ export default class ripio extends ripioBridge {
         if (nonce > orderbook['nonce']) {
             const asks = this.safeValue (data, 'sell', []);
             const bids = this.safeValue (data, 'buy', []);
-            this.handleDeltas (orderbook['asks'], asks, orderbook['nonce']);
-            this.handleDeltas (orderbook['bids'], bids, orderbook['nonce']);
+            this.handleDeltas (orderbook['asks'], asks);
+            this.handleDeltas (orderbook['bids'], bids);
             orderbook['nonce'] = nonce;
             const timestamp = this.parse8601 (this.safeString (message, 'publishTime'));
             orderbook['timestamp'] = timestamp;

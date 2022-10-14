@@ -238,7 +238,7 @@ export default class ftx extends ftxBridge {
         const symbol = this.safeSymbol (marketId);
         const orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
-            this.orderbooks[symbol] = this.orderBook ({}, 100);
+            this.orderbooks[symbol] = this.ws.orderBook ({}, 100);
         } else {
             orderbook.reset ({});
         }

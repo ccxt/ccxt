@@ -240,7 +240,7 @@ export default class ndax extends ndaxBridge {
                 const duration = parseInt (interval) * 1000;
                 const timestamp = this.safeInteger (ohlcv, 0);
                 const parsed = [
-                    parseInt (timestamp / duration) * duration,
+                    parseInt (((timestamp / duration) * duration).toString ()),
                     this.safeFloat (ohlcv, 3),
                     this.safeFloat (ohlcv, 1),
                     this.safeFloat (ohlcv, 2),
@@ -433,7 +433,7 @@ export default class ndax extends ndaxBridge {
         const symbol = this.safeString (subscription, 'symbol');
         const snapshot = this.parseOrderBook (payload, symbol);
         const limit = this.safeInteger (subscription, 'limit');
-        const orderbook = this.orderBook (snapshot, limit);
+        const orderbook = this.ws.orderBook (snapshot, limit);
         this.orderbooks[symbol] = orderbook;
         const messageHash = this.safeString (subscription, 'messageHash');
         client.resolve (orderbook, messageHash);

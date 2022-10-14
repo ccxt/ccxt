@@ -2537,7 +2537,7 @@ export default class huobi extends Exchange {
             // 'symbol': market['id'], // spot, future
             // 'contract_code': market['id'], // swap
             // 'size': 1000, // max 1000 for spot, 2000 for contracts
-            // 'from': parseInt (since / 1000), spot only
+            // 'from': parseInt ((since / 1000).toString ()), spot only
             // 'to': this.seconds (), spot only
         };
         let fieldName = 'symbol';

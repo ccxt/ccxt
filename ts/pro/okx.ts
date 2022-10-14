@@ -443,7 +443,7 @@ export default class okx extends okxBridge {
         if (action === 'snapshot') {
             for (let i = 0; i < data.length; i++) {
                 const update = data[i];
-                const orderbook = this.orderBook ({}, limit);
+                const orderbook = this.ws.orderBook ({}, limit);
                 this.orderbooks[symbol] = orderbook;
                 this.handleOrderBookMessage (client, update, orderbook, messageHash);
                 client.resolve (orderbook, messageHash);
@@ -460,7 +460,7 @@ export default class okx extends okxBridge {
         } else if ((channel === 'books5') || (channel === 'bbo-tbt')) {
             let orderbook = this.safeValue (this.orderbooks, symbol);
             if (orderbook === undefined) {
-                orderbook = this.orderBook ({}, limit);
+                orderbook = this.ws.orderBook ({}, limit);
             }
             this.orderbooks[symbol] = orderbook;
             for (let i = 0; i < data.length; i++) {

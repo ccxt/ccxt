@@ -138,7 +138,7 @@ export default class upbit extends upbitBridge {
         const options = this.safeValue (this.options, 'watchOrderBook', {});
         const limit = this.safeInteger (options, 'limit', 15);
         if (type === 'SNAPSHOT') {
-            this.orderbooks[symbol] = this.orderBook ({}, limit);
+            this.orderbooks[symbol] = this.ws.orderBook ({}, limit);
         }
         const orderBook = this.orderbooks[symbol];
         // upbit always returns a snapshot of 15 topmost entries

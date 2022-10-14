@@ -176,7 +176,7 @@ export default class currencycom extends currencycomBridge {
         const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const price = this.parseNumber (priceString);
         const amount = this.parseNumber (amountString);
-        const id = this.safeString2 (trade, 'id');
+        const id = this.safeString (trade, 'id');
         const orderId = this.safeString (trade, 'orderId');
         const buyer = this.safeValue (trade, 'buyer');
         const side = buyer ? 'buy' : 'sell';

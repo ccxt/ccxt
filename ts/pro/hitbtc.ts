@@ -94,7 +94,7 @@ export default class hitbtc extends hitbtcBridge {
             delete this.orderbooks[symbol];
         }
         const snapshot = this.parseOrderBook (params, symbol, timestamp, 'bid', 'ask', 'price', 'size');
-        const orderbook = this.orderBook (snapshot);
+        const orderbook = this.ws.orderBook (snapshot);
         orderbook['nonce'] = nonce;
         this.orderbooks[symbol] = orderbook;
         const messageHash = 'orderbook:' + marketId;

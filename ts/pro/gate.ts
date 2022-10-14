@@ -118,7 +118,7 @@ export default class gate extends gateBridge {
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
-        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        this.orderbooks[symbol] = this.ws.orderBook ({}, limit);
         const options = this.safeValue (this.options, 'handleOrderBookSubscription', {});
         const fetchOrderBookSnapshot = this.safeValue (options, 'fetchOrderBookSnapshot', false);
         if (fetchOrderBookSnapshot) {

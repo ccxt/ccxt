@@ -736,18 +736,18 @@ export default class exmo extends Exchange {
             if (limit > maxLimit) {
                 limit = maxLimit; // avoid exception
             }
-            request['from'] = parseInt (now / 1000) - limit * duration - 1;
-            request['to'] = parseInt (now / 1000);
+            request['from'] = parseInt ((now / 1000).toString ()) - limit * duration - 1;
+            request['to'] = parseInt ((now / 1000).toString ());
         } else {
-            request['from'] = parseInt (since / 1000) - 1;
+            request['from'] = parseInt ((since / 1000).toString ()) - 1;
             if (limit === undefined) {
-                request['to'] = parseInt (now / 1000);
+                request['to'] = parseInt ((now / 1000).toString ());
             } else {
                 if (limit > maxLimit) {
                     throw new BadRequest (this.id + ' fetchOHLCV() will serve ' + maxLimit.toString () + ' candles at most');
                 }
                 const to = this.sum (since, limit * duration * 1000);
-                request['to'] = parseInt (to / 1000);
+                request['to'] = parseInt ((to / 1000).toString ());
             }
         }
         const response = await (this as any).publicGetCandlesHistory (this.extend (request, params));
@@ -1789,7 +1789,7 @@ export default class exmo extends Exchange {
         await this.loadMarkets ();
         const request = {};
         if (since !== undefined) {
-            request['date'] = parseInt (since / 1000);
+            request['date'] = parseInt ((since / 1000).toString ());
         }
         let currency = undefined;
         if (code !== undefined) {

@@ -421,9 +421,8 @@ export default class bybit extends bybitBridge {
             timestamp = this.parse8601 (this.safeString2 (ticker, 'updated_at', 'updatedAt'));
             if (timestamp === undefined) {
                 const timestampE9 = this.safeString (ticker, 'updated_at_e9');
-                timestamp = Precise.stringDiv (timestampE9, '1000000');
-                timestamp = this.parseNumber (timestamp);
-                timestamp = (timestamp !== undefined) ? parseInt (timestamp) : undefined;
+                timestamp = this.parseNumber (Precise.stringDiv (timestampE9, '1000000'));
+                timestamp = (timestamp !== undefined) ? parseInt (timestamp.toString ()) : undefined;
             }
         }
         const marketId = this.safeString2 (ticker, 'symbol', 's');
@@ -770,7 +769,7 @@ export default class bybit extends bybitBridge {
             const snapshot = this.parseOrderBook (data, symbol, timestamp, 'b', 'a');
             let orderbook = undefined;
             if (!(symbol in this.orderbooks)) {
-                orderbook = this.orderBook (snapshot);
+                orderbook = this.ws.orderBook (snapshot);
                 this.orderbooks[symbol] = orderbook;
             } else {
                 orderbook = this.orderbooks[symbol];
@@ -1121,7 +1120,7 @@ export default class bybit extends bybitBridge {
         params = this.cleanParams (params);
         let trades = undefined;
         if (type === 'spot') {
-            trades = await this.ws.watchSpotPrivate (url, messageHash, params);
+            trades = await this.watchSpotPrivate (url, messageHash, params);
         } else {
             let channel = undefined;
             if (isUsdcSettled) {
@@ -1130,7 +1129,7 @@ export default class bybit extends bybitBridge {
                 channel = 'execution';
             }
             const reqParams = [ channel ];
-            trades = await this.ws.watchContractPrivate (url, messageHash, reqParams, params);
+            trades = await this.watchContractPrivate (url, messageHash, reqParams, params);
         }
         if (this.ws.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -1246,7 +1245,7 @@ export default class bybit extends bybitBridge {
         params = this.cleanParams (params);
         let orders = undefined;
         if (type === 'spot') {
-            orders = await this.ws.watchSpotPrivate (url, messageHash, params);
+            orders = await this.watchSpotPrivate (url, messageHash, params);
         } else {
             let channel = undefined;
             if (isUsdcSettled) {

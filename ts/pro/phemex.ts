@@ -455,7 +455,7 @@ export default class phemex extends phemexBridge {
             const book = this.safeValue (message, 'book', {});
             const snapshot = this.parseOrderBook (book, symbol, timestamp, 'bids', 'asks', 0, 1, market);
             snapshot['nonce'] = nonce;
-            const orderbook = this.orderBook (snapshot, depth);
+            const orderbook = this.ws.orderBook (snapshot, depth);
             this.orderbooks[symbol] = orderbook;
             client.resolve (orderbook, messageHash);
         } else {
@@ -952,7 +952,7 @@ export default class phemex extends phemexBridge {
             const subs = client.subscriptions;
             const values = Object.values (subs);
             for (let i = 0; i < values.length; i++) {
-                const subscription = values[i];
+                const subscription = values[i] as any;
                 if (subscription !== true) {
                     const subId = this.safeInteger (subscription, 'id');
                     if ((subId !== undefined) && (subId === id)) {

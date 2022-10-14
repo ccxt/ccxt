@@ -730,7 +730,7 @@ export default class phemex extends Exchange {
         //         }
         //     }
         //
-        const v1Products = await this.v1GetExchangePublicProducts (params);
+        const v1Products = await (this as any).v1GetExchangePublicProducts (params);
         const v1ProductsData = this.safeValue (v1Products, 'data', []);
         //
         //     {
@@ -953,7 +953,7 @@ export default class phemex extends Exchange {
         precise.decimals = precise.decimals - scale;
         precise.reduce ();
         const stringValue = precise.toString ();
-        return parseInt (parseFloat (stringValue));
+        return parseInt (parseFloat (stringValue).toString ());
     }
 
     toEv (amount, market = undefined) {
@@ -1059,7 +1059,7 @@ export default class phemex extends Exchange {
         }
         if (since !== undefined) {
             limit = Math.min (limit, maxLimit);
-            since = parseInt (since / 1000);
+            since = parseInt ((since / 1000).toString ());
             request['from'] = since;
             // time ranges ending in the future are not accepted
             // https://github.com/ccxt/ccxt/issues/8050

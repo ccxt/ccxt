@@ -435,7 +435,7 @@ export default class timex extends Exchange {
         currency = this.getCurrencyByAddress (currencyAddresss);
         return {
             'info': transaction,
-            'id': this.safeString2 (transaction, 'transferHash'),
+            'id': this.safeString (transaction, 'transferHash'),
             'txid': this.safeString (transaction, 'txid'),
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,

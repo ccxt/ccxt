@@ -419,9 +419,9 @@ export default class huobijp extends huobijpBridge {
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
-        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        this.orderbooks[symbol] = this.ws.orderBook ({}, limit);
         // watch the snapshot in a separate async call
-        this.ws.spawn (this.ws.watchOrderBookSnapshot, client, message, subscription);
+        this.ws.spawn (this.watchOrderBookSnapshot, client, message, subscription);
     }
 
     handleSubscriptionStatus (client, message) {

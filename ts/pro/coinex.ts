@@ -361,7 +361,7 @@ export default class coinex extends coinexBridge {
         }
         for (let i = 0; i < ohlcvs.length; i++) {
             const candle = ohlcvs[i];
-            this.ohlcvs.append (candle);
+            (this as any).ohlcvs.append (candle);
         }
         client.resolve (this.ohlcvs, messageHash);
     }
@@ -494,7 +494,7 @@ export default class coinex extends coinexBridge {
             'id': this.requestId (),
             'params': [
                 market['id'],
-                this.safeInteger (this.timeframes, timeframe, timeframe),
+                this.safeInteger (this.timeframes, timeframe, this.parseNumber (timeframe)),
             ],
         };
         const request = this.deepExtend (subscribe, params);
@@ -553,7 +553,7 @@ export default class coinex extends coinexBridge {
         if (fullOrderBook) {
             const snapshot = this.parseOrderBook (orderBook, symbol, timestamp);
             if (currentOrderBook === undefined) {
-                orderBook = this.orderBook (snapshot);
+                orderBook = this.ws.orderBook (snapshot);
                 this.orderbooks[symbol] = orderBook;
             } else {
                 orderBook = this.orderbooks[symbol];

@@ -336,7 +336,7 @@ export default class bibox extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const markets = await this.v4PublicGetMarketdataPairs (params);
+        const markets = await (this as any).v4PublicGetMarketdataPairs (params);
         //
         //    [
         //        {

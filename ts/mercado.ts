@@ -385,7 +385,7 @@ export default class mercado extends Exchange {
         };
         if (since !== undefined) {
             method += 'From';
-            request['from'] = parseInt (since / 1000);
+            request['from'] = parseInt ((since / 1000).toString ());
         }
         const to = this.safeInteger (params, 'to');
         if (to !== undefined) {
@@ -759,7 +759,7 @@ export default class mercado extends Exchange {
             limit = 100; // set some default limit, as it's required if user doesn't provide it
         }
         if (since !== undefined) {
-            request['from'] = parseInt (since / 1000);
+            request['from'] = parseInt ((since / 1000).toString ());
             request['to'] = this.sum (request['from'], limit * this.parseTimeframe (timeframe));
         } else {
             request['to'] = this.seconds ();

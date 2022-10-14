@@ -386,7 +386,7 @@ export default class okcoin extends okcoinBridge {
                 const options = this.safeValue (this.options, 'watchOrderBook', {});
                 // default limit is 400 bidasks
                 const limit = this.safeInteger (options, 'limit', 400);
-                const orderbook = this.orderBook ({}, limit);
+                const orderbook = this.ws.orderBook ({}, limit);
                 this.orderbooks[symbol] = orderbook;
                 this.handleOrderBookMessage (client, update, orderbook);
                 const messageHash = table + ':' + marketId;

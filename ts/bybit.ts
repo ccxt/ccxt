@@ -3747,7 +3747,7 @@ export default class bybit extends Exchange {
         const request = {
             // 'order_id': 'f185806b-b801-40ff-adec-52289370ed62', // if not provided will return user's trading records
             // 'symbol': market['id'],
-            // 'start_time': parseInt (since / 1000),
+            // 'start_time': parseInt ((since / 1000).toString ()),
             // 'page': 1,
             // 'limit' 20, // max 50
         };

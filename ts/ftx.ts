@@ -964,7 +964,7 @@ export default class ftx extends Exchange {
         const request = {
             'resolution': this.timeframes[timeframe],
             'market_name': marketId,
-            // 'start_time': parseInt (since / 1000),
+            // 'start_time': parseInt ((since / 1000).toString ()),
             // 'end_time': this.seconds (),
             'limit': limit,
         };

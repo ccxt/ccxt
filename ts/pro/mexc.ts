@@ -132,7 +132,7 @@ export default class mexc extends mexcBridge {
         }
         let ohlcv = undefined;
         if (type === 'spot') {
-            ohlcv = await this.ws.watchSpotPublic (messageHash, channel, requestParams, params);
+            ohlcv = await this.watchSpotPublic (messageHash, channel, requestParams, params);
         } else {
             ohlcv = await this.watchSwapPublic (messageHash, channel, requestParams, params);
         }
@@ -278,7 +278,7 @@ export default class mexc extends mexcBridge {
         } else {
             const channel = 'sub.limit.depth';
             requestParams['depth'] = limit;
-            orderbook = await this.ws.watchSpotPublic (messageHash, channel, requestParams, params);
+            orderbook = await this.watchSpotPublic (messageHash, channel, requestParams, params);
         }
         return orderbook.limit (limit);
     }
@@ -432,7 +432,7 @@ export default class mexc extends mexcBridge {
         };
         let trades = undefined;
         if (market['type'] === 'spot') {
-            trades = await this.ws.watchSpotPublic (messageHash, channel, requestParams, params);
+            trades = await this.watchSpotPublic (messageHash, channel, requestParams, params);
         } else {
             trades = await this.watchSwapPublic (messageHash, channel, requestParams, params);
         }

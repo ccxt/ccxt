@@ -2197,9 +2197,10 @@ export default class tokocrypto extends Exchange {
             fee = { 'currency': code, 'cost': feeCost };
         }
         const updated = this.safeInteger2 (transaction, 'successTime', 'updateTime');
-        let internal = this.safeInteger (transaction, 'transferType');
-        if (internal !== undefined) {
-            internal = internal ? true : false;
+        const internalRaw = this.safeInteger (transaction, 'transferType');
+        let internal = false;
+        if (internalRaw !== undefined) {
+            internal = internalRaw ? true : false;
         }
         const network = this.safeString (transaction, 'network');
         return {

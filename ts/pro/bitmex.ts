@@ -1095,11 +1095,11 @@ export default class bitmex extends bitmexBridge {
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
             if (table === 'orderBookL2') {
-                this.orderbooks[symbol] = this.indexedOrderBook ();
+                this.orderbooks[symbol] = this.ws.indexedOrderBook ();
             } else if (table === 'orderBookL2_25') {
-                this.orderbooks[symbol] = this.indexedOrderBook ({}, 25);
+                this.orderbooks[symbol] = this.ws.indexedOrderBook ({}, 25);
             } else if (table === 'orderBook10') {
-                this.orderbooks[symbol] = this.indexedOrderBook ({}, 10);
+                this.orderbooks[symbol] = this.ws.indexedOrderBook ({}, 10);
             }
             const orderbook = this.orderbooks[symbol];
             for (let i = 0; i < data.length; i++) {

@@ -299,7 +299,7 @@ export default class idex extends idexBridge {
                     if (!(marketId in orderBookSubscriptions)) {
                         const symbol = this.safeSymbol (marketId);
                         if (!(symbol in this.orderbooks)) {
-                            const orderbook = this.countedOrderBook ({});
+                            const orderbook = this.ws.countedOrderBook ({});
                             orderbook.cache = [];
                             this.orderbooks[symbol] = orderbook;
                         }
@@ -362,7 +362,7 @@ export default class idex extends idexBridge {
                 const maxAttemptsValid = subscription['numAttempts'] < maxAttempts;
                 const timeElapsedValid = timeElapsed < maxDelay;
                 if (maxAttemptsValid && timeElapsedValid) {
-                    this.delay (this.rateLimit, this.fetchOrderBookSnapshot, client, symbol);
+                    this.ws.delay (this.rateLimit, this.fetchOrderBookSnapshot, client, symbol);
                 } else {
                     const endpart = (!maxAttemptsValid) ? ' in ' + maxAttempts.toString () + ' attempts' : ' after ' + maxDelay.toString () + ' milliseconds';
                     throw new InvalidNonce (this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + endpart);
@@ -465,7 +465,7 @@ export default class idex extends idexBridge {
                 'wallet': this.walletAddress,
                 'nonce': this.uuidv1 (),
             };
-            const response = await this.privateGetWsToken (this.extend (request, params));
+            const response = await (this as any).privateGetWsToken (this.extend (request, params));
             this.options['lastAuthenticatedTime'] = time;
             this.options['token'] = this.safeString (response, 'token');
         }

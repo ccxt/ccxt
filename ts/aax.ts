@@ -1538,7 +1538,7 @@ export default class aax extends Exchange {
             market = this.market (symbol);
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
-        const method = this.getSupportedMapping (marketType, {
+        const method = this.getSupportedMapping (marketType as any, {
             'spot': 'privateDeleteSpotOrdersCancelOrderID',
             'swap': 'privateDeleteFuturesOrdersCancelOrderID',
             'future': 'privateDeleteFuturesOrdersCancelOrderID',
@@ -1766,7 +1766,7 @@ export default class aax extends Exchange {
             request['symbol'] = market['id'];
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
-        const method = this.getSupportedMapping (marketType, {
+        const method = this.getSupportedMapping (marketType as any, {
             'spot': 'privateGetSpotOpenOrders',
             'swap': 'privateGetFuturesOpenOrders',
             'future': 'privateGetFuturesOpenOrders',
@@ -1944,7 +1944,7 @@ export default class aax extends Exchange {
             request['symbol'] = market['id'];
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
-        const method = this.getSupportedMapping (marketType, {
+        const method = this.getSupportedMapping (marketType as any, {
             'spot': 'privateGetSpotOrders',
             'swap': 'privateGetFuturesOrders',
             'future': 'privateGetFuturesOrders',
@@ -2234,7 +2234,7 @@ export default class aax extends Exchange {
             request['symbol'] = market['id'];
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
-        const method = this.getSupportedMapping (marketType, {
+        const method = this.getSupportedMapping (marketType as any, {
             'spot': 'privateGetSpotTrades',
             'swap': 'privateGetFuturesTrades',
             'future': 'privateGetFuturesTrades',

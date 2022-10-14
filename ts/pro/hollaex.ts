@@ -86,12 +86,12 @@ export default class hollaex extends hollaexBridge {
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         const data = this.safeValue (message, 'data');
-        let timestamp = this.safeString (data, 'timestamp');
-        timestamp = this.parse8601 (timestamp);
-        const snapshot = this.parseOrderBook (data, symbol, timestamp);
+        const timestamp = this.safeString (data, 'timestamp');
+        const timestampMs = this.parse8601 (timestamp);
+        const snapshot = this.parseOrderBook (data, symbol, timestampMs);
         let orderbook = undefined;
         if (!(symbol in this.orderbooks)) {
-            orderbook = this.orderBook (snapshot);
+            orderbook = this.ws.orderBook (snapshot);
             this.orderbooks[symbol] = orderbook;
         } else {
             orderbook = this.orderbooks[symbol];
@@ -387,7 +387,7 @@ export default class hollaex extends hollaexBridge {
         this.checkRequiredCredentials ();
         let expires = this.safeString (this.options, 'ws-expires');
         if (expires === undefined) {
-            const timeout = parseInt (this.timeout / 1000);
+            const timeout = parseInt ((this.timeout / 1000).toString ());
             expires = this.sum (this.seconds (), timeout);
             expires = expires.toString ();
             // we need to memoize these values to avoid generating a new url on each method execution

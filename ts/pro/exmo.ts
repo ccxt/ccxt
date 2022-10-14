@@ -521,7 +521,7 @@ export default class exmo extends exmoBridge {
         const timestamp = this.safeNumber (message, 'ts');
         let storedOrderBook = this.safeValue (this.orderbooks, symbol);
         if (storedOrderBook === undefined) {
-            storedOrderBook = this.orderBook ({});
+            storedOrderBook = this.ws.orderBook ({});
             this.orderbooks[symbol] = storedOrderBook;
         }
         const event = this.safeString (message, 'event');

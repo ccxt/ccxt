@@ -223,7 +223,7 @@ export default class alpaca extends Exchange {
             'asset_class': 'crypto',
             'tradeable': true,
         };
-        const assets = await this.marketsGetAssetsPublicBeta (this.extend (request, params));
+        const assets = await (this as any).marketsGetAssetsPublicBeta (this.extend (request, params));
         //
         //    [
         //        {
@@ -439,7 +439,7 @@ export default class alpaca extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            request['start'] = parseInt (since / 1000);
+            request['start'] = parseInt ((since / 1000).toString ());
         }
         const method = this.safeString (this.options, 'fetchOHLCVMethod', 'cryptoPublicGetCryptoBars');
         const response = await this[method] (this.extend (request, params));

@@ -295,7 +295,7 @@ export default class bitvavo extends bitvavoBridge {
                 const options = this.safeValue (this.options, 'watchOrderBookSnapshot', {});
                 const delay = this.safeInteger (options, 'delay', this.rateLimit);
                 // fetch the snapshot in a separate async call after a warmup delay
-                this.delay (delay, this.ws.watchOrderBookSnapshot, client, message, subscription);
+                this.ws.delay (delay, this.watchOrderBookSnapshot, client, message, subscription);
             }
             orderbook.cache.push (message);
         } else {
@@ -371,7 +371,7 @@ export default class bitvavo extends bitvavoBridge {
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
-        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        this.orderbooks[symbol] = this.ws.orderBook ({}, limit);
     }
 
     handleOrderBookSubscriptions (client, message, marketIds) {

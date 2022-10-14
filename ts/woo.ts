@@ -544,7 +544,7 @@ export default class woo extends Exchange {
          * @returns {object} an associative dictionary of currencies
          */
         const result = {};
-        const tokenResponse = await this.v1PublicGetToken (params);
+        const tokenResponse = await (this as any).v1PublicGetToken (params);
         //
         // {
         //     rows: [
@@ -1830,7 +1830,7 @@ export default class woo extends Exchange {
         const code = this.safeCurrencyCode ('USD');
         const id = this.safeString (income, 'id');
         const timestamp = this.safeTimestamp (income, 'updated_time');
-        const rate = this.safe_number (income, 'funding_rate');
+        const rate = this.safeNumber (income, 'funding_rate');
         return {
             'info': income,
             'symbol': symbol,
@@ -1987,7 +1987,7 @@ export default class woo extends Exchange {
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
-            request['start_t'] = parseInt (since / 1000);
+            request['start_t'] = parseInt ((since / 1000).toString ());
         }
         const response = await (this as any).v1PublicGetFundingRateHistory (this.extend (request, params));
         //
@@ -2066,7 +2066,7 @@ export default class woo extends Exchange {
         const request = {
             'leverage': leverage,
         };
-        return await this.v1PrivatePostClientLeverage (this.extend (request, params));
+        return await (this as any).v1PrivatePostClientLeverage (this.extend (request, params));
     }
 
     async fetchPosition (symbol = undefined, params = {}) {

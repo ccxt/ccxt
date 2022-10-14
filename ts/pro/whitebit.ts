@@ -208,7 +208,7 @@ export default class whitebit extends whitebitBridge {
         if (symbol in this.orderbooks) {
             orderbook = this.orderbooks[symbol];
         } else {
-            orderbook = this.orderBook ();
+            orderbook = this.ws.orderBook ();
             this.orderbooks[symbol] = orderbook;
         }
         if (isSnapshot) {
