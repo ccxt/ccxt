@@ -270,7 +270,7 @@ class CCXTProTranspiler extends Transpiler {
         createFolderRecursively (python3Folder)
         createFolderRecursively (phpAsyncFolder)
 
-        const classes = this.transpileDerivedExchangeFiles ('./js/pro/', options, '.js', force, child || exchanges.length)
+        const classes = this.transpileDerivedExchangeFiles ('./ts/src/pro/', options, '.ts', force, child || exchanges.length)
 
         if (child) {
             return
@@ -287,7 +287,7 @@ class CCXTProTranspiler extends Transpiler {
 
         // HINT: if we're going to support specific class definitions
         // this process won't work anymore as it will override the definitions
-        this.exportTypeScriptDeclarations (tsFilename, classes)
+        // this.exportTypeScriptDeclarations (tsFilename, classes)
 
         //*/
 

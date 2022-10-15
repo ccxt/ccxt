@@ -1993,8 +1993,8 @@ class Transpiler {
             , python3Folder  = './python/ccxt/async_support/'
             , phpFolder      = './php/'
             , phpAsyncFolder = './php/async/'
-            , tsFolder = './ts/'
-            , jsFolder = './js/'
+            , tsFolder = './ts/src'
+            , jsFolder = './js/src'
             // , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder }
             , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder, exchanges }
 
@@ -2012,7 +2012,7 @@ class Transpiler {
         this.transpileBaseMethods ()
 
         // const classes = this.transpileDerivedExchangeFiles (tsFolder, options, pattern, force)
-        const classes = this.transpileDerivedExchangeFiles ('./js/', options, '.js', force, child || exchanges.length)
+        const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, child || exchanges.length)
 
         if (classes === null) {
             log.bright.yellow ('0 files transpiled.')
@@ -2025,7 +2025,7 @@ class Transpiler {
         this.transpileBaseMethods ()
         // HINT: if we're going to support specific class definitions
         // this process won't work anymore as it will override the definitions
-        this.exportTypeScriptDeclarations (tsFilename, classes)
+        // this.exportTypeScriptDeclarations (tsFilename, classes)
 
         //*/
 

@@ -70,7 +70,7 @@ function exportExchanges (replacements) {
 
 async function createExchanges (ids) {
 
-    let ccxt = await import ('../ccxt.js')
+    let ccxt = await import ('../js/ccxt.js')
     ccxt = ccxt.default
 
     const createExchange = (id) => {
@@ -401,11 +401,11 @@ function flatten (nested, result = []) {
 // ----------------------------------------------------------------------------
 
 async function exportEverything () {
-    const ids = getIncludedExchangeIds ('./js')
+    const ids = getIncludedExchangeIds ('./js/src/')
 
-    const wsIds = getIncludedExchangeIds ('./js/pro')
+    const wsIds = getIncludedExchangeIds ('./js/src/pro')
 
-    const errorHierarchy = await import ('../js/base/errorHierarchy.js')
+    const errorHierarchy = await import ('../js/src/base/errorHierarchy.js')
     const flat = flatten (errorHierarchy)
     flat.push ('error_hierarchy')
 
@@ -413,29 +413,30 @@ async function exportEverything () {
 
     const fullExports  = staticExports.concat(ids)
 
+    const ccxtFileDir = './ts/ccxt.ts'
     const replacements = [
         {
-            file: './ccxt.js',
-            regex:  /(?:(import)\s(\w+)\sfrom\s+'.\/js\/(\2).js'\n)+/g,
-            replacement: ids.map (id => "import " + id + ' from ' + " './js/" + id + ".js'").join("\n") + "\n"
+            file: ccxtFileDir,
+            regex:  /(?:(import)\s(\w+)\sfrom\s+'.\/ts\/(\2).js'\n)+/g,
+            replacement: ids.map (id => "import " + id + ' from ' + " './src/" + id + ".js'").join("\n") + "\n" // update these paths
         },
         {
-            file: './ccxt.js',
-            regex:  /(?:(import)\s(\w+)Pro\sfrom\s+'.\/js\/pro\/(\2).js'\n)+/g,
-            replacement: wsIds.map (id => "import " + id + 'Pro from ' + " './js/pro/" + id + ".js'").join("\n") + "\n"
+            file: ccxtFileDir,
+            regex:  /(?:(import)\s(\w+)Pro\sfrom\s+'.\/ts\/pro\/(\2).js'\n)+/g,
+            replacement: wsIds.map (id => "import " + id + 'Pro from ' + " './src/pro/" + id + ".js'").join("\n") + "\n"
         },
         {
-            file: './ccxt.js',
+            file: ccxtFileDir,
             regex:  /(?:const|var)\s+exchanges\s+\=\s+\{[^\}]+\}/,
             replacement: "const exchanges = {\n" + ids.map (id => ("    '" + id + "':").padEnd (30) + id + ",") .join ("\n") + "\n}",
         },
         {
-            file: './ccxt.js',
+            file: ccxtFileDir,
             regex:  /export\s+{\n[^\}]+\}/,
             replacement: "export {\n" + fullExports.map (id => "    " +id + ',').join ("\n") + "    \n}",
         },
         {
-            file: './ccxt.js',
+            file: ccxtFileDir,
             regex:  /(?:const|var)\s+pro\s+\=\s+\{[^\}]+\}/,
             replacement: "const pro = {\n" + wsIds.map (id => ("    '" + id + "':").padEnd (30) + id + "Pro,") .join ("\n") + "\n}",
         },
@@ -491,12 +492,12 @@ async function exportEverything () {
         },
         // ts imports
         {
-            file: './ts/pro/bridge/bridge.ts',
+            file: './ts/src/pro/bridge/bridge.ts',
             regex:  /(?:((import)\s(\w+)\sfrom\s+'(\.\.\/){2}\w+\.js';\n))+/g,
             replacement: wsIds.map (id => "import " + id + 'Rest from ' + " '../../" + id + ".js'").join("\n") + "\n"
         },
         {
-            file: './ts/pro/bridge/bridge.ts',
+            file: './ts/src/pro/bridge/bridge.ts',
             regex:  /export class [\s\S]+/g,
             replacement: wsIds.map (id =>
        
@@ -518,7 +519,7 @@ async function exportEverything () {
     exportExchanges (replacements, unlimitedLog)
 
     // strategically placed exactly here (we can require it AFTER the export)
-    const module = await import('../ccxt.js')
+    const module = await import('../js/ccxt.js')
     const ccxt = module.default
     const exchanges = await createExchanges (ids, ccxt)
 
