@@ -250,6 +250,7 @@ module.exports = class mexc3 extends Exchange {
                             'stoporder/order_details/{stop_order_id}': 2,
                             'account/risk_limit': 2, // TO_DO: gets max/min position size, allowed sides, leverage, maintenance margin, initial margin, etc...
                             'account/tiered_fee_rate': 2, // TO_DO: taker/maker fees for account
+                            'position/leverage': 2,
                         },
                         'post': {
                             'position/change_margin': 2,
