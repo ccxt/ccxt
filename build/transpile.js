@@ -5,20 +5,20 @@
 import fs from 'fs'
 import log from 'ololog'
 import ansi from 'ansicolor'
-import errors from "../js/base/errors.js"
-import {unCamelCase, precisionConstants, safeString, unique} from "../js/base/functions.js"
-import { Exchange } from '../js/base/Exchange.js'
+import errors from "../js/src/base/errors.js"
+import {unCamelCase, precisionConstants, safeString, unique} from "../js/src/base/functions.js"
+import { Exchange } from '../js/src/base/Exchange.js'
 import { basename, join } from 'path'
 import { createFolderRecursively, replaceInFile, overwriteFile } from './fsLocal.js'
 import { pathToFileURL } from 'url'
-import errorHierarchy from '../js/base/errorHierarchy.js'
+import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import { platform } from 'process'
 import os from 'os'
 ansi.nice
 
 const tsFilename = './ccxt.d.ts'
 const pythonCodingUtf8 = '# -*- coding: utf-8 -*-'
-const baseExchangeJsFile = './ts/base/Exchange.ts'
+const baseExchangeJsFile = './ts/src/base/Exchange.ts'
 
 let __dirname = new URL('.', import.meta.url).pathname;
 
@@ -1520,7 +1520,7 @@ class Transpiler {
 
     transpileErrorHierarchy ({ tsFilename }) {
 
-        const errorHierarchyFilename = './js/base/errorHierarchy.js'
+        const errorHierarchyFilename = './js/src/base/errorHierarchy.js'
         const errorHierarchyPath = __dirname + '/.' + errorHierarchyFilename
 
         let js = fs.readFileSync (errorHierarchyPath, 'utf8')
@@ -1636,7 +1636,7 @@ class Transpiler {
     //-----------------------------------------------------------------------------
 
     transpileDateTimeTests () {
-        const jsFile = './ts/test/base/functions/test.datetime.ts'
+        const jsFile = './ts/src/test/base/functions/test.datetime.ts'
         const pyFile = './python/ccxt/test/test_exchange_datetime_functions.py'
         const phpFile = './php/test/test_exchange_datetime_functions.php'
 
@@ -1679,7 +1679,7 @@ class Transpiler {
 
     transpilePrecisionTests () {
 
-        const jsFile = './ts/test/base/functions/test.number.ts'
+        const jsFile = './ts/src/test/base/functions/test.number.ts'
         const pyFile = './python/ccxt/test/test_decimal_to_precision.py'
         const phpFile = './php/test/decimal_to_precision.php'
 
@@ -1993,8 +1993,8 @@ class Transpiler {
             , python3Folder  = './python/ccxt/async_support/'
             , phpFolder      = './php/'
             , phpAsyncFolder = './php/async/'
-            , tsFolder = './ts/src'
-            , jsFolder = './js/src'
+            , tsFolder = './ts/src/'
+            , jsFolder = './js/src/'
             // , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder }
             , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder, exchanges }
 

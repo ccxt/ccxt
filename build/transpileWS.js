@@ -4,7 +4,7 @@
 
 import fs from 'fs';
 import log from 'ololog';
-import ccxt from 'ccxt';
+import ccxt from '../js/ccxt.js';
 import ansi  from 'ansicolor'
 import {
     replaceInFile,
@@ -13,13 +13,13 @@ import {
     createFolder,
     createFolderRecursively,
 } from './fsLocal.js';
-import Exchange from '../js/pro/base/Exchange.js';
+import Exchange from '../js/src/pro/base/Exchange.js';
 import {  Transpiler, parallelizeTranspiling } from './transpile.js';
 import { pathToFileURL } from 'url'
 
 const { unCamelCase, precisionConstants, safeString, unique } = ccxt;
 
-const tsFilename = './ccxt.d.ts'
+// const tsFilename = './ccxt.d.ts'
 ansi.nice
 // ============================================================================
 
@@ -149,7 +149,7 @@ class CCXTProTranspiler extends Transpiler {
     // ------------------------------------------------------------------------
 
     transpileOrderBookTest () {
-        const jsFile = './js/pro/test/base/test.OrderBook.js'
+        const jsFile = './js/src/pro/test/base/test.OrderBook.js'
         const pyFile = './python/ccxt/pro/test/test_order_book.py'
         const phpFile = './php/pro/test/OrderBook.php'
         const pyImports = [
@@ -163,7 +163,7 @@ class CCXTProTranspiler extends Transpiler {
     // ------------------------------------------------------------------------
 
     transpileCacheTest () {
-        const jsFile = './js/pro/test/base/test.Cache.js'
+        const jsFile = './js/src/pro/test/base/test.Cache.js'
         const pyFile = './python/ccxt/pro/test/test_cache.py'
         const phpFile = './php/pro/test/Cache.php'
         const pyImports = [
