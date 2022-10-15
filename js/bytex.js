@@ -893,8 +893,15 @@ module.exports = class bytex extends Exchange {
          * @description fetch all unfilled currently open orders
          * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
-         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {int|undefined} limit default 50, max 100
          * @param {object} params extra parameters specific to the bytex api endpoint
+         * @param {int|undefined} params.until the latest time in ms to fetch orders for
+         * Exchange specific parameters
+         * @param {string|undefined} side 'buy' or 'sell'
+         * @param {string|undefined} status 'new', 'filled', 'pfilled' or 'canceled'
+         * @param {int|undefined} page default = 1
+         * @param {string|undefined} order_by 'created_at', 'id', ...
+         * @param {string|undefined} order 'asc' or 'desc'
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const request = {
@@ -910,14 +917,69 @@ module.exports = class bytex extends Exchange {
          * @description fetches information on multiple closed orders made by the user
          * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {int|undefined} limit default 50, max 100
          * @param {object} params extra parameters specific to the bytex api endpoint
+         * @param {int|undefined} params.until the latest time in ms to fetch orders for
+         * Exchange specific parameters
+         * @param {string|undefined} side 'buy' or 'sell'
+         * @param {string|undefined} status 'new', 'filled', 'pfilled' or 'canceled'
+         * @param {int|undefined} page default = 1
+         * @param {string|undefined} order_by 'created_at', 'id', ...
+         * @param {string|undefined} order 'asc' or 'desc'
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
+        await this.loadMarkets ();
+        let market = undefined;
         const request = {
             'open': false,
         };
-        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['start_date'] = this.iso8601 (since);
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['end_date'] = this.iso8601 (until);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 50, max 100
+        }
+        const response = await this.privateGetOrders (this.extend (request, params));
+        //
+        //     {
+        //         "count": 1,
+        //         "data": [
+        //             {
+        //                 "id": "string",
+        //                 "side": "sell",
+        //                 "symbol": "xht-usdt",
+        //                 "size": 0.1,
+        //                 "filled": 0,
+        //                 "stop": null,
+        //                 "fee": 0,
+        //                 "fee_coin": "usdt",
+        //                 "type": "limit",
+        //                 "price": 1.09,
+        //                 "status": "new",
+        //                 "created_by": 116,
+        //                 "created_at": "2021-02-17T02:32:38.910Z",
+        //                 "updated_at": "2021-02-17T02:32:38.910Z",
+        //                 "User": {
+        //                     "id": 116,
+        //                     "email": "fight@club.com",
+        //                     "username": "narrator",
+        //                     "exchange_id": 176
+        //                 }
+        //             }
+        //         ]
+        //     }
+        //
+        const jsonResponse = this.stringToJson (response);
+        const data = this.safeValue (jsonResponse, 'data', []);
+        return this.parseOrders (data, market, since, limit);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -972,30 +1034,31 @@ module.exports = class bytex extends Exchange {
          * @description fetches information on multiple orders made by the user
          * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {int|undefined} limit default 50, max 100
          * @param {object} params extra parameters specific to the bytex api endpoint
+         * @param {int|undefined} params.until the latest time in ms to fetch orders for
+         * Exchange specific parameters
+         * @param {bool|undefined} open true to fetch open orders, false to fetch closed orders
+         * @param {string|undefined} side 'buy' or 'sell'
+         * @param {string|undefined} status 'new', 'filled', 'pfilled' or 'canceled'
+         * @param {int|undefined} page default = 1
+         * @param {string|undefined} order_by 'created_at', 'id', ...
+         * @param {string|undefined} order 'asc' or 'desc'
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {
-            // 'symbol': market['id'],
-            // 'side': 'buy', // 'sell'
-            // 'status': 'new', // 'filled', 'pfilled', 'canceled'
-            // 'open': true,
-            // 'limit': limit, // default 50, max 100
-            // 'page': 1,
-            // 'order_by': 'created_at', // id, ...
-            // 'order': 'asc', // 'desc'
-            // 'start_date': this.iso8601 (since),
-            // 'end_date': this.iso8601 (this.milliseconds ()),
-        };
+        const request = {};
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
             request['start_date'] = this.iso8601 (since);
+        }
+        const until = this.safeInteger (params, 'until');
+        if (until !== undefined) {
+            request['end_date'] = this.iso8601 (until);
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default 50, max 100
@@ -1030,8 +1093,7 @@ module.exports = class bytex extends Exchange {
         //         ]
         //     }
         //
-        const jsonResponse = this.stringToJson (response);
-        const data = this.safeValue (jsonResponse, 'data', []);
+        const data = this.safeValue (response, 'data', []);
         return this.parseOrders (data, market, since, limit);
     }
 
