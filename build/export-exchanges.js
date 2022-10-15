@@ -417,12 +417,12 @@ async function exportEverything () {
     const replacements = [
         {
             file: ccxtFileDir,
-            regex:  /(?:(import)\s(\w+)\sfrom\s+'.\/ts\/(\2).js'\n)+/g,
+            regex:  /(?:(import)\s(\w+)\sfrom\s+'.\/src\/(\2).js'\n)+/g,
             replacement: ids.map (id => "import " + id + ' from ' + " './src/" + id + ".js'").join("\n") + "\n" // update these paths
         },
         {
             file: ccxtFileDir,
-            regex:  /(?:(import)\s(\w+)Pro\sfrom\s+'.\/ts\/pro\/(\2).js'\n)+/g,
+            regex:  /(?:(import)\s(\w+)Pro\sfrom\s+'.\/src\/pro\/(\2).js'\n)+/g,
             replacement: wsIds.map (id => "import " + id + 'Pro from ' + " './src/pro/" + id + ".js'").join("\n") + "\n"
         },
         {
