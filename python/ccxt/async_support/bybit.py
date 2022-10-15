@@ -2542,6 +2542,8 @@ class bybit(Exchange):
         timeInForce = self.parse_time_in_force(self.safe_string_2(order, 'time_in_force', 'timeInForce'))
         stopPrice = self.safe_string_n(order, ['trigger_price', 'stop_px', 'stopPrice', 'triggerPrice'])
         postOnly = (timeInForce == 'PO')
+        if (market['spot'] and type == 'market') and (side == 'buy'):
+            amount = filled
         return self.safe_order({
             'info': order,
             'id': id,

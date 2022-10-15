@@ -2613,6 +2613,9 @@ class bybit extends Exchange {
         $timeInForce = $this->parse_time_in_force($this->safe_string_2($order, 'time_in_force', 'timeInForce'));
         $stopPrice = $this->safe_string_n($order, array( 'trigger_price', 'stop_px', 'stopPrice', 'triggerPrice' ));
         $postOnly = ($timeInForce === 'PO');
+        if (($market['spot'] && $type === 'market') && ($side === 'buy')) {
+            $amount = $filled;
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
