@@ -4890,18 +4890,18 @@ module.exports = class bybit extends Exchange {
          * @see https://bybit-exchange.github.io/docs/derivativesV3/contract/#t-dv_marketopeninterest
          * @param {string} symbol Unified CCXT market symbol
          * @param {object} params exchange specific parameters
-         * @param {string|undefined} params.interval "5m", 15m, 30m, 1h, 4h, 1d
+         * @param {string|undefined} params.interval 5m, 15m, 30m, 1h, 4h, 1d
          * @param {string|undefined} params.category "linear" or "inverse"
          * @returns {object} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
          */
-        const timeframe = this.safeString (params, 'interval', '1h');
-        if (timeframe === '1m') {
-            throw new BadRequest (this.id + ' fetchOpenInterest() cannot use the 1m timeframe');
-        }
         await this.loadMarkets ();
         let market = this.market (symbol);
         if (!market['contract']) {
             throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
+        }
+        const timeframe = this.safeString (params, 'interval', '1h');
+        if (timeframe === '1m') {
+            throw new BadRequest (this.id + ' fetchOpenInterest() cannot use the 1m timeframe');
         }
         const defaultSubType = this.safeString (this.options, 'defaultSubType', 'linear');
         const category = this.safeString (params, 'category', defaultSubType);
