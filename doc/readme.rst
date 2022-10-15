@@ -585,7 +585,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - 
      - 
-   * - .. image:: https://user-images.githubusercontent.com/51840849/88317935-a8a21c80-cd22-11ea-8e2b-4b9fac5975eb.jpg
+   * - .. image:: https://user-images.githubusercontent.com/1294454/195979521-bb8c40e6-a6db-4056-a404-2766eda7f9ab.jpg
           :target: https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j
           :alt: bitget
      
@@ -1947,14 +1947,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@2.0.19/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@2.0.19/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@2.0.20/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@2.0.20/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@2.0.19/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@2.0.20/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
