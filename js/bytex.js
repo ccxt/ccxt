@@ -186,6 +186,8 @@ module.exports = class bytex extends Exchange {
                     'XLM': 'xlm',
                 },
             },
+            'quoteJsonNumbers': false, // treat numbers in json as quoted precise strings
+            'quote_json_numbers': false, // treat numbers in json as quoted precise strings
         });
     }
 
@@ -928,58 +930,10 @@ module.exports = class bytex extends Exchange {
          * @param {string|undefined} order 'asc' or 'desc'
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        await this.loadMarkets ();
-        let market = undefined;
         const request = {
             'open': false,
         };
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['symbol'] = market['id'];
-        }
-        if (since !== undefined) {
-            request['start_date'] = this.iso8601 (since);
-        }
-        const until = this.safeInteger (params, 'until');
-        if (until !== undefined) {
-            request['end_date'] = this.iso8601 (until);
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit; // default 50, max 100
-        }
-        const response = await this.privateGetOrders (this.extend (request, params));
-        //
-        //     {
-        //         "count": 1,
-        //         "data": [
-        //             {
-        //                 "id": "string",
-        //                 "side": "sell",
-        //                 "symbol": "xht-usdt",
-        //                 "size": 0.1,
-        //                 "filled": 0,
-        //                 "stop": null,
-        //                 "fee": 0,
-        //                 "fee_coin": "usdt",
-        //                 "type": "limit",
-        //                 "price": 1.09,
-        //                 "status": "new",
-        //                 "created_by": 116,
-        //                 "created_at": "2021-02-17T02:32:38.910Z",
-        //                 "updated_at": "2021-02-17T02:32:38.910Z",
-        //                 "User": {
-        //                     "id": 116,
-        //                     "email": "fight@club.com",
-        //                     "username": "narrator",
-        //                     "exchange_id": 176
-        //                 }
-        //             }
-        //         ]
-        //     }
-        //
-        const jsonResponse = this.stringToJson (response);
-        const data = this.safeValue (jsonResponse, 'data', []);
-        return this.parseOrders (data, market, since, limit);
+        return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
