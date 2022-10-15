@@ -712,11 +712,11 @@ module.exports = class mexc3 extends Exchange {
         //                    "MARGIN"
         //                ],
         //                "filters": [],
-        //                "baseSizePrecision": "0.01", // seems to be derived of 'baseAssetPrecision'
+        //                "baseSizePrecision": "0.01", // this turned out to be a minimum base amount for order
         //                "maxQuoteAmount": "5000000",
         //                "makerCommission": "0.002",
         //                "takerCommission": "0.002"
-        //                "quoteAmountPrecision": "5", // seem totally unrelated value, as neither quote/base have anything related to this number
+        //                "quoteAmountPrecision": "5", // this turned out to be a minimum cost amount for order
         //                "quotePrecision": "4", // deprecated in favor of 'quoteAssetPrecision' ( https://dev.binance.vision/t/what-is-the-difference-between-quoteprecision-and-quoteassetprecision/4333 )
         //                // note, "icebergAllowed" & "ocoAllowed" fields were recently removed
         //            },
@@ -781,7 +781,7 @@ module.exports = class mexc3 extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': undefined,
+                        'min': this.safeNumber (market, 'baseSizePrecision'),
                         'max': undefined,
                     },
                     'price': {
@@ -789,7 +789,7 @@ module.exports = class mexc3 extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.safeNumber (market, 'quoteAmountPrecision'),
                         'max': maxQuoteAmount,
                     },
                 },
