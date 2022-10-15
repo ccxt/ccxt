@@ -1815,7 +1815,6 @@ module.exports = class gate extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the gate api endpoint
-         * @param {string|undefined} params.marginMode 'cross' or 'isolated', for spot-margin
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
@@ -1830,21 +1829,17 @@ module.exports = class gate extends Exchange {
         //
         let request = undefined;
         [ request, params ] = this.prepareRequest (market, undefined, params);
-        let method = this.getSupportedMapping (market['type'], {
+        const method = this.getSupportedMapping (market['type'], {
             'spot': 'publicSpotGetOrderBook',
             'margin': 'publicSpotGetOrderBook',
             'swap': 'publicFuturesGetSettleOrderBook',
             'future': 'publicDeliveryGetSettleOrderBook',
         });
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrderBook', params);
-        if (marginMode !== undefined) {
-            method = 'publicSpotGetOrderBook';
-        }
         if (limit !== undefined) {
             request['limit'] = limit; // default 10, max 100
         }
         request['with_id'] = true;
-        const response = await this[method] (this.extend (request, query));
+        const response = await this[method] (this.extend (request, params));
         //
         // SPOT
         //
@@ -1928,24 +1923,19 @@ module.exports = class gate extends Exchange {
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the gate api endpoint
-         * @param {string|undefined} params.marginMode 'cross' or 'isolated', for spot-margin
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         let request = undefined;
         [ request, params ] = this.prepareRequest (market, undefined, params);
-        let method = this.getSupportedMapping (market['type'], {
+        const method = this.getSupportedMapping (market['type'], {
             'spot': 'publicSpotGetTickers',
             'margin': 'publicSpotGetTickers',
             'swap': 'publicFuturesGetSettleTickers',
             'future': 'publicDeliveryGetSettleTickers',
         });
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchTicker', params);
-        if (marginMode !== undefined) {
-            method = 'publicSpotGetTickers';
-        }
-        const response = await this[method] (this.extend (request, query));
+        const response = await this[method] (this.extend (request, params));
         const ticker = this.safeValue (response, 0);
         return this.parseTicker (ticker, market);
     }
@@ -2413,7 +2403,6 @@ module.exports = class gate extends Exchange {
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
          * @param {object} params extra parameters specific to the gate api endpoint
-         * @param {string|undefined} params.marginMode 'cross' or 'isolated', for spot-margin
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
@@ -2441,23 +2430,19 @@ module.exports = class gate extends Exchange {
         //
         let request = undefined;
         [ request, params ] = this.prepareRequest (market, undefined, params);
-        let method = this.getSupportedMapping (market['type'], {
+        const method = this.getSupportedMapping (market['type'], {
             'spot': 'publicSpotGetTrades',
             'margin': 'publicSpotGetTrades',
             'swap': 'publicFuturesGetSettleTrades',
             'future': 'publicDeliveryGetSettleTrades',
         });
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchTrades', params);
-        if (marginMode !== undefined) {
-            method = 'publicSpotGetTrades';
-        }
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 1000
         }
         if (since !== undefined && (market['contract'])) {
             request['from'] = parseInt (since / 1000);
         }
-        const response = await this[method] (this.extend (request, query));
+        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
