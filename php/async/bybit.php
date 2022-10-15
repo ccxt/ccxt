@@ -2196,7 +2196,7 @@ class bybit extends Exchange {
             $result = $this->safe_value($response, 'result', array());
             $timestamp = $this->safe_timestamp($response, 'time_now');
             if ($timestamp === null) {
-                $timestamp = $this->safe_integer($response, 'time');
+                $timestamp = $this->safe_integer($result, 'time');
             }
             $bidsKey = $market['spot'] ? 'bids' : 'Buy';
             $asksKey = $market['spot'] ? 'asks' : 'Sell';
@@ -2777,7 +2777,10 @@ class bybit extends Exchange {
                     if ($price === null && $cost === null) {
                         throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total $order $cost ($amount to spend), where $cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)");
                     } else {
-                        $amount = ($cost !== null) ? $cost : $amount * $price;
+                        $amountString = $this->number_to_string($amount);
+                        $priceString = $this->number_to_string($price);
+                        $quoteAmount = Precise::string_mul($amountString, $priceString);
+                        $amount = ($cost !== null) ? $cost : $this->parse_number($quoteAmount);
                     }
                 }
             }
@@ -2810,27 +2813,29 @@ class bybit extends Exchange {
                 $request['agentSource'] = $brokerId;
             }
             $response = Async\await($this->privatePostSpotV1Order (array_merge($request, $params)));
+            //
             //    {
-            //        "ret_code":0,
-            //        "ret_msg":"",
-            //        "ext_code":null,
-            //        "ext_info":null,
-            //        "result":{
-            //           "accountId":"24478790",
-            //           "symbol":"ETHUSDT",
-            //           "symbolName":"ETHUSDT",
-            //           "orderLinkId":"1652266305358517",
-            //           "orderId":"1153687819821127168",
-            //           "transactTime":"1652266305365",
-            //           "price":"80",
-            //           "origQty":"0.05",
-            //           "executedQty":"0",
-            //           "status":"NEW",
-            //           "timeInForce":"GTC",
-            //           "type":"LIMIT",
-            //           "side":"BUY"
+            //        "ret_code" => 0,
+            //        "ret_msg" => "",
+            //        "ext_code" => null,
+            //        "ext_info" => null,
+            //        "result" => {
+            //           "accountId" => "24478790",
+            //           "symbol" => "ETHUSDT",
+            //           "symbolName" => "ETHUSDT",
+            //           "orderLinkId" => "1652266305358517",
+            //           "orderId" => "1153687819821127168",
+            //           "transactTime" => "1652266305365",
+            //           "price" => "80",
+            //           "origQty" => "0.05",
+            //           "executedQty" => "0",
+            //           "status" => "NEW",
+            //           "timeInForce" => "GTC",
+            //           "type" => "LIMIT",
+            //           "side" => "BUY"
             //        }
             //    }
+            //
             $order = $this->safe_value($response, 'result', array());
             return $this->parse_order($order);
         }) ();
@@ -4348,13 +4353,13 @@ class bybit extends Exchange {
         //
         $currencyId = $this->safe_string($item, 'coin');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $amount = $this->safe_number($item, 'amount');
-        $after = $this->safe_number($item, 'wallet_balance');
-        $direction = ($amount < 0) ? 'out' : 'in';
+        $amount = $this->safe_string($item, 'amount');
+        $after = $this->safe_string($item, 'wallet_balance');
+        $direction = Precise::string_lt($amount, '0') ? 'out' : 'in';
         $before = null;
         if ($after !== null && $amount !== null) {
-            $difference = ($direction === 'out') ? $amount : -$amount;
-            $before = $this->sum($after, $difference);
+            $difference = ($direction === 'out') ? $amount : Precise::string_neg($amount);
+            $before = Precise::string_add($after, $difference);
         }
         $timestamp = $this->parse8601($this->safe_string($item, 'exec_time'));
         $type = $this->parse_ledger_entry_type($this->safe_string($item, 'type'));
@@ -4367,9 +4372,9 @@ class bybit extends Exchange {
             'referenceAccount' => null,
             'referenceId' => $referenceId,
             'status' => null,
-            'amount' => $amount,
-            'before' => $before,
-            'after' => $after,
+            'amount' => $this->parse_number($amount),
+            'before' => $this->parse_number($before),
+            'after' => $this->parse_number($after),
             'fee' => null,
             'direction' => $direction,
             'timestamp' => $timestamp,

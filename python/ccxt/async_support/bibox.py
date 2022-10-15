@@ -68,7 +68,7 @@ class bibox(Exchange):
                 'fetchTradingFees': False,
                 'fetchTransactionFees': True,
                 'fetchWithdrawals': True,
-                'transfer': None,
+                'transfer': True,
                 'withdraw': True,
             },
             'timeframes': {
@@ -340,6 +340,12 @@ class bibox(Exchange):
                 'REVO': 'Revo Network',
                 'STAR': 'Starbase',
                 'TERN': 'Ternio-ERC20',
+            },
+            'options': {
+                'typesByAccount': {
+                    'base': 'main',
+                    'credit': 'margin',
+                },
             },
         })
 
@@ -1603,6 +1609,139 @@ class bibox(Exchange):
             'info': info,
             'withdraw': withdrawFees,
             'deposit': {},
+        }
+
+    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account, transfers must be made to/from account "main"
+        see https://biboxcom.github.io/api/spot/v3/en/#wallet-to-spot
+        see https://biboxcom.github.io/api/spot/v3/en/#wallet-to-leverage
+        see https://biboxcom.github.io/api/spot/v3/en/#leverage-to-wallet
+        see https://biboxcom.github.io/api/futures/v3/en/#2-fund-transfer
+        see https://biboxcom.github.io/api/futures-coin/v3/en/#2-fund-transfer
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: main, spot, cross, swap or an isolated margin market symbol(ex: XRP/USDT)
+        :param str toAccount: main, spot, cross, swap or an isolated margin market symbol(ex: XRP/USDT)
+        :param dict params: extra parameters specific to the bibox api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        fromMain = fromAccount == 'main' or fromAccount == 'wallet'
+        fromSpot = fromAccount == 'spot'
+        toMain = toAccount == 'main' or toAccount == 'wallet'
+        toSpot = toAccount == 'spot'
+        toCross = toAccount == 'cross'
+        fromCross = fromAccount == 'cross'
+        toIsolated = self.in_array(toAccount, self.symbols)
+        fromIsolated = self.in_array(fromAccount, self.symbols)
+        toSwap = toAccount == 'swap'
+        fromSwap = fromAccount == 'swap'
+        method = 'v3PrivatePostAssetsTransferSpot'
+        request = {
+            'amount': amount,
+        }
+        if toSpot or fromSpot:
+            request['symbol'] = currency['id']
+            if fromMain:
+                request['type'] = 0
+            elif toMain:
+                request['type'] = 1
+            else:
+                raise BadRequest(self.id + ' cannot transfer from ' + fromAccount + ' to ' + toAccount)
+        elif (fromCross or fromIsolated) and toMain:
+            method = 'v3.1PrivatePostCreditTransferAssetsCredit2base'
+            request['coin_symbol'] = currency['id']
+            request['pair'] = self.market_id(fromAccount) if fromIsolated else '*_USDT'
+        elif (toCross or toIsolated) and fromMain:
+            method = 'v3.1PrivatePostCreditTransferAssetsBase2credit'
+            request['coin_symbol'] = currency['id']
+            request['pair'] = self.market_id(toAccount) if toIsolated else '*_USDT'
+        elif toSwap or fromSwap:
+            if code == 'USDT':
+                method = 'v3PrivatePostCbuassetsTransfer'
+            else:
+                method = 'v3PrivatePostAssetsTransferCbc'
+            if toMain:
+                request['type'] = 1
+            elif fromMain:
+                request['type'] = 0
+            else:
+                raise BadRequest(self.id + ' cannot transfer from ' + fromAccount + ' to ' + toAccount)
+            request['symbol'] = currency['id']
+        else:
+            raise BadRequest(self.id + ' cannot transfer from ' + fromAccount + ' to ' + toAccount)
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # spot <-> main
+        #
+        #    {
+        #        state: '0',
+        #        id: '936177661049344000'
+        #    }
+        #
+        # main <-> leverage
+        #
+        #    {
+        #        result: '1620000000049',
+        #        cmd: 'transferAssets/base2credit',
+        #        state: '0'
+        #    }
+        #
+        # main <-> swap
+        #
+        #    {
+        #        state: '0',
+        #        result: '936190233517527040'
+        #    }
+        #
+        return self.parse_transfer(response, currency)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        # spot <-> main
+        #
+        #    {
+        #        state: '0',
+        #        id: '936177661049344000'
+        #    }
+        #
+        # main <-> leverage
+        #
+        #    {
+        #        result: '1620000000049',
+        #        cmd: 'transferAssets/base2credit',
+        #        state: '0'
+        #    }
+        #
+        # main <-> swap
+        #
+        #    {
+        #        state: '0',
+        #        result: '936190233517527040'
+        #    }
+        #
+        cmd = self.safe_string(transfer, 'cmd')
+        fromAccount = None
+        toAccount = None
+        if cmd is not None:
+            accounts = self.safe_string(cmd.split('/'), 1)
+            parts = accounts.split('2')
+            fromAccount = self.safe_string(parts, 0)
+            toAccount = self.safe_string(parts, 1)
+            fromAccount = self.safe_string(self.options['typesByAccount'], fromAccount, fromAccount)
+            toAccount = self.safe_string(self.options['typesByAccount'], toAccount, toAccount)
+        return {
+            'info': transfer,
+            'id': self.safe_string_2(transfer, 'id', 'result'),
+            'timestamp': None,
+            'datetime': None,
+            'currency': self.safe_string(currency, 'code'),
+            'amount': None,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': None,
         }
 
     def sign(self, path, api='v1Public', method='GET', params={}, headers=None, body=None):

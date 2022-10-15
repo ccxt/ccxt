@@ -55,6 +55,8 @@ class bitget extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
@@ -3265,49 +3267,6 @@ class bitget extends Exchange {
         return $this->modify_margin_helper($symbol, $amount, 'add', $params);
     }
 
-    public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $signed = $api[0] === 'private';
-        $endpoint = $api[1];
-        $pathPart = ($endpoint === 'spot') ? '/api/spot/v1' : '/api/mix/v1';
-        $request = '/' . $this->implode_params($path, $params);
-        $payload = $pathPart . $request;
-        $url = $this->implode_hostname($this->urls['api'][$endpoint]) . $payload;
-        $query = $this->omit($params, $this->extract_params($path));
-        if (!$signed && ($method === 'GET')) {
-            $keys = is_array($query) ? array_keys($query) : array();
-            $keysLength = count($keys);
-            if ($keysLength > 0) {
-                $url = $url . '?' . $this->urlencode($query);
-            }
-        }
-        if ($signed) {
-            $this->check_required_credentials();
-            $timestamp = (string) $this->milliseconds();
-            $auth = $timestamp . $method . $payload;
-            if ($method === 'POST') {
-                $body = $this->json($params);
-                $auth .= $body;
-            } else {
-                if ($params) {
-                    $query = '?' . $this->urlencode($this->keysort($params));
-                    $url .= $query;
-                    $auth .= $query;
-                }
-            }
-            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
-            $headers = array(
-                'ACCESS-KEY' => $this->apiKey,
-                'ACCESS-SIGN' => $signature,
-                'ACCESS-TIMESTAMP' => $timestamp,
-                'ACCESS-PASSPHRASE' => $this->password,
-            );
-            if ($method === 'POST') {
-                $headers['Content-Type'] = 'application/json';
-            }
-        }
-        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
-    }
-
     public function fetch_leverage($symbol, $params = array ()) {
         /**
          * fetch the set leverage for a $market
@@ -3383,6 +3342,63 @@ class bitget extends Exchange {
         return $this->privateMixPostAccountSetMarginMode (array_merge($request, $params));
     }
 
+    public function fetch_open_interest($symbol, $params = array ()) {
+        /**
+         * Retrieves the open interest of a currency
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-open-interest
+         * @param {string} $symbol Unified CCXT $market $symbol
+         * @param {array} $params exchange specific parameters
+         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure)
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['contract']) {
+            throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->publicMixGetMarketOpenInterest (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "00000",
+        //         "msg" => "success",
+        //         "requestTime" => 0,
+        //         "data" => {
+        //             "symbol" => "BTCUSDT_UMCBL",
+        //             "amount" => "130818.967",
+        //             "timestamp" => "1663399151127"
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_open_interest($data, $market);
+    }
+
+    public function parse_open_interest($interest, $market = null) {
+        //
+        //     {
+        //         "symbol" => "BTCUSDT_UMCBL",
+        //         "amount" => "130818.967",
+        //         "timestamp" => "1663399151127"
+        //     }
+        //
+        $timestamp = $this->safe_integer($interest, 'timestamp');
+        $id = $this->safe_string($interest, 'symbol');
+        $market = $this->safe_market($id, $market);
+        $amount = $this->safe_number($interest, 'amount');
+        return array(
+            'symbol' => $this->safe_symbol($id),
+            'baseVolume' => $amount,  // deprecated
+            'quoteVolume' => null,  // deprecated
+            'openInterestAmount' => $amount,
+            'openInterestValue' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'info' => $interest,
+        );
+    }
+
     public function handle_errors($code, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {
         if (!$response) {
             return; // fallback to default error handler
@@ -3426,5 +3442,48 @@ class bitget extends Exchange {
         if ($nonZeroErrorCode || $nonEmptyMessage) {
             throw new ExchangeError($feedback); // unknown $message
         }
+    }
+
+    public function sign($path, $api = [], $method = 'GET', $params = array (), $headers = null, $body = null) {
+        $signed = $api[0] === 'private';
+        $endpoint = $api[1];
+        $pathPart = ($endpoint === 'spot') ? '/api/spot/v1' : '/api/mix/v1';
+        $request = '/' . $this->implode_params($path, $params);
+        $payload = $pathPart . $request;
+        $url = $this->implode_hostname($this->urls['api'][$endpoint]) . $payload;
+        $query = $this->omit($params, $this->extract_params($path));
+        if (!$signed && ($method === 'GET')) {
+            $keys = is_array($query) ? array_keys($query) : array();
+            $keysLength = count($keys);
+            if ($keysLength > 0) {
+                $url = $url . '?' . $this->urlencode($query);
+            }
+        }
+        if ($signed) {
+            $this->check_required_credentials();
+            $timestamp = (string) $this->milliseconds();
+            $auth = $timestamp . $method . $payload;
+            if ($method === 'POST') {
+                $body = $this->json($params);
+                $auth .= $body;
+            } else {
+                if ($params) {
+                    $query = '?' . $this->urlencode($this->keysort($params));
+                    $url .= $query;
+                    $auth .= $query;
+                }
+            }
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256', 'base64');
+            $headers = array(
+                'ACCESS-KEY' => $this->apiKey,
+                'ACCESS-SIGN' => $signature,
+                'ACCESS-TIMESTAMP' => $timestamp,
+                'ACCESS-PASSPHRASE' => $this->password,
+            );
+            if ($method === 'POST') {
+                $headers['Content-Type'] = 'application/json';
+            }
+        }
+        return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 }

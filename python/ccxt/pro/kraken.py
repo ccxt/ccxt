@@ -373,6 +373,7 @@ class kraken(Exchange, ccxt.async_support.kraken):
                 bookside = orderbook[side]
                 deltas = self.safe_value(message[1], key, [])
                 timestamp = self.handle_deltas(bookside, deltas, timestamp)
+            orderbook['symbol'] = symbol
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
             client.resolve(orderbook, messageHash)
@@ -425,6 +426,7 @@ class kraken(Exchange, ccxt.async_support.kraken):
                 if localChecksum != c:
                     error = InvalidNonce(self.id + ' invalid checksum')
                     client.reject(error, messageHash)
+            orderbook['symbol'] = symbol
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
             client.resolve(orderbook, messageHash)

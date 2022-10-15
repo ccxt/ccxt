@@ -173,7 +173,6 @@ class huobi(Exchange):
                     'status': 'https://{hostname}',
                     'contract': 'https://{hostname}',
                     'spot': 'https://{hostname}',
-                    'market': 'https://{hostname}',
                     'public': 'https://{hostname}',
                     'private': 'https://{hostname}',
                     'v2Public': 'https://{hostname}',
@@ -257,18 +256,6 @@ class huobi(Exchange):
                         'etp/redemption': 5,  # 杠杆ETP换出
                         'etp/{transactId}/cancel': 10,  # 杠杆ETP单个撤单
                         'etp/batch-cancel': 50,  # 杠杆ETP批量撤单
-                    },
-                },
-                'market': {
-                    'get': {
-                        'history/kline': 1,  # 获取K线数据
-                        'detail/merged': 1,  # 获取聚合行情(Ticker)
-                        'depth': 1,  # 获取 Market Depth 数据
-                        'trade': 1,  # 获取 Trade Detail 数据
-                        'history/trade': 1,  # 批量获取最近的交易记录
-                        'detail': 1,  # 获取 Market Detail 24小时成交量数据
-                        'tickers': 1,
-                        'etp': 1,  # 获取杠杆ETP实时净值
                     },
                 },
                 'public': {
@@ -382,19 +369,26 @@ class huobi(Exchange):
                             'v2/market-status': 1,
                             'v1/common/symbols': 1,
                             'v1/common/currencys': 1,
+                            'v2/settings/common/currencies': 1,
                             'v2/reference/currencies': 1,
                             'v1/common/timestamp': 1,
                             'v1/common/exchange': 1,  # order limits
+                            'v1/settings/common/chains': 1,
+                            'v1/settings/common/currencys': 1,
+                            'v1/settings/common/symbols': 1,
+                            'v2/settings/common/symbols': 1,
+                            'v1/settings/common/market-symbols': 1,
                             # Market Data
                             'market/history/candles': 1,
                             'market/history/kline': 1,
                             'market/detail/merged': 1,
                             'market/tickers': 1,
+                            'market/detail': 1,
                             'market/depth': 1,
                             'market/trade': 1,
                             'market/history/trade': 1,
                             'market/detail/': 1,
-                            'market/etp': 1,
+                            'market/etp': 1,  # Get real-time equity of leveraged ETP
                             # ETP
                             'v2/etp/reference': 1,
                             'v2/etp/rebalance': 1,
@@ -416,6 +410,7 @@ class huobi(Exchange):
                             'v2/account/withdraw/address': 1,
                             'v2/reference/currencies': 1,
                             'v1/query/deposit-withdraw': 1,
+                            'v1/query/withdraw/client-order-id': 1,
                             # Sub user management
                             'v2/user/api-key': 1,
                             'v2/user/uid': 1,
@@ -430,6 +425,7 @@ class huobi(Exchange):
                             'v1/order/openOrders': 0.4,
                             'v1/order/orders/{order-id}': 0.4,
                             'v1/order/orders/getClientOrder': 0.4,
+                            'v1/order/orders/{order-id}/matchresult': 0.4,
                             'v1/order/orders/{order-id}/matchresults': 0.4,
                             'v1/order/orders': 0.4,
                             'v1/order/history': 1,
@@ -449,6 +445,7 @@ class huobi(Exchange):
                             'v2/account/repayment': 5,
                             # Stable Coin Exchange
                             'v1/stable-coin/quote': 1,
+                            'v1/stable_coin/exchange_rate': 1,
                             # ETP
                             'v2/etp/transactions': 5,
                             'v2/etp/transaction': 5,
@@ -521,6 +518,7 @@ class huobi(Exchange):
                             'index/market/history/mark_price_kline': 1,
                             'market/detail/merged': 1,
                             'market/detail/batch_merged': 1,
+                            'v2/market/detail/batch_merged': 1,
                             'market/trade': 1,
                             'market/history/trade': 1,
                             'api/v1/contract_risk_info': 1,
@@ -547,6 +545,8 @@ class huobi(Exchange):
                             'swap-ex/market/history/kline': 1,
                             'index/market/history/swap_mark_price_kline': 1,
                             'swap-ex/market/detail/merged': 1,
+                            'v2/swap-ex/market/detail/batch_merged': 1,
+                            'index/market/history/swap_premium_index_kline': 1,
                             'swap-ex/market/detail/batch_merged': 1,
                             'swap-ex/market/trade': 1,
                             'swap-ex/market/history/trade': 1,
@@ -565,7 +565,6 @@ class huobi(Exchange):
                             'swap-api/v1/swap_batch_funding_rate': 1,
                             'swap-api/v1/swap_historical_funding_rate': 1,
                             'swap-api/v3/swap_liquidation_orders': 1,
-                            'index/market/history/swap_premium_index_kline': 1,
                             'index/market/history/swap_estimated_rate_kline': 1,
                             'index/market/history/swap_basis': 1,
                             # Swap Market Data interface
@@ -579,6 +578,7 @@ class huobi(Exchange):
                             'index/market/history/linear_swap_mark_price_kline': 1,
                             'linear-swap-ex/market/detail/merged': 1,
                             'linear-swap-ex/market/detail/batch_merged': 1,
+                            'v2/linear-swap-ex/market/detail/batch_merged': 1,
                             'linear-swap-ex/market/trade': 1,
                             'linear-swap-ex/market/history/trade': 1,
                             'linear-swap-api/v1/swap_risk_info': 1,
@@ -1567,6 +1567,14 @@ class huobi(Exchange):
                     expiry = self.safe_integer(market, 'delivery_time')
                     symbol += '-' + self.yymmdd(expiry)
             contractSize = self.safe_number(market, 'contract_size')
+            minCost = self.safe_number(market, 'min-order-value')
+            maxAmount = self.safe_number(market, 'max-order-amt')
+            minAmount = self.safe_number(market, 'min-order-amt')
+            if contract:
+                if linear:
+                    minAmount = contractSize
+                elif inverse:
+                    minCost = contractSize
             pricePrecision = None
             amountPrecision = None
             costPrecision = None
@@ -1582,9 +1590,6 @@ class huobi(Exchange):
             if spot:
                 maker = self.parse_number('0') if (base == 'OMG') else self.parse_number('0.002')
                 taker = self.parse_number('0') if (base == 'OMG') else self.parse_number('0.002')
-            minAmount = self.safe_number(market, 'min-order-amt')
-            maxAmount = self.safe_number(market, 'max-order-amt')
-            minCost = self.safe_number(market, 'min-order-value', 0)
             active = None
             if spot:
                 state = self.safe_string(market, 'state')
@@ -2241,22 +2246,27 @@ class huobi(Exchange):
         else:
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol for ' + marketType + ' orders')
-            request['contract_code'] = market['id']
+            request['contract'] = market['id']
             request['trade_type'] = 0  # 0 all, 1 open long, 2 open short, 3 close short, 4 close long, 5 liquidate long positions, 6 liquidate short positions
+            if since is not None:
+                request['start_time'] = since  # a date within 120 days from today
+                # request['end_time'] = self.sum(request['start_time'], 172800000)  # 48 hours window
+            if limit is not None:
+                request['page_size'] = limit  # default 100, max 500
             if market['linear']:
                 marginMode = None
                 marginMode, params = self.handle_margin_mode_and_params('fetchMyTrades', params)
                 marginMode = 'cross' if (marginMode is None) else marginMode
                 if marginMode == 'isolated':
-                    method = 'contractPrivatePostLinearSwapApiV1SwapMatchresultsExact'
+                    method = 'contractPrivatePostLinearSwapApiV3SwapMatchresultsExact'
                 elif marginMode == 'cross':
-                    method = 'contractPrivatePostLinearSwapApiV1SwapCrossMatchresultsExact'
+                    method = 'contractPrivatePostLinearSwapApiV3SwapCrossMatchresultsExact'
             elif market['inverse']:
                 if marketType == 'future':
-                    method = 'contractPrivatePostApiV1ContractMatchresultsExact'
+                    method = 'contractPrivatePostApiV3ContractMatchresultsExact'
                     request['symbol'] = market['settleId']
                 elif marketType == 'swap':
-                    method = 'contractPrivatePostSwapApiV1SwapMatchresultsExact'
+                    method = 'contractPrivatePostSwapApiV3SwapMatchresultsExact'
                 else:
                     raise NotSupported(self.id + ' fetchMyTrades() does not support ' + marketType + ' markets')
         response = getattr(self, method)(self.extend(request, params))
@@ -2648,7 +2658,7 @@ class huobi(Exchange):
                 active = withdrawEnabled and depositEnabled
                 precision = self.parse_precision(self.safe_string(chain, 'withdrawPrecision'))
                 if precision is not None:
-                    minPrecision = precision if (minPrecision is None) else Precise.string_max(precision, minPrecision)
+                    minPrecision = precision if (minPrecision is None) else Precise.string_min(precision, minPrecision)
                 if withdrawEnabled and not withdraw:
                     withdraw = True
                 elif not withdrawEnabled:
@@ -3257,32 +3267,30 @@ class huobi(Exchange):
             # POST /api/v1/contract_hisorders inverse futures ----------------
             # 'symbol': market['settleId'],  # BTC, ETH, ...
             # 'order_type': '1',  # 1 limit，3 opponent，4 lightning, 5 trigger order, 6 pst_only, 7 optimal_5, 8 optimal_10, 9 optimal_20, 10 fok, 11 ioc
-            # POST /swap-api/v1/swap_hisorders inverse swap ------------------
-            # POST /linear-swap-api/v1/swap_hisorders linear isolated --------
-            # POST /linear-swap-api/v1/swap_cross_hisorders linear cross -----
-            'contract_code': market['id'],
-            'trade_type': 0,  # 0 all, 1 buy long, 2 sell short, 3 buy short, 4 sell long, 5 sell liquidation, 6 buy liquidation, 7 Delivery long, 8 Delivery short 11 reduce positions to close long, 12 reduce positions to close short
-            'type': 1,  # 1 all orders, 2 finished orders
-            'status': '0',  # comma separated, 0 all, 3 submitted orders, 4 partially matched, 5 partially cancelled, 6 fully matched and closed, 7 canceled
-            'create_date': 90,  # in days?
-            # 'page_index': 1,
-            # 'page_size': limit,  # default 20, max 50
-            # 'sort_by': 'create_date',  # create_date descending, update_time descending
+            # POST /swap-api/v3/swap_hisorders inverse swap ------------------
+            # POST /linear-swap-api/v3/swap_hisorders linear isolated --------
+            # POST /linear-swap-api/v3/swap_cross_hisorders linear cross -----
+            'contract': market['id'],
+            'trade_type': 0,  # 0:All; 1: Open long; 2: Open short; 3: Close short; 4: Close long; 5: Liquidate long positions; 6: Liquidate short positions, 17:buy(one-way mode), 18:sell(one-way mode)
+            'type': 1,  # 1:All Orders,2:Order in Finished Status
+            'status': '0',  # support multiple query seperated by ',',such as '3,4,5', 0: all. 3. Have sumbmitted the orders; 4. Orders partially matched; 5. Orders cancelled with partially matched; 6. Orders fully matched; 7. Orders cancelled
         }
+        if since is not None:
+            request['start_time'] = since  # max 90 days back
+            # request['end_time'] = since + 172800000  # 48 hours window
         method = None
-        request['contract_code'] = market['id']
         if market['linear']:
             marginMode = None
             marginMode, params = self.handle_margin_mode_and_params('fetchContractOrders', params)
             marginMode = 'cross' if (marginMode is None) else marginMode
             method = self.get_supported_mapping(marginMode, {
-                'isolated': 'contractPrivatePostLinearSwapApiV1SwapHisorders',
-                'cross': 'contractPrivatePostLinearSwapApiV1SwapCrossHisorders',
+                'isolated': 'contractPrivatePostLinearSwapApiV3SwapHisorders',
+                'cross': 'contractPrivatePostLinearSwapApiV3SwapCrossHisorders',
             })
         elif market['inverse']:
             method = self.get_supported_mapping(marketType, {
-                'future': 'contractPrivatePostApiV1ContractHisorders',
-                'swap': 'contractPrivatePostSwapApiV1SwapHisorders',
+                'future': 'contractPrivatePostApiV3ContractHisorders',
+                'swap': 'contractPrivatePostSwapApiV3SwapHisorders',
             })
             if marketType == 'future':
                 request['symbol'] = market['settleId']
@@ -3338,8 +3346,7 @@ class huobi(Exchange):
         #         "ts": 1604370617322
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        orders = self.safe_value(data, 'orders', [])
+        orders = self.safe_value(response, 'data', [])
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_closed_contract_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -3816,6 +3823,10 @@ class huobi(Exchange):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the huobi api endpoint
+        :param float|None params['stopPrice']: *spot and margin only* The price at which a trigger order is triggered at
+        :param str|None params['operator']: *spot and margin only* gte or lte, trigger price condition
+        :param str|None params['offset']: *contract only* 'open', 'close', or 'both', required in hedge mode
+        :param bool|None params['postOnly']: *contract only* True or False
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
@@ -3929,8 +3940,6 @@ class huobi(Exchange):
 
     def create_contract_order(self, symbol, type, side, amount, price=None, params={}):
         offset = self.safe_string(params, 'offset')
-        if offset is None:
-            raise ArgumentsRequired(self.id + ' createOrder() requires a string offset parameter for contract orders, open or close')
         stopPrice = self.safe_string(params, 'stopPrice')
         if stopPrice is not None:
             raise NotSupported(self.id + ' createOrder() supports tp_trigger_price + tp_order_price for take profit orders and/or sl_trigger_price + sl_order price for stop loss orders, stop orders are supported only with open long orders and open short orders')
@@ -3943,7 +3952,7 @@ class huobi(Exchange):
             # 'price': self.price_to_precision(symbol, price),  # optional
             'volume': self.amount_to_precision(symbol, amount),
             'direction': side,  # buy, sell
-            'offset': offset,  # open, close
+            # 'offset': offset,  # open, close, both
             #
             #     direction buy, offset open = open long
             #     direction sell, offset close = close long
@@ -5158,9 +5167,7 @@ class huobi(Exchange):
         query = self.omit(params, self.extract_params(path))
         if isinstance(api, str):
             # signing implementation for the old endpoints
-            if api == 'market':
-                url += api
-            elif (api == 'public') or (api == 'private'):
+            if (api == 'public') or (api == 'private'):
                 url += self.version
             elif (api == 'v2Public') or (api == 'v2Private'):
                 url += 'v2'
@@ -5283,8 +5290,10 @@ class huobi(Exchange):
         request = {
             'type': '30,31',
         }
+        if since is not None:
+            request['start_date'] = since
         if market['linear']:
-            method = 'contractPrivatePostLinearSwapApiV1SwapFinancialRecordExact'
+            method = 'contractPrivatePostLinearSwapApiV3SwapFinancialRecordExact'
             #
             # {
             #   status: 'ok',
@@ -5310,40 +5319,39 @@ class huobi(Exchange):
             marginMode, params = self.handle_margin_mode_and_params('fetchFundingHistory', params)
             marginMode = 'cross' if (marginMode is None) else marginMode
             if marginMode == 'isolated':
-                request['margin_account'] = market['id']
+                request['mar_acct'] = market['id']
             else:
-                request['margin_account'] = market['quoteId']
+                request['mar_acct'] = market['quoteId']
         else:
             if marketType == 'swap':
-                method = 'contractPrivatePostSwapApiV1SwapFinancialRecordExact'
-                request['contract_code'] = market['id']
+                method = 'contractPrivatePostSwapApiV3SwapFinancialRecordExact'
+                request['contract'] = market['id']
+                #
+                #     {
+                #         "code": 200,
+                #         "msg": "",
+                #         "data": [
+                #             {
+                #                 "query_id": 138798248,
+                #                 "id": 117840,
+                #                 "type": 5,
+                #                 "amount": -0.024464850000000000,
+                #                 "ts": 1638758435635,
+                #                 "contract_code": "BTC-USDT-211210",
+                #                 "asset": "USDT",
+                #                 "margin_account": "USDT",
+                #                 "face_margin_account": ""
+                #             }
+                #         ],
+                #         "ts": 1604312615051
+                #     }
+                #
             else:
-                raise ExchangeError(self.id + ' fetchFundingHistory() only makes sense for swap contracts')
-            #
-            # swap
-            #     {
-            #       status: 'ok',
-            #       data: {
-            #         financial_record: [
-            #           {
-            #             id: '1667436164',
-            #             symbol: 'BTC',
-            #             type: '30',
-            #             amount: '3.9755491985E-8',
-            #             ts: '1641168097323',
-            #             contract_code: 'BTC-USD'
-            #           },
-            #         ],
-            #         remain_size: '0',
-            #         next_id: null
-            #       },
-            #       ts: '1641190296379'
-            #     }
-            #
+                method = 'contractPrivatePostApiV3ContractFinancialRecordExact'
+                request['symbol'] = market['id']
         response = getattr(self, method)(self.extend(request, query))
-        data = self.safe_value(response, 'data', {})
-        financialRecord = self.safe_value(data, 'financial_record', [])
-        return self.parse_incomes(financialRecord, market, since, limit)
+        data = self.safe_value(response, 'data', [])
+        return self.parse_incomes(data, market, since, limit)
 
     def set_leverage(self, leverage, symbol=None, params={}):
         """

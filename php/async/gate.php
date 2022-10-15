@@ -128,7 +128,7 @@ class gate extends Exchange {
                 'public' => array(
                     'wallet' => array(
                         'get' => array(
-                            'wallet/currency_chains' => 1.5,
+                            'currency_chains' => 1.5,
                         ),
                     ),
                     'spot' => array(
