@@ -145,7 +145,7 @@ export {Market, OrderBook, Trade, Fee, Ticker} from './types'
 
 // ----------------------------------------------------------------------------
 // move this elsewhere
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from 'ts/pro/base/Cache.js'
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../pro/base/Cache.js'
 
 // ----------------------------------------------------------------------------
 export default class Exchange {
