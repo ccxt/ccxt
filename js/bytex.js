@@ -1094,7 +1094,7 @@ module.exports = class bytex extends Exchange {
         //
         const marketId = this.safeString (order, 'symbol');
         const timestamp = this.parse8601 (this.safeString (order, 'created_at'));
-        const meta = this.safeValue (order, 'meta', {});
+        const meta = this.parseJson (this.safeValue (order, 'meta', {}));
         const filled = this.safeString (order, 'filled');
         const amount = this.safeString (order, 'size');
         return this.safeOrder ({
