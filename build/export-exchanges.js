@@ -406,7 +406,7 @@ async function exportEverything () {
     const wsIds = getIncludedExchangeIds ('./js/src/pro')
 
     const errorHierarchy = await import ('../js/src/base/errorHierarchy.js')
-    const flat = flatten (errorHierarchy)
+    const flat = flatten (errorHierarchy['default'])
     flat.push ('error_hierarchy')
 
     const staticExports = ['version', 'Exchange', 'exchanges', 'pro', 'Precise', 'functions', 'errors'] // missing  'exportExchanges' 
@@ -529,6 +529,7 @@ async function exportEverything () {
         $options['handle_message'] = array($this, 'handle_message');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
         $this->ws = new WsConnector($options);
     }
     public function handle_message ($client, $message) {} // stub to override
@@ -549,6 +550,7 @@ async function exportEverything () {
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
+        config['verbose'] = self.verbose
         ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override

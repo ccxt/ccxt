@@ -36,11 +36,11 @@ class WsConnector:
 
     def __init__(self, options):
         self.options = options
-        self.verbose = options.verbose
-        self.enableRateLimit = options.enableRateLimit
-        self.asyncio_loop = options.asyncio_loop
-        self.tokenBucket = options.tokenBucket
-        self.handle_message = options.handle_message
+        self.verbose = options.get('verbose', False)
+        self.enableRateLimit = options.get('enableRateLimit', True)
+        self.asyncio_loop = options.get('asyncio_loop')
+        self.tokenBucket = options.get('tokenBucket')
+        self.handle_message = options.get('handle_message')
 
     # streaming-specific options
     streaming = {

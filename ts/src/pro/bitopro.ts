@@ -217,12 +217,13 @@ export default class bitopro extends bitoproBridge {
         };
         this.options = this.extend (defaultOptions, this.options);
         const originalHeaders = this.options['ws']['options']['headers'];
-        this.options['ws']['options']['headers'] = {
+        const headers = {
             'X-BITOPRO-API': 'ccxt',
             'X-BITOPRO-APIKEY': this.apiKey,
             'X-BITOPRO-PAYLOAD': payload,
             'X-BITOPRO-SIGNATURE': signature,
         };
+        this.options['ws']['options']['headers'] = headers;
         // instantiate client
         this.ws.client (url);
         this.options['ws']['options']['headers'] = originalHeaders;

@@ -78,15 +78,13 @@ class CCXTProTranspiler extends Transpiler {
 
         async = (async ? '.async_support' : '')
 
-        if (baseClass.indexOf ('Rest') >= 0) {
-            baseClass = baseClass.replace ('Rest', '')
+        if (baseClass.indexOf ('Bridge') >= 0) {
             return [
-                'from ccxt.pro.base.exchange import Exchange',
-                'import ccxt' + async
+                'from ccxt.pro.bridge.bridge' + ' import ' + baseClass,
             ]
         } else {
             return [
-                'from ccxt.pro.bridge.bridge' + ' import ' + baseClass // on the JS side we add to append `Rest` to the base class name
+                'from ccxt.pro.' + baseClass + ' import ' + baseClass // on the JS side we add to append `Rest` to the base class name
             ]
         }
         // return [
