@@ -69,11 +69,18 @@ export default class Exchange  {
             // decide client type here: ws / signalr / socketio
             const wsOptions = safeValue (this.options, 'ws', {});
             const options = extend (this.streaming, {
-                'log': this.log ? this.log.bind (this) : this.log,
-                'ping': this.ping ? this.ping.bind (this) : this.ping,
                 'verbose': this.verbose,
                 'throttle': throttle (this.tokenBucket),
             }, wsOptions);
+
+            if (this.log) {
+                options['log'] = this.log.bind(this);
+            }
+
+            if (this.ping) {
+                options['ping'] = this.ping.bind(this);
+            }
+
             this.clients[url] = new WsClient (url, onMessage, onError, onClose, onConnected, options);
         }
         return this.clients[url];
