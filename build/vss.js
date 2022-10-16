@@ -46,7 +46,8 @@ async function vssEverything () {
 
     log.bright ('New version: '.cyan, version)
 
-    vss ('./ccxt.js',                                    "const version = '{version}'", version)
+    vss ('./js/ccxt.js',                                    "const version = '{version}'", version)
+    vss ('./ts/ccxt.ts',                                    "const version = '{version}'", version)
     vss ('./php/Exchange.php',                           "$version = '{version}'",      version)
     vss ('./php/async/Exchange.php',                     "VERSION = '{version}'",       version)
     vss ('./php/async/Exchange.php',                     "$version = '{version}'",      version)

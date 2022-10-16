@@ -1753,7 +1753,7 @@ class Transpiler {
     //-------------------------------------------------------------------------
 
     transpileCryptoTests () {
-        const jsFile = './ts/test/base/functions/test.crypto.ts' // using ts version to avoid formatting issues
+        const jsFile = './ts/src/test/base/functions/test.crypto.ts' // using ts version to avoid formatting issues
         const pyFile = './python/ccxt/test/test_crypto.py'
         const phpFile = './php/test/test_crypto.php'
 
@@ -1829,47 +1829,47 @@ class Transpiler {
     transpileExchangeTests () {
         const tests = [
             {
-                'tsFile': './ts/test/Exchange/test.market.ts',
+                'tsFile': './ts/src/test/Exchange/test.market.ts',
                 'pyFile': './python/ccxt/test/test_market.py',
                 'phpFile': './php/test/test_market.php',
             },
             {
-                'tsFile': './ts/test/Exchange/test.trade.ts',
+                'tsFile': './ts/src/test/Exchange/test.trade.ts',
                 'pyFile': './python/ccxt/test/test_trade.py',
                 'phpFile': './php/test/test_trade.php',
             },
             {
-                'tsFile': './ts/test/Exchange/test.order.ts',
+                'tsFile': './ts/src/test/Exchange/test.order.ts',
                 'pyFile': './python/ccxt/test/test_order.py',
                 'phpFile': './php/test/test_order.php',
             },
             {
-                'tsFile': './ts/test/Exchange/test.position.ts',
+                'tsFile': './ts/src/test/Exchange/test.position.ts',
                 'pyFile': './python/ccxt/test/test_position.py',
                 'phpFile': './php/test/test_position.php',
             },
             {
-                'tsFile': './ts/test/Exchange/test.transaction.ts',
+                'tsFile': './ts/src/test/Exchange/test.transaction.ts',
                 'pyFile': './python/ccxt/test/test_transaction.py',
                 'phpFile': './php/test/test_transaction.php',
             },
             {
-                'tsFile': './ts/test/Exchange/test.ohlcv.ts',
+                'tsFile': './ts/src/test/Exchange/test.ohlcv.ts',
                 'pyFile': './python/ccxt/test/test_ohlcv.py',
                 'phpFile': './php/test/test_ohlcv.php',
             },
             {
-                'tsFile': './ts/test/Exchange/test.leverageTier.ts',
+                'tsFile': './ts/src/test/Exchange/test.leverageTier.ts',
                 'pyFile': './python/ccxt/test/test_leverage_tier.py',
                 'phpFile': './php/test/test_leverage_tier.php',
             },
             {
-                'tsFile': './ts/test/Exchange/test.account.ts',
+                'tsFile': './ts/src/test/Exchange/test.account.ts',
                 'pyFile': './python/ccxt/test/test_account.py',
                 'phpFile': './php/test/test_account.php',
             },
             {
-                'tsFile': './ts/test/Exchange/test.marginModification.ts',
+                'tsFile': './ts/src/test/Exchange/test.marginModification.ts',
                 'pyFile': './python/ccxt/test/test_margin_modification.py',
                 'phpFile': './php/test/test_margin_modification.php',
             },

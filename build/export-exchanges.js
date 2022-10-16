@@ -514,6 +514,22 @@ async function exportEverything () {
 `                
         ).join("\n") + "\n"
         },
+        {
+            file: './php/pro/bridge/bridge.php',
+            regex:  /class [\s\S]+/g,
+            replacement: wsIds.map (id =>
+       
+`class ${id}Bridge extends \\ccxt\\async\\${id} {
+    public ClientTrait $ws;
+    public function __construct($options = array()) {
+        parent::__construct($options);
+        $this->ws = new ClientTrait();
+    }
+}
+//---------------------------------------------------------------------
+`                
+        ).join("\n") + "\n?>"
+        },
     ]
 
     exportExchanges (replacements, unlimitedLog)
