@@ -124,7 +124,7 @@ spl_autoload_register(function ($class_name) {
 // require_once __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR . 'pro.php';
 
 namespace ccxt\pro;
-
+require_once PATH_TO_WS_CCXT . 'bridge' . DIRECTORY_SEPARATOR . 'bridge.php';
 require_once PATH_TO_WS_CCXT . 'Future.php';
 require_once PATH_TO_WS_CCXT . 'Client.php';
 require_once PATH_TO_WS_CCXT . 'ClientTrait.php';
