@@ -24,9 +24,23 @@ __all__ = [
 # -----------------------------------------------------------------------------
 
 
-class Exchange(BaseExchange):
+class WsConnector:
 
     clients = {}
+    options = {}
+    enableRateLimit = True
+    verbose = False
+    asyncio_loop = None
+    tokenBucket = None
+    handle_message = None
+
+    def __init__(self, options):
+        self.options = options
+        self.verbose = options.verbose
+        self.enableRateLimit = options.enableRateLimit
+        self.asyncio_loop = options.asyncio_loop
+        self.tokenBucket = options.tokenBucket
+        self.handle_message = options.handle_message
 
     # streaming-specific options
     streaming = {
@@ -66,7 +80,7 @@ class Exchange(BaseExchange):
             on_close = self.on_close
             on_connected = self.on_connected
             # decide client type here: aiohttp ws / websockets / signalr / socketio
-            ws_options = self.safe_value(self.options, 'ws', {})
+            ws_options = BaseExchange.safe_value(self.options, 'ws', {})
             options = self.extend(self.streaming, {
                 'log': getattr(self, 'log'),
                 'ping': getattr(self, 'ping', None),
@@ -118,8 +132,8 @@ class Exchange(BaseExchange):
             if subscribe_hash not in client.subscriptions:
                 client.subscriptions[subscribe_hash] = subscription or True
                 # todo: decouple signing from subscriptions
-                options = self.safe_value(self.options, 'ws')
-                cost = self.safe_value(options, 'cost', 1)
+                options = BaseExchange.safe_value(self.options, 'ws')
+                cost = BaseExchange.safe_value(options, 'cost', 1)
                 if message:
                     async def send_message():
                         if self.enableRateLimit:
