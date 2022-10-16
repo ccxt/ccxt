@@ -1,4 +1,4 @@
-const fetch = require ('./ts/static_dependencies/fetch-ponyfill/fetch-node.cjs') ().fetch
+const fetch = require ('./ts/src/static_dependencies/fetch-ponyfill/fetch-node.cjs') ().fetch
 
 function style(s, style) {
     return style + s + '\033[0m'
