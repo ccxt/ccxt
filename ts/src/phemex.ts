@@ -953,7 +953,9 @@ export default class phemex extends Exchange {
         precise.decimals = precise.decimals - scale;
         precise.reduce ();
         const stringValue = precise.toString ();
-        return parseInt (parseFloat (stringValue).toString ());
+        const floatValue = parseFloat (stringValue);
+        const floatString = floatValue.toString ();
+        return parseInt (floatString);
     }
 
     toEv (amount, market = undefined) {
