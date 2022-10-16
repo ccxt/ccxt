@@ -674,17 +674,6 @@ class Exchange(object):
         except ValueError:  # superclass of JsonDecodeError (python2)
             pass
 
-    def string_to_json(self, json_string):
-        """
-        Converts a json object as a string type to a json object
-        :param string json_string: string version of json object
-        :returns object: object version of json string
-        """
-        if isinstance(json_string, str):
-            return json.loads(json_string)
-        else:
-            return json_string
-
     def is_text_response(self, headers):
         # https://github.com/ccxt/ccxt/issues/5302
         content_type = headers.get('Content-Type', '')

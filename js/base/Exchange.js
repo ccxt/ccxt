@@ -555,21 +555,6 @@ module.exports = class Exchange {
         }
     }
 
-    stringToJson (jsonString) {
-        /**
-         * @ignore
-         * @method
-         * @description converts a json object as a string type to a json object
-         * @param {string} jsonString string version of json object
-         * @returns {object} object version of json string
-         */
-         if (typeof jsonString === 'string' || jsonString instanceof String) {
-             return JSON.parse (jsonString);
-         } else {
-            return jsonString;
-         }
-    }
-
     getResponseHeaders (response) {
         const result = {}
         response.headers.forEach ((value, key) => {
