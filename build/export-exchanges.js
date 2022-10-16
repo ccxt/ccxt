@@ -508,6 +508,7 @@ async function exportEverything () {
         (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
+        (config as any).verbose = this.verbose;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -525,8 +526,12 @@ async function exportEverything () {
     public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
         $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 `                
