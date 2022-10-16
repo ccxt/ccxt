@@ -13,14 +13,22 @@ export default class Exchange  {
     clients = {}
     // timeframes = undefined
     tokenBucket = undefined
-    // handleMessage = undefined
+    handleMessage = undefined
     enableRateLimit = undefined
     streaming = undefined
 
     constructor (options = {}) {
         this.newUpdates = (options as any).newUpdates || true;
-        this.log = (options as any).wsLog || undefined;
-        this.verbose = (options as any).verbose || undefined;
+        this.log = (options as any).wsLog;
+        this.verbose = (options as any).verbose;
+        this.handleMessage = (options as any).handleMessage;
+        this.enableRateLimit = (options as any).enableRateLimit;
+        this.tokenBucket = (options as any).tokenBucket;
+        this.newUpdates = true;
+        this.options = {};
+        this.log = undefined;
+        this.ping = undefined;
+        this.clients = {};
     }
 
     inflate (data) {

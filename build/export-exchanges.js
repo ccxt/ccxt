@@ -506,6 +506,8 @@ async function exportEverything () {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage;
+        (config as any).tokenBucket = this.tokenBucket;
+        (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -520,10 +522,10 @@ async function exportEverything () {
             replacement: wsIds.map (id =>
        
 `class ${id}Bridge extends \\ccxt\\async\\${id} {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $this->ws = new WsConnector($options);
     }
 }
 //---------------------------------------------------------------------
