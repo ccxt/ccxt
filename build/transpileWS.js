@@ -86,7 +86,7 @@ class CCXTProTranspiler extends Transpiler {
             ]
         } else {
             return [
-                'from ccxt.pro.' + baseClass + ' import ' + baseClass // on the JS side we add to append `Rest` to the base class name
+                'from ccxt.pro.bridge.bridge' + ' import ' + baseClass // on the JS side we add to append `Rest` to the base class name
             ]
         }
         // return [

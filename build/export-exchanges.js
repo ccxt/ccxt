@@ -537,6 +537,26 @@ async function exportEverything () {
 `                
         ).join("\n") + "\n?>"
         },
+        {
+            file: './python/ccxt/pro/bridge/bridge.py',
+            regex:  /class [\s\S]+/g,
+            replacement: wsIds.map (id =>
+       
+`class ${id}Bridge(ccxt.${id}):
+    ws = None
+    def __init__(self, config):
+        super().__init__(config)
+        config['handle_message'] = self.handle_message
+        config['enableRateLimit'] = self.enableRateLimit
+        config['tokenBucket'] = self.tokenBucket
+        ws = WsConnector(config)
+    
+    def handle_message(self, client, message): # stub to override
+        return
+##---------------------------------------------------------------------
+`                
+        ).join("\n") + "\n"
+        },
     ]
 
     exportExchanges (replacements, unlimitedLog)
