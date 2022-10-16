@@ -260,6 +260,7 @@ module.exports = class mexc extends Exchange {
                     'TRX': 'TRC20',
                     'ETH': 'ERC20',
                     'BEP20': 'BEP20(BSC)',
+                    'BSC': 'BEP20(BSC)',
                 },
                 'accountsByType': {
                     'spot': 'MAIN',
@@ -435,7 +436,7 @@ module.exports = class mexc extends Exchange {
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'full_name');
             let currencyActive = false;
-            let currencyPrecision = undefined;
+            let minPrecision = undefined;
             let currencyFee = undefined;
             let currencyWithdrawMin = undefined;
             let currencyWithdrawMax = undefined;
@@ -467,6 +468,10 @@ module.exports = class mexc extends Exchange {
                 if (isWithdrawEnabled) {
                     withdrawEnabled = true;
                 }
+                const precision = this.parsePrecision (this.safeString (chain, 'precision'));
+                if (precision !== undefined) {
+                    minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (precision, minPrecision);
+                }
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
@@ -475,7 +480,7 @@ module.exports = class mexc extends Exchange {
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
                     'fee': this.safeNumber (chain, 'fee'),
-                    'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'precision'))),
+                    'precision': this.parseNumber (minPrecision),
                     'limits': {
                         'withdraw': {
                             'min': withdrawMin,
@@ -490,7 +495,6 @@ module.exports = class mexc extends Exchange {
                 const defaultNetwork = this.safeValue2 (networks, 'NONE', networkKeysLength - 1);
                 if (defaultNetwork !== undefined) {
                     currencyFee = defaultNetwork['fee'];
-                    currencyPrecision = defaultNetwork['precision'];
                 }
             }
             result[code] = {
@@ -502,7 +506,7 @@ module.exports = class mexc extends Exchange {
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': currencyFee,
-                'precision': currencyPrecision,
+                'precision': this.parseNumber (minPrecision),
                 'limits': {
                     'amount': {
                         'min': undefined,

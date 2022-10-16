@@ -52,7 +52,7 @@ class bibox extends Exchange {
                 'fetchTradingFees' => false,
                 'fetchTransactionFees' => true,
                 'fetchWithdrawals' => true,
-                'transfer' => null,
+                'transfer' => true,
                 'withdraw' => true,
             ),
             'timeframes' => array(
@@ -324,6 +324,12 @@ class bibox extends Exchange {
                 'REVO' => 'Revo Network',
                 'STAR' => 'Starbase',
                 'TERN' => 'Ternio-ERC20',
+            ),
+            'options' => array(
+                'typesByAccount' => array(
+                    'base' => 'main',
+                    'credit' => 'margin',
+                ),
             ),
         ));
     }
@@ -1652,6 +1658,146 @@ class bibox extends Exchange {
             'info' => $info,
             'withdraw' => $withdrawFees,
             'deposit' => array(),
+        );
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        /**
+         * transfer $currency internally between wallets on the same account, transfers must be made to/from account "main"
+         * @see https://biboxcom.github.io/api/spot/v3/en/#wallet-to-spot
+         * @see https://biboxcom.github.io/api/spot/v3/en/#wallet-to-leverage
+         * @see https://biboxcom.github.io/api/spot/v3/en/#leverage-to-wallet
+         * @see https://biboxcom.github.io/api/futures/v3/en/#2-fund-transfer
+         * @see https://biboxcom.github.io/api/futures-coin/v3/en/#2-fund-transfer
+         * @param {string} $code unified $currency $code
+         * @param {float} $amount amount to transfer
+         * @param {string} $fromAccount main, spot, cross, swap or an isolated margin market symbol (ex => XRP/USDT)
+         * @param {string} $toAccount main, spot, cross, swap or an isolated margin market symbol (ex => XRP/USDT)
+         * @param {array} $params extra parameters specific to the bibox api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $fromMain = $fromAccount === 'main' || $fromAccount === 'wallet';
+        $fromSpot = $fromAccount === 'spot';
+        $toMain = $toAccount === 'main' || $toAccount === 'wallet';
+        $toSpot = $toAccount === 'spot';
+        $toCross = $toAccount === 'cross';
+        $fromCross = $fromAccount === 'cross';
+        $toIsolated = $this->in_array($toAccount, $this->symbols);
+        $fromIsolated = $this->in_array($fromAccount, $this->symbols);
+        $toSwap = $toAccount === 'swap';
+        $fromSwap = $fromAccount === 'swap';
+        $method = 'v3PrivatePostAssetsTransferSpot';
+        $request = array(
+            'amount' => $amount,
+        );
+        if ($toSpot || $fromSpot) {
+            $request['symbol'] = $currency['id'];
+            if ($fromMain) {
+                $request['type'] = 0;
+            } elseif ($toMain) {
+                $request['type'] = 1;
+            } else {
+                throw new BadRequest($this->id . ' cannot transfer from ' . $fromAccount . ' to ' . $toAccount);
+            }
+        } elseif (($fromCross || $fromIsolated) && $toMain) {
+            $method = 'v3.1PrivatePostCreditTransferAssetsCredit2base';
+            $request['coin_symbol'] = $currency['id'];
+            $request['pair'] = $fromIsolated ? $this->market_id($fromAccount) : '*_USDT';
+        } elseif (($toCross || $toIsolated) && $fromMain) {
+            $method = 'v3.1PrivatePostCreditTransferAssetsBase2credit';
+            $request['coin_symbol'] = $currency['id'];
+            $request['pair'] = $toIsolated ? $this->market_id($toAccount) : '*_USDT';
+        } elseif ($toSwap || $fromSwap) {
+            if ($code === 'USDT') {
+                $method = 'v3PrivatePostCbuassetsTransfer';
+            } else {
+                $method = 'v3PrivatePostAssetsTransferCbc';
+            }
+            if ($toMain) {
+                $request['type'] = 1;
+            } elseif ($fromMain) {
+                $request['type'] = 0;
+            } else {
+                throw new BadRequest($this->id . ' cannot transfer from ' . $fromAccount . ' to ' . $toAccount);
+            }
+            $request['symbol'] = $currency['id'];
+        } else {
+            throw new BadRequest($this->id . ' cannot transfer from ' . $fromAccount . ' to ' . $toAccount);
+        }
+        $response = $this->$method (array_merge($request, $params));
+        //
+        // spot <-> main
+        //
+        //    {
+        //        state => '0',
+        //        id => '936177661049344000'
+        //    }
+        //
+        // main <-> leverage
+        //
+        //    {
+        //        result => '1620000000049',
+        //        cmd => 'transferAssets/base2credit',
+        //        state => '0'
+        //    }
+        //
+        // main <-> swap
+        //
+        //    {
+        //        state => '0',
+        //        result => '936190233517527040'
+        //    }
+        //
+        return $this->parse_transfer($response, $currency);
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        // spot <-> main
+        //
+        //    {
+        //        state => '0',
+        //        id => '936177661049344000'
+        //    }
+        //
+        // main <-> leverage
+        //
+        //    {
+        //        result => '1620000000049',
+        //        $cmd => 'transferAssets/base2credit',
+        //        state => '0'
+        //    }
+        //
+        // main <-> swap
+        //
+        //    {
+        //        state => '0',
+        //        result => '936190233517527040'
+        //    }
+        //
+        $cmd = $this->safe_string($transfer, 'cmd');
+        $fromAccount = null;
+        $toAccount = null;
+        if ($cmd !== null) {
+            $accounts = $this->safe_string(explode('/', $cmd), 1);
+            $parts = explode('2', $accounts);
+            $fromAccount = $this->safe_string($parts, 0);
+            $toAccount = $this->safe_string($parts, 1);
+            $fromAccount = $this->safe_string($this->options['typesByAccount'], $fromAccount, $fromAccount);
+            $toAccount = $this->safe_string($this->options['typesByAccount'], $toAccount, $toAccount);
+        }
+        return array(
+            'info' => $transfer,
+            'id' => $this->safe_string_2($transfer, 'id', 'result'),
+            'timestamp' => null,
+            'datetime' => null,
+            'currency' => $this->safe_string($currency, 'code'),
+            'amount' => null,
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
+            'status' => null,
         );
     }
 

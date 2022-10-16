@@ -594,69 +594,108 @@ class aax(Exchange):
         response = self.publicGetCurrencies(params)
         #
         #     {
-        #         "code":1,
-        #         "data":[
+        #         "code": 1,
+        #         "data": [
         #             {
-        #                 "chain":"BTC",
-        #                 "displayName":"Bitcoin",
-        #                 "withdrawFee":"0.0004",
-        #                 "withdrawMin":"0.001",
-        #                 "otcFee":"0",
-        #                 "enableOTC":true,
-        #                 "visible":true,
-        #                 "enableTransfer":true,
-        #                 "transferMin":"0.00001",
-        #                 "depositMin":"0.0005",
-        #                 "enableWithdraw":true,
-        #                 "enableDeposit":true,
-        #                 "addrWithMemo":false,
-        #                 "withdrawPrecision":"0.00000001",
-        #                 "currency":"BTC",
-        #                 "network":"BTC",  # ETH, ERC20, TRX, TRC20, OMNI, LTC, XRP, XLM, ...
-        #                 "minConfirm":"2"
+        #                 "chain": "BTC",
+        #                 "displayName": "Bitcoin",
+        #                 "withdrawFee": "0.0004",
+        #                 "withdrawMin": "0.001",
+        #                 "otcFee": "0",
+        #                 "enableOTC": True,
+        #                 "visible": True,
+        #                 "enableTransfer": True,
+        #                 "transferMin": "0.00001",
+        #                 "depositMin": "0.0005",
+        #                 "enableWithdraw": True,
+        #                 "enableDeposit": True,
+        #                 "addrWithMemo": False,
+        #                 "withdrawPrecision": "0.00000001",
+        #                 "currency": "BTC",
+        #                 "network": "BTC",  # ETH, ERC20, TRX, TRC20, OMNI, LTC, XRP, XLM, ...
+        #                 "minConfirm": "2"
         #             },
         #         ],
-        #         "message":"success",
-        #         "ts":1624330530697
+        #         "message": "success",
+        #         "ts": 1624330530697
         #     }
         #
         result = {}
         data = self.safe_value(response, 'data', [])
         for i in range(0, len(data)):
             currency = data[i]
-            id = self.safe_string(currency, 'chain')
-            name = self.safe_string(currency, 'displayName')
+            id = self.safe_string(currency, 'currency')
             code = self.safe_currency_code(id)
+            networkId = self.safe_string(currency, 'network')
             enableWithdraw = self.safe_value(currency, 'enableWithdraw')
             enableDeposit = self.safe_value(currency, 'enableDeposit')
-            fee = self.safe_number(currency, 'withdrawFee')
             visible = self.safe_value(currency, 'visible')
             active = (enableWithdraw and enableDeposit and visible)
-            deposit = (enableDeposit and visible)
-            withdraw = (enableWithdraw and visible)
-            network = self.safe_string(currency, 'network')
-            result[code] = {
-                'id': id,
-                'name': name,
-                'code': code,
-                'precision': self.safe_number(currency, 'withdrawPrecision'),
+            network = {
                 'info': currency,
-                'active': active,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': fee,
-                'network': network,
+                'id': networkId,
+                'network': self.safe_currency_code(networkId),
                 'limits': {
-                    'deposit': {
-                        'min': self.safe_number(currency, 'depositMin'),
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': self.safe_number(currency, 'withdrawMin'),
                         'max': None,
                     },
+                    'deposit': {
+                        'min': self.safe_number(currency, 'depositMin'),
+                        'max': None,
+                    },
                 },
+                'active': active,
+                'withdraw': enableWithdraw and visible,
+                'deposit': enableDeposit and visible,
+                'fee': self.safe_number(currency, 'withdrawFee'),
+                'precision': self.safe_number(currency, 'withdrawPrecision'),
             }
+            resultItem = self.safe_value(result, code)
+            fee = self.safe_string(currency, 'withdrawFee')
+            precision = self.safe_string(currency, 'withdrawPrecision')
+            depositMin = self.safe_string(currency, 'depositMin')
+            withdrawMin = self.safe_string(currency, 'withdrawMin')
+            if resultItem is not None:
+                resultItem['networks'].append(network)
+                previousPrecision = str(resultItem['precision'])
+                previousDepositMin = str(resultItem['limits']['deposit']['min'])
+                previousWithdrawMin = str(resultItem['limits']['withdraw']['min'])
+                previousFee = str(resultItem['fee'])
+                resultItem['precision'] = self.parse_number(Precise.string_max(previousPrecision, precision))
+                resultItem['limits']['deposit']['min'] = self.parse_number(Precise.string_min(previousDepositMin, depositMin))
+                resultItem['limits']['withdraw']['min'] = self.parse_number(Precise.string_min(previousWithdrawMin, withdrawMin))
+                resultItem['fee'] = self.parse_number(Precise.string_min(previousFee, fee))
+            else:
+                name = self.safe_string(currency, 'displayName')
+                deposit = (enableDeposit and visible)
+                withdraw = (enableWithdraw and visible)
+                result[code] = {
+                    'info': {},
+                    'id': id,
+                    'name': name,
+                    'code': code,
+                    'precision': self.parse_number(precision),
+                    'active': active,
+                    'deposit': deposit,
+                    'withdraw': withdraw,
+                    'fee': self.parse_number(fee),
+                    'networks': [network],
+                    'limits': {
+                        'amount': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': self.parse_number(depositMin),
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': self.parse_number(withdrawMin),
+                            'max': None,
+                        },
+                    },
+                }
         return result
 
     def parse_ticker(self, ticker, market=None):
