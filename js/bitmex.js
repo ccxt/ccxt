@@ -38,6 +38,7 @@ module.exports = class bitmex extends Exchange {
                 'createReduceOnlyOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
+                'fetchCurrencies': true,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': false,
                 'fetchFundingHistory': false,
@@ -126,6 +127,7 @@ module.exports = class bitmex extends Exchange {
                         'trade': 5,
                         'trade/bucketed': 5,
                         'wallet/assets': 5,
+                        // 'wallet/currencies': 5,
                         'wallet/networks': 5,
                     },
                 },
@@ -217,6 +219,14 @@ module.exports = class bitmex extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/4789
                 'api-expires': 5, // in seconds
                 'fetchOHLCVOpenTimestamp': true,
+                'networks': {
+                    // ids are in lowercase
+                    'btc': 'BTC',
+                    'eth': 'ERC20',
+                    'tron': 'TRC20',
+                    'sol': 'SPL',
+                },
+                'tempCurrencyPrecision': {}, // workaround for fetchMarkets
             },
             'commonCurrencies': {
                 'USDt': 'USDT',
@@ -226,6 +236,133 @@ module.exports = class bitmex extends Exchange {
                 'GWEI': 'ETH',
             },
         });
+    }
+
+    async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name bitmex#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
+        const response = await this.publicGetWalletAssets (params);
+        //
+        //    {
+        //        "XBt": {
+        //            "asset": "XBT",
+        //            "currency": "XBt",
+        //            "majorCurrency": "XBT",
+        //            "name": "Bitcoin",
+        //            "currencyType": "Crypto",
+        //            "scale": "8",
+        //            // "mediumPrecision": "8",
+        //            // "shorterPrecision": "4",
+        //            // "symbol": "₿",
+        //            // "weight": "1",
+        //            // "tickLog": "0",
+        //            "enabled": true,
+        //            "isMarginCurrency": true,
+        //            "minDepositAmount": "10000",
+        //            "minWithdrawalAmount": "1000",
+        //            "maxWithdrawalAmount": "100000000000000",
+        //            "networks": [
+        //                {
+        //                    "asset": "btc",
+        //                    "tokenAddress": "",
+        //                    "depositEnabled": true,
+        //                    "withdrawalEnabled": true,
+        //                    "withdrawalFee": "20000",
+        //                    "minFee": "20000",
+        //                    "maxFee": "10000000"
+        //                }
+        //            ]
+        //        },
+        //     }
+        //
+        const result = {};
+        const keys = Object.keys (response);
+        for (let i = 0; i < keys.length; i++) {
+            const key = keys[i];
+            const currency = response[key];
+            const id = this.safeString (currency, 'asset');
+            const code = this.safeCurrencyCode (id);
+            const name = this.safeString (currency, 'name');
+            const chains = this.safeValue (currency, 'networks', []);
+            let depositEnabled = false;
+            let withdrawEnabled = false;
+            const networks = {};
+            for (let j = 0; j < chains.length; j++) {
+                const chain = chains[j];
+                const networkId = this.safeString (chain, 'asset');
+                const network = this.safeNetwork (networkId);
+                const isDepositEnabled = this.safeValue (chain, 'depositEnabled', false);
+                const isWithdrawEnabled = this.safeValue (chain, 'withdrawalEnabled', false);
+                const active = (isDepositEnabled && isWithdrawEnabled);
+                if (isDepositEnabled) {
+                    depositEnabled = true;
+                }
+                if (isWithdrawEnabled) {
+                    withdrawEnabled = true;
+                }
+                networks[network] = {
+                    'info': chain,
+                    'id': networkId,
+                    'network': network,
+                    'active': active,
+                    'deposit': isDepositEnabled,
+                    'withdraw': isWithdrawEnabled,
+                    'fee': this.safeNumber (chain, 'withdrawalFee'),
+                    'precision': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
+            const currencyEnabled = this.safeValue (currency, 'enabled');
+            const currencyActive = currencyEnabled || (depositEnabled || withdrawEnabled);
+            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'scale')));
+            this.options['tempCurrencyPrecision'][code] = precision;
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': name,
+                'active': currencyActive,
+                'deposit': depositEnabled,
+                'withdraw': withdrawEnabled,
+                'fee': undefined,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': this.safeNumber (currency, 'minWithdrawalAmount'),
+                        'max': this.safeNumber (currency, 'maxWithdrawalAmount'),
+                    },
+                    'deposit': {
+                        'min': this.safeNumber (currency, 'minDepositAmount'),
+                        'max': undefined,
+                    },
+                },
+                'networks': networks,
+            };
+        }
+        return result;
+    }
+
+    safeNetwork (networkId) {
+        const networksById = this.safeValue (this.options, 'networks', {});
+        return this.safeString (networksById, networkId, networkId);
     }
 
     async fetchMarkets (params = {}) {
@@ -238,9 +375,10 @@ module.exports = class bitmex extends Exchange {
          */
         const response = await this.publicGetInstrumentActiveAndIndices (params);
         //
-        //    {
-        //        "symbol": "LTCUSDT",
-        //        "rootSymbol": "LTC",
+        //     [
+        //      {
+        //        "symbol": "XBTUSDT",
+        //        "rootSymbol": "XBT",
         //        "state": "Open",
         //        "typ": "FFWCSX",
         //        "listing": "2021-11-10T04:00:00.000Z",
@@ -256,100 +394,102 @@ module.exports = class bitmex extends Exchange {
         //        "optionStrikeRound": null,
         //        "optionStrikePrice": null,
         //        "optionMultiplier": null,
-        //        "positionCurrency": "LTC",
-        //        "underlying": "LTC",
+        //        "positionCurrency": "XBT", // can be empty for spot markets
+        //        "underlying": "XBT",
         //        "quoteCurrency": "USDT",
-        //        "underlyingSymbol": "LTCT=",
+        //        "underlyingSymbol": "XBTT=", // can be empty for spot markets
         //        "reference": "BMEX",
-        //        "referenceSymbol": ".BLTCT",
+        //        "referenceSymbol": ".BXBTT", // can be empty for spot markets
         //        "calcInterval": null,
         //        "publishInterval": null,
         //        "publishTime": null,
-        //        "maxOrderQty": 1000000000,
-        //        "maxPrice": 1000000,
-        //        "lotSize": 1000,
-        //        "tickSize": 0.01,
-        //        "multiplier": 100,
-        //        "settlCurrency": "USDt",
-        //        "underlyingToPositionMultiplier": 10000,
+        //        "maxOrderQty": "1000000000",
+        //        "maxPrice": "1000000",
+        //        "lotSize": "1000",
+        //        "tickSize": "0.5",
+        //        "multiplier": "1",
+        //        "settlCurrency": "USDt", // can be empty for spot markets
+        //        "underlyingToPositionMultiplier": "1000000",
         //        "underlyingToSettleMultiplier": null,
-        //        "quoteToSettleMultiplier": 1000000,
+        //        "quoteToSettleMultiplier": "1000000",
         //        "isQuanto": false,
         //        "isInverse": false,
-        //        "initMargin": 0.03,
-        //        "maintMargin": 0.015,
-        //        "riskLimit": 1000000000000,
-        //        "riskStep": 1000000000000,
+        //        "initMargin": "0.01",
+        //        "maintMargin": "0.005",
+        //        "riskLimit": "1000000000000", // can be null for spot markets
+        //        "riskStep": "1000000000000", // can be null for spot markets
         //        "limit": null,
         //        "capped": false,
         //        "taxed": true,
         //        "deleverage": true,
-        //        "makerFee": -0.0001,
-        //        "takerFee": 0.0005,
-        //        "settlementFee": 0,
-        //        "insuranceFee": 0,
-        //        "fundingBaseSymbol": ".LTCBON8H",
-        //        "fundingQuoteSymbol": ".USDTBON8H",
-        //        "fundingPremiumSymbol": ".LTCUSDTPI8H",
-        //        "fundingTimestamp": "2022-01-14T20:00:00.000Z",
+        //        "makerFee": "-0.0001",
+        //        "takerFee": "0.00075",
+        //        "settlementFee": "0",
+        //        "insuranceFee": "0",
+        //        "fundingBaseSymbol": ".XBTBON8H", // can be empty for spot markets
+        //        "fundingQuoteSymbol": ".USDTBON8H", // can be empty for spot markets
+        //        "fundingPremiumSymbol": ".XBTUSDTPI8H", // can be empty for spot markets
+        //        "fundingTimestamp": "2022-10-16T20:00:00.000Z",
         //        "fundingInterval": "2000-01-01T08:00:00.000Z",
-        //        "fundingRate": 0.0001,
-        //        "indicativeFundingRate": 0.0001,
+        //        "fundingRate": "-0.000312",
+        //        "indicativeFundingRate": "0.000042",
         //        "rebalanceTimestamp": null,
         //        "rebalanceInterval": null,
-        //        "openingTimestamp": "2022-01-14T17:00:00.000Z",
-        //        "closingTimestamp": "2022-01-14T18:00:00.000Z",
+        //        "openingTimestamp": "2022-10-16T14:00:00.000Z",
+        //        "closingTimestamp": "2022-10-16T15:00:00.000Z",
         //        "sessionInterval": "2000-01-01T01:00:00.000Z",
-        //        "prevClosePrice": 138.511,
+        //        "prevClosePrice": "19144.92",
         //        "limitDownPrice": null,
         //        "limitUpPrice": null,
         //        "bankruptLimitDownPrice": null,
         //        "bankruptLimitUpPrice": null,
-        //        "prevTotalVolume": 12699024000,
-        //        "totalVolume": 12702160000,
-        //        "volume": 3136000,
-        //        "volume24h": 114251000,
-        //        "prevTotalTurnover": 232418052349000,
-        //        "totalTurnover": 232463353260000,
-        //        "turnover": 45300911000,
-        //        "turnover24h": 1604331340000,
-        //        "homeNotional24h": 11425.1,
-        //        "foreignNotional24h": 1604331.3400000003,
-        //        "prevPrice24h": 135.48,
-        //        "vwap": 140.42165,
-        //        "highPrice": 146.42,
-        //        "lowPrice": 135.08,
-        //        "lastPrice": 144.36,
-        //        "lastPriceProtected": 144.36,
-        //        "lastTickDirection": "MinusTick",
-        //        "lastChangePcnt": 0.0655,
-        //        "bidPrice": 143.75,
-        //        "midPrice": 143.855,
-        //        "askPrice": 143.96,
-        //        "impactBidPrice": 143.75,
-        //        "impactMidPrice": 143.855,
-        //        "impactAskPrice": 143.96,
+        //        "prevTotalVolume": "377875230000",
+        //        "totalVolume": "377885561000",
+        //        "volume": "10331000",
+        //        "volume24h": "590798000",
+        //        "prevTotalTurnover": "12194424441136000",
+        //        "totalTurnover": "12194621889979000",
+        //        "turnover": "197448843000",
+        //        "turnover24h": "11284280291500",
+        //        "homeNotional24h": "590.7980000000003",
+        //        "foreignNotional24h": "11284280.2915",
+        //        "prevPrice24h": "19144.5",
+        //        "vwap": "19100.066",
+        //        "highPrice": "19179.5",
+        //        "lowPrice": "18977",
+        //        "lastPrice": "19130",
+        //        "lastPriceProtected": "19130",
+        //        "lastTickDirection": "PlusTick",
+        //        "lastChangePcnt": "-0.0008",
+        //        "bidPrice": "19133",
+        //        "midPrice": "19133.25",
+        //        "askPrice": "19133.5",
+        //        "impactBidPrice": "19133",
+        //        "impactMidPrice": "19133.25",
+        //        "impactAskPrice": "19133.501",
         //        "hasLiquidity": true,
-        //        "openInterest": 38103000,
-        //        "openValue": 547963053300,
+        //        "openInterest": "426185000",
+        //        "openValue": "8153958941400",
         //        "fairMethod": "FundingRate",
-        //        "fairBasisRate": 0.1095,
-        //        "fairBasis": 0.004,
-        //        "fairPrice": 143.811,
+        //        "fairBasisRate": "-0.34164",
+        //        "fairBasis": "-3.83",
+        //        "fairPrice": "19132.44",
         //        "markMethod": "FairPrice",
-        //        "markPrice": 143.811,
+        //        "markPrice": "19132.44",
         //        "indicativeTaxRate": null,
-        //        "indicativeSettlePrice": 143.807,
+        //        "indicativeSettlePrice": "19136.27",
         //        "optionUnderlyingPrice": null,
         //        "settledPriceAdjustmentRate": null,
         //        "settledPrice": null,
-        //        "timestamp": "2022-01-14T17:49:55.000Z"
-        //    }
+        //        "timestamp": "2022-10-16T14:52:20.000Z"
+        //      },
+        //     ]
         //
         const result = [];
         for (let i = 0; i < response.length; i++) {
             const market = response[i];
             const id = this.safeString (market, 'symbol');
+            const typ = this.safeString (market, 'typ'); // type definitions at: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
             const baseId = this.safeString (market, 'underlying');
             const quoteId = this.safeString (market, 'quoteCurrency');
             const settleId = this.safeString (market, 'settlCurrency', '');
@@ -361,6 +501,7 @@ module.exports = class bitmex extends Exchange {
             // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
             // so let's take the settlCurrency first and then adjust if needed
             let type = undefined;
+            let spot = false;
             let future = false;
             let prediction = false;
             let index = false;
@@ -381,10 +522,24 @@ module.exports = class bitmex extends Exchange {
                 type = 'future';
                 symbol = symbol + '-' + this.yymmdd (expiry);
             } else {
-                index = true;
-                type = 'index';
-                symbol = id;
-                active = false;
+                if (typ === 'IFXXXP') {
+                    type = 'spot';
+                    spot = true;
+                    symbol = base + '/' + quote;
+                } else {
+                    index = true;
+                    type = 'index';
+                    symbol = id;
+                    active = false;
+                }
+            }
+            const lotSize = this.safeString (market, 'lotSize');
+            let precisionAmount = undefined;
+            if (spot) {
+                const currencyPrecison = this.safeString (this.options['tempCurrencyPrecision'], base);
+                precisionAmount = this.parseNumber (Precise.stringMul (currencyPrecison, lotSize));
+            } else {
+                precisionAmount = this.parseNumber (lotSize);
             }
             const positionId = this.safeString2 (market, 'positionCurrency', 'underlying');
             const position = this.safeCurrencyCode (positionId);
@@ -403,7 +558,7 @@ module.exports = class bitmex extends Exchange {
                 'quoteId': quoteId,
                 'settleId': settleId,
                 'type': type,
-                'spot': false,
+                'spot': spot,
                 'margin': false,
                 'swap': swap,
                 'future': future,
@@ -422,7 +577,7 @@ module.exports = class bitmex extends Exchange {
                 'strike': this.safeNumber (market, 'optionStrikePrice'),
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeNumber (market, 'lotSize'),
+                    'amount': precisionAmount,
                     'price': this.safeNumber (market, 'tickSize'),
                     'quote': this.safeNumber (market, 'tickSize'),
                     'base': this.safeNumber (market, 'tickSize'),
