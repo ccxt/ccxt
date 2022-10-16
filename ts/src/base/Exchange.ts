@@ -197,10 +197,10 @@ export default class Exchange {
     orderbooks   = {}
     tickers      = {}
     orders       = undefined
-    trades: ArrayCache
+    trades: any
     transactions = {}
-    ohlcvs: ArrayCacheByTimestamp
-    myTrades: ArrayCacheBySymbolById
+    ohlcvs: any
+    myTrades: any
     positions    = {}
     urls = {}
 
@@ -618,11 +618,11 @@ export default class Exchange {
         this.balance      = {}
         this.orderbooks   = {}
         this.tickers      = {}
-        this.orders       = undefined
-        this.trades       = undefined
+        this.orders       = {}
+        this.trades       = {}
         this.transactions = {}
-        this.ohlcvs       = undefined
-        this.myTrades     = undefined
+        this.ohlcvs       = {}
+        this.myTrades     = {}
         this.positions    = {}
         // web3 and cryptography flags
         this.requiresWeb3 = false
