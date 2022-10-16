@@ -390,12 +390,12 @@ const pro = {
 }
 
 for (const exchange in pro) {
-    const ccxtExchange = exchanges[exchange]
-    const baseExchange = Object.getPrototypeOf (ccxtExchange)
-    if (baseExchange.name === 'Exchange') {
-        Object.setPrototypeOf (ccxtExchange, wsExchange)
-        Object.setPrototypeOf (ccxtExchange.prototype, wsExchange.prototype)
-    }
+    // const ccxtExchange = exchanges[exchange]
+    // const baseExchange = Object.getPrototypeOf (ccxtExchange)
+    // if (baseExchange.name === 'Exchange') {
+    //     Object.setPrototypeOf (ccxtExchange, wsExchange)
+    //     Object.setPrototypeOf (ccxtExchange.prototype, wsExchange.prototype)
+    // }
 }
 
 (pro as any).exchanges = Object.keys (pro)
