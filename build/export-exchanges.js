@@ -505,7 +505,7 @@ async function exportEverything () {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);

@@ -54,7 +54,7 @@ export class aaxBridge extends aaxRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -67,7 +67,7 @@ export class ascendexBridge extends ascendexRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -80,7 +80,7 @@ export class bequantBridge extends bequantRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -93,7 +93,7 @@ export class binanceBridge extends binanceRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -106,7 +106,7 @@ export class binancecoinmBridge extends binancecoinmRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -119,7 +119,7 @@ export class binanceusBridge extends binanceusRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -132,7 +132,7 @@ export class binanceusdmBridge extends binanceusdmRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -145,7 +145,7 @@ export class bitcoincomBridge extends bitcoincomRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -158,7 +158,7 @@ export class bitfinexBridge extends bitfinexRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -171,7 +171,7 @@ export class bitfinex2Bridge extends bitfinex2Rest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -184,7 +184,7 @@ export class bitmartBridge extends bitmartRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -197,7 +197,7 @@ export class bitmexBridge extends bitmexRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -210,7 +210,7 @@ export class bitoproBridge extends bitoproRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -223,7 +223,7 @@ export class bitstampBridge extends bitstampRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -236,7 +236,7 @@ export class bittrexBridge extends bittrexRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -249,7 +249,7 @@ export class bitvavoBridge extends bitvavoRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -262,7 +262,7 @@ export class bybitBridge extends bybitRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -275,7 +275,7 @@ export class coinbaseprimeBridge extends coinbaseprimeRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -288,7 +288,7 @@ export class coinbaseproBridge extends coinbaseproRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -301,7 +301,7 @@ export class coinexBridge extends coinexRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -314,7 +314,7 @@ export class cryptocomBridge extends cryptocomRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -327,7 +327,7 @@ export class currencycomBridge extends currencycomRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -340,7 +340,7 @@ export class exmoBridge extends exmoRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -353,7 +353,7 @@ export class ftxBridge extends ftxRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -366,7 +366,7 @@ export class ftxusBridge extends ftxusRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -379,7 +379,7 @@ export class gateBridge extends gateRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -392,7 +392,7 @@ export class gateioBridge extends gateioRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -405,7 +405,7 @@ export class hitbtcBridge extends hitbtcRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -418,7 +418,7 @@ export class hollaexBridge extends hollaexRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -431,7 +431,7 @@ export class huobiBridge extends huobiRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -444,7 +444,7 @@ export class huobijpBridge extends huobijpRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -457,7 +457,7 @@ export class huobiproBridge extends huobiproRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -470,7 +470,7 @@ export class idexBridge extends idexRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -483,7 +483,7 @@ export class krakenBridge extends krakenRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -496,7 +496,7 @@ export class kucoinBridge extends kucoinRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -509,7 +509,7 @@ export class mexcBridge extends mexcRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -522,7 +522,7 @@ export class ndaxBridge extends ndaxRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -535,7 +535,7 @@ export class okcoinBridge extends okcoinRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -548,7 +548,7 @@ export class okexBridge extends okexRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -561,7 +561,7 @@ export class okxBridge extends okxRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -574,7 +574,7 @@ export class phemexBridge extends phemexRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -587,7 +587,7 @@ export class ripioBridge extends ripioRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -600,7 +600,7 @@ export class upbitBridge extends upbitRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -613,7 +613,7 @@ export class whitebitBridge extends whitebitRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -626,7 +626,7 @@ export class zbBridge extends zbRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);
@@ -639,7 +639,7 @@ export class zipmexBridge extends zipmexRest {
     ws: WSConnector;
     constructor (config = {}) {
         super (config);
-        (config as any).handleMessage = this.handleMessage;
+        (config as any).handleMessage = this.handleMessage.bind(this);
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         this.ws = new WSConnector (config);

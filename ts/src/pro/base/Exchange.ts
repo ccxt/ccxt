@@ -19,9 +19,9 @@ export default class Exchange  {
 
     constructor (options = {}) {
         this.newUpdates = (options as any).newUpdates || true;
-        this.log = (options as any).wsLog;
+        this.log = (options as any).log || this.log;
         this.verbose = (options as any).verbose;
-        this.handleMessage = (options as any).handleMessage;
+        this.handleMessage = (options as any).handleMessage || this.handleMessage;
         this.enableRateLimit = (options as any).enableRateLimit;
         this.tokenBucket = (options as any).tokenBucket;
         this.newUpdates = true;
@@ -62,7 +62,7 @@ export default class Exchange  {
     client (url) {
         this.clients = this.clients || {};
         if (!this.clients[url]) {
-            const onMessage = (this as any).handleMessage.bind (this);
+            const onMessage = (this as any).handleMessage;
             const onError = this.onError.bind (this);
             const onClose = this.onClose.bind (this);
             const onConnected = this.onConnected.bind (this);
