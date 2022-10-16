@@ -4,7 +4,6 @@
 import { ascendexBridge } from './bridge/bridge.js';
 import { AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
-import { Exchange } from './base/Exchange.js';
 //  ---------------------------------------------------------------------------
 
 export default class ascendex extends ascendexBridge {

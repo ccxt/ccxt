@@ -216,7 +216,6 @@ import zbPro from  './src/pro/zb.js'
 import zipmexPro from  './src/pro/zipmex.js'
 
 
-
 const exchanges = {
     'aax':                    aax,
     'alpaca':                 alpaca,

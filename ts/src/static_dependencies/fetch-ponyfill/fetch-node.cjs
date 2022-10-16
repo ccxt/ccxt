@@ -1,5 +1,5 @@
 'use strict';
-
+//moved test3
 var fetch = require('../node-fetch/index.cjs');
 
 function wrapFetchForNode(fetch) {
