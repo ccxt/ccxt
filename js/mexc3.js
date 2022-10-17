@@ -90,7 +90,7 @@ module.exports = class mexc3 extends Exchange {
                 'fetchTransactionFee': undefined,
                 'fetchTransactionFees': undefined,
                 'fetchTransactions': undefined,
-                'fetchTransfer': undefined,
+                'fetchTransfer': true,
                 'fetchTransfers': true,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': true,
