@@ -1144,6 +1144,7 @@ module.exports = class bibox extends Exchange {
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the bibox api endpoint
+         * @param {string} params.clientOrderId client order id
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -1158,85 +1159,35 @@ module.exports = class bibox extends Exchange {
             // 'time_in_force': // Valid value gtc, ioc
             // 'post_only':
         };
-        const clientOrderId = this.safeString2 (params, 'client_order_id', 'clientOrderId');
+        const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
-            params = this.omit (params, [ 'client_order_id', 'clientOrderId' ]);
+            params = this.omit (params, 'clientOrderId');
         }
         const response = await this.v4PrivatePostUserdataOrder (this.deepExtend (request, params));
         //
         //     {
-        //         "i":14580623695947906,
-        //         "I":"0",
-        //         "m":"LUNC_USDT",
-        //         "T":"limit",
-        //         "s":"sell",
-        //         "Q":-1015236.00000,
-        //         "P":0.0002900000,
-        //         "t":"gtc",
-        //         "o":false,
-        //         "S":"accepted",
-        //         "E":0,
-        //         "e":0,
-        //         "C":1665670398046,
-        //         "U":1665670398046,
-        //         "V":582952205212,
-        //         "n":0,
-        //         "F":[],
-        //         "f":[]
+        //         "i": 14580623695947906,
+        //         "I": "0",
+        //         "m": "LUNC_USDT",
+        //         "T": "limit",
+        //         "s": "sell",
+        //         "Q": -1015236.00000,
+        //         "P": 0.0002900000,
+        //         "t": "gtc",
+        //         "o": false,
+        //         "S": "accepted",
+        //         "E": 0,
+        //         "e": 0,
+        //         "C": 1665670398046,
+        //         "U": 1665670398046,
+        //         "V": 582952205212,
+        //         "n": 0,
+        //         "F": [],
+        //         "f": []
         //     }
         //
         return this.parseOrder (response, market);
-    }
-
-    async createOrderV1 (symbol, type, side, amount, price = undefined, params = {}) {
-        /**
-         * @method
-         * @name bibox#createOrder
-         * @description create a trade order
-         * @param {string} symbol unified symbol of the market to create an order in
-         * @param {string} type 'market' or 'limit'
-         * @param {string} side 'buy' or 'sell'
-         * @param {float} amount how much of currency you want to trade in units of base currency
-         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {object} params extra parameters specific to the bibox api endpoint
-         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const orderType = (type === 'limit') ? 2 : 1;
-        const orderSide = (side === 'buy') ? 1 : 2;
-        const request = {
-            'cmd': 'orderpending/trade',
-            'body': this.extend ({
-                'pair': market['id'],
-                'account_type': 0,
-                'order_type': orderType,
-                'order_side': orderSide,
-                'pay_bix': 0,
-                'amount': amount,
-                'price': price,
-            }, params),
-        };
-        const response = await this.v1PrivatePostOrderpending (request);
-        //
-        //     {
-        //         "result":[
-        //             {
-        //                 "result": "100055558128036", // order id
-        //                 "index": 12345, // random index, specific one in a batch
-        //                 "cmd":"orderpending/trade"
-        //             }
-        //         ]
-        //     }
-        //
-        const outerResults = this.safeValue (response, 'result');
-        const firstResult = this.safeValue (outerResults, 0, {});
-        const id = this.safeValue (firstResult, 'result');
-        return {
-            'info': response,
-            'id': id,
-        };
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -1294,23 +1245,23 @@ module.exports = class bibox extends Exchange {
         //     {
         //         "result":[
         //             {
-        //                 "result":{
-        //                     "id":"100055558128036",
+        //                 "result": {
+        //                     "id": "100055558128036",
         //                     "createdAt": 1512756997000,
-        //                     "account_type":0,
-        //                     "coin_symbol":"LTC",        // Trading Token
-        //                     "currency_symbol":"BTC",    // Pricing Token
-        //                     "order_side":2,             // Trading side 1-Buy, 2-Sell
-        //                     "order_type":2,             // 2-limit order
-        //                     "price":"0.00900000",       // order price
-        //                     "amount":"1.00000000",      // order amount
-        //                     "money":"0.00900000",       // currency amount (price * amount)
-        //                     "deal_amount":"0.00000000", // deal amount
-        //                     "deal_percent":"0.00%",     // deal percentage
-        //                     "unexecuted":"0.00000000",  // unexecuted amount
-        //                     "status":3                  // Status, -1-fail, 0,1-to be dealt, 2-dealt partly, 3-dealt totally, 4- cancelled partly, 5-cancelled totally, 6-to be cancelled
+        //                     "account_type": 0,
+        //                     "coin_symbol": "LTC",        // Trading Token
+        //                     "currency_symbol": "BTC",    // Pricing Token
+        //                     "order_side": 2,             // Trading side 1-Buy, 2-Sell
+        //                     "order_type": 2,             // 2-limit order
+        //                     "price": "0.00900000",       // order price
+        //                     "amount": "1.00000000",      // order amount
+        //                     "money": "0.00900000",       // currency amount (price * amount)
+        //                     "deal_amount": "0.00000000", // deal amount
+        //                     "deal_percent": "0.00%",     // deal percentage
+        //                     "unexecuted": "0.00000000",  // unexecuted amount
+        //                     "status": 3                  // Status, -1-fail, 0,1-to be dealt, 2-dealt partly, 3-dealt totally, 4- cancelled partly, 5-cancelled totally, 6-to be cancelled
         //                 },
-        //                 "cmd":"orderpending/order"
+        //                 "cmd": "orderpending/order"
         //             }
         //         ]
         //     }
@@ -1353,8 +1304,8 @@ module.exports = class bibox extends Exchange {
         //             "f": {
         //                 "a": "USDT",  // The asset used for the transaction to pay the handling fee
         //                 "m": 0.09039465000  // The transaction fee
-        //                 }
-        //             }, {
+        //             }
+        //         }, {
         //             "i": 12,
         //             "t": 1643193746266,
         //             "p": 10043.85,
@@ -1374,20 +1325,20 @@ module.exports = class bibox extends Exchange {
         // fetchOrder V1, fetchOpenOrders V1, fetchClosedOrders V1
         //
         //     {
-        //         "id":"100055558128036",
+        //         "id": "100055558128036",
         //         "createdAt": 1512756997000,
-        //         "account_type":0,
-        //         "coin_symbol":"LTC",        // Trading Token
-        //         "currency_symbol":"BTC",    // Pricing Token
-        //         "order_side":2,             // Trading side 1-Buy, 2-Sell
-        //         "order_type":2,             // 2-limit order
-        //         "price":"0.00900000",       // order price
-        //         "amount":"1.00000000",      // order amount
-        //         "money":"0.00900000",       // currency amount (price * amount)
-        //         "deal_amount":"0.00000000", // deal amount
-        //         "deal_percent":"0.00%",     // deal percentage
-        //         "unexecuted":"0.00000000",  // unexecuted amount
-        //         "status":3                  // Status,-1-fail, 0,1-to be dealt, 2-dealt partly, 3-dealt totally, 4- cancelled partly, 5-cancelled totally, 6-to be cancelled
+        //         "account_type": 0,
+        //         "coin_symbol": "LTC",        // Trading Token
+        //         "currency_symbol": "BTC",    // Pricing Token
+        //         "order_side": 2,             // Trading side 1-Buy, 2-Sell
+        //         "order_type": 2,             // 2-limit order
+        //         "price": "0.00900000",       // order price
+        //         "amount": "1.00000000",      // order amount
+        //         "money": "0.00900000",       // currency amount (price * amount)
+        //         "deal_amount": "0.00000000", // deal amount
+        //         "deal_percent": "0.00%",     // deal percentage
+        //         "unexecuted": "0.00000000",  // unexecuted amount
+        //         "status": 3                  // Status,-1-fail, 0,1-to be dealt, 2-dealt partly, 3-dealt totally, 4- cancelled partly, 5-cancelled totally, 6-to be cancelled
         //     }
         //
         let marketId = this.safeString (order, 'm');
