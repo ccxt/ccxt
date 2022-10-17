@@ -445,7 +445,7 @@ export default class lbank extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (limit === undefined) {
-            limit = 100; // as it's defined in lbank2
+            limit = 100; // it's defined in lbank2
         }
         if (since === undefined) {
             const duration = this.parseTimeframe (timeframe);
