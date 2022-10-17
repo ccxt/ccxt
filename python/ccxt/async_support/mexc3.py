@@ -260,6 +260,7 @@ class mexc3(Exchange):
                             'stoporder/order_details/{stop_order_id}': 2,
                             'account/risk_limit': 2,  # TO_DO: gets max/min position size, allowed sides, leverage, maintenance margin, initial margin, etc...
                             'account/tiered_fee_rate': 2,  # TO_DO: taker/maker fees for account
+                            'position/leverage': 2,
                         },
                         'post': {
                             'position/change_margin': 2,
@@ -695,11 +696,11 @@ class mexc3(Exchange):
         #                    "MARGIN"
         #                ],
         #                "filters": [],
-        #                "baseSizePrecision": "0.01",  # seems to be derived of 'baseAssetPrecision'
+        #                "baseSizePrecision": "0.01",  # self turned out to be a minimum base amount for order
         #                "maxQuoteAmount": "5000000",
         #                "makerCommission": "0.002",
         #                "takerCommission": "0.002"
-        #                "quoteAmountPrecision": "5",  # seem totally unrelated value, as neither quote/base have anything related to self number
+        #                "quoteAmountPrecision": "5",  # self turned out to be a minimum cost amount for order
         #                "quotePrecision": "4",  # deprecated in favor of 'quoteAssetPrecision'( https://dev.binance.vision/t/what-is-the-difference-between-quoteprecision-and-quoteassetprecision/4333 )
         #                # note, "icebergAllowed" & "ocoAllowed" fields were recently removed
         #            },
@@ -763,7 +764,7 @@ class mexc3(Exchange):
                         'max': None,
                     },
                     'amount': {
-                        'min': None,
+                        'min': self.safe_number(market, 'baseSizePrecision'),
                         'max': None,
                     },
                     'price': {
@@ -771,7 +772,7 @@ class mexc3(Exchange):
                         'max': None,
                     },
                     'cost': {
-                        'min': None,
+                        'min': self.safe_number(market, 'quoteAmountPrecision'),
                         'max': maxQuoteAmount,
                     },
                 },
