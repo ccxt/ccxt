@@ -736,12 +736,12 @@ export default class exmo extends Exchange {
             if (limit > maxLimit) {
                 limit = maxLimit; // avoid exception
             }
-            request['from'] = parseInt ((now / 1000).toString ()) - limit * duration - 1;
-            request['to'] = parseInt ((now / 1000).toString ());
+            request['from'] = this.parseToInt (now / 1000) - limit * duration - 1;
+            request['to'] = this.parseToInt (now / 1000);
         } else {
-            request['from'] = parseInt ((since / 1000).toString ()) - 1;
+            request['from'] = this.parseToInt (since / 1000) - 1;
             if (limit === undefined) {
-                request['to'] = parseInt ((now / 1000).toString ());
+                request['to'] = this.parseToInt (now / 1000);
             } else {
                 if (limit > maxLimit) {
                     throw new BadRequest (this.id + ' fetchOHLCV() will serve ' + maxLimit.toString () + ' candles at most');
