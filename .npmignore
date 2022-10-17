@@ -39,3 +39,4 @@ docker-compose.yml
 phpunit.xml.dist
 setup.cfg
 exchanges.cfg
+ts/
