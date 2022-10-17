@@ -347,8 +347,8 @@ class mexc3 extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.2 / 100, // maker / taker
-                    'taker' => 0.2 / 100,
+                    'maker' => $this->parse_number('0.002'), // maker / taker
+                    'taker' => $this->parse_number('0.002'),
                 ),
             ),
             'options' => array(
@@ -1686,7 +1686,10 @@ class mexc3 extends Exchange {
                     if ($price === null) {
                         throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
                     } else {
-                        $amount = $amount * $price;
+                        $amountString = $this->number_to_string($amount);
+                        $priceString = $this->number_to_string($price);
+                        $quoteAmount = Precise::string_mul($amountString, $priceString);
+                        $amount = $this->parse_number($quoteAmount);
                     }
                 }
                 $request['quoteOrderQty'] = $amount;
