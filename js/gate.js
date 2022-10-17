@@ -4102,8 +4102,21 @@ module.exports = class gate extends Exchange {
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
+        let market = undefined;
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols (symbols);
+            const symbolsLength = symbols.length;
+            if (symbolsLength > 0) {
+                market = this.market (symbols[0]);
+                for (let i = 1; i < symbols.length; i++) {
+                    const checkMarket = this.market (symbols[i]);
+                    if (checkMarket['type'] !== market['type']) {
+                        throw new BadRequest (this.id + ' fetchPositions() does not support multiple types of positions at the same time');
+                    }
+                }
+            }
+        }
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchPositions', market, params);
         if (type !== 'swap' && type !== 'future') {
             throw new ArgumentsRequired (this.id + ' fetchPositions requires a type parameter, "swap" or "future"');
         }
