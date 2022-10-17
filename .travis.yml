@@ -12,7 +12,7 @@ before_install:
 - ". $HOME/.nvm/nvm.sh"
 - nvm ls
 - nvm ls-remote
-- nvm install v16.13.2
+- nvm install v18.9.0
 - rm -rf node_modules
 - npm install
 - git checkout package.json package-lock.json
