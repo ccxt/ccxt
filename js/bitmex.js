@@ -226,7 +226,6 @@ module.exports = class bitmex extends Exchange {
                     'tron': 'TRC20',
                     'sol': 'SPL',
                 },
-                'tempCurrencyPrecision': {}, // workaround for fetchMarkets
             },
             'commonCurrencies': {
                 'USDt': 'USDT',
