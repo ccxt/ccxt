@@ -978,6 +978,16 @@ module.exports = class binance extends binanceRest {
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#watchOrders
+         * @description watches information on multiple orders made by the user
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde binance to retrieve
+         * @param {object} params extra parameters specific to the bitfinex2 api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         await this.loadMarkets ();
         await this.authenticate (params);
         const defaultType = this.safeString2 (this.options, 'watchOrders', 'defaultType', 'spot');
@@ -985,6 +995,7 @@ module.exports = class binance extends binanceRest {
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         let messageHash = 'orders';
         if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
             messageHash += ':' + symbol;
         }
         const client = this.client (url);
