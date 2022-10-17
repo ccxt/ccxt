@@ -422,7 +422,7 @@ export default class bybit extends bybitBridge {
             if (timestamp === undefined) {
                 const timestampE9 = this.safeString (ticker, 'updated_at_e9');
                 timestamp = this.parseNumber (Precise.stringDiv (timestampE9, '1000000'));
-                timestamp = (timestamp !== undefined) ? parseInt (timestamp.toString ()) : undefined;
+                timestamp = this.parseToInt (timestamp);
             }
         }
         const marketId = this.safeString2 (ticker, 'symbol', 's');

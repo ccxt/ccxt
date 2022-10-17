@@ -180,9 +180,9 @@ export default class kraken extends krakenBridge {
             const messageHash = name + ':' + timeframe + ':' + wsName;
             let timestamp = this.safeFloat (candle, 1);
             timestamp -= duration;
-            const ts = timestamp * 1000;
+            const ts = this.parseToInt (timestamp * 1000);
             const result = [
-                parseInt (ts.toString ()),
+                ts,
                 this.safeFloat (candle, 2),
                 this.safeFloat (candle, 3),
                 this.safeFloat (candle, 4),
@@ -486,7 +486,9 @@ export default class kraken extends krakenBridge {
             const price = parseFloat (delta[0]);
             const amount = parseFloat (delta[1]);
             const oldTimestamp = timestamp ? timestamp : 0;
-            const calc = (parseFloat (delta[2].toString ()) * 1000).toString ();
+            const calcMul = delta[2] * 1000;
+            const calcStr = this.numberToString (calcMul);
+            const calc = this.numberToString (parseFloat (calcStr));
             timestamp = Math.max (oldTimestamp, parseInt (calc));
             bookside.store (price, amount);
         }
