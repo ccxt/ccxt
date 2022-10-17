@@ -183,7 +183,7 @@ export default class hollaex extends Exchange {
             },
             'options': {
                 // how many seconds before the authenticated request expires
-                'api-expires': parseInt ((this.timeout / 1000).toString ()),
+                'api-expires': this.parseToInt (this.timeout / 1000),
                 'networks': {
                     'BTC': 'btc',
                     'ETH': 'eth',
