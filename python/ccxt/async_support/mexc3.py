@@ -350,8 +350,8 @@ class mexc3(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.2 / 100,  # maker / taker
-                    'taker': 0.2 / 100,
+                    'maker': self.parse_number('0.002'),  # maker / taker
+                    'taker': self.parse_number('0.002'),
                 },
             },
             'options': {
@@ -1595,7 +1595,10 @@ class mexc3(Exchange):
                 if price is None:
                     raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
                 else:
-                    amount = amount * price
+                    amountString = self.number_to_string(amount)
+                    priceString = self.number_to_string(price)
+                    quoteAmount = Precise.string_mul(amountString, priceString)
+                    amount = self.parse_number(quoteAmount)
             request['quoteOrderQty'] = amount
         else:
             request['quantity'] = self.amount_to_precision(symbol, amount)
