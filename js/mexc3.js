@@ -3605,6 +3605,7 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the mexc3 api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
@@ -3612,32 +3613,18 @@ module.exports = class mexc3 extends Exchange {
         const rawNetwork = this.safeStringUpper (params, 'network');
         params = this.omit (params, 'network');
         const response = await this.fetchDepositAddressesByNetwork (code, params);
-        const networks = this.safeValue (this.options, 'networks', {});
-        const network = this.safeString (networks, rawNetwork, rawNetwork);
-        let result = undefined;
-        if (network === undefined) {
-            result = this.safeValue (response, code);
-            if (result === undefined) {
-                const alias = this.safeString (networks, code, code);
-                result = this.safeValue (response, alias);
-                if (result === undefined) {
-                    const defaultNetwork = this.safeString (this.options, 'defaultNetwork', 'ERC20');
-                    result = this.safeValue (response, defaultNetwork);
-                    if (result === undefined) {
-                        const values = Object.values (response);
-                        result = this.safeValue (values, 0);
-                        if (result === undefined) {
-                            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find deposit address for ' + code + ', consider creating one using the MEXC platform');
-                        }
-                    }
+        if (rawNetwork !== undefined) {
+            for (let i = 0; i < response.length; i++) {
+                const depositAddress = response[i];
+                const network = this.safeStringUpper (depositAddress, 'network');
+                if (rawNetwork === network) {
+                    return depositAddress;
                 }
             }
-            return result;
         }
-        // TODO: add support for all aliases here
-        result = this.safeValue (response, rawNetwork);
+        const result = this.safeValue (response, 0);
         if (result === undefined) {
-            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code);
+            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find a deposit address for ' + code + ', consider creating one using the MEXC platform');
         }
         return result;
     }
