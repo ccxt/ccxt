@@ -6,7 +6,8 @@
 
 # Pro Exchange
 
-from ccxt.pro.base.exchange import Exchange  # noqa: F401
+from ccxt.pro.base.WsConnector import WsConnector  # noqa: F401
+from ccxt.pro.bridge import bridge
 
 # CCXT Pro exchanges (now this is mainly used for importing exchanges in WS tests)
 
