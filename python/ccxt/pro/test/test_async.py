@@ -20,7 +20,7 @@ from exchange.test_watch_ohlcv import test_watch_ohlcv
 
 
 import ccxt.pro  # noqa: F401
-from ccxt.pro.base.exchange import Exchange  # noqa: F401
+from ccxt.base.exchange import Exchange  # noqa: F401
 # from ccxtpro.base.future import Future  # noqa: F401
 
 
