@@ -129,6 +129,7 @@ export default class lbank extends Exchange {
             'commonCurrencies': {
                 'GMT': 'GMT Token',
                 'PNT': 'Penta',
+                'SHINJA': 'SHINJA(1M)',
                 'VET_ERC20': 'VEN',
             },
             'options': {
