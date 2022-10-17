@@ -48,6 +48,7 @@ __all__ = [
 
 class Exchange(BaseExchange):
     synchronous = False
+    ping = None
 
     def __init__(self, config={}):
         if 'asyncio_loop' in config:
