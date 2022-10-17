@@ -249,6 +249,7 @@ class mexc3 extends Exchange {
                             'stoporder/order_details/{stop_order_id}' => 2,
                             'account/risk_limit' => 2, // TO_DO => gets max/min position size, allowed sides, leverage, maintenance margin, initial margin, etc...
                             'account/tiered_fee_rate' => 2, // TO_DO => taker/maker fees for account
+                            'position/leverage' => 2,
                         ),
                         'post' => array(
                             'position/change_margin' => 2,
@@ -395,10 +396,8 @@ class mexc3 extends Exchange {
                 ),
                 'defaultType' => 'spot', // spot, swap
                 'networks' => array(
-                    'TRX' => 'TRC-20',
-                    'TRC20' => 'TRC-20',
-                    'ETH' => 'ERC-20',
-                    'ERC20' => 'ERC-20',
+                    'TRX' => 'TRC20',
+                    'ETH' => 'ERC20',
                     'BEP20' => 'BEP20(BSC)',
                     'BSC' => 'BEP20(BSC)',
                 ),
@@ -560,7 +559,7 @@ class mexc3 extends Exchange {
             $code = $this->safe_currency_code($id);
             $name = $this->safe_string($currency, 'full_name');
             $currencyActive = false;
-            $currencyPrecision = null;
+            $minPrecision = null;
             $currencyFee = null;
             $currencyWithdrawMin = null;
             $currencyWithdrawMax = null;
@@ -592,6 +591,10 @@ class mexc3 extends Exchange {
                 if ($isWithdrawEnabled) {
                     $withdrawEnabled = true;
                 }
+                $precision = $this->parse_precision($this->safe_string($chain, 'precision'));
+                if ($precision !== null) {
+                    $minPrecision = ($minPrecision === null) ? $precision : Precise::string_min($precision, $minPrecision);
+                }
                 $networks[$network] = array(
                     'info' => $chain,
                     'id' => $networkId,
@@ -600,7 +603,7 @@ class mexc3 extends Exchange {
                     'deposit' => $isDepositEnabled,
                     'withdraw' => $isWithdrawEnabled,
                     'fee' => $this->safe_number($chain, 'fee'),
-                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'precision'))),
+                    'precision' => $this->parse_number($precision),
                     'limits' => array(
                         'withdraw' => array(
                             'min' => $withdrawMin,
@@ -615,7 +618,6 @@ class mexc3 extends Exchange {
                 $defaultNetwork = $this->safe_value_2($networks, 'NONE', $networkKeysLength - 1);
                 if ($defaultNetwork !== null) {
                     $currencyFee = $defaultNetwork['fee'];
-                    $currencyPrecision = $defaultNetwork['precision'];
                 }
             }
             $result[$code] = array(
@@ -627,7 +629,7 @@ class mexc3 extends Exchange {
                 'deposit' => $depositEnabled,
                 'withdraw' => $withdrawEnabled,
                 'fee' => $currencyFee,
-                'precision' => $currencyPrecision,
+                'precision' => $this->parse_number($minPrecision),
                 'limits' => array(
                     'amount' => array(
                         'min' => null,
@@ -701,11 +703,11 @@ class mexc3 extends Exchange {
         //                    "MARGIN"
         //                ),
         //                "filters" => array(),
-        //                "baseSizePrecision" => "0.01", // seems to be derived of 'baseAssetPrecision'
+        //                "baseSizePrecision" => "0.01", // this turned out to be a minimum $base amount for order
         //                "maxQuoteAmount" => "5000000",
         //                "makerCommission" => "0.002",
         //                "takerCommission" => "0.002"
-        //                "quoteAmountPrecision" => "5", // seem totally unrelated value, as neither quote/base have anything related to this number
+        //                "quoteAmountPrecision" => "5", // this turned out to be a minimum cost amount for order
         //                "quotePrecision" => "4", // deprecated in favor of 'quoteAssetPrecision' ( https://dev.binance.vision/t/what-is-the-difference-between-quoteprecision-and-quoteassetprecision/4333 )
         //                // note, "icebergAllowed" & "ocoAllowed" fields were recently removed
         //            ),
@@ -770,7 +772,7 @@ class mexc3 extends Exchange {
                         'max' => null,
                     ),
                     'amount' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($market, 'baseSizePrecision'),
                         'max' => null,
                     ),
                     'price' => array(
@@ -778,7 +780,7 @@ class mexc3 extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($market, 'quoteAmountPrecision'),
                         'max' => $maxQuoteAmount,
                     ),
                 ),
@@ -4169,7 +4171,7 @@ class mexc3 extends Exchange {
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $networks = $this->safe_value($this->options, 'networks', array());
-        $network = $this->safe_string_2($params, 'network', 'chain'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string_upper_2($params, 'network', 'chain'); // this line allows the user to specify either ERC20 or ETH
         $network = $this->safe_string($networks, $network, $network); // handle ETH > ERC-20 alias
         $this->check_address($address);
         $this->load_markets();

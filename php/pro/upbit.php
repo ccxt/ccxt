@@ -159,6 +159,7 @@ class upbit extends \ccxt\async\upbit {
         // therefore we reset the orderbook on each update
         // and reinitialize it again with new bidasks
         $orderBook->reset (array());
+        $orderBook['symbol'] = $symbol;
         $bids = $orderBook['bids'];
         $asks = $orderBook['asks'];
         $data = $this->safe_value($message, 'orderbook_units', array());

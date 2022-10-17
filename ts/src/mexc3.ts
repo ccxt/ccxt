@@ -249,6 +249,7 @@ export default class mexc3 extends Exchange {
                             'stoporder/order_details/{stop_order_id}': 2,
                             'account/risk_limit': 2, // TO_DO: gets max/min position size, allowed sides, leverage, maintenance margin, initial margin, etc...
                             'account/tiered_fee_rate': 2, // TO_DO: taker/maker fees for account
+                            'position/leverage': 2,
                         },
                         'post': {
                             'position/change_margin': 2,
@@ -395,10 +396,8 @@ export default class mexc3 extends Exchange {
                 },
                 'defaultType': 'spot', // spot, swap
                 'networks': {
-                    'TRX': 'TRC-20',
-                    'TRC20': 'TRC-20',
-                    'ETH': 'ERC-20',
-                    'ERC20': 'ERC-20',
+                    'TRX': 'TRC20',
+                    'ETH': 'ERC20',
                     'BEP20': 'BEP20(BSC)',
                     'BSC': 'BEP20(BSC)',
                 },
@@ -566,7 +565,7 @@ export default class mexc3 extends Exchange {
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'full_name');
             let currencyActive = false;
-            let currencyPrecision = undefined;
+            let minPrecision = undefined;
             let currencyFee = undefined;
             let currencyWithdrawMin = undefined;
             let currencyWithdrawMax = undefined;
@@ -598,6 +597,10 @@ export default class mexc3 extends Exchange {
                 if (isWithdrawEnabled) {
                     withdrawEnabled = true;
                 }
+                const precision = this.parsePrecision (this.safeString (chain, 'precision'));
+                if (precision !== undefined) {
+                    minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (precision, minPrecision);
+                }
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
@@ -606,7 +609,7 @@ export default class mexc3 extends Exchange {
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
                     'fee': this.safeNumber (chain, 'fee'),
-                    'precision': this.parseNumber (this.parsePrecision (this.safeString (chain, 'precision'))),
+                    'precision': this.parseNumber (precision),
                     'limits': {
                         'withdraw': {
                             'min': withdrawMin,
@@ -621,7 +624,6 @@ export default class mexc3 extends Exchange {
                 const defaultNetwork = this.safeValue2 (networks, 'NONE', networkKeysLength - 1);
                 if (defaultNetwork !== undefined) {
                     currencyFee = defaultNetwork['fee'];
-                    currencyPrecision = defaultNetwork['precision'];
                 }
             }
             result[code] = {
@@ -633,7 +635,7 @@ export default class mexc3 extends Exchange {
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': currencyFee,
-                'precision': currencyPrecision,
+                'precision': this.parseNumber (minPrecision),
                 'limits': {
                     'amount': {
                         'min': undefined,
@@ -709,11 +711,11 @@ export default class mexc3 extends Exchange {
         //                    "MARGIN"
         //                ],
         //                "filters": [],
-        //                "baseSizePrecision": "0.01", // seems to be derived of 'baseAssetPrecision'
+        //                "baseSizePrecision": "0.01", // this turned out to be a minimum base amount for order
         //                "maxQuoteAmount": "5000000",
         //                "makerCommission": "0.002",
         //                "takerCommission": "0.002"
-        //                "quoteAmountPrecision": "5", // seem totally unrelated value, as neither quote/base have anything related to this number
+        //                "quoteAmountPrecision": "5", // this turned out to be a minimum cost amount for order
         //                "quotePrecision": "4", // deprecated in favor of 'quoteAssetPrecision' ( https://dev.binance.vision/t/what-is-the-difference-between-quoteprecision-and-quoteassetprecision/4333 )
         //                // note, "icebergAllowed" & "ocoAllowed" fields were recently removed
         //            },
@@ -778,7 +780,7 @@ export default class mexc3 extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': undefined,
+                        'min': this.safeNumber (market, 'baseSizePrecision'),
                         'max': undefined,
                     },
                     'price': {
@@ -786,7 +788,7 @@ export default class mexc3 extends Exchange {
                         'max': undefined,
                     },
                     'cost': {
-                        'min': undefined,
+                        'min': this.safeNumber (market, 'quoteAmountPrecision'),
                         'max': maxQuoteAmount,
                     },
                 },
@@ -4249,7 +4251,7 @@ export default class mexc3 extends Exchange {
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeString2 (params, 'network', 'chain'); // this line allows the user to specify either ERC20 or ETH
+        let network = this.safeStringUpper2 (params, 'network', 'chain'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString (networks, network, network); // handle ETH > ERC-20 alias
         this.checkAddress (address);
         await this.loadMarkets ();

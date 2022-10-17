@@ -157,6 +157,22 @@ Certified Cryptocurrency Exchanges
           :target: https://accounts.binance.com/en/register?ref=D7YA7CLY
           :alt: Sign up with Binance USDⓈ-M using CCXT's referral link for a 10% discount!
      
+   * - .. image:: https://user-images.githubusercontent.com/1294454/195989417-4253ddb0-afbe-4a1c-9dea-9dbcd121fa5d.jpg
+          :target: https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j
+          :alt: bitget
+     
+     - bitget
+     - `Bitget <https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://bitgetlimited.github.io/apidoc/en/mix
+          :alt: API Version 1
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - 
+     - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg
           :target: http://www.bitmart.com/?r=rQCFLh
           :alt: bitmart
@@ -585,7 +601,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - 
      - 
-   * - .. image:: https://user-images.githubusercontent.com/51840849/88317935-a8a21c80-cd22-11ea-8e2b-4b9fac5975eb.jpg
+   * - .. image:: https://user-images.githubusercontent.com/1294454/195989417-4253ddb0-afbe-4a1c-9dea-9dbcd121fa5d.jpg
           :target: https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j
           :alt: bitget
      
@@ -595,7 +611,10 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
           :target: https://bitgetlimited.github.io/apidoc/en/mix
           :alt: API Version 1
      
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg
           :target: https://www.bithumb.com
@@ -1947,14 +1966,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@1.95.40/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@1.95.40/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@2.0.27/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@2.0.27/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@1.95.40/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@2.0.27/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

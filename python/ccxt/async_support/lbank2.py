@@ -823,6 +823,36 @@ class lbank2(Exchange):
             options = self.safe_value(self.options, 'fetchBalance', {})
             method = self.safe_string(options, 'method', 'privatePostSupplementUserInfo')
         response = await getattr(self, method)()
+        #
+        #    {
+        #        "result": "true",
+        #        "data": [
+        #            {
+        #                "usableAmt": "14.36",
+        #                "assetAmt": "14.36",
+        #                "networkList": [
+        #                    {
+        #                        "isDefault": False,
+        #                        "withdrawFeeRate": "",
+        #                        "name": "erc20",
+        #                        "withdrawMin": 30,
+        #                        "minLimit": 0.0001,
+        #                        "minDeposit": 20,
+        #                        "feeAssetCode": "usdt",
+        #                        "withdrawFee": "30",
+        #                        "type": 1,
+        #                        "coin": "usdt",
+        #                        "network": "eth"
+        #                    },
+        #                    ...
+        #                ],
+        #                "freezeAmt": "0",
+        #                "coin": "ada"
+        #            }
+        #        ],
+        #        "code": 0
+        #    }
+        #
         return self.parse_balance(response)
 
     def parse_trading_fee(self, fee, market=None):
@@ -1780,6 +1810,36 @@ class lbank2(Exchange):
         # incl. for coins which None in public method
         await self.load_markets()
         response = await self.privatePostSupplementUserInfo()
+        #
+        #    {
+        #        "result": "true",
+        #        "data": [
+        #            {
+        #                "usableAmt": "14.36",
+        #                "assetAmt": "14.36",
+        #                "networkList": [
+        #                    {
+        #                        "isDefault": False,
+        #                        "withdrawFeeRate": "",
+        #                        "name": "erc20",
+        #                        "withdrawMin": 30,
+        #                        "minLimit": 0.0001,
+        #                        "minDeposit": 20,
+        #                        "feeAssetCode": "usdt",
+        #                        "withdrawFee": "30",
+        #                        "type": 1,
+        #                        "coin": "usdt",
+        #                        "network": "eth"
+        #                    },
+        #                    ...
+        #                ],
+        #                "freezeAmt": "0",
+        #                "coin": "ada"
+        #            }
+        #        ],
+        #        "code": 0
+        #    }
+        #
         result = self.safe_value(response, 'data', [])
         withdrawFees = {}
         for i in range(0, len(result)):
@@ -1812,6 +1872,27 @@ class lbank2(Exchange):
             currency = self.currency(code)
             request['assetCode'] = currency['id']
         response = await self.publicGetWithdrawConfigs(self.extend(request, params))
+        #
+        #    {
+        #        result: 'true',
+        #        data: [
+        #          {
+        #            amountScale: '4',
+        #            chain: 'heco',
+        #            assetCode: 'lbk',
+        #            min: '200',
+        #            transferAmtScale: '4',
+        #            canWithDraw: True,
+        #            fee: '100',
+        #            minTransfer: '0.0001',
+        #            type: '1'
+        #          },
+        #          ...
+        #        ],
+        #        error_code: '0',
+        #        ts: '1663364435973'
+        #    }
+        #
         result = self.safe_value(response, 'data', [])
         withdrawFees = {}
         for i in range(0, len(result)):

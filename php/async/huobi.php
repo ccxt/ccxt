@@ -1606,6 +1606,16 @@ class huobi extends Exchange {
                     }
                 }
                 $contractSize = $this->safe_number($market, 'contract_size');
+                $minCost = $this->safe_number($market, 'min-order-value');
+                $maxAmount = $this->safe_number($market, 'max-order-amt');
+                $minAmount = $this->safe_number($market, 'min-order-amt');
+                if ($contract) {
+                    if ($linear) {
+                        $minAmount = $contractSize;
+                    } elseif ($inverse) {
+                        $minCost = $contractSize;
+                    }
+                }
                 $pricePrecision = null;
                 $amountPrecision = null;
                 $costPrecision = null;
@@ -1623,9 +1633,6 @@ class huobi extends Exchange {
                     $maker = ($base === 'OMG') ? $this->parse_number('0') : $this->parse_number('0.002');
                     $taker = ($base === 'OMG') ? $this->parse_number('0') : $this->parse_number('0.002');
                 }
-                $minAmount = $this->safe_number($market, 'min-order-amt');
-                $maxAmount = $this->safe_number($market, 'max-order-amt');
-                $minCost = $this->safe_number($market, 'min-order-value', 0);
                 $active = null;
                 if ($spot) {
                     $state = $this->safe_string($market, 'state');
@@ -2794,7 +2801,7 @@ class huobi extends Exchange {
                     $active = $withdrawEnabled && $depositEnabled;
                     $precision = $this->parse_precision($this->safe_string($chain, 'withdrawPrecision'));
                     if ($precision !== null) {
-                        $minPrecision = ($minPrecision === null) ? $precision : Precise::string_max($precision, $minPrecision);
+                        $minPrecision = ($minPrecision === null) ? $precision : Precise::string_min($precision, $minPrecision);
                     }
                     if ($withdrawEnabled && !$withdraw) {
                         $withdraw = true;
@@ -4060,6 +4067,10 @@ class huobi extends Exchange {
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} $params extra parameters specific to the huobi api endpoint
+             * @param {float|null} $params->stopPrice *spot and margin only* The $price at which a trigger order is triggered at
+             * @param {string|null} $params->operator *spot and margin only* gte or lte, trigger $price condition
+             * @param {string|null} $params->offset *contract only* 'open', 'close', or 'both', required in hedge mode
+             * @param {bool|null} $params->postOnly *contract only* true or false
              * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
              */
             Async\await($this->load_markets());
@@ -4190,9 +4201,6 @@ class huobi extends Exchange {
     public function create_contract_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             $offset = $this->safe_string($params, 'offset');
-            if ($offset === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires a string $offset parameter for contract orders, open or close');
-            }
             $stopPrice = $this->safe_string($params, 'stopPrice');
             if ($stopPrice !== null) {
                 throw new NotSupported($this->id . ' createOrder() supports tp_trigger_price . tp_order_price for take profit orders and/or sl_trigger_price . sl_order $price for stop loss orders, stop orders are supported only with open long orders and open short orders');
@@ -4206,7 +4214,7 @@ class huobi extends Exchange {
                 // 'price' => $this->price_to_precision($symbol, $price), // optional
                 'volume' => $this->amount_to_precision($symbol, $amount),
                 'direction' => $side, // buy, sell
-                'offset' => $offset, // open, close
+                // 'offset' => $offset, // open, close, both
                 //
                 //     direction buy, $offset open = open long
                 //     direction sell, $offset close = close long
