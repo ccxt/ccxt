@@ -520,17 +520,15 @@ module.exports = class bitmex extends Exchange {
                 future = true;
                 type = 'future';
                 symbol = symbol + '-' + this.yymmdd (expiry);
+            } else if (typ === 'IFXXXP') {
+                type = 'spot';
+                spot = true;
+                symbol = base + '/' + quote;
             } else {
-                if (typ === 'IFXXXP') {
-                    type = 'spot';
-                    spot = true;
-                    symbol = base + '/' + quote;
-                } else {
-                    index = true;
-                    type = 'index';
-                    symbol = id;
-                    active = false;
-                }
+                index = true;
+                type = 'index';
+                symbol = id;
+                active = false;
             }
             const lotSize = this.safeString (market, 'lotSize');
             let precisionAmount = undefined;
