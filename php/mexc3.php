@@ -249,6 +249,7 @@ class mexc3 extends Exchange {
                             'stoporder/order_details/{stop_order_id}' => 2,
                             'account/risk_limit' => 2, // TO_DO => gets max/min position size, allowed sides, leverage, maintenance margin, initial margin, etc...
                             'account/tiered_fee_rate' => 2, // TO_DO => taker/maker fees for account
+                            'position/leverage' => 2,
                         ),
                         'post' => array(
                             'position/change_margin' => 2,
@@ -338,8 +339,8 @@ class mexc3 extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.2 / 100, // maker / taker
-                    'taker' => 0.2 / 100,
+                    'maker' => $this->parse_number('0.002'), // maker / taker
+                    'taker' => $this->parse_number('0.002'),
                 ),
             ),
             'options' => array(
@@ -702,11 +703,11 @@ class mexc3 extends Exchange {
         //                    "MARGIN"
         //                ),
         //                "filters" => array(),
-        //                "baseSizePrecision" => "0.01", // seems to be derived of 'baseAssetPrecision'
+        //                "baseSizePrecision" => "0.01", // this turned out to be a minimum $base amount for order
         //                "maxQuoteAmount" => "5000000",
         //                "makerCommission" => "0.002",
         //                "takerCommission" => "0.002"
-        //                "quoteAmountPrecision" => "5", // seem totally unrelated value, as neither quote/base have anything related to this number
+        //                "quoteAmountPrecision" => "5", // this turned out to be a minimum cost amount for order
         //                "quotePrecision" => "4", // deprecated in favor of 'quoteAssetPrecision' ( https://dev.binance.vision/t/what-is-the-difference-between-quoteprecision-and-quoteassetprecision/4333 )
         //                // note, "icebergAllowed" & "ocoAllowed" fields were recently removed
         //            ),
@@ -771,7 +772,7 @@ class mexc3 extends Exchange {
                         'max' => null,
                     ),
                     'amount' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($market, 'baseSizePrecision'),
                         'max' => null,
                     ),
                     'price' => array(
@@ -779,7 +780,7 @@ class mexc3 extends Exchange {
                         'max' => null,
                     ),
                     'cost' => array(
-                        'min' => null,
+                        'min' => $this->safe_number($market, 'quoteAmountPrecision'),
                         'max' => $maxQuoteAmount,
                     ),
                 ),
@@ -1650,7 +1651,10 @@ class mexc3 extends Exchange {
                 if ($price === null) {
                     throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
                 } else {
-                    $amount = $amount * $price;
+                    $amountString = $this->number_to_string($amount);
+                    $priceString = $this->number_to_string($price);
+                    $quoteAmount = Precise::string_mul($amountString, $priceString);
+                    $amount = $this->parse_number($quoteAmount);
                 }
             }
             $request['quoteOrderQty'] = $amount;
