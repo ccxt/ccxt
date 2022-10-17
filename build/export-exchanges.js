@@ -498,7 +498,7 @@ async function exportEverything () {
         },
         {
             file: './ts/src/pro/bridge/bridge.ts',
-            regex:  /class [\s\S]+/g,
+            regex:  /export class [\s\S]+/g,
             replacement: wsIds.map (id =>
        
 `export class ${id}Bridge extends ${id}Rest {
