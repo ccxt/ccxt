@@ -17,7 +17,7 @@ import Exchange from '../js/src/pro/base/Exchange.js';
 import {  Transpiler, parallelizeTranspiling } from './transpile.js';
 import { pathToFileURL } from 'url'
 
-import exchanges from "../exchanges.json" assert { type: "json" };
+const exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 
 const { unCamelCase, precisionConstants, safeString, unique } = ccxt;
 

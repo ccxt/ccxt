@@ -21,7 +21,7 @@ const tsFilename = './ccxt.d.ts'
 const pythonCodingUtf8 = '# -*- coding: utf-8 -*-'
 const baseExchangeJsFile = './ts/src/base/Exchange.ts'
 
-import exchanges from "../exchanges.json" assert { type: "json" };
+const exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 
 
 let __dirname = new URL('.', import.meta.url).pathname;
