@@ -1789,7 +1789,7 @@ export default class exmo extends Exchange {
         await this.loadMarkets ();
         const request = {};
         if (since !== undefined) {
-            request['date'] = parseInt ((since / 1000).toString ());
+            request['date'] = this.parseToInt (since / 1000);
         }
         let currency = undefined;
         if (code !== undefined) {

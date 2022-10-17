@@ -569,7 +569,7 @@ export default class btcturk extends Exchange {
         const until = this.safeInteger (params, 'until', this.milliseconds ());
         request['to'] = parseInt ((until / 1000).toString ());
         if (since !== undefined) {
-            request['from'] = parseInt ((since / 1000).toString ());
+            request['from'] = this.parseToInt (since / 1000);
         } else if (limit === undefined) { // since will also be undefined
             limit = 100; // default value
         }

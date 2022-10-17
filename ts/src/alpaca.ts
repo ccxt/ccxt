@@ -439,7 +439,7 @@ export default class alpaca extends Exchange {
             request['limit'] = limit;
         }
         if (since !== undefined) {
-            request['start'] = parseInt ((since / 1000).toString ());
+            request['start'] = this.parseToInt (since / 1000);
         }
         const method = this.safeString (this.options, 'fetchOHLCVMethod', 'cryptoPublicGetCryptoBars');
         const response = await this[method] (this.extend (request, params));

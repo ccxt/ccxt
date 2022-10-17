@@ -1061,7 +1061,7 @@ export default class phemex extends Exchange {
         }
         if (since !== undefined) {
             limit = Math.min (limit, maxLimit);
-            since = parseInt ((since / 1000).toString ());
+            since = this.parseToInt (since / 1000);
             request['from'] = since;
             // time ranges ending in the future are not accepted
             // https://github.com/ccxt/ccxt/issues/8050

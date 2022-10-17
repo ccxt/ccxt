@@ -770,10 +770,10 @@ export default class hollaex extends Exchange {
             request['from'] = start;
         } else {
             if (limit === undefined) {
-                request['from'] = parseInt ((since / 1000).toString ());
+                request['from'] = this.parseToInt (since / 1000);
                 request['to'] = this.seconds ();
             } else {
-                const start = parseInt ((since / 1000).toString ());
+                const start = this.parseToInt (since / 1000);
                 request['from'] = start;
                 request['to'] = this.sum (start, duration * limit);
             }
