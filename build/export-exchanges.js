@@ -529,10 +529,10 @@ async function exportEverything () {
     public function __construct($options = array()) {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
+        $options['log'] = array($this, 'log');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
-        $options['log'] = $this->log;
         $this->ws = new WsConnector($options);
     }
     public function handle_message ($client, $message) {} // stub to override
