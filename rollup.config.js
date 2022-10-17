@@ -4,7 +4,7 @@ import resolve from "@rollup/plugin-node-resolve";
 
 export default {
   inlineDynamicImports: true,
-  input: "ccxt.js",
+  input: "./js/ccxt.js",
   output: [
     {
       file: "./dist/ccxt.bundle.cjs",
@@ -15,7 +15,7 @@ export default {
     json(),
     commonjs({
       transformMixedEsModules: true,
-      dynamicRequireTargets: ["**/js/static_dependencies/**/*.cjs"],
+      dynamicRequireTargets: ["**/js/src/static_dependencies/**/*.cjs"],
       
     }),
   ]

@@ -127,7 +127,7 @@ namespace ccxt\pro;
 require_once PATH_TO_WS_CCXT . 'bridge' . DIRECTORY_SEPARATOR . 'bridge.php';
 require_once PATH_TO_WS_CCXT . 'Future.php';
 require_once PATH_TO_WS_CCXT . 'Client.php';
-require_once PATH_TO_WS_CCXT . 'ClientTrait.php';
+require_once PATH_TO_WS_CCXT . 'WsConnector.php';
 require_once PATH_TO_WS_CCXT . 'OrderBook.php';
 require_once PATH_TO_WS_CCXT . 'OrderBookSide.php';
 require_once PATH_TO_WS_CCXT . 'BaseCache.php';
