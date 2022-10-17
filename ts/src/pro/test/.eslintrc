@@ -4,12 +4,12 @@
     "mocha": true
   },
   "parserOptions": {
-    "ecmaVersion": 2017,
-    "sourceType": "script",
+    "ecmaVersion": 2020,
+    "sourceType": "module",
   },
   "extends": ["eslint:recommended"],
   "rules": {
-      "semi": ["error", "never"],
+      "semi": ["error"],
       "no-unused-vars": ["off"],
       "quotes": ["off", "single"],
       "func-call-spacing": ["error", "always"],

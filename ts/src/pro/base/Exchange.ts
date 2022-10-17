@@ -26,8 +26,8 @@ export default class Exchange  {
         this.tokenBucket = (options as any).tokenBucket;
         this.newUpdates = true;
         this.options = {};
-        this.log = undefined;
-        this.ping = undefined;
+        this.log = (options as any).log;
+        this.ping = (options as any).ping;
         this.clients = {};
     }
 
@@ -55,11 +55,7 @@ export default class Exchange  {
         return new CountedOrderBook (snapshot, depth);
     }
     
-    // handleMessage(client, message) {
-
-    // }
-
-    client (url) {
+    client (url: string) {
         this.clients = this.clients || {};
         if (!this.clients[url]) {
             const onMessage = (this as any).handleMessage;
@@ -98,7 +94,7 @@ export default class Exchange  {
         }, timeout);
     }
 
-    watch (url, messageHash, message = undefined, subscribeHash = undefined, subscription = undefined) {
+    watch (url: string, messageHash: string, message = undefined, subscribeHash = undefined, subscription = undefined) {
         //
         // Without comments the code of this method is short and easy:
         //

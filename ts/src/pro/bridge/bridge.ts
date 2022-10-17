@@ -58,6 +58,8 @@ export class aaxBridge extends aaxRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -72,6 +74,8 @@ export class ascendexBridge extends ascendexRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -86,6 +90,8 @@ export class bequantBridge extends bequantRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -100,6 +106,8 @@ export class binanceBridge extends binanceRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -114,6 +122,8 @@ export class binancecoinmBridge extends binancecoinmRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -128,6 +138,8 @@ export class binanceusBridge extends binanceusRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -142,6 +154,8 @@ export class binanceusdmBridge extends binanceusdmRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -156,6 +170,8 @@ export class bitcoincomBridge extends bitcoincomRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -170,6 +186,8 @@ export class bitfinexBridge extends bitfinexRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -184,6 +202,8 @@ export class bitfinex2Bridge extends bitfinex2Rest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -198,6 +218,8 @@ export class bitmartBridge extends bitmartRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -212,6 +234,8 @@ export class bitmexBridge extends bitmexRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -226,6 +250,8 @@ export class bitoproBridge extends bitoproRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -240,6 +266,8 @@ export class bitstampBridge extends bitstampRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -254,6 +282,8 @@ export class bittrexBridge extends bittrexRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -268,6 +298,8 @@ export class bitvavoBridge extends bitvavoRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -282,6 +314,8 @@ export class bybitBridge extends bybitRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -296,6 +330,8 @@ export class coinbaseprimeBridge extends coinbaseprimeRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -310,6 +346,8 @@ export class coinbaseproBridge extends coinbaseproRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -324,6 +362,8 @@ export class coinexBridge extends coinexRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -338,6 +378,8 @@ export class cryptocomBridge extends cryptocomRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -352,6 +394,8 @@ export class currencycomBridge extends currencycomRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -366,6 +410,8 @@ export class exmoBridge extends exmoRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -380,6 +426,8 @@ export class ftxBridge extends ftxRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -394,6 +442,8 @@ export class ftxusBridge extends ftxusRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -408,6 +458,8 @@ export class gateBridge extends gateRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -422,6 +474,8 @@ export class gateioBridge extends gateioRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -436,6 +490,8 @@ export class hitbtcBridge extends hitbtcRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -450,6 +506,8 @@ export class hollaexBridge extends hollaexRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -464,6 +522,8 @@ export class huobiBridge extends huobiRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -478,6 +538,8 @@ export class huobijpBridge extends huobijpRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -492,6 +554,8 @@ export class huobiproBridge extends huobiproRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -506,6 +570,8 @@ export class idexBridge extends idexRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -520,6 +586,8 @@ export class krakenBridge extends krakenRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -534,6 +602,8 @@ export class kucoinBridge extends kucoinRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -548,6 +618,8 @@ export class mexcBridge extends mexcRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -562,6 +634,8 @@ export class ndaxBridge extends ndaxRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -576,6 +650,8 @@ export class okcoinBridge extends okcoinRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -590,6 +666,8 @@ export class okexBridge extends okexRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -604,6 +682,8 @@ export class okxBridge extends okxRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -618,6 +698,8 @@ export class phemexBridge extends phemexRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -632,6 +714,8 @@ export class ripioBridge extends ripioRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -646,6 +730,8 @@ export class upbitBridge extends upbitRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -660,6 +746,8 @@ export class whitebitBridge extends whitebitRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -674,6 +762,8 @@ export class zbBridge extends zbRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -688,6 +778,8 @@ export class zipmexBridge extends zipmexRest {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override

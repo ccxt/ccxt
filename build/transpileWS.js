@@ -147,7 +147,7 @@ class CCXTProTranspiler extends Transpiler {
     // ------------------------------------------------------------------------
 
     transpileOrderBookTest () {
-        const jsFile = './js/src/pro/test/base/test.OrderBook.js'
+        const jsFile = './ts/src/pro/test/base/test.OrderBook.ts'
         const pyFile = './python/ccxt/pro/test/test_order_book.py'
         const phpFile = './php/pro/test/OrderBook.php'
         const pyImports = [
@@ -161,7 +161,7 @@ class CCXTProTranspiler extends Transpiler {
     // ------------------------------------------------------------------------
 
     transpileCacheTest () {
-        const jsFile = './js/src/pro/test/base/test.Cache.js'
+        const jsFile = './ts/src/pro/test/base/test.Cache.ts'
         const pyFile = './python/ccxt/pro/test/test_cache.py'
         const phpFile = './php/pro/test/Cache.php'
         const pyImports = [
