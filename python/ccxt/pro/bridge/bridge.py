@@ -2,12 +2,14 @@
 import ccxt.async_support as ccxt
 from ccxt.pro.base.WsConnector import WsConnector
 
-##
-##  automatically generated don't change this manually
-##
+#
+#  automatically generated don't change this manually
+#
+
 
 class aaxBridge(ccxt.aax):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -20,13 +22,16 @@ class aaxBridge(ccxt.aax):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class ascendexBridge(ccxt.ascendex):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -39,13 +44,16 @@ class ascendexBridge(ccxt.ascendex):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class bequantBridge(ccxt.bequant):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -58,13 +66,16 @@ class bequantBridge(ccxt.bequant):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class binanceBridge(ccxt.binance):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -77,13 +88,16 @@ class binanceBridge(ccxt.binance):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class binancecoinmBridge(ccxt.binancecoinm):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -96,13 +110,16 @@ class binancecoinmBridge(ccxt.binancecoinm):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class binanceusBridge(ccxt.binanceus):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -115,13 +132,16 @@ class binanceusBridge(ccxt.binanceus):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class binanceusdmBridge(ccxt.binanceusdm):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -134,13 +154,16 @@ class binanceusdmBridge(ccxt.binanceusdm):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class bitcoincomBridge(ccxt.bitcoincom):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -153,13 +176,16 @@ class bitcoincomBridge(ccxt.bitcoincom):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class bitfinexBridge(ccxt.bitfinex):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -172,13 +198,16 @@ class bitfinexBridge(ccxt.bitfinex):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class bitfinex2Bridge(ccxt.bitfinex2):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -191,13 +220,16 @@ class bitfinex2Bridge(ccxt.bitfinex2):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class bitmartBridge(ccxt.bitmart):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -210,13 +242,16 @@ class bitmartBridge(ccxt.bitmart):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class bitmexBridge(ccxt.bitmex):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -229,13 +264,16 @@ class bitmexBridge(ccxt.bitmex):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class bitoproBridge(ccxt.bitopro):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -248,13 +286,16 @@ class bitoproBridge(ccxt.bitopro):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class bitstampBridge(ccxt.bitstamp):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -267,13 +308,16 @@ class bitstampBridge(ccxt.bitstamp):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class bittrexBridge(ccxt.bittrex):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -286,13 +330,16 @@ class bittrexBridge(ccxt.bittrex):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class bitvavoBridge(ccxt.bitvavo):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -305,13 +352,16 @@ class bitvavoBridge(ccxt.bitvavo):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class bybitBridge(ccxt.bybit):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -324,13 +374,16 @@ class bybitBridge(ccxt.bybit):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class coinbaseprimeBridge(ccxt.coinbaseprime):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -343,13 +396,16 @@ class coinbaseprimeBridge(ccxt.coinbaseprime):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class coinbaseproBridge(ccxt.coinbasepro):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -362,13 +418,16 @@ class coinbaseproBridge(ccxt.coinbasepro):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class coinexBridge(ccxt.coinex):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -381,13 +440,16 @@ class coinexBridge(ccxt.coinex):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class cryptocomBridge(ccxt.cryptocom):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -400,13 +462,16 @@ class cryptocomBridge(ccxt.cryptocom):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class currencycomBridge(ccxt.currencycom):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -419,13 +484,16 @@ class currencycomBridge(ccxt.currencycom):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class exmoBridge(ccxt.exmo):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -438,13 +506,16 @@ class exmoBridge(ccxt.exmo):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class ftxBridge(ccxt.ftx):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -457,13 +528,16 @@ class ftxBridge(ccxt.ftx):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class ftxusBridge(ccxt.ftxus):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -476,13 +550,16 @@ class ftxusBridge(ccxt.ftxus):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class gateBridge(ccxt.gate):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -495,13 +572,16 @@ class gateBridge(ccxt.gate):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class gateioBridge(ccxt.gateio):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -514,13 +594,16 @@ class gateioBridge(ccxt.gateio):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class hitbtcBridge(ccxt.hitbtc):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -533,13 +616,16 @@ class hitbtcBridge(ccxt.hitbtc):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class hollaexBridge(ccxt.hollaex):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -552,13 +638,16 @@ class hollaexBridge(ccxt.hollaex):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class huobiBridge(ccxt.huobi):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -571,13 +660,16 @@ class huobiBridge(ccxt.huobi):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class huobijpBridge(ccxt.huobijp):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -590,13 +682,16 @@ class huobijpBridge(ccxt.huobijp):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class huobiproBridge(ccxt.huobipro):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -609,13 +704,16 @@ class huobiproBridge(ccxt.huobipro):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class idexBridge(ccxt.idex):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -628,13 +726,16 @@ class idexBridge(ccxt.idex):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class krakenBridge(ccxt.kraken):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -647,13 +748,16 @@ class krakenBridge(ccxt.kraken):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class kucoinBridge(ccxt.kucoin):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -666,13 +770,16 @@ class kucoinBridge(ccxt.kucoin):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class mexcBridge(ccxt.mexc):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -685,13 +792,16 @@ class mexcBridge(ccxt.mexc):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class ndaxBridge(ccxt.ndax):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -704,13 +814,16 @@ class ndaxBridge(ccxt.ndax):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class okcoinBridge(ccxt.okcoin):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -723,13 +836,16 @@ class okcoinBridge(ccxt.okcoin):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class okexBridge(ccxt.okex):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -742,13 +858,16 @@ class okexBridge(ccxt.okex):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class okxBridge(ccxt.okx):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -761,13 +880,16 @@ class okxBridge(ccxt.okx):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class phemexBridge(ccxt.phemex):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -780,13 +902,16 @@ class phemexBridge(ccxt.phemex):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class ripioBridge(ccxt.ripio):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -799,13 +924,16 @@ class ripioBridge(ccxt.ripio):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class upbitBridge(ccxt.upbit):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -818,13 +946,16 @@ class upbitBridge(ccxt.upbit):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class whitebitBridge(ccxt.whitebit):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -837,13 +968,16 @@ class whitebitBridge(ccxt.whitebit):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class zbBridge(ccxt.zb):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -856,13 +990,16 @@ class zbBridge(ccxt.zb):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------
 
 class zipmexBridge(ccxt.zipmex):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -875,8 +1012,9 @@ class zipmexBridge(ccxt.zipmex):
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
-        return
-##---------------------------------------------------------------------
 
+    def handle_message(self, client, message):  # stub to override
+        return
+
+
+# ---------------------------------------------------------------------

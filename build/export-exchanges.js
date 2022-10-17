@@ -548,6 +548,7 @@ async function exportEverything () {
        
 `class ${id}Bridge(ccxt.${id}):
     ws = None
+
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
@@ -560,12 +561,13 @@ async function exportEverything () {
         config['get_session'] = self.get_session
         config['get_loop'] = self.get_event_loop
         self.ws = WsConnector(config)
-    
-    def handle_message(self, client, message): # stub to override
+
+    def handle_message(self, client, message):  # stub to override
         return
-##---------------------------------------------------------------------
+\n
+# ---------------------------------------------------------------------
 `                
-        ).join("\n") + "\n"
+        ).join("\n")
         },
     ]
 
