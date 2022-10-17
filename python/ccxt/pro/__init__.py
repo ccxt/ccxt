@@ -11,7 +11,6 @@ __version__ = '2.0.28'
 # Pro Exchange
 
 from ccxt.pro.base.WsConnector import WsConnector  # noqa: F401
-from ccxt.pro.bridge import bridge
 
 # CCXT Pro exchanges (now this is mainly used for importing exchanges in WS tests)
 
