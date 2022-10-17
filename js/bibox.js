@@ -1384,7 +1384,7 @@ module.exports = class bibox extends Exchange {
         }
         let fee = undefined;
         if (fees.length) {
-            fee = this.safeValue (fees, 0)
+            fee = this.safeValue (fees, 0);
         } else {
             const feeCost = this.safeString (order, 'fee');
             if (feeCost !== undefined) {
