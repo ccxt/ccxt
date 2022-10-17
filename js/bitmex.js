@@ -536,8 +536,7 @@ module.exports = class bitmex extends Exchange {
             const lotSize = this.safeString (market, 'lotSize');
             let precisionAmount = undefined;
             if (spot) {
-                const currencyPrecison = this.safeString (this.options['tempCurrencyPrecision'], base);
-                precisionAmount = this.parseNumber (Precise.stringMul (currencyPrecison, lotSize));
+                precisionAmount = this.parseNumber (Precise.stringDiv ('1', lotSize));
             } else {
                 precisionAmount = this.parseNumber (lotSize);
             }
@@ -1929,10 +1928,19 @@ module.exports = class bitmex extends Exchange {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap and future markets only');
             }
         }
+        let quantity = undefined;
+        if (market['spot']) {
+            amount = this.amountToPrecision (symbol, amount);
+            const currency = this.currency (market['base']);
+            const scale = this.safeString (currency, 'precision');
+            quantity = this.parseNumber (Precise.stringDiv (this.numberToString (amount), scale));
+        } else {
+            quantity = parseFloat (this.amountToPrecision (symbol, amount)); // lot size multiplied by the number of contracts
+        }
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
-            'orderQty': parseFloat (this.amountToPrecision (symbol, amount)), // lot size multiplied by the number of contracts
+            'orderQty': quantity,
             'ordType': orderType,
         };
         if (reduceOnly) {
