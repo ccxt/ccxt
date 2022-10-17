@@ -1374,13 +1374,25 @@ module.exports = class bibox extends Exchange {
         const clientOrderId = this.safeString (order, 'I');
         const timeInForce = this.safeString (order, 't');
         const postOnly = this.safeValue (order, 'o');
-        const feeCost = this.safeString (order, 'fee');
+        const fees = [];
+        const orderFees = this.safeValue (order, 'f', []);
+        for (let i = 0; i < orderFees.length; i++) {
+            fees.push ({
+                'currency': this.safeCurrencyCode (this.safeString (orderFees[i], 'a')),
+                'cost': this.safeString (orderFees[i], 'm');
+            });
+        }
         let fee = undefined;
-        if (feeCost !== undefined) {
-            fee = {
-                'cost': feeCost,
-                'currency': undefined,
-            };
+        if (fees.length) {
+            fee = this.safeValue (fees, 0)
+        } else {
+            const feeCost = this.safeString (order, 'fee');
+            if (feeCost !== undefined) {
+                fee = {
+                    'cost': feeCost,
+                    'currency': undefined,
+                };
+            }
         }
         return this.safeOrder ({
             'info': order,
@@ -1403,6 +1415,7 @@ module.exports = class bibox extends Exchange {
             'remaining': undefined,
             'status': status,
             'fee': fee,
+            'fees': fees,
             'trades': undefined,
         }, market);
     }
