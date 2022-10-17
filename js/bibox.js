@@ -1279,48 +1279,53 @@ module.exports = class bibox extends Exchange {
         //
         // createOrder V4
         //
-        //     {
-        //         "i": 4611688217450643477,  // The order id assigned by the exchange
-        //         "I": "",  // User specified order id
-        //         "m": "BTC_USDT",  // trading pair code
-        //         "T": "limit",  // order type
-        //         "s": "sell",  // order direction
-        //         "Q": -0.0100,  // order amount
-        //         "P": 10043.8500,  // order price
-        //         "t": "gtc",  // Time In Force
-        //         "o": false,  // Post Only
-        //         "S": "filled",  // order status
-        //         "E": -0.0100,  // transaction volume
-        //         "e": -100.43850000,  // transaction value
-        //         "C": 1643193746043,  // creation time
-        //         "U": 1643193746464,  // update time
-        //         "n": 2,  // Number of transactions
-        //         "F": [{
-        //             "i": 13,  // transaction id
-        //             "t": 1643193746464,  // Transaction time
-        //             "p": 10043.85,  // transaction price
-        //             "q": -0.009,  // transaction volume
-        //             "l": "maker",  // Maker / Taker transaction
-        //             "f": {
-        //                 "a": "USDT",  // The asset used for the transaction to pay the handling fee
-        //                 "m": 0.09039465000  // The transaction fee
-        //             }
-        //         }, {
-        //             "i": 12,
-        //             "t": 1643193746266,
-        //             "p": 10043.85,
-        //             "q": -0.001,
-        //             "l": "maker",
-        //             "f": {
-        //                 "a": "USDT",
-        //                 "m": 0.01004385000
-        //             }
-        //         }],
-        //         "f": [{
-        //             "a": "USDT",  // Assets used to pay fees
-        //             "m": 0.10043850000  // Total handling fee
-        //         }]
-        //     }
+        //    {
+        //        "i": 4611688217450643477,  // The order id assigned by the exchange
+        //        "I": "",  // User specified order id
+        //        "m": "BTC_USDT",  // trading pair code
+        //        "T": "limit",  // order type
+        //        "s": "sell",  // order direction
+        //        "Q": -0.0100,  // order amount
+        //        "P": 10043.8500,  // order price
+        //        "t": "gtc",  // Time In Force
+        //        "o": false,  // Post Only
+        //        "S": "filled",  // order status
+        //        "E": -0.0100,  // transaction volume
+        //        "e": -100.43850000,  // transaction value
+        //        "C": 1643193746043,  // creation time
+        //        "U": 1643193746464,  // update time
+        //        "n": 2,  // Number of transactions
+        //        "F": [
+        //            {
+        //                "i": 13,  // transaction id
+        //                "t": 1643193746464,  // Transaction time
+        //                "p": 10043.85,  // transaction price
+        //                "q": -0.009,  // transaction volume
+        //                "l": "maker",  // Maker / Taker transaction
+        //                "f": {
+        //                    "a": "USDT",  // The asset used for the transaction to pay the handling fee
+        //                    "m": 0.09039465000  // The transaction fee
+        //                }
+        //            },
+        //            {
+        //                "i": 12,
+        //                "t": 1643193746266,
+        //                "p": 10043.85,
+        //                "q": -0.001,
+        //                "l": "maker",
+        //                "f": {
+        //                    "a": "USDT",
+        //                    "m": 0.01004385000
+        //                }
+        //            }
+        //        ],
+        //        "f": [
+        //            {
+        //                "a": "USDT",  // Assets used to pay fees
+        //                "m": 0.10043850000  // Total handling fee
+        //            }
+        //        ]
+        //    }
         //
         // fetchOrder V1, fetchOpenOrders V1, fetchClosedOrders V1
         //
