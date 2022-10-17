@@ -7,416 +7,692 @@ namespace ccxt\pro;
 //
 
 class aaxBridge extends \ccxt\async\aax {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class ascendexBridge extends \ccxt\async\ascendex {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class bequantBridge extends \ccxt\async\bequant {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class binanceBridge extends \ccxt\async\binance {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class binancecoinmBridge extends \ccxt\async\binancecoinm {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class binanceusBridge extends \ccxt\async\binanceus {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class binanceusdmBridge extends \ccxt\async\binanceusdm {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class bitcoincomBridge extends \ccxt\async\bitcoincom {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class bitfinexBridge extends \ccxt\async\bitfinex {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class bitfinex2Bridge extends \ccxt\async\bitfinex2 {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class bitmartBridge extends \ccxt\async\bitmart {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class bitmexBridge extends \ccxt\async\bitmex {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class bitoproBridge extends \ccxt\async\bitopro {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class bitstampBridge extends \ccxt\async\bitstamp {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class bittrexBridge extends \ccxt\async\bittrex {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class bitvavoBridge extends \ccxt\async\bitvavo {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class bybitBridge extends \ccxt\async\bybit {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class coinbaseprimeBridge extends \ccxt\async\coinbaseprime {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class coinbaseproBridge extends \ccxt\async\coinbasepro {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class coinexBridge extends \ccxt\async\coinex {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class cryptocomBridge extends \ccxt\async\cryptocom {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class currencycomBridge extends \ccxt\async\currencycom {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class exmoBridge extends \ccxt\async\exmo {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class ftxBridge extends \ccxt\async\ftx {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class ftxusBridge extends \ccxt\async\ftxus {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class gateBridge extends \ccxt\async\gate {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class gateioBridge extends \ccxt\async\gateio {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class hitbtcBridge extends \ccxt\async\hitbtc {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class hollaexBridge extends \ccxt\async\hollaex {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class huobiBridge extends \ccxt\async\huobi {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class huobijpBridge extends \ccxt\async\huobijp {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class huobiproBridge extends \ccxt\async\huobipro {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class idexBridge extends \ccxt\async\idex {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class krakenBridge extends \ccxt\async\kraken {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class kucoinBridge extends \ccxt\async\kucoin {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class mexcBridge extends \ccxt\async\mexc {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class ndaxBridge extends \ccxt\async\ndax {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class okcoinBridge extends \ccxt\async\okcoin {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class okexBridge extends \ccxt\async\okex {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class okxBridge extends \ccxt\async\okx {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class phemexBridge extends \ccxt\async\phemex {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class ripioBridge extends \ccxt\async\ripio {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class upbitBridge extends \ccxt\async\upbit {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class whitebitBridge extends \ccxt\async\whitebit {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class zbBridge extends \ccxt\async\zb {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
 class zipmexBridge extends \ccxt\async\zipmex {
-    public ClientTrait $ws;
+    public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $this->ws = new ClientTrait();
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['enableRateLimit'] = $this->enableRateLimit;
+        $options['tokenBucket'] = $this->tokenBucket;
+        $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
+        $this->ws = new WsConnector($options);
     }
+    public function handle_message ($client, $message) {} // stub to override
 }
 //---------------------------------------------------------------------
 
