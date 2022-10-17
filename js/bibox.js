@@ -1379,7 +1379,7 @@ module.exports = class bibox extends Exchange {
         for (let i = 0; i < orderFees.length; i++) {
             fees.push ({
                 'currency': this.safeCurrencyCode (this.safeString (orderFees[i], 'a')),
-                'cost': this.safeString (orderFees[i], 'm');
+                'cost': this.safeString (orderFees[i], 'm'),
             });
         }
         let fee = undefined;
