@@ -17,6 +17,8 @@ import Exchange from '../js/src/pro/base/Exchange.js';
 import {  Transpiler, parallelizeTranspiling } from './transpile.js';
 import { pathToFileURL } from 'url'
 
+import exchanges from "../exchanges.json" assert { type: "json" };
+
 const { unCamelCase, precisionConstants, safeString, unique } = ccxt;
 
 // const tsFilename = './ccxt.d.ts'
@@ -301,13 +303,10 @@ class CCXTProTranspiler extends Transpiler {
 
 // ============================================================================
 // main entry point
-
-let metaUrl = import.meta.url
-metaUrl = metaUrl.substring(0, metaUrl.lastIndexOf("."))
+const metaUrlRaw = import.meta.url
+const metaUrl = metaUrlRaw.substring(0, metaUrlRaw.lastIndexOf(".")) // remove extension
 const url = pathToFileURL(process.argv[1]);
-const href = url.href;
-if (metaUrl === href) {
-
+if (metaUrl === url.href || url.href === metaUrlRaw) { // called directly like `node module`
     // if called directly like `node module`
 
     const transpiler = new CCXTProTranspiler ()
@@ -318,8 +317,7 @@ if (metaUrl === href) {
         log.bright.green ({ force })
     }
     if (multiprocess) {
-        const exchanges = require ('../exchanges.json').ws
-        parallelizeTranspiling (exchanges)
+        parallelizeTranspiling (exchanges.ws)
     } else {
         transpiler.transpileEverything (force)
     }

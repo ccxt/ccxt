@@ -14,11 +14,15 @@ import { pathToFileURL } from 'url'
 import errorHierarchy from '../js/src/base/errorHierarchy.js'
 import { platform } from 'process'
 import os from 'os'
+import { fork } from 'child_process'
 ansi.nice
 
 const tsFilename = './ccxt.d.ts'
 const pythonCodingUtf8 = '# -*- coding: utf-8 -*-'
 const baseExchangeJsFile = './ts/src/base/Exchange.ts'
+
+import exchanges from "../exchanges.json" assert { type: "json" };
+
 
 let __dirname = new URL('.', import.meta.url).pathname;
 
@@ -1290,7 +1294,7 @@ class Transpiler {
         // exchanges.json accounts for ids included in exchanges.cfg
         let ids = undefined
         try {
-            ids = require ('../exchanges.json').ids;
+            ids = exchanges.ids
         } catch (e) {
         }
 
@@ -2059,10 +2063,10 @@ function parallelizeTranspiling (exchanges, processes = undefined) {
 
 // ============================================================================
 // main entry point
-let metaUrl = import.meta.url
-metaUrl = metaUrl.substring(0, metaUrl.lastIndexOf(".")) // remove extension
+const metaUrlRaw = import.meta.url
+const metaUrl = metaUrlRaw.substring(0, metaUrlRaw.lastIndexOf(".")) // remove extension
 const url = pathToFileURL(process.argv[1]);
-if (metaUrl === url.href) { // called directly like `node module`
+if (metaUrl === url.href || url.href === metaUrlRaw) { // called directly like `node module`
 
     const transpiler = new Transpiler ()
     const test = process.argv.includes ('--test') || process.argv.includes ('--tests')
@@ -2078,8 +2082,7 @@ if (metaUrl === url.href) { // called directly like `node module`
     } else if (errors) {
         transpiler.transpileErrorHierarchy ({ tsFilename })
     } else if (multiprocess) {
-        const exchanges = require ('../exchanges.json').ids
-        parallelizeTranspiling (exchanges)
+        parallelizeTranspiling (exchanges.ids)
     } else {
         transpiler.transpileEverything (force, child)
     }
