@@ -2792,7 +2792,7 @@ export default class bybit extends Exchange {
         if (brokerId !== undefined) {
             request['agentSource'] = brokerId;
         }
-        const response = await this.privatePostSpotV1Order (this.extend (request, params));
+        const response = await (this as any).privatePostSpotV1Order (this.extend (request, params));
         //
         //    {
         //        "ret_code": 0,
