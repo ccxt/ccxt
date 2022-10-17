@@ -1,3 +1,4 @@
+/* eslint-disable */
 import assert from 'assert';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../../base/Cache.js';
 
