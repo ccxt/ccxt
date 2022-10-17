@@ -1,4 +1,3 @@
-/* eslint-disable */
 import assert from 'assert';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../../base/Cache.js';
 
@@ -7,11 +6,12 @@ function equals (a, b) {
         return false;
     }
     for (const prop in a) {
-        if (Array.isArray (a[prop]) || typeof a[prop] === 'object') {
+        if (Array.isArray (a[prop])) {
             if (!equals (a[prop], b[prop])) {
                 return false;
             }
-        } else if (a[prop] !== b[prop]) {
+        }
+        else if (a[prop] !== b[prop]) {
             return false;
         }
     }
@@ -67,17 +67,17 @@ assert (equals (cache, [
 
 cache = new ArrayCacheByTimestamp ();
 
-const ohlcv1 = [100, 1, 2, 3];
-const ohlcv2 = [200, 5, 6, 7];
+const ohlcv1 = [ 100, 1, 2, 3 ];
+const ohlcv2 = [ 200, 5, 6, 7 ];
 cache.append (ohlcv1);
 cache.append (ohlcv2);
 
-assert (equals (cache, [ohlcv1, ohlcv2]));
+assert (equals (cache, [ ohlcv1, ohlcv2 ]));
 
-const modify2 = [200, 10, 11, 12];
+const modify2 = [ 200, 10, 11, 12 ];
 cache.append (modify2);
 
-assert (equals (cache, [ohlcv1, modify2]));
+assert (equals (cache, [ ohlcv1, modify2 ]));
 
 // ----------------------------------------------------------------------------
 
@@ -274,8 +274,8 @@ outsideLimit = 5;
 limited = cache.getLimit (symbol, outsideLimit);
 const limited2 = cache.getLimit (undefined, outsideLimit);
 
-assert (1 == limited);
-assert (2 == limited2);
+assert (limited == 1);
+assert (limited2 == 2);
 
 
 // ----------------------------------------------------------------------------
