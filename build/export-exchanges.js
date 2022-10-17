@@ -509,6 +509,8 @@ async function exportEverything () {
         (config as any).tokenBucket = this.tokenBucket;
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
+        (config as any).log = this.log;
+        (config as any).ping = (this as any).ping;
         this.ws = new WSConnector (config);
     }
     handleMessage (client, message) {} // stub to override
@@ -530,6 +532,7 @@ async function exportEverything () {
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
+        $options['log'] = $this->log;
         $this->ws = new WsConnector($options);
     }
     public function handle_message ($client, $message) {} // stub to override
@@ -551,7 +554,12 @@ async function exportEverything () {
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
         config['verbose'] = self.verbose
-        ws = WsConnector(config)
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return

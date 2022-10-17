@@ -179,6 +179,7 @@ async def main():
 
     if argv.verbose and argv.debug:
         exchange.verbose = argv.verbose
+        exchange.ws.verbose = argv.verbose
 
     markets_path = '.cache/' + exchange.id + '-markets.json'
     if os.path.exists(markets_path):

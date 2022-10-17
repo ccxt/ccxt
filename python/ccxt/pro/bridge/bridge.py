@@ -2,6 +2,10 @@
 import ccxt.async_support as ccxt
 from ccxt.pro.base.WsConnector import WsConnector
 
+##
+##  automatically generated don't change this manually
+##
+
 class aaxBridge(ccxt.aax):
     ws = None
     def __init__(self, config):
@@ -9,7 +13,13 @@ class aaxBridge(ccxt.aax):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -22,7 +32,13 @@ class ascendexBridge(ccxt.ascendex):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -35,7 +51,13 @@ class bequantBridge(ccxt.bequant):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -48,7 +70,13 @@ class binanceBridge(ccxt.binance):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -61,7 +89,13 @@ class binancecoinmBridge(ccxt.binancecoinm):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -74,7 +108,13 @@ class binanceusBridge(ccxt.binanceus):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -87,7 +127,13 @@ class binanceusdmBridge(ccxt.binanceusdm):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -100,7 +146,13 @@ class bitcoincomBridge(ccxt.bitcoincom):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -113,7 +165,13 @@ class bitfinexBridge(ccxt.bitfinex):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -126,7 +184,13 @@ class bitfinex2Bridge(ccxt.bitfinex2):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -139,7 +203,13 @@ class bitmartBridge(ccxt.bitmart):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -152,7 +222,13 @@ class bitmexBridge(ccxt.bitmex):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -165,7 +241,13 @@ class bitoproBridge(ccxt.bitopro):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -178,7 +260,13 @@ class bitstampBridge(ccxt.bitstamp):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -191,7 +279,13 @@ class bittrexBridge(ccxt.bittrex):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -204,7 +298,13 @@ class bitvavoBridge(ccxt.bitvavo):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -217,7 +317,13 @@ class bybitBridge(ccxt.bybit):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -230,7 +336,13 @@ class coinbaseprimeBridge(ccxt.coinbaseprime):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -243,7 +355,13 @@ class coinbaseproBridge(ccxt.coinbasepro):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -256,7 +374,13 @@ class coinexBridge(ccxt.coinex):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -269,7 +393,13 @@ class cryptocomBridge(ccxt.cryptocom):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -282,7 +412,13 @@ class currencycomBridge(ccxt.currencycom):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -295,7 +431,13 @@ class exmoBridge(ccxt.exmo):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -308,7 +450,13 @@ class ftxBridge(ccxt.ftx):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -321,7 +469,13 @@ class ftxusBridge(ccxt.ftxus):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -334,7 +488,13 @@ class gateBridge(ccxt.gate):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -347,7 +507,13 @@ class gateioBridge(ccxt.gateio):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -360,7 +526,13 @@ class hitbtcBridge(ccxt.hitbtc):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -373,7 +545,13 @@ class hollaexBridge(ccxt.hollaex):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -386,7 +564,13 @@ class huobiBridge(ccxt.huobi):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -399,7 +583,13 @@ class huobijpBridge(ccxt.huobijp):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -412,7 +602,13 @@ class huobiproBridge(ccxt.huobipro):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -425,7 +621,13 @@ class idexBridge(ccxt.idex):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -438,7 +640,13 @@ class krakenBridge(ccxt.kraken):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -451,7 +659,13 @@ class kucoinBridge(ccxt.kucoin):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -464,7 +678,13 @@ class mexcBridge(ccxt.mexc):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -477,7 +697,13 @@ class ndaxBridge(ccxt.ndax):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -490,7 +716,13 @@ class okcoinBridge(ccxt.okcoin):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -503,7 +735,13 @@ class okexBridge(ccxt.okex):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -516,7 +754,13 @@ class okxBridge(ccxt.okx):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -529,7 +773,13 @@ class phemexBridge(ccxt.phemex):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -542,7 +792,13 @@ class ripioBridge(ccxt.ripio):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -555,7 +811,13 @@ class upbitBridge(ccxt.upbit):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -568,7 +830,13 @@ class whitebitBridge(ccxt.whitebit):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -581,7 +849,13 @@ class zbBridge(ccxt.zb):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return
@@ -594,7 +868,13 @@ class zipmexBridge(ccxt.zipmex):
         config['handle_message'] = self.handle_message
         config['enableRateLimit'] = self.enableRateLimit
         config['tokenBucket'] = self.tokenBucket
-        ws = WsConnector(config)
+        config['verbose'] = self.verbose
+        config['log'] = self.log
+        config['ping'] = self.ping
+        config['open'] = self.open
+        config['get_session'] = self.get_session
+        config['get_loop'] = self.get_event_loop
+        self.ws = WsConnector(config)
     
     def handle_message(self, client, message): # stub to override
         return

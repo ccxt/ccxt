@@ -33,14 +33,23 @@ class WsConnector:
     asyncio_loop = None
     tokenBucket = None
     handle_message = None
+    ping = None
+    log = None
+    open = None
+    get_session = None
+    get_loop = None
 
     def __init__(self, options):
         self.options = options
         self.verbose = options.get('verbose', False)
         self.enableRateLimit = options.get('enableRateLimit', True)
-        self.asyncio_loop = options.get('asyncio_loop')
         self.tokenBucket = options.get('tokenBucket')
         self.handle_message = options.get('handle_message')
+        self.ping = options.get('ping')
+        self.log = options.get('log')
+        self.open = options.get('open')
+        self.get_session = options.get('get_session')
+        self.get_loop = options.get('get_loop')
 
     # streaming-specific options
     streaming = {
@@ -81,12 +90,12 @@ class WsConnector:
             on_connected = self.on_connected
             # decide client type here: aiohttp ws / websockets / signalr / socketio
             ws_options = BaseExchange.safe_value(self.options, 'ws', {})
-            options = self.extend(self.streaming, {
-                'log': getattr(self, 'log'),
+            options = BaseExchange.extend(self.streaming, {
+                'log': self.log,
                 'ping': getattr(self, 'ping', None),
                 'verbose': self.verbose,
-                'throttle': Throttler(self.tokenBucket, self.asyncio_loop),
-                'asyncio_loop': self.asyncio_loop,
+                'throttle': Throttler(self.tokenBucket, self.get_loop()),
+                'asyncio_loop': self.get_loop(),
             }, ws_options)
             self.clients[url] = FastClient(url, on_message, on_error, on_close, on_connected, options)
         return self.clients[url]
@@ -126,7 +135,7 @@ class WsConnector:
         # base exchange self.open starts the aiohttp Session in an async context
         self.open()
         connected = client.connected if client.connected.done() \
-            else asyncio.ensure_future(client.connect(self.session, backoff_delay))
+            else asyncio.ensure_future(client.connect(self.get_session(), backoff_delay))
 
         def after(fut):
             if subscribe_hash not in client.subscriptions:
