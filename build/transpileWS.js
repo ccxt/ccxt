@@ -13,7 +13,7 @@ import {
     createFolder,
     createFolderRecursively,
 } from './fsLocal.js';
-import Exchange from '../js/src/pro/base/Exchange.js';
+import Exchange from '../js/src/base/Exchange.js';
 import {  Transpiler, parallelizeTranspiling } from './transpile.js';
 import { pathToFileURL } from 'url'
 
