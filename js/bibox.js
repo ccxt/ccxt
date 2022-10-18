@@ -1159,6 +1159,16 @@ module.exports = class bibox extends Exchange {
             // 'time_in_force': // Valid value gtc, ioc
             // 'post_only':
         };
+        const timeInForce = this.safeStringLower (params, 'timeInForce');
+        if (timeInForce !== undefined) {
+            request['post_only'] = timeInForce;
+            params = this.omit (params, 'timeInForce');
+        }
+        const postOnly = this.safeString (params, 'postOnly');
+        if (postOnly !== undefined) {
+            request['post_only'] = postOnly;
+            params = this.omit (params, 'postOnly');
+        }
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
@@ -1356,10 +1366,12 @@ module.exports = class bibox extends Exchange {
         }
         market = this.safeMarket (marketId, market);
         let type = this.safeString2 (order, 'T', 'order_type');
-        if (type === '1') {
-            type = 'limit';
-        } else if (type === '2') {
-            type = 'market';
+        if (type !== 'limit' && type !== 'market') {
+            if (type === '1') {
+                type = 'limit';
+            } else if (type === '2') {
+                type = 'market';
+            }
         }
         const timestamp = this.safeInteger2 (order, 'C', 'createdAt');
         const price = this.safeString2 (order, 'P', 'price');
@@ -1374,10 +1386,10 @@ module.exports = class bibox extends Exchange {
         } else if (side === '2') {
             side = 'sell';
         }
-        const status = this.parseOrderStatus (this.safeString (order, 'S', 'status'));
+        const status = this.parseOrderStatus (this.safeString2 (order, 'S', 'status'));
         const id = this.safeString2 (order, 'i', 'id');
-        const clientOrderId = this.safeString (order, 'I');
-        const timeInForce = this.safeString (order, 't');
+        const clientOrderId = this.omitZero (this.safeString (order, 'I'));
+        const timeInForce = this.safeStringUpper (order, 't');
         const postOnly = this.safeValue (order, 'o');
         const fees = [];
         const orderFees = this.safeValue (order, 'f', []);
@@ -1436,6 +1448,7 @@ module.exports = class bibox extends Exchange {
             '5': 'canceled', // canceled
             '6': 'canceled', // canceling
             'rejected': 'rejected',
+            '-1': 'rejected',
         };
         return this.safeString (statuses, status, status);
     }
