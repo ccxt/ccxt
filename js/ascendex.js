@@ -257,10 +257,6 @@ module.exports = class ascendex extends Exchange {
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
-                'defaultNetworks': {
-                    'USDT': undefined,
-                    'ETH': undefined,
-                },
                 'networks': {
                     'TRC20': 'TRC20',
                     'ERC20': 'ERC20',
