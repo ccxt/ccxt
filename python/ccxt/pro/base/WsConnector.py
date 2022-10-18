@@ -75,10 +75,19 @@ class WsConnector:
     def order_book(self, snapshot={}, depth=None):
         return OrderBook(snapshot, depth)
 
+    def orderBook(self, snapshot={}, depth=None): # tmp duplication
+        return OrderBook(snapshot, depth)
+
     def indexed_order_book(self, snapshot={}, depth=None):
         return IndexedOrderBook(snapshot, depth)
 
+    def indexedOrderBook(self, snapshot={}, depth=None): # tmp duplication
+        return IndexedOrderBook(snapshot, depth)
+
     def counted_order_book(self, snapshot={}, depth=None):
+        return CountedOrderBook(snapshot, depth)
+
+    def countedOrderBook(self, snapshot={}, depth=None): # tmp duplication
         return CountedOrderBook(snapshot, depth)
 
     def client(self, url):

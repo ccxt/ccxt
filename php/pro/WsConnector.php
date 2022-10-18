@@ -47,11 +47,24 @@ class WsConnector {
         return new OrderBook($snapshot, $depth);
     }
 
+
+    function orderBook ($snapshot = array(), $depth = PHP_INT_MAX) {
+        return new OrderBook($snapshot, $depth);
+    }
+
     function indexed_order_book($snapshot = array(), $depth = PHP_INT_MAX) {
         return new IndexedOrderBook($snapshot, $depth);
     }
 
+    function IndexedOrderBook($snapshot = array(), $depth = PHP_INT_MAX) {
+        return new IndexedOrderBook($snapshot, $depth);
+    }
+
     function counted_order_book($snapshot = array(), $depth = PHP_INT_MAX) {
+        return new CountedOrderBook($snapshot, $depth);
+    }
+
+    function CountedOrderBook($snapshot = array(), $depth = PHP_INT_MAX) {
         return new CountedOrderBook($snapshot, $depth);
     }
 

@@ -562,7 +562,8 @@ class Transpiler {
             [ /\.push\s*\(([\s\S]+?)\)\;/g, '[] = $1;' ],
             [ /\sawait\s+([^;]+);/g, ' Async\\await($1);' ],
             [ /([\S])\: /g, '$1 => ' ],
-            [/\$this->ws./, '$this->ws->'], // ws method fix
+            [/\$this->ws\./g, '$this->ws->'], // ws method fix
+
 
         // add {}-array syntax conversions up to 20 levels deep
         ]).concat ([ ... Array (20) ].map (x => [ /\{([^\{]+?)\}([^\s])/g, 'array($1)$2' ])).concat ([
