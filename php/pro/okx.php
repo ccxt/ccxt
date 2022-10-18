@@ -327,12 +327,18 @@ class okx extends \ccxt\async\okx {
         $this->handle_deltas($storedBids, $bids);
         $checksum = $this->safe_value($this->options, 'checksum', true);
         if ($checksum) {
+            $asksLength = count($storedAsks);
+            $bidsLength = count($storedBids);
             $payloadArray = array();
             for ($i = 0; $i < 25; $i++) {
-                $payloadArray[] = $this->number_to_string($storedBids[$i][0]);
-                $payloadArray[] = $this->number_to_string($storedBids[$i][1]);
-                $payloadArray[] = $this->number_to_string($storedAsks[$i][0]);
-                $payloadArray[] = $this->number_to_string($storedAsks[$i][1]);
+                if ($i < $bidsLength) {
+                    $payloadArray[] = $this->number_to_string($storedBids[$i][0]);
+                    $payloadArray[] = $this->number_to_string($storedBids[$i][1]);
+                }
+                if ($i < $asksLength) {
+                    $payloadArray[] = $this->number_to_string($storedAsks[$i][0]);
+                    $payloadArray[] = $this->number_to_string($storedAsks[$i][1]);
+                }
             }
             $payload = implode(':', $payloadArray);
             $responseChecksum = $this->safe_integer($message, 'checksum');

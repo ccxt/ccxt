@@ -341,6 +341,7 @@ class wavesexchange extends Exchange {
                 '106957828' => '\\ccxt\\AuthenticationError',
                 '106960131' => '\\ccxt\\AuthenticationError',
                 '106981137' => '\\ccxt\\AuthenticationError',
+                '9437184' => '\\ccxt\\BadRequest', // array("error":9437184,"message":"The order is invalid => SpendAmount should be > 0","template":"The order is invalid => array({details})","params":array("details":"SpendAmount should be > 0"),"status":"OrderRejected","success":false)
                 '9437193' => '\\ccxt\\OrderNotFound',
                 '1048577' => '\\ccxt\\BadRequest',
                 '1051904' => '\\ccxt\\AuthenticationError',
