@@ -409,7 +409,7 @@ async function exportEverything () {
     const flat = flatten (errorHierarchy['default'])
     flat.push ('error_hierarchy')
 
-    const staticExports = ['version', 'Exchange', 'exchanges', 'pro', 'Precise', 'functions', 'errors'] // missing  'exportExchanges' 
+    const staticExports = ['version', 'Exchange', 'exchanges', 'pro', 'Precise', 'functions', 'errors', 'WsConnector'] // missing  'exportExchanges' 
 
     const fullExports  = staticExports.concat(ids)
 
@@ -502,7 +502,7 @@ async function exportEverything () {
             replacement: wsIds.map (id =>
        
 `export class ${id}Bridge extends ${id}Rest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -510,8 +510,8 @@ async function exportEverything () {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
@@ -530,6 +530,7 @@ async function exportEverything () {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
