@@ -747,7 +747,7 @@ export default class exmo extends Exchange {
                     throw new BadRequest (this.id + ' fetchOHLCV() will serve ' + maxLimit.toString () + ' candles at most');
                 }
                 const to = this.sum (since, limit * duration * 1000);
-                request['to'] = parseInt ((to / 1000).toString ());
+                request['to'] = this.parseToInt (to / 1000);
             }
         }
         const response = await (this as any).publicGetCandlesHistory (this.extend (request, params));
