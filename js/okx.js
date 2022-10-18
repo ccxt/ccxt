@@ -4115,12 +4115,6 @@ module.exports = class okx extends Exchange {
             // 'instId': market['id'], // optional string, e.g. 'BTC-USD-190927-5000-C'
             // 'posId': '307173036051017730', // optional string, Single or multiple position IDs (no more than 20) separated with commas
         };
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
-        if (type !== undefined) {
-            if (type !== 'spot') {
-                request['instType'] = this.convertToInstrumentType (type);
-            }
-        }
         if (symbols !== undefined) {
             const marketIds = [];
             for (let i = 0; i < symbols.length; i++) {
@@ -4130,7 +4124,7 @@ module.exports = class okx extends Exchange {
             }
             request['instId'] = marketIds.toString ();
         }
-        const response = await this.privateGetAccountPositions (this.extend (request, query));
+        const response = await this.privateGetAccountPositions (this.extend (request, params));
         //
         //     {
         //         "code": "0",
