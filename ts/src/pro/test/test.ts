@@ -1,49 +1,49 @@
-import fs from 'fs'
-import log from 'ololog'
-import { dirname } from 'path'
-import { fileURLToPath } from 'url'
+import fs from 'fs';
+import log from 'ololog';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
 
-import { Agent } from 'https'
-import ccxt from '../../../ccxt.js'
+import { Agent } from 'https';
+import ccxt from '../../../ccxt.js';
 
-log.handleNodeErrors ()
+log.handleNodeErrors ();
 
-const [ processPath, , exchangeId, exchangeSymbol ] = process.argv.filter ((x) => !x.startsWith ('--'))
-const verbose = process.argv.includes ('--verbose') || false
+const [ processPath, , exchangeId, exchangeSymbol ] = process.argv.filter ((x) => !x.startsWith ('--'));
+const verbose = process.argv.includes ('--verbose') || false;
 
 
-const __dirname = dirname (fileURLToPath (import.meta.url))
+const __dirname = dirname (fileURLToPath (import.meta.url));
 
 // ----------------------------------------------------------------------------
 
 if (!exchangeId) {
-    console.log ('Exchange id not specified')
-    process.exit ()
+    console.log ('Exchange id not specified');
+    process.exit ();
 }
 
-const symbol = exchangeSymbol || 'all'
-log.bright ('\nTESTING', { exchangeId, symbol }, '\n')
+const symbol = exchangeSymbol || 'all';
+log.bright ('\nTESTING', { exchangeId, symbol }, '\n');
 
 // ----------------------------------------------------------------------------
 
-const enableRateLimit = true
+const enableRateLimit = true;
 
-const ecdhCurve = 'auto'
-const agent = new Agent ({ ecdhCurve })
+const ecdhCurve = 'auto';
+const agent = new Agent ({ ecdhCurve });
 
-const timeout = 20000
+const timeout = 20000;
 const print = function printToFile (... args) {
     args = args.map ((x) => {
         if (typeof x === 'string') {
-            return x
+            return x;
         } else if (x instanceof Date) {
-            return x.toISOString ()
+            return x.toISOString ();
         } else {
-            return JSON.stringify (x)
+            return JSON.stringify (x);
         }
-    })
-    fs.appendFileSync ('js.' + exchangeId + '.log', args.join (' ') + "\n")
-}
+    });
+    fs.appendFileSync ('js.' + exchangeId + '.log', args.join (' ') + "\n");
+};
 
 const exchangeOptions = {
     agent,
@@ -51,60 +51,60 @@ const exchangeOptions = {
     enableRateLimit,
     timeout,
     // print,
-}
+};
 
-const exchange = new (ccxt.pro)[exchangeId] (exchangeOptions)
+const exchange = new (ccxt.pro)[exchangeId] (exchangeOptions);
 
 // exchange.urls.api = exchange.urls.test
 
 // ----------------------------------------------------------------------------
 
-const tests = {}
+const tests = {};
 
 // eslint-disable-next-line no-path-concat
-const pathToExchangeTests = __dirname + '/Exchange/'
+const pathToExchangeTests = __dirname + '/Exchange/';
 
 const filteredFiles = fs.readdirSync (pathToExchangeTests)
-    .filter ((file) => file.match (/test.[a-zA-Z0-9_-]+.js$/))
+    .filter ((file) => file.match (/test.[a-zA-Z0-9_-]+.js$/));
 
 for (const file of filteredFiles) {
-    const key = file.slice (5, -3)
-    const test = await import (pathToExchangeTests + file)
-    tests[key] = test.default
+    const key = file.slice (5, -3);
+    const test = await import (pathToExchangeTests + file);
+    tests[key] = test.default;
 }
 
 //-----------------------------------------------------------------------------
 
 const keysGlobal = 'keys.json'
     , keysLocal = 'keys.local.json'
-    , keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal
+    , keysFile = fs.existsSync (keysLocal) ? keysLocal : keysGlobal;
 
-const settingsFile = fs.readFileSync (keysFile)
-let settings = JSON.parse (settingsFile as any)
-settings = settings[exchangeId]
+const settingsFile = fs.readFileSync (keysFile);
+let settings = JSON.parse (settingsFile as any);
+settings = settings[exchangeId];
 
 if (settings) {
     for (const key in settings) {
         if (settings[key]) {
-            settings[key] = ccxt.deepExtend (exchange[key] || {}, settings[key])
+            settings[key] = ccxt.deepExtend (exchange[key] || {}, settings[key]);
         }
     }
 }
 
-Object.assign (exchange, settings)
+Object.assign (exchange, settings);
 
 if (settings && settings.skipWs) {
-    log.error.bright ('[Skipped]', { exchangeId, symbol })
-    process.exit (0)
+    log.error.bright ('[Skipped]', { exchangeId, symbol });
+    process.exit (0);
 }
 
 //-----------------------------------------------------------------------------
 
 async function testPublic (exchange, symbol) {
-    await tests['watchOrderBook']   (exchange, symbol)
-    await tests['watchTicker']      (exchange, symbol)
-    await tests['watchTrades']      (exchange, symbol)
-    await tests['watchOHLCV']       (exchange, symbol)
+    await tests['watchOrderBook']   (exchange, symbol);
+    await tests['watchTicker']      (exchange, symbol);
+    await tests['watchTrades']      (exchange, symbol);
+    await tests['watchOHLCV']       (exchange, symbol);
     // await tests['watchStatus']      (exchange)
     // await tests['watchHeartbeat']   (exchange)
     // await tests['watchL2OrderBook'] (exchange, symbol)
@@ -114,11 +114,11 @@ async function testPublic (exchange, symbol) {
 
 async function testPrivate (exchange, symbol, code) {
     if (exchange.checkRequiredCredentials (false)) {
-        await tests['watchBalance']      (exchange)
+        await tests['watchBalance']      (exchange);
         // await tests['watchOrders']       (exchange, symbol)
         // await tests['watchOpenOrders']   (exchange, symbol)
         // await tests['watchClosedOrders'] (exchange, symbol)
-        await tests['watchMyTrades']     (exchange, symbol)
+        await tests['watchMyTrades']     (exchange, symbol);
         // const code = exchange.markets[symbol]['quote']
         // await tests['watchLedger']       (exchange, code)
         // await tests['watchTransactions'] (exchange, code)
@@ -130,19 +130,19 @@ async function testPrivate (exchange, symbol, code) {
 //-----------------------------------------------------------------------------
 
 function getTestSymbol (exchange, symbols) {
-    let symbol = undefined
+    let symbol = undefined;
     for (let i = 0; i < symbols.length; i++) {
-        const s = symbols[i]
-        const market = exchange.safeValue (exchange.markets, s)
+        const s = symbols[i];
+        const market = exchange.safeValue (exchange.markets, s);
         if (market !== undefined) {
-            const active = exchange.safeValue (market, 'active')
+            const active = exchange.safeValue (market, 'active');
             if (active || (active === undefined)) {
-                symbol = s
-                break
+                symbol = s;
+                break;
             }
         }
     }
-    return symbol
+    return symbol;
 }
 
 async function testExchange (exchange) {
@@ -178,12 +178,12 @@ async function testExchange (exchange) {
         'XMR',
         'ZEC',
         'ZRX',
-    ]
+    ];
 
-    let code = codes[0]
+    let code = codes[0];
     for (let i = 0; i < codes.length; i++) {
         if (codes[i] in exchange.currencies) {
-            code = codes[i]
+            code = codes[i];
         }
     }
 
@@ -199,41 +199,41 @@ async function testExchange (exchange) {
         'BTC/JPY',
         'LTC/BTC',
         'ZRX/WETH',
-    ])
+    ]);
 
     if (symbol === undefined) {
         for (let i = 0; i < codes.length; i++) {
-            const markets = Object.values (exchange.markets)
-            const activeMarkets = markets.filter ((market) => (market['base'] === codes[i]))
+            const markets = Object.values (exchange.markets);
+            const activeMarkets = markets.filter ((market) => (market['base'] === codes[i]));
             if (activeMarkets.length) {
-                const activeSymbols = activeMarkets.map ((market) => market['symbol'])
-                symbol = getTestSymbol (exchange, activeSymbols)
-                break
+                const activeSymbols = activeMarkets.map ((market) => market['symbol']);
+                symbol = getTestSymbol (exchange, activeSymbols);
+                break;
             }
         }
     }
 
     if (symbol === undefined) {
-        const markets = Object.values (exchange.markets)
-        const activeMarkets = markets.filter ((market) => !exchange.safeValue (market, 'active', false))
-        const activeSymbols = activeMarkets.map ((market) => market['symbol'])
-        symbol = getTestSymbol (exchange, activeSymbols)
+        const markets = Object.values (exchange.markets);
+        const activeMarkets = markets.filter ((market) => !exchange.safeValue (market, 'active', false));
+        const activeSymbols = activeMarkets.map ((market) => market['symbol']);
+        symbol = getTestSymbol (exchange, activeSymbols);
     }
 
     if (symbol === undefined) {
-        symbol = getTestSymbol (exchange, exchange.symbols)
+        symbol = getTestSymbol (exchange, exchange.symbols);
     }
 
     if (symbol === undefined) {
-        symbol = exchange.symbols[0]
+        symbol = exchange.symbols[0];
     }
 
-    log.green ('CODE:', code)
-    log.green ('SYMBOL:', symbol)
+    log.green ('CODE:', code);
+    log.green ('SYMBOL:', symbol);
 
     if ((symbol.indexOf ('.d') < 0)) {
-        await testPublic  (exchange, symbol)
-        await testPrivate (exchange, symbol, code)
+        await testPublic  (exchange, symbol);
+        await testPrivate (exchange, symbol, code);
     }
 }
 
@@ -241,11 +241,11 @@ async function testExchange (exchange) {
 
 async function test () {
 
-    await exchange.loadMarkets ()
-    exchange.verbose = verbose
-    await testExchange (exchange)
-    console.log (new Date (), 'Done.')
-    process.exit ()
+    await exchange.loadMarkets ();
+    exchange.verbose = verbose;
+    await testExchange (exchange);
+    console.log (new Date (), 'Done.');
+    process.exit ();
 }
 
-test ()
+test ();
