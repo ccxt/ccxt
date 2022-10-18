@@ -670,20 +670,18 @@ module.exports = class Exchange {
     }
 
     filterByValueSinceLimit (array, field, value = undefined, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
-        const firstEntry = this.safeValue (array, 0);
-        const valueIsDefined = value !== undefined && value !== null;
-        const sinceIsDefined = since !== undefined && since !== null && firstEntry[key] !== undefined; // Check if user has defined since, and check if timestamp key is actually in the response
+        const valueIsDefined = value !== undefined && value !== null
+        const sinceIsDefined = since !== undefined && since !== null
         // single-pass filter for both symbol and since
         if (valueIsDefined || sinceIsDefined) {
-            array = array.filter (entry => (
-                (valueIsDefined ? (entry[field] === value) : true) &&
-                (sinceIsDefined ? (entry[key] >= since) : true)
-            ));
+            array = array.filter ((entry) =>
+                ((valueIsDefined ? (entry[field] === value) : true) &&
+                 (sinceIsDefined ? (entry[key] >= since) : true)))
         }
         if (limit !== undefined && limit !== null) {
-            array = tail ? array.slice (-limit) : array.slice (0, limit);
+            array = tail ? array.slice (-limit) : array.slice (0, limit)
         }
-        return array;
+        return array
     }
 
     checkRequiredDependencies () {
