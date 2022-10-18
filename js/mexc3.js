@@ -544,7 +544,6 @@ module.exports = class mexc3 extends Exchange {
             return undefined;
         }
         const response = await this.spotPrivateGetCapitalConfigGetall (params);
-        console.log (response);
         //
         // {
         //     coin: 'QANX',
