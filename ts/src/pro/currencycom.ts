@@ -230,8 +230,8 @@ export default class currencycom extends currencycomBridge {
         client.resolve (stored, messageHash);
     }
 
-    findTimeframe (timeframe) {
-        const timeframes = this.safeValue (this.options, 'timeframes');
+    findTimeframe (timeframe, defaultTimeframes = undefined) {
+        const timeframes = this.safeValue (this.options, 'timeframes', defaultTimeframes);
         const keys = Object.keys (timeframes);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
