@@ -2054,8 +2054,19 @@ module.exports = class ndax extends Exchange {
         //         ...
         //     ]"
         //
-        const data = this.parseJson (response);
-        return this.parseTransactions (data, currency, since, limit);
+        return this.parseTransactions (response, currency, since, limit);
+    }
+
+    parseJson (jsonString) {
+        try {
+            if (this.isJsonEncodedObject (jsonString)) {
+                jsonString = jsonString.replaceAll ('\\', '').replaceAll ('"{', '{').replaceAll ('}"', '}');
+                return JSON.parse (this.onJsonResponse (jsonString));
+            }
+        } catch (e) {
+            // SyntaxError
+            return undefined;
+        }
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
