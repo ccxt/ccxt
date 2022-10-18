@@ -4117,7 +4117,9 @@ module.exports = class okx extends Exchange {
         };
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
         if (type !== undefined) {
-            request['instType'] = this.convertToInstrumentType (type);
+            if (type !== 'spot') {
+                request['instType'] = this.convertToInstrumentType (type);
+            }
         }
         if (symbols !== undefined) {
             const marketIds = [];
