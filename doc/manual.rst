@@ -299,7 +299,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - 
      - 
-   * - .. image:: https://user-images.githubusercontent.com/51840849/88317935-a8a21c80-cd22-11ea-8e2b-4b9fac5975eb.jpg
+   * - .. image:: https://user-images.githubusercontent.com/1294454/195989417-4253ddb0-afbe-4a1c-9dea-9dbcd121fa5d.jpg
           :target: https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j
           :alt: bitget
      
@@ -309,7 +309,10 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
           :target: https://bitgetlimited.github.io/apidoc/en/mix
           :alt: API Version 1
      
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg
           :target: https://www.bithumb.com
@@ -3157,6 +3160,7 @@ The unified ccxt API is a subset of methods common among the exchanges. It curre
  * ``fetchCanceledOrders ([symbol[, since[, limit[, params]]]])``
  * ``fetchClosedOrders ([symbol[, since[, limit[, params]]]])``
  * ``fetchMyTrades ([symbol[, since[, limit[, params]]]])``
+ * ``fetchOpenInterest ([symbol[, params]])``
  * ...
 
 .. code-block:: text
@@ -4456,6 +4460,28 @@ Funding Rate History Structure
        datetime: "2022-01-23T16:00:00.000Z"
    }
 
+Open Interest
+-------------
+
+ *contract only*
+
+Use the ``fetchOpenInterest`` method to get the current open interest for a symbol from the exchange.
+
+.. code-block:: JavaScript
+
+   fetchOpenInterest (symbol, params = {})
+
+Parameters
+
+
+ * **symbol** (String) Unified CCXT market symbol (e.g. ``"BTC/USDT:USDT"``\ )
+ * **params** (Dictionary) Extra parameters specific to the exchange API endpoint (e.g. ``{"endTime": 1645807945000}``\ )
+
+Returns
+
+
+ * A dictionary of :ref:`open interest structures <open interest structure>`
+
 Open Interest History
 ---------------------
 
@@ -4490,8 +4516,10 @@ Open Interest Structure
 
    {
        symbol: 'BTC/USDT',
-       baseVolume: 80872.801,
-       quoteVolume: 3508262107.38,
+       baseVolume: 80872.801, // deprecated
+       quoteVolume: 3508262107.38, // deprecated
+       openInterestAmount: 80872.801,
+       openInterestValue: 3508262107.38,
        timestamp: 1649379000000,
        datetime: '2022-04-08T00:50:00.000Z',
        info: {

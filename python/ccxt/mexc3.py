@@ -260,6 +260,7 @@ class mexc3(Exchange):
                             'stoporder/order_details/{stop_order_id}': 2,
                             'account/risk_limit': 2,  # TO_DO: gets max/min position size, allowed sides, leverage, maintenance margin, initial margin, etc...
                             'account/tiered_fee_rate': 2,  # TO_DO: taker/maker fees for account
+                            'position/leverage': 2,
                         },
                         'post': {
                             'position/change_margin': 2,
@@ -349,8 +350,8 @@ class mexc3(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.2 / 100,  # maker / taker
-                    'taker': 0.2 / 100,
+                    'maker': self.parse_number('0.002'),  # maker / taker
+                    'taker': self.parse_number('0.002'),
                 },
             },
             'options': {
@@ -406,10 +407,8 @@ class mexc3(Exchange):
                 },
                 'defaultType': 'spot',  # spot, swap
                 'networks': {
-                    'TRX': 'TRC-20',
-                    'TRC20': 'TRC-20',
-                    'ETH': 'ERC-20',
-                    'ERC20': 'ERC-20',
+                    'TRX': 'TRC20',
+                    'ETH': 'ERC20',
                     'BEP20': 'BEP20(BSC)',
                     'BSC': 'BEP20(BSC)',
                 },
@@ -566,7 +565,7 @@ class mexc3(Exchange):
             code = self.safe_currency_code(id)
             name = self.safe_string(currency, 'full_name')
             currencyActive = False
-            currencyPrecision = None
+            minPrecision = None
             currencyFee = None
             currencyWithdrawMin = None
             currencyWithdrawMax = None
@@ -594,6 +593,9 @@ class mexc3(Exchange):
                     depositEnabled = True
                 if isWithdrawEnabled:
                     withdrawEnabled = True
+                precision = self.parse_precision(self.safe_string(chain, 'precision'))
+                if precision is not None:
+                    minPrecision = precision if (minPrecision is None) else Precise.string_min(precision, minPrecision)
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
@@ -602,7 +604,7 @@ class mexc3(Exchange):
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
                     'fee': self.safe_number(chain, 'fee'),
-                    'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'precision'))),
+                    'precision': self.parse_number(precision),
                     'limits': {
                         'withdraw': {
                             'min': withdrawMin,
@@ -616,7 +618,6 @@ class mexc3(Exchange):
                 defaultNetwork = self.safe_value_2(networks, 'NONE', networkKeysLength - 1)
                 if defaultNetwork is not None:
                     currencyFee = defaultNetwork['fee']
-                    currencyPrecision = defaultNetwork['precision']
             result[code] = {
                 'id': id,
                 'code': code,
@@ -626,7 +627,7 @@ class mexc3(Exchange):
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': currencyFee,
-                'precision': currencyPrecision,
+                'precision': self.parse_number(minPrecision),
                 'limits': {
                     'amount': {
                         'min': None,
@@ -695,11 +696,11 @@ class mexc3(Exchange):
         #                    "MARGIN"
         #                ],
         #                "filters": [],
-        #                "baseSizePrecision": "0.01",  # seems to be derived of 'baseAssetPrecision'
+        #                "baseSizePrecision": "0.01",  # self turned out to be a minimum base amount for order
         #                "maxQuoteAmount": "5000000",
         #                "makerCommission": "0.002",
         #                "takerCommission": "0.002"
-        #                "quoteAmountPrecision": "5",  # seem totally unrelated value, as neither quote/base have anything related to self number
+        #                "quoteAmountPrecision": "5",  # self turned out to be a minimum cost amount for order
         #                "quotePrecision": "4",  # deprecated in favor of 'quoteAssetPrecision'( https://dev.binance.vision/t/what-is-the-difference-between-quoteprecision-and-quoteassetprecision/4333 )
         #                # note, "icebergAllowed" & "ocoAllowed" fields were recently removed
         #            },
@@ -763,7 +764,7 @@ class mexc3(Exchange):
                         'max': None,
                     },
                     'amount': {
-                        'min': None,
+                        'min': self.safe_number(market, 'baseSizePrecision'),
                         'max': None,
                     },
                     'price': {
@@ -771,7 +772,7 @@ class mexc3(Exchange):
                         'max': None,
                     },
                     'cost': {
-                        'min': None,
+                        'min': self.safe_number(market, 'quoteAmountPrecision'),
                         'max': maxQuoteAmount,
                     },
                 },
@@ -1594,7 +1595,10 @@ class mexc3(Exchange):
                 if price is None:
                     raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
                 else:
-                    amount = amount * price
+                    amountString = self.number_to_string(amount)
+                    priceString = self.number_to_string(price)
+                    quoteAmount = Precise.string_mul(amountString, priceString)
+                    amount = self.parse_number(quoteAmount)
             request['quoteOrderQty'] = amount
         else:
             request['quantity'] = self.amount_to_precision(symbol, amount)
@@ -3951,7 +3955,7 @@ class mexc3(Exchange):
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string_2(params, 'network', 'chain')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string_upper_2(params, 'network', 'chain')  # self line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network, network)  # handle ETH > ERC-20 alias
         self.check_address(address)
         self.load_markets()

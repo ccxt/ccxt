@@ -2096,7 +2096,10 @@ class okx extends Exchange {
                         if ($createMarketBuyOrderRequiresPrice) {
                             if ($price !== null) {
                                 if ($notional === null) {
-                                    $notional = $amount * $price;
+                                    $amountString = $this->number_to_string($amount);
+                                    $priceString = $this->number_to_string($price);
+                                    $quoteAmount = Precise::string_mul($amountString, $priceString);
+                                    $notional = $this->parse_number($quoteAmount);
                                 }
                             } elseif ($notional === null) {
                                 throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total $order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)");
@@ -4032,8 +4035,10 @@ class okx extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetch $data on a single open contract trade $position
+             * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
              * @param {string} $symbol unified $market $symbol of the $market the $position is held in, default is null
              * @param {array} $params extra parameters specific to the okx api endpoint
+             * @param {string|null} $params->instType MARGIN, SWAP, FUTURES, OPTION
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$position-structure $position structure}
              */
             Async\await($this->load_markets());
@@ -4106,25 +4111,31 @@ class okx extends Exchange {
     public function fetch_positions($symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
+             * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-$positions
              * fetch all open $positions
-             * @param {[string]|null} $symbols list of unified market $symbols
+             * @param {[string]|null} $symbols list of unified $market $symbols
              * @param {array} $params extra parameters specific to the okx api endpoint
+             * @param {string|null} $params->instType MARGIN, SWAP, FUTURES, OPTION
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols);
-            // $defaultType = $this->safe_string_2($this->options, 'fetchPositions', 'defaultType');
-            // $type = $this->safe_string($params, 'type', $defaultType);
             $request = array(
-                // instType 'strval' No Instrument $type, MARGIN, SWAP, FUTURES, OPTION, instId will be checked against instType when both parameters are passed, and the position information of the instId will be returned.
-                // instId 'strval' No Instrument ID, e.g. BTC-USD-190927-5000-C
-                // posId 'strval' No Single position ID or multiple position IDs (no more than 20) separated with comma
+                // 'instType' => 'MARGIN', // optional string, MARGIN, SWAP, FUTURES, OPTION
+                // 'instId' => $market['id'], // optional string, e.g. 'BTC-USD-190927-5000-C'
+                // 'posId' => '307173036051017730', // optional string, Single or multiple position IDs (no more than 20) separated with commas
             );
             list($type, $query) = $this->handle_market_type_and_params('fetchPositions', null, $params);
             if ($type !== null) {
-                if (($type === 'swap') || ($type === 'future')) {
-                    $request['instType'] = $this->convert_to_instrument_type($type);
+                $request['instType'] = $this->convert_to_instrument_type($type);
+            }
+            if ($symbols !== null) {
+                $marketIds = array();
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $entry = $symbols[$i];
+                    $market = $this->market($entry);
+                    $marketIds[] = $market['id'];
                 }
+                $request['instId'] = (string) $marketIds;
             }
             $response = Async\await($this->privateGetAccountPositions (array_merge($request, $query)));
             //
@@ -4176,11 +4187,7 @@ class okx extends Exchange {
             $positions = $this->safe_value($response, 'data', array());
             $result = array();
             for ($i = 0; $i < count($positions); $i++) {
-                $entry = $positions[$i];
-                $instrument = $this->safe_string($entry, 'instType');
-                if (($instrument === 'FUTURES') || ($instrument === 'SWAP')) {
-                    $result[] = $this->parse_position($positions[$i]);
-                }
+                $result[] = $this->parse_position($positions[$i]);
             }
             return $this->filter_by_array($result, 'symbol', $symbols, false);
         }) ();

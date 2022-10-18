@@ -128,7 +128,7 @@ class gate extends Exchange {
                 'public' => array(
                     'wallet' => array(
                         'get' => array(
-                            'wallet/currency_chains' => 1.5,
+                            'currency_chains' => 1.5,
                         ),
                     ),
                     'spot' => array(
@@ -2956,7 +2956,7 @@ class gate extends Exchange {
              * @param {bool|null} $params->reduceOnly *$contract only* Indicates if this order is to reduce the size of a position
              * @param {bool|null} $params->close *$contract only* Set as true to close the position, with size set to 0
              * @param {bool|null} $params->auto_size *$contract only* Set $side to close dual-mode position, close_long closes the long $side, while close_short the short one, size also needs to be set to 0
-             * @return {dict|null} {@link https://docs.ccxt.com/en/latest/manual.html#order-structure An order structure}
+             * @return {array|null} {@link https://docs.ccxt.com/en/latest/manual.html#order-structure An order structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
@@ -4116,7 +4116,24 @@ class gate extends Exchange {
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
             Async\await($this->load_markets());
-            list($type, $query) = $this->handle_market_type_and_params('fetchPositions', null, $params);
+            $market = null;
+            if ($symbols !== null) {
+                $symbols = $this->market_symbols($symbols);
+                $symbolsLength = count($symbols);
+                if ($symbolsLength > 0) {
+                    $market = $this->market($symbols[0]);
+                    for ($i = 1; $i < count($symbols); $i++) {
+                        $checkMarket = $this->market($symbols[$i]);
+                        if ($checkMarket['type'] !== $market['type']) {
+                            throw new BadRequest($this->id . ' fetchPositions() does not support multiple types of positions at the same time');
+                        }
+                    }
+                }
+            }
+            list($type, $query) = $this->handle_market_type_and_params('fetchPositions', $market, $params);
+            if ($type !== 'swap' && $type !== 'future') {
+                throw new ArgumentsRequired($this->id . ' fetchPositions requires a $type parameter, "swap" or "future"');
+            }
             list($request, $requestParams) = $this->prepare_request(null, $type, $query);
             $method = $this->get_supported_mapping($type, array(
                 'swap' => 'privateFuturesGetSettlePositions',
@@ -4638,6 +4655,7 @@ class gate extends Exchange {
                 $url .= '?' . $this->urlencode($query);
             }
         } else {
+            $this->check_required_credentials();
             $queryString = '';
             $requiresURLEncoding = false;
             if ($type === 'futures' && $method === 'POST') {

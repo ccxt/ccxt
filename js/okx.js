@@ -2085,7 +2085,10 @@ module.exports = class okx extends Exchange {
                     if (createMarketBuyOrderRequiresPrice) {
                         if (price !== undefined) {
                             if (notional === undefined) {
-                                notional = amount * price;
+                                const amountString = this.numberToString (amount);
+                                const priceString = this.numberToString (price);
+                                const quoteAmount = Precise.stringMul (amountString, priceString);
+                                notional = this.parseNumber (quoteAmount);
                             }
                         } else if (notional === undefined) {
                             throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false and supply the total cost value in the 'amount' argument or in the 'cost' unified extra parameter or in exchange-specific 'sz' extra parameter (the exchange-specific behaviour)");
@@ -4023,8 +4026,10 @@ module.exports = class okx extends Exchange {
          * @method
          * @name okx#fetchPosition
          * @description fetch data on a single open contract trade position
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
          * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
          * @param {object} params extra parameters specific to the okx api endpoint
+         * @param {string|undefined} params.instType MARGIN, SWAP, FUTURES, OPTION
          * @returns {object} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
@@ -4097,25 +4102,31 @@ module.exports = class okx extends Exchange {
         /**
          * @method
          * @name okx#fetchPositions
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
          * @description fetch all open positions
          * @param {[string]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the okx api endpoint
+         * @param {string|undefined} params.instType MARGIN, SWAP, FUTURES, OPTION
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
-        // const defaultType = this.safeString2 (this.options, 'fetchPositions', 'defaultType');
-        // const type = this.safeString (params, 'type', defaultType);
         const request = {
-            // instType String No Instrument type, MARGIN, SWAP, FUTURES, OPTION, instId will be checked against instType when both parameters are passed, and the position information of the instId will be returned.
-            // instId String No Instrument ID, e.g. BTC-USD-190927-5000-C
-            // posId String No Single position ID or multiple position IDs (no more than 20) separated with comma
+            // 'instType': 'MARGIN', // optional string, MARGIN, SWAP, FUTURES, OPTION
+            // 'instId': market['id'], // optional string, e.g. 'BTC-USD-190927-5000-C'
+            // 'posId': '307173036051017730', // optional string, Single or multiple position IDs (no more than 20) separated with commas
         };
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
         if (type !== undefined) {
-            if ((type === 'swap') || (type === 'future')) {
-                request['instType'] = this.convertToInstrumentType (type);
+            request['instType'] = this.convertToInstrumentType (type);
+        }
+        if (symbols !== undefined) {
+            const marketIds = [];
+            for (let i = 0; i < symbols.length; i++) {
+                const entry = symbols[i];
+                const market = this.market (entry);
+                marketIds.push (market['id']);
             }
+            request['instId'] = marketIds.toString ();
         }
         const response = await this.privateGetAccountPositions (this.extend (request, query));
         //
@@ -4167,11 +4178,7 @@ module.exports = class okx extends Exchange {
         const positions = this.safeValue (response, 'data', []);
         const result = [];
         for (let i = 0; i < positions.length; i++) {
-            const entry = positions[i];
-            const instrument = this.safeString (entry, 'instType');
-            if ((instrument === 'FUTURES') || (instrument === 'SWAP')) {
-                result.push (this.parsePosition (positions[i]));
-            }
+            result.push (this.parsePosition (positions[i]));
         }
         return this.filterByArray (result, 'symbol', symbols, false);
     }

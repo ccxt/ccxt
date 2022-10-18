@@ -603,69 +603,109 @@ class aax extends Exchange {
             $response = Async\await($this->publicGetCurrencies ($params));
             //
             //     {
-            //         "code":1,
-            //         "data":array(
+            //         "code" => 1,
+            //         "data" => array(
             //             array(
-            //                 "chain":"BTC",
-            //                 "displayName":"Bitcoin",
-            //                 "withdrawFee":"0.0004",
-            //                 "withdrawMin":"0.001",
-            //                 "otcFee":"0",
-            //                 "enableOTC":true,
-            //                 "visible":true,
-            //                 "enableTransfer":true,
-            //                 "transferMin":"0.00001",
-            //                 "depositMin":"0.0005",
-            //                 "enableWithdraw":true,
-            //                 "enableDeposit":true,
-            //                 "addrWithMemo":false,
-            //                 "withdrawPrecision":"0.00000001",
-            //                 "currency":"BTC",
-            //                 "network":"BTC", // ETH, ERC20, TRX, TRC20, OMNI, LTC, XRP, XLM, ...
-            //                 "minConfirm":"2"
+            //                 "chain" => "BTC",
+            //                 "displayName" => "Bitcoin",
+            //                 "withdrawFee" => "0.0004",
+            //                 "withdrawMin" => "0.001",
+            //                 "otcFee" => "0",
+            //                 "enableOTC" => true,
+            //                 "visible" => true,
+            //                 "enableTransfer" => true,
+            //                 "transferMin" => "0.00001",
+            //                 "depositMin" => "0.0005",
+            //                 "enableWithdraw" => true,
+            //                 "enableDeposit" => true,
+            //                 "addrWithMemo" => false,
+            //                 "withdrawPrecision" => "0.00000001",
+            //                 "currency" => "BTC",
+            //                 "network" => "BTC", // ETH, ERC20, TRX, TRC20, OMNI, LTC, XRP, XLM, ...
+            //                 "minConfirm" => "2"
             //             ),
             //         ),
-            //         "message":"success",
-            //         "ts":1624330530697
+            //         "message" => "success",
+            //         "ts" => 1624330530697
             //     }
             //
             $result = array();
             $data = $this->safe_value($response, 'data', array());
             for ($i = 0; $i < count($data); $i++) {
                 $currency = $data[$i];
-                $id = $this->safe_string($currency, 'chain');
-                $name = $this->safe_string($currency, 'displayName');
+                $id = $this->safe_string($currency, 'currency');
                 $code = $this->safe_currency_code($id);
+                $networkId = $this->safe_string($currency, 'network');
                 $enableWithdraw = $this->safe_value($currency, 'enableWithdraw');
                 $enableDeposit = $this->safe_value($currency, 'enableDeposit');
-                $fee = $this->safe_number($currency, 'withdrawFee');
                 $visible = $this->safe_value($currency, 'visible');
                 $active = ($enableWithdraw && $enableDeposit && $visible);
-                $deposit = ($enableDeposit && $visible);
-                $withdraw = ($enableWithdraw && $visible);
-                $network = $this->safe_string($currency, 'network');
-                $result[$code] = array(
-                    'id' => $id,
-                    'name' => $name,
-                    'code' => $code,
-                    'precision' => $this->safe_number($currency, 'withdrawPrecision'),
+                $network = array(
                     'info' => $currency,
-                    'active' => $active,
-                    'deposit' => $deposit,
-                    'withdraw' => $withdraw,
-                    'fee' => $fee,
-                    'network' => $network,
+                    'id' => $networkId,
+                    'network' => $this->safe_currency_code($networkId),
                     'limits' => array(
-                        'deposit' => array(
-                            'min' => $this->safe_number($currency, 'depositMin'),
-                            'max' => null,
-                        ),
                         'withdraw' => array(
                             'min' => $this->safe_number($currency, 'withdrawMin'),
                             'max' => null,
                         ),
+                        'deposit' => array(
+                            'min' => $this->safe_number($currency, 'depositMin'),
+                            'max' => null,
+                        ),
                     ),
+                    'active' => $active,
+                    'withdraw' => $enableWithdraw && $visible,
+                    'deposit' => $enableDeposit && $visible,
+                    'fee' => $this->safe_number($currency, 'withdrawFee'),
+                    'precision' => $this->safe_number($currency, 'withdrawPrecision'),
                 );
+                $resultItem = $this->safe_value($result, $code);
+                $fee = $this->safe_string($currency, 'withdrawFee');
+                $precision = $this->safe_string($currency, 'withdrawPrecision');
+                $depositMin = $this->safe_string($currency, 'depositMin');
+                $withdrawMin = $this->safe_string($currency, 'withdrawMin');
+                if ($resultItem !== null) {
+                    $resultItem['networks'][] = $network;
+                    $previousPrecision = (string) $resultItem['precision'];
+                    $previousDepositMin = (string) $resultItem['limits']['deposit']['min'];
+                    $previousWithdrawMin = (string) $resultItem['limits']['withdraw']['min'];
+                    $previousFee = (string) $resultItem['fee'];
+                    $resultItem['precision'] = $this->parse_number(Precise::string_max($previousPrecision, $precision));
+                    $resultItem['limits']['deposit']['min'] = $this->parse_number(Precise::string_min($previousDepositMin, $depositMin));
+                    $resultItem['limits']['withdraw']['min'] = $this->parse_number(Precise::string_min($previousWithdrawMin, $withdrawMin));
+                    $resultItem['fee'] = $this->parse_number(Precise::string_min($previousFee, $fee));
+                } else {
+                    $name = $this->safe_string($currency, 'displayName');
+                    $deposit = ($enableDeposit && $visible);
+                    $withdraw = ($enableWithdraw && $visible);
+                    $result[$code] = array(
+                        'info' => array(),
+                        'id' => $id,
+                        'name' => $name,
+                        'code' => $code,
+                        'precision' => $this->parse_number($precision),
+                        'active' => $active,
+                        'deposit' => $deposit,
+                        'withdraw' => $withdraw,
+                        'fee' => $this->parse_number($fee),
+                        'networks' => array( $network ),
+                        'limits' => array(
+                            'amount' => array(
+                                'min' => null,
+                                'max' => null,
+                            ),
+                            'deposit' => array(
+                                'min' => $this->parse_number($depositMin),
+                                'max' => null,
+                            ),
+                            'withdraw' => array(
+                                'min' => $this->parse_number($withdrawMin),
+                                'max' => null,
+                            ),
+                        ),
+                    );
+                }
             }
             return $result;
         }) ();

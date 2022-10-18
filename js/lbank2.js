@@ -861,6 +861,36 @@ module.exports = class lbank2 extends Exchange {
             method = this.safeString (options, 'method', 'privatePostSupplementUserInfo');
         }
         const response = await this[method] ();
+        //
+        //    {
+        //        "result": "true",
+        //        "data": [
+        //            {
+        //                "usableAmt": "14.36",
+        //                "assetAmt": "14.36",
+        //                "networkList": [
+        //                    {
+        //                        "isDefault": false,
+        //                        "withdrawFeeRate": "",
+        //                        "name": "erc20",
+        //                        "withdrawMin": 30,
+        //                        "minLimit": 0.0001,
+        //                        "minDeposit": 20,
+        //                        "feeAssetCode": "usdt",
+        //                        "withdrawFee": "30",
+        //                        "type": 1,
+        //                        "coin": "usdt",
+        //                        "network": "eth"
+        //                    },
+        //                    ...
+        //                ],
+        //                "freezeAmt": "0",
+        //                "coin": "ada"
+        //            }
+        //        ],
+        //        "code": 0
+        //    }
+        //
         return this.parseBalance (response);
     }
 
@@ -1915,6 +1945,36 @@ module.exports = class lbank2 extends Exchange {
         // incl. for coins which undefined in public method
         await this.loadMarkets ();
         const response = await this.privatePostSupplementUserInfo ();
+        //
+        //    {
+        //        "result": "true",
+        //        "data": [
+        //            {
+        //                "usableAmt": "14.36",
+        //                "assetAmt": "14.36",
+        //                "networkList": [
+        //                    {
+        //                        "isDefault": false,
+        //                        "withdrawFeeRate": "",
+        //                        "name": "erc20",
+        //                        "withdrawMin": 30,
+        //                        "minLimit": 0.0001,
+        //                        "minDeposit": 20,
+        //                        "feeAssetCode": "usdt",
+        //                        "withdrawFee": "30",
+        //                        "type": 1,
+        //                        "coin": "usdt",
+        //                        "network": "eth"
+        //                    },
+        //                    ...
+        //                ],
+        //                "freezeAmt": "0",
+        //                "coin": "ada"
+        //            }
+        //        ],
+        //        "code": 0
+        //    }
+        //
         const result = this.safeValue (response, 'data', []);
         const withdrawFees = {};
         for (let i = 0; i < result.length; i++) {
@@ -1952,6 +2012,27 @@ module.exports = class lbank2 extends Exchange {
             request['assetCode'] = currency['id'];
         }
         const response = await this.publicGetWithdrawConfigs (this.extend (request, params));
+        //
+        //    {
+        //        result: 'true',
+        //        data: [
+        //          {
+        //            amountScale: '4',
+        //            chain: 'heco',
+        //            assetCode: 'lbk',
+        //            min: '200',
+        //            transferAmtScale: '4',
+        //            canWithDraw: true,
+        //            fee: '100',
+        //            minTransfer: '0.0001',
+        //            type: '1'
+        //          },
+        //          ...
+        //        ],
+        //        error_code: '0',
+        //        ts: '1663364435973'
+        //    }
+        //
         const result = this.safeValue (response, 'data', []);
         const withdrawFees = {};
         for (let i = 0; i < result.length; i++) {
