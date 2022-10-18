@@ -92,7 +92,7 @@ module.exports = class okx extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
-                'fetchTradingLimits': undefined,
+                'fetchTradingLimits': false,
                 'fetchTransactionFee': false,
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
