@@ -1096,43 +1096,57 @@ class bibox(Exchange):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the bibox api endpoint
+        :param str params['clientOrderId']: client order id
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
-        orderType = 2 if (type == 'limit') else 1
-        orderSide = 1 if (side == 'buy') else 2
         request = {
-            'cmd': 'orderpending/trade',
-            'body': self.extend({
-                'pair': market['id'],
-                'account_type': 0,
-                'order_type': orderType,
-                'order_side': orderSide,
-                'pay_bix': 0,
-                'amount': amount,
-                'price': price,
-            }, params),
+            'symbol': market['id'],
+            'side': side,
+            'type': type,
+            'quantity': self.amount_to_precision(symbol, amount),
+            'price': self.price_to_precision(symbol, price),
+            # 'client_order_id':  # Order id, a string with a valid value of an int64 integer
+            # 'time_in_force':  # Valid value gtc, ioc
+            # 'post_only':
         }
-        response = await self.v1PrivatePostOrderpending(request)
+        timeInForce = self.safe_string_lower(params, 'timeInForce')
+        if timeInForce is not None:
+            request['post_only'] = timeInForce
+            params = self.omit(params, 'timeInForce')
+        postOnly = self.safe_string(params, 'postOnly')
+        if postOnly is not None:
+            request['post_only'] = postOnly
+            params = self.omit(params, 'postOnly')
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is not None:
+            request['client_order_id'] = clientOrderId
+            params = self.omit(params, 'clientOrderId')
+        response = await self.v4PrivatePostUserdataOrder(self.deep_extend(request, params))
         #
         #     {
-        #         "result":[
-        #             {
-        #                 "result": "100055558128036",  # order id
-        #                 "index": 12345,  # random index, specific one in a batch
-        #                 "cmd":"orderpending/trade"
-        #             }
-        #         ]
+        #         "i": 14580623695947906,
+        #         "I": "0",
+        #         "m": "LUNC_USDT",
+        #         "T": "limit",
+        #         "s": "sell",
+        #         "Q": -1015236.00000,
+        #         "P": 0.0002900000,
+        #         "t": "gtc",
+        #         "o": False,
+        #         "S": "accepted",
+        #         "E": 0,
+        #         "e": 0,
+        #         "C": 1665670398046,
+        #         "U": 1665670398046,
+        #         "V": 582952205212,
+        #         "n": 0,
+        #         "F": [],
+        #         "f": []
         #     }
         #
-        outerResults = self.safe_value(response, 'result')
-        firstResult = self.safe_value(outerResults, 0, {})
-        id = self.safe_value(firstResult, 'result')
-        return {
-            'info': response,
-            'id': id,
-        }
+        return self.parse_order(response, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
         """
@@ -1184,23 +1198,23 @@ class bibox(Exchange):
         #     {
         #         "result":[
         #             {
-        #                 "result":{
-        #                     "id":"100055558128036",
+        #                 "result": {
+        #                     "id": "100055558128036",
         #                     "createdAt": 1512756997000,
-        #                     "account_type":0,
-        #                     "coin_symbol":"LTC",        # Trading Token
-        #                     "currency_symbol":"BTC",    # Pricing Token
-        #                     "order_side":2,             # Trading side 1-Buy, 2-Sell
-        #                     "order_type":2,             # 2-limit order
-        #                     "price":"0.00900000",       # order price
-        #                     "amount":"1.00000000",      # order amount
-        #                     "money":"0.00900000",       # currency amount(price * amount)
-        #                     "deal_amount":"0.00000000",  # deal amount
-        #                     "deal_percent":"0.00%",     # deal percentage
-        #                     "unexecuted":"0.00000000",  # unexecuted amount
-        #                     "status":3                  # Status, -1-fail, 0,1-to be dealt, 2-dealt partly, 3-dealt totally, 4- cancelled partly, 5-cancelled totally, 6-to be cancelled
+        #                     "account_type": 0,
+        #                     "coin_symbol": "LTC",        # Trading Token
+        #                     "currency_symbol": "BTC",    # Pricing Token
+        #                     "order_side": 2,             # Trading side 1-Buy, 2-Sell
+        #                     "order_type": 2,             # 2-limit order
+        #                     "price": "0.00900000",       # order price
+        #                     "amount": "1.00000000",      # order amount
+        #                     "money": "0.00900000",       # currency amount(price * amount)
+        #                     "deal_amount": "0.00000000",  # deal amount
+        #                     "deal_percent": "0.00%",     # deal percentage
+        #                     "unexecuted": "0.00000000",  # unexecuted amount
+        #                     "status": 3                  # Status, -1-fail, 0,1-to be dealt, 2-dealt partly, 3-dealt totally, 4- cancelled partly, 5-cancelled totally, 6-to be cancelled
         #                 },
-        #                 "cmd":"orderpending/order"
+        #                 "cmd": "orderpending/order"
         #             }
         #         ]
         #     }
@@ -1213,42 +1227,134 @@ class bibox(Exchange):
         return self.parse_order(order)
 
     def parse_order(self, order, market=None):
-        marketId = None
-        baseId = self.safe_string(order, 'coin_symbol')
-        quoteId = self.safe_string(order, 'currency_symbol')
-        if (baseId is not None) and (quoteId is not None):
-            marketId = baseId + '_' + quoteId
+        #
+        # createOrder V4
+        #
+        #    {
+        #        "i": 4611688217450643477,  # The order id assigned by the exchange
+        #        "I": "",  # User specified order id
+        #        "m": "BTC_USDT",  # trading pair code
+        #        "T": "limit",  # order type
+        #        "s": "sell",  # order direction
+        #        "Q": -0.0100,  # order amount
+        #        "P": 10043.8500,  # order price
+        #        "t": "gtc",  # Time In Force
+        #        "o": False,  # Post Only
+        #        "S": "filled",  # order status
+        #        "E": -0.0100,  # transaction volume
+        #        "e": -100.43850000,  # transaction value
+        #        "C": 1643193746043,  # creation time
+        #        "U": 1643193746464,  # update time
+        #        "n": 2,  # Number of transactions
+        #        "F": [
+        #            {
+        #                "i": 13,  # transaction id
+        #                "t": 1643193746464,  # Transaction time
+        #                "p": 10043.85,  # transaction price
+        #                "q": -0.009,  # transaction volume
+        #                "l": "maker",  # Maker / Taker transaction
+        #                "f": {
+        #                    "a": "USDT",  # The asset used for the transaction to pay the handling fee
+        #                    "m": 0.09039465000  # The transaction fee
+        #                }
+        #            },
+        #            {
+        #                "i": 12,
+        #                "t": 1643193746266,
+        #                "p": 10043.85,
+        #                "q": -0.001,
+        #                "l": "maker",
+        #                "f": {
+        #                    "a": "USDT",
+        #                    "m": 0.01004385000
+        #                }
+        #            }
+        #        ],
+        #        "f": [
+        #            {
+        #                "a": "USDT",  # Assets used to pay fees
+        #                "m": 0.10043850000  # Total handling fee
+        #            }
+        #        ]
+        #    }
+        #
+        # fetchOrder V1, fetchOpenOrders V1, fetchClosedOrders V1
+        #
+        #     {
+        #         "id": "100055558128036",
+        #         "createdAt": 1512756997000,
+        #         "account_type": 0,
+        #         "coin_symbol": "LTC",        # Trading Token
+        #         "currency_symbol": "BTC",    # Pricing Token
+        #         "order_side": 2,             # Trading side 1-Buy, 2-Sell
+        #         "order_type": 2,             # 2-limit order
+        #         "price": "0.00900000",       # order price
+        #         "amount": "1.00000000",      # order amount
+        #         "money": "0.00900000",       # currency amount(price * amount)
+        #         "deal_amount": "0.00000000",  # deal amount
+        #         "deal_percent": "0.00%",     # deal percentage
+        #         "unexecuted": "0.00000000",  # unexecuted amount
+        #         "status": 3                  # Status,-1-fail, 0,1-to be dealt, 2-dealt partly, 3-dealt totally, 4- cancelled partly, 5-cancelled totally, 6-to be cancelled
+        #     }
+        #
+        marketId = self.safe_string(order, 'm')
+        if marketId is None:
+            baseId = self.safe_string(order, 'coin_symbol')
+            quoteId = self.safe_string(order, 'currency_symbol')
+            if (baseId is not None) and (quoteId is not None):
+                marketId = baseId + '_' + quoteId
         market = self.safe_market(marketId, market)
-        rawType = self.safe_string(order, 'order_type')
-        type = 'market' if (rawType == '1') else 'limit'
-        timestamp = self.safe_integer(order, 'createdAt')
-        price = self.safe_string(order, 'price')
+        type = self.safe_string_2(order, 'T', 'order_type')
+        if type != 'limit' and type != 'market':
+            if type == '1':
+                type = 'limit'
+            elif type == '2':
+                type = 'market'
+        timestamp = self.safe_integer_2(order, 'C', 'createdAt')
+        price = self.safe_string_2(order, 'P', 'price')
         average = self.safe_string(order, 'deal_price')
         filled = self.safe_string(order, 'deal_amount')
-        amount = self.safe_string(order, 'amount')
-        cost = self.safe_string_2(order, 'deal_money', 'money')
-        rawSide = self.safe_string(order, 'order_side')
-        side = 'buy' if (rawSide == '1') else 'sell'
-        status = self.parse_order_status(self.safe_string(order, 'status'))
-        id = self.safe_string(order, 'id')
-        feeCost = self.safe_string(order, 'fee')
+        amount = self.safe_string_2(order, 'Q', 'amount')
+        amount = Precise.string_abs(amount)
+        cost = self.safe_string_2(order, 'money', 'deal_money')
+        side = self.safe_string_2(order, 's', 'order_side')
+        if side == '1':
+            side = 'buy'
+        elif side == '2':
+            side = 'sell'
+        status = self.parse_order_status(self.safe_string_2(order, 'S', 'status'))
+        id = self.safe_string_2(order, 'i', 'id')
+        clientOrderId = self.omit_zero(self.safe_string(order, 'I'))
+        timeInForce = self.safe_string_upper(order, 't')
+        postOnly = self.safe_value(order, 'o')
+        fees = []
+        orderFees = self.safe_value(order, 'f', [])
+        for i in range(0, len(orderFees)):
+            fees.append({
+                'currency': self.safe_currency_code(self.safe_string(orderFees[i], 'a')),
+                'cost': self.safe_string(orderFees[i], 'm'),
+            })
         fee = None
-        if feeCost is not None:
-            fee = {
-                'cost': feeCost,
-                'currency': None,
-            }
+        if len(fees):
+            fee = self.safe_value(fees, 0)
+        else:
+            feeCost = self.safe_string(order, 'fee')
+            if feeCost is not None:
+                fee = {
+                    'cost': feeCost,
+                    'currency': None,
+                }
         return self.safe_order({
             'info': order,
             'id': id,
-            'clientOrderId': None,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'symbol': market['symbol'],
             'type': type,
-            'timeInForce': None,
-            'postOnly': None,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': None,
@@ -1259,6 +1365,7 @@ class bibox(Exchange):
             'remaining': None,
             'status': status,
             'fee': fee,
+            'fees': fees,
             'trades': None,
         }, market)
 
@@ -1267,10 +1374,13 @@ class bibox(Exchange):
             # original comments from bibox:
             '1': 'open',  # pending
             '2': 'open',  # part completed
+            'accepted': 'open',
             '3': 'closed',  # completed
             '4': 'canceled',  # part canceled
             '5': 'canceled',  # canceled
             '6': 'canceled',  # canceling
+            'rejected': 'rejected',
+            '-1': 'rejected',
         }
         return self.safe_string(statuses, status, status)
 

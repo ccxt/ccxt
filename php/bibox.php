@@ -1122,43 +1122,60 @@ class bibox extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} $params extra parameters specific to the bibox api endpoint
+         * @param {string} $params->clientOrderId client order id
          * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $orderType = ($type === 'limit') ? 2 : 1;
-        $orderSide = ($side === 'buy') ? 1 : 2;
         $request = array(
-            'cmd' => 'orderpending/trade',
-            'body' => array_merge(array(
-                'pair' => $market['id'],
-                'account_type' => 0,
-                'order_type' => $orderType,
-                'order_side' => $orderSide,
-                'pay_bix' => 0,
-                'amount' => $amount,
-                'price' => $price,
-            ), $params),
+            'symbol' => $market['id'],
+            'side' => $side,
+            'type' => $type,
+            'quantity' => $this->amount_to_precision($symbol, $amount),
+            'price' => $this->price_to_precision($symbol, $price),
+            // 'client_order_id' => // Order id, a string with a valid value of an int64 integer
+            // 'time_in_force' => // Valid value gtc, ioc
+            // 'post_only':
         );
-        $response = $this->v1PrivatePostOrderpending ($request);
+        $timeInForce = $this->safe_string_lower($params, 'timeInForce');
+        if ($timeInForce !== null) {
+            $request['post_only'] = $timeInForce;
+            $params = $this->omit($params, 'timeInForce');
+        }
+        $postOnly = $this->safe_string($params, 'postOnly');
+        if ($postOnly !== null) {
+            $request['post_only'] = $postOnly;
+            $params = $this->omit($params, 'postOnly');
+        }
+        $clientOrderId = $this->safe_string($params, 'clientOrderId');
+        if ($clientOrderId !== null) {
+            $request['client_order_id'] = $clientOrderId;
+            $params = $this->omit($params, 'clientOrderId');
+        }
+        $response = $this->v4PrivatePostUserdataOrder ($this->deep_extend($request, $params));
         //
         //     {
-        //         "result":array(
-        //             {
-        //                 "result" => "100055558128036", // order $id
-        //                 "index" => 12345, // random index, specific one in a batch
-        //                 "cmd":"orderpending/trade"
-        //             }
-        //         )
+        //         "i" => 14580623695947906,
+        //         "I" => "0",
+        //         "m" => "LUNC_USDT",
+        //         "T" => "limit",
+        //         "s" => "sell",
+        //         "Q" => -1015236.00000,
+        //         "P" => 0.0002900000,
+        //         "t" => "gtc",
+        //         "o" => false,
+        //         "S" => "accepted",
+        //         "E" => 0,
+        //         "e" => 0,
+        //         "C" => 1665670398046,
+        //         "U" => 1665670398046,
+        //         "V" => 582952205212,
+        //         "n" => 0,
+        //         "F" => array(),
+        //         "f" => array()
         //     }
         //
-        $outerResults = $this->safe_value($response, 'result');
-        $firstResult = $this->safe_value($outerResults, 0, array());
-        $id = $this->safe_value($firstResult, 'result');
-        return array(
-            'info' => $response,
-            'id' => $id,
-        );
+        return $this->parse_order($response, $market);
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
@@ -1212,23 +1229,23 @@ class bibox extends Exchange {
         //     {
         //         "result":array(
         //             {
-        //                 "result":array(
-        //                     "id":"100055558128036",
+        //                 "result" => array(
+        //                     "id" => "100055558128036",
         //                     "createdAt" => 1512756997000,
-        //                     "account_type":0,
-        //                     "coin_symbol":"LTC",        // Trading Token
-        //                     "currency_symbol":"BTC",    // Pricing Token
-        //                     "order_side":2,             // Trading side 1-Buy, 2-Sell
-        //                     "order_type":2,             // 2-limit $order
-        //                     "price":"0.00900000",       // $order price
-        //                     "amount":"1.00000000",      // $order amount
-        //                     "money":"0.00900000",       // currency amount (price * amount)
-        //                     "deal_amount":"0.00000000", // deal amount
-        //                     "deal_percent":"0.00%",     // deal percentage
-        //                     "unexecuted":"0.00000000",  // unexecuted amount
-        //                     "status":3                  // Status, -1-fail, 0,1-to be dealt, 2-dealt partly, 3-dealt totally, 4- cancelled partly, 5-cancelled totally, 6-to be cancelled
+        //                     "account_type" => 0,
+        //                     "coin_symbol" => "LTC",        // Trading Token
+        //                     "currency_symbol" => "BTC",    // Pricing Token
+        //                     "order_side" => 2,             // Trading side 1-Buy, 2-Sell
+        //                     "order_type" => 2,             // 2-limit $order
+        //                     "price" => "0.00900000",       // $order price
+        //                     "amount" => "1.00000000",      // $order amount
+        //                     "money" => "0.00900000",       // currency amount (price * amount)
+        //                     "deal_amount" => "0.00000000", // deal amount
+        //                     "deal_percent" => "0.00%",     // deal percentage
+        //                     "unexecuted" => "0.00000000",  // unexecuted amount
+        //                     "status" => 3                  // Status, -1-fail, 0,1-to be dealt, 2-dealt partly, 3-dealt totally, 4- cancelled partly, 5-cancelled totally, 6-to be cancelled
         //                 ),
-        //                 "cmd":"orderpending/order"
+        //                 "cmd" => "orderpending/order"
         //             }
         //         )
         //     }
@@ -1243,44 +1260,142 @@ class bibox extends Exchange {
     }
 
     public function parse_order($order, $market = null) {
-        $marketId = null;
-        $baseId = $this->safe_string($order, 'coin_symbol');
-        $quoteId = $this->safe_string($order, 'currency_symbol');
-        if (($baseId !== null) && ($quoteId !== null)) {
-            $marketId = $baseId . '_' . $quoteId;
+        //
+        // createOrder V4
+        //
+        //    {
+        //        "i" => 4611688217450643477,  // The $order $id assigned by the exchange
+        //        "I" => "",  // User specified $order $id
+        //        "m" => "BTC_USDT",  // trading pair code
+        //        "T" => "limit",  // $order $type
+        //        "s" => "sell",  // $order direction
+        //        "Q" => -0.0100,  // $order $amount
+        //        "P" => 10043.8500,  // $order $price
+        //        "t" => "gtc",  // Time In Force
+        //        "o" => false,  // Post Only
+        //        "S" => "filled",  // $order $status
+        //        "E" => -0.0100,  // transaction volume
+        //        "e" => -100.43850000,  // transaction value
+        //        "C" => 1643193746043,  // creation time
+        //        "U" => 1643193746464,  // update time
+        //        "n" => 2,  // Number of transactions
+        //        "F" => array(
+        //            {
+        //                "i" => 13,  // transaction $id
+        //                "t" => 1643193746464,  // Transaction time
+        //                "p" => 10043.85,  // transaction $price
+        //                "q" => -0.009,  // transaction volume
+        //                "l" => "maker",  // Maker / Taker transaction
+        //                "f" => array(
+        //                    "a" => "USDT",  // The asset used for the transaction to pay the handling $fee
+        //                    "m" => 0.09039465000  // The transaction $fee
+        //                }
+        //            ),
+        //            {
+        //                "i" => 12,
+        //                "t" => 1643193746266,
+        //                "p" => 10043.85,
+        //                "q" => -0.001,
+        //                "l" => "maker",
+        //                "f" => {
+        //                    "a" => "USDT",
+        //                    "m" => 0.01004385000
+        //                }
+        //            }
+        //        ),
+        //        "f" => array(
+        //            {
+        //                "a" => "USDT",  // Assets used to pay $fees
+        //                "m" => 0.10043850000  // Total handling $fee
+        //            }
+        //        )
+        //    }
+        //
+        // fetchOrder V1, fetchOpenOrders V1, fetchClosedOrders V1
+        //
+        //     {
+        //         "id" => "100055558128036",
+        //         "createdAt" => 1512756997000,
+        //         "account_type" => 0,
+        //         "coin_symbol" => "LTC",        // Trading Token
+        //         "currency_symbol" => "BTC",    // Pricing Token
+        //         "order_side" => 2,             // Trading $side 1-Buy, 2-Sell
+        //         "order_type" => 2,             // 2-limit $order
+        //         "price" => "0.00900000",       // $order $price
+        //         "amount" => "1.00000000",      // $order $amount
+        //         "money" => "0.00900000",       // currency $amount ($price * $amount)
+        //         "deal_amount" => "0.00000000", // deal $amount
+        //         "deal_percent" => "0.00%",     // deal percentage
+        //         "unexecuted" => "0.00000000",  // unexecuted $amount
+        //         "status" => 3                  // Status,-1-fail, 0,1-to be dealt, 2-dealt partly, 3-dealt totally, 4- cancelled partly, 5-cancelled totally, 6-to be cancelled
+        //     }
+        //
+        $marketId = $this->safe_string($order, 'm');
+        if ($marketId === null) {
+            $baseId = $this->safe_string($order, 'coin_symbol');
+            $quoteId = $this->safe_string($order, 'currency_symbol');
+            if (($baseId !== null) && ($quoteId !== null)) {
+                $marketId = $baseId . '_' . $quoteId;
+            }
         }
         $market = $this->safe_market($marketId, $market);
-        $rawType = $this->safe_string($order, 'order_type');
-        $type = ($rawType === '1') ? 'market' : 'limit';
-        $timestamp = $this->safe_integer($order, 'createdAt');
-        $price = $this->safe_string($order, 'price');
+        $type = $this->safe_string_2($order, 'T', 'order_type');
+        if ($type !== 'limit' && $type !== 'market') {
+            if ($type === '1') {
+                $type = 'limit';
+            } elseif ($type === '2') {
+                $type = 'market';
+            }
+        }
+        $timestamp = $this->safe_integer_2($order, 'C', 'createdAt');
+        $price = $this->safe_string_2($order, 'P', 'price');
         $average = $this->safe_string($order, 'deal_price');
         $filled = $this->safe_string($order, 'deal_amount');
-        $amount = $this->safe_string($order, 'amount');
-        $cost = $this->safe_string_2($order, 'deal_money', 'money');
-        $rawSide = $this->safe_string($order, 'order_side');
-        $side = ($rawSide === '1') ? 'buy' : 'sell';
-        $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $id = $this->safe_string($order, 'id');
-        $feeCost = $this->safe_string($order, 'fee');
-        $fee = null;
-        if ($feeCost !== null) {
-            $fee = array(
-                'cost' => $feeCost,
-                'currency' => null,
+        $amount = $this->safe_string_2($order, 'Q', 'amount');
+        $amount = Precise::string_abs($amount);
+        $cost = $this->safe_string_2($order, 'money', 'deal_money');
+        $side = $this->safe_string_2($order, 's', 'order_side');
+        if ($side === '1') {
+            $side = 'buy';
+        } elseif ($side === '2') {
+            $side = 'sell';
+        }
+        $status = $this->parse_order_status($this->safe_string_2($order, 'S', 'status'));
+        $id = $this->safe_string_2($order, 'i', 'id');
+        $clientOrderId = $this->omit_zero($this->safe_string($order, 'I'));
+        $timeInForce = $this->safe_string_upper($order, 't');
+        $postOnly = $this->safe_value($order, 'o');
+        $fees = array();
+        $orderFees = $this->safe_value($order, 'f', array());
+        for ($i = 0; $i < count($orderFees); $i++) {
+            $fees[] = array(
+                'currency' => $this->safe_currency_code($this->safe_string($orderFees[$i], 'a')),
+                'cost' => $this->safe_string($orderFees[$i], 'm'),
             );
+        }
+        $fee = null;
+        if (strlen($fees)) {
+            $fee = $this->safe_value($fees, 0);
+        } else {
+            $feeCost = $this->safe_string($order, 'fee');
+            if ($feeCost !== null) {
+                $fee = array(
+                    'cost' => $feeCost,
+                    'currency' => null,
+                );
+            }
         }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
-            'clientOrderId' => null,
+            'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $market['symbol'],
             'type' => $type,
-            'timeInForce' => null,
-            'postOnly' => null,
+            'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
@@ -1291,6 +1406,7 @@ class bibox extends Exchange {
             'remaining' => null,
             'status' => $status,
             'fee' => $fee,
+            'fees' => $fees,
             'trades' => null,
         ), $market);
     }
@@ -1300,10 +1416,13 @@ class bibox extends Exchange {
             // original comments from bibox:
             '1' => 'open', // pending
             '2' => 'open', // part completed
+            'accepted' => 'open',
             '3' => 'closed', // completed
             '4' => 'canceled', // part canceled
             '5' => 'canceled', // canceled
             '6' => 'canceled', // canceling
+            'rejected' => 'rejected',
+            '-1' => 'rejected',
         );
         return $this->safe_string($statuses, $status, $status);
     }
