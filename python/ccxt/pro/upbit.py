@@ -141,6 +141,7 @@ class upbit(Exchange, ccxt.async_support.upbit):
         # therefore we reset the orderbook on each update
         # and reinitialize it again with new bidasks
         orderBook.reset({})
+        orderBook['symbol'] = symbol
         bids = orderBook['bids']
         asks = orderBook['asks']
         data = self.safe_value(message, 'orderbook_units', [])

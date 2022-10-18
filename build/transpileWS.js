@@ -16,8 +16,7 @@ const fs = require ('fs')
     , errors = require ('../js/base/errors.js')
     , { Transpiler, parallelizeTranspiling } = require ('./transpile.js')
     , Exchange = require ('../js/pro/base/Exchange.js')
-    // , tsFilename = './ccxt.pro.d.ts'
-    // , tsFilename = './ccxt.d.ts'
+    , tsFilename = './ccxt.d.ts'
 
 // ============================================================================
 
@@ -216,6 +215,40 @@ class CCXTProTranspiler extends Transpiler {
 
     // ------------------------------------------------------------------------
 
+    exportTypeScriptClassNames (file, classes) {
+
+        log.bright.cyan ('Exporting WS TypeScript class names →', file.yellow)
+        
+        const commonImports = [
+            '        export const exchanges: string[];',
+            '        class Exchange  extends ExchangePro {};'
+        ]
+
+        const replacements = [
+            {
+                file:file,
+                regex: /\n\n\s+export\snamespace\spro\s{\n\s+[\s\S]+}/,
+                replacement: "\n\n    export namespace pro {\n" + commonImports.join('\n') + '\n' + Object.keys (classes).map (className => {
+                    return '        class ' + className + ' extends Exchange {};'
+                }).join ("\n") + "\n    }\n}"
+            }
+        ]
+
+        replacements.forEach (({ file, regex, replacement }) => {
+            replaceInFile (file, regex, replacement)
+        })
+        
+    }
+    
+    // -----------------------------------------------------------------------
+    
+    exportTypeScriptDeclarations (file, classes) {
+
+        this.exportTypeScriptClassNames (file, classes)
+    }
+
+    // -----------------------------------------------------------------------
+    
     transpileEverything (force = false, child = false) {
 
         // default pattern is '.js'
@@ -247,7 +280,7 @@ class CCXTProTranspiler extends Transpiler {
 
         // HINT: if we're going to support specific class definitions
         // this process won't work anymore as it will override the definitions
-        // this.exportTypeScriptDeclarations (tsFilename, classes)
+        this.exportTypeScriptDeclarations (tsFilename, classes)
 
         //*/
 

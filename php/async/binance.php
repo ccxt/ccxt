@@ -167,7 +167,7 @@ class binance extends Exchange {
                 ),
                 'www' => 'https://www.binance.com',
                 'referral' => array(
-                    'url' => 'https://www.binance.com/en/register?ref=D7YA7CLY',
+                    'url' => 'https://accounts.binance.com/en/register?ref=D7YA7CLY',
                     'discount' => 0.1,
                 ),
                 'doc' => array(
@@ -239,9 +239,6 @@ class binance extends Exchange {
                         'futures/loan/borrow/history' => 1,
                         'futures/loan/repay/history' => 1,
                         'futures/loan/wallet' => 1,
-                        'futures/loan/configs' => 1,
-                        'futures/loan/calcAdjustLevel' => 5, // Weight(IP) => 50 => cost = 0.1 * 50 = 5
-                        'futures/loan/calcMaxAdjustAmount' => 5,
                         'futures/loan/adjustCollateral/history' => 1,
                         'futures/loan/liquidationHistory' => 1,
                         'rebate/taxQuery' => 20.001, // Weight(UID) => 3000 => cost = 0.006667 * 3000 = 20.001
@@ -347,6 +344,7 @@ class binance extends Exchange {
                         'pay/transactions' => 20.001, // Weight(UID) => 3000 => cost = 0.006667 * 3000 = 20.001
                         'giftcard/verify' => 0.1,
                         'giftcard/cryptography/rsa-public-key' => 0.1,
+                        'giftcard/buyCode/token-limit' => 0.1,
                         'algo/futures/openOrders' => 0.1,
                         'algo/futures/historicalOrders' => 0.1,
                         'algo/futures/subOrders' => 0.1,
@@ -364,6 +362,8 @@ class binance extends Exchange {
                         'asset/dust-btc' => 0.1,
                         'asset/transfer' => 0.1,
                         'asset/get-funding-asset' => 0.1,
+                        'asset/convert-transfer' => 0.033335,
+                        'asset/convert-transfer/queryByPage' => 0.033335,
                         'account/disableFastWithdrawSwitch' => 0.1,
                         'account/enableFastWithdrawSwitch' => 0.1,
                         // 'account/apiRestrictions/ipRestriction' => 1, discontinued
@@ -392,9 +392,6 @@ class binance extends Exchange {
                         'userDataStream' => 0.1,
                         'userDataStream/isolated' => 0.1,
                         'futures/transfer' => 0.1,
-                        'futures/loan/borrow' => 20.001, // Weight(UID) => 3000 => cost = 0.006667 * 3000 = 20.001
-                        'futures/loan/repay' => 20.001,
-                        'futures/loan/adjustCollateral' => 20.001,
                         // lending
                         'lending/customizedFixed/purchase' => 0.1,
                         'lending/daily/purchase' => 0.1,
@@ -434,6 +431,7 @@ class binance extends Exchange {
                         //
                         'giftcard/createCode' => 0.1,
                         'giftcard/redeemCode' => 0.1,
+                        'giftcard/buyCode' => 0.1,
                         'algo/futures/newOrderVp' => 20.001,
                         'algo/futures/newOrderTwap' => 20.001,
                         // staking
@@ -3040,7 +3038,10 @@ class binance extends Exchange {
                         if ($quoteOrderQty !== null) {
                             $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQty, TRUNCATE, $precision, $this->precisionMode);
                         } elseif ($price !== null) {
-                            $request['quoteOrderQty'] = $this->decimal_to_precision($amount * $price, TRUNCATE, $precision, $this->precisionMode);
+                            $amountString = $this->number_to_string($amount);
+                            $priceString = $this->number_to_string($price);
+                            $quoteOrderQuantity = Precise::string_mul($amountString, $priceString);
+                            $request['quoteOrderQty'] = $this->decimal_to_precision($quoteOrderQuantity, TRUNCATE, $precision, $this->precisionMode);
                         } else {
                             $quantityIsRequired = true;
                         }

@@ -87,6 +87,8 @@ class aax(Exchange):
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrder': None,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -592,69 +594,108 @@ class aax(Exchange):
         response = self.publicGetCurrencies(params)
         #
         #     {
-        #         "code":1,
-        #         "data":[
+        #         "code": 1,
+        #         "data": [
         #             {
-        #                 "chain":"BTC",
-        #                 "displayName":"Bitcoin",
-        #                 "withdrawFee":"0.0004",
-        #                 "withdrawMin":"0.001",
-        #                 "otcFee":"0",
-        #                 "enableOTC":true,
-        #                 "visible":true,
-        #                 "enableTransfer":true,
-        #                 "transferMin":"0.00001",
-        #                 "depositMin":"0.0005",
-        #                 "enableWithdraw":true,
-        #                 "enableDeposit":true,
-        #                 "addrWithMemo":false,
-        #                 "withdrawPrecision":"0.00000001",
-        #                 "currency":"BTC",
-        #                 "network":"BTC",  # ETH, ERC20, TRX, TRC20, OMNI, LTC, XRP, XLM, ...
-        #                 "minConfirm":"2"
+        #                 "chain": "BTC",
+        #                 "displayName": "Bitcoin",
+        #                 "withdrawFee": "0.0004",
+        #                 "withdrawMin": "0.001",
+        #                 "otcFee": "0",
+        #                 "enableOTC": True,
+        #                 "visible": True,
+        #                 "enableTransfer": True,
+        #                 "transferMin": "0.00001",
+        #                 "depositMin": "0.0005",
+        #                 "enableWithdraw": True,
+        #                 "enableDeposit": True,
+        #                 "addrWithMemo": False,
+        #                 "withdrawPrecision": "0.00000001",
+        #                 "currency": "BTC",
+        #                 "network": "BTC",  # ETH, ERC20, TRX, TRC20, OMNI, LTC, XRP, XLM, ...
+        #                 "minConfirm": "2"
         #             },
         #         ],
-        #         "message":"success",
-        #         "ts":1624330530697
+        #         "message": "success",
+        #         "ts": 1624330530697
         #     }
         #
         result = {}
         data = self.safe_value(response, 'data', [])
         for i in range(0, len(data)):
             currency = data[i]
-            id = self.safe_string(currency, 'chain')
-            name = self.safe_string(currency, 'displayName')
+            id = self.safe_string(currency, 'currency')
             code = self.safe_currency_code(id)
+            networkId = self.safe_string(currency, 'network')
             enableWithdraw = self.safe_value(currency, 'enableWithdraw')
             enableDeposit = self.safe_value(currency, 'enableDeposit')
-            fee = self.safe_number(currency, 'withdrawFee')
             visible = self.safe_value(currency, 'visible')
             active = (enableWithdraw and enableDeposit and visible)
-            deposit = (enableDeposit and visible)
-            withdraw = (enableWithdraw and visible)
-            network = self.safe_string(currency, 'network')
-            result[code] = {
-                'id': id,
-                'name': name,
-                'code': code,
-                'precision': self.safe_number(currency, 'withdrawPrecision'),
+            network = {
                 'info': currency,
-                'active': active,
-                'deposit': deposit,
-                'withdraw': withdraw,
-                'fee': fee,
-                'network': network,
+                'id': networkId,
+                'network': self.safe_currency_code(networkId),
                 'limits': {
-                    'deposit': {
-                        'min': self.safe_number(currency, 'depositMin'),
-                        'max': None,
-                    },
                     'withdraw': {
                         'min': self.safe_number(currency, 'withdrawMin'),
                         'max': None,
                     },
+                    'deposit': {
+                        'min': self.safe_number(currency, 'depositMin'),
+                        'max': None,
+                    },
                 },
+                'active': active,
+                'withdraw': enableWithdraw and visible,
+                'deposit': enableDeposit and visible,
+                'fee': self.safe_number(currency, 'withdrawFee'),
+                'precision': self.safe_number(currency, 'withdrawPrecision'),
             }
+            resultItem = self.safe_value(result, code)
+            fee = self.safe_string(currency, 'withdrawFee')
+            precision = self.safe_string(currency, 'withdrawPrecision')
+            depositMin = self.safe_string(currency, 'depositMin')
+            withdrawMin = self.safe_string(currency, 'withdrawMin')
+            if resultItem is not None:
+                resultItem['networks'].append(network)
+                previousPrecision = str(resultItem['precision'])
+                previousDepositMin = str(resultItem['limits']['deposit']['min'])
+                previousWithdrawMin = str(resultItem['limits']['withdraw']['min'])
+                previousFee = str(resultItem['fee'])
+                resultItem['precision'] = self.parse_number(Precise.string_max(previousPrecision, precision))
+                resultItem['limits']['deposit']['min'] = self.parse_number(Precise.string_min(previousDepositMin, depositMin))
+                resultItem['limits']['withdraw']['min'] = self.parse_number(Precise.string_min(previousWithdrawMin, withdrawMin))
+                resultItem['fee'] = self.parse_number(Precise.string_min(previousFee, fee))
+            else:
+                name = self.safe_string(currency, 'displayName')
+                deposit = (enableDeposit and visible)
+                withdraw = (enableWithdraw and visible)
+                result[code] = {
+                    'info': {},
+                    'id': id,
+                    'name': name,
+                    'code': code,
+                    'precision': self.parse_number(precision),
+                    'active': active,
+                    'deposit': deposit,
+                    'withdraw': withdraw,
+                    'fee': self.parse_number(fee),
+                    'networks': [network],
+                    'limits': {
+                        'amount': {
+                            'min': None,
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': self.parse_number(depositMin),
+                            'max': None,
+                        },
+                        'withdraw': {
+                            'min': self.parse_number(withdrawMin),
+                            'max': None,
+                        },
+                    },
+                }
         return result
 
     def parse_ticker(self, ticker, market=None):
@@ -2940,6 +2981,65 @@ class aax(Exchange):
                 'datetime': self.iso8601(timestamp),
             }))
         return self.filter_by_array(result, 'symbol', symbols, False)
+
+    def fetch_open_interest(self, symbol, params={}):
+        """
+        Retrieves the open interest of a currency
+        see https://www.aax.com/apidoc/index.html#open-interest
+        :param str symbol: Unified CCXT market symbol
+        :param dict params: exchange specific parameters
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure:
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['contract']:
+            raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.publicGetFuturesPositionOpenInterest(self.extend(request, params))
+        #
+        #     {
+        #         "code": 1,
+        #         "data": {
+        #             "openInterest": "37137299.49007",
+        #             "openInterestUSD": "721016725.9898761994667",
+        #             "symbol": "BTCUSDTFP"
+        #         },
+        #         "message": "success",
+        #         "ts": 1664486817471
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        timestamp = self.safe_integer(response, 'ts')
+        openInterest = self.parse_open_interest(data, market)
+        return self.extend(openInterest, {
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        })
+
+    def parse_open_interest(self, interest, market=None):
+        #
+        #     {
+        #         "openInterest": "37137299.49007",
+        #         "openInterestUSD": "721016725.9898761994667",
+        #         "symbol": "BTCUSDTFP"
+        #     }
+        #
+        id = self.safe_string(interest, 'symbol')
+        market = self.safe_market(id, market)
+        amount = self.safe_number(interest, 'openInterest')
+        value = self.safe_number(interest, 'openInterestUSD')
+        return {
+            'symbol': self.safe_symbol(id),
+            'openInterestAmount': amount,
+            'baseVolume': amount,  # deprecated
+            'openInterestValue': value,
+            'quoteVolume': value,  # deprecated
+            'timestamp': None,
+            'datetime': None,
+            'info': interest,
+        }
 
     def nonce(self):
         return self.milliseconds()

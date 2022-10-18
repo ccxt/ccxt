@@ -164,6 +164,7 @@ class gate extends \ccxt\async\gate {
                         }
                     } else {
                         // throw upon failing to synchronize in $maxAttempts
+                        $client->subscriptions[$messageHash] = null;
                         throw new InvalidNonce($this->id . ' failed to synchronize WebSocket feed with the $snapshot for $symbol ' . $symbol . ' in ' . (string) $maxAttempts . ' attempts');
                     }
                 } else {
