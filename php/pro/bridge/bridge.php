@@ -12,6 +12,7 @@ class aaxBridge extends \ccxt\async\aax {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -27,6 +28,7 @@ class ascendexBridge extends \ccxt\async\ascendex {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -42,6 +44,7 @@ class bequantBridge extends \ccxt\async\bequant {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -57,6 +60,7 @@ class binanceBridge extends \ccxt\async\binance {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -72,6 +76,7 @@ class binancecoinmBridge extends \ccxt\async\binancecoinm {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -87,6 +92,7 @@ class binanceusBridge extends \ccxt\async\binanceus {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -102,6 +108,7 @@ class binanceusdmBridge extends \ccxt\async\binanceusdm {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -117,6 +124,7 @@ class bitcoincomBridge extends \ccxt\async\bitcoincom {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -132,6 +140,7 @@ class bitfinexBridge extends \ccxt\async\bitfinex {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -147,6 +156,7 @@ class bitfinex2Bridge extends \ccxt\async\bitfinex2 {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -162,6 +172,7 @@ class bitmartBridge extends \ccxt\async\bitmart {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -177,6 +188,7 @@ class bitmexBridge extends \ccxt\async\bitmex {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -192,6 +204,7 @@ class bitoproBridge extends \ccxt\async\bitopro {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -207,6 +220,7 @@ class bitstampBridge extends \ccxt\async\bitstamp {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -222,6 +236,7 @@ class bittrexBridge extends \ccxt\async\bittrex {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -237,6 +252,7 @@ class bitvavoBridge extends \ccxt\async\bitvavo {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -252,6 +268,7 @@ class bybitBridge extends \ccxt\async\bybit {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -267,6 +284,7 @@ class coinbaseprimeBridge extends \ccxt\async\coinbaseprime {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -282,6 +300,7 @@ class coinbaseproBridge extends \ccxt\async\coinbasepro {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -297,6 +316,7 @@ class coinexBridge extends \ccxt\async\coinex {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -312,6 +332,7 @@ class cryptocomBridge extends \ccxt\async\cryptocom {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -327,6 +348,7 @@ class currencycomBridge extends \ccxt\async\currencycom {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -342,6 +364,7 @@ class exmoBridge extends \ccxt\async\exmo {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -357,6 +380,7 @@ class ftxBridge extends \ccxt\async\ftx {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -372,6 +396,7 @@ class ftxusBridge extends \ccxt\async\ftxus {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -387,6 +412,7 @@ class gateBridge extends \ccxt\async\gate {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -402,6 +428,7 @@ class gateioBridge extends \ccxt\async\gateio {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -417,6 +444,7 @@ class hitbtcBridge extends \ccxt\async\hitbtc {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -432,6 +460,7 @@ class hollaexBridge extends \ccxt\async\hollaex {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -447,6 +476,7 @@ class huobiBridge extends \ccxt\async\huobi {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -462,6 +492,7 @@ class huobijpBridge extends \ccxt\async\huobijp {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -477,6 +508,7 @@ class huobiproBridge extends \ccxt\async\huobipro {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -492,6 +524,7 @@ class idexBridge extends \ccxt\async\idex {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -507,6 +540,7 @@ class krakenBridge extends \ccxt\async\kraken {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -522,6 +556,7 @@ class kucoinBridge extends \ccxt\async\kucoin {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -537,6 +572,7 @@ class mexcBridge extends \ccxt\async\mexc {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -552,6 +588,7 @@ class ndaxBridge extends \ccxt\async\ndax {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -567,6 +604,7 @@ class okcoinBridge extends \ccxt\async\okcoin {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -582,6 +620,7 @@ class okexBridge extends \ccxt\async\okex {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -597,6 +636,7 @@ class okxBridge extends \ccxt\async\okx {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -612,6 +652,7 @@ class phemexBridge extends \ccxt\async\phemex {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -627,6 +668,7 @@ class ripioBridge extends \ccxt\async\ripio {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -642,6 +684,7 @@ class upbitBridge extends \ccxt\async\upbit {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -657,6 +700,7 @@ class whitebitBridge extends \ccxt\async\whitebit {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -672,6 +716,7 @@ class zbBridge extends \ccxt\async\zb {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;
@@ -687,6 +732,7 @@ class zipmexBridge extends \ccxt\async\zipmex {
         parent::__construct($options);
         $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
+        $options['ping'] = array($this, 'ping');
         $options['enableRateLimit'] = $this->enableRateLimit;
         $options['tokenBucket'] = $this->tokenBucket;
         $options['verbose'] = $this->verbose;

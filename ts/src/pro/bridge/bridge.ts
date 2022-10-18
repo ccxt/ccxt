@@ -44,14 +44,14 @@ import upbitRest from  '../../upbit.js'
 import whitebitRest from  '../../whitebit.js'
 import zbRest from  '../../zb.js'
 import zipmexRest from  '../../zipmex.js'
-import { Exchange as WSConnector } from '../base/Exchange.js';
+import { WsConnector } from '../base/WsConnector.js';
 
 //
 //  automatically generated don't change this manually
 //
 
 export class aaxBridge extends aaxRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -59,15 +59,15 @@ export class aaxBridge extends aaxRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class ascendexBridge extends ascendexRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -75,15 +75,15 @@ export class ascendexBridge extends ascendexRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class bequantBridge extends bequantRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -91,15 +91,15 @@ export class bequantBridge extends bequantRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class binanceBridge extends binanceRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -107,15 +107,15 @@ export class binanceBridge extends binanceRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class binancecoinmBridge extends binancecoinmRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -123,15 +123,15 @@ export class binancecoinmBridge extends binancecoinmRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class binanceusBridge extends binanceusRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -139,15 +139,15 @@ export class binanceusBridge extends binanceusRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class binanceusdmBridge extends binanceusdmRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -155,15 +155,15 @@ export class binanceusdmBridge extends binanceusdmRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class bitcoincomBridge extends bitcoincomRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -171,15 +171,15 @@ export class bitcoincomBridge extends bitcoincomRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class bitfinexBridge extends bitfinexRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -187,15 +187,15 @@ export class bitfinexBridge extends bitfinexRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class bitfinex2Bridge extends bitfinex2Rest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -203,15 +203,15 @@ export class bitfinex2Bridge extends bitfinex2Rest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class bitmartBridge extends bitmartRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -219,15 +219,15 @@ export class bitmartBridge extends bitmartRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class bitmexBridge extends bitmexRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -235,15 +235,15 @@ export class bitmexBridge extends bitmexRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class bitoproBridge extends bitoproRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -251,15 +251,15 @@ export class bitoproBridge extends bitoproRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class bitstampBridge extends bitstampRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -267,15 +267,15 @@ export class bitstampBridge extends bitstampRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class bittrexBridge extends bittrexRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -283,15 +283,15 @@ export class bittrexBridge extends bittrexRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class bitvavoBridge extends bitvavoRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -299,15 +299,15 @@ export class bitvavoBridge extends bitvavoRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class bybitBridge extends bybitRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -315,15 +315,15 @@ export class bybitBridge extends bybitRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class coinbaseprimeBridge extends coinbaseprimeRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -331,15 +331,15 @@ export class coinbaseprimeBridge extends coinbaseprimeRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class coinbaseproBridge extends coinbaseproRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -347,15 +347,15 @@ export class coinbaseproBridge extends coinbaseproRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class coinexBridge extends coinexRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -363,15 +363,15 @@ export class coinexBridge extends coinexRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class cryptocomBridge extends cryptocomRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -379,15 +379,15 @@ export class cryptocomBridge extends cryptocomRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class currencycomBridge extends currencycomRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -395,15 +395,15 @@ export class currencycomBridge extends currencycomRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class exmoBridge extends exmoRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -411,15 +411,15 @@ export class exmoBridge extends exmoRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class ftxBridge extends ftxRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -427,15 +427,15 @@ export class ftxBridge extends ftxRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class ftxusBridge extends ftxusRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -443,15 +443,15 @@ export class ftxusBridge extends ftxusRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class gateBridge extends gateRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -459,15 +459,15 @@ export class gateBridge extends gateRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class gateioBridge extends gateioRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -475,15 +475,15 @@ export class gateioBridge extends gateioRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class hitbtcBridge extends hitbtcRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -491,15 +491,15 @@ export class hitbtcBridge extends hitbtcRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class hollaexBridge extends hollaexRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -507,15 +507,15 @@ export class hollaexBridge extends hollaexRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class huobiBridge extends huobiRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -523,15 +523,15 @@ export class huobiBridge extends huobiRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class huobijpBridge extends huobijpRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -539,15 +539,15 @@ export class huobijpBridge extends huobijpRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class huobiproBridge extends huobiproRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -555,15 +555,15 @@ export class huobiproBridge extends huobiproRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class idexBridge extends idexRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -571,15 +571,15 @@ export class idexBridge extends idexRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class krakenBridge extends krakenRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -587,15 +587,15 @@ export class krakenBridge extends krakenRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class kucoinBridge extends kucoinRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -603,15 +603,15 @@ export class kucoinBridge extends kucoinRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class mexcBridge extends mexcRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -619,15 +619,15 @@ export class mexcBridge extends mexcRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class ndaxBridge extends ndaxRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -635,15 +635,15 @@ export class ndaxBridge extends ndaxRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class okcoinBridge extends okcoinRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -651,15 +651,15 @@ export class okcoinBridge extends okcoinRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class okexBridge extends okexRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -667,15 +667,15 @@ export class okexBridge extends okexRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class okxBridge extends okxRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -683,15 +683,15 @@ export class okxBridge extends okxRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class phemexBridge extends phemexRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -699,15 +699,15 @@ export class phemexBridge extends phemexRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class ripioBridge extends ripioRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -715,15 +715,15 @@ export class ripioBridge extends ripioRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class upbitBridge extends upbitRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -731,15 +731,15 @@ export class upbitBridge extends upbitRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class whitebitBridge extends whitebitRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -747,15 +747,15 @@ export class whitebitBridge extends whitebitRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class zbBridge extends zbRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -763,15 +763,15 @@ export class zbBridge extends zbRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }
 //---------------------------------------------------------------------
 
 export class zipmexBridge extends zipmexRest {
-    ws: WSConnector;
+    ws: WsConnector;
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
@@ -779,8 +779,8 @@ export class zipmexBridge extends zipmexRest {
         (config as any).enableRateLimit = this.enableRateLimit;
         (config as any).verbose = this.verbose;
         (config as any).log = this.log;
-        (config as any).ping = (this as any).ping;
-        this.ws = new WSConnector (config);
+        (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
+        this.ws = new WsConnector (config);
     }
     handleMessage (client, message) {} // stub to override
     }

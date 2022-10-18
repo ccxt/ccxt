@@ -3,7 +3,7 @@ import WsClient from './WsClient.js';
 import { OrderBook, IndexedOrderBook, CountedOrderBook } from './OrderBook.js';
 import { inflate64, inflate, gunzip } from './functions.js';;
 
-export default class Exchange  {
+export default class WsConnector  {
     
     newUpdates = true
     options = {}
@@ -27,6 +27,7 @@ export default class Exchange  {
         this.newUpdates = true;
         this.options = {};
         this.log = (options as any).log;
+        // this.streaming = (options as any).streaming; 
         this.ping = (options as any).ping;
         this.clients = {};
     }
@@ -74,7 +75,7 @@ export default class Exchange  {
             }
 
             if (this.ping) {
-                options['ping'] = this.ping.bind(this);
+                options['ping'] = this.ping; // don't bind here otherwise it will be called with the WsConnector as the context inside derived file
             }
 
             this.clients[url] = new WsClient (url, onMessage, onError, onClose, onConnected, options);
@@ -185,5 +186,5 @@ export default class Exchange  {
 };
 
 export {
-    Exchange,
+    WsConnector,
 };

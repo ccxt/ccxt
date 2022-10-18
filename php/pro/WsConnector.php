@@ -12,6 +12,8 @@ class WsConnector {
     public $options = array();
     public $verbose = false;
     public $tokenBucket;
+    public $ping;
+    public $log;
     public $enableRateLimit = false;
 
     public function __construct($options = array()) {
@@ -19,6 +21,8 @@ class WsConnector {
         $this->verbose = Exchange::safe_value($options, 'verbose', false);
         $this->tokenBucket = Exchange::safe_value($options, 'tokenBucket', null);
         $this->enableRateLimit = Exchange::safe_value($options, 'enableRateLimit', false);
+        $this->ping = Exchange::safe_value($options, 'ping');
+        $this->log = Exchange::safe_value($options, 'log');
     }
 
     // streaming-specific options
@@ -77,6 +81,7 @@ class WsConnector {
             $ws_options = Exchange::safe_value($this->options, 'ws', array());
             $options = array_replace_recursive(array(
                 'log' => array($this, 'log'),
+                'ping' => array($this, 'ping'),
                 'verbose' => $this->verbose,
                 'throttle' => new Throttle($this->tokenBucket),
             ), $this->streaming, $ws_options);
