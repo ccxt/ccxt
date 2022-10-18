@@ -311,6 +311,7 @@ class Exchange {
         'parsePosition' => 'parse_position',
         'parseFundingRateHistory' => 'parse_funding_rate_history',
         'findTimeframe' => 'find_timeframe',
+        'formatScientificNotationFTX' => 'format_scientific_notation_ftx',
         'parseToInt' => 'parse_to_int',
         'safeLedgerEntry' => 'safe_ledger_entry',
         'setMarkets' => 'set_markets',
