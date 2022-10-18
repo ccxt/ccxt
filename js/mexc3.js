@@ -4012,7 +4012,6 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchTransfers
          * @description fetch a history of internal transfers made on an account
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-user-universal-transfer-history
          * @param {string|undefined} code unified currency code of the currency transferred
          * @param {int|undefined} since the earliest time in ms to fetch transfers for
          * @param {int|undefined} limit the maximum number of  transfers structures to retrieve
