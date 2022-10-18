@@ -1260,7 +1260,7 @@ module.exports = class bybit extends bybitRest {
                 channel = isStopOrder ? 'stop_order' : 'order';
                 channel = (orderType === 'both') ? [ 'stop_order', 'order' ] : channel;
             }
-            const reqParams = [... channel ];
+            const reqParams = [ ...channel ];
             orders = await this.watchContractPrivate (url, messageHash, reqParams, params);
         }
         if (this.newUpdates) {
