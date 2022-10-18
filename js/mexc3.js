@@ -544,6 +544,7 @@ module.exports = class mexc3 extends Exchange {
             return undefined;
         }
         const response = await this.spotPrivateGetCapitalConfigGetall (params);
+        console.log (response);
         //
         // {
         //     coin: 'QANX',
@@ -589,7 +590,6 @@ module.exports = class mexc3 extends Exchange {
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'name');
             let currencyActive = false;
-            let minPrecision = undefined;
             let currencyFee = undefined;
             let currencyWithdrawMin = undefined;
             let currencyWithdrawMax = undefined;
@@ -623,10 +623,6 @@ module.exports = class mexc3 extends Exchange {
                 if (isWithdrawEnabled) {
                     withdrawEnabled = true;
                 }
-                const precision = this.parsePrecision (this.safeString (chain, 'precision'));
-                if (precision !== undefined) {
-                    minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (precision, minPrecision);
-                }
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
@@ -635,7 +631,7 @@ module.exports = class mexc3 extends Exchange {
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
                     'fee': this.safeNumber (chain, 'fee'),
-                    'precision': this.parseNumber (precision),
+                    'precision': undefined,
                     'limits': {
                         'withdraw': {
                             'min': withdrawMin,
@@ -661,7 +657,7 @@ module.exports = class mexc3 extends Exchange {
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': currencyFee,
-                'precision': this.parseNumber (minPrecision),
+                'precision': undefined,
                 'limits': {
                     'amount': {
                         'min': undefined,
