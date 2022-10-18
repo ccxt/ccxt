@@ -320,7 +320,7 @@ export default class ftx extends ftxBridge {
             }
             return n.toString ();
         } else {
-            return this.ws.formatScientificNotationFTX (n);
+            return this.formatScientificNotationFTX (n);
         }
     }
 

@@ -186,44 +186,58 @@ class Exchange {
     );
 
     public static $camelcase_methods = array(
-        'defaultFetch' => 'default_fetch',
-        'arrayConcat' => 'array_concat',
-        'inArray' => 'in_array',
-        'toArray' => 'to_array',
-        'isEmpty' => 'is_empty',
+        'fetchImplementation' => 'fetch_implementation',
+        'executeRestRequest' => 'execute_rest_request',
+        'deepExtend' => 'deep_extend',
         'indexBy' => 'index_by',
-        'groupBy' => 'group_by',
-        'filterBy' => 'filter_by',
         'sortBy' => 'sort_by',
         'sortBy2' => 'sort_by_2',
-        'deepExtend' => 'deep_extend',
+        'groupBy' => 'group_by',
         'unCamelCase' => 'un_camel_case',
-        'isNumber' => 'is_number',
-        'isInteger' => 'is_integer',
-        'isArray' => 'is_array',
-        'isObject' => 'is_object',
-        'isString' => 'is_string',
-        'isStringCoercible' => 'is_string_coercible',
-        'isDictionary' => 'is_dictionary',
-        'hasProps' => 'has_props',
-        'asFloat' => 'as_float',
-        'asInteger' => 'as_integer',
-        'safeFloat' => 'safe_float',
-        'safeInteger' => 'safe_integer',
-        'safeIntegerProduct' => 'safe_integer_product',
-        'safeTimestamp' => 'safe_timestamp',
+        'precisionFromString' => 'precision_from_string',
+        'TimedOut' => 'timed_out',
+        'buildOHLCVC' => 'build_ohlcvc',
+        'decimalToPrecision' => 'decimal_to_precision',
+        'defaultFetch' => 'default_fetch',
         'safeValue' => 'safe_value',
+        'safeValue2' => 'safe_value_2',
         'safeString' => 'safe_string',
+        'safeString2' => 'safe_string_2',
+        'safeFloat' => 'safe_float',
+        'safeFloat2' => 'safe_float_2',
+        'binaryToBase16' => 'binary_to_base16',
+        'numberToBE' => 'number_to_be',
+        'base16ToBinary' => 'base16_to_binary',
+        'stringToBinary' => 'string_to_binary',
+        'isJsonEncodedObject' => 'is_json_encoded_object',
+        'safeInteger' => 'safe_integer',
+        'omitZero' => 'omit_zero',
+        'implodeParams' => 'implode_params',
+        'extractParams' => 'extract_params',
+        'binaryConcat' => 'binary_concat',
+        'arrayConcat' => 'array_concat',
+        'numberToString' => 'number_to_string',
+        'parseTimeframe' => 'parse_timeframe',
+        'safeInteger2' => 'safe_integer_2',
         'safeStringLower' => 'safe_string_lower',
         'safeStringUpper' => 'safe_string_upper',
-        'safeFloat2' => 'safe_float_2',
-        'safeInteger2' => 'safe_integer_2',
+        'safeTimestamp' => 'safe_timestamp',
+        'binaryConcatArray' => 'binary_concat_array',
+        'numberToLE' => 'number_to_le',
+        'stringToBase64' => 'string_to_base64',
         'safeIntegerProduct2' => 'safe_integer_product_2',
+        'safeIntegerProduct' => 'safe_integer_product',
+        'base58ToBinary' => 'base58_to_binary',
+        'base64ToBinary' => 'base64_to_binary',
         'safeTimestamp2' => 'safe_timestamp_2',
-        'safeValue2' => 'safe_value_2',
-        'safeString2' => 'safe_string_2',
+        'inArray' => 'in_array',
         'safeStringLower2' => 'safe_string_lower_2',
         'safeStringUpper2' => 'safe_string_upper_2',
+        'isEmpty' => 'is_empty',
+        'filterBy' => 'filter_by',
+        'urlencodeWithArrayRepeat' => 'urlencode_with_array_repeat',
+        'binaryToBase64' => 'binary_to_base64',
+        'toArray' => 'to_array',
         'safeFloatN' => 'safe_float_n',
         'safeIntegerN' => 'safe_integer_n',
         'safeIntegerProductN' => 'safe_integer_product_n',
@@ -232,38 +246,24 @@ class Exchange {
         'safeStringN' => 'safe_string_n',
         'safeStringLowerN' => 'safe_string_lower_n',
         'safeStringUpperN' => 'safe_string_upper_n',
-        'numberToString' => 'number_to_string',
-        'precisionFromString' => 'precision_from_string',
-        'decimalToPrecision' => 'decimal_to_precision',
-        'omitZero' => 'omit_zero',
-        'isJsonEncodedObject' => 'is_json_encoded_object',
-        'stringToBinary' => 'string_to_binary',
-        'stringToBase64' => 'string_to_base64',
-        'base64ToBinary' => 'base64_to_binary',
-        'base64ToString' => 'base64_to_string',
-        'binaryToBase64' => 'binary_to_base64',
-        'base16ToBinary' => 'base16_to_binary',
-        'binaryToBase16' => 'binary_to_base16',
-        'binaryConcat' => 'binary_concat',
-        'binaryConcatArray' => 'binary_concat_array',
         'urlencodeNested' => 'urlencode_nested',
-        'urlencodeWithArrayRepeat' => 'urlencode_with_array_repeat',
-        'urlencodeBase64' => 'urlencode_base64',
-        'numberToLE' => 'number_to_le',
-        'numberToBE' => 'number_to_be',
-        'base58ToBinary' => 'base58_to_binary',
+        'parseDate' => 'parse_date',
+        'isArray' => 'is_array',
+        'base64ToString' => 'base64_to_string',
+        'asFloat' => 'as_float',
+        'asInteger' => 'as_integer',
         'binaryToBase58' => 'binary_to_base58',
         'byteArrayToWordArray' => 'byte_array_to_word_array',
-        'parseDate' => 'parse_date',
-        'setTimeout_safe' => 'set_timeout_safe',
-        'TimedOut' => 'timed_out',
-        'parseTimeframe' => 'parse_timeframe',
+        'hasProps' => 'has_props',
+        'isDictionary' => 'is_dictionary',
+        'isInteger' => 'is_integer',
+        'isNumber' => 'is_number',
+        'isObject' => 'is_object',
+        'isString' => 'is_string',
+        'isStringCoercible' => 'is_string_coercible',
         'roundTimeframe' => 'round_timeframe',
-        'buildOHLCVC' => 'build_ohlcvc',
-        'implodeParams' => 'implode_params',
-        'extractParams' => 'extract_params',
-        'fetchImplementation' => 'fetch_implementation',
-        'executeRestRequest' => 'execute_rest_request',
+        'setTimeout_safe' => 'set_timeout_safe',
+        'urlencodeBase64' => 'urlencode_base64',
         'encodeURIComponent' => 'encode_uri_component',
         'checkRequiredVersion' => 'check_required_version',
         'checkAddress' => 'check_address',
@@ -291,6 +291,27 @@ class Exchange {
         'parseNumber' => 'parse_number',
         'checkOrderArguments' => 'check_order_arguments',
         'handleHttpStatusCode' => 'handle_http_status_code',
+        'fetchAccounts' => 'fetch_accounts',
+        'fetchTrades' => 'fetch_trades',
+        'fetchDepositAddresses' => 'fetch_deposit_addresses',
+        'fetchOrderBook' => 'fetch_order_book',
+        'fetchTime' => 'fetch_time',
+        'fetchTradingLimits' => 'fetch_trading_limits',
+        'parseTicker' => 'parse_ticker',
+        'parseDepositAddress' => 'parse_deposit_address',
+        'parseTrade' => 'parse_trade',
+        'parseTransaction' => 'parse_transaction',
+        'parseTransfer' => 'parse_transfer',
+        'parseAccount' => 'parse_account',
+        'parseLedgerEntry' => 'parse_ledger_entry',
+        'parseOrder' => 'parse_order',
+        'fetchBorrowRates' => 'fetch_borrow_rates',
+        'parseMarketLeverageTiers' => 'parse_market_leverage_tiers',
+        'fetchLeverageTiers' => 'fetch_leverage_tiers',
+        'parsePosition' => 'parse_position',
+        'parseFundingRateHistory' => 'parse_funding_rate_history',
+        'findTimeframe' => 'find_timeframe',
+        'parseToInt' => 'parse_to_int',
         'safeLedgerEntry' => 'safe_ledger_entry',
         'setMarkets' => 'set_markets',
         'safeBalance' => 'safe_balance',
@@ -326,7 +347,6 @@ class Exchange {
         'resolvePath' => 'resolve_path',
         'filterByArray' => 'filter_by_array',
         'loadAccounts' => 'load_accounts',
-        'fetchTrades' => 'fetch_trades',
         'fetchOHLCVC' => 'fetch_ohlcvc',
         'parseTradingViewOHLCV' => 'parse_trading_view_ohlcv',
         'editLimitBuyOrder' => 'edit_limit_buy_order',
@@ -2401,6 +2421,25 @@ class Exchange {
         }
     }
 
+    function find_timeframe($timeframe, $timeframes = null) {
+        $timeframes = $timeframes ? $timeframes : $this->timeframes;
+        $keys = array_keys($timeframes);
+        for ($i = 0; $i < count($keys); $i++) {
+            $key = $keys[$i];
+            if ($timeframes[$key] === $timeframe) {
+                return $key;
+            }
+        }
+        return null;
+    }
+
+    public function formatScientificNotationFTX($n) {
+        if ($n === 0) {
+            return '0e-00';
+        }
+        return str_replace('E-', 'e-0', sprintf('g', $n));
+    }
+
     // ########################################################################
     // ########################################################################
     // ########################################################################
@@ -2439,6 +2478,14 @@ class Exchange {
     // ########################################################################
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    public function parse_to_int($number) {
+        // Solve Common intvalmisuse ex => intval((since / (string) 1000))
+        // using a $number which is not valid in ts
+        $stringifiedNumber = (string) $number;
+        $convertedNumber = floatval($stringifiedNumber);
+        return intval($convertedNumber);
+    }
 
     public function safe_ledger_entry($entry, $currency = null) {
         $currency = $this->safe_currency(null, $currency);
@@ -2595,8 +2642,8 @@ class Exchange {
     }
 
     public function safe_order($order, $market = null) {
-        // parses numbers as strings
-        // it is important pass the $trades as unparsed $rawTrades
+        // parses numbers
+        // it is important pass the $trades $rawTrades
         $amount = $this->omit_zero($this->safe_string($order, 'amount'));
         $remaining = $this->safe_string($order, 'remaining');
         $filled = $this->safe_string($order, 'filled');
@@ -2616,7 +2663,7 @@ class Exchange {
         if ($parseFilled || $parseCost || $shouldParseFees) {
             $rawTrades = $this->safe_value($order, 'trades', $trades);
             $oldNumber = $this->number;
-            // we parse $trades as strings here!
+            // we parse $trades here!
             $this->number = 'strval';
             $trades = $this->parse_trades($rawTrades, $market, null, null, array(
                 'symbol' => $order['symbol'],
@@ -3141,7 +3188,7 @@ class Exchange {
         $result[$close] = array();
         $result[$volume] = array();
         for ($i = 0; $i < count($ohlcvs); $i++) {
-            $ts = $ms ? $ohlcvs[$i][0] : intval($ohlcvs[$i][0] / 1000);
+            $ts = $ms ? $ohlcvs[$i][0] : $this->parseToInt ($ohlcvs[$i][0] / 1000);
             $result[$timestamp][] = $ts;
             $result[$open][] = $ohlcvs[$i][1];
             $result[$high][] = $ohlcvs[$i][2];
@@ -3464,10 +3511,6 @@ class Exchange {
         return $this->accounts;
     }
 
-    public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        throw new NotSupported($this->id . ' fetchTrades() is not supported yet');
-    }
-
     public function fetch_ohlcvc($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         if (!$this->has['fetchTrades']) {
             throw new NotSupported($this->id . ' fetchOHLCV() is not supported yet');
@@ -3690,6 +3733,8 @@ class Exchange {
 
     public function fetch_transaction_fees($codes = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchTransactionFees() is not supported yet');
+        // eslint-disable-next-line
+        return null;
     }
 
     public function get_supported_mapping($key, $mapping = array ()) {
@@ -3810,6 +3855,7 @@ class Exchange {
     public function handle_errors($statusCode, $statusText, $url, $method, $responseHeaders, $responseBody, $response, $requestHeaders, $requestBody) {
         // it is a stub $method that must be overrided in the derived exchange classes
         // throw new NotSupported($this->id . ' handleErrors() not implemented yet');
+        return null;
     }
 
     public function calculate_rate_limiter_cost($api, $method, $path, $params, $config = array (), $context = array ()) {
@@ -4020,14 +4066,14 @@ class Exchange {
         }
     }
 
-    public function safe_number($object, $key, $d = null) {
-        $value = $this->safe_string($object, $key);
-        return $this->parse_number($value, $d);
+    public function safe_number($obj, $key, $defaultNumber = null) {
+        $value = $this->safe_string($obj, $key);
+        return $this->parse_number($value, $defaultNumber);
     }
 
-    public function safe_number_n($object, $arr, $d = null) {
+    public function safe_number_n($object, $arr, $defaultNumber = null) {
         $value = $this->safe_string_n($object, $arr);
-        return $this->parse_number($value, $d);
+        return $this->parse_number($value, $defaultNumber);
     }
 
     public function parse_precision($precision) {
@@ -4159,7 +4205,7 @@ class Exchange {
     }
 
     public function parse_deposit_addresses($addresses, $codes = null, $indexed = true, $params = array ()) {
-        $result = array();
+        $result = null;
         for ($i = 0; $i < count($addresses); $i++) {
             $address = array_merge($this->parse_deposit_address($addresses[$i]), $params);
             $result[] = $address;
@@ -4192,8 +4238,8 @@ class Exchange {
     }
 
     public function safe_symbol($marketId, $market = null, $delimiter = null) {
-        $market = $this->safe_market($marketId, $market, $delimiter);
-        return $market['symbol'];
+        $safeMarket = $this->safe_market($marketId, $market, $delimiter);
+        return $safeMarket['symbol'];
     }
 
     public function parse_funding_rate($contract, $market = null) {
@@ -4291,7 +4337,7 @@ class Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, null
+         * @return {[[int|float]]} A list of candles ordered, open, high, low, close, null
          */
         if ($this->has['fetchMarkOHLCV']) {
             $request = array(
@@ -4311,7 +4357,7 @@ class Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, null
+         * @return {[[int|float]]} A list of candles ordered, open, high, low, close, null
          */
         if ($this->has['fetchIndexOHLCV']) {
             $request = array(
@@ -4331,7 +4377,7 @@ class Exchange {
          * @param {int|null} $since timestamp in ms of the earliest candle to fetch
          * @param {int|null} $limit the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[[int|float]]} A list of candles ordered as timestamp, open, high, low, close, null
+         * @return {[[int|float]]} A list of candles ordered, open, high, low, close, null
          */
         if ($this->has['fetchPremiumIndexOHLCV']) {
             $request = array(
@@ -4384,7 +4430,7 @@ class Exchange {
         /**
          * @ignore
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return array([string|null, object]) the $marginMode in lowercase as specified by $params["marginMode"], $params["defaultMarginMode"] $this->options["marginMode"] or $this->options["defaultMarginMode"]
+         * @return array([string|null, object]) the $marginMode in lowercase by $params["marginMode"], $params["defaultMarginMode"] $this->options["marginMode"] or $this->options["defaultMarginMode"]
          */
         $defaultMarginMode = $this->safe_string_2($this->options, 'marginMode', 'defaultMarginMode');
         $methodOptions = $this->safe_value($this->options, $methodName, array());

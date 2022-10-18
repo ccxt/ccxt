@@ -1191,6 +1191,13 @@ export default class Exchange {
             return undefined;
         }
 
+        formatScientificNotationFTX(n) {
+            if (n === 0) {
+                return '0e-00';
+            }
+            return n.toExponential().replace('e-', 'e-0');
+        }
+
 
     /* eslint-enable */
     // ------------------------------------------------------------------------

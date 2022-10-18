@@ -1730,6 +1730,18 @@ class Exchange(object):
             return unsigned - 0x100000000
         else:
             return unsigned
+            
+    def find_timeframe(self, timeframe, timeframes=None):
+        timeframes = timeframes if timeframes else self.timeframes
+        for key, value in timeframes.items():
+            if value == timeframe:
+                return key
+        return None
+
+    def format_scientific_notation_ftx(self, n):
+        if n == 0:
+            return '0e-00'
+        return format(n, 'g')
 
     # ########################################################################
     # ########################################################################
