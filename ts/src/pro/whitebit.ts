@@ -816,7 +816,7 @@ export default class whitebit extends whitebitBridge {
                 'id': id,
                 'method': this.handleAuthenticate,
             };
-            this.ws.spawn (this.ws.watch, url, messageHash, request, messageHash, subscription);
+            this.spawn (this.ws.watch, url, messageHash, request, messageHash, subscription);
         }
         return await future;
     }

@@ -466,7 +466,7 @@ export default class bitmart extends bitmartBridge {
                     signature,
                 ],
             };
-            this.ws.spawn (this.ws.watch, url, messageHash, request, messageHash, future);
+            this.spawn (this.ws.watch, url, messageHash, request, messageHash, future);
         }
         return await future;
     }

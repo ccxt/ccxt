@@ -421,7 +421,7 @@ export default class huobijp extends huobijpBridge {
         }
         this.orderbooks[symbol] = this.ws.orderBook ({}, limit);
         // watch the snapshot in a separate async call
-        this.ws.spawn (this.watchOrderBookSnapshot, client, message, subscription);
+        this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
     }
 
     handleSubscriptionStatus (client, message) {
@@ -513,7 +513,7 @@ export default class huobijp extends huobijpBridge {
     }
 
     handlePing (client, message) {
-        this.ws.spawn (this.pong, client, message);
+        this.spawn (this.pong, client, message);
     }
 
     handleErrorMessage (client, message) {

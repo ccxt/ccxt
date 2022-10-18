@@ -361,7 +361,7 @@ export default class kucoin extends kucoinBridge {
                 numAttempts = this.sum (numAttempts, 1);
                 subscription['numAttempts'] = numAttempts;
                 client.subscriptions[messageHash] = subscription;
-                this.ws.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+                this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
             }
         } else {
             if (messageHash in client.subscriptions) {
@@ -516,7 +516,7 @@ export default class kucoin extends kucoinBridge {
                 const options = this.safeValue (this.options, 'fetchOrderBookSnapshot', {});
                 const delay = this.safeInteger (options, 'delay', this.rateLimit);
                 // fetch the snapshot in a separate async call after a warmup delay
-                this.ws.delay (delay, this.fetchOrderBookSnapshot, client, message, subscription);
+                this.delay (delay, this.fetchOrderBookSnapshot, client, message, subscription);
             }
             // 1. After receiving the websocket Level 2 data flow, cache the data.
             orderbook.cache.push (message);
@@ -836,7 +836,7 @@ export default class kucoin extends kucoinBridge {
     }
 
     handleBalanceSubscription (client, message, subscription) {
-        this.ws.spawn (this.fetchBalanceSnapshot, client, message);
+        this.spawn (this.fetchBalanceSnapshot, client, message);
     }
 
     async fetchBalanceSnapshot (client, message) {

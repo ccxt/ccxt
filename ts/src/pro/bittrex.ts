@@ -119,7 +119,7 @@ export default class bittrex extends bittrexBridge {
                 'negotiation': negotiation,
                 'method': this.handleAuthenticate,
             };
-            this.ws.spawn (this.ws.watch, url, messageHash, request, requestId, subscription);
+            this.spawn (this.ws.watch, url, messageHash, request, requestId, subscription);
         }
         return await future;
     }
@@ -152,7 +152,7 @@ export default class bittrex extends bittrexBridge {
         //
         // resend the authentication request and refresh the subscription
         //
-        this.ws.spawn (this.handleAuthenticationExpiringHelper);
+        this.spawn (this.handleAuthenticationExpiringHelper);
     }
 
     createSignalRQuery (params = {}) {
@@ -603,7 +603,7 @@ export default class bittrex extends bittrexBridge {
                         numAttempts = this.sum (numAttempts, 1);
                         subscription['numAttempts'] = numAttempts;
                         client.subscriptions[messageHash] = subscription;
-                        this.ws.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+                        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
                     }
                 } else {
                     // throw upon failing to synchronize in maxAttempts
@@ -632,7 +632,7 @@ export default class bittrex extends bittrexBridge {
             delete this.orderbooks[symbol];
         }
         this.orderbooks[symbol] = this.ws.orderBook ({}, limit);
-        this.ws.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }
 
     handleDelta (bookside, delta) {
@@ -720,7 +720,7 @@ export default class bittrex extends bittrexBridge {
 
     handleSystemStatus (client, message) {
         // send signalR protocol start() call
-        this.ws.spawn (this.handleSystemStatusHelper);
+        this.spawn (this.handleSystemStatusHelper);
         return message;
     }
 

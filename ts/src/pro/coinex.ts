@@ -976,7 +976,7 @@ export default class coinex extends coinexBridge {
                 ],
                 'id': requestId,
             };
-            this.ws.spawn (this.ws.watch, url, messageHash, request, requestId, subscribe);
+            this.spawn (this.ws.watch, url, messageHash, request, requestId, subscribe);
             return future;
         } else {
             const messageHash = 'authenticated:swap';
@@ -1001,7 +1001,7 @@ export default class coinex extends coinexBridge {
                 ],
                 'id': requestId,
             };
-            this.ws.spawn (this.ws.watch, url, messageHash, request, requestId, subscribe);
+            this.spawn (this.ws.watch, url, messageHash, request, requestId, subscribe);
             return future;
         }
     }

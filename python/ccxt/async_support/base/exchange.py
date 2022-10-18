@@ -253,6 +253,27 @@ class Exchange(BaseExchange):
     async def sleep(self, milliseconds):
         return await asyncio.sleep(milliseconds / 1000)
 
+    async def spawn_async(self, method, *args):
+        try:
+            await method(*args)
+        except Exception:
+            # todo: handle spawned errors
+            pass
+
+    async def delay_async(self, timeout, method, *args):
+        await self.sleep(timeout)
+        try:
+            await method(*args)
+        except Exception:
+            # todo: handle spawned errors
+            pass
+
+    def spawn(self, method, *args):
+        asyncio.ensure_future(self.spawn_async(method, *args))
+
+    def delay(self, timeout, method, *args):
+        asyncio.ensure_future(self.delay_async(timeout, method, *args))
+
     # ########################################################################
     # ########################################################################
     # ########################################################################

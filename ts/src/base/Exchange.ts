@@ -1198,6 +1198,17 @@ export default class Exchange {
             return n.toExponential().replace('e-', 'e-0');
         }
 
+        spawn (method, ... args) {
+            (method.apply (this, args)).catch ((e) => {
+                // todo: handle spawned errors
+            })
+        }
+    
+        delay (timeout, method, ... args) {
+            setTimeout (() => {
+                this.spawn (method, ... args)
+            }, timeout);
+        }
 
     /* eslint-enable */
     // ------------------------------------------------------------------------

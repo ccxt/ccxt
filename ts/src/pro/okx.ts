@@ -498,7 +498,7 @@ export default class okx extends okxBridge {
                     },
                 ],
             };
-            this.ws.spawn (this.ws.watch, url, messageHash, request, messageHash, future);
+            this.spawn (this.ws.watch, url, messageHash, request, messageHash, future);
         }
         return await future;
     }

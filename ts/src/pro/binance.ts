@@ -326,7 +326,7 @@ export default class binance extends binanceBridge {
         }
         this.orderbooks[symbol] = this.ws.orderBook ({}, limit);
         // fetch the snapshot in a separate async call
-        this.ws.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }
 
     handleSubscriptionStatus (client, message) {
@@ -767,7 +767,7 @@ export default class binance extends binanceBridge {
                 'listenKey': this.safeString (response, 'listenKey'),
                 'lastAuthenticatedTime': time,
             });
-            this.ws.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
+            this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
         }
     }
 
@@ -823,7 +823,7 @@ export default class binance extends binanceBridge {
             for (let j = 0; j < subscriptionKeys.length; j++) {
                 const subscribeType = subscriptionKeys[j];
                 if (subscribeType === type) {
-                    return this.ws.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
+                    return this.delay (listenKeyRefreshRate, this.keepAliveListenKey, params);
                 }
             }
         }
@@ -839,7 +839,7 @@ export default class binance extends binanceBridge {
             const messageHash = type + ':fetchBalanceSnapshot';
             if (!(messageHash in client.futures)) {
                 client.future (messageHash);
-                this.ws.spawn (this.loadBalanceSnapshot, client, messageHash, type);
+                this.spawn (this.loadBalanceSnapshot, client, messageHash, type);
             }
         } else {
             this.balance[type] = {};

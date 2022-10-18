@@ -550,7 +550,7 @@ export default class bitmex extends bitmexBridge {
                         signature,
                     ],
                 };
-                this.ws.spawn (this.ws.watch, url, action, request, action);
+                this.spawn (this.ws.watch, url, action, request, action);
             } catch (e) {
                 client.reject (e, 'authenticated');
                 if (action in client.subscriptions) {

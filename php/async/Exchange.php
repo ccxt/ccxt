@@ -202,6 +202,19 @@ class Exchange extends \ccxt\Exchange {
         return call_user_func($this->throttle, $cost);
     }
 
+    // the ellipsis packing/unpacking requires PHP 5.6+ :(
+    function spawn($method, ... $args) {
+        return Async\async(function () use ($method, $args) {
+            return Async\await($method(...$args));
+        }) ();
+    }
+
+    function delay($timeout, $method, ... $args) {
+        Loop::addTimer($timeout / 1000, function () use ($method, $args) {
+            $this->spawn($method, ...$args);
+        });
+    }
+
     // ########################################################################
     // ########################################################################
     // ########################################################################

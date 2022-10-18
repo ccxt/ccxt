@@ -522,13 +522,13 @@ export default class cryptocom extends cryptocomBridge {
                 'api_key': this.apiKey,
                 'sig': signature,
             };
-            this.ws.spawn (this.ws.watch, url, messageHash, this.extend (request, params), messageHash);
+            this.spawn (this.ws.watch, url, messageHash, this.extend (request, params), messageHash);
         }
         return await future;
     }
 
     handlePing (client, message) {
-        this.ws.spawn (this.pong, client, message);
+        this.spawn (this.pong, client, message);
     }
 
     handleAuthenticate (client, message) {

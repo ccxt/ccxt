@@ -872,7 +872,7 @@ export default class ascendex extends ascendexBridge {
             delete this.orderbooks[symbol];
         }
         this.orderbooks[symbol] = this.ws.orderBook ({});
-        this.ws.spawn (this.watchOrderBookSnapshot, symbol);
+        this.spawn (this.watchOrderBookSnapshot, symbol);
     }
 
     async pong (client, message) {
@@ -883,7 +883,7 @@ export default class ascendex extends ascendexBridge {
     }
 
     handlePing (client, message) {
-        this.ws.spawn (this.pong, client, message);
+        this.spawn (this.pong, client, message);
     }
 
     async authenticate (url, params = {}) {
@@ -909,7 +909,7 @@ export default class ascendex extends ascendexBridge {
                 'key': this.apiKey,
                 'sig': signature,
             };
-            this.ws.spawn (this.ws.watch, url, messageHash, this.extend (request, params));
+            this.spawn (this.ws.watch, url, messageHash, this.extend (request, params));
         }
         return await future;
     }

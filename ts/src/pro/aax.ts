@@ -603,7 +603,7 @@ export default class aax extends aaxBridge {
     }
 
     handlePing (client, message) {
-        this.ws.spawn (this.pong, client, message);
+        this.spawn (this.pong, client, message);
     }
 
     handleNotification (client, message) {

@@ -295,7 +295,7 @@ export default class bitvavo extends bitvavoBridge {
                 const options = this.safeValue (this.options, 'watchOrderBookSnapshot', {});
                 const delay = this.safeInteger (options, 'delay', this.rateLimit);
                 // fetch the snapshot in a separate async call after a warmup delay
-                this.ws.delay (delay, this.watchOrderBookSnapshot, client, message, subscription);
+                this.delay (delay, this.watchOrderBookSnapshot, client, message, subscription);
             }
             orderbook.cache.push (message);
         } else {
@@ -564,7 +564,7 @@ export default class bitvavo extends bitvavoBridge {
                     'signature': signature,
                     'timestamp': timestamp,
                 };
-                this.ws.spawn (this.ws.watch, url, action, request, action);
+                this.spawn (this.ws.watch, url, action, request, action);
             } catch (e) {
                 client.reject (e, 'authenticated');
                 // allows further authentication attempts

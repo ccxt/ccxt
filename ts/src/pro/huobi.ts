@@ -331,7 +331,7 @@ export default class huobi extends huobiBridge {
                         numAttempts = this.sum (numAttempts, 1);
                         subscription['numAttempts'] = numAttempts;
                         client.subscriptions[messageHash] = subscription;
-                        this.ws.spawn (this.watchOrderBookSnapshot, client, message, subscription);
+                        this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
                     }
                 } else {
                     // throw upon failing to synchronize in maxAttempts
@@ -405,7 +405,7 @@ export default class huobi extends huobiBridge {
                         numAttempts = this.sum (numAttempts, 1);
                         subscription['numAttempts'] = numAttempts;
                         client.subscriptions[messageHash] = subscription;
-                        this.ws.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+                        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
                     }
                 } else {
                     // throw upon failing to synchronize in maxAttempts
@@ -571,9 +571,9 @@ export default class huobi extends huobiBridge {
         }
         this.orderbooks[symbol] = this.ws.orderBook ({}, limit);
         if (this.markets[symbol]['spot'] === true) {
-            this.ws.spawn (this.watchOrderBookSnapshot, client, message, subscription);
+            this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
         } else {
-            this.ws.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+            this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
         }
     }
 
@@ -1580,7 +1580,7 @@ export default class huobi extends huobiBridge {
     }
 
     handlePing (client, message) {
-        this.ws.spawn (this.pong, client, message);
+        this.spawn (this.pong, client, message);
     }
 
     handleAuthenticate (client, message) {

@@ -126,7 +126,7 @@ export default class gate extends gateBridge {
             subscription[fetchingOrderBookSnapshot] = true;
             const messageHash = subscription['messageHash'];
             client.subscriptions[messageHash] = subscription;
-            this.ws.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+            this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
         }
     }
 
@@ -155,7 +155,7 @@ export default class gate extends gateBridge {
                         numAttempts = this.sum (numAttempts, 1);
                         subscription['numAttempts'] = numAttempts;
                         client.subscriptions[messageHash] = subscription;
-                        this.ws.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+                        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
                     }
                 } else {
                     // throw upon failing to synchronize in maxAttempts
@@ -233,7 +233,7 @@ export default class gate extends gateBridge {
         if (!isFetchingOrderBookSnapshot) {
             subscription[fetchingOrderBookSnapshot] = true;
             client.subscriptions[messageHash] = subscription;
-            this.ws.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+            this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
         }
         if (orderbook['nonce'] === undefined) {
             orderbook.cache.push (message);
@@ -545,7 +545,7 @@ export default class gate extends gateBridge {
                 'id': requestId,
                 'method': this.handleAuthenticationMessage,
             };
-            this.ws.spawn (this.ws.watch, url, requestId, authenticateMessage, method, subscribe);
+            this.spawn (this.ws.watch, url, requestId, authenticateMessage, method, subscribe);
         }
         return await future;
     }
@@ -903,7 +903,7 @@ export default class gate extends gateBridge {
     }
 
     handleBalanceSubscription (client, message) {
-        this.ws.spawn (this.fetchBalanceSnapshot, client, message);
+        this.spawn (this.fetchBalanceSnapshot, client, message);
     }
 
     async fetchBalanceSnapshot (client, message) {

@@ -421,7 +421,7 @@ export default class bitstamp extends bitstampBridge {
             const limit = this.safeInteger (subscription, 'limit');
             this.orderbooks[symbol] = this.ws.orderBook ({}, limit);
             // fetch the snapshot in a separate async call
-            this.ws.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+            this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
         }
     }
 

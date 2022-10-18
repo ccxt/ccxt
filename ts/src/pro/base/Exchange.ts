@@ -82,18 +82,6 @@ export default class Exchange  {
         return this.clients[url];
     }
 
-    spawn (method, ... args) {
-        (method.apply (this, args)).catch ((e) => {
-            // todo: handle spawned errors
-        })
-    }
-
-    delay (timeout, method, ... args) {
-        setTimeout (() => {
-            this.spawn (method, ... args)
-        }, timeout);
-    }
-
     watch (url: string, messageHash: string, message = undefined, subscribeHash = undefined, subscription = undefined) {
         //
         // Without comments the code of this method is short and easy:

@@ -431,7 +431,7 @@ export default class okcoin extends okcoinBridge {
                     signature,
                 ],
             };
-            this.ws.spawn (this.ws.watch, url, messageHash, request, messageHash, future);
+            this.spawn (this.ws.watch, url, messageHash, request, messageHash, future);
         }
         return await future;
     }

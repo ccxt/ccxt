@@ -854,7 +854,7 @@ export default class bitfinex2 extends bitfinex2Bridge {
                 'authPayload': payload,
                 'event': method,
             };
-            this.ws.spawn (this.ws.watch, url, method, request, 1);
+            this.spawn (this.ws.watch, url, method, request, 1);
         }
         return await future;
     }

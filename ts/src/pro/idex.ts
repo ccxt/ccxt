@@ -303,7 +303,7 @@ export default class idex extends idexBridge {
                             (orderbook as any).cache = [];
                             this.orderbooks[symbol] = orderbook;
                         }
-                        this.ws.spawn (this.fetchOrderBookSnapshot, client, symbol);
+                        this.spawn (this.fetchOrderBookSnapshot, client, symbol);
                     }
                 }
                 break;
@@ -362,7 +362,7 @@ export default class idex extends idexBridge {
                 const maxAttemptsValid = subscription['numAttempts'] < maxAttempts;
                 const timeElapsedValid = timeElapsed < maxDelay;
                 if (maxAttemptsValid && timeElapsedValid) {
-                    this.ws.delay (this.rateLimit, this.fetchOrderBookSnapshot, client, symbol);
+                    this.delay (this.rateLimit, this.fetchOrderBookSnapshot, client, symbol);
                 } else {
                     const endpart = (!maxAttemptsValid) ? ' in ' + maxAttempts.toString () + ' attempts' : ' after ' + maxDelay.toString () + ' milliseconds';
                     throw new InvalidNonce (this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + endpart);

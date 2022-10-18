@@ -663,7 +663,7 @@ export default class exmo extends exmoBridge {
                 'sign': sign,
                 'nonce': time,
             };
-            this.ws.spawn (this.ws.watch, url, messageHash, this.extend (request, query), messageHash);
+            this.spawn (this.ws.watch, url, messageHash, this.extend (request, query), messageHash);
         }
         return await future;
     }

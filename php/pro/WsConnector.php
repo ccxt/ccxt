@@ -85,19 +85,6 @@ class WsConnector {
         return $this->clients[$url];
     }
 
-    // the ellipsis packing/unpacking requires PHP 5.6+ :(
-    function spawn($method, ... $args) {
-        return Async\async(function () use ($method, $args) {
-            return Async\await($method(...$args));
-        }) ();
-    }
-
-    function delay($timeout, $method, ... $args) {
-        Loop::addTimer($timeout / 1000, function () use ($method, $args) {
-            $this->spawn($method, ...$args);
-        });
-    }
-
     function watch($url, $message_hash, $message = null, $subscribe_hash = null, $subscription = null) {
         $client = $this->client($url);
         // todo: calculate the backoff delay in php

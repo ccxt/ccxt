@@ -159,7 +159,7 @@ export default class ripio extends ripioBridge {
             const options = this.safeValue (this.options, 'fetchOrderBookSnapshot', {});
             const delay = this.safeInteger (options, 'delay', this.rateLimit);
             // fetch the snapshot in a separate async call after a warmup delay
-            this.ws.delay (delay, this.fetchOrderBookSnapshot, client, subscription);
+            this.delay (delay, this.fetchOrderBookSnapshot, client, subscription);
         }
         const orderbook = await this.ws.watch (url, messageHash, undefined, messageHash, subscription);
         return orderbook.limit (limit);
@@ -270,7 +270,7 @@ export default class ripio extends ripioBridge {
         const messageId = this.safeString (message, 'messageId');
         if (messageId !== undefined) {
             // the exchange requires acknowledging each received message
-            this.ws.spawn (this.ack, client, messageId);
+            this.spawn (this.ack, client, messageId);
         }
         const keys = Object.keys (client.subscriptions);
         const firstKey = this.safeString (keys, 0);

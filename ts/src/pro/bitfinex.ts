@@ -407,7 +407,7 @@ export default class bitfinex extends bitfinexBridge {
                     'wallet',
                 ],
             };
-            this.ws.spawn (this.ws.watch, url, method, request, 1);
+            this.spawn (this.ws.watch, url, method, request, 1);
         }
         return await future;
     }
