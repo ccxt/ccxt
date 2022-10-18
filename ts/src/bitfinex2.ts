@@ -921,7 +921,7 @@ export default class bitfinex2 extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'status': this.parseTransferStatus (status),
-            'amount': this.safeNumber (transfer, 7),
+            'amount': this.safeNumber (info, 7),
             'currency': this.safeCurrencyCode (currencyId, currency),
             'fromAccount': fromAccount,
             'toAccount': toAccount,

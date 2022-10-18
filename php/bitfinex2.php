@@ -913,7 +913,7 @@ class bitfinex2 extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'status' => $this->parse_transfer_status($status),
-            'amount' => $this->safe_number($transfer, 7),
+            'amount' => $this->safe_number($info, 7),
             'currency' => $this->safe_currency_code($currencyId, $currency),
             'fromAccount' => $fromAccount,
             'toAccount' => $toAccount,
