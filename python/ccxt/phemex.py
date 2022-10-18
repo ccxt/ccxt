@@ -1929,7 +1929,10 @@ class phemex(Exchange):
                 params = self.omit(params, 'cost')
                 if self.options['createOrderByQuoteRequiresPrice']:
                     if price is not None:
-                        cost = amount * price
+                        amountString = self.number_to_string(amount)
+                        priceString = self.number_to_string(price)
+                        quoteAmount = Precise.string_mul(amountString, priceString)
+                        cost = self.parse_number(quoteAmount)
                     elif cost is None:
                         raise ArgumentsRequired(self.id + ' createOrder() ' + qtyType + ' requires a price argument or a cost parameter')
                 cost = amount if (cost is None) else cost
