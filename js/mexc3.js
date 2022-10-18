@@ -589,6 +589,7 @@ module.exports = class mexc3 extends Exchange {
             const code = this.safeCurrencyCode (id);
             const name = this.safeString (currency, 'name');
             let currencyActive = false;
+            let minPrecision = undefined;
             let currencyFee = undefined;
             let currencyWithdrawMin = undefined;
             let currencyWithdrawMax = undefined;
@@ -622,6 +623,10 @@ module.exports = class mexc3 extends Exchange {
                 if (isWithdrawEnabled) {
                     withdrawEnabled = true;
                 }
+                const precision = this.parsePrecision (this.safeString (chain, 'precision'));
+                if (precision !== undefined) {
+                    minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (precision, minPrecision);
+                }
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
@@ -629,8 +634,8 @@ module.exports = class mexc3 extends Exchange {
                     'active': active,
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
-                    'fee': fee,
-                    'precision': undefined,
+                    'fee': this.safeNumber (chain, 'fee'),
+                    'precision': this.parseNumber (precision),
                     'limits': {
                         'withdraw': {
                             'min': withdrawMin,
@@ -638,6 +643,14 @@ module.exports = class mexc3 extends Exchange {
                         },
                     },
                 };
+            }
+            const networkKeys = Object.keys (networks);
+            const networkKeysLength = networkKeys.length;
+            if ((networkKeysLength === 1) || ('NONE' in networks)) {
+                const defaultNetwork = this.safeValue2 (networks, 'NONE', networkKeysLength - 1);
+                if (defaultNetwork !== undefined) {
+                    currencyFee = defaultNetwork['fee'];
+                }
             }
             result[code] = {
                 'info': currency,
@@ -648,7 +661,7 @@ module.exports = class mexc3 extends Exchange {
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': currencyFee,
-                'precision': undefined,
+                'precision': this.parseNumber (minPrecision),
                 'limits': {
                     'amount': {
                         'min': undefined,
@@ -3999,6 +4012,7 @@ module.exports = class mexc3 extends Exchange {
          * @method
          * @name mexc3#fetchTransfers
          * @description fetch a history of internal transfers made on an account
+         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-user-universal-transfer-history
          * @param {string|undefined} code unified currency code of the currency transferred
          * @param {int|undefined} since the earliest time in ms to fetch transfers for
          * @param {int|undefined} limit the maximum number of  transfers structures to retrieve
@@ -4200,6 +4214,14 @@ module.exports = class mexc3 extends Exchange {
         };
     }
 
+    parseAccountId (status) {
+        const statuses = {
+            'MAIN': 'spot',
+            'CONTRACT': 'swap',
+        };
+        return this.safeString (statuses, status, status);
+    }
+
     parseTransferStatus (status) {
         const statuses = {
             'SUCCESS': 'ok',
@@ -4224,7 +4246,7 @@ module.exports = class mexc3 extends Exchange {
          */
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeString (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        let network = this.safeStringUpper2 (params, 'network', 'chain'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeString (networks, network, network); // handle ETH > ERC-20 alias
         this.checkAddress (address);
         await this.loadMarkets ();
