@@ -1174,7 +1174,7 @@ export default class bibox extends Exchange {
             request['client_order_id'] = clientOrderId;
             params = this.omit (params, 'clientOrderId');
         }
-        const response = await this.v4PrivatePostUserdataOrder (this.deepExtend (request, params));
+        const response = await (this as any).v4PrivatePostUserdataOrder (this.deepExtend (request, params));
         //
         //     {
         //         "i": 14580623695947906,
