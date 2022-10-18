@@ -106,7 +106,6 @@ class Exchange {
         'bw',
         'bybit',
         'bytetrade',
-        'bytex',
         'cex',
         'coinbase',
         'coinbaseprime',
