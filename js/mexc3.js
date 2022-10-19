@@ -621,10 +621,6 @@ module.exports = class mexc3 extends Exchange {
                 if (isWithdrawEnabled) {
                     withdrawEnabled = true;
                 }
-                const precision = this.parsePrecision (this.safeString (chain, 'precision'));
-                if (precision !== undefined) {
-                    minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (precision, minPrecision);
-                }
                 networks[network] = {
                     'info': chain,
                     'id': networkId,
