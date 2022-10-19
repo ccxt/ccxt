@@ -267,7 +267,7 @@ class bibox(Exchange):
                             'marketdata/order_book',
                             'marketdata/candles',
                             'marketdata/trades',
-                            'marketdata/tickers',
+                            'marketdata/ticker',
                         ],
                     },
                     'private': {
@@ -440,16 +440,61 @@ class bibox(Exchange):
 
     def parse_ticker(self, ticker, market=None):
         # we don't set values that are not defined by the exchange
-        timestamp = self.safe_integer(ticker, 'timestamp')
-        marketId = None
+        #
+        # fetchTicker
+        #
+        #    {
+        #        "s": "ADA_USDT",             # trading pair code
+        #        "t": 1666143212000,          # 24 hour transaction count
+        #        "o": 0.371735,               # opening price
+        #        "h": 0.373646,               # highest price
+        #        "l": 0.358383,               # lowest price
+        #        "p": 0.361708,               # latest price
+        #        "q": 8.1,                    # latest volume
+        #        "v": 1346397.88,             # 24 hour volume
+        #        "a": 494366.08822867,        # 24 hour transaction value
+        #        "c": -0.0267,                # 24 hour Change
+        #        "n": 244631,
+        #        "f": 16641250,               # 24 hour first transaction id
+        #        "bp": 0.361565,              # Best current bid price
+        #        "bq": 4324.26,               # Best current bid quantity
+        #        "ap": 0.361708,              # Best current ask price
+        #        "aq": 7726.59                # Best current ask quantity
+        #    }
+        #
+        # fetchTickers
+        #
+        #    {
+        #        is_hide: '0',
+        #        high_cny: '0.1094',
+        #        amount: '5.34',
+        #        coin_symbol: 'BIX',
+        #        last: '0.00000080',
+        #        currency_symbol: 'BTC',
+        #        change: '+0.00000001',
+        #        low_cny: '0.1080',
+        #        base_last_cny: '0.10935854',
+        #        area_id: '7',
+        #        percent: '+1.27%',
+        #        last_cny: '0.1094',
+        #        high: '0.00000080',
+        #        low: '0.00000079',
+        #        pair_type: '0',
+        #        last_usd: '0.0155',
+        #        vol24H: '6697325',
+        #        id: '1',
+        #        high_usd: '0.0155',
+        #        low_usd: '0.0153'
+        #    }
+        #
+        timestamp = self.safe_integer_2(ticker, 'timestamp', 't')
         baseId = self.safe_string(ticker, 'coin_symbol')
         quoteId = self.safe_string(ticker, 'currency_symbol')
-        if (baseId is not None) and (quoteId is not None):
+        marketId = self.safe_string(ticker, 's')
+        if (marketId is None) and (baseId is not None) and (quoteId is not None):
             marketId = baseId + '_' + quoteId
         market = self.safe_market(marketId, market)
-        last = self.safe_string(ticker, 'last')
-        change = self.safe_string(ticker, 'change')
-        baseVolume = self.safe_string_2(ticker, 'vol', 'vol24H')
+        last = self.safe_string_2(ticker, 'last', 'p')
         percentage = self.safe_string(ticker, 'percent')
         if percentage is not None:
             percentage = percentage.replace('%', '')
@@ -457,28 +502,29 @@ class bibox(Exchange):
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_string(ticker, 'high'),
-            'low': self.safe_string(ticker, 'low'),
-            'bid': self.safe_string(ticker, 'buy'),
-            'bidVolume': self.safe_string(ticker, 'buy_amount'),
-            'ask': self.safe_string(ticker, 'sell'),
-            'askVolume': self.safe_string(ticker, 'sell_amount'),
+            'high': self.safe_string_2(ticker, 'high', 'h'),
+            'low': self.safe_string_2(ticker, 'low', 'l'),
+            'bid': self.safe_string(ticker, 'bp'),
+            'bidVolume': self.safe_string(ticker, 'bq'),
+            'ask': self.safe_string(ticker, 'ap'),
+            'askVolume': self.safe_string(ticker, 'aq'),
             'vwap': None,
-            'open': None,
+            'open': self.safe_string(ticker, 'o'),
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': change,
+            'change': self.safe_string(ticker, 'change'),
             'percentage': percentage,
             'average': None,
-            'baseVolume': baseVolume,
-            'quoteVolume': self.safe_string(ticker, 'amount'),
+            'baseVolume': self.safe_string_2(ticker, 'a', 'vol24H'),
+            'quoteVolume': self.safe_string_2(ticker, 'v', 'amount'),
             'info': ticker,
         }, market)
 
     def fetch_ticker(self, symbol, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        see https://biboxcom.github.io/api/spot/v4/en/#get-tickers
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the bibox api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
@@ -486,16 +532,37 @@ class bibox(Exchange):
         self.load_markets()
         market = self.market(symbol)
         request = {
-            'cmd': 'ticker',
-            'pair': market['id'],
+            'symbol': market['id'],
         }
-        response = self.v1PublicGetMdata(self.extend(request, params))
-        return self.parse_ticker(response['result'], market)
+        response = self.v4PublicGetMarketdataTicker(self.extend(request, params))
+        #
+        #    [
+        #        {
+        #            "s": "ADA_USDT",             # trading pair code
+        #            "t": 1666143212000,          # 24 hour transaction count
+        #            "o": 0.371735,               # opening price
+        #            "h": 0.373646,               # highest price
+        #            "l": 0.358383,               # lowest price
+        #            "p": 0.361708,               # latest price
+        #            "q": 8.1,                    # latest volume
+        #            "v": 1346397.88,             # 24 hour volume
+        #            "a": 494366.08822867,        # 24 hour transaction value
+        #            "c": -0.0267,                # 24 hour Change
+        #            "n": 244631,
+        #            "f": 16641250,               # 24 hour first transaction id
+        #            "bp": 0.361565,              # Best current bid price
+        #            "bq": 4324.26,               # Best current bid quantity
+        #            "ap": 0.361708,              # Best current ask price
+        #            "aq": 7726.59                # Best current ask quantity
+        #        }
+        #    ]
+        #
+        ticker = self.safe_value(response, 0)
+        return self.parse_ticker(ticker, market)
 
     def fetch_tickers(self, symbols=None, params={}):
-        self.load_markets()
         """
-        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        v1, fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bibox api endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
@@ -506,6 +573,37 @@ class bibox(Exchange):
             'cmd': 'marketAll',
         }
         response = self.v1PublicGetMdata(self.extend(request, params))
+        #
+        #    {
+        #        result: [
+        #            {
+        #                is_hide: '0',
+        #                high_cny: '0.1094',
+        #                amount: '5.34',
+        #                coin_symbol: 'BIX',
+        #                last: '0.00000080',
+        #                currency_symbol: 'BTC',
+        #                change: '+0.00000001',
+        #                low_cny: '0.1080',
+        #                base_last_cny: '0.10935854',
+        #                area_id: '7',
+        #                percent: '+1.27%',
+        #                last_cny: '0.1094',
+        #                high: '0.00000080',
+        #                low: '0.00000079',
+        #                pair_type: '0',
+        #                last_usd: '0.0155',
+        #                vol24H: '6697325',
+        #                id: '1',
+        #                high_usd: '0.0155',
+        #                low_usd: '0.0153'
+        #            },
+        #            ...
+        #        ],
+        #        cmd: 'marketAll',
+        #        ver: '1.1'
+        #    }
+        #
         tickers = self.parse_tickers(response['result'], symbols)
         result = self.index_by(tickers, 'symbol')
         return self.filter_by_array(result, 'symbol', symbols)

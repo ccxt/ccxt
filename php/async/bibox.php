@@ -258,7 +258,7 @@ class bibox extends Exchange {
                             'marketdata/order_book',
                             'marketdata/candles',
                             'marketdata/trades',
-                            'marketdata/tickers',
+                            'marketdata/ticker',
                         ),
                     ),
                     'private' => array(
@@ -436,17 +436,62 @@ class bibox extends Exchange {
 
     public function parse_ticker($ticker, $market = null) {
         // we don't set values that are not defined by the exchange
-        $timestamp = $this->safe_integer($ticker, 'timestamp');
-        $marketId = null;
+        //
+        // fetchTicker
+        //
+        //    {
+        //        "s" => "ADA_USDT",             // trading pair code
+        //        "t" => 1666143212000,          // 24 hour transaction count
+        //        "o" => 0.371735,               // opening price
+        //        "h" => 0.373646,               // highest price
+        //        "l" => 0.358383,               // lowest price
+        //        "p" => 0.361708,               // latest price
+        //        "q" => 8.1,                    // latest volume
+        //        "v" => 1346397.88,             // 24 hour volume
+        //        "a" => 494366.08822867,        // 24 hour transaction value
+        //        "c" => -0.0267,                // 24 hour Change
+        //        "n" => 244631,
+        //        "f" => 16641250,               // 24 hour first transaction id
+        //        "bp" => 0.361565,              // Best current bid price
+        //        "bq" => 4324.26,               // Best current bid quantity
+        //        "ap" => 0.361708,              // Best current ask price
+        //        "aq" => 7726.59                // Best current ask quantity
+        //    }
+        //
+        // fetchTickers
+        //
+        //    {
+        //        is_hide => '0',
+        //        high_cny => '0.1094',
+        //        amount => '5.34',
+        //        coin_symbol => 'BIX',
+        //        $last => '0.00000080',
+        //        currency_symbol => 'BTC',
+        //        change => '+0.00000001',
+        //        low_cny => '0.1080',
+        //        base_last_cny => '0.10935854',
+        //        area_id => '7',
+        //        percent => '+1.27%',
+        //        last_cny => '0.1094',
+        //        high => '0.00000080',
+        //        low => '0.00000079',
+        //        pair_type => '0',
+        //        last_usd => '0.0155',
+        //        vol24H => '6697325',
+        //        id => '1',
+        //        high_usd => '0.0155',
+        //        low_usd => '0.0153'
+        //    }
+        //
+        $timestamp = $this->safe_integer_2($ticker, 'timestamp', 't');
         $baseId = $this->safe_string($ticker, 'coin_symbol');
         $quoteId = $this->safe_string($ticker, 'currency_symbol');
-        if (($baseId !== null) && ($quoteId !== null)) {
+        $marketId = $this->safe_string($ticker, 's');
+        if (($marketId === null) && ($baseId !== null) && ($quoteId !== null)) {
             $marketId = $baseId . '_' . $quoteId;
         }
         $market = $this->safe_market($marketId, $market);
-        $last = $this->safe_string($ticker, 'last');
-        $change = $this->safe_string($ticker, 'change');
-        $baseVolume = $this->safe_string_2($ticker, 'vol', 'vol24H');
+        $last = $this->safe_string_2($ticker, 'last', 'p');
         $percentage = $this->safe_string($ticker, 'percent');
         if ($percentage !== null) {
             $percentage = str_replace('%', '', $percentage);
@@ -455,22 +500,22 @@ class bibox extends Exchange {
             'symbol' => $market['symbol'],
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_string($ticker, 'high'),
-            'low' => $this->safe_string($ticker, 'low'),
-            'bid' => $this->safe_string($ticker, 'buy'),
-            'bidVolume' => $this->safe_string($ticker, 'buy_amount'),
-            'ask' => $this->safe_string($ticker, 'sell'),
-            'askVolume' => $this->safe_string($ticker, 'sell_amount'),
+            'high' => $this->safe_string_2($ticker, 'high', 'h'),
+            'low' => $this->safe_string_2($ticker, 'low', 'l'),
+            'bid' => $this->safe_string($ticker, 'bp'),
+            'bidVolume' => $this->safe_string($ticker, 'bq'),
+            'ask' => $this->safe_string($ticker, 'ap'),
+            'askVolume' => $this->safe_string($ticker, 'aq'),
             'vwap' => null,
-            'open' => null,
+            'open' => $this->safe_string($ticker, 'o'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $change,
+            'change' => $this->safe_string($ticker, 'change'),
             'percentage' => $percentage,
             'average' => null,
-            'baseVolume' => $baseVolume,
-            'quoteVolume' => $this->safe_string($ticker, 'amount'),
+            'baseVolume' => $this->safe_string_2($ticker, 'a', 'vol24H'),
+            'quoteVolume' => $this->safe_string_2($ticker, 'v', 'amount'),
             'info' => $ticker,
         ), $market);
     }
@@ -478,27 +523,49 @@ class bibox extends Exchange {
     public function fetch_ticker($symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
             /**
-             * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+             * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @see https://biboxcom.github.io/api/spot/v4/en/#get-tickers
+             * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} $params extra parameters specific to the bibox api endpoint
-             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'cmd' => 'ticker',
-                'pair' => $market['id'],
+                'symbol' => $market['id'],
             );
-            $response = Async\await($this->v1PublicGetMdata (array_merge($request, $params)));
-            return $this->parse_ticker($response['result'], $market);
+            $response = Async\await($this->v4PublicGetMarketdataTicker (array_merge($request, $params)));
+            //
+            //    array(
+            //        {
+            //            "s" => "ADA_USDT",             // trading pair code
+            //            "t" => 1666143212000,          // 24 hour transaction count
+            //            "o" => 0.371735,               // opening price
+            //            "h" => 0.373646,               // highest price
+            //            "l" => 0.358383,               // lowest price
+            //            "p" => 0.361708,               // latest price
+            //            "q" => 8.1,                    // latest volume
+            //            "v" => 1346397.88,             // 24 hour volume
+            //            "a" => 494366.08822867,        // 24 hour transaction value
+            //            "c" => -0.0267,                // 24 hour Change
+            //            "n" => 244631,
+            //            "f" => 16641250,               // 24 hour first transaction id
+            //            "bp" => 0.361565,              // Best current bid price
+            //            "bq" => 4324.26,               // Best current bid quantity
+            //            "ap" => 0.361708,              // Best current ask price
+            //            "aq" => 7726.59                // Best current ask quantity
+            //        }
+            //    )
+            //
+            $ticker = $this->safe_value($response, 0);
+            return $this->parse_ticker($ticker, $market);
         }) ();
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
-            Async\await($this->load_markets());
             /**
-             * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+             * v1, fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the bibox api endpoint
              * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
@@ -509,6 +576,37 @@ class bibox extends Exchange {
                 'cmd' => 'marketAll',
             );
             $response = Async\await($this->v1PublicGetMdata (array_merge($request, $params)));
+            //
+            //    {
+            //        $result => array(
+            //            array(
+            //                is_hide => '0',
+            //                high_cny => '0.1094',
+            //                amount => '5.34',
+            //                coin_symbol => 'BIX',
+            //                last => '0.00000080',
+            //                currency_symbol => 'BTC',
+            //                change => '+0.00000001',
+            //                low_cny => '0.1080',
+            //                base_last_cny => '0.10935854',
+            //                area_id => '7',
+            //                percent => '+1.27%',
+            //                last_cny => '0.1094',
+            //                high => '0.00000080',
+            //                low => '0.00000079',
+            //                pair_type => '0',
+            //                last_usd => '0.0155',
+            //                vol24H => '6697325',
+            //                id => '1',
+            //                high_usd => '0.0155',
+            //                low_usd => '0.0153'
+            //            ),
+            //            ...
+            //        ),
+            //        cmd => 'marketAll',
+            //        ver => '1.1'
+            //    }
+            //
             $tickers = $this->parse_tickers($response['result'], $symbols);
             $result = $this->index_by($tickers, 'symbol');
             return $this->filter_by_array($result, 'symbol', $symbols);
