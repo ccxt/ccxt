@@ -757,9 +757,10 @@ export default class whitebit extends whitebitBridge {
                 return await this.ws.watch (url, messageHash, request, method, subscription);
             } else {
                 // resubscribe
-                const marketIdsList = Object.keys (subscription);
+                let marketIds = [];
+                marketIds = Object.keys (subscription);
                 if (isNested) {
-                    marketIds = [ marketIdsList ];
+                    marketIds = [ marketIds ];
                 }
                 const resubRequest = {
                     'id': id,
