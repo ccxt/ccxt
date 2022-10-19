@@ -424,7 +424,7 @@ class aax extends \ccxt\async\aax {
         //
         $data = $this->safe_value($message, 'data', array());
         $purseType = $this->safe_string($data, 'purseType');
-        $accounts = $this->safe_value($this->options, 'accounts', array());
+        $accounts = $this->safe_value($this->options, 'accountsById', array());
         $accountType = $this->safe_string($accounts, $purseType);
         $messageHash = $accountType . ':balance';
         $currencyId = $this->safe_string($data, 'currency');
