@@ -404,7 +404,7 @@ module.exports = class aax extends aaxRest {
         //
         const data = this.safeValue (message, 'data', {});
         const purseType = this.safeString (data, 'purseType');
-        const accounts = this.safeValue (this.options, 'accounts', {});
+        const accounts = this.safeValue (this.options, 'accountsById', {});
         const accountType = this.safeString (accounts, purseType);
         const messageHash = accountType + ':balance';
         const currencyId = this.safeString (data, 'currency');
