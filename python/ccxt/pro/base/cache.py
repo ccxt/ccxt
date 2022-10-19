@@ -58,7 +58,6 @@ class ArrayCache(BaseCache):
         self._clear_all_updates = False
 
     def getLimit(self, symbol, limit):
-        new_updates_value = None
         if symbol is None:
             new_updates_value = self._all_new_updates
             self._clear_all_updates = True
@@ -79,9 +78,9 @@ class ArrayCache(BaseCache):
         self._deque.append(item)
         if self._clear_all_updates:
             self._clear_all_updates = False
-            self._clear_updates_by_symbol = {}
+            self._clear_updates_by_symbol.clear()
             self._all_new_updates = 0
-            self._new_updates_by_symfbol = {}
+            self._new_updates_by_symbol.clear()
         if self._clear_updates_by_symbol.get(item['symbol']):
             self._clear_updates_by_symbol[item['symbol']] = False
             self._new_updates_by_symbol[item['symbol']] = 0
@@ -148,9 +147,9 @@ class ArrayCacheBySymbolById(ArrayCache):
         self._index.append(item['id'])
         if self._clear_all_updates:
             self._clear_all_updates = False
-            self._clear_updates_by_symbol = False
+            self._clear_updates_by_symbol.clear()
             self._all_new_updates = 0
-            self._new_updates_by_symbol = {}
+            self._new_updates_by_symbol.clear()
         if item['symbol'] not in self._new_updates_by_symbol:
             self._new_updates_by_symbol[item['symbol']] = set()
         if self._clear_updates_by_symbol.get(item['symbol']):
