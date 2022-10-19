@@ -325,11 +325,11 @@ cache = new ArrayCacheBySymbolById ();
 symbol = 'BTC/USDT';
 outsideLimit = 5;
 cache.append ({ 'symbol': symbol, 'id': 'oneId', 'i': 3 }); // create first order
-cache.getLimit (undefined, outsideLimit) // watch all orders
+cache.getLimit (undefined, outsideLimit); // watch all orders
 cache.append ({ 'symbol': symbol, 'id': 'oneId', 'i': 4 }); // first order is closed
-cache.getLimit (undefined, outsideLimit) // watch all orders
+cache.getLimit (undefined, outsideLimit); // watch all orders
 cache.append ({ 'symbol': symbol, 'id': 'twoId', 'i': 5 }); // create second order
-cache.getLimit (undefined, outsideLimit) // watch all orders
+cache.getLimit (undefined, outsideLimit); // watch all orders
 cache.append ({ 'symbol': symbol, 'id': 'twoId', 'i': 6 }); // second order is closed
 limited = cache.getLimit (undefined, outsideLimit); // watch all orders
 assert (limited === 1); // one new update
