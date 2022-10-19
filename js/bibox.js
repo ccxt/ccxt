@@ -1761,57 +1761,57 @@ module.exports = class bibox extends Exchange {
          * @method
          * @name bibox#fetchTransactionFees
          * @description fetch transaction fees
+         * @see https://biboxcom.github.io/v3/spot/en/#get-currency-configuration
          * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the bibox api endpoint
          * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
-        // by default it will try load withdrawal fees of all currencies (with separate requests)
-        // however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
         await this.loadMarkets ();
         const result = {};
-        if (codes === undefined) {
-            codes = Object.keys (this.currencies);
+        let limit = this.safeString (params, 'limit');
+        params = this.omit (params, 'limit');
+        if (limit === undefined) {
+            limit = 50;
         }
-        for (let i = 0; i < codes.length; i++) {
-            const currencyId = codes[i];
-            const code = this.safeCurrencyCode (currencyId);
-            const currency = this.currency (code);
-            const request = {
-                'cmd': 'transfer/coinConfig',
-                'body': this.extend ({
-                    'coin_symbol': currency['id'],
-                }, params),
-            };
-            const response = await this.v1PrivatePostTransfer (request);
-            //     {
-            //         "result":[
-            //             {
-            //                 "result":[
-            //                     {
-            //                         "coin_symbol":"ETH",
-            //                         "is_active":1,
-            //                         "original_decimals":18,
-            //                         "enable_deposit":1,
-            //                         "enable_withdraw":1,
-            //                         "withdraw_fee":0.008,
-            //                         "withdraw_min":0.05,
-            //                         "deposit_avg_spent":173700,
-            //                         "withdraw_avg_spent":322600
-            //                     }
-            //                 ],
-            //                 "cmd":"transfer/coinConfig"
-            //             }
-            //         ]
-            //     }
-            //
-            const outerResults = this.safeValue (response, 'result', []);
-            const firstOuterResult = this.safeValue (outerResults, 0, {});
-            const innerResults = this.safeValue (firstOuterResult, 'result', []);
-            const firstInnerResult = this.safeValue (innerResults, 0, {});
+        const request = {
+            'page': 1,
+            'size': limit,
+        };
+        const method = 'v3.1PrivatePostTransferCoinConfig';
+        const response = await this[method] (this.extend (request, params));
+        //
+        // [
+        //   {
+        //       coin_symbol: 'CAR',
+        //       is_active: '0',
+        //       original_decimals: '18',
+        //       enable_deposit: '0',
+        //       enable_withdraw: '0',
+        //       withdraw_fee: '6416.71875',
+        //       withdraw_min: '6417.69375'
+        //   },
+        // ]
+        //
+        const transactionFees = this.safeValue (response, 'result');
+        for (let i = 0; i < transactionFees.length; i++) {
+            const entry = transactionFees[i];
+            const coinSymbol = this.safeString (entry, 'coin_symbol');
+            const code = this.safeCurrencyCode (coinSymbol);
+            const withdrawFee = this.safeString (entry, 'withdraw_fee');
+            if (codes !== undefined) {
+                if (codes.indexOf (code) >= 0) {
+                    result[code] = {
+                        'withdraw': withdrawFee,
+                        'deposit': {},
+                        'info': entry,
+                    };
+                }
+                continue;
+            }
             result[code] = {
-                'withdraw': this.safeNumber (firstInnerResult, 'withdraw_fee'),
+                'withdraw': withdrawFee,
                 'deposit': {},
-                'info': response,
+                'info': entry,
             };
         }
         return result;
