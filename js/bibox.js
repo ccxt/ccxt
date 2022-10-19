@@ -504,7 +504,7 @@ module.exports = class bibox extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': this.safeString2 (ticker, 'change', 'c'),
+            'change': this.safeString (ticker, 'change'),
             'percentage': percentage,
             'average': undefined,
             'baseVolume': this.safeString2 (ticker, 'a', 'vol24H'),
