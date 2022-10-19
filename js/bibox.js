@@ -524,6 +524,37 @@ module.exports = class bibox extends Exchange {
             'cmd': 'marketAll',
         };
         const response = await this.v1PublicGetMdata (this.extend (request, params));
+        //
+        //    {
+        //        result: [
+        //            {
+        //                is_hide: '0',
+        //                high_cny: '0.1094',
+        //                amount: '5.34',
+        //                coin_symbol: 'BIX',
+        //                last: '0.00000080',
+        //                currency_symbol: 'BTC',
+        //                change: '+0.00000001',
+        //                low_cny: '0.1080',
+        //                base_last_cny: '0.10935854',
+        //                area_id: '7',
+        //                percent: '+1.27%',
+        //                last_cny: '0.1094',
+        //                high: '0.00000080',
+        //                low: '0.00000079',
+        //                pair_type: '0',
+        //                last_usd: '0.0155',
+        //                vol24H: '6697325',
+        //                id: '1',
+        //                high_usd: '0.0155',
+        //                low_usd: '0.0153'
+        //            },
+        //            ...
+        //        ],
+        //        cmd: 'marketAll',
+        //        ver: '1.1'
+        //    }
+        //
         const tickers = this.parseTickers (response['result'], symbols);
         const result = this.indexBy (tickers, 'symbol');
         return this.filterByArray (result, 'symbol', symbols);
