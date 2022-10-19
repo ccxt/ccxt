@@ -55,7 +55,6 @@ export class aaxBridge extends aaxRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -75,7 +74,6 @@ export class ascendexBridge extends ascendexRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -95,7 +93,6 @@ export class bequantBridge extends bequantRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -115,7 +112,6 @@ export class binanceBridge extends binanceRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -135,7 +131,6 @@ export class binancecoinmBridge extends binancecoinmRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -155,7 +150,6 @@ export class binanceusBridge extends binanceusRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -175,7 +169,6 @@ export class binanceusdmBridge extends binanceusdmRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -195,7 +188,6 @@ export class bitcoincomBridge extends bitcoincomRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -215,7 +207,6 @@ export class bitfinexBridge extends bitfinexRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -235,7 +226,6 @@ export class bitfinex2Bridge extends bitfinex2Rest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -255,7 +245,6 @@ export class bitmartBridge extends bitmartRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -275,7 +264,6 @@ export class bitmexBridge extends bitmexRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -295,7 +283,6 @@ export class bitoproBridge extends bitoproRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -315,7 +302,6 @@ export class bitstampBridge extends bitstampRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -335,7 +321,6 @@ export class bittrexBridge extends bittrexRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -355,7 +340,6 @@ export class bitvavoBridge extends bitvavoRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -375,7 +359,6 @@ export class bybitBridge extends bybitRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -395,7 +378,6 @@ export class coinbaseprimeBridge extends coinbaseprimeRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -415,7 +397,6 @@ export class coinbaseproBridge extends coinbaseproRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -435,7 +416,6 @@ export class coinexBridge extends coinexRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -455,7 +435,6 @@ export class cryptocomBridge extends cryptocomRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -475,7 +454,6 @@ export class currencycomBridge extends currencycomRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -495,7 +473,6 @@ export class exmoBridge extends exmoRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -515,7 +492,6 @@ export class ftxBridge extends ftxRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -535,7 +511,6 @@ export class ftxusBridge extends ftxusRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -555,7 +530,6 @@ export class gateBridge extends gateRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -575,7 +549,6 @@ export class gateioBridge extends gateioRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -595,7 +568,6 @@ export class hitbtcBridge extends hitbtcRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -615,7 +587,6 @@ export class hollaexBridge extends hollaexRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -635,7 +606,6 @@ export class huobiBridge extends huobiRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -655,7 +625,6 @@ export class huobijpBridge extends huobijpRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -675,7 +644,6 @@ export class huobiproBridge extends huobiproRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -695,7 +663,6 @@ export class idexBridge extends idexRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -715,7 +682,6 @@ export class krakenBridge extends krakenRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -735,7 +701,6 @@ export class kucoinBridge extends kucoinRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -755,7 +720,6 @@ export class mexcBridge extends mexcRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -775,7 +739,6 @@ export class ndaxBridge extends ndaxRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -795,7 +758,6 @@ export class okcoinBridge extends okcoinRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -815,7 +777,6 @@ export class okexBridge extends okexRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -835,7 +796,6 @@ export class okxBridge extends okxRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -855,7 +815,6 @@ export class phemexBridge extends phemexRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -875,7 +834,6 @@ export class ripioBridge extends ripioRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -895,7 +853,6 @@ export class upbitBridge extends upbitRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -915,7 +872,6 @@ export class whitebitBridge extends whitebitRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -935,7 +891,6 @@ export class zbBridge extends zbRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
@@ -955,7 +910,6 @@ export class zipmexBridge extends zipmexRest {
     constructor (config = {}) {
         super (config);
         (config as any).handleMessage = this.handleMessage.bind(this);
-        (config as any).tokenBucket = this.tokenBucket;
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);

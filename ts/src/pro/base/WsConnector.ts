@@ -75,20 +75,6 @@ export default class WsConnector  {
             const onConnected = this.onConnected.bind (this);
             // decide client type here: ws / signalr / socketio
             // const wsOptions = safeValue (this.options, 'ws', {});
-            // const options = extend (this.streaming, {
-            //     'verbose': this.verbose,
-            //     'throttle': throttle (this.tokenBucket),
-            // }, wsOptions);
-
-            // if (this.log) {
-            //     options['log'] = this.log.bind(this);
-            // }
-
-            // options['isVerboseMode'] = this.isVerboseMode;
-
-            // if (this.ping) {
-            //     options['ping'] = this.ping; // don't bind here otherwise it will be called with the WsConnector as the context inside derived file
-            // }
 
             const options = {
                 'ping': this.ping,

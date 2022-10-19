@@ -1218,6 +1218,10 @@ export default class Exchange {
             return (this as any).streaming?.keepAlive ?? 30000;
         }
 
+        getMaxPingPongMisses() {
+            return (this as any).streaming?.getMaxPingPongMisses ?? 2;
+        }
+
         getTokenBucket() {
             return (this as any).tokenBucket;
         }
@@ -1227,11 +1231,11 @@ export default class Exchange {
         }
 
         isInflate() {
-            return !!(this as any).options.ws.inflate;
+            return !!(this as any).options?.ws?.inflate;
         }
 
         isGunzip() {
-            return !!(this as any).options.ws.gunzip;
+            return !!(this as any).options?.ws?.gunzip;
         }
 
     /* eslint-enable */

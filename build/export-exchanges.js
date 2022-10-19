@@ -556,9 +556,13 @@ async function exportEverything () {
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open

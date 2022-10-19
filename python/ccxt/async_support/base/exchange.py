@@ -48,6 +48,10 @@ __all__ = [
 
 class Exchange(BaseExchange):
     synchronous = False
+    streaming = {
+        'maxPingPongMisses': 2,
+        'keepAlive': 30000
+    }
     ping = None
 
     def __init__(self, config={}):
@@ -273,6 +277,33 @@ class Exchange(BaseExchange):
 
     def delay(self, timeout, method, *args):
         asyncio.ensure_future(self.delay_async(timeout, method, *args))
+
+    def get_verbose_mode(self):
+        return self.verbose
+
+    def get_keep_alive(self):
+        return self.streaming['keepAlive']
+
+    def get_max_ping_pong_misses(self):
+        return self.streaming['maxPingPongMisses']
+
+    def get_token_bucket(self):
+        return self.tokenBucket
+
+    def get_enable_rate_limit(self):
+        return self.enableRateLimit
+
+    def get_inflate(self):
+        ws_op = self.options.get('ws')
+        if ws_op:
+            return ws_op.get('inflate')
+        return False
+
+    def get_gunzip(self):
+        ws_op = self.options.get('ws')
+        if ws_op:
+            return ws_op.get('gunzip')
+        return False
 
     # ########################################################################
     # ########################################################################

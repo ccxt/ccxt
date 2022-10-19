@@ -13,9 +13,13 @@ class aaxBridge(ccxt.aax):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -35,9 +39,13 @@ class ascendexBridge(ccxt.ascendex):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -57,9 +65,13 @@ class bequantBridge(ccxt.bequant):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -79,9 +91,13 @@ class binanceBridge(ccxt.binance):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -101,9 +117,13 @@ class binancecoinmBridge(ccxt.binancecoinm):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -123,9 +143,13 @@ class binanceusBridge(ccxt.binanceus):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -145,9 +169,13 @@ class binanceusdmBridge(ccxt.binanceusdm):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -167,9 +195,13 @@ class bitcoincomBridge(ccxt.bitcoincom):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -189,9 +221,13 @@ class bitfinexBridge(ccxt.bitfinex):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -211,9 +247,13 @@ class bitfinex2Bridge(ccxt.bitfinex2):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -233,9 +273,13 @@ class bitmartBridge(ccxt.bitmart):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -255,9 +299,13 @@ class bitmexBridge(ccxt.bitmex):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -277,9 +325,13 @@ class bitoproBridge(ccxt.bitopro):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -299,9 +351,13 @@ class bitstampBridge(ccxt.bitstamp):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -321,9 +377,13 @@ class bittrexBridge(ccxt.bittrex):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -343,9 +403,13 @@ class bitvavoBridge(ccxt.bitvavo):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -365,9 +429,13 @@ class bybitBridge(ccxt.bybit):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -387,9 +455,13 @@ class coinbaseprimeBridge(ccxt.coinbaseprime):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -409,9 +481,13 @@ class coinbaseproBridge(ccxt.coinbasepro):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -431,9 +507,13 @@ class coinexBridge(ccxt.coinex):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -453,9 +533,13 @@ class cryptocomBridge(ccxt.cryptocom):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -475,9 +559,13 @@ class currencycomBridge(ccxt.currencycom):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -497,9 +585,13 @@ class exmoBridge(ccxt.exmo):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -519,9 +611,13 @@ class ftxBridge(ccxt.ftx):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -541,9 +637,13 @@ class ftxusBridge(ccxt.ftxus):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -563,9 +663,13 @@ class gateBridge(ccxt.gate):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -585,9 +689,13 @@ class gateioBridge(ccxt.gateio):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -607,9 +715,13 @@ class hitbtcBridge(ccxt.hitbtc):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -629,9 +741,13 @@ class hollaexBridge(ccxt.hollaex):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -651,9 +767,13 @@ class huobiBridge(ccxt.huobi):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -673,9 +793,13 @@ class huobijpBridge(ccxt.huobijp):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -695,9 +819,13 @@ class huobiproBridge(ccxt.huobipro):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -717,9 +845,13 @@ class idexBridge(ccxt.idex):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -739,9 +871,13 @@ class krakenBridge(ccxt.kraken):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -761,9 +897,13 @@ class kucoinBridge(ccxt.kucoin):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -783,9 +923,13 @@ class mexcBridge(ccxt.mexc):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -805,9 +949,13 @@ class ndaxBridge(ccxt.ndax):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -827,9 +975,13 @@ class okcoinBridge(ccxt.okcoin):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -849,9 +1001,13 @@ class okexBridge(ccxt.okex):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -871,9 +1027,13 @@ class okxBridge(ccxt.okx):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -893,9 +1053,13 @@ class phemexBridge(ccxt.phemex):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -915,9 +1079,13 @@ class ripioBridge(ccxt.ripio):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -937,9 +1105,13 @@ class upbitBridge(ccxt.upbit):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -959,9 +1131,13 @@ class whitebitBridge(ccxt.whitebit):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -981,9 +1157,13 @@ class zbBridge(ccxt.zb):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -1003,9 +1183,13 @@ class zipmexBridge(ccxt.zipmex):
     def __init__(self, config):
         super().__init__(config)
         config['handle_message'] = self.handle_message
-        config['enableRateLimit'] = self.enableRateLimit
-        config['tokenBucket'] = self.tokenBucket
-        config['verbose'] = self.verbose
+        config['get_enable_rate_limit'] = self.get_enable_rate_limit
+        config['get_token_bucket'] = self.get_token_bucket
+        config['get_inflate'] = self.get_inflate
+        config['get_gunzip'] = self.get_gunzip
+        config['get_keep_alive'] = self.get_keep_alive
+        config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
+        config['get_verbose_mode'] = self.get_verbose_mode
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open

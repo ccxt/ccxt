@@ -28,10 +28,14 @@ class WsConnector:
 
     clients = {}
     options = {}
-    enableRateLimit = True
-    verbose = False
+    get_verbose_mode = None
+    get_token_bucket = None
+    get_keep_alive = None
+    get_enable_rate_limit = None
+    get_max_ping_pong_misses = None
+    get_inflate = None
+    get_gunzip = None
     asyncio_loop = None
-    tokenBucket = None
     handle_message = None
     ping = None
     log = None
@@ -41,9 +45,13 @@ class WsConnector:
 
     def __init__(self, options):
         self.options = options
-        self.verbose = options.get('verbose', False)
-        self.enableRateLimit = options.get('enableRateLimit', True)
-        self.tokenBucket = options.get('tokenBucket')
+        self.get_verbose_mode = options.get('get_verbose_mode')
+        self.get_enable_rate_limit = options.get('get_enable_rate_limit')
+        self.get_max_ping_pong_misses = options.get('get_max_ping_pong_misses')
+        self.get_token_bucket = options.get('get_token_bucket')
+        self.get_inflate = options.get('get_inflate')
+        self.get_gunzip = options.get('get_gunzip')
+        self.get_keep_alive = options.get('get_keep_alive')
         self.handle_message = options.get('handle_message')
         self.ping = options.get('ping')
         self.log = options.get('log')
@@ -51,12 +59,12 @@ class WsConnector:
         self.get_session = options.get('get_session')
         self.get_loop = options.get('get_loop')
 
-    # streaming-specific options
-    streaming = {
-        'keepAlive': 30000,
-        'ping': None,
-        'maxPingPongMisses': 2.0,
-    }
+    # # streaming-specific options
+    # streaming = {
+    #     # 'keepAlive': 30000,
+    #     # 'ping': None,
+    #     # 'maxPingPongMisses': 2.0,
+    # }
 
     newUpdates = True
 
@@ -98,14 +106,19 @@ class WsConnector:
             on_close = self.on_close
             on_connected = self.on_connected
             # decide client type here: aiohttp ws / websockets / signalr / socketio
-            ws_options = BaseExchange.safe_value(self.options, 'ws', {})
-            options = BaseExchange.extend(self.streaming, {
+            # ws_options = BaseExchange.safe_value(self.options, 'ws', {})
+            options = {
                 'log': self.log,
                 'ping': getattr(self, 'ping', None),
-                'verbose': self.verbose,
-                'throttle': Throttler(self.tokenBucket, self.get_loop()),
+                'get_verbose_mode': self.get_verbose_mode,
+                'get_keep_alive': self.get_keep_alive,
+                'get_enable_rate_limit': self.get_enable_rate_limit,
+                'get_max_ping_pong_misses': self.get_max_ping_pong_misses,
+                'get_inflate': self.get_inflate,
+                'get_gunzip': self.get_gunzip,
+                'throttle': Throttler(self.get_token_bucket(), self.get_loop()),
                 'asyncio_loop': self.get_loop(),
-            }, ws_options)
+            }
             self.clients[url] = FastClient(url, on_message, on_error, on_close, on_connected, options)
         return self.clients[url]
 
@@ -133,7 +146,7 @@ class WsConnector:
                 cost = BaseExchange.safe_value(options, 'cost', 1)
                 if message:
                     async def send_message():
-                        if self.enableRateLimit:
+                        if self.get_enable_rate_limit():
                             await client.throttle(cost)
                         try:
                             await client.send(message)
