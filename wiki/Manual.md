@@ -3733,15 +3733,31 @@ if ($exchange->has['createMarketOrder']) {
 
 #### Market Buys
 
-In general, when placing a `market buy` or `market sell` order the user has to specify just the amount of the base currency to buy or sell. However, with some exchanges market buy orders implement a different approach to calculating the value of the order.
+When placing a **market buy** or **market sell** order the user usually has to specify just the amount of the **quote** currency to buy or sell.
 
-Suppose you're trading BTC/USD and the current market price for BTC is over 9000 USD. For a market buy or market sell you could specify an `amount` of 2 BTC and that would result in _plus or minus_ 18000 USD (more or less ;)) on your account, depending on the side of the order.
+- **Ex.** For a trade using symbol `BTC/USD` with a current BTC market price of 9000 USD, to place a market buy/sell you would specify an `amount` of 2 BTC, resulting in ± 18000 USD on your account (+18000 for a market sell of 2 BTC, -18000 for a market buy of 2 BTC)
 
-**With market buys some exchanges require the total cost of the order in the quote currency!** The logic behind it is simple, instead of taking the amount of base currency to buy or sell some exchanges operate with _"how much quote currency you want to spend on buying in total"_.
+Some exchanges require the total cost of market buy orders in the **base** currency
 
-To place a market buy order with those exchanges you would not specify an amount of 2 BTC, instead you should somehow specify the total cost of the order, that is, 18000 USD in this example. The exchanges that treat `market buy` orders in this way have an exchange-specific option `createMarketBuyOrderRequiresPrice` that allows specifying the total cost of a `market buy` order in two ways.
+- **Ex.** For a trade using symbol `BTC/USD` with a current market price for BTC being 9000 USD, to place a market buy you would specify an `amount` of 18 000 USD, resulting in the same output as the previous example
 
-The first is the default and if you specify the `price` along with the `amount` the total cost of the order would be calculated inside the lib from those two values with a simple multiplication (`cost = amount * price`). The resulting `cost` would be the amount in USD quote currency that will be spent on this particular market buy order.
+The option `createMarketBuyOrderRequiresPrice` allows you to use the quote currency for the amount of market buy orders on exchanges that require the base currency
+
+> **By default `createMarketBuyOrderRequiresPrice` is set to `true`**
+
+```JavaScript
+exchange.options['createMarketBuyOrderRequiresPrice'] = true
+```
+```python
+exchange.options['createMarketBuyOrderRequiresPrice'] = True
+```
+```php
+$exchange->options['createMarketBuyOrderRequiresPrice'] = TRUE
+```
+
+> ⚠️ These market orders require the `price` argument to be set because the amount of base currency for the order is calculated using `cost = amount * price`
+
+Setting `createMarketBuyOrderRequiresPrice` to `false` allows you to specify the amount in base currency instead (note that `createMarketBuyOrderRequiresPrice` is not available on every exchange)
 
 ```JavaScript
 // this example is oversimplified and doesn't show all the code that is
