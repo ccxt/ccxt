@@ -510,7 +510,6 @@ module.exports = class bibox extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
         /**
          * @method
          * @name bibox#fetchTickers
