@@ -10,28 +10,36 @@ class WsConnector {
 
     public $clients = array();
     public $options = array();
-    public $verbose = false;
-    public $tokenBucket;
-    public $ping;
     public $log;
-    public $enableRateLimit = false;
+    public $ping;
+    public $get_enable_rate_limit;
+    public $get_token_bucket;
+    public $get_verbose_mode;
+    public $get_keep_alive;
+    public $get_max_ping_pong_misses;
+    public $get_gunzip;
+    public $get_inflate;
 
     public function __construct($options = array()) {
         $this->options = $options;
-        $this->verbose = Exchange::safe_value($options, 'verbose', false);
-        $this->tokenBucket = Exchange::safe_value($options, 'tokenBucket', null);
-        $this->enableRateLimit = Exchange::safe_value($options, 'enableRateLimit', false);
+        $this->get_token_bucket = Exchange::safe_value($options, 'get_token_bucket');
+        $this->get_verbose_mode = Exchange::safe_value($options, 'get_verbose_mode');
+        $this->get_enable_rate_limit = Exchange::safe_value($options, 'get_enable_rate_limit');
+        $this->get_keep_alive = Exchange::safe_value($options, 'get_keep_alive');
+        $this->get_max_ping_pong_misses = Exchange::safe_value($options, 'get_max_ping_pong_misses');
+        $this->get_gunzip = Exchange::safe_value($options, 'get_gunzip');
+        $this->get_inflate = Exchange::safe_value($options, 'get_inflate');
         $this->ping = Exchange::safe_value($options, 'ping');
         $this->log = Exchange::safe_value($options, 'log');
     }
 
-    // streaming-specific options
-    public $streaming = array(
-        'keepAlive' => 30000,
-        'heartbeat' => true,
-        'ping' => null,
-        'maxPingPongMisses' => 2.0,
-    );
+    // // streaming-specific options
+    // public $streaming = array(
+    //     'keepAlive' => 30000,
+    //     'heartbeat' => true,
+    //     'ping' => null,
+    //     'maxPingPongMisses' => 2.0,
+    // );
 
     public $newUpdates = true;
 
@@ -78,13 +86,25 @@ class WsConnector {
             $on_error = array($this, 'on_error');
             $on_close = array($this, 'on_close');
             $on_connected = array($this, 'on_connected');
-            $ws_options = Exchange::safe_value($this->options, 'ws', array());
-            $options = array_replace_recursive(array(
+            // $ws_options = Exchange::safe_value($this->options, 'ws', array());
+            // $options = array_replace_recursive(array(
+            //     'log' => array($this, 'log'),
+            //     'ping' => array($this, 'ping'),
+            //     'verbose' => $this->verbose,
+            //     'throttle' => new Throttle($this->tokenBucket),
+            // ), $this->streaming, $ws_options);
+
+            $options = array (
                 'log' => array($this, 'log'),
                 'ping' => array($this, 'ping'),
-                'verbose' => $this->verbose,
-                'throttle' => new Throttle($this->tokenBucket),
-            ), $this->streaming, $ws_options);
+                'throttle' => new Throttle(($this->get_token_bucket)()),
+                'get_verbose_mode' => $this->get_verbose_mode,
+                'get_enable_rate_limit' => $this->get_enable_rate_limit,
+                'get_keep_alive' => $this->get_keep_alive,
+                'get_max_ping_pong_misses' => $this->get_max_ping_pong_misses,
+                'get_gunzip' => $this->get_gunzip,
+                'get_inflate'=> $this->get_inflate,
+            );
             $this->clients[$url] = new Client($url, $on_message, $on_error, $on_close, $on_connected, $options);
         }
         return $this->clients[$url];
@@ -105,7 +125,7 @@ class WsConnector {
                     $options = Exchange::safe_value($this->options, 'ws');
                     $cost = Exchange::safe_value ($options, 'cost', 1);
                     if ($message) {
-                        if ($this->enableRateLimit) {
+                        if (($this->get_enable_rate_limit)()) {
                             // add cost here |
                             //               |
                             //               V

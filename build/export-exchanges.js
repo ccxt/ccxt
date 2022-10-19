@@ -531,12 +531,16 @@ async function exportEverything () {
     public WsConnector $ws;
     public function __construct($options = array()) {
         parent::__construct($options);
-        $options['handle_message'] = array($this, 'handle_message');
         $options['log'] = array($this, 'log');
-        $options['ping'] = array($this, 'ping');
-        $options['enableRateLimit'] = $this->enableRateLimit;
-        $options['tokenBucket'] = $this->tokenBucket;
-        $options['verbose'] = $this->verbose;
+        $options['ping'] = method_exists($this, 'ping') ? array($this, 'ping') : null;
+        $options['handle_message'] = array($this, 'handle_message');
+        $options['get_verbose_mode'] = array($this, 'get_verbose_mode');
+        $options['get_keep_alive'] = array($this, 'get_keep_alive');
+        $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
+        $options['get_token_bucket'] = array($this, 'get_token_bucket');
+        $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_inflate'] = array($this, 'get_inflate');
+        $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
     }
     public function handle_message ($client, $message) {} // stub to override
