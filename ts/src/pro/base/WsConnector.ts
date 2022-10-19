@@ -16,9 +16,15 @@ export default class WsConnector  {
     handleMessage = undefined
     enableRateLimit = undefined
     streaming = undefined
+    isVerboseMode = undefined
+    getTokenBucket = undefined
+    getKeepAlive = undefined
+    isInflate = undefined
+    isGunzip = undefined
 
     constructor (options = {}) {
         this.newUpdates = (options as any).newUpdates || true;
+        this.isVerboseMode = (options as any).isVerboseMode;
         this.log = (options as any).log || this.log;
         this.verbose = (options as any).verbose;
         this.handleMessage = (options as any).handleMessage || this.handleMessage;
@@ -29,6 +35,10 @@ export default class WsConnector  {
         this.log = (options as any).log;
         // this.streaming = (options as any).streaming; 
         this.ping = (options as any).ping;
+        this.getTokenBucket = (options as any).getTokenBucket;
+        this.getKeepAlive = (options as any).getKeepAlive;
+        this.isInflate = (options as any).isInflate;
+        this.isGunzip = (options as any).isGunzip;
         this.clients = {};
     }
 
@@ -64,18 +74,30 @@ export default class WsConnector  {
             const onClose = this.onClose.bind (this);
             const onConnected = this.onConnected.bind (this);
             // decide client type here: ws / signalr / socketio
-            const wsOptions = safeValue (this.options, 'ws', {});
-            const options = extend (this.streaming, {
-                'verbose': this.verbose,
-                'throttle': throttle (this.tokenBucket),
-            }, wsOptions);
+            // const wsOptions = safeValue (this.options, 'ws', {});
+            // const options = extend (this.streaming, {
+            //     'verbose': this.verbose,
+            //     'throttle': throttle (this.tokenBucket),
+            // }, wsOptions);
 
-            if (this.log) {
-                options['log'] = this.log.bind(this);
-            }
+            // if (this.log) {
+            //     options['log'] = this.log.bind(this);
+            // }
 
-            if (this.ping) {
-                options['ping'] = this.ping; // don't bind here otherwise it will be called with the WsConnector as the context inside derived file
+            // options['isVerboseMode'] = this.isVerboseMode;
+
+            // if (this.ping) {
+            //     options['ping'] = this.ping; // don't bind here otherwise it will be called with the WsConnector as the context inside derived file
+            // }
+
+            const options = {
+                'ping': this.ping,
+                'isVerboseMode': this.isVerboseMode,
+                'throttle': throttle(this.getTokenBucket()),
+                'log': this.log,
+                'getKeepAlive': this.getKeepAlive,
+                'isInflate': this.isInflate,
+                'isGunzip': this.isGunzip,
             }
 
             this.clients[url] = new WsClient (url, onMessage, onError, onClose, onConnected, options);

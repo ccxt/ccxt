@@ -1210,6 +1210,30 @@ export default class Exchange {
             }, timeout);
         }
 
+        isVerboseMode() {
+            return !!this.verbose;
+        }
+
+        getKeepAlive() {
+            return (this as any).streaming?.keepAlive ?? 30000;
+        }
+
+        getTokenBucket() {
+            return (this as any).tokenBucket;
+        }
+
+        getEnableRateLimit() {
+            return (this as any).enableRateLimit;
+        }
+
+        isInflate() {
+            return !!(this as any).options.ws.inflate;
+        }
+
+        isGunzip() {
+            return !!(this as any).options.ws.gunzip;
+        }
+
     /* eslint-enable */
     // ------------------------------------------------------------------------
 
