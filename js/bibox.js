@@ -680,11 +680,10 @@ module.exports = class bibox extends Exchange {
          * @see https://biboxcom.github.io/api/spot/v4/en/#get-order-book
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit not used by bibox
+         * @param {int|undefined} limit *default=100* valid values include 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000
          * @param {object} params extra parameters specific to the bibox api endpoint
          *
          * EXCHANGE SPECIFIC PARAMETERS
-         * @param {int|undefined} level *default=100* orderbook level depth, valid values include 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000
          * @param {int|undefined} price_scale *default=0* depth of consolidation by price, valid values include 0, 1, 2, 3, 4, 5
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
@@ -693,6 +692,13 @@ module.exports = class bibox extends Exchange {
         const request = {
             'symbol': market['id'],
         };
+        if (limit !== undefined) {
+            const allowedValues = [ 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000 ];
+            if (!this.inArray (limit, allowedValues)) {
+                throw new BadRequest (this.id + ' fetchOrderBook limit argument by only be one of 1, 2, 5, 10, 20, 50, 100, 200, 500 or 1000');
+            }
+            request['level'] = limit;
+        }
         const response = await this.v4PublicGetMarketdataOrderBook (this.extend (request, params));
         //
         //    {
