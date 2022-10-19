@@ -3879,9 +3879,6 @@ class okx(Exchange):
             # 'instId': market['id'],  # optional string, e.g. 'BTC-USD-190927-5000-C'
             # 'posId': '307173036051017730',  # optional string, Single or multiple position IDs(no more than 20) separated with commas
         }
-        type, query = self.handle_market_type_and_params('fetchPositions', None, params)
-        if type is not None:
-            request['instType'] = self.convert_to_instrument_type(type)
         if symbols is not None:
             marketIds = []
             for i in range(0, len(symbols)):
@@ -3889,7 +3886,7 @@ class okx(Exchange):
                 market = self.market(entry)
                 marketIds.append(market['id'])
             request['instId'] = str(marketIds)
-        response = self.privateGetAccountPositions(self.extend(request, query))
+        response = self.privateGetAccountPositions(self.extend(request, params))
         #
         #     {
         #         "code": "0",

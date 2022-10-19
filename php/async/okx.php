@@ -4124,10 +4124,6 @@ class okx extends Exchange {
                 // 'instId' => $market['id'], // optional string, e.g. 'BTC-USD-190927-5000-C'
                 // 'posId' => '307173036051017730', // optional string, Single or multiple position IDs (no more than 20) separated with commas
             );
-            list($type, $query) = $this->handle_market_type_and_params('fetchPositions', null, $params);
-            if ($type !== null) {
-                $request['instType'] = $this->convert_to_instrument_type($type);
-            }
             if ($symbols !== null) {
                 $marketIds = array();
                 for ($i = 0; $i < count($symbols); $i++) {
@@ -4137,7 +4133,7 @@ class okx extends Exchange {
                 }
                 $request['instId'] = (string) $marketIds;
             }
-            $response = Async\await($this->privateGetAccountPositions (array_merge($request, $query)));
+            $response = Async\await($this->privateGetAccountPositions (array_merge($request, $params)));
             //
             //     {
             //         "code" => "0",

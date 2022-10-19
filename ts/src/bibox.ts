@@ -251,7 +251,7 @@ export default class bibox extends Exchange {
                             'marketdata/order_book',
                             'marketdata/candles',
                             'marketdata/trades',
-                            'marketdata/tickers',
+                            'marketdata/ticker',
                         ],
                     },
                     'private': {
@@ -429,17 +429,62 @@ export default class bibox extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         // we don't set values that are not defined by the exchange
-        const timestamp = this.safeInteger (ticker, 'timestamp');
-        let marketId = undefined;
+        //
+        // fetchTicker
+        //
+        //    {
+        //        "s": "ADA_USDT",             // trading pair code
+        //        "t": 1666143212000,          // 24 hour transaction count
+        //        "o": 0.371735,               // opening price
+        //        "h": 0.373646,               // highest price
+        //        "l": 0.358383,               // lowest price
+        //        "p": 0.361708,               // latest price
+        //        "q": 8.1,                    // latest volume
+        //        "v": 1346397.88,             // 24 hour volume
+        //        "a": 494366.08822867,        // 24 hour transaction value
+        //        "c": -0.0267,                // 24 hour Change
+        //        "n": 244631,
+        //        "f": 16641250,               // 24 hour first transaction id
+        //        "bp": 0.361565,              // Best current bid price
+        //        "bq": 4324.26,               // Best current bid quantity
+        //        "ap": 0.361708,              // Best current ask price
+        //        "aq": 7726.59                // Best current ask quantity
+        //    }
+        //
+        // fetchTickers
+        //
+        //    {
+        //        is_hide: '0',
+        //        high_cny: '0.1094',
+        //        amount: '5.34',
+        //        coin_symbol: 'BIX',
+        //        last: '0.00000080',
+        //        currency_symbol: 'BTC',
+        //        change: '+0.00000001',
+        //        low_cny: '0.1080',
+        //        base_last_cny: '0.10935854',
+        //        area_id: '7',
+        //        percent: '+1.27%',
+        //        last_cny: '0.1094',
+        //        high: '0.00000080',
+        //        low: '0.00000079',
+        //        pair_type: '0',
+        //        last_usd: '0.0155',
+        //        vol24H: '6697325',
+        //        id: '1',
+        //        high_usd: '0.0155',
+        //        low_usd: '0.0153'
+        //    }
+        //
+        const timestamp = this.safeInteger2 (ticker, 'timestamp', 't');
         const baseId = this.safeString (ticker, 'coin_symbol');
         const quoteId = this.safeString (ticker, 'currency_symbol');
-        if ((baseId !== undefined) && (quoteId !== undefined)) {
+        let marketId = this.safeString (ticker, 's');
+        if ((marketId === undefined) && (baseId !== undefined) && (quoteId !== undefined)) {
             marketId = baseId + '_' + quoteId;
         }
         market = this.safeMarket (marketId, market);
-        const last = this.safeString (ticker, 'last');
-        const change = this.safeString (ticker, 'change');
-        const baseVolume = this.safeString2 (ticker, 'vol', 'vol24H');
+        const last = this.safeString2 (ticker, 'last', 'p');
         let percentage = this.safeString (ticker, 'percent');
         if (percentage !== undefined) {
             percentage = percentage.replace ('%', '');
@@ -448,22 +493,22 @@ export default class bibox extends Exchange {
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeString (ticker, 'high'),
-            'low': this.safeString (ticker, 'low'),
-            'bid': this.safeString (ticker, 'buy'),
-            'bidVolume': this.safeString (ticker, 'buy_amount'),
-            'ask': this.safeString (ticker, 'sell'),
-            'askVolume': this.safeString (ticker, 'sell_amount'),
+            'high': this.safeString2 (ticker, 'high', 'h'),
+            'low': this.safeString2 (ticker, 'low', 'l'),
+            'bid': this.safeString (ticker, 'bp'),
+            'bidVolume': this.safeString (ticker, 'bq'),
+            'ask': this.safeString (ticker, 'ap'),
+            'askVolume': this.safeString (ticker, 'aq'),
             'vwap': undefined,
-            'open': undefined,
+            'open': this.safeString (ticker, 'o'),
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
+            'change': this.safeString (ticker, 'change'),
             'percentage': percentage,
             'average': undefined,
-            'baseVolume': baseVolume,
-            'quoteVolume': this.safeString (ticker, 'amount'),
+            'baseVolume': this.safeString2 (ticker, 'a', 'vol24H'),
+            'quoteVolume': this.safeString2 (ticker, 'v', 'amount'),
             'info': ticker,
         }, market);
     }
@@ -473,6 +518,7 @@ export default class bibox extends Exchange {
          * @method
          * @name bibox#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://biboxcom.github.io/api/spot/v4/en/#get-tickers
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the bibox api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
@@ -480,19 +526,40 @@ export default class bibox extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'cmd': 'ticker',
-            'pair': market['id'],
+            'symbol': market['id'],
         };
-        const response = await (this as any).v1PublicGetMdata (this.extend (request, params));
-        return this.parseTicker (response['result'], market);
+        const response = await (this as any).v4PublicGetMarketdataTicker (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            "s": "ADA_USDT",             // trading pair code
+        //            "t": 1666143212000,          // 24 hour transaction count
+        //            "o": 0.371735,               // opening price
+        //            "h": 0.373646,               // highest price
+        //            "l": 0.358383,               // lowest price
+        //            "p": 0.361708,               // latest price
+        //            "q": 8.1,                    // latest volume
+        //            "v": 1346397.88,             // 24 hour volume
+        //            "a": 494366.08822867,        // 24 hour transaction value
+        //            "c": -0.0267,                // 24 hour Change
+        //            "n": 244631,
+        //            "f": 16641250,               // 24 hour first transaction id
+        //            "bp": 0.361565,              // Best current bid price
+        //            "bq": 4324.26,               // Best current bid quantity
+        //            "ap": 0.361708,              // Best current ask price
+        //            "aq": 7726.59                // Best current ask quantity
+        //        }
+        //    ]
+        //
+        const ticker = this.safeValue (response, 0);
+        return this.parseTicker (ticker, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
-        await this.loadMarkets ();
         /**
          * @method
          * @name bibox#fetchTickers
-         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @description v1, fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the bibox api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
@@ -503,6 +570,37 @@ export default class bibox extends Exchange {
             'cmd': 'marketAll',
         };
         const response = await (this as any).v1PublicGetMdata (this.extend (request, params));
+        //
+        //    {
+        //        result: [
+        //            {
+        //                is_hide: '0',
+        //                high_cny: '0.1094',
+        //                amount: '5.34',
+        //                coin_symbol: 'BIX',
+        //                last: '0.00000080',
+        //                currency_symbol: 'BTC',
+        //                change: '+0.00000001',
+        //                low_cny: '0.1080',
+        //                base_last_cny: '0.10935854',
+        //                area_id: '7',
+        //                percent: '+1.27%',
+        //                last_cny: '0.1094',
+        //                high: '0.00000080',
+        //                low: '0.00000079',
+        //                pair_type: '0',
+        //                last_usd: '0.0155',
+        //                vol24H: '6697325',
+        //                id: '1',
+        //                high_usd: '0.0155',
+        //                low_usd: '0.0153'
+        //            },
+        //            ...
+        //        ],
+        //        cmd: 'marketAll',
+        //        ver: '1.1'
+        //    }
+        //
         const tickers = this.parseTickers (response['result'], symbols);
         const result = this.indexBy (tickers, 'symbol');
         return this.filterByArray (result, 'symbol', symbols);

@@ -58,7 +58,6 @@ class ArrayCache(BaseCache):
         self._clear_all_updates = False
 
     def getLimit(self, symbol, limit):
-        new_updates_value = None
         if symbol is None:
             new_updates_value = self._all_new_updates
             self._clear_all_updates = True
@@ -77,12 +76,14 @@ class ArrayCache(BaseCache):
 
     def append(self, item):
         self._deque.append(item)
+        if self._clear_all_updates:
+            self._clear_all_updates = False
+            self._clear_updates_by_symbol.clear()
+            self._all_new_updates = 0
+            self._new_updates_by_symbol.clear()
         if self._clear_updates_by_symbol.get(item['symbol']):
             self._clear_updates_by_symbol[item['symbol']] = False
             self._new_updates_by_symbol[item['symbol']] = 0
-        if self._clear_all_updates:
-            self._clear_all_updates = False
-            self._all_new_updates = 0
         self._new_updates_by_symbol[item['symbol']] = self._new_updates_by_symbol.get(item['symbol'], 0) + 1
         self._all_new_updates = (self._all_new_updates or 0) + 1
 
@@ -144,14 +145,16 @@ class ArrayCacheBySymbolById(ArrayCache):
             del self.hashmap[delete_item['symbol']][delete_item['id']]
         self._deque.append(item)
         self._index.append(item['id'])
+        if self._clear_all_updates:
+            self._clear_all_updates = False
+            self._clear_updates_by_symbol.clear()
+            self._all_new_updates = 0
+            self._new_updates_by_symbol.clear()
         if item['symbol'] not in self._new_updates_by_symbol:
             self._new_updates_by_symbol[item['symbol']] = set()
         if self._clear_updates_by_symbol.get(item['symbol']):
             self._clear_updates_by_symbol[item['symbol']] = False
             self._new_updates_by_symbol[item['symbol']].clear()
-        if self._clear_all_updates:
-            self._clear_all_updates = False
-            self._all_new_updates = 0
         id_set = self._new_updates_by_symbol[item['symbol']]
         before_length = len(id_set)
         id_set.add(item['id'])

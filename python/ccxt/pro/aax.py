@@ -381,7 +381,7 @@ class aax(Exchange, ccxt.async_support.aax):
         #
         data = self.safe_value(message, 'data', {})
         purseType = self.safe_string(data, 'purseType')
-        accounts = self.safe_value(self.options, 'accounts', {})
+        accounts = self.safe_value(self.options, 'accountsById', {})
         accountType = self.safe_string(accounts, purseType)
         messageHash = accountType + ':balance'
         currencyId = self.safe_string(data, 'currency')

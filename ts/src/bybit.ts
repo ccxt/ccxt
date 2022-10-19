@@ -179,6 +179,7 @@ export default class bybit extends Exchange {
                         'option/usdc/openapi/public/v1/delivery-price': 1,
                         'option/usdc/openapi/public/v1/query-trade-latest': 1,
                         'option/usdc/openapi/public/v1/query-historical-volatility': 1,
+                        'option/usdc/openapi/public/v1/all-tickers': 1,
                         // perpetual swap USDC
                         'perpetual/usdc/openapi/public/v1/order-book': 1,
                         'perpetual/usdc/openapi/public/v1/symbols': 1,
