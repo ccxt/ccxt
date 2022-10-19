@@ -476,17 +476,15 @@ module.exports = class bibox extends Exchange {
         //        low_usd: '0.0153'
         //    }
         //
-        const timestamp = this.safeInteger (ticker, 'timestamp');
-        let marketId = undefined;
+        const timestamp = this.safeInteger2 (ticker, 'timestamp', 't');
         const baseId = this.safeString (ticker, 'coin_symbol');
         const quoteId = this.safeString (ticker, 'currency_symbol');
-        if ((baseId !== undefined) && (quoteId !== undefined)) {
+        let marketId = this.safeString (ticker, 's');
+        if ((marketId === undefined) && (baseId !== undefined) && (quoteId !== undefined)) {
             marketId = baseId + '_' + quoteId;
         }
         market = this.safeMarket (marketId, market);
-        const last = this.safeString (ticker, 'last');
-        const change = this.safeString (ticker, 'change');
-        const baseVolume = this.safeString2 (ticker, 'vol', 'vol24H');
+        const last = this.safeString2 (ticker, 'last', 'p');
         let percentage = this.safeString (ticker, 'percent');
         if (percentage !== undefined) {
             percentage = percentage.replace ('%', '');
@@ -495,22 +493,22 @@ module.exports = class bibox extends Exchange {
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeString (ticker, 'high'),
-            'low': this.safeString (ticker, 'low'),
-            'bid': this.safeString (ticker, 'buy'),
-            'bidVolume': this.safeString (ticker, 'buy_amount'),
-            'ask': this.safeString (ticker, 'sell'),
-            'askVolume': this.safeString (ticker, 'sell_amount'),
+            'high': this.safeString2 (ticker, 'high', 'h'),
+            'low': this.safeString2 (ticker, 'low', 'l'),
+            'bid': this.safeString (ticker, 'bp'),
+            'bidVolume': this.safeString (ticker, 'bq'),
+            'ask': this.safeString (ticker, 'ap'),
+            'askVolume': this.safeString (ticker, 'aq'),
             'vwap': undefined,
-            'open': undefined,
+            'open': this.safeString (ticker, 'o'),
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
+            'change': this.safeString2 (ticker, 'change', 'c'),
             'percentage': percentage,
             'average': undefined,
-            'baseVolume': baseVolume,
-            'quoteVolume': this.safeString (ticker, 'amount'),
+            'baseVolume': this.safeString2 (ticker, 'a', 'vol24H'),
+            'quoteVolume': this.safeString2 (ticker, 'v', 'amount'),
             'info': ticker,
         }, market);
     }
@@ -553,7 +551,8 @@ module.exports = class bibox extends Exchange {
         //        }
         //    ]
         //
-        return this.parseTicker (response, market);
+        const ticker = this.safeValue (response, 0);
+        return this.parseTicker (ticker, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
