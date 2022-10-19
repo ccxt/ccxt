@@ -251,7 +251,7 @@ module.exports = class bibox extends Exchange {
                             'marketdata/order_book',
                             'marketdata/candles',
                             'marketdata/trades',
-                            'marketdata/tickers',
+                            'marketdata/ticker',
                         ],
                     },
                     'private': {
@@ -473,6 +473,7 @@ module.exports = class bibox extends Exchange {
          * @method
          * @name bibox#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://biboxcom.github.io/api/spot/v4/en/#get-tickers
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the bibox api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
@@ -480,11 +481,32 @@ module.exports = class bibox extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'cmd': 'ticker',
-            'pair': market['id'],
+            'symbol': market['id'],
         };
-        const response = await this.v1PublicGetMdata (this.extend (request, params));
-        return this.parseTicker (response['result'], market);
+        const response = await this.v4PublicGetMarketdataTicker (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            "s": "ADA_USDT",             // trading pair code
+        //            "t": 1666143212000,          // 24 hour transaction count
+        //            "o": 0.371735,               // opening price
+        //            "h": 0.373646,               // highest price
+        //            "l": 0.358383,               // lowest price
+        //            "p": 0.361708,               // latest price
+        //            "q": 8.1,                    // latest volume
+        //            "v": 1346397.88,             // 24 hour volume
+        //            "a": 494366.08822867,        // 24 hour transaction value
+        //            "c": -0.0267,                // 24 hour Change
+        //            "n": 244631,
+        //            "f": 16641250,               // 24 hour first transaction id
+        //            "bp": 0.361565,              // Best current bid price
+        //            "bq": 4324.26,               // Best current bid quantity
+        //            "ap": 0.361708,              // Best current ask price
+        //            "aq": 7726.59                // Best current ask quantity
+        //        }
+        //    ]
+        //
+        return this.parseTicker (response, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
