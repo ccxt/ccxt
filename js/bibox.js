@@ -429,6 +429,53 @@ module.exports = class bibox extends Exchange {
 
     parseTicker (ticker, market = undefined) {
         // we don't set values that are not defined by the exchange
+        //
+        // fetchTicker
+        //
+        //    {
+        //        "s": "ADA_USDT",             // trading pair code
+        //        "t": 1666143212000,          // 24 hour transaction count
+        //        "o": 0.371735,               // opening price
+        //        "h": 0.373646,               // highest price
+        //        "l": 0.358383,               // lowest price
+        //        "p": 0.361708,               // latest price
+        //        "q": 8.1,                    // latest volume
+        //        "v": 1346397.88,             // 24 hour volume
+        //        "a": 494366.08822867,        // 24 hour transaction value
+        //        "c": -0.0267,                // 24 hour Change
+        //        "n": 244631,
+        //        "f": 16641250,               // 24 hour first transaction id
+        //        "bp": 0.361565,              // Best current bid price
+        //        "bq": 4324.26,               // Best current bid quantity
+        //        "ap": 0.361708,              // Best current ask price
+        //        "aq": 7726.59                // Best current ask quantity
+        //    }
+        //
+        // fetchTickers
+        //
+        //    {
+        //        is_hide: '0',
+        //        high_cny: '0.1094',
+        //        amount: '5.34',
+        //        coin_symbol: 'BIX',
+        //        last: '0.00000080',
+        //        currency_symbol: 'BTC',
+        //        change: '+0.00000001',
+        //        low_cny: '0.1080',
+        //        base_last_cny: '0.10935854',
+        //        area_id: '7',
+        //        percent: '+1.27%',
+        //        last_cny: '0.1094',
+        //        high: '0.00000080',
+        //        low: '0.00000079',
+        //        pair_type: '0',
+        //        last_usd: '0.0155',
+        //        vol24H: '6697325',
+        //        id: '1',
+        //        high_usd: '0.0155',
+        //        low_usd: '0.0153'
+        //    }
+        //
         const timestamp = this.safeInteger (ticker, 'timestamp');
         let marketId = undefined;
         const baseId = this.safeString (ticker, 'coin_symbol');
