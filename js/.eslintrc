@@ -1,0 +1,99 @@
+{
+  "env": {
+    "node": true
+  },
+  "parserOptions": {
+    "ecmaVersion": 2017,
+    "sourceType": "script"
+  },
+  "extends": ["eslint:recommended", "airbnb-base"],
+  "ignorePatterns": ["test/*", "static_dependencies/*"],
+  "rules": {
+    "strict": "off",
+    "semi": "error",
+    "indent": ["error", 4],
+    "init-declarations": "error",
+    "no-undef-init": "off",
+    "comma-dangle": ["error", {
+        "arrays": "always-multiline",
+        "objects": "always-multiline",
+        "imports": "always-multiline",
+        "exports": "always-multiline",
+        "functions": "never"
+    }],
+    "import/extensions": "off",
+    "brace-style": ["error", "1tbs"],
+    "multiline-comment-style": ["error", "separate-lines"],
+    "dot-notation": "off",
+    "quote-props": ["error", "always"],
+    "no-multi-spaces": ["error", { "ignoreEOLComments": true }],
+    "no-whitespace-before-property": "error",
+    "space-before-blocks": ["error", "always"],
+    "space-before-function-paren": ["error", "always"],
+    "no-spaced-func": "off",
+    "func-call-spacing": ["error", "always"],
+    "block-spacing": ["error", "always"],
+    "keyword-spacing": ["error", { "before": true, "after": true }],
+    "object-curly-spacing": ["error", "always", { "objectsInObjects": false }],
+    "object-curly-newline": ["error", { "consistent": true }],
+    "space-infix-ops": "error",
+    "space-unary-ops": "error",
+    "space-in-parens": "error",
+    "no-nested-ternary": "error",
+    "eqeqeq": "error",
+    "quotes": ["error", "single", { "avoidEscape": true }],
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^(symbol|price|tag|since|limit|params|market|timeframe|api|path|code|currency|statusCode|statusText|url|method|response|requestHeaders|requestBody|bidsKey|asksKey|context|config|type|priceKey|amountKey|networkCode|marginMode|subscription|message|client)" }],
+    "new-parens": "error",
+    "new-cap": ["error"],
+    "no-var": "error",
+    "prefer-const": ["error", {
+        "destructuring": "any",
+        "ignoreReadBeforeAssign": false
+    }],
+    "no-warning-comments": ["warn", { "terms": ["fixme"] }],
+    "padded-blocks": ["error", "never"],
+    "lines-between-class-members": "error",
+    "no-multiple-empty-lines": ["error", { "max": 1 }],
+    "padding-line-between-statements": ["error",
+      { "blankLine": "never", "prev":"*", "next": "*" },
+      { "blankLine": "always", "prev":"directive", "next": "*" },
+      { "blankLine": "always", "prev":"*", "next": "cjs-export" }
+    ],
+    "prefer-template": "off",
+    "curly": "error",
+    "no-plusplus": "off",
+    "no-restricted-properties": "off",
+    "prefer-destructuring": "off",
+    "class-methods-use-this": "off",
+    "no-param-reassign": "off",
+    "max-len": "off",
+    "no-return-await": "off",
+    "array-bracket-spacing": ["error", "always"],
+    "radix": "off",
+    "camelcase": "off",
+    "no-lonely-if": "off",
+    "no-mixed-operators": "off",
+    "no-shadow": "off",
+    "no-useless-concat": "off",
+    "no-continue": "off",
+    "no-else-return": "off",
+    "no-unneeded-ternary": "off",
+    "operator-assignment": "off",
+    "no-underscore-dangle": "off",
+    "consistent-return": "off",
+    "no-await-in-loop": "off",
+    "prefer-exponentiation-operator": "off"
+  },
+  "overrides": [
+    {
+      "files": ["./base/functions/*.js"],
+      "rules": {
+        "multiline-comment-style": "off",
+        "quote-props": "off",
+        "no-restricted-syntax": "off",
+        "padding-line-between-statements": "off",
+        "padded-blocks": "off"
+      }
+    }
+  ]
+}
