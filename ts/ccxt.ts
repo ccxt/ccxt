@@ -38,7 +38,7 @@ import WsConnector from './src/pro/base/WsConnector.js'
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '2.0.27';
+const version = '2.0.37';
 
 (Exchange as any).ccxtVersion = version
 
