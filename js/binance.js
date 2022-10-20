@@ -4475,7 +4475,7 @@ module.exports = class binance extends Exchange {
             const entry = response[i];
             const currencyId = this.safeString (entry, 'coin');
             const code = this.safeCurrencyCode (currencyId);
-            if (codes !== undefined && codes.indexOf (code) === -1) {
+            if (codes !== undefined && !this.inArray (code, codes)) {
                 continue;
             }
             const networkList = this.safeValue (entry, 'networkList', []);

@@ -1799,7 +1799,7 @@ module.exports = class bibox extends Exchange {
             const code = this.safeCurrencyCode (coinSymbol);
             const withdrawFee = this.safeString (entry, 'withdraw_fee');
             if (codes !== undefined) {
-                if (codes.indexOf (code) >= 0) {
+                if (this.inArray (code, codes)) {
                     result[code] = {
                         'withdraw': withdrawFee,
                         'deposit': {},
