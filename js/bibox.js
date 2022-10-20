@@ -1236,13 +1236,16 @@ module.exports = class bibox extends Exchange {
          * @method
          * @name bibox#createOrder
          * @description create a trade order
+         * @see https://biboxcom.github.io/api/spot/v4/en/#create-an-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the bibox api endpoint
-         * @param {string} params.clientOrderId client order id
+         * @param {bool|undefined} params.postOnly true or false
+         * @param {string|undefined} params.timeInForce gtc or ioc
+         * @param {string|undefined} params.clientOrderId client order id
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -1252,26 +1255,27 @@ module.exports = class bibox extends Exchange {
             'side': side,
             'type': type,
             'quantity': this.amountToPrecision (symbol, amount),
-            'price': this.priceToPrecision (symbol, price),
-            // 'client_order_id': // Order id, a string with a valid value of an int64 integer
-            // 'time_in_force': // Valid value gtc, ioc
-            // 'post_only':
         };
+        if (type === 'limit') {
+            if (price === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder () requires a price argument for limit orders');
+            } else {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+        }
         const timeInForce = this.safeStringLower (params, 'timeInForce');
         if (timeInForce !== undefined) {
-            request['post_only'] = timeInForce;
-            params = this.omit (params, 'timeInForce');
+            request['time_in_force'] = timeInForce;
         }
-        const postOnly = this.safeString (params, 'postOnly');
-        if (postOnly !== undefined) {
+        const postOnly = this.isPostOnly (type.toLowerCase () === 'market', undefined, params);
+        if (postOnly) {
             request['post_only'] = postOnly;
-            params = this.omit (params, 'postOnly');
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
-            params = this.omit (params, 'clientOrderId');
         }
+        params = this.omit (params, [ 'postOnly', 'timeInForce', 'clientOrderId' ]);
         const response = await this.v4PrivatePostUserdataOrder (this.deepExtend (request, params));
         //
         //     {
