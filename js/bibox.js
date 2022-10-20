@@ -720,7 +720,7 @@ module.exports = class bibox extends Exchange {
         //        ]
         //    }
         //
-        return this.parseOrderBook (response, market['symbol'], this.safeNumber (response, 't'), 'b', 'a');
+        return this.parseOrderBook (response, market['symbol'], this.safeInteger (response, 't'), 'b', 'a');
     }
 
     parseOHLCV (ohlcv, market = undefined) {
