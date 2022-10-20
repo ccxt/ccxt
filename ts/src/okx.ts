@@ -628,10 +628,6 @@ export default class okx extends Exchange {
                     'OEC': 'OEC',
                     'ALGO': 'ALGO', // temporarily unavailable
                 },
-                'layerTwo': {
-                    'Lightning': true,
-                    'Liquid': true,
-                },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
                         '5m': '5m',
@@ -1197,25 +1193,16 @@ export default class okx extends Exchange {
                 if ((networkId !== undefined) && (networkId.indexOf ('-') >= 0)) {
                     const parts = networkId.split ('-');
                     const chainPart = this.safeString (parts, 1, networkId);
-                    let network = this.safeNetwork (chainPart);
-                    const mainNet = this.safeValue (chain, 'mainNet', false);
-                    const layerTwo = this.safeValue (this.options, 'layerTwo', {
-                        'Liquid': true,
-                        'Lightning': true,
-                    });
-                    if (mainNet && !(chainPart in layerTwo)) {
-                        // BTC lighting and liquid are both mainnet but not the same as BTC-Bitcoin
-                        network = code;
-                    }
+                    const networkCode = this.safeNetwork (chainPart);
                     const precision = this.parsePrecision (this.safeString (chain, 'wdTickSz'));
                     if (maxPrecision === undefined) {
                         maxPrecision = precision;
                     } else {
                         maxPrecision = Precise.stringMin (maxPrecision, precision);
                     }
-                    networks[network] = {
+                    networks[networkCode] = {
                         'id': networkId,
-                        'network': network,
+                        'network': networkCode,
                         'active': active,
                         'deposit': canDeposit,
                         'withdraw': canWithdraw,

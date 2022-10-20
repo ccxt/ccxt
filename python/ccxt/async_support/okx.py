@@ -651,10 +651,6 @@ class okx(Exchange):
                     'OEC': 'OEC',
                     'ALGO': 'ALGO',  # temporarily unavailable
                 },
-                'layerTwo': {
-                    'Lightning': True,
-                    'Liquid': True,
-                },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
                         '5m': '5m',
@@ -1183,23 +1179,15 @@ class okx(Exchange):
                 if (networkId is not None) and (networkId.find('-') >= 0):
                     parts = networkId.split('-')
                     chainPart = self.safe_string(parts, 1, networkId)
-                    network = self.safe_network(chainPart)
-                    mainNet = self.safe_value(chain, 'mainNet', False)
-                    layerTwo = self.safe_value(self.options, 'layerTwo', {
-                        'Liquid': True,
-                        'Lightning': True,
-                    })
-                    if mainNet and not (chainPart in layerTwo):
-                        # BTC lighting and liquid are both mainnet but not the same as BTC-Bitcoin
-                        network = code
+                    networkCode = self.safe_network(chainPart)
                     precision = self.parse_precision(self.safe_string(chain, 'wdTickSz'))
                     if maxPrecision is None:
                         maxPrecision = precision
                     else:
                         maxPrecision = Precise.string_min(maxPrecision, precision)
-                    networks[network] = {
+                    networks[networkCode] = {
                         'id': networkId,
-                        'network': network,
+                        'network': networkCode,
                         'active': active,
                         'deposit': canDeposit,
                         'withdraw': canWithdraw,
