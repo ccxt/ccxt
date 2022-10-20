@@ -2358,8 +2358,8 @@ module.exports = class bitmart extends Exchange {
             'type': type,
             'updated': undefined,
             'txid': txid,
-            'timestamp': timestamp !== 0 ? timestamp : undefined,
-            'datetime': timestamp !== 0 ? this.iso8601 (timestamp) : undefined,
+            'timestamp': (timestamp !== 0) ? timestamp : undefined,
+            'datetime': (timestamp !== 0) ? this.iso8601 (timestamp) : undefined,
             'fee': fee,
         };
     }
