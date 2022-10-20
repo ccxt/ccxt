@@ -4915,9 +4915,9 @@ module.exports = class bybit extends Exchange {
          * @name bybit#fetchBorrowRate
          * @description fetch the rate of interest to borrow a currency for margin trading
          * @see https://bybit-exchange.github.io/docs/spot/#t-queryinterestquota
-         * @param {str} code unified currency code
-         * @param {dict} params extra parameters specific to the bybit api endpoint
-         * @returns {dict} a [borrow rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
