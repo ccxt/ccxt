@@ -14,22 +14,19 @@ export default class WsConnector  {
     // timeframes = undefined
     tokenBucket = undefined
     handleMessage = undefined
-    enableRateLimit = undefined
     streaming = undefined
-    isVerboseMode = undefined
+    getVerboseMode = undefined
     getTokenBucket = undefined
     getKeepAlive = undefined
-    isInflate = undefined
-    isGunzip = undefined
+    getInflate = undefined
+    getGunzip = undefined
+    getEnableRateLimit = undefined
 
     constructor (options = {}) {
         this.newUpdates = (options as any).newUpdates || true;
-        this.isVerboseMode = (options as any).isVerboseMode;
         this.log = (options as any).log || this.log;
         this.verbose = (options as any).verbose;
         this.handleMessage = (options as any).handleMessage || this.handleMessage;
-        this.enableRateLimit = (options as any).enableRateLimit;
-        this.tokenBucket = (options as any).tokenBucket;
         this.newUpdates = true;
         this.options = {};
         this.log = (options as any).log;
@@ -37,8 +34,9 @@ export default class WsConnector  {
         this.ping = (options as any).ping;
         this.getTokenBucket = (options as any).getTokenBucket;
         this.getKeepAlive = (options as any).getKeepAlive;
-        this.isInflate = (options as any).isInflate;
-        this.isGunzip = (options as any).isGunzip;
+        this.getInflate = (options as any).getInflate;
+        this.getGunzip = (options as any).getGunzip;
+        this.getEnableRateLimit = (options as any).getEnableRateLimit; 
         this.clients = {};
     }
 
@@ -78,12 +76,13 @@ export default class WsConnector  {
 
             const options = {
                 'ping': this.ping,
-                'isVerboseMode': this.isVerboseMode,
+                'getVerboseMode': this.getVerboseMode,
                 'throttle': throttle(this.getTokenBucket()),
                 'log': this.log,
                 'getKeepAlive': this.getKeepAlive,
-                'isInflate': this.isInflate,
-                'isGunzip': this.isGunzip,
+                'getInflate': this.getInflate,
+                'getGunzip': this.getGunzip,
+                'getEnableRateLimit': this.getEnableRateLimit,
             }
 
             this.clients[url] = new WsClient (url, onMessage, onError, onClose, onConnected, options);
@@ -138,7 +137,7 @@ export default class WsConnector  {
                 const options = safeValue (this.options, 'ws');
                 const cost = safeValue (options, 'cost', 1);
                 if (message) {
-                    if (this.enableRateLimit && client.throttle) {
+                    if (this.getEnableRateLimit() && client.throttle) {
                         // add cost here |
                         //               |
                         //               V

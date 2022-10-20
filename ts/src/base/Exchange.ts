@@ -1210,7 +1210,7 @@ export default class Exchange {
             }, timeout);
         }
 
-        isVerboseMode() {
+        getVerboseMode() {
             return !!this.verbose;
         }
 
@@ -1230,11 +1230,11 @@ export default class Exchange {
             return (this as any).enableRateLimit;
         }
 
-        isInflate() {
+        getInflate() {
             return !!(this as any).options?.ws?.inflate;
         }
 
-        isGunzip() {
+        getGunzip() {
             return !!(this as any).options?.ws?.gunzip;
         }
 

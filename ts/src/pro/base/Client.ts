@@ -32,10 +32,11 @@ export default class Client {
     onErrorCallback: any
     onCloseCallback: any
     ping: any
-    isVerboseMode: any
+    getVerboseMode: any
     getKeepAlive: any
-    isInflate: any
-    isGunzip: any
+    getInflate: any
+    getGunzip: any
+    getEnableRateLimit: any
     constructor (url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config = {}) {
         const defaults = {
             url,
@@ -85,7 +86,7 @@ export default class Client {
     }
 
     resolve (result, messageHash) {
-        if (this.isVerboseMode() && (messageHash === undefined)) {
+        if (this.getVerboseMode() && (messageHash === undefined)) {
             this.log (new Date (), 'resolve received undefined messageHash');
         }
         if (messageHash in this.futures) {
@@ -197,7 +198,7 @@ export default class Client {
     }
 
     onOpen () {
-        if (this.isVerboseMode()) {
+        if (this.getVerboseMode()) {
             this.log (new Date (), 'onOpen')
         }
         this.connectionEstablished = milliseconds ()
@@ -213,20 +214,20 @@ export default class Client {
     // respond to pings coming from the server with pongs automatically
     // however, some devs may want to track connection states in their app
     onPing () {
-        if (this.isVerboseMode()) {
+        if (this.getVerboseMode()) {
             this.log (new Date (), 'onPing')
         }
     }
 
     onPong () {
         this.lastPong = milliseconds ()
-        if (this.isVerboseMode()) {
+        if (this.getVerboseMode()) {
             this.log (new Date (), 'onPong')
         }
     }
 
     onError (error) {
-        if (this.isVerboseMode()) {
+        if (this.getVerboseMode()) {
             this.log (new Date (), 'onError', error.message)
         }
         if (!(error instanceof BaseError)) {
@@ -239,7 +240,7 @@ export default class Client {
     }
 
     onClose (event) {
-        if (this.isVerboseMode()) {
+        if (this.getVerboseMode()) {
             this.log (new Date (), 'onClose', event)
         }
         if (!this.error) {
@@ -252,13 +253,13 @@ export default class Client {
     // this method is not used at this time
     // but may be used to read protocol-level data like cookies, headers, etc
     onUpgrade (message) {
-        if (this.isVerboseMode()) {
+        if (this.getVerboseMode()) {
             this.log (new Date (), 'onUpgrade')
         }
     }
 
     send (message) {
-        if (this.isVerboseMode()) {
+        if (this.getVerboseMode()) {
             this.log (new Date (), 'sending', message)
         }
         message = (typeof message === 'string') ? message : JSON.stringify (message)
@@ -274,9 +275,9 @@ export default class Client {
         // MessageEvent {isTrusted: true, data: "{"e":"depthUpdate","E":1581358737706,"s":"ETHBTC",…"0.06200000"]],"a":[["0.02261300","0.00000000"]]}", origin: "wss://stream.binance.com:9443", lastEventId: "", source: null, …}
         message = message.data
         if (message.byteLength !== undefined) {
-            if (this.isGunzip()) {
+            if (this.getGunzip()) {
                 message = gunzip (message)
-            } else if (this.isInflate()) {
+            } else if (this.getInflate()) {
                 message = inflate (message)
             }
         }
@@ -287,7 +288,7 @@ export default class Client {
             if (isJsonEncodedObject (message)) {
                 message = JSON.parse (message.replace (/:(\d{15,}),/g, ':"$1",'))
             }
-            if (this.isVerboseMode()) {
+            if (this.getVerboseMode()) {
                 this.log (new Date (), 'onMessage', message)
                 // unlimited depth
                 // this.log (new Date (), 'onMessage', util.inspect (message, false, null, true))

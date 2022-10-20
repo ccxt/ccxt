@@ -509,9 +509,9 @@ async function exportEverything () {
         (config as any).getEnableRateLimit = this.getEnableRateLimit.bind (this);
         (config as any).getKeepAlive = this.getKeepAlive.bind (this);
         (config as any).getTokenBucket = this.getTokenBucket.bind (this);
-        (config as any).isInflate = this.isInflate.bind (this);
-        (config as any).isGunzip = this.isGunzip.bind (this);
-        (config as any).isVerboseMode = this.isVerboseMode.bind (this);
+        (config as any).getInflate = this.getInflate.bind (this);
+        (config as any).getGunzip = this.getGunzip.bind (this);
+        (config as any).getVerboseMode = this.getVerboseMode.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
