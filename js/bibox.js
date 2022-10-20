@@ -1250,8 +1250,9 @@ module.exports = class bibox extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (type.toLowerCase () === 'market') {
-            throw new ArgumentsRequired (this.id + ' createOrder () requires a price argument for limit orders');
+        type = type.toLowerCase ();
+        if (type === 'market') {
+            throw new BadRequest (this.id + ' createOrder () does not support market orders, only limit orders are allowed');
         } else if (price === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder () requires a price argument for limit orders');
         }
