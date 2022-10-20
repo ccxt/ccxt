@@ -1320,6 +1320,7 @@ module.exports = class bitso extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.privateGetFees (params);
+        // console.log (response);
         //
         //    {
         //        success: true,
@@ -1363,28 +1364,37 @@ module.exports = class bitso extends Exchange {
         //        }
         //    }
         //
+        console.log ('helllo');
+        const result = {};
         const payload = this.safeValue (response, 'payload', {});
         const depositFees = this.safeValue (payload, 'deposit_fees', []);
-        const deposit = {};
         for (let i = 0; i < depositFees.length; i++) {
             const depositFee = depositFees[i];
             const currencyId = this.safeString (depositFee, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            deposit[code] = this.safeNumber (depositFee, 'fee');
+            if (codes !== undefined && !this.inArray (code, codes)) {
+                continue;
+            }
+            result[code] = {
+                'deposit': this.safeNumber (depositFee, 'fee'),
+                'withdraw': undefined,
+            };
         }
-        const withdraw = {};
         const withdrawalFees = this.safeValue (payload, 'withdrawal_fees', []);
         const currencyIds = Object.keys (withdrawalFees);
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
-            withdraw[code] = this.safeNumber (withdrawalFees, currencyId);
+            if (codes !== undefined && !this.inArray (code, codes)) {
+                continue;
+            }
+            result[code] = {
+                'deposit': this.safeValue (result[code], 'deposit'),
+                'withdraw': this.safeNumber (withdrawalFees, currencyId),
+            };
         }
-        return {
-            'info': response,
-            'deposit': deposit,
-            'withdraw': withdraw,
-        };
+        result['info'] = response;
+        return result;
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
