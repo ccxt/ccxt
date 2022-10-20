@@ -2027,7 +2027,7 @@ class Transpiler {
         this.transpileBaseMethods ()
         // HINT: if we're going to support specific class definitions
         // this process won't work anymore as it will override the definitions
-        // this.exportTypeScriptDeclarations (tsFilename, classes)
+        this.exportTypeScriptDeclarations (tsFilename, classes)
 
         //*/
 

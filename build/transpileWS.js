@@ -21,7 +21,7 @@ const exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 
 const { unCamelCase, precisionConstants, safeString, unique } = ccxt;
 
-// const tsFilename = './ccxt.d.ts'
+const tsFilename = './ccxt.d.ts'
 ansi.nice
 // ============================================================================
 
@@ -287,7 +287,7 @@ class CCXTProTranspiler extends Transpiler {
 
         // HINT: if we're going to support specific class definitions
         // this process won't work anymore as it will override the definitions
-        // this.exportTypeScriptDeclarations (tsFilename, classes)
+        this.exportTypeScriptDeclarations (tsFilename, classes)
 
         //*/
 
