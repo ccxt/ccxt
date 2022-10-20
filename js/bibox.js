@@ -1014,7 +1014,7 @@ module.exports = class bibox extends Exchange {
         const code = this.safeString (params, 'code');
         const request = {};
         if (code !== undefined) {
-            const currency = this.currency['code'];
+            const currency = this.currency (code);
             request['asset'] = currency['id'];
         }
         const response = await this.v4PrivateGetUserdataAccounts (this.extend (request, params));
