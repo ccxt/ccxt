@@ -84,6 +84,7 @@ module.exports = class bybit extends bybitRest {
             },
             'streaming': {
                 'ping': this.ping,
+                'keepAlive': 20000,
             },
             'exceptions': {
                 'ws': {
