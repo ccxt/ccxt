@@ -7,7 +7,7 @@
   "exports": {
     ".": {
       "import": "./js/ccxt.js",
-      "require": "./js/ccxt.cjs"
+      "require": "./dist/ccxt.cjs"
     }
   },
   "engines": {
