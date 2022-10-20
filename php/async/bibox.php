@@ -1246,42 +1246,46 @@ class bibox extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             * @see https://biboxcom.github.io/api/spot/v4/en/#create-an-order
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} $params extra parameters specific to the bibox api endpoint
-             * @param {string} $params->clientOrderId client order id
+             * @param {bool|null} $params->postOnly true or false
+             * @param {string|null} $params->timeInForce gtc or ioc
+             * @param {string|null} $params->clientOrderId client order id
              * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $type = strtolower($type);
+            if ($type === 'market') {
+                throw new BadRequest($this->id . ' createOrder () does not support $market orders, only limit orders are allowed');
+            } elseif ($price === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder () requires a $price argument for limit orders');
+            }
             $request = array(
                 'symbol' => $market['id'],
                 'side' => $side,
                 'type' => $type,
                 'quantity' => $this->amount_to_precision($symbol, $amount),
                 'price' => $this->price_to_precision($symbol, $price),
-                // 'client_order_id' => // Order id, a string with a valid value of an int64 integer
-                // 'time_in_force' => // Valid value gtc, ioc
-                // 'post_only':
             );
             $timeInForce = $this->safe_string_lower($params, 'timeInForce');
             if ($timeInForce !== null) {
-                $request['post_only'] = $timeInForce;
-                $params = $this->omit($params, 'timeInForce');
+                $request['time_in_force'] = $timeInForce;
             }
-            $postOnly = $this->safe_string($params, 'postOnly');
-            if ($postOnly !== null) {
+            $postOnly = $this->is_post_only(false, null, $params);
+            if ($postOnly) {
                 $request['post_only'] = $postOnly;
-                $params = $this->omit($params, 'postOnly');
             }
             $clientOrderId = $this->safe_string($params, 'clientOrderId');
             if ($clientOrderId !== null) {
                 $request['client_order_id'] = $clientOrderId;
-                $params = $this->omit($params, 'clientOrderId');
             }
+            $params = $this->omit($params, array( 'postOnly', 'timeInForce', 'clientOrderId' ));
             $response = Async\await($this->v4PrivatePostUserdataOrder ($this->deep_extend($request, $params)));
             //
             //     {

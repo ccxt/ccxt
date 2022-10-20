@@ -1188,39 +1188,42 @@ class bibox(Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         """
         create a trade order
+        see https://biboxcom.github.io/api/spot/v4/en/#create-an-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the bibox api endpoint
-        :param str params['clientOrderId']: client order id
+        :param bool|None params['postOnly']: True or False
+        :param str|None params['timeInForce']: gtc or ioc
+        :param str|None params['clientOrderId']: client order id
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
+        type = type.lower()
+        if type == 'market':
+            raise BadRequest(self.id + ' createOrder() does not support market orders, only limit orders are allowed')
+        elif price is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for limit orders')
         request = {
             'symbol': market['id'],
             'side': side,
             'type': type,
             'quantity': self.amount_to_precision(symbol, amount),
             'price': self.price_to_precision(symbol, price),
-            # 'client_order_id':  # Order id, a string with a valid value of an int64 integer
-            # 'time_in_force':  # Valid value gtc, ioc
-            # 'post_only':
         }
         timeInForce = self.safe_string_lower(params, 'timeInForce')
         if timeInForce is not None:
-            request['post_only'] = timeInForce
-            params = self.omit(params, 'timeInForce')
-        postOnly = self.safe_string(params, 'postOnly')
-        if postOnly is not None:
+            request['time_in_force'] = timeInForce
+        postOnly = self.is_post_only(False, None, params)
+        if postOnly:
             request['post_only'] = postOnly
-            params = self.omit(params, 'postOnly')
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['client_order_id'] = clientOrderId
-            params = self.omit(params, 'clientOrderId')
+        params = self.omit(params, ['postOnly', 'timeInForce', 'clientOrderId'])
         response = await self.v4PrivatePostUserdataOrder(self.deep_extend(request, params))
         #
         #     {
