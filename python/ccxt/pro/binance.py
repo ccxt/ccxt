@@ -783,7 +783,7 @@ class binance(Exchange, ccxt.async_support.binance):
 
     async def load_balance_snapshot(self, client, messageHash, type):
         response = await self.fetch_balance({'type': type})
-        self.balance[type] = self.extend(response, self.balance[type])
+        self.balance[type] = self.extend(response, self.safe_value(self.balance, type, {}))
         # don't remove the future from the .futures cache
         future = client.futures[messageHash]
         future.resolve()
