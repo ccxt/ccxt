@@ -89,6 +89,7 @@ class bybit(Exchange, ccxt.async_support.bybit):
             },
             'streaming': {
                 'ping': self.ping,
+                'keepAlive': 20000,
             },
             'exceptions': {
                 'ws': {
