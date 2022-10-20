@@ -1314,13 +1314,13 @@ module.exports = class bitso extends Exchange {
          * @method
          * @name bitso#fetchTransactionFees
          * @description fetch transaction fees
+         * @see https://bitso.com/api_info#fees
          * @param {[string]|undefined} codes not used by bitso fetchTransactionFees
          * @param {object} params extra parameters specific to the bitso api endpoint
          * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
         const response = await this.privateGetFees (params);
-        // console.log (response);
         //
         //    {
         //        success: true,
@@ -1364,7 +1364,6 @@ module.exports = class bitso extends Exchange {
         //        }
         //    }
         //
-        console.log ('helllo');
         const result = {};
         const payload = this.safeValue (response, 'payload', {});
         const depositFees = this.safeValue (payload, 'deposit_fees', []);
@@ -1378,6 +1377,10 @@ module.exports = class bitso extends Exchange {
             result[code] = {
                 'deposit': this.safeNumber (depositFee, 'fee'),
                 'withdraw': undefined,
+                'info': {
+                    'deposit': depositFee,
+                    'withdraw': undefined,
+                },
             };
         }
         const withdrawalFees = this.safeValue (payload, 'withdrawal_fees', []);
@@ -1391,9 +1394,12 @@ module.exports = class bitso extends Exchange {
             result[code] = {
                 'deposit': this.safeValue (result[code], 'deposit'),
                 'withdraw': this.safeNumber (withdrawalFees, currencyId),
+                'info': {
+                    'deposit': this.safeValue (result[code]['info'], 'deposit'),
+                    'withdraw': this.safeNumber (withdrawalFees, currencyId),
+                },
             };
         }
-        result['info'] = response;
         return result;
     }
 
