@@ -1828,8 +1828,8 @@ export default class bitstamp extends Exchange {
         /**
          * @ignore
          * @method
-         * @param {str} code Unified currency code
-         * @returns {str} lowercase version of code
+         * @param {string} code Unified currency code
+         * @returns {string} lowercase version of code
          */
         return code.toLowerCase ();
     }
