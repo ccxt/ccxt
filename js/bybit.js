@@ -4903,9 +4903,8 @@ module.exports = class bybit extends Exchange {
         if (timeframe === '1m') {
             throw new BadRequest (this.id + ' fetchOpenInterest() cannot use the 1m timeframe');
         }
-        const linear = market['linear'] ? 'linear' : 'inverse';
-        const defaultSubType = this.safeString (this.options, 'defaultSubType', linear);
-        const category = this.safeString (params, 'category', defaultSubType);
+        const subType = market['linear'] ? 'linear' : 'inverse';
+        const category = this.safeString (params, 'category', subType);
         const request = {
             'symbol': market['id'],
             'interval': timeframe,
