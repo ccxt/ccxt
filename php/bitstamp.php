@@ -1789,8 +1789,8 @@ class bitstamp extends Exchange {
     public function get_currency_name($code) {
         /**
          * @ignore
-         * @param {str} $code Unified currency $code
-         * @return {str} lowercase version of $code
+         * @param {string} $code Unified currency $code
+         * @return {string} lowercase version of $code
          */
         return strtolower($code);
     }
