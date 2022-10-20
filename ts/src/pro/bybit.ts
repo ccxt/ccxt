@@ -83,6 +83,7 @@ export default class bybit extends bybitBridge {
             },
             'streaming': {
                 'ping': this.ping,
+                'keepAlive': 20000,
             },
             'exceptions': {
                 'ws': {
@@ -864,6 +865,16 @@ export default class bybit extends bybitBridge {
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#watchMyTrades
+         * @description watches information on multiple trades made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -1129,6 +1140,7 @@ export default class bybit extends bybitBridge {
                 channel = 'execution';
             }
             const reqParams = [ channel ];
+            messageHash += ':' + channel;
             trades = await this.watchContractPrivate (url, messageHash, reqParams, params);
         }
         if (this.ws.newUpdates) {
@@ -1188,6 +1200,7 @@ export default class bybit extends bybitBridge {
         //       }
         //   }
         //
+        const topic = this.safeString (message, 'topic', '');
         let data = [];
         if (Array.isArray (message)) {
             data = message;
@@ -1211,18 +1224,28 @@ export default class bybit extends bybitBridge {
             marketSymbols[symbol] = true;
             trades.append (parsed);
         }
-        const channel = 'usertrade';
-        // non-symbol specific
-        client.resolve (trades, channel);
         const symbols = Object.keys (marketSymbols);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            const messageHash = channel + ':' + symbol;
+            const messageHash = 'usertrade:' + symbol + ':' + topic;
             client.resolve (trades, messageHash);
         }
+        // non-symbol specific
+        const messageHash = 'usertrade:' + topic;
+        client.resolve (trades, messageHash);
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#watchOrders
+         * @description watches information on multiple orders made by the user
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         const method = 'watchOrders';
         let messageHash = 'order';
         await this.loadMarkets ();
@@ -1258,6 +1281,7 @@ export default class bybit extends bybitBridge {
                 channel = isStopOrder ? 'stop_order' : 'order';
             }
             const reqParams = [ channel ];
+            messageHash += ':' + channel;
             orders = await this.watchContractPrivate (url, messageHash, reqParams, params);
         }
         if (this.ws.newUpdates) {
@@ -1380,6 +1404,7 @@ export default class bybit extends bybitBridge {
         //         }
         //      }
         //
+        const topic = this.safeString (message, 'topic', '');
         let data = [];
         let isSpot = false;
         if (Array.isArray (message)) {
@@ -1416,15 +1441,15 @@ export default class bybit extends bybitBridge {
             marketSymbols[symbol] = true;
             orders.append (parsed);
         }
-        const channel = 'order';
-        // non-symbol specific
-        client.resolve (orders, channel);
         const symbols = Object.keys (marketSymbols);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            const messageHash = channel + ':' + symbol;
+            const messageHash = 'order:' + symbol + ':' + topic;
             client.resolve (orders, messageHash);
         }
+        const messageHash = 'order:' + topic;
+        // non-symbol specific
+        client.resolve (orders, messageHash);
     }
 
     parseWsOrder (order, market = undefined) {

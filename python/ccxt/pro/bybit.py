@@ -89,6 +89,7 @@ class bybit(Exchange, ccxt.async_support.bybit):
             },
             'streaming': {
                 'ping': self.ping,
+                'keepAlive': 20000,
             },
             'exceptions': {
                 'ws': {
@@ -822,6 +823,14 @@ class bybit(Exchange, ccxt.async_support.bybit):
         bookside.store(price, amount)
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        watches information on multiple trades made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
@@ -1072,6 +1081,7 @@ class bybit(Exchange, ccxt.async_support.bybit):
             else:
                 channel = 'execution'
             reqParams = [channel]
+            messageHash += ':' + channel
             trades = await self.watch_contract_private(url, messageHash, reqParams, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
@@ -1128,6 +1138,7 @@ class bybit(Exchange, ccxt.async_support.bybit):
         #       }
         #   }
         #
+        topic = self.safe_string(message, 'topic', '')
         data = []
         if isinstance(message, list):
             data = message
@@ -1147,16 +1158,24 @@ class bybit(Exchange, ccxt.async_support.bybit):
             symbol = parsed['symbol']
             marketSymbols[symbol] = True
             trades.append(parsed)
-        channel = 'usertrade'
-        # non-symbol specific
-        client.resolve(trades, channel)
         symbols = list(marketSymbols.keys())
         for i in range(0, len(symbols)):
             symbol = symbols[i]
-            messageHash = channel + ':' + symbol
+            messageHash = 'usertrade:' + symbol + ':' + topic
             client.resolve(trades, messageHash)
+        # non-symbol specific
+        messageHash = 'usertrade:' + topic
+        client.resolve(trades, messageHash)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        watches information on multiple orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         method = 'watchOrders'
         messageHash = 'order'
         await self.load_markets()
@@ -1190,6 +1209,7 @@ class bybit(Exchange, ccxt.async_support.bybit):
                 params = self.omit(params, ['stop', 'orderType'])
                 channel = 'stop_order' if isStopOrder else 'order'
             reqParams = [channel]
+            messageHash += ':' + channel
             orders = await self.watch_contract_private(url, messageHash, reqParams, params)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
@@ -1309,6 +1329,7 @@ class bybit(Exchange, ccxt.async_support.bybit):
         #         }
         #      }
         #
+        topic = self.safe_string(message, 'topic', '')
         data = []
         isSpot = False
         if isinstance(message, list):
@@ -1339,14 +1360,14 @@ class bybit(Exchange, ccxt.async_support.bybit):
             symbol = parsed['symbol']
             marketSymbols[symbol] = True
             orders.append(parsed)
-        channel = 'order'
-        # non-symbol specific
-        client.resolve(orders, channel)
         symbols = list(marketSymbols.keys())
         for i in range(0, len(symbols)):
             symbol = symbols[i]
-            messageHash = channel + ':' + symbol
+            messageHash = 'order:' + symbol + ':' + topic
             client.resolve(orders, messageHash)
+        messageHash = 'order:' + topic
+        # non-symbol specific
+        client.resolve(orders, messageHash)
 
     def parse_ws_order(self, order, market=None):
         #

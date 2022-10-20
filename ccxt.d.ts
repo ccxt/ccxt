@@ -710,7 +710,7 @@ declare module 'ccxt' {
         watchOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
         watchOpenOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
         watchClosedOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
-        watchMyTrades (symbol?: string, since?: any, limit?: any, params?: Params): Promise<Trade>;
+        watchMyTrades (symbol?: string, since?: any, limit?: any, params?: Params): Promise<Trade[]>;
     }
 
     export namespace pro {

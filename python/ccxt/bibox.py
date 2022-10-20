@@ -1188,31 +1188,43 @@ class bibox(Exchange):
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         """
         create a trade order
+        see https://biboxcom.github.io/api/spot/v4/en/#create-an-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the bibox api endpoint
+        :param bool|None params['postOnly']: True or False
+        :param str|None params['timeInForce']: gtc or ioc
+        :param str|None params['clientOrderId']: client order id
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
-        orderType = 2 if (type == 'limit') else 1
-        orderSide = 1 if (side == 'buy') else 2
+        type = type.lower()
+        if type == 'market':
+            raise BadRequest(self.id + ' createOrder() does not support market orders, only limit orders are allowed')
+        elif price is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for limit orders')
         request = {
-            'cmd': 'orderpending/trade',
-            'body': self.extend({
-                'pair': market['id'],
-                'account_type': 0,
-                'order_type': orderType,
-                'order_side': orderSide,
-                'pay_bix': 0,
-                'amount': amount,
-                'price': price,
-            }, params),
+            'symbol': market['id'],
+            'side': side,
+            'type': type,
+            'quantity': self.amount_to_precision(symbol, amount),
+            'price': self.price_to_precision(symbol, price),
         }
-        response = self.v1PrivatePostOrderpending(request)
+        timeInForce = self.safe_string_lower(params, 'timeInForce')
+        if timeInForce is not None:
+            request['time_in_force'] = timeInForce
+        postOnly = self.is_post_only(False, None, params)
+        if postOnly:
+            request['post_only'] = postOnly
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is not None:
+            request['client_order_id'] = clientOrderId
+        params = self.omit(params, ['postOnly', 'timeInForce', 'clientOrderId'])
+        response = self.v4PrivatePostUserdataOrder(self.deep_extend(request, params))
         #
         #     {
         #         "result":[

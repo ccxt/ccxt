@@ -1246,31 +1246,47 @@ class bibox extends Exchange {
         return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
             /**
              * create a trade order
+             * @see https://biboxcom.github.io/api/spot/v4/en/#create-an-order
              * @param {string} $symbol unified $symbol of the $market to create an order in
              * @param {string} $type 'market' or 'limit'
              * @param {string} $side 'buy' or 'sell'
              * @param {float} $amount how much of currency you want to trade in units of base currency
              * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
              * @param {array} $params extra parameters specific to the bibox api endpoint
+             * @param {bool|null} $params->postOnly true or false
+             * @param {string|null} $params->timeInForce gtc or ioc
+             * @param {string|null} $params->clientOrderId client order id
              * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $orderType = ($type === 'limit') ? 2 : 1;
-            $orderSide = ($side === 'buy') ? 1 : 2;
+            $type = strtolower($type);
+            if ($type === 'market') {
+                throw new BadRequest($this->id . ' createOrder () does not support $market orders, only limit orders are allowed');
+            } elseif ($price === null) {
+                throw new ArgumentsRequired($this->id . ' createOrder () requires a $price argument for limit orders');
+            }
             $request = array(
-                'cmd' => 'orderpending/trade',
-                'body' => array_merge(array(
-                    'pair' => $market['id'],
-                    'account_type' => 0,
-                    'order_type' => $orderType,
-                    'order_side' => $orderSide,
-                    'pay_bix' => 0,
-                    'amount' => $amount,
-                    'price' => $price,
-                ), $params),
+                'symbol' => $market['id'],
+                'side' => $side,
+                'type' => $type,
+                'quantity' => $this->amount_to_precision($symbol, $amount),
+                'price' => $this->price_to_precision($symbol, $price),
             );
-            $response = Async\await($this->v1PrivatePostOrderpending ($request));
+            $timeInForce = $this->safe_string_lower($params, 'timeInForce');
+            if ($timeInForce !== null) {
+                $request['time_in_force'] = $timeInForce;
+            }
+            $postOnly = $this->is_post_only(false, null, $params);
+            if ($postOnly) {
+                $request['post_only'] = $postOnly;
+            }
+            $clientOrderId = $this->safe_string($params, 'clientOrderId');
+            if ($clientOrderId !== null) {
+                $request['client_order_id'] = $clientOrderId;
+            }
+            $params = $this->omit($params, array( 'postOnly', 'timeInForce', 'clientOrderId' ));
+            $response = Async\await($this->v4PrivatePostUserdataOrder ($this->deep_extend($request, $params)));
             //
             //     {
             //         "result":array(

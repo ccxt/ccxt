@@ -868,7 +868,7 @@ class binance extends \ccxt\async\binance {
     public function load_balance_snapshot($client, $messageHash, $type) {
         return Async\async(function () use ($client, $messageHash, $type) {
             $response = Async\await($this->fetch_balance(array( 'type' => $type )));
-            $this->balance[$type] = array_merge($response, $this->balance[$type]);
+            $this->balance[$type] = array_merge($response, $this->safe_value($this->balance, $type, array()));
             // don't remove the $future from the .futures cache
             $future = $client->futures[$messageHash];
             $future->resolve ();
