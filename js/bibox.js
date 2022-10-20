@@ -977,18 +977,24 @@ module.exports = class bibox extends Exchange {
     }
 
     parseBalance (response) {
-        const outerResult = this.safeValue (response, 'result');
-        const firstResult = this.safeValue (outerResult, 0, {});
-        const innerResult = this.safeValue (firstResult, 'result');
+        //
+        //    [
+        //        {
+        //            "s": "USDT",              // asset code
+        //            "a": 2.6617573979,        // available amount
+        //            "h": 0                    // frozen amount
+        //        },
+        //        ...
+        //    ]
+        //
         const result = { 'info': response };
-        const assetsList = this.safeValue (innerResult, 'assets_list', []);
-        for (let i = 0; i < assetsList.length; i++) {
-            const balance = assetsList[i];
-            const currencyId = this.safeString (balance, 'coin_symbol');
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString (balance, 's');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeString (balance, 'balance');
-            account['used'] = this.safeString (balance, 'freeze');
+            account['free'] = this.safeString (balance, 'a');
+            account['used'] = this.safeString (balance, 'h');
             result[code] = account;
         }
         return this.safeBalance (result);
@@ -999,37 +1005,28 @@ module.exports = class bibox extends Exchange {
          * @method
          * @name bibox#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://biboxcom.github.io/api/spot/v4/en/#get-accounts
          * @param {object} params extra parameters specific to the bibox api endpoint
+         * @param {str} params.code unified currency code
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const type = this.safeString (params, 'type', 'assets');
-        params = this.omit (params, 'type');
-        const request = {
-            'cmd': 'transfer/' + type, // assets, mainAssets
-            'body': this.extend ({
-                'select': 1, // return full info
-            }, params),
-        };
-        const response = await this.v1PrivatePostTransfer (request);
+        const code = this.safeString (params, 'code');
+        const request = {};
+        if (code !== undefined) {
+            const currency = this.currency['code'];
+            request['asset'] = currency['id'];
+        }
+        const response = await this.v4PrivateGetUserdataAccounts (this.extend (request, params));
         //
-        //     {
-        //         "result":[
-        //             {
-        //                 "result":{
-        //                     "total_btc":"0.00000298",
-        //                     "total_cny":"0.99",
-        //                     "total_usd":"0.16",
-        //                     "assets_list":[
-        //                         {"coin_symbol":"BTC","BTCValue":"0.00000252","CNYValue":"0.84","USDValue":"0.14","balance":"0.00000252","freeze":"0.00000000"},
-        //                         {"coin_symbol":"LTC","BTCValue":"0.00000023","CNYValue":"0.07","USDValue":"0.01","balance":"0.00006765","freeze":"0.00000000"},
-        //                         {"coin_symbol":"USDT","BTCValue":"0.00000023","CNYValue":"0.08","USDValue":"0.01","balance":"0.01252100","freeze":"0.00000000"}
-        //                     ]
-        //                 },
-        //                 "cmd":"transfer/assets"
-        //             }
-        //         ]
-        //     }
+        //    [
+        //        {
+        //            "s": "USDT",              // asset code
+        //            "a": 2.6617573979,        // available amount
+        //            "h": 0                    // frozen amount
+        //        },
+        //        ...
+        //    ]
         //
         return this.parseBalance (response);
     }
