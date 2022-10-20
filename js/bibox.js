@@ -1250,19 +1250,18 @@ module.exports = class bibox extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (type === 'market') {
+            throw new ArgumentsRequired (this.id + ' createOrder () requires a price argument for limit orders');
+        } else if (price === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder () requires a price argument for limit orders');
+        }
         const request = {
             'symbol': market['id'],
             'side': side,
             'type': type,
             'quantity': this.amountToPrecision (symbol, amount),
+            'price': this.priceToPrecision (symbol, price),
         };
-        if (type === 'limit') {
-            if (price === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder () requires a price argument for limit orders');
-            } else {
-                request['price'] = this.priceToPrecision (symbol, price);
-            }
-        }
         const timeInForce = this.safeStringLower (params, 'timeInForce');
         if (timeInForce !== undefined) {
             request['time_in_force'] = timeInForce;
