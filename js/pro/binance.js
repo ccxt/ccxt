@@ -849,7 +849,7 @@ module.exports = class binance extends binanceRest {
 
     async loadBalanceSnapshot (client, messageHash, type) {
         const response = await this.fetchBalance ({ 'type': type });
-        this.balance[type] = this.extend (response, this.balance[type]);
+        this.balance[type] = this.extend (response, this.safeValue (this.balance, type, {}));
         // don't remove the future from the .futures cache
         const future = client.futures[messageHash];
         future.resolve ();
