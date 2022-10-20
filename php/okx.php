@@ -628,10 +628,6 @@ class okx extends Exchange {
                     'OEC' => 'OEC',
                     'ALGO' => 'ALGO', // temporarily unavailable
                 ),
-                'layerTwo' => array(
-                    'Lightning' => true,
-                    'Liquid' => true,
-                ),
                 'fetchOpenInterestHistory' => array(
                     'timeframes' => array(
                         '5m' => '5m',
@@ -1186,25 +1182,16 @@ class okx extends Exchange {
                 if (($networkId !== null) && (mb_strpos($networkId, '-') !== false)) {
                     $parts = explode('-', $networkId);
                     $chainPart = $this->safe_string($parts, 1, $networkId);
-                    $network = $this->safe_network($chainPart);
-                    $mainNet = $this->safe_value($chain, 'mainNet', false);
-                    $layerTwo = $this->safe_value($this->options, 'layerTwo', array(
-                        'Liquid' => true,
-                        'Lightning' => true,
-                    ));
-                    if ($mainNet && !(is_array($layerTwo) && array_key_exists($chainPart, $layerTwo))) {
-                        // BTC lighting and liquid are both mainnet but not the same as BTC-Bitcoin
-                        $network = $code;
-                    }
+                    $networkCode = $this->safe_network($chainPart);
                     $precision = $this->parse_precision($this->safe_string($chain, 'wdTickSz'));
                     if ($maxPrecision === null) {
                         $maxPrecision = $precision;
                     } else {
                         $maxPrecision = Precise::string_min($maxPrecision, $precision);
                     }
-                    $networks[$network] = array(
+                    $networks[$networkCode] = array(
                         'id' => $networkId,
-                        'network' => $network,
+                        'network' => $networkCode,
                         'active' => $active,
                         'deposit' => $canDeposit,
                         'withdraw' => $canWithdraw,
