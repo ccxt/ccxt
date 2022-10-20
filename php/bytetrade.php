@@ -6,15 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadResponse;
-use \ccxt\DDoSProtection;
 
 class bytetrade extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bytetrade',
             'name' => 'ByteTrade',
             'countries' => array( 'HK' ),
@@ -446,7 +442,7 @@ class bytetrade extends Exchange {
             $request['limit'] = $limit; // default = maximum = 100
         }
         $response = $this->marketGetDepth (array_merge($request, $params));
-        $timestamp = $this->safe_value($response, 'timestamp');
+        $timestamp = $this->safe_integer($response, 'timestamp');
         $orderbook = $this->parse_order_book($response, $market['symbol'], $timestamp);
         return $orderbook;
     }
@@ -781,22 +777,11 @@ class bytetrade extends Exchange {
 
     public function parse_order($order, $market = null) {
         $status = $this->safe_string($order, 'status');
-        $symbol = null;
-        $marketId = $this->safe_string($order, 'symbol');
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-        } else {
-            $baseId = $this->safe_string($order, 'base');
-            $quoteId = $this->safe_string($order, 'quote');
-            if (($baseId !== null) && ($quoteId !== null)) {
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-        }
+        $baseId = $this->safe_string($order, 'base');
+        $quoteId = $this->safe_string($order, 'quote');
+        $base = $this->safe_currency_code($baseId);
+        $quote = $this->safe_currency_code($quoteId);
+        $symbol = $base . '/' . $quote;
         $timestamp = $this->safe_integer($order, 'timestamp');
         $datetime = $this->safe_string($order, 'datetime');
         $lastTradeTimestamp = $this->safe_integer($order, 'lastTradeTimestamp');

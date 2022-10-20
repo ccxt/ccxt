@@ -137,7 +137,7 @@ class gate(Exchange):
                 'public': {
                     'wallet': {
                         'get': {
-                            'wallet/currency_chains': 1.5,
+                            'currency_chains': 1.5,
                         },
                     },
                     'spot': {
@@ -1470,7 +1470,8 @@ class gate(Exchange):
             tag = self.safe_string(entry, 'payment_id')
             result[network] = {
                 'info': entry,
-                'code': code,
+                'code': code,  # kept here for backward-compatibility, but will be removed soon
+                'currency': code,
                 'address': address,
                 'tag': tag,
             }
@@ -1519,7 +1520,8 @@ class gate(Exchange):
         self.check_address(address)
         return {
             'info': response,
-            'code': code,
+            'code': code,  # kept here for backward-compatibility, but will be removed soon
+            'currency': code,
             'address': address,
             'tag': tag,
             'network': None,
@@ -3827,6 +3829,7 @@ class gate(Exchange):
         percentage = Precise.string_mul(Precise.string_div(unrealisedPnl, initialMarginString), '100')
         return {
             'info': position,
+            'id': None,
             'symbol': self.safe_string(market, 'symbol'),
             'timestamp': None,
             'datetime': None,
@@ -3860,7 +3863,19 @@ class gate(Exchange):
         :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         self.load_markets()
-        type, query = self.handle_market_type_and_params('fetchPositions', None, params)
+        market = None
+        if symbols is not None:
+            symbols = self.market_symbols(symbols)
+            symbolsLength = len(symbols)
+            if symbolsLength > 0:
+                market = self.market(symbols[0])
+                for i in range(1, len(symbols)):
+                    checkMarket = self.market(symbols[i])
+                    if checkMarket['type'] != market['type']:
+                        raise BadRequest(self.id + ' fetchPositions() does not support multiple types of positions at the same time')
+        type, query = self.handle_market_type_and_params('fetchPositions', market, params)
+        if type != 'swap' and type != 'future':
+            raise ArgumentsRequired(self.id + ' fetchPositions requires a type parameter, "swap" or "future"')
         request, requestParams = self.prepare_request(None, type, query)
         method = self.get_supported_mapping(type, {
             'swap': 'privateFuturesGetSettlePositions',
@@ -4354,6 +4369,7 @@ class gate(Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             queryString = ''
             requiresURLEncoding = False
             if type == 'futures' and method == 'POST':

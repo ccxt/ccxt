@@ -6,15 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\BadSymbol;
-use \ccxt\OrderNotFound;
 
 class aax extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'aax',
             'name' => 'AAX',
             'countries' => array( 'MT' ), // Malta
@@ -37,7 +33,7 @@ class aax extends Exchange {
                 'addMargin' => false,
                 'cancelAllOrders' => true,
                 'cancelOrder' => true,
-                'cancelOrders' => false,
+                'cancelOrders' => true,
                 'createDepositAddress' => false,
                 'createOrder' => true,
                 'createReduceOnlyOrder' => false,
@@ -78,6 +74,8 @@ class aax extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrder' => null,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -140,10 +138,10 @@ class aax extends Exchange {
                     'public' => 'https://api.{hostname}',
                     'private' => 'https://api.{hostname}',
                 ),
-                'www' => 'https://www.aaxpro.com', // string website URL
-                'doc' => 'https://www.aaxpro.com/apidoc/index.html',
-                'fees' => 'https://www.aaxpro.com/en-US/fees/',
-                'referral' => 'https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB',
+                'www' => 'https://www.aax.com', // string website URL
+                'doc' => 'https://www.aax.com/apidoc/index.html',
+                'fees' => 'https://www.aax.com/en-US/vip/',
+                'referral' => 'https://www.aax.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB',
             ),
             'api' => array(
                 'v1' => array(
@@ -592,69 +590,109 @@ class aax extends Exchange {
         $response = $this->publicGetCurrencies ($params);
         //
         //     {
-        //         "code":1,
-        //         "data":array(
+        //         "code" => 1,
+        //         "data" => array(
         //             array(
-        //                 "chain":"BTC",
-        //                 "displayName":"Bitcoin",
-        //                 "withdrawFee":"0.0004",
-        //                 "withdrawMin":"0.001",
-        //                 "otcFee":"0",
-        //                 "enableOTC":true,
-        //                 "visible":true,
-        //                 "enableTransfer":true,
-        //                 "transferMin":"0.00001",
-        //                 "depositMin":"0.0005",
-        //                 "enableWithdraw":true,
-        //                 "enableDeposit":true,
-        //                 "addrWithMemo":false,
-        //                 "withdrawPrecision":"0.00000001",
-        //                 "currency":"BTC",
-        //                 "network":"BTC", // ETH, ERC20, TRX, TRC20, OMNI, LTC, XRP, XLM, ...
-        //                 "minConfirm":"2"
+        //                 "chain" => "BTC",
+        //                 "displayName" => "Bitcoin",
+        //                 "withdrawFee" => "0.0004",
+        //                 "withdrawMin" => "0.001",
+        //                 "otcFee" => "0",
+        //                 "enableOTC" => true,
+        //                 "visible" => true,
+        //                 "enableTransfer" => true,
+        //                 "transferMin" => "0.00001",
+        //                 "depositMin" => "0.0005",
+        //                 "enableWithdraw" => true,
+        //                 "enableDeposit" => true,
+        //                 "addrWithMemo" => false,
+        //                 "withdrawPrecision" => "0.00000001",
+        //                 "currency" => "BTC",
+        //                 "network" => "BTC", // ETH, ERC20, TRX, TRC20, OMNI, LTC, XRP, XLM, ...
+        //                 "minConfirm" => "2"
         //             ),
         //         ),
-        //         "message":"success",
-        //         "ts":1624330530697
+        //         "message" => "success",
+        //         "ts" => 1624330530697
         //     }
         //
         $result = array();
         $data = $this->safe_value($response, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $currency = $data[$i];
-            $id = $this->safe_string($currency, 'chain');
-            $name = $this->safe_string($currency, 'displayName');
+            $id = $this->safe_string($currency, 'currency');
             $code = $this->safe_currency_code($id);
+            $networkId = $this->safe_string($currency, 'network');
             $enableWithdraw = $this->safe_value($currency, 'enableWithdraw');
             $enableDeposit = $this->safe_value($currency, 'enableDeposit');
-            $fee = $this->safe_number($currency, 'withdrawFee');
             $visible = $this->safe_value($currency, 'visible');
             $active = ($enableWithdraw && $enableDeposit && $visible);
-            $deposit = ($enableDeposit && $visible);
-            $withdraw = ($enableWithdraw && $visible);
-            $network = $this->safe_string($currency, 'network');
-            $result[$code] = array(
-                'id' => $id,
-                'name' => $name,
-                'code' => $code,
-                'precision' => $this->safe_number($currency, 'withdrawPrecision'),
+            $network = array(
                 'info' => $currency,
-                'active' => $active,
-                'deposit' => $deposit,
-                'withdraw' => $withdraw,
-                'fee' => $fee,
-                'network' => $network,
+                'id' => $networkId,
+                'network' => $this->safe_currency_code($networkId),
                 'limits' => array(
-                    'deposit' => array(
-                        'min' => $this->safe_number($currency, 'depositMin'),
-                        'max' => null,
-                    ),
                     'withdraw' => array(
                         'min' => $this->safe_number($currency, 'withdrawMin'),
                         'max' => null,
                     ),
+                    'deposit' => array(
+                        'min' => $this->safe_number($currency, 'depositMin'),
+                        'max' => null,
+                    ),
                 ),
+                'active' => $active,
+                'withdraw' => $enableWithdraw && $visible,
+                'deposit' => $enableDeposit && $visible,
+                'fee' => $this->safe_number($currency, 'withdrawFee'),
+                'precision' => $this->safe_number($currency, 'withdrawPrecision'),
             );
+            $resultItem = $this->safe_value($result, $code);
+            $fee = $this->safe_string($currency, 'withdrawFee');
+            $precision = $this->safe_string($currency, 'withdrawPrecision');
+            $depositMin = $this->safe_string($currency, 'depositMin');
+            $withdrawMin = $this->safe_string($currency, 'withdrawMin');
+            if ($resultItem !== null) {
+                $resultItem['networks'][] = $network;
+                $previousPrecision = (string) $resultItem['precision'];
+                $previousDepositMin = (string) $resultItem['limits']['deposit']['min'];
+                $previousWithdrawMin = (string) $resultItem['limits']['withdraw']['min'];
+                $previousFee = (string) $resultItem['fee'];
+                $resultItem['precision'] = $this->parse_number(Precise::string_max($previousPrecision, $precision));
+                $resultItem['limits']['deposit']['min'] = $this->parse_number(Precise::string_min($previousDepositMin, $depositMin));
+                $resultItem['limits']['withdraw']['min'] = $this->parse_number(Precise::string_min($previousWithdrawMin, $withdrawMin));
+                $resultItem['fee'] = $this->parse_number(Precise::string_min($previousFee, $fee));
+            } else {
+                $name = $this->safe_string($currency, 'displayName');
+                $deposit = ($enableDeposit && $visible);
+                $withdraw = ($enableWithdraw && $visible);
+                $result[$code] = array(
+                    'info' => array(),
+                    'id' => $id,
+                    'name' => $name,
+                    'code' => $code,
+                    'precision' => $this->parse_number($precision),
+                    'active' => $active,
+                    'deposit' => $deposit,
+                    'withdraw' => $withdraw,
+                    'fee' => $this->parse_number($fee),
+                    'networks' => array( $network ),
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => $this->parse_number($depositMin),
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => $this->parse_number($withdrawMin),
+                            'max' => null,
+                        ),
+                    ),
+                );
+            }
         }
         return $result;
     }
@@ -1601,6 +1639,47 @@ class aax extends Exchange {
         return $this->parse_order($data, $market);
     }
 
+    public function cancel_orders($ids, $symbol = null, $params = array ()) {
+        /**
+         * cancel all open orders in a $market
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the aax api endpoint
+         * @return {[array]} raw data of order $ids queued for cancelation
+         */
+        if ($symbol === null) {
+            throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
+        }
+        $this->load_markets();
+        $market = $this->market($symbol);
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $method = null;
+        if ($market['spot']) {
+            $method = 'privateDeleteSpotOrdersCancelAll';
+        } elseif ($market['contract']) {
+            $method = 'privateDeleteFuturesOrdersCancelAll';
+        }
+        $clientOrderIds = $this->safe_value($params, 'clientOrderIds');
+        // cannot cancel both by orderId and clientOrderId in the same $request
+        // aax throws an error saying order not found
+        if ($clientOrderIds !== null) {
+            $params = $this->omit($params, array( 'clientOrderIds' ));
+            $request['clOrdID'] = implode(',', $clientOrderIds);
+        } elseif ($ids !== null) {
+            $request['orderID'] = implode(',', $ids);
+        }
+        //
+        //  {
+        //      "code" => 1,
+        //      "data" => array( "2gaB7mSf72", "2gaB79T5UA" ),
+        //      "message" => "success",
+        //      "ts" => 1663021367883
+        //  }
+        //
+        return $this->$method (array_merge($request, $params));
+    }
+
     public function cancel_all_orders($symbol = null, $params = array ()) {
         /**
          * cancel all open orders in a $market
@@ -2290,7 +2369,7 @@ class aax extends Exchange {
         //     "ts" => 1573561743499
         // }
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_transactions($data, $code, $since, $limit);
+        return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
@@ -2341,7 +2420,7 @@ class aax extends Exchange {
         //     "ts":1573561743499
         //  }
         $data = $this->safe_value($response, 'data', array());
-        return $this->parse_transactions($data, $code, $since, $limit);
+        return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
     public function parse_transaction_status_by_type($status, $type = null) {
@@ -2865,6 +2944,7 @@ class aax extends Exchange {
         $marginRatio = Precise::string_div($maintenanceMargin, $collateral);
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -3027,6 +3107,68 @@ class aax extends Exchange {
             ));
         }
         return $this->filter_by_array($result, 'symbol', $symbols, false);
+    }
+
+    public function fetch_open_interest($symbol, $params = array ()) {
+        /**
+         * Retrieves the open interest of a currency
+         * @see https://www.aax.com/apidoc/index.html#open-interest
+         * @param {string} $symbol Unified CCXT $market $symbol
+         * @param {array} $params exchange specific parameters
+         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure)
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['contract']) {
+            throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
+        }
+        $request = array(
+            'symbol' => $market['id'],
+        );
+        $response = $this->publicGetFuturesPositionOpenInterest (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 1,
+        //         "data" => array(
+        //             "openInterest" => "37137299.49007",
+        //             "openInterestUSD" => "721016725.9898761994667",
+        //             "symbol" => "BTCUSDTFP"
+        //         ),
+        //         "message" => "success",
+        //         "ts" => 1664486817471
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $timestamp = $this->safe_integer($response, 'ts');
+        $openInterest = $this->parse_open_interest($data, $market);
+        return array_merge($openInterest, array(
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        ));
+    }
+
+    public function parse_open_interest($interest, $market = null) {
+        //
+        //     {
+        //         "openInterest" => "37137299.49007",
+        //         "openInterestUSD" => "721016725.9898761994667",
+        //         "symbol" => "BTCUSDTFP"
+        //     }
+        //
+        $id = $this->safe_string($interest, 'symbol');
+        $market = $this->safe_market($id, $market);
+        $amount = $this->safe_number($interest, 'openInterest');
+        $value = $this->safe_number($interest, 'openInterestUSD');
+        return array(
+            'symbol' => $this->safe_symbol($id),
+            'openInterestAmount' => $amount,
+            'baseVolume' => $amount, // deprecated
+            'openInterestValue' => $value,
+            'quoteVolume' => $value, // deprecated
+            'timestamp' => null,
+            'datetime' => null,
+            'info' => $interest,
+        );
     }
 
     public function nonce() {

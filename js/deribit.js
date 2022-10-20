@@ -645,23 +645,29 @@ module.exports = class deribit extends Exchange {
                 const kind = this.safeString (market, 'kind');
                 const settlementPeriod = this.safeValue (market, 'settlement_period');
                 const swap = (settlementPeriod === 'perpetual');
-                const future = !swap && (kind === 'future');
-                const option = (kind === 'option');
-                let symbol = base + '/' + quote + ':' + settle;
+                const future = !swap && (kind.indexOf ('future') >= 0);
+                const option = (kind.indexOf ('option') >= 0);
+                const isComboMarket = kind.indexOf ('combo') >= 0;
                 const expiry = this.safeInteger (market, 'expiration_timestamp');
                 let strike = undefined;
                 let optionType = undefined;
+                let symbol = id;
                 let type = 'swap';
-                if (option || future) {
-                    symbol = symbol + '-' + this.yymmdd (expiry, '');
-                    if (option) {
-                        type = 'option';
-                        strike = this.safeNumber (market, 'strike');
-                        optionType = this.safeString (market, 'option_type');
-                        const letter = (optionType === 'call') ? 'C' : 'P';
-                        symbol = symbol + '-' + this.numberToString (strike) + '-' + letter;
-                    } else {
-                        type = 'future';
+                if (future) {
+                    type = 'future';
+                } else if (option) {
+                    type = 'option';
+                }
+                if (!isComboMarket) {
+                    symbol = base + '/' + quote + ':' + settle;
+                    if (option || future) {
+                        symbol = symbol + '-' + this.yymmdd (expiry, '');
+                        if (option) {
+                            strike = this.safeNumber (market, 'strike');
+                            optionType = this.safeString (market, 'option_type');
+                            const letter = (optionType === 'call') ? 'C' : 'P';
+                            symbol = symbol + '-' + this.numberToString (strike) + '-' + letter;
+                        }
                     }
                 }
                 const minTradeAmount = this.safeNumber (market, 'min_trade_amount');
@@ -1080,11 +1086,10 @@ module.exports = class deribit extends Exchange {
         const now = this.milliseconds ();
         if (since === undefined) {
             if (limit === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since argument or a limit argument');
-            } else {
-                request['start_timestamp'] = now - (limit - 1) * duration * 1000;
-                request['end_timestamp'] = now;
+                limit = 1000; // at max, it provides 5000 bars, but we set generous default here
             }
+            request['start_timestamp'] = now - (limit - 1) * duration * 1000;
+            request['end_timestamp'] = now;
         } else {
             request['start_timestamp'] = since;
             if (limit === undefined) {
@@ -2246,6 +2251,7 @@ module.exports = class deribit extends Exchange {
         const currentTime = this.milliseconds ();
         return {
             'info': position,
+            'id': undefined,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': currentTime,
             'datetime': this.iso8601 (currentTime),

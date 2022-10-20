@@ -199,6 +199,7 @@ class latoken(Exchange):
                     'request expired or bad': InvalidNonce,  # {"result":false,"message":"request expired or bad <timeAlive>/<timestamp> format","error":"BAD_REQUEST","status":"FAILURE"}
                     'For input string': BadRequest,  # {"result":false,"message":"Internal error","error":"For input string: \"NaN\"","status":"FAILURE"}
                     'Unable to resolve currency by tag': BadSymbol,  # {"message":"Unable to resolve currency by tag(None)","error":"NOT_FOUND","status":"FAILURE"}
+                    "Can't find currency with tag": BadSymbol,  # {"status":"FAILURE","message":"Can't find currency with tag = None","error":"NOT_FOUND","errors":null,"result":false}
                     'Unable to place order because pair is in inactive state': BadSymbol,  # {"message":"Unable to place order because pair is in inactive state(PAIR_STATUS_INACTIVE)","error":"ORDER_VALIDATION","status":"FAILURE"}
                     'API keys are not available for FROZEN user': AccountSuspended,  # {"result":false,"message":"API keys are not available for FROZEN user","error":"BAD_REQUEST","status":"FAILURE"}
                 },

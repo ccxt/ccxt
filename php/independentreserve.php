@@ -10,7 +10,7 @@ use Exception; // a common import
 class independentreserve extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'independentreserve',
             'name' => 'Independent Reserve',
             'countries' => array( 'AU', 'NZ' ), // Australia, New Zealand
@@ -119,8 +119,8 @@ class independentreserve extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'taker' => 0.5 / 100,
-                    'maker' => 0.5 / 100,
+                    'taker' => $this->parse_number('0.005'),
+                    'maker' => $this->parse_number('0.005'),
                     'percentage' => true,
                     'tierBased' => false,
                 ),
@@ -399,27 +399,15 @@ class independentreserve extends Exchange {
             }
         }
         $timestamp = $this->parse8601($this->safe_string($order, 'CreatedTimestampUtc'));
-        $amount = $this->safe_string_2($order, 'VolumeOrdered', 'Volume');
-        $filled = $this->safe_number($order, 'VolumeFilled');
-        $remaining = $this->safe_string($order, 'Outstanding');
-        $feeRate = $this->safe_number($order, 'FeePercent');
+        $filled = $this->safe_string($order, 'VolumeFilled');
+        $feeRate = $this->safe_string($order, 'FeePercent');
         $feeCost = null;
         if ($feeRate !== null && $filled !== null) {
-            $feeCost = $feeRate * $filled;
+            $feeCost = Precise::string_mul($feeRate, $filled);
         }
-        $fee = array(
-            'rate' => $feeRate,
-            'cost' => $feeCost,
-            'currency' => $base,
-        );
-        $id = $this->safe_string($order, 'OrderGuid');
-        $status = $this->parse_order_status($this->safe_string($order, 'Status'));
-        $cost = $this->safe_string($order, 'Value');
-        $average = $this->safe_string($order, 'AvgPrice');
-        $price = $this->safe_string($order, 'Price');
         return $this->safe_order(array(
             'info' => $order,
-            'id' => $id,
+            'id' => $this->safe_string($order, 'OrderGuid'),
             'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
@@ -429,15 +417,19 @@ class independentreserve extends Exchange {
             'timeInForce' => null,
             'postOnly' => null,
             'side' => $side,
-            'price' => $price,
+            'price' => $this->safe_string($order, 'Price'),
             'stopPrice' => null,
-            'cost' => $cost,
-            'average' => $average,
-            'amount' => $amount,
+            'cost' => $this->safe_string($order, 'Value'),
+            'average' => $this->safe_string($order, 'AvgPrice'),
+            'amount' => $this->safe_string_2($order, 'VolumeOrdered', 'Volume'),
             'filled' => $filled,
-            'remaining' => $remaining,
-            'status' => $status,
-            'fee' => $fee,
+            'remaining' => $this->safe_string($order, 'Outstanding'),
+            'status' => $this->parse_order_status($this->safe_string($order, 'Status')),
+            'fee' => array(
+                'rate' => $feeRate,
+                'cost' => $feeCost,
+                'currency' => $base,
+            ),
             'trades' => null,
         ), $market);
     }
@@ -463,9 +455,9 @@ class independentreserve extends Exchange {
          * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         $this->load_markets();
-        $response = $this->privatePostGetOrderDetails (array_merge(array(
+        $response = Async\await($this->privatePostGetOrderDetails (array_merge(array(
             'orderGuid' => $id,
-        ), $params));
+        ), $params)));
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);

@@ -9,6 +9,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -123,6 +124,7 @@ class poloniex(Exchange):
                 'private': {
                     'get': {
                         'accounts': 4,
+                        'accounts/activity': 4,
                         'accounts/balances': 4,
                         'accounts/{id}/balances': 4,
                         'accounts/transfer': 20,
@@ -202,6 +204,7 @@ class poloniex(Exchange):
             },
             'options': {
                 'networks': {
+                    'BEP20': 'BSC',
                     'ERC20': 'ETH',
                     'TRX': 'TRON',
                     'TRC20': 'TRON',
@@ -298,7 +301,7 @@ class poloniex(Exchange):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -765,9 +768,7 @@ class poloniex(Exchange):
             # 'direction': 'PRE',  # PRE, NEXT The direction before or after ‘from'.
         }
         if since is not None:
-            request['startTime'] = int(since / 1000)
-            request['endtime'] = self.sum(self.seconds(), 1)  # adding 1 is a fix for  #3411
-        # limit is disabled(does not really work as expected)
+            request['startTime'] = since
         if limit is not None:
             request['limit'] = int(limit)
         response = self.privateGetTrades(self.extend(request, params))
@@ -1280,12 +1281,12 @@ class poloniex(Exchange):
         asksResult = []
         bidsResult = []
         for i in range(0, len(asks)):
-            if (i % 2) == 0:
+            if (i % 2) < 1:
                 price = self.safe_number(asks, i)
                 amount = self.safe_number(asks, self.sum(i, 1))
                 asksResult.append([price, amount])
         for i in range(0, len(bids)):
-            if (i % 2) == 0:
+            if (i % 2) < 1:
                 price = self.safe_number(bids, i)
                 amount = self.safe_number(bids, self.sum(i, 1))
                 bidsResult.append([price, amount])
@@ -1306,17 +1307,19 @@ class poloniex(Exchange):
         :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
         """
         self.load_markets()
-        # USDT, USDTETH, USDTTRON
-        currencyId = None
-        currency = None
-        if code in self.currencies:
-            currency = self.currency(code)
-            currencyId = currency['id']
-        else:
-            currencyId = code
+        currency = self.currency(code)
         request = {
-            'currency': currencyId,
+            'currency': currency['id'],
         }
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['currency'] += network  # when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
+            params = self.omit(params, 'network')
+        else:
+            if currency['id'] == 'USDT':
+                raise ArgumentsRequired(self.id + ' createDepositAddress requires a network parameter for ' + code + '.')
         response = self.privatePostWalletsAddress(self.extend(request, params))
         #
         #     {
@@ -1335,6 +1338,7 @@ class poloniex(Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': network,
             'info': response,
         }
 
@@ -1346,24 +1350,26 @@ class poloniex(Exchange):
         :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
         """
         self.load_markets()
-        # USDT, USDTETH, USDTTRON
-        currencyId = None
-        currency = None
-        if code in self.currencies:
-            currency = self.currency(code)
-            currencyId = currency['id']
-        else:
-            currencyId = code
+        currency = self.currency(code)
         request = {
-            'currency': currencyId,
+            'currency': currency['id'],
         }
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['currency'] += network  # when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
+            params = self.omit(params, 'network')
+        else:
+            if currency['id'] == 'USDT':
+                raise ArgumentsRequired(self.id + ' fetchDepositAddress requires a network parameter for ' + code + '.')
         response = self.privateGetWalletsAddresses(self.extend(request, params))
         #
         #     {
         #         "USDTTRON" : "Txxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxp"
         #     }
         #
-        address = self.safe_string(response, currencyId)
+        address = self.safe_string(response, request['currency'])
         tag = None
         self.check_address(address)
         if currency is not None:
@@ -1375,7 +1381,7 @@ class poloniex(Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': None,
+            'network': network,
             'info': response,
         }
 
@@ -1488,8 +1494,6 @@ class poloniex(Exchange):
             'start': start,  # UNIX timestamp, required
             'end': now,  # UNIX timestamp, required
         }
-        if limit is not None:
-            request['limit'] = limit
         response = self.privateGetWalletsActivity(self.extend(request, params))
         #
         #     {
@@ -1638,7 +1642,6 @@ class poloniex(Exchange):
         #
         #     {
         #         "txid": "f49d489616911db44b740612d19464521179c76ebe9021af85b6de1e2f8d68cd",
-        #         "type": "deposit",
         #         "amount": "49798.01987021",
         #         "status": "COMPLETE",
         #         "address": "DJVJZ58tJC8UeUv9Tqcdtn6uhWobouxFLT",
@@ -1651,26 +1654,22 @@ class poloniex(Exchange):
         # withdrawals
         #
         #     {
-        #         "fee": "0.00050000",
-        #         "type": "withdrawal",
-        #         "amount": "0.40234387",
-        #         "status": "COMPLETE: fbabb2bf7d81c076f396f3441166d5f60f6cea5fdfe69e02adcc3b27af8c2746",
-        #         "address": "1EdAqY4cqHoJGAgNfUFER7yZpg1Jc9DUa3",
-        #         "currency": "BTC",
-        #         "canCancel": 0,
-        #         "ipAddress": "x.x.x.x",
-        #         "paymentID": null,
-        #         "timestamp": 1523834337,
-        #         "canResendEmail": 0,
-        #         "withdrawalNumber": 11162900
+        #         "withdrawalRequestsId": 7397527,
+        #         "currency": "ETC",
+        #         "address": "0x26419a62055af459d2cd69bb7392f5100b75e304",
+        #         "amount": "13.19951600",
+        #         "fee": "0.01000000",
+        #         "timestamp": 1506010932,
+        #         "status": "COMPLETED",
+        #         "txid": "343346392f82ac16e8c2604f2a604b7b2382d0e9d8030f673821f8de4b5f5bk",
+        #         "ipAddress": "1.2.3.4",
+        #         "paymentID": null
         #     }
         #
         # withdraw
         #
         #     {
-        #         response: 'Withdrew 1.00000000 USDT.',
-        #         email2FA: False,
-        #         withdrawalNumber: 13449869
+        #         "withdrawalRequestsId": 33485231
         #     }
         #
         timestamp = self.safe_timestamp(transaction, 'timestamp')
@@ -1681,16 +1680,17 @@ class poloniex(Exchange):
         txid = self.safe_string(transaction, 'txid')
         type = 'withdrawal' if ('withdrawalRequestsId' in transaction) else 'deposit'
         id = self.safe_string_2(transaction, 'withdrawalRequestsId', 'depositNumber')
-        amount = self.safe_number(transaction, 'amount')
         address = self.safe_string(transaction, 'address')
         tag = self.safe_string(transaction, 'paymentID')
-        # according to https://poloniex.com/fees/
-        feeCost = self.safe_number(transaction, 'fee')
+        amountString = self.safe_string(transaction, 'amount')
+        feeCostString = self.safe_string(transaction, 'fee')
+        if type == 'withdrawal':
+            amountString = Precise.string_sub(amountString, feeCostString)
         return {
             'info': transaction,
             'id': id,
             'currency': code,
-            'amount': amount,
+            'amount': self.parse_number(amountString),
             'network': None,
             'address': address,
             'addressTo': None,
@@ -1706,7 +1706,7 @@ class poloniex(Exchange):
             'datetime': self.iso8601(timestamp),
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': self.parse_number(feeCostString),
             },
         }
 

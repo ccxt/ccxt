@@ -6,15 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\AddressPending;
-use \ccxt\NotSupported;
 
 class buda extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'buda',
             'name' => 'Buda',
             'countries' => array( 'AR', 'CL', 'CO', 'PE' ),
@@ -844,7 +840,8 @@ class buda extends Exchange {
             $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
             $fee = array(
                 'cost' => $feeCost,
-                'code' => $feeCurrencyCode,
+                'code' => $feeCurrencyCode, // kept here for backward-compatibility, but will be removed soon
+                'currency' => $feeCurrencyCode,
             );
         }
         return $this->safe_order(array(

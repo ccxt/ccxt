@@ -6,16 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadSymbol;
-use \ccxt\InvalidOrder;
-use \ccxt\NetworkError;
 
 class huobijp extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'huobijp',
             'name' => 'Huobi Japan',
             'countries' => array( 'JP' ),

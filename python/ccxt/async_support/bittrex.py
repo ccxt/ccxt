@@ -1313,8 +1313,11 @@ class bittrex(Exchange):
         request = {
             'txId': id,
         }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         response = await self.privateGetDepositsByTxIdTxId(self.extend(request, params))
-        transactions = self.parse_transactions(response, code, None, None)
+        transactions = self.parse_transactions(response, currency, None, None)
         return self.safe_value(transactions, 0)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
@@ -1383,8 +1386,11 @@ class bittrex(Exchange):
         request = {
             'txId': id,
         }
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         response = await self.privateGetWithdrawalsByTxIdTxId(self.extend(request, params))
-        transactions = self.parse_transactions(response, code, None, None)
+        transactions = self.parse_transactions(response, currency, None, None)
         return self.safe_value(transactions, 0)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):

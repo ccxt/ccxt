@@ -81,7 +81,6 @@ class btcalpha(Exchange):
                 'withdraw': False,
             },
             'timeframes': {
-                '1m': '1',
                 '5m': '5',
                 '15m': '15',
                 '30m': '30',
@@ -333,6 +332,9 @@ class btcalpha(Exchange):
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
         await self.load_markets()
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         response = await self.privateGetDeposits(params)
         #
         #     [
@@ -344,7 +346,7 @@ class btcalpha(Exchange):
         #         }
         #     ]
         #
-        return self.parse_transactions(response, code, since, limit, {'type': 'deposit'})
+        return self.parse_transactions(response, currency, since, limit, {'type': 'deposit'})
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         """
@@ -373,7 +375,7 @@ class btcalpha(Exchange):
         #         }
         #     ]
         #
-        return self.parse_transactions(response, code, since, limit, {'type': 'withdrawal'})
+        return self.parse_transactions(response, currency, since, limit, {'type': 'withdrawal'})
 
     def parse_transaction(self, transaction, currency=None):
         #
@@ -602,9 +604,10 @@ class btcalpha(Exchange):
         if not response['success']:
             raise InvalidOrder(self.id + ' ' + self.json(response))
         order = self.parse_order(response, market)
-        amount = order['amount'] if (order['amount'] > 0) else amount
+        orderAmount = str(order['amount'])
+        amount = order['amount'] if Precise.string_gt(orderAmount, '0') else amount
         return self.extend(order, {
-            'amount': amount,
+            'amount': self.parse_number(amount),
         })
 
     async def cancel_order(self, id, symbol=None, params={}):

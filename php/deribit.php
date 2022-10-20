@@ -6,15 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\InvalidOrder;
 
 class deribit extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'deribit',
             'name' => 'Deribit',
             'countries' => array( 'NL' ), // Netherlands
@@ -641,23 +637,29 @@ class deribit extends Exchange {
                 $kind = $this->safe_string($market, 'kind');
                 $settlementPeriod = $this->safe_value($market, 'settlement_period');
                 $swap = ($settlementPeriod === 'perpetual');
-                $future = !$swap && ($kind === 'future');
-                $option = ($kind === 'option');
-                $symbol = $base . '/' . $quote . ':' . $settle;
+                $future = !$swap && (mb_strpos($kind, 'future') !== false);
+                $option = (mb_strpos($kind, 'option') !== false);
+                $isComboMarket = mb_strpos($kind, 'combo') !== false;
                 $expiry = $this->safe_integer($market, 'expiration_timestamp');
                 $strike = null;
                 $optionType = null;
+                $symbol = $id;
                 $type = 'swap';
-                if ($option || $future) {
-                    $symbol = $symbol . '-' . $this->yymmdd($expiry, '');
-                    if ($option) {
-                        $type = 'option';
-                        $strike = $this->safe_number($market, 'strike');
-                        $optionType = $this->safe_string($market, 'option_type');
-                        $letter = ($optionType === 'call') ? 'C' : 'P';
-                        $symbol = $symbol . '-' . $this->number_to_string($strike) . '-' . $letter;
-                    } else {
-                        $type = 'future';
+                if ($future) {
+                    $type = 'future';
+                } elseif ($option) {
+                    $type = 'option';
+                }
+                if (!$isComboMarket) {
+                    $symbol = $base . '/' . $quote . ':' . $settle;
+                    if ($option || $future) {
+                        $symbol = $symbol . '-' . $this->yymmdd($expiry, '');
+                        if ($option) {
+                            $strike = $this->safe_number($market, 'strike');
+                            $optionType = $this->safe_string($market, 'option_type');
+                            $letter = ($optionType === 'call') ? 'C' : 'P';
+                            $symbol = $symbol . '-' . $this->number_to_string($strike) . '-' . $letter;
+                        }
                     }
                 }
                 $minTradeAmount = $this->safe_number($market, 'min_trade_amount');
@@ -1064,11 +1066,10 @@ class deribit extends Exchange {
         $now = $this->milliseconds();
         if ($since === null) {
             if ($limit === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument or a $limit argument');
-            } else {
-                $request['start_timestamp'] = $now - ($limit - 1) * $duration * 1000;
-                $request['end_timestamp'] = $now;
+                $limit = 1000; // at max, it provides 5000 bars, but we set generous default here
             }
+            $request['start_timestamp'] = $now - ($limit - 1) * $duration * 1000;
+            $request['end_timestamp'] = $now;
         } else {
             $request['start_timestamp'] = $since;
             if ($limit === null) {
@@ -2204,6 +2205,7 @@ class deribit extends Exchange {
         $currentTime = $this->milliseconds();
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => $currentTime,
             'datetime' => $this->iso8601($currentTime),

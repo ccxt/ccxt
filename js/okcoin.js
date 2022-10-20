@@ -751,6 +751,7 @@ module.exports = class okcoin extends Exchange {
                 'accountsByType': {
                     'spot': '1',
                     'funding': '6',
+                    'main': '6',
                 },
                 'accountsById': {
                     '1': 'spot',
@@ -1385,32 +1386,9 @@ module.exports = class okcoin extends Exchange {
         //             "side":"short", // "buy" in futures trades
         //         }
         //
-        let symbol = undefined;
         const marketId = this.safeString (trade, 'instrument_id');
-        let base = undefined;
-        let quote = undefined;
-        if (marketId in this.markets_by_id) {
-            market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-            base = market['base'];
-            quote = market['quote'];
-        } else if (marketId !== undefined) {
-            const parts = marketId.split ('-');
-            const numParts = parts.length;
-            if (numParts === 2) {
-                const [ baseId, quoteId ] = parts;
-                base = this.safeCurrencyCode (baseId);
-                quote = this.safeCurrencyCode (quoteId);
-                symbol = base + '/' + quote;
-            } else {
-                symbol = marketId;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-            base = market['base'];
-            quote = market['quote'];
-        }
+        market = this.safeMarket (marketId, market, '-');
+        const symbol = market['symbol'];
         const timestamp = this.parse8601 (this.safeString2 (trade, 'timestamp', 'created_at'));
         const priceString = this.safeString (trade, 'price');
         let amountString = this.safeString2 (trade, 'size', 'qty');
@@ -1425,7 +1403,7 @@ module.exports = class okcoin extends Exchange {
         const feeCostString = this.safeString (trade, 'fee');
         let fee = undefined;
         if (feeCostString !== undefined) {
-            const feeCurrency = (side === 'buy') ? base : quote;
+            const feeCurrency = (side === 'buy') ? market['base'] : market['quote'];
             fee = {
                 // fee is either a positive number (invitation rebate)
                 // or a negative number (transaction fee deduction)
@@ -1827,10 +1805,7 @@ module.exports = class okcoin extends Exchange {
         for (let i = 0; i < info.length; i++) {
             const balance = info[i];
             const marketId = this.safeString (balance, 'instrument_id');
-            let symbol = marketId;
-            if (marketId in this.markets_by_id) {
-                symbol = this.markets_by_id[marketId]['symbol'];
-            }
+            const symbol = this.safeSymbol (marketId);
             const balanceTimestamp = this.parse8601 (this.safeString (balance, 'timestamp'));
             timestamp = (timestamp === undefined) ? balanceTimestamp : Math.max (timestamp, balanceTimestamp);
             const account = this.account ();
@@ -3686,7 +3661,7 @@ module.exports = class okcoin extends Exchange {
 
     parseLedgerEntryType (type) {
         const types = {
-            'transfer': 'transfer', // // funds transfer in/out
+            'transfer': 'transfer', // funds transfer in/out
             'trade': 'trade', // funds moved as a result of a trade, spot accounts only
             'rebate': 'rebate', // fee rebate as per fee schedule, spot accounts only
             'match': 'trade', // open long/open short/close long/close short (futures) or a change in the amount because of trades (swap)
@@ -3774,11 +3749,7 @@ module.exports = class okcoin extends Exchange {
         const after = this.safeNumber (item, 'balance');
         const status = 'ok';
         const marketId = this.safeString (item, 'instrument_id');
-        let symbol = undefined;
-        if (marketId in this.markets_by_id) {
-            const market = this.markets_by_id[marketId];
-            symbol = market['symbol'];
-        }
+        const symbol = this.safeSymbol (marketId);
         return {
             'info': item,
             'id': id,

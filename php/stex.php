@@ -6,14 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\OrderNotFound;
 
 class stex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'stex',
             'name' => 'STEX', // formerly known as stocks.exchange
             'countries' => array( 'EE' ), // Estonia
@@ -767,7 +764,7 @@ class stex extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1d', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
@@ -1076,22 +1073,22 @@ class stex extends Exchange {
         $marketId = $this->safe_string_2($order, 'currency_pair_id', 'currency_pair_name');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $timestamp = $this->safe_timestamp($order, 'timestamp');
-        $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number($order, 'initial_amount');
-        $filled = $this->safe_number($order, 'processed_amount');
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->safe_string($order, 'initial_amount');
+        $filled = $this->safe_string($order, 'processed_amount');
         $remaining = null;
         $cost = null;
         if ($filled !== null) {
             if ($amount !== null) {
-                $remaining = $amount - $filled;
+                $remaining = Precise::string_sub($amount, $filled);
                 if ($this->options['parseOrderToPrecision']) {
-                    $remaining = floatval($this->amount_to_precision($symbol, $remaining));
+                    $remaining = $this->amount_to_precision($symbol, $remaining);
                 }
-                $remaining = max ($remaining, 0.0);
+                $remaining = Precise::string_max($remaining, '0.0');
             }
             if ($price !== null) {
                 if ($cost === null) {
-                    $cost = $price * $filled;
+                    $cost = Precise::string_mul($price, $filled);
                 }
             }
         }
@@ -1139,7 +1136,7 @@ class stex extends Exchange {
             if ($numFees > 0) {
                 $result['fees'] = array();
                 for ($i = 0; $i < count($fees); $i++) {
-                    $feeCost = $this->safe_number($fees[$i], 'amount');
+                    $feeCost = $this->safe_string($fees[$i], 'amount');
                     if ($feeCost !== null) {
                         $feeCurrencyId = $this->safe_string($fees[$i], 'currency_id');
                         $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
@@ -1153,7 +1150,7 @@ class stex extends Exchange {
                 $result['fee'] = null;
             }
         }
-        return $result;
+        return $this->safe_order($result, $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1937,7 +1934,7 @@ class stex extends Exchange {
         //     }
         //
         $deposits = $this->safe_value($response, 'data', array());
-        return $this->parse_transactions($deposits, $code, $since, $limit);
+        return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
 
     public function fetch_withdrawal($id, $code = null, $params = array ()) {
@@ -2060,7 +2057,7 @@ class stex extends Exchange {
         //     }
         //
         $withdrawals = $this->safe_value($response, 'data', array());
-        return $this->parse_transactions($withdrawals, $code, $since, $limit);
+        return $this->parse_transactions($withdrawals, $currency, $since, $limit);
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {

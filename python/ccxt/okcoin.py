@@ -771,6 +771,7 @@ class okcoin(Exchange):
                 'accountsByType': {
                     'spot': '1',
                     'funding': '6',
+                    'main': '6',
                 },
                 'accountsById': {
                     '1': 'spot',
@@ -1366,29 +1367,9 @@ class okcoin(Exchange):
         #             "side":"short",  # "buy" in futures trades
         #         }
         #
-        symbol = None
         marketId = self.safe_string(trade, 'instrument_id')
-        base = None
-        quote = None
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
-            base = market['base']
-            quote = market['quote']
-        elif marketId is not None:
-            parts = marketId.split('-')
-            numParts = len(parts)
-            if numParts == 2:
-                baseId, quoteId = parts
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-            else:
-                symbol = marketId
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
-            base = market['base']
-            quote = market['quote']
+        market = self.safe_market(marketId, market, '-')
+        symbol = market['symbol']
         timestamp = self.parse8601(self.safe_string_2(trade, 'timestamp', 'created_at'))
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string_2(trade, 'size', 'qty')
@@ -1402,7 +1383,7 @@ class okcoin(Exchange):
         feeCostString = self.safe_string(trade, 'fee')
         fee = None
         if feeCostString is not None:
-            feeCurrency = base if (side == 'buy') else quote
+            feeCurrency = market['base'] if (side == 'buy') else market['quote']
             fee = {
                 # fee is either a positive number(invitation rebate)
                 # or a negative number(transaction fee deduction)
@@ -1778,9 +1759,7 @@ class okcoin(Exchange):
         for i in range(0, len(info)):
             balance = info[i]
             marketId = self.safe_string(balance, 'instrument_id')
-            symbol = marketId
-            if marketId in self.markets_by_id:
-                symbol = self.markets_by_id[marketId]['symbol']
+            symbol = self.safe_symbol(marketId)
             balanceTimestamp = self.parse8601(self.safe_string(balance, 'timestamp'))
             timestamp = balanceTimestamp if (timestamp is None) else max(timestamp, balanceTimestamp)
             account = self.account()
@@ -3505,7 +3484,7 @@ class okcoin(Exchange):
 
     def parse_ledger_entry_type(self, type):
         types = {
-            'transfer': 'transfer',  # # funds transfer in/out
+            'transfer': 'transfer',  # funds transfer in/out
             'trade': 'trade',  # funds moved as a result of a trade, spot accounts only
             'rebate': 'rebate',  # fee rebate as per fee schedule, spot accounts only
             'match': 'trade',  # open long/open short/close long/close short(futures) or a change in the amount because of trades(swap)
@@ -3592,10 +3571,7 @@ class okcoin(Exchange):
         after = self.safe_number(item, 'balance')
         status = 'ok'
         marketId = self.safe_string(item, 'instrument_id')
-        symbol = None
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-            symbol = market['symbol']
+        symbol = self.safe_symbol(marketId)
         return {
             'info': item,
             'id': id,
