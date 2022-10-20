@@ -37,6 +37,7 @@ module.exports = class bibox extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchLedger': true,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -1005,6 +1006,101 @@ module.exports = class bibox extends Exchange {
         //     }
         //
         return this.parseBalance (response);
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        //
+        //    {
+        //        "i": 1125899918063693495,     // entry id
+        //        "s": "USDT",                  // asset symbol
+        //        "T": "transfer_in",           // entry type: transfer, trade, fee
+        //        "a": 14.71,                   // amount
+        //        "b": 14.7100000044,           // balance
+        //        "t": 1663367640374            // time
+        //    }
+        //
+        const ledgerTypes = {
+            'transfer_in': 'transfer',
+            'transfer_out': 'transfer',
+            'trade_finish_ask': 'trade',
+            'trade_finish_bid': 'trade',
+        };
+        const id = this.safeString (item, 'i');
+        const currencyId = this.safeString (item, 's');
+        const type = this.safeString (item, 'T');
+        const timestamp = this.safeInteger (item, 't');
+        const amount = this.safeString (item, 'a');
+        let direction = 'in';
+        if (Precise.stringLt (amount, '0')) {
+            direction = 'out';
+        }
+        return {
+            'id': id,
+            'direction': direction,
+            'account': undefined,
+            'referenceId': id,
+            'referenceAccount': undefined,
+            'type': ledgerTypes[type],
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.parseNumber (amount),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'before': undefined,
+            'after': this.safeNumber (item, 'b'),
+            'status': undefined,
+            'fee': undefined,
+            'info': item,
+        };
+    }
+
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bibox#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @see https://biboxcom.github.io/api/spot/v4/en/#get-an-account-39-s-ledger
+         * @param {string|undefined} code unified currency code, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {int|undefined} limit *default = 100* max number of ledger entrys to return
+         * @param {object} params extra parameters specific to the bitfinex2 api endpoint
+         * @param {int} params.until timestamp in ms of the latest ledger entry, default is undefined
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} before bill record id. limited to return the maximum id value of the bill records
+         * @param {int} after bill record id, limited to return the minimum id value of the bill records
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
+         */
+        await this.loadMarkets ();
+        let currency = undefined;
+        const until = this.safeInteger (params, 'until');
+        const request = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['asset'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (until !== undefined) {
+            request['end_time'] = until;
+        }
+        const response = await this.v4PrivateGetUserdataLedger (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            "i": 1125899918063693495,     // entry id
+        //            "s": "USDT",                  // asset symbol
+        //            "T": "transfer_in",           // entry type: transfer, trade, fee
+        //            "a": 14.71,                   // amount
+        //            "b": 14.7100000044,           // balance
+        //            "t": 1663367640374            // time
+        //        }
+        //    ]
+        //
+        return this.parseLedger (response, currency, since, limit);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
