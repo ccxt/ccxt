@@ -25,7 +25,7 @@ export default class WsConnector  {
     constructor (options = {}) {
         this.newUpdates = (options as any).newUpdates || true;
         this.log = (options as any).log || this.log;
-        this.verbose = (options as any).verbose;
+        this.getVerboseMode = (options as any).getVerboseMode;
         this.handleMessage = (options as any).handleMessage || this.handleMessage;
         this.newUpdates = true;
         this.options = {};
