@@ -3733,17 +3733,17 @@ if ($exchange->has['createMarketOrder']) {
 
 #### Market Buys
 
-When placing a **market buy** or **market sell** order the user usually has to specify just the amount of the **quote** currency to buy or sell.
+When placing a **market buy** or **market sell** order the user usually has to specify just the amount of the **base** currency to buy or sell.
 
 - **Ex.** For a trade using symbol `BTC/USD` with a current BTC market price of 9000 USD, to place a market buy/sell you would specify an `amount` of 2 BTC, resulting in ± 18000 USD on your account (+18000 for a market sell of 2 BTC, -18000 for a market buy of 2 BTC)
 
-Some exchanges require the total cost of market buy orders in the **base** currency
+Some exchanges require the total cost of market buy orders in the **quote** currency
 
 - **Ex.** For a trade using symbol `BTC/USD` with a current market price for BTC being 9000 USD, to place a market buy you would specify an `amount` of 18 000 USD, resulting in the same output as the previous example
 
-In CCXT, every exchange that requires the cost in base currency for market buys will have the option `createMarketBuyOrderRequiresPrice` set to `true` by default. Qith this option set to true you specify the amount in quote currency when creating your order, but must also supply the price. This means that by default, you can specify the amount in quote currency for all exchanges using CCXT (the amount of base currency for the order is calculated using `cost = amount * price` for exchanges where `createMarketBuyOrderRequiresPrice` is set to `true` by default)
+In CCXT, every exchange that requires the cost in quote currency for market buys will have the option `createMarketBuyOrderRequiresPrice` set to `true` by default. With this option set to true you specify the amount in base currency when creating your order, but must also supply the price. This means that by default, you can specify the amount in base currency for all exchanges using CCXT (the amount of quote currency for the order is calculated using `cost = amount * price` for exchanges where `createMarketBuyOrderRequiresPrice` is set to `true` by default)
 
-Setting `createMarketBuyOrderRequiresPrice` to `false` allows you to specify the amount in base currency instead The price argument will not be required when `createMarketBuyOrderRequiresPrice` is set to `false`
+Setting `createMarketBuyOrderRequiresPrice` to `false` allows you to specify the amount in quote currency instead. The price argument will not be required when `createMarketBuyOrderRequiresPrice` is set to `false`
 
 ```JavaScript
 exchange.options['createMarketBuyOrderRequiresPrice'] = false
