@@ -1250,7 +1250,7 @@ module.exports = class bibox extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (type === 'market') {
+        if (type.toLowerCase () === 'market') {
             throw new ArgumentsRequired (this.id + ' createOrder () requires a price argument for limit orders');
         } else if (price === undefined) {
             throw new ArgumentsRequired (this.id + ' createOrder () requires a price argument for limit orders');
@@ -1266,7 +1266,7 @@ module.exports = class bibox extends Exchange {
         if (timeInForce !== undefined) {
             request['time_in_force'] = timeInForce;
         }
-        const postOnly = this.isPostOnly (type.toLowerCase () === 'market', undefined, params);
+        const postOnly = this.isPostOnly (false, undefined, params);
         if (postOnly) {
             request['post_only'] = postOnly;
         }
