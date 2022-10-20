@@ -3741,23 +3741,21 @@ Some exchanges require the total cost of market buy orders in the **base** curre
 
 - **Ex.** For a trade using symbol `BTC/USD` with a current market price for BTC being 9000 USD, to place a market buy you would specify an `amount` of 18 000 USD, resulting in the same output as the previous example
 
-The option `createMarketBuyOrderRequiresPrice` allows you to use the quote currency for the amount of market buy orders on exchanges that require the base currency
+In CCXT, every exchange that requires the cost in base currency for market buys will have the option `createMarketBuyOrderRequiresPrice` set to `true` by default. Qith this option set to true you specify the amount in quote currency when creating your order, but must also supply the price. This means that by default, you can specify the amount in quote currency for all exchanges using CCXT (the amount of base currency for the order is calculated using `cost = amount * price` for exchanges where `createMarketBuyOrderRequiresPrice` is set to `true` by default)
 
-> **By default `createMarketBuyOrderRequiresPrice` is set to `true`**
+Setting `createMarketBuyOrderRequiresPrice` to `false` allows you to specify the amount in base currency instead The price argument will not be required when `createMarketBuyOrderRequiresPrice` is set to `false`
 
 ```JavaScript
-exchange.options['createMarketBuyOrderRequiresPrice'] = true
+exchange.options['createMarketBuyOrderRequiresPrice'] = false
 ```
 ```python
-exchange.options['createMarketBuyOrderRequiresPrice'] = True
+exchange.options['createMarketBuyOrderRequiresPrice'] = False
 ```
 ```php
-$exchange->options['createMarketBuyOrderRequiresPrice'] = TRUE
+$exchange->options['createMarketBuyOrderRequiresPrice'] = FALSE
 ```
 
-> ⚠️ These market orders require the `price` argument to be set because the amount of base currency for the order is calculated using `cost = amount * price`
-
-Setting `createMarketBuyOrderRequiresPrice` to `false` allows you to specify the amount in base currency instead (note that `createMarketBuyOrderRequiresPrice` is not available on every exchange)
+⚠️ note that `createMarketBuyOrderRequiresPrice` is not available on every exchange
 
 ```JavaScript
 // this example is oversimplified and doesn't show all the code that is
