@@ -1012,6 +1012,7 @@ module.exports = class bibox extends Exchange {
          */
         await this.loadMarkets ();
         const code = this.safeString (params, 'code');
+        params = this.omit (params, 'code');
         const request = {};
         if (code !== undefined) {
             const currency = this.currency (code);
