@@ -69,7 +69,7 @@ module.exports = class deribit extends deribitRest {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.authenticate (params);
-        const messageHash = 'balance:BTC';
+        const messageHash = 'balance';
         const url = this.urls['api']['ws'];
         const currencies = this.safeValue (this.options, 'currencies', []);
         const channels = [];
@@ -137,9 +137,9 @@ module.exports = class deribit extends deribitRest {
         const data = this.safeValue (params, 'data', {});
         const currencyId = this.safeString (data, 'currency');
         const currencyCode = this.safeCurrencyCode (currencyId);
-        const balance = this.parseBalance (data); // waiting for pr to go through
+        const balance = this.parseBalance (data);
         this.balance[currencyCode] = balance;
-        const messageHash = 'balance:' + currencyCode;
+        const messageHash = 'balance';
         client.resolve (this.balance, messageHash);
     }
 
@@ -527,9 +527,9 @@ module.exports = class deribit extends deribitRest {
          * @param {object} params extra parameters specific to the deribit api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
          */
+        await this.loadMarkets ();
         await this.authenticate (params);
         if (symbol !== undefined) {
-            await this.loadMarkets ();
             symbol = this.symbol (symbol);
         }
         const url = this.urls['api']['ws'];
@@ -822,7 +822,7 @@ module.exports = class deribit extends deribitRest {
         if (authenticated === undefined) {
             this.checkRequiredCredentials ();
             const requestId = this.requestId ();
-            const signature = this.hmac (timeString + '\n' + nonce + '\n', this.secret, 'sha256');
+            const signature = this.hmac (this.encode (timeString + '\n' + nonce + '\n'), this.encode (this.secret), 'sha256');
             const request = {
                 'jsonrpc': '2.0',
                 'id': requestId,
