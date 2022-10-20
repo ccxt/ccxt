@@ -4855,9 +4855,8 @@ module.exports = class bybit extends Exchange {
         }
         await this.loadMarkets ();
         let market = this.market (symbol);
-        const linear = market['linear'] ? 'linear' : 'inverse';
-        const defaultSubType = this.safeString (this.options, 'defaultSubType', linear);
-        const category = this.safeString (params, 'category', defaultSubType);
+        const subType = market['linear'] ? 'linear' : 'inverse';
+        const category = this.safeString (params, 'category', subType);
         const request = {
             'symbol': market['id'],
             'interval': timeframe,
