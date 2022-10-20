@@ -667,23 +667,50 @@ class bibox extends Exchange {
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
         /**
+         * @see https://biboxcom.github.io/api/spot/v4/en/#get-order-book
          * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {int|null} $limit *default=100* valid values include 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000
          * @param {array} $params extra parameters specific to the bibox api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int|null} price_scale *default=0* depth of consolidation by price, valid values include 0, 1, 2, 3, 4, 5
          * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
          */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
-            'cmd' => 'depth',
-            'pair' => $market['id'],
+            'symbol' => $market['id'],
         );
         if ($limit !== null) {
-            $request['size'] = $limit; // default = 200
+            $allowedValues = array( 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000 );
+            if (!$this->in_array($limit, $allowedValues)) {
+                throw new BadRequest($this->id . ' fetchOrderBook $limit argument by only be one of 1, 2, 5, 10, 20, 50, 100, 200, 500 or 1000');
+            }
+            $request['level'] = $limit;
         }
-        $response = $this->v1PublicGetMdata (array_merge($request, $params));
-        return $this->parse_order_book($response['result'], $market['symbol'], $this->safe_number($response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
+        $response = $this->v4PublicGetMarketdataOrderBook (array_merge($request, $params));
+        //
+        //    {
+        //        i => '1917961902',                  // update id
+        //        t => '1666221729812',               // update time
+        //        b => array(                              // buy orders
+        //            array(
+        //                '0.350983',               // order price
+        //                '8760.69'                 // order amount
+        //            ),
+        //            ...
+        //        ),
+        //        a => array(                              // sell orders
+        //            array(
+        //                '0.351084',
+        //                '14241.62'
+        //            ),
+        //            ...
+        //        )
+        //    }
+        //
+        return $this->parse_order_book($response, $market['symbol'], $this->safe_integer($response, 't'), 'b', 'a');
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {

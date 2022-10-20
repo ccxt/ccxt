@@ -669,22 +669,48 @@ class bibox(Exchange):
 
     def fetch_order_book(self, symbol, limit=None, params={}):
         """
+        see https://biboxcom.github.io/api/spot/v4/en/#get-order-book
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
+        :param int|None limit: *default=100* valid values include 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000
         :param dict params: extra parameters specific to the bibox api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param int|None price_scale: *default=0* depth of consolidation by price, valid values include 0, 1, 2, 3, 4, 5
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
         market = self.market(symbol)
         request = {
-            'cmd': 'depth',
-            'pair': market['id'],
+            'symbol': market['id'],
         }
         if limit is not None:
-            request['size'] = limit  # default = 200
-        response = self.v1PublicGetMdata(self.extend(request, params))
-        return self.parse_order_book(response['result'], market['symbol'], self.safe_number(response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume')
+            allowedValues = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000]
+            if not self.in_array(limit, allowedValues):
+                raise BadRequest(self.id + ' fetchOrderBook limit argument by only be one of 1, 2, 5, 10, 20, 50, 100, 200, 500 or 1000')
+            request['level'] = limit
+        response = self.v4PublicGetMarketdataOrderBook(self.extend(request, params))
+        #
+        #    {
+        #        i: '1917961902',                  # update id
+        #        t: '1666221729812',               # update time
+        #        b: [                             # buy orders
+        #            [
+        #                '0.350983',               # order price
+        #                '8760.69'                 # order amount
+        #            ],
+        #            ...
+        #        ],
+        #        a: [                             # sell orders
+        #            [
+        #                '0.351084',
+        #                '14241.62'
+        #            ],
+        #            ...
+        #        ]
+        #    }
+        #
+        return self.parse_order_book(response, market['symbol'], self.safe_integer(response, 't'), 'b', 'a')
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
