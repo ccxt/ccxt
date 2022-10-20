@@ -39,7 +39,7 @@ module.exports = class gate extends Exchange {
                         'delivery': 'https://api.gateio.ws/api/v4',
                         'spot': 'https://api.gateio.ws/api/v4',
                         'options': 'https://api.gateio.ws/api/v4',
-                        'sub_accounts': 'https://api.gateio.ws/api/v4',
+                        'subAccounts': 'https://api.gateio.ws/api/v4',
                     },
                 },
                 'test': {
@@ -190,10 +190,10 @@ module.exports = class gate extends Exchange {
                 'private': {
                     'withdrawals': {
                         'post': {
-                            '': 3000, // 3000 = 10 seconds
+                            'withdrawals': 3000, // 3000 = 10 seconds
                         },
                         'delete': {
-                            '{withdrawal_id}': 300,
+                            'withdrawals/{withdrawal_id}': 300,
                         },
                     },
                     'wallet': {
@@ -212,24 +212,24 @@ module.exports = class gate extends Exchange {
                             'sub_account_transfers': 300,
                         },
                     },
-                    'sub_accounts': {
+                    'subAccounts': {
                         'get': {
-                            '': 1,
-                            '{user_id}': 1,
-                            '{user_id}/keys': 1,
-                            '{user_id}/keys/{key}': 1,
+                            'sub_accounts': 1,
+                            'sub_accounts/{user_id}': 1,
+                            'sub_accounts/{user_id}/keys': 1,
+                            'sub_accounts/{user_id}/keys/{key}': 1,
                         },
                         'post': {
-                            '': 1,
-                            '{user_id}/keys': 1,
-                            '{user_id}/lock': 1,
-                            '{user_id}/unlock': 1,
+                            'sub_accounts': 1,
+                            'sub_accounts/{user_id}/keys': 1,
+                            'sub_accounts/{user_id}/lock': 1,
+                            'sub_accounts/{user_id}/unlock': 1,
                         },
                         'put': {
-                            '{user_id}/keys/{key}': 1,
+                            'sub_accounts/{user_id}/keys/{key}': 1,
                         },
                         'delete': {
-                            '{user_id}/keys/{key}': 1,
+                            'sub_accounts/{user_id}/keys/{key}': 1,
                         },
                     },
                     'spot': {
@@ -2845,7 +2845,7 @@ module.exports = class gate extends Exchange {
             request['chain'] = network;
             params = this.omit (params, 'network');
         }
-        const response = await this.privateWithdrawalsPost (this.extend (request, params));
+        const response = await this.privateWithdrawalsWithdrawalsPost (this.extend (request, params));
         //
         //    {
         //        "id": "w13389675",
