@@ -781,7 +781,8 @@ module.exports = class gate extends gateRest {
             messageHash = method + ':' + market['id'];
             payload = [ market['id'] ];
         }
-        const isInverse = this.safeValue (params, 'isInverse', false);
+        const [ subType ] = this.handleSubTypeAndParams ('watchOrders', market, params);
+        const isInverse = (subType === 'inverse');
         const url = this.getUrlByMarketType (type, isInverse);
         // uid required for non spot markets
         const requiresUid = (type !== 'spot');
