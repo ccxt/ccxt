@@ -1338,26 +1338,59 @@ module.exports = class bibox extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const request = {
-            'cmd': 'orderpending/cancelTrade',
-            'body': this.extend ({
-                'orders_id': id,
-            }, params),
+            'id': id,
         };
-        const response = await this.v1PrivatePostOrderpending (request);
+        const response = await this.v4PrivateDeleteUserdataOrder (this.extend (request, params));
         //
-        //     {
-        //         "result":[
-        //             {
-        //                 "result":"OK", // only indicates if the server received the cancelling request, and the cancelling result can be obtained from the order record
-        //                 "index": 12345, // random index, specific one in a batch
-        //                 "cmd":"orderpending/cancelTrade"
-        //             }
-        //         ]
-        //     }
+        //    {
+        //        "i": 4611688217450643477, // The order id assigned by the exchange
+        //        "I": "", // User specified order id
+        //        "m": "BTC_USDT", // trading pair code
+        //        "T": "limit", // order type
+        //        "s": "sell", // order direction
+        //        "Q": -0.0100, // Order amount
+        //        "P": 10043.8500, // order price
+        //        "t": "gtc", // Time In Force
+        //        "o": false, // Post Only
+        //        "S": "filled", // order status
+        //        "E": -0.0100, // transaction volume
+        //        "e": -100.43850000, // transaction value
+        //        "C": 1643193746043, // creation time
+        //        "U": 1643193746464, // update time
+        //        "n": 2, // number of transactions
+        //        "F": [
+        //            {
+        //                "i": 13, // deal id
+        //                "t": 1643193746464, // transaction time
+        //                "p": 10043.85, // transaction price
+        //                "q": -0.009, // transaction volume
+        //                "l": "maker", // Maker / Taker transaction
+        //                "f": {
+        //                    "a": "USDT", // This transaction is used to pay the transaction fee
+        //                    "m": 0.09039465000 // The handling fee for this transaction
+        //                }
+        //            },
+        //            {
+        //                "i": 12,
+        //                "t": 1643193746266,
+        //                "p": 10043.85,
+        //                "q": -0.001,
+        //                "l": "maker",
+        //                "f": {
+        //                        "a": "USDT",
+        //                        "m": 0.01004385000
+        //                    }
+        //                }
+        //        ],
+        //        "f": [
+        //            {
+        //                "a": "USDT",  // Assets used to pay fees
+        //                "m": 0.10043850000  // Total handling fee
+        //            }
+        //        ]
+        //    }
         //
-        const outerResults = this.safeValue (response, 'result');
-        const firstResult = this.safeValue (outerResults, 0, {});
-        return firstResult;
+        return this.parseOrder (response);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
