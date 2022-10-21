@@ -1327,6 +1327,26 @@ module.exports = class bibox extends Exchange {
         return this.parseOrder (response, market);
     }
 
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bibox#cancelOrder
+         * @description cancels all open orders
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the bibox api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.v4PrivateDeleteUserdataOrders (this.extend (request, params));
+        //
+        // []
+        //
+        return this.parseOrders (response, market);
+    }
+
     async cancelOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
