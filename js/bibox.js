@@ -1109,64 +1109,61 @@ module.exports = class bibox extends Exchange {
          * @name bibox#fetchWithdrawals
          * @description fetch all withdrawals made from an account
          * @param {string|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {int|undefined} since not used by bibox
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve, max=50, default=50
          * @param {object} params extra parameters specific to the bibox api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} params.page page number, default=1
+         * @param {string|undefined} params.filter_type withdrawal record screening, -2: failed review; -1: user cancelled; 0: pending review; 1: approved (to be issued currency); 2: currency issued; 3: currency issued complete
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         if (limit === undefined) {
-            limit = 100;
+            limit = 50;
         }
+        const page = this.safeInteger (params, 'page', 1);
         const request = {
-            'page': 1,
+            'page': page,
             'size': limit,
         };
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['symbol'] = currency['id'];
+            request['coin_symbol'] = currency['id'];
         }
-        const response = await this.v1PrivatePostTransfer ({
-            'cmd': 'transfer/transferOutList',
-            'body': this.extend (request, params),
-        });
+        const method = 'v3.1PrivatePostTransferTransferOutList';
+        const response = await this[method] (this.extend (request, params));
         //
-        //     {
-        //         "result":[
-        //             {
-        //                 "result":{
-        //                     "count":1,
-        //                     "page":1,
-        //                     "items":[
-        //                         {
-        //                             "id":612867,
-        //                             "coin_symbol":"ETH",
-        //                             "chain_type":"ETH",
-        //                             "to_address":"0xd41de7a88ab5fc59edc6669f54873576be95bff1",
-        //                             "tx_id":"0xc60950596227af3f27c3a1b5911ea1c79bae53bdce67274e48a0ce87a5ef2df8",
-        //                             "addr_remark":"binance",
-        //                             "amount":"2.34550946",
-        //                             "fee":"0.00600000",
-        //                             "createdAt":1561339330000,
-        //                             "memo":"",
-        //                             "status":3
-        //                         }
-        //                     ]
-        //                 },
-        //                 "cmd":"transfer/transferOutList"
-        //             }
-        //         ]
-        //     }
+        //    {
+        //        result: {
+        //            count: '5',
+        //            page: '1',
+        //            items: [
+        //                {
+        //                    id: '3553023',
+        //                    coin_symbol: 'bUSDT',
+        //                    chain_type: 'BEP20(BSC)',
+        //                    to_address: '0xf1458ba28073b056e9666c4b2bbbc60451cda0fd',
+        //                    tx_id: '0x2f2319c4ae804893369aeeeef06dd429abf2833b61290ea2bd63ec0e363ebce6',
+        //                    amount: '14.71000000',
+        //                    confirmCount: '14',
+        //                    createdAt: '1663367581000',
+        //                    status: '2'
+        //                },
+        //                ...
+        //            ]
+        //        },
+        //        cmd: 'transferOutList',
+        //        state: '0'
+        //    }
         //
-        const outerResults = this.safeValue (response, 'result');
-        const firstResult = this.safeValue (outerResults, 0, {});
-        const innerResult = this.safeValue (firstResult, 'result', {});
-        const withdrawals = this.safeValue (innerResult, 'items', []);
-        for (let i = 0; i < withdrawals.length; i++) {
-            withdrawals[i]['type'] = 'withdrawal';
+        const result = this.safeValue (response, 'result');
+        const items = this.safeValue (result, 'items');
+        for (let i = 0; i < items.length; i++) {
+            items[i]['type'] = 'withdrawal';
         }
-        return this.parseTransactions (withdrawals, currency, since, limit);
+        return this.parseTransactions (items, currency, since, limit);
     }
 
     parseTransaction (transaction, currency = undefined) {
