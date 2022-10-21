@@ -211,6 +211,16 @@ export default class bittrex extends bittrexBridge {
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bittrex#watchOrders
+         * @description watches information on multiple orders made by the user
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const authentication = await this.authenticate ();
         const orders = await this.subscribeToOrders (authentication, params);
@@ -260,6 +270,13 @@ export default class bittrex extends bittrexBridge {
     }
 
     async watchBalance (params = {}) {
+        /**
+         * @method
+         * @name bittrex#watchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const authentication = await this.authenticate ();
         return await this.subscribeToBalance (authentication, params);
@@ -326,6 +343,14 @@ export default class bittrex extends bittrexBridge {
     }
 
     async watchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name bittrex#watchTicker
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const negotiation = await this.negotiate ();
         return await this.subscribeToTicker (negotiation, symbol, params);
@@ -430,6 +455,16 @@ export default class bittrex extends bittrexBridge {
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bittrex#watchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const negotiation = await this.negotiate ();
         const trades = await this.subscribeToTrades (negotiation, symbol, params);
@@ -488,6 +523,16 @@ export default class bittrex extends bittrexBridge {
     }
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bittrex#watchMyTrades
+         * @description watches information on multiple trades made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         await this.loadMarkets ();
         const authentication = await this.authenticate ();
         const trades = await this.subscribeToMyTrades (authentication, params);
@@ -537,6 +582,15 @@ export default class bittrex extends bittrexBridge {
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bittrex#watchOrderBook
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {object} params extra parameters specific to the bittrex api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         limit = (limit === undefined) ? 25 : limit; // 25 by default
         if ((limit !== 1) && (limit !== 25) && (limit !== 500)) {
             throw new BadRequest (this.id + ' watchOrderBook() limit argument must be undefined, 1, 25 or 500, default is 25');
