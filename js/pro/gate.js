@@ -756,17 +756,13 @@ module.exports = class gate extends gateRest {
          * @param {boolean} params.isInverse if future, listen to inverse or linear contracts
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
          */
-        let type = undefined;
+        await this.loadMarkets ();
         let market = undefined;
-        if (symbol === undefined) {
-            const [ defaultType ] = this.handleMarketTypeAndParams ('watchOrders', undefined, params);
-            type = defaultType;
-        } else {
-            await this.loadMarkets (false, params);
+        if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
-            type = market['type'];
         }
+        const [ type ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         const typeId = this.getSupportedMapping (type, {
             'spot': 'spot',
             'margin': 'spot',
