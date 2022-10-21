@@ -19,7 +19,7 @@ module.exports = class gemini extends Exchange {
             // 120 requests a minute = 2 requests per second => ( 1000ms / rateLimit ) / 2 = 5 (public endpoints)
             'rateLimit': 100,
             'version': 'v1',
-            'pro': false,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -1539,8 +1539,9 @@ module.exports = class gemini extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const timeframeId = this.safeString (this.timeframes, timeframe, timeframe);
         const request = {
-            'timeframe': this.timeframes[timeframe],
+            'timeframe': timeframeId,
             'symbol': market['id'],
         };
         const response = await this.publicGetV2CandlesSymbolTimeframe (this.extend (request, params));
