@@ -24,8 +24,8 @@ module.exports = class bibox extends Exchange {
                 'swap': undefined, // has but unimplemented
                 'future': undefined,
                 'option': undefined,
-                'cancelOrder': true,
                 'cancelAllOrders': true,
+                'cancelOrder': true,
                 'createMarketOrder': undefined, // or they will return https://github.com/ccxt/ccxt/issues/2338
                 'createOrder': true,
                 'createStopLimitOrder': false, // true for contract
@@ -44,8 +44,8 @@ module.exports = class bibox extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
-                'fetchOrdersByStatus': true,
                 'fetchOrderBook': true,
+                'fetchOrdersByStatus': true,
                 'fetchPositionMode': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -1596,6 +1596,8 @@ module.exports = class bibox extends Exchange {
         const request = {};
         let market = undefined;
         const until = this.safeInteger (params, 'until');
+        const open = (status === 'open');
+        const unsettled = (status === 'unsettled');
         params = this.omit (params, 'until');
         if (until !== undefined) {              // The order of request parameters must go end_time -> limit -> start_time -> status -> symbol
             request['end_time'] = until;
@@ -1606,7 +1608,7 @@ module.exports = class bibox extends Exchange {
         if (since !== undefined) {
             request['start_time'] = since;
         }
-        request['status'] = ((status === 'open') || (status === 'unsettled')) ? 'unsettled' : 'settled';
+        request['status'] = (open || unsettled) ? 'unsettled' : 'settled';
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
