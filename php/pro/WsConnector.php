@@ -19,6 +19,7 @@ class WsConnector {
     public $get_max_ping_pong_misses;
     public $get_gunzip;
     public $get_inflate;
+    public $get_cost;
 
     public function __construct($options = array()) {
         $this->options = $options;
@@ -29,17 +30,10 @@ class WsConnector {
         $this->get_max_ping_pong_misses = Exchange::safe_value($options, 'get_max_ping_pong_misses');
         $this->get_gunzip = Exchange::safe_value($options, 'get_gunzip');
         $this->get_inflate = Exchange::safe_value($options, 'get_inflate');
+        $this->get_cost = Exchange::safe_value($options, 'get_cost');
         $this->ping = Exchange::safe_value($options, 'ping');
         $this->log = Exchange::safe_value($options, 'log');
     }
-
-    // // streaming-specific options
-    // public $streaming = array(
-    //     'keepAlive' => 30000,
-    //     'heartbeat' => true,
-    //     'ping' => null,
-    //     'maxPingPongMisses' => 2.0,
-    // );
 
     public $newUpdates = true;
 
@@ -93,7 +87,6 @@ class WsConnector {
             //     'verbose' => $this->verbose,
             //     'throttle' => new Throttle($this->tokenBucket),
             // ), $this->streaming, $ws_options);
-
             $options = array (
                 'log' => array($this, 'log'),
                 'ping' => array($this, 'ping'),
@@ -122,8 +115,7 @@ class WsConnector {
                     $client->subscriptions[$subscribe_hash] = isset($subscription) ? $subscription : true;
                     // todo: add PHP async rate-limiting
                     // todo: decouple signing from subscriptions
-                    $options = Exchange::safe_value($this->options, 'ws');
-                    $cost = Exchange::safe_value ($options, 'cost', 1);
+                    $cost = ($this->get_cost)();
                     if ($message) {
                         if (($this->get_enable_rate_limit)()) {
                             // add cost here |

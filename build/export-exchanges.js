@@ -512,6 +512,7 @@ async function exportEverything () {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -539,6 +540,7 @@ async function exportEverything () {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -567,6 +569,7 @@ async function exportEverything () {
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open

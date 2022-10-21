@@ -40,6 +40,13 @@ class Exchange extends \ccxt\Exchange {
 
     const VERSION = '2.0.53';
 
+    public $streaming = array(
+        'keepAlive' => 30000,
+        'heartbeat' => true,
+        'ping' => null,
+        'maxPingPongMisses' => 2.0,
+    );
+
     public $browser;
     public $marketsLoading = null;
     public $reloadingMarkets = null;
@@ -214,6 +221,45 @@ class Exchange extends \ccxt\Exchange {
             $this->spawn($method, ...$args);
         });
     }
+
+    public function get_verbose_mode() {
+        return $this->verbose;
+    }
+
+    public function get_keep_alive() {
+        return $this->streaming['keepAlive'];
+    }
+
+    public function get_max_ping_pong_misses() {
+        return $this->streaming['maxPingPongMisses'];
+    }
+
+    public function get_token_bucket() {
+        return $this->tokenBucket;
+    }
+
+    public function get_enable_rate_limit() {
+        return $this->enableRateLimit;
+    }
+
+    public function get_inflate() {
+        $options = $this->safe_value($this->options, 'ws');
+        $inflate = $this->safe_value ($this->options, 'inflate', false);
+        return $inflate;
+    }
+
+    public function get_gunzip() {
+        $options = $this->safe_value($this->options, 'ws');
+        $gunzip = $this->safe_value ($this->options, 'gunzip', false);
+        return $gunzip;
+    }
+
+    public function get_cost() {
+        $options = $this->safe_value($this->options, 'ws');
+        $cost = $this->safe_value ($this->options, 'cost', 1);
+        return $cost;
+    }
+
 
     // ########################################################################
     // ########################################################################

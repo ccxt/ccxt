@@ -18,6 +18,7 @@ class aaxBridge extends \ccxt\async\aax {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -38,6 +39,7 @@ class ascendexBridge extends \ccxt\async\ascendex {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -58,6 +60,7 @@ class bequantBridge extends \ccxt\async\bequant {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -78,6 +81,7 @@ class binanceBridge extends \ccxt\async\binance {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -98,6 +102,7 @@ class binancecoinmBridge extends \ccxt\async\binancecoinm {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -118,6 +123,7 @@ class binanceusBridge extends \ccxt\async\binanceus {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -138,6 +144,7 @@ class binanceusdmBridge extends \ccxt\async\binanceusdm {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -158,6 +165,7 @@ class bitcoincomBridge extends \ccxt\async\bitcoincom {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -178,6 +186,7 @@ class bitfinexBridge extends \ccxt\async\bitfinex {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -198,6 +207,7 @@ class bitfinex2Bridge extends \ccxt\async\bitfinex2 {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -218,6 +228,7 @@ class bitmartBridge extends \ccxt\async\bitmart {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -238,6 +249,7 @@ class bitmexBridge extends \ccxt\async\bitmex {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -258,6 +270,7 @@ class bitoproBridge extends \ccxt\async\bitopro {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -278,6 +291,7 @@ class bitstampBridge extends \ccxt\async\bitstamp {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -298,6 +312,7 @@ class bittrexBridge extends \ccxt\async\bittrex {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -318,6 +333,7 @@ class bitvavoBridge extends \ccxt\async\bitvavo {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -338,6 +354,7 @@ class bybitBridge extends \ccxt\async\bybit {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -358,6 +375,7 @@ class coinbaseprimeBridge extends \ccxt\async\coinbaseprime {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -378,6 +396,7 @@ class coinbaseproBridge extends \ccxt\async\coinbasepro {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -398,6 +417,7 @@ class coinexBridge extends \ccxt\async\coinex {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -418,6 +438,7 @@ class cryptocomBridge extends \ccxt\async\cryptocom {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -438,6 +459,7 @@ class currencycomBridge extends \ccxt\async\currencycom {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -458,6 +480,7 @@ class exmoBridge extends \ccxt\async\exmo {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -478,6 +501,7 @@ class ftxBridge extends \ccxt\async\ftx {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -498,6 +522,7 @@ class ftxusBridge extends \ccxt\async\ftxus {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -518,6 +543,7 @@ class gateBridge extends \ccxt\async\gate {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -538,6 +564,7 @@ class gateioBridge extends \ccxt\async\gateio {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -558,6 +585,7 @@ class hitbtcBridge extends \ccxt\async\hitbtc {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -578,6 +606,7 @@ class hollaexBridge extends \ccxt\async\hollaex {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -598,6 +627,7 @@ class huobiBridge extends \ccxt\async\huobi {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -618,6 +648,7 @@ class huobijpBridge extends \ccxt\async\huobijp {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -638,6 +669,7 @@ class huobiproBridge extends \ccxt\async\huobipro {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -658,6 +690,7 @@ class idexBridge extends \ccxt\async\idex {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -678,6 +711,7 @@ class krakenBridge extends \ccxt\async\kraken {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -698,6 +732,7 @@ class kucoinBridge extends \ccxt\async\kucoin {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -718,6 +753,7 @@ class mexcBridge extends \ccxt\async\mexc {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -738,6 +774,7 @@ class ndaxBridge extends \ccxt\async\ndax {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -758,6 +795,7 @@ class okcoinBridge extends \ccxt\async\okcoin {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -778,6 +816,7 @@ class okexBridge extends \ccxt\async\okex {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -798,6 +837,7 @@ class okxBridge extends \ccxt\async\okx {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -818,6 +858,7 @@ class phemexBridge extends \ccxt\async\phemex {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -838,6 +879,7 @@ class ripioBridge extends \ccxt\async\ripio {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -858,6 +900,7 @@ class upbitBridge extends \ccxt\async\upbit {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -878,6 +921,7 @@ class whitebitBridge extends \ccxt\async\whitebit {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -898,6 +942,7 @@ class zbBridge extends \ccxt\async\zb {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
@@ -918,6 +963,7 @@ class zipmexBridge extends \ccxt\async\zipmex {
         $options['get_max_ping_pong_misses'] = array($this, 'get_max_ping_pong_misses');
         $options['get_token_bucket'] = array($this, 'get_token_bucket');
         $options['get_enable_rate_limit'] = array($this, 'get_enable_rate_limit');
+        $options['get_cost'] = array($this, 'get_cost');
         $options['get_inflate'] = array($this, 'get_inflate');
         $options['get_gunzip'] = array($this, 'get_gunzip');
         $this->ws = new WsConnector($options);
