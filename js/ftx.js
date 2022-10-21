@@ -2065,11 +2065,11 @@ module.exports = class ftx extends Exchange {
         const defaultMethod = this.safeString (options, 'method', 'privateGetOrders');
         let method = this.safeString (params, 'method', defaultMethod);
         const type = this.safeValue (params, 'type');
-        const stop = this.safeValue (params, 'stop');
-        if (stop || (type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
+        const isTriggerOrder = this.safeValue2 (params, 'trigger', 'stop');
+        if (isTriggerOrder || this.inArray (type, [ 'trigger', 'stop', 'trailingStop', 'takeProfit' ])) {
             method = 'privateGetConditionalOrders';
         }
-        const query = this.omit (params, [ 'method', 'type', 'stop' ]);
+        const query = this.omit (params, [ 'method', 'type', 'trigger', 'stop' ]);
         const response = await this[method] (this.extend (request, query));
         //
         //     {
@@ -2129,10 +2129,11 @@ module.exports = class ftx extends Exchange {
         const defaultMethod = this.safeString (options, 'method', 'privateGetOrdersHistory');
         let method = this.safeString (params, 'method', defaultMethod);
         const type = this.safeValue (params, 'type');
-        if ((type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
+        const isTriggerOrder = this.safeValue2 (params, 'trigger', 'stop');
+        if (isTriggerOrder || this.inArray (type, [ 'trigger', 'stop', 'trailingStop', 'takeProfit' ])) {
             method = 'privateGetConditionalOrdersHistory';
         }
-        const query = this.omit (params, [ 'method', 'type' ]);
+        const query = this.omit (params, [ 'method', 'type', 'trigger', 'stop' ]);
         const response = await this[method] (this.extend (request, query));
         //
         //     {
