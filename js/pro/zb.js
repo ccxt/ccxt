@@ -51,6 +51,14 @@ module.exports = class zb extends zbRest {
     }
 
     async watchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name zb#watchTicker
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the zb api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         return await this.watchPublic ('ticker', symbol, this.handleTicker, params);
     }
 
@@ -86,6 +94,16 @@ module.exports = class zb extends zbRest {
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name zb#watchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {object} params extra parameters specific to the zb api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         const trades = await this.watchPublic ('trades', symbol, this.handleTrades, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -123,6 +141,15 @@ module.exports = class zb extends zbRest {
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name zb#watchOrderBook
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {object} params extra parameters specific to the zb api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         if (limit !== undefined) {
             if ((limit !== 5) && (limit !== 10) && (limit !== 20)) {
                 throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 5, 10 or 20');
