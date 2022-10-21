@@ -391,25 +391,36 @@ class bitfinex extends Exchange {
     public function fetch_transaction_fees($codes = null, $params = array ()) {
         /**
          * fetch transaction $fees
+         * @see https://docs.bitfinex.com/v1/reference/rest-auth-$fees
          * @param {[string]|null} $codes not used by bitfinex2 fetchTransactionFees ()
          * @param {array} $params extra parameters specific to the bitfinex api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure $fees structures}
          */
         $this->load_markets();
+        $result = array();
         $response = $this->privatePostAccountFees ($params);
-        $fees = $response['withdraw'];
-        $withdraw = array();
+        //
+        // {
+        //     'withdraw' => {
+        //         'BTC' => '0.0004',
+        //     }
+        // }
+        //
+        $fees = $this->safe_value($response, 'withdraw');
         $ids = is_array($fees) ? array_keys($fees) : array();
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
             $code = $this->safe_currency_code($id);
-            $withdraw[$code] = $this->safe_number($fees, $id);
+            if ($codes !== null && !$this->in_array($code, $codes)) {
+                continue;
+            }
+            $result[$code] = array(
+                'withdraw' => $this->safe_number($fees, $id),
+                'deposit' => array(),
+                'info' => $this->safe_number($fees, $id),
+            );
         }
-        return array(
-            'info' => $response,
-            'withdraw' => $withdraw,
-            'deposit' => $withdraw,  // only for deposits of less than $1000
-        );
+        return $result;
     }
 
     public function fetch_trading_fees($params = array ()) {

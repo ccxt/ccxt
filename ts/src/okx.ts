@@ -2135,6 +2135,7 @@ export default class okx extends Exchange {
             const brokerId = this.safeString (this.options, 'brokerId');
             if (brokerId !== undefined) {
                 request['clOrdId'] = brokerId + this.uuid16 ();
+                request['tag'] = brokerId;
             }
         } else {
             request['clOrdId'] = clientOrderId;

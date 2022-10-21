@@ -950,55 +950,52 @@ class bibox(Exchange):
         return result
 
     def parse_balance(self, response):
-        outerResult = self.safe_value(response, 'result')
-        firstResult = self.safe_value(outerResult, 0, {})
-        innerResult = self.safe_value(firstResult, 'result')
+        #
+        #    [
+        #        {
+        #            "s": "USDT",              # asset code
+        #            "a": 2.6617573979,        # available amount
+        #            "h": 0                    # frozen amount
+        #        },
+        #        ...
+        #    ]
+        #
         result = {'info': response}
-        assetsList = self.safe_value(innerResult, 'assets_list', [])
-        for i in range(0, len(assetsList)):
-            balance = assetsList[i]
-            currencyId = self.safe_string(balance, 'coin_symbol')
+        for i in range(0, len(response)):
+            balance = response[i]
+            currencyId = self.safe_string(balance, 's')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_string(balance, 'balance')
-            account['used'] = self.safe_string(balance, 'freeze')
+            account['free'] = self.safe_string(balance, 'a')
+            account['used'] = self.safe_string(balance, 'h')
             result[code] = account
         return self.safe_balance(result)
 
     def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
+        see https://biboxcom.github.io/api/spot/v4/en/#get-accounts
         :param dict params: extra parameters specific to the bibox api endpoint
+        :param str params['code']: unified currency code
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         self.load_markets()
-        type = self.safe_string(params, 'type', 'assets')
-        params = self.omit(params, 'type')
-        request = {
-            'cmd': 'transfer/' + type,  # assets, mainAssets
-            'body': self.extend({
-                'select': 1,  # return full info
-            }, params),
-        }
-        response = self.v1PrivatePostTransfer(request)
+        code = self.safe_string(params, 'code')
+        params = self.omit(params, 'code')
+        request = {}
+        if code is not None:
+            currency = self.currency(code)
+            request['asset'] = currency['id']
+        response = self.v4PrivateGetUserdataAccounts(self.extend(request, params))
         #
-        #     {
-        #         "result":[
-        #             {
-        #                 "result":{
-        #                     "total_btc":"0.00000298",
-        #                     "total_cny":"0.99",
-        #                     "total_usd":"0.16",
-        #                     "assets_list":[
-        #                         {"coin_symbol":"BTC","BTCValue":"0.00000252","CNYValue":"0.84","USDValue":"0.14","balance":"0.00000252","freeze":"0.00000000"},
-        #                         {"coin_symbol":"LTC","BTCValue":"0.00000023","CNYValue":"0.07","USDValue":"0.01","balance":"0.00006765","freeze":"0.00000000"},
-        #                         {"coin_symbol":"USDT","BTCValue":"0.00000023","CNYValue":"0.08","USDValue":"0.01","balance":"0.01252100","freeze":"0.00000000"}
-        #                     ]
-        #                 },
-        #                 "cmd":"transfer/assets"
-        #             }
-        #         ]
-        #     }
+        #    [
+        #        {
+        #            "s": "USDT",              # asset code
+        #            "a": 2.6617573979,        # available amount
+        #            "h": 0                    # frozen amount
+        #        },
+        #        ...
+        #    ]
         #
         return self.parse_balance(response)
 

@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.0.53';
+$version = '2.0.55';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.0.53';
+    const VERSION = '2.0.55';
 
     public $streaming = array(
         'keepAlive' => 30000,

@@ -963,18 +963,24 @@ class bibox extends Exchange {
     }
 
     public function parse_balance($response) {
-        $outerResult = $this->safe_value($response, 'result');
-        $firstResult = $this->safe_value($outerResult, 0, array());
-        $innerResult = $this->safe_value($firstResult, 'result');
+        //
+        //    array(
+        //        array(
+        //            "s" => "USDT",              // asset $code
+        //            "a" => 2.6617573979,        // available amount
+        //            "h" => 0                    // frozen amount
+        //        ),
+        //        ...
+        //    )
+        //
         $result = array( 'info' => $response );
-        $assetsList = $this->safe_value($innerResult, 'assets_list', array());
-        for ($i = 0; $i < count($assetsList); $i++) {
-            $balance = $assetsList[$i];
-            $currencyId = $this->safe_string($balance, 'coin_symbol');
+        for ($i = 0; $i < count($response); $i++) {
+            $balance = $response[$i];
+            $currencyId = $this->safe_string($balance, 's');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_string($balance, 'balance');
-            $account['used'] = $this->safe_string($balance, 'freeze');
+            $account['free'] = $this->safe_string($balance, 'a');
+            $account['used'] = $this->safe_string($balance, 'h');
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
@@ -983,37 +989,29 @@ class bibox extends Exchange {
     public function fetch_balance($params = array ()) {
         /**
          * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://biboxcom.github.io/api/spot/v4/en/#get-accounts
          * @param {array} $params extra parameters specific to the bibox api endpoint
+         * @param {str} $params->code unified $currency $code
          * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
          */
         $this->load_markets();
-        $type = $this->safe_string($params, 'type', 'assets');
-        $params = $this->omit($params, 'type');
-        $request = array(
-            'cmd' => 'transfer/' . $type, // assets, mainAssets
-            'body' => array_merge(array(
-                'select' => 1, // return full info
-            ), $params),
-        );
-        $response = $this->v1PrivatePostTransfer ($request);
+        $code = $this->safe_string($params, 'code');
+        $params = $this->omit($params, 'code');
+        $request = array();
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['asset'] = $currency['id'];
+        }
+        $response = $this->v4PrivateGetUserdataAccounts (array_merge($request, $params));
         //
-        //     {
-        //         "result":array(
-        //             {
-        //                 "result":array(
-        //                     "total_btc":"0.00000298",
-        //                     "total_cny":"0.99",
-        //                     "total_usd":"0.16",
-        //                     "assets_list":array(
-        //                         array("coin_symbol":"BTC","BTCValue":"0.00000252","CNYValue":"0.84","USDValue":"0.14","balance":"0.00000252","freeze":"0.00000000"),
-        //                         array("coin_symbol":"LTC","BTCValue":"0.00000023","CNYValue":"0.07","USDValue":"0.01","balance":"0.00006765","freeze":"0.00000000"),
-        //                         array("coin_symbol":"USDT","BTCValue":"0.00000023","CNYValue":"0.08","USDValue":"0.01","balance":"0.01252100","freeze":"0.00000000")
-        //                     )
-        //                 ),
-        //                 "cmd":"transfer/assets"
-        //             }
-        //         )
-        //     }
+        //    array(
+        //        array(
+        //            "s" => "USDT",              // asset $code
+        //            "a" => 2.6617573979,        // available amount
+        //            "h" => 0                    // frozen amount
+        //        ),
+        //        ...
+        //    )
         //
         return $this->parse_balance($response);
     }
