@@ -1597,20 +1597,20 @@ module.exports = class bibox extends Exchange {
         let market = undefined;
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, 'until');
+        request['status'] = ((status === 'open') || (status === 'unsettled')) ? 'unsettled' : 'settled';
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {
-            params['start_time'] = since;
+            request['start_time'] = since;
         }
         if (limit !== undefined) {
-            params['limit'] = since;
+            params['limit'] = limit;
         }
         if (until !== undefined) {
             params['end_time'] = until;
         }
-        request['status'] = (status === 'open') ? 'unsettled' : 'settled';
         const response = await this.v4PrivateGetUserdataOrders (this.extend (request, params));
         //
         //    [
@@ -1639,21 +1639,21 @@ module.exports = class bibox extends Exchange {
         return this.parseOrders (response, market, since, limit);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = 200, params = {}) {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bibox#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
          * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {int|undefined} limit the maximum number of order structures to retrieve
          * @param {object} params extra parameters specific to the bibox api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return this.fetchOrdersByStatus ('open', symbol, since, limit, params);
     }
 
-    async fetchClosedOrders (symbol = undefined, since = undefined, limit = 200, params = {}) {
+    async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bibox#fetchClosedOrders
