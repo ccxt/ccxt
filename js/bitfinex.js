@@ -409,7 +409,7 @@ module.exports = class bitfinex extends Exchange {
         //     }
         // }
         //
-        const fees = response['withdraw'];
+        const fees = this.safeValue (response, 'withdraw');
         const ids = Object.keys (fees);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
