@@ -150,6 +150,7 @@ module.exports = class okx extends Exchange {
                         'market/ticker': 1,
                         'market/index-tickers': 1,
                         'market/books': 1,
+                        'market/books-lite': 1.66,
                         'market/candles': 0.5,
                         'market/history-candles': 1,
                         'market/history-mark-price-candles': 120,
