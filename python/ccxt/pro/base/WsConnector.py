@@ -144,7 +144,7 @@ class WsConnector:
             if subscribe_hash not in client.subscriptions:
                 client.subscriptions[subscribe_hash] = subscription or True
                 # todo: decouple signing from subscriptions
-                cost = self.get_cost() 
+                cost = self.get_cost()
                 if message:
                     async def send_message():
                         if self.get_enable_rate_limit():
