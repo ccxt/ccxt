@@ -1414,110 +1414,53 @@ module.exports = class bibox extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // createOrder V4
+        // createOrder, fetchOrder V4
         //
         //    {
-        //        "i": 4611688217450643477,  // The order id assigned by the exchange
-        //        "I": "",  // User specified order id
-        //        "m": "BTC_USDT",  // trading pair code
-        //        "T": "limit",  // order type
-        //        "s": "sell",  // order direction
-        //        "Q": -0.0100,  // order amount
-        //        "P": 10043.8500,  // order price
-        //        "t": "gtc",  // Time In Force
-        //        "o": false,  // Post Only
-        //        "S": "filled",  // order status
-        //        "E": -0.0100,  // transaction volume
-        //        "e": -100.43850000,  // transaction value
-        //        "C": 1643193746043,  // creation time
-        //        "U": 1643193746464,  // update time
-        //        "n": 2,  // Number of transactions
-        //        "F": [
+        //        i: '14580623696203099',       // the order id assigned by the exchange
+        //        I: '0',                       // user specified order id
+        //        m: 'ADA_USDT',                // trading pair code
+        //        T: 'limit',                   // order type
+        //        s: 'buy',                     // order direction
+        //        Q: '4.000000',                // order amount
+        //        P: '0.300000',                // order price
+        //        t: 'gtc',                     // time in force
+        //        o: false,                     // post only
+        //        S: 'accepted',                // order status
+        //        E: '0',                       // transaction volume
+        //        e: '0',                       // transaction value
+        //        C: '1666235804233',           // creation time
+        //        U: '1666235804233',           // update time
+        //        V: '586925436933',
+        //        n: '0',                       // number of transactions
+        //        F: [
         //            {
-        //                "i": 13,  // transaction id
-        //                "t": 1643193746464,  // Transaction time
-        //                "p": 10043.85,  // transaction price
-        //                "q": -0.009,  // transaction volume
-        //                "l": "maker",  // Maker / Taker transaction
-        //                "f": {
-        //                    "a": "USDT",  // The asset used for the transaction to pay the handling fee
-        //                    "m": 0.09039465000  // The transaction fee
+        //                i: 13,                // transaction id
+        //                t: 1643193746464,     // transaction time
+        //                p: 10043.85,          // transaction price
+        //                q: -0.009,            // transaction volume
+        //                l: "maker",           // maker / taker transaction
+        //                f: {
+        //                    a: "USDT",        // the asset used for the transaction to pay the handling fee
+        //                    m: 0.09039465000  // the transaction fee
         //                }
         //            },
-        //            {
-        //                "i": 12,
-        //                "t": 1643193746266,
-        //                "p": 10043.85,
-        //                "q": -0.001,
-        //                "l": "maker",
-        //                "f": {
-        //                    "a": "USDT",
-        //                    "m": 0.01004385000
-        //                }
-        //            }
+        //            ...
         //        ],
-        //        "f": [
+        //        f: [
         //            {
-        //                "a": "USDT",  // Assets used to pay fees
-        //                "m": 0.10043850000  // Total handling fee
+        //                a: "USDT",            // Assets used to pay fees
+        //                m: 0.10043850000      // Total handling fee
         //            }
         //        ]
         //    }
         //
-        // fetchOrder V1, fetchOpenOrders V1, fetchClosedOrders V1
-        //
-        //     {
-        //         "id": "100055558128036",
-        //         "createdAt": 1512756997000,
-        //         "account_type": 0,
-        //         "coin_symbol": "LTC",        // Trading Token
-        //         "currency_symbol": "BTC",    // Pricing Token
-        //         "order_side": 2,             // Trading side 1-Buy, 2-Sell
-        //         "order_type": 2,             // 2-limit order
-        //         "price": "0.00900000",       // order price
-        //         "amount": "1.00000000",      // order amount
-        //         "money": "0.00900000",       // currency amount (price * amount)
-        //         "deal_amount": "0.00000000", // deal amount
-        //         "deal_percent": "0.00%",     // deal percentage
-        //         "unexecuted": "0.00000000",  // unexecuted amount
-        //         "status": 3                  // Status,-1-fail, 0,1-to be dealt, 2-dealt partly, 3-dealt totally, 4- cancelled partly, 5-cancelled totally, 6-to be cancelled
-        //     }
-        //
-        let marketId = this.safeString (order, 'm');
-        if (marketId === undefined) {
-            const baseId = this.safeString (order, 'coin_symbol');
-            const quoteId = this.safeString (order, 'currency_symbol');
-            if ((baseId !== undefined) && (quoteId !== undefined)) {
-                marketId = baseId + '_' + quoteId;
-            }
-        }
+        const marketId = this.safeString (order, 'm');
         market = this.safeMarket (marketId, market);
-        let type = this.safeString2 (order, 'T', 'order_type');
-        if (type !== 'limit' && type !== 'market') {
-            if (type === '1') {
-                type = 'limit';
-            } else if (type === '2') {
-                type = 'market';
-            }
-        }
-        const timestamp = this.safeInteger2 (order, 'C', 'createdAt');
-        const price = this.safeString2 (order, 'P', 'price');
-        const average = this.safeString (order, 'deal_price');
-        const filled = this.safeString (order, 'deal_amount');
-        let amount = this.safeString2 (order, 'Q', 'amount');
+        const timestamp = this.safeInteger (order, 'C');
+        let amount = this.safeString2 (order, 'Q');
         amount = Precise.stringAbs (amount);
-        const cost = this.safeString2 (order, 'money', 'deal_money');
-        let side = this.safeString2 (order, 's', 'order_side');
-        if (side === '1') {
-            side = 'buy';
-        } else if (side === '2') {
-            side = 'sell';
-        }
-        const status = this.parseOrderStatus (this.safeString2 (order, 'S', 'status'));
-        const id = this.safeString2 (order, 'i', 'id');
-        const clientOrderId = this.omitZero (this.safeString (order, 'I'));
-        const timeInForce = this.safeStringUpper (order, 't');
-        const postOnly = this.safeValue (order, 'o');
+        const side = this.safeString2 (order, 's');
         const fees = [];
         const orderFees = this.safeValue (order, 'f', []);
         for (let i = 0; i < orderFees.length; i++) {
@@ -1526,41 +1469,35 @@ module.exports = class bibox extends Exchange {
                 'cost': this.safeString (orderFees[i], 'm'),
             });
         }
-        let fee = undefined;
-        if (fees.length) {
-            fee = this.safeValue (fees, 0);
-        } else {
-            const feeCost = this.safeString (order, 'fee');
-            if (feeCost !== undefined) {
-                fee = {
-                    'cost': feeCost,
-                    'currency': undefined,
-                };
-            }
+        const transactions = this.safeValue (order, 'F');
+        const trades = [];
+        for (let i = 0; i < transactions.length; i++) {
+            const trade = this.parseTrade (transactions[i]);
+            trades.push (trade);
         }
         return this.safeOrder ({
             'info': order,
-            'id': id,
-            'clientOrderId': clientOrderId,
+            'id': this.safeString2 (order, 'i'),
+            'clientOrderId': this.omitZero (this.safeString (order, 'I')),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
             'symbol': market['symbol'],
-            'type': type,
-            'timeInForce': timeInForce,
-            'postOnly': postOnly,
+            'type': this.safeString (order, 'T'),
+            'timeInForce': this.safeStringUpper (order, 't'),
+            'postOnly': this.safeValue (order, 'o'),
             'side': side,
-            'price': price,
+            'price': this.safeString2 (order, 'P'),
             'stopPrice': undefined,
             'amount': amount,
-            'cost': cost,
-            'average': average,
-            'filled': filled,
+            'cost': this.safeString (order, 'e'),
+            'average': undefined,
+            'filled': this.safeString (order, 'E'),
             'remaining': undefined,
-            'status': status,
-            'fee': fee,
+            'status': this.parseOrderStatus (this.safeString (order, 'S')),
+            'fee': this.safeValue (fees, 0),
             'fees': fees,
-            'trades': undefined,
+            'trades': trades,
         }, market);
     }
 
