@@ -1419,8 +1419,6 @@ module.exports = class bibox extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // createOrder, fetchOrder V4
-        //
         //    {
         //        i: '14580623696203099',       // the order id assigned by the exchange
         //        I: '0',                       // user specified order id
@@ -1522,71 +1520,82 @@ module.exports = class bibox extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bibox#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @param status open or closed
          * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the bibox api endpoint
+         * @param {int} params.until the latest time in ms to fetch orders for
+         *
+         * EXCHANGE SPECIFIC PARMETERS
+         * @param {string} params.before order update id limited to return the maximum update id of the order
+         * @param {string} params.after delegate update id limited to return the minimum update id of the order
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
+        const request = {};
         let market = undefined;
-        let pair = undefined;
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'until');
         if (symbol !== undefined) {
             market = this.market (symbol);
-            pair = market['id'];
+            request['symbol'] = market['id'];
         }
-        const size = limit ? limit : 200;
-        const request = {
-            'cmd': 'orderpending/orderPendingList',
-            'body': this.extend ({
-                'pair': pair,
-                'account_type': 0, // 0 - regular, 1 - margin
-                'page': 1,
-                'size': size,
-            }, params),
-        };
-        const response = await this.v1PrivatePostOrderpending (request);
+        if (since !== undefined) {
+            params['start_time'] = since;
+        }
+        if (limit !== undefined) {
+            params['limit'] = since;
+        }
+        if (until !== undefined) {
+            params['end_time'] = until;
+        }
+        request['status'] = (status === 'open') ? 'unsettled' : 'settled';
+        const response = await this.v4PrivateGetUserdataOrders (this.extend (request, params));
         //
-        //     {
-        //         "result":[
-        //             {
-        //                 "result":{
-        //                     "count":1,
-        //                     "page":1,
-        //                     "items":[
-        //                         {
-        //                             "id":"100055558128036",
-        //                             "createdAt": 1512756997000,
-        //                             "account_type":0,
-        //                             "coin_symbol":"LTC",        // Trading Token
-        //                             "currency_symbol":"BTC",    // Pricing Token
-        //                             "order_side":2,             // Trading side 1-Buy, 2-Sell
-        //                             "order_type":2,             // 2-limit order
-        //                             "price":"0.00900000",       // order price
-        //                             "amount":"1.00000000",      // order amount
-        //                             "money":"0.00900000",       // currency amount (price * amount)
-        //                             "deal_amount":"0.00000000", // deal amount
-        //                             "deal_percent":"0.00%",     // deal percentage
-        //                             "unexecuted":"0.00000000",  // unexecuted amount
-        //                             "status":1                  // Status,-1-fail, 0,1-to be dealt, 2-dealt partly, 3-dealt totally, 4- cancelled partly, 5-cancelled totally, 6-to be cancelled
-        //                         }
-        //                     ]
-        //                 },
-        //                 "cmd":"orderpending/orderPendingList"
-        //             }
-        //         ]
-        //     }
+        //    [
+        //        {
+        //            "i": 14589419788970785,
+        //            "I": "0",
+        //            "m": "ADA_USDT",
+        //            "T": "limit",
+        //            "s": "buy",
+        //            "Q": 4.000000,
+        //            "P": 0.300000,
+        //            "t": "gtc",
+        //            "o": false,
+        //            "S": "accepted",
+        //            "E": 0,
+        //            "e": 0,
+        //            "C": 1666373682656,
+        //            "U": 1666373682656,
+        //            "V": 587932155076,
+        //            "n": 0,
+        //            "F": [],
+        //            "f": []
+        //        }
+        //    ]
         //
-        const outerResults = this.safeValue (response, 'result');
-        const firstResult = this.safeValue (outerResults, 0, {});
-        const innerResult = this.safeValue (firstResult, 'result', {});
-        const orders = this.safeValue (innerResult, 'items', []);
-        return this.parseOrders (orders, market, since, limit);
+        return this.parseOrders (response, market, since, limit);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = 200, params = {}) {
+        /**
+         * @method
+         * @name bibox#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the bibox api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        return this.fetchOrdersByStatus ('open', symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = 200, params = {}) {
@@ -1601,56 +1610,9 @@ module.exports = class bibox extends Exchange {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchClosedOrders() requires a `symbol` argument');
+            throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires a symbol argument');
         }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'cmd': 'orderpending/pendingHistoryList',
-            'body': this.extend ({
-                'pair': market['id'],
-                'account_type': 0, // 0 - regular, 1 - margin
-                'page': 1,
-                'size': limit,
-            }, params),
-        };
-        const response = await this.v1PrivatePostOrderpending (request);
-        //
-        //     {
-        //         "result":[
-        //             {
-        //                 "result":{
-        //                     "count":1,
-        //                     "page":1,
-        //                     "items":[
-        //                         {
-        //                             "id":"100055558128036",
-        //                             "createdAt": 1512756997000,
-        //                             "account_type":0,
-        //                             "coin_symbol":"LTC",        // Trading Token
-        //                             "currency_symbol":"BTC",    // Pricing Token
-        //                             "order_side":2,             // Trading side 1-Buy, 2-Sell
-        //                             "order_type":2,             // 2-limit order
-        //                             "price":"0.00900000",       // order price
-        //                             "amount":"1.00000000",      // order amount
-        //                             "money":"0.00900000",       // currency amount (price * amount)
-        //                             "deal_amount":"0.00000000", // deal amount
-        //                             "deal_percent":"0.00%",     // deal percentage
-        //                             "unexecuted":"0.00000000",  // unexecuted amount
-        //                             "status":3                  // Status,-1-fail, 0,1-to be dealt, 2-dealt partly, 3-dealt totally, 4- cancelled partly, 5-cancelled totally, 6-to be cancelled
-        //                         }
-        //                     ]
-        //                 },
-        //                 "cmd":"orderpending/pendingHistoryList"
-        //             }
-        //         ]
-        //     }
-        //
-        const outerResults = this.safeValue (response, 'result');
-        const firstResult = this.safeValue (outerResults, 0, {});
-        const innerResult = this.safeValue (firstResult, 'result', {});
-        const orders = this.safeValue (innerResult, 'items', []);
-        return this.parseOrders (orders, market, since, limit);
+        return this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
