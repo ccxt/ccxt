@@ -1597,19 +1597,19 @@ module.exports = class bibox extends Exchange {
         let market = undefined;
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, 'until');
+        if (until !== undefined) {              // The order of request parameters must go end_time -> limit -> start_time -> status -> symbol
+            request['end_time'] = until;
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['start_time'] = since;
         }
         request['status'] = ((status === 'open') || (status === 'unsettled')) ? 'unsettled' : 'settled';
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
-        }
-        if (since !== undefined) {
-            request['start_time'] = since;
-        }
-        if (until !== undefined) {
-            request['end_time'] = until;
         }
         const response = await this.v4PrivateGetUserdataOrders (this.extend (request, params));
         //
