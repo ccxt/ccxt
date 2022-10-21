@@ -1371,45 +1371,50 @@ module.exports = class bibox extends Exchange {
          */
         await this.loadMarkets ();
         const request = {
-            'cmd': 'orderpending/order',
-            'body': this.extend ({
-                'id': id.toString (),
-                'account_type': 0, // 0 = spot account
-            }, params),
+            'id': id,
         };
-        const response = await this.v1PrivatePostOrderpending (request);
+        const response = await this.v4PrivateGetUserdataOrder (this.extend (request, params));
         //
-        //     {
-        //         "result":[
-        //             {
-        //                 "result": {
-        //                     "id": "100055558128036",
-        //                     "createdAt": 1512756997000,
-        //                     "account_type": 0,
-        //                     "coin_symbol": "LTC",        // Trading Token
-        //                     "currency_symbol": "BTC",    // Pricing Token
-        //                     "order_side": 2,             // Trading side 1-Buy, 2-Sell
-        //                     "order_type": 2,             // 2-limit order
-        //                     "price": "0.00900000",       // order price
-        //                     "amount": "1.00000000",      // order amount
-        //                     "money": "0.00900000",       // currency amount (price * amount)
-        //                     "deal_amount": "0.00000000", // deal amount
-        //                     "deal_percent": "0.00%",     // deal percentage
-        //                     "unexecuted": "0.00000000",  // unexecuted amount
-        //                     "status": 3                  // Status, -1-fail, 0,1-to be dealt, 2-dealt partly, 3-dealt totally, 4- cancelled partly, 5-cancelled totally, 6-to be cancelled
-        //                 },
-        //                 "cmd": "orderpending/order"
-        //             }
-        //         ]
-        //     }
+        //    {
+        //        i: '14580623696203099',       // the order id assigned by the exchange
+        //        I: '0',                       // user specified order id
+        //        m: 'ADA_USDT',                // trading pair code
+        //        T: 'limit',                   // order type
+        //        s: 'buy',                     // order direction
+        //        Q: '4.000000',                // order amount
+        //        P: '0.300000',                // order price
+        //        t: 'gtc',                     // time in force
+        //        o: false,                     // post only
+        //        S: 'accepted',                // order status
+        //        E: '0',                       // transaction volume
+        //        e: '0',                       // transaction value
+        //        C: '1666235804233',           // creation time
+        //        U: '1666235804233',           // update time
+        //        V: '586925436933',
+        //        n: '0',                       // number of transactions
+        //        F: [
+        //            {
+        //                i: 13,                // transaction id
+        //                t: 1643193746464,     // transaction time
+        //                p: 10043.85,          // transaction price
+        //                q: -0.009,            // transaction volume
+        //                l: "maker",           // maker / taker transaction
+        //                f: {
+        //                    a: "USDT",        // the asset used for the transaction to pay the handling fee
+        //                    m: 0.09039465000  // the transaction fee
+        //                }
+        //            },
+        //            ...
+        //        ],
+        //        f: [
+        //            {
+        //                a: "USDT",            // Assets used to pay fees
+        //                m: 0.10043850000      // Total handling fee
+        //            }
+        //        ]
+        //    }
         //
-        const outerResults = this.safeValue (response, 'result');
-        const firstResult = this.safeValue (outerResults, 0, {});
-        const order = this.safeValue (firstResult, 'result');
-        if (this.isEmpty (order)) {
-            throw new OrderNotFound (this.id + ' order ' + id + ' not found');
-        }
-        return this.parseOrder (order);
+        return this.parseOrder (response);
     }
 
     parseOrder (order, market = undefined) {
