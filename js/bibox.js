@@ -1964,9 +1964,9 @@ module.exports = class bibox extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const fromMain = fromAccount === 'main' || fromAccount === 'wallet';
+        const fromMain = fromAccount === 'main' || fromAccount === 'wallet' || fromAccount === 'funding';
         const fromSpot = fromAccount === 'spot';
-        const toMain = toAccount === 'main' || toAccount === 'wallet';
+        const toMain = toAccount === 'main' || toAccount === 'wallet' || toAccount === 'funding';
         const toSpot = toAccount === 'spot';
         const toCross = toAccount === 'cross';
         const fromCross = fromAccount === 'cross';
