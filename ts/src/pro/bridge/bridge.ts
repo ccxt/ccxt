@@ -61,6 +61,7 @@ export class aaxBridge extends aaxRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -80,6 +81,7 @@ export class ascendexBridge extends ascendexRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -99,6 +101,7 @@ export class bequantBridge extends bequantRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -118,6 +121,7 @@ export class binanceBridge extends binanceRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -137,6 +141,7 @@ export class binancecoinmBridge extends binancecoinmRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -156,6 +161,7 @@ export class binanceusBridge extends binanceusRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -175,6 +181,7 @@ export class binanceusdmBridge extends binanceusdmRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -194,6 +201,7 @@ export class bitcoincomBridge extends bitcoincomRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -213,6 +221,7 @@ export class bitfinexBridge extends bitfinexRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -232,6 +241,7 @@ export class bitfinex2Bridge extends bitfinex2Rest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -251,6 +261,7 @@ export class bitmartBridge extends bitmartRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -270,6 +281,7 @@ export class bitmexBridge extends bitmexRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -289,6 +301,7 @@ export class bitoproBridge extends bitoproRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -308,6 +321,7 @@ export class bitstampBridge extends bitstampRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -327,6 +341,7 @@ export class bittrexBridge extends bittrexRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -346,6 +361,7 @@ export class bitvavoBridge extends bitvavoRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -365,6 +381,7 @@ export class bybitBridge extends bybitRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -384,6 +401,7 @@ export class coinbaseprimeBridge extends coinbaseprimeRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -403,6 +421,7 @@ export class coinbaseproBridge extends coinbaseproRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -422,6 +441,7 @@ export class coinexBridge extends coinexRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -441,6 +461,7 @@ export class cryptocomBridge extends cryptocomRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -460,6 +481,7 @@ export class currencycomBridge extends currencycomRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -479,6 +501,7 @@ export class exmoBridge extends exmoRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -498,6 +521,7 @@ export class ftxBridge extends ftxRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -517,6 +541,7 @@ export class ftxusBridge extends ftxusRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -536,6 +561,7 @@ export class gateBridge extends gateRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -555,6 +581,7 @@ export class gateioBridge extends gateioRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -574,6 +601,7 @@ export class hitbtcBridge extends hitbtcRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -593,6 +621,7 @@ export class hollaexBridge extends hollaexRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -612,6 +641,7 @@ export class huobiBridge extends huobiRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -631,6 +661,7 @@ export class huobijpBridge extends huobijpRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -650,6 +681,7 @@ export class huobiproBridge extends huobiproRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -669,6 +701,7 @@ export class idexBridge extends idexRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -688,6 +721,7 @@ export class krakenBridge extends krakenRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -707,6 +741,7 @@ export class kucoinBridge extends kucoinRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -726,6 +761,7 @@ export class mexcBridge extends mexcRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -745,6 +781,7 @@ export class ndaxBridge extends ndaxRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -764,6 +801,7 @@ export class okcoinBridge extends okcoinRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -783,6 +821,7 @@ export class okexBridge extends okexRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -802,6 +841,7 @@ export class okxBridge extends okxRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -821,6 +861,7 @@ export class phemexBridge extends phemexRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -840,6 +881,7 @@ export class ripioBridge extends ripioRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -859,6 +901,7 @@ export class upbitBridge extends upbitRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -878,6 +921,7 @@ export class whitebitBridge extends whitebitRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -897,6 +941,7 @@ export class zbBridge extends zbRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);
@@ -916,6 +961,7 @@ export class zipmexBridge extends zipmexRest {
         (config as any).getInflate = this.getInflate.bind (this);
         (config as any).getGunzip = this.getGunzip.bind (this);
         (config as any).getVerboseMode = this.getVerboseMode.bind (this);
+        (config as any).getCost = this.getCost.bind (this);
         (config as any).log = this.log;
         (config as any).ping =  (this as any).ping ? (this as any).ping.bind(this) : undefined;
         this.ws = new WsConnector (config);

@@ -20,6 +20,7 @@ class aaxBridge(ccxt.aax):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -46,6 +47,7 @@ class ascendexBridge(ccxt.ascendex):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -72,6 +74,7 @@ class bequantBridge(ccxt.bequant):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -98,6 +101,7 @@ class binanceBridge(ccxt.binance):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -124,6 +128,7 @@ class binancecoinmBridge(ccxt.binancecoinm):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -150,6 +155,7 @@ class binanceusBridge(ccxt.binanceus):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -176,6 +182,7 @@ class binanceusdmBridge(ccxt.binanceusdm):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -202,6 +209,7 @@ class bitcoincomBridge(ccxt.bitcoincom):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -228,6 +236,7 @@ class bitfinexBridge(ccxt.bitfinex):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -254,6 +263,7 @@ class bitfinex2Bridge(ccxt.bitfinex2):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -280,6 +290,7 @@ class bitmartBridge(ccxt.bitmart):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -306,6 +317,7 @@ class bitmexBridge(ccxt.bitmex):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -332,6 +344,7 @@ class bitoproBridge(ccxt.bitopro):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -358,6 +371,7 @@ class bitstampBridge(ccxt.bitstamp):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -384,6 +398,7 @@ class bittrexBridge(ccxt.bittrex):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -410,6 +425,7 @@ class bitvavoBridge(ccxt.bitvavo):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -436,6 +452,7 @@ class bybitBridge(ccxt.bybit):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -462,6 +479,7 @@ class coinbaseprimeBridge(ccxt.coinbaseprime):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -488,6 +506,7 @@ class coinbaseproBridge(ccxt.coinbasepro):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -514,6 +533,7 @@ class coinexBridge(ccxt.coinex):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -540,6 +560,7 @@ class cryptocomBridge(ccxt.cryptocom):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -566,6 +587,7 @@ class currencycomBridge(ccxt.currencycom):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -592,6 +614,7 @@ class exmoBridge(ccxt.exmo):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -618,6 +641,7 @@ class ftxBridge(ccxt.ftx):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -644,6 +668,7 @@ class ftxusBridge(ccxt.ftxus):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -670,6 +695,7 @@ class gateBridge(ccxt.gate):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -696,6 +722,7 @@ class gateioBridge(ccxt.gateio):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -722,6 +749,7 @@ class hitbtcBridge(ccxt.hitbtc):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -748,6 +776,7 @@ class hollaexBridge(ccxt.hollaex):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -774,6 +803,7 @@ class huobiBridge(ccxt.huobi):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -800,6 +830,7 @@ class huobijpBridge(ccxt.huobijp):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -826,6 +857,7 @@ class huobiproBridge(ccxt.huobipro):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -852,6 +884,7 @@ class idexBridge(ccxt.idex):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -878,6 +911,7 @@ class krakenBridge(ccxt.kraken):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -904,6 +938,7 @@ class kucoinBridge(ccxt.kucoin):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -930,6 +965,7 @@ class mexcBridge(ccxt.mexc):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -956,6 +992,7 @@ class ndaxBridge(ccxt.ndax):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -982,6 +1019,7 @@ class okcoinBridge(ccxt.okcoin):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -1008,6 +1046,7 @@ class okexBridge(ccxt.okex):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -1034,6 +1073,7 @@ class okxBridge(ccxt.okx):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -1060,6 +1100,7 @@ class phemexBridge(ccxt.phemex):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -1086,6 +1127,7 @@ class ripioBridge(ccxt.ripio):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -1112,6 +1154,7 @@ class upbitBridge(ccxt.upbit):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -1138,6 +1181,7 @@ class whitebitBridge(ccxt.whitebit):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -1164,6 +1208,7 @@ class zbBridge(ccxt.zb):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open
@@ -1190,6 +1235,7 @@ class zipmexBridge(ccxt.zipmex):
         config['get_keep_alive'] = self.get_keep_alive
         config['get_max_ping_pong_misses'] = self.get_max_ping_pong_misses
         config['get_verbose_mode'] = self.get_verbose_mode
+        config['get_cost'] = self.get_cost
         config['log'] = self.log
         config['ping'] = self.ping
         config['open'] = self.open

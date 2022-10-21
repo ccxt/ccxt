@@ -21,6 +21,7 @@ export default class WsConnector  {
     getInflate = undefined
     getGunzip = undefined
     getEnableRateLimit = undefined
+    getCost = undefined
 
     constructor (options = {}) {
         this.newUpdates = (options as any).newUpdates || true;
@@ -30,13 +31,13 @@ export default class WsConnector  {
         this.newUpdates = true;
         this.options = {};
         this.log = (options as any).log;
-        // this.streaming = (options as any).streaming; 
         this.ping = (options as any).ping;
         this.getTokenBucket = (options as any).getTokenBucket;
         this.getKeepAlive = (options as any).getKeepAlive;
         this.getInflate = (options as any).getInflate;
         this.getGunzip = (options as any).getGunzip;
         this.getEnableRateLimit = (options as any).getEnableRateLimit; 
+        this.getCost = (options as any).getCost;
         this.clients = {};
     }
 

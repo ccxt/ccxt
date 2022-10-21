@@ -42,6 +42,7 @@ class WsConnector:
     open = None
     get_session = None
     get_loop = None
+    get_cost = None
 
     def __init__(self, options):
         self.options = options
@@ -58,6 +59,7 @@ class WsConnector:
         self.open = options.get('open')
         self.get_session = options.get('get_session')
         self.get_loop = options.get('get_loop')
+        self.get_cost = options.get('get_cost')
 
     # # streaming-specific options
     # streaming = {
@@ -142,8 +144,7 @@ class WsConnector:
             if subscribe_hash not in client.subscriptions:
                 client.subscriptions[subscribe_hash] = subscription or True
                 # todo: decouple signing from subscriptions
-                options = BaseExchange.safe_value(self.options, 'ws')
-                cost = BaseExchange.safe_value(options, 'cost', 1)
+                cost = self.get_cost() 
                 if message:
                     async def send_message():
                         if self.get_enable_rate_limit():

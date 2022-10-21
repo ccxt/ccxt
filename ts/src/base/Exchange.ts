@@ -1238,6 +1238,12 @@ export default class Exchange {
             return !!(this as any).options?.ws?.gunzip;
         }
 
+        getCost() {
+            const options = safeValue (this.options, 'ws');
+            const cost = safeValue (options, 'cost', 1);
+            return cost;
+        }
+
     /* eslint-enable */
     // ------------------------------------------------------------------------
 

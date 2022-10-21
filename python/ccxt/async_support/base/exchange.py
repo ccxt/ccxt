@@ -304,6 +304,12 @@ class Exchange(BaseExchange):
         if ws_op:
             return ws_op.get('gunzip')
         return False
+    
+    def get_cost(self):
+        options = self.safe_value(self.options, 'ws')
+        cost = self.safe_value(options, 'cost', 1)
+        return cost
+
 
     # ########################################################################
     # ########################################################################
