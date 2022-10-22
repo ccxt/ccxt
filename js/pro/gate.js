@@ -813,7 +813,7 @@ module.exports = class gate extends gateRest {
         });
         const method = typeId + '.orders';
         let messageHash = method;
-        let payload = [ '!all' ];
+        let payload = [ '!' + 'all' ];
         if (symbol !== undefined) {
             messageHash = method + ':' + market['id'];
             payload = [ market['id'] ];
