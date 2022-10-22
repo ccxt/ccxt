@@ -194,6 +194,7 @@ class bybit(Exchange):
                         'option/usdc/openapi/public/v1/delivery-price': 1,
                         'option/usdc/openapi/public/v1/query-trade-latest': 1,
                         'option/usdc/openapi/public/v1/query-historical-volatility': 1,
+                        'option/usdc/openapi/public/v1/all-tickers': 1,
                         # perpetual swap USDC
                         'perpetual/usdc/openapi/public/v1/order-book': 1,
                         'perpetual/usdc/openapi/public/v1/symbols': 1,
@@ -594,12 +595,16 @@ class bybit(Exchange):
                     'future': 'CONTRACT',
                     'swap': 'CONTRACT',
                     'option': 'OPTION',
+                    'investment': 'INVESTMENT',
+                    'unified': 'UNIFIED',
                 },
                 'accountsById': {
                     'SPOT': 'spot',
                     'MARGIN': 'spot',
                     'CONTRACT': 'contract',
                     'OPTION': 'option',
+                    'INVESTMENT': 'investment',
+                    'UNIFIED': 'unified',
                 },
             },
             'fees': {
@@ -2103,7 +2108,7 @@ class bybit(Exchange):
         result = self.safe_value(response, 'result', [])
         timestamp = self.safe_timestamp(response, 'time_now')
         if timestamp is None:
-            timestamp = self.safe_integer(response, 'time')
+            timestamp = self.safe_integer(result, 'time')
         bidsKey = 'bids' if market['spot'] else 'Buy'
         asksKey = 'asks' if market['spot'] else 'Sell'
         priceKey = 0 if market['spot'] else 'price'
@@ -2540,6 +2545,8 @@ class bybit(Exchange):
         timeInForce = self.parse_time_in_force(self.safe_string_2(order, 'time_in_force', 'timeInForce'))
         stopPrice = self.safe_string_n(order, ['trigger_price', 'stop_px', 'stopPrice', 'triggerPrice'])
         postOnly = (timeInForce == 'PO')
+        if (market['spot'] and type == 'market') and (side == 'buy'):
+            amount = filled
         return self.safe_order({
             'info': order,
             'id': id,

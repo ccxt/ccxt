@@ -650,10 +650,6 @@ class okx(Exchange):
                     'OEC': 'OEC',
                     'ALGO': 'ALGO',  # temporarily unavailable
                 },
-                'layerTwo': {
-                    'Lightning': True,
-                    'Liquid': True,
-                },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
                         '5m': '5m',
@@ -1181,23 +1177,15 @@ class okx(Exchange):
                 if (networkId is not None) and (networkId.find('-') >= 0):
                     parts = networkId.split('-')
                     chainPart = self.safe_string(parts, 1, networkId)
-                    network = self.safe_network(chainPart)
-                    mainNet = self.safe_value(chain, 'mainNet', False)
-                    layerTwo = self.safe_value(self.options, 'layerTwo', {
-                        'Liquid': True,
-                        'Lightning': True,
-                    })
-                    if mainNet and not (chainPart in layerTwo):
-                        # BTC lighting and liquid are both mainnet but not the same as BTC-Bitcoin
-                        network = code
+                    networkCode = self.safe_network(chainPart)
                     precision = self.parse_precision(self.safe_string(chain, 'wdTickSz'))
                     if maxPrecision is None:
                         maxPrecision = precision
                     else:
                         maxPrecision = Precise.string_min(maxPrecision, precision)
-                    networks[network] = {
+                    networks[networkCode] = {
                         'id': networkId,
-                        'network': network,
+                        'network': networkCode,
                         'active': active,
                         'deposit': canDeposit,
                         'withdraw': canWithdraw,
@@ -2053,6 +2041,7 @@ class okx(Exchange):
             brokerId = self.safe_string(self.options, 'brokerId')
             if brokerId is not None:
                 request['clOrdId'] = brokerId + self.uuid16()
+                request['tag'] = brokerId
         else:
             request['clOrdId'] = clientOrderId
             params = self.omit(params, ['clOrdId', 'clientOrderId'])
@@ -3795,8 +3784,10 @@ class okx(Exchange):
     def fetch_position(self, symbol, params={}):
         """
         fetch data on a single open contract trade position
+        see https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
         :param str symbol: unified market symbol of the market the position is held in, default is None
         :param dict params: extra parameters specific to the okx api endpoint
+        :param str|None params['instType']: MARGIN, SWAP, FUTURES, OPTION
         :returns dict: a `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         self.load_markets()
@@ -3864,25 +3855,27 @@ class okx(Exchange):
 
     def fetch_positions(self, symbols=None, params={}):
         """
+        see https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
         fetch all open positions
         :param [str]|None symbols: list of unified market symbols
         :param dict params: extra parameters specific to the okx api endpoint
+        :param str|None params['instType']: MARGIN, SWAP, FUTURES, OPTION
         :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         self.load_markets()
-        symbols = self.market_symbols(symbols)
-        # defaultType = self.safe_string_2(self.options, 'fetchPositions', 'defaultType')
-        # type = self.safe_string(params, 'type', defaultType)
         request = {
-            # instType str No Instrument type, MARGIN, SWAP, FUTURES, OPTION, instId will be checked against instType when both parameters are passed, and the position information of the instId will be returned.
-            # instId str No Instrument ID, e.g. BTC-USD-190927-5000-C
-            # posId str No Single position ID or multiple position IDs(no more than 20) separated with comma
+            # 'instType': 'MARGIN',  # optional string, MARGIN, SWAP, FUTURES, OPTION
+            # 'instId': market['id'],  # optional string, e.g. 'BTC-USD-190927-5000-C'
+            # 'posId': '307173036051017730',  # optional string, Single or multiple position IDs(no more than 20) separated with commas
         }
-        type, query = self.handle_market_type_and_params('fetchPositions', None, params)
-        if type is not None:
-            if (type == 'swap') or (type == 'future'):
-                request['instType'] = self.convert_to_instrument_type(type)
-        response = self.privateGetAccountPositions(self.extend(request, query))
+        if symbols is not None:
+            marketIds = []
+            for i in range(0, len(symbols)):
+                entry = symbols[i]
+                market = self.market(entry)
+                marketIds.append(market['id'])
+            request['instId'] = str(marketIds)
+        response = self.privateGetAccountPositions(self.extend(request, params))
         #
         #     {
         #         "code": "0",
@@ -3932,10 +3925,7 @@ class okx(Exchange):
         positions = self.safe_value(response, 'data', [])
         result = []
         for i in range(0, len(positions)):
-            entry = positions[i]
-            instrument = self.safe_string(entry, 'instType')
-            if (instrument == 'FUTURES') or (instrument == 'SWAP'):
-                result.append(self.parse_position(positions[i]))
+            result.append(self.parse_position(positions[i]))
         return self.filter_by_array(result, 'symbol', symbols, False)
 
     def parse_position(self, position, market=None):

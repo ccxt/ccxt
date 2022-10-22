@@ -180,6 +180,7 @@ module.exports = class bybit extends Exchange {
                         'option/usdc/openapi/public/v1/delivery-price': 1,
                         'option/usdc/openapi/public/v1/query-trade-latest': 1,
                         'option/usdc/openapi/public/v1/query-historical-volatility': 1,
+                        'option/usdc/openapi/public/v1/all-tickers': 1,
                         // perpetual swap USDC
                         'perpetual/usdc/openapi/public/v1/order-book': 1,
                         'perpetual/usdc/openapi/public/v1/symbols': 1,
@@ -580,12 +581,16 @@ module.exports = class bybit extends Exchange {
                     'future': 'CONTRACT',
                     'swap': 'CONTRACT',
                     'option': 'OPTION',
+                    'investment': 'INVESTMENT',
+                    'unified': 'UNIFIED',
                 },
                 'accountsById': {
                     'SPOT': 'spot',
                     'MARGIN': 'spot',
                     'CONTRACT': 'contract',
                     'OPTION': 'option',
+                    'INVESTMENT': 'investment',
+                    'UNIFIED': 'unified',
                 },
             },
             'fees': {
@@ -2176,7 +2181,7 @@ module.exports = class bybit extends Exchange {
         const result = this.safeValue (response, 'result', []);
         let timestamp = this.safeTimestamp (response, 'time_now');
         if (timestamp === undefined) {
-            timestamp = this.safeInteger (response, 'time');
+            timestamp = this.safeInteger (result, 'time');
         }
         const bidsKey = market['spot'] ? 'bids' : 'Buy';
         const asksKey = market['spot'] ? 'asks' : 'Sell';
@@ -2600,7 +2605,7 @@ module.exports = class bybit extends Exchange {
         const type = this.safeStringLowerN (order, [ 'order_type', 'type', 'orderType' ]);
         const price = this.safeString2 (order, 'price', 'orderPrice');
         const average = this.safeString2 (order, 'average_price', 'avgPrice');
-        const amount = this.safeStringN (order, [ 'qty', 'origQty', 'orderQty' ]);
+        let amount = this.safeStringN (order, [ 'qty', 'origQty', 'orderQty' ]);
         const cost = this.safeString2 (order, 'cum_exec_value', 'cumExecValue');
         const filled = this.safeStringN (order, [ 'cum_exec_qty', 'executedQty', 'cumExecQty' ]);
         const remaining = this.safeString2 (order, 'leaves_qty', 'leavesQty');
@@ -2635,6 +2640,9 @@ module.exports = class bybit extends Exchange {
         const timeInForce = this.parseTimeInForce (this.safeString2 (order, 'time_in_force', 'timeInForce'));
         const stopPrice = this.safeStringN (order, [ 'trigger_price', 'stop_px', 'stopPrice', 'triggerPrice' ]);
         const postOnly = (timeInForce === 'PO');
+        if ((market['spot'] && type === 'market') && (side === 'buy')) {
+            amount = filled;
+        }
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -4911,9 +4919,9 @@ module.exports = class bybit extends Exchange {
          * @name bybit#fetchBorrowRate
          * @description fetch the rate of interest to borrow a currency for margin trading
          * @see https://bybit-exchange.github.io/docs/spot/#t-queryinterestquota
-         * @param {str} code unified currency code
-         * @param {dict} params extra parameters specific to the bybit api endpoint
-         * @returns {dict} a [borrow rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);

@@ -511,7 +511,6 @@ declare module 'ccxt' {
     export class delta extends Exchange {}
     export class deribit extends Exchange {}
     export class digifinex extends Exchange {}
-    export class eqonex extends Exchange {}
     export class exmo extends Exchange {}
     export class flowbtc extends ndax {}
     export class fmfwio extends hitbtc {}
@@ -637,7 +636,6 @@ declare module 'ccxt' {
         | 'delta'
         | 'deribit'
         | 'digifinex'
-        | 'eqonex'
         | 'exmo'
         | 'flowbtc'
         | 'fmfwio'
@@ -712,7 +710,7 @@ declare module 'ccxt' {
         watchOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
         watchOpenOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
         watchClosedOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
-        watchMyTrades (symbol?: string, since?: any, limit?: any, params?: Params): Promise<Trade>;
+        watchMyTrades (symbol?: string, since?: any, limit?: any, params?: Params): Promise<Trade[]>;
     }
 
     export namespace pro {

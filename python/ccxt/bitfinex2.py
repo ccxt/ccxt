@@ -903,7 +903,7 @@ class bitfinex2(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'status': self.parse_transfer_status(status),
-            'amount': self.safe_number(transfer, 7),
+            'amount': self.safe_number(info, 7),
             'currency': self.safe_currency_code(currencyId, currency),
             'fromAccount': fromAccount,
             'toAccount': toAccount,

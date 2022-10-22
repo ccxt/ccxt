@@ -648,9 +648,10 @@ class btcalpha extends Exchange {
                 throw new InvalidOrder($this->id . ' ' . $this->json($response));
             }
             $order = $this->parse_order($response, $market);
-            $amount = ($order['amount'] > 0) ? $order['amount'] : $amount;
+            $orderAmount = (string) $order['amount'];
+            $amount = Precise::string_gt($orderAmount, '0') ? $order['amount'] : $amount;
             return array_merge($order, array(
-                'amount' => $amount,
+                'amount' => $this->parse_number($amount),
             ));
         }) ();
     }

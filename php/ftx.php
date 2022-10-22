@@ -244,6 +244,7 @@ class ftx extends Exchange {
                         'twap_orders/{twap_order_id}' => 1,
                         'historical_balances/requests' => 1,
                         'historical_balances/requests/{request_id}' => 1,
+                        'fast_access_settings/list_ips' => 1,
                     ),
                     'post' => array(
                         // subaccounts
@@ -295,6 +296,9 @@ class ftx extends Exchange {
                         'support/tickets/{ticketId}/mark_as_read' => 1,
                         'twap_orders' => 1,
                         'historical_balances/requests' => 1,
+                        'fast_access_settings/add_ip' => 1,
+                        'fast_access_settings/enable_ip/{ipAddress}' => 1,
+                        'fast_access_settings/disable_ip/{ipAddress}' => 1,
                     ),
                     'delete' => array(
                         // subaccounts
@@ -314,6 +318,7 @@ class ftx extends Exchange {
                         // staking
                         'staking/unstake_requests/{request_id}' => 1,
                         'twap_orders/{twap_order_id}' => 1,
+                        'fast_access_settings/delete_ip/{ipAddress}' => 1,
                     ),
                 ),
             ),
