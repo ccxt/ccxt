@@ -592,6 +592,13 @@ module.exports = class bybit extends Exchange {
                     'INVESTMENT': 'investment',
                     'UNIFIED': 'unified',
                 },
+                'networks': {
+                    'ERC20': 'ETH',
+                    'TRC20': 'TRX',
+                    'BEP20': 'BSC',
+                    'OMNI': 'OMNI',
+                    'SPL': 'SOL',
+                },
             },
             'fees': {
                 'trading': {
