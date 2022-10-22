@@ -803,7 +803,9 @@ module.exports = class gate extends gateRest {
             market = this.market (symbol);
             symbol = market['symbol'];
         }
-        const [ type, query ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        let type = undefined;
+        let query = undefined;
+        [ type, query ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         const typeId = this.getSupportedMapping (type, {
             'spot': 'spot',
             'margin': 'spot',
@@ -818,7 +820,8 @@ module.exports = class gate extends gateRest {
             messageHash = method + ':' + market['id'];
             payload = [ market['id'] ];
         }
-        const [ subType, _ ] = this.handleSubTypeAndParams ('watchOrders', market, query); // eslint-disable-line
+        let subType = undefined;
+        [ subType, query ] = this.handleSubTypeAndParams ('watchOrders', market, query);
         const isInverse = (subType === 'inverse');
         const url = this.getUrlByMarketType (type, isInverse);
         // uid required for non spot markets
