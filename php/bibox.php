@@ -1924,9 +1924,9 @@ class bibox extends Exchange {
          */
         $this->load_markets();
         $currency = $this->currency($code);
-        $fromMain = $fromAccount === 'main' || $fromAccount === 'wallet';
+        $fromMain = $fromAccount === 'main' || $fromAccount === 'wallet' || $fromAccount === 'funding';
         $fromSpot = $fromAccount === 'spot';
-        $toMain = $toAccount === 'main' || $toAccount === 'wallet';
+        $toMain = $toAccount === 'main' || $toAccount === 'wallet' || $toAccount === 'funding';
         $toSpot = $toAccount === 'spot';
         $toCross = $toAccount === 'cross';
         $fromCross = $fromAccount === 'cross';

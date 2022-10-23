@@ -1862,9 +1862,9 @@ class bibox(Exchange):
         """
         self.load_markets()
         currency = self.currency(code)
-        fromMain = fromAccount == 'main' or fromAccount == 'wallet'
+        fromMain = fromAccount == 'main' or fromAccount == 'wallet' or fromAccount == 'funding'
         fromSpot = fromAccount == 'spot'
-        toMain = toAccount == 'main' or toAccount == 'wallet'
+        toMain = toAccount == 'main' or toAccount == 'wallet' or toAccount == 'funding'
         toSpot = toAccount == 'spot'
         toCross = toAccount == 'cross'
         fromCross = fromAccount == 'cross'

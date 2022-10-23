@@ -805,25 +805,37 @@ class gate extends \ccxt\async\gate {
              * @param {int|null} $since the earliest time in ms to fetch $orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the gate api endpoint
-             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             * @param {string} $params->type spot, margin, swap, future, or option. Required if listening to all symbols.
+             * @param {boolean} $params->isInverse if future, listen to inverse or linear contracts
+             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument');
-            }
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $type = 'spot';
-            if ($market['future'] || $market['swap']) {
-                $type = 'futures';
-            } elseif ($market['option']) {
-                $type = 'options';
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
             }
-            $method = $type . '.orders';
+            $type = null;
+            $query = null;
+            list($type, $query) = $this->handle_market_type_and_params('watchOrders', $market, $params);
+            $typeId = $this->get_supported_mapping($type, array(
+                'spot' => 'spot',
+                'margin' => 'spot',
+                'future' => 'futures',
+                'swap' => 'futures',
+                'option' => 'options',
+            ));
+            $method = $typeId . '.orders';
             $messageHash = $method;
-            $messageHash = $method . ':' . $market['id'];
-            $url = $this->get_url_by_market_type($market['type'], $market['inverse']);
-            $payload = [ $market['id'] ];
+            $payload = array( '!' . 'all' );
+            if ($symbol !== null) {
+                $messageHash = $method . ':' . $market['id'];
+                $payload = [ $market['id'] ];
+            }
+            $subType = null;
+            list($subType, $query) = $this->handle_sub_type_and_params('watchOrders', $market, $query);
+            $isInverse = ($subType === 'inverse');
+            $url = $this->get_url_by_market_type($type, $isInverse);
             // uid required for non spot markets
             $requiresUid = ($type !== 'spot');
             $orders = Async\await($this->subscribe_private($url, $method, $messageHash, $payload, $requiresUid));
@@ -901,6 +913,7 @@ class gate extends \ccxt\async\gate {
                 $messageHash = $channel . ':' . $keys[$i];
                 $client->resolve ($this->orders, $messageHash);
             }
+            $client->resolve ($this->orders, $channel);
         }
     }
 
