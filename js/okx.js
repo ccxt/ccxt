@@ -2481,7 +2481,10 @@ module.exports = class okx extends Exchange {
             clientOrderId = undefined; // fix empty clientOrderId string
         }
         const stopPrice = this.safeNumberN (order, [ 'triggerPx', 'slTriggerPx', 'tpTriggerPx' ]);
-        const reduceOnly = this.safeValue (order, 'reduceOnly');
+        let reduceOnly = this.safeString (order, 'reduceOnly');
+        if (reduceOnly !== undefined) {
+            reduceOnly = (reduceOnly === 'true');
+        }
         return this.safeOrder ({
             'info': order,
             'id': id,
