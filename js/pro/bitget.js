@@ -1102,7 +1102,7 @@ module.exports = class bitget extends bitgetRest {
             'account': this.handleBalance,
         };
         const arg = this.safeValue (message, 'arg', {});
-        const topic = this.safeValue (arg, 'channel');
+        const topic = this.safeValue (arg, 'channel', '');
         const method = this.safeValue (methods, topic);
         if (method !== undefined) {
             method.call (this, client, message);
