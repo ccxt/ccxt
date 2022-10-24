@@ -1917,7 +1917,7 @@ module.exports = class ftx extends Exchange {
         const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
         if (clientOrderId === undefined) {
             request['order_id'] = parseInt (id);
-            if (isTriggerOrder || (type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
+            if (isTriggerOrder || this.inArray (type, [ 'stop', 'trailingStop', 'takeProfit' ])) {
                 method = 'privateDeleteConditionalOrdersOrderId';
             }
         } else {
