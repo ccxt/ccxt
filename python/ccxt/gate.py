@@ -47,6 +47,7 @@ class gate(Exchange):
                         'delivery': 'https://api.gateio.ws/api/v4',
                         'spot': 'https://api.gateio.ws/api/v4',
                         'options': 'https://api.gateio.ws/api/v4',
+                        'sub_accounts': 'https://api.gateio.ws/api/v4',
                     },
                     'private': {
                         'withdrawals': 'https://api.gateio.ws/api/v4',
@@ -56,6 +57,7 @@ class gate(Exchange):
                         'delivery': 'https://api.gateio.ws/api/v4',
                         'spot': 'https://api.gateio.ws/api/v4',
                         'options': 'https://api.gateio.ws/api/v4',
+                        'subAccounts': 'https://api.gateio.ws/api/v4',
                     },
                 },
                 'test': {
@@ -206,10 +208,10 @@ class gate(Exchange):
                 'private': {
                     'withdrawals': {
                         'post': {
-                            '': 3000,  # 3000 = 10 seconds
+                            'withdrawals': 3000,  # 3000 = 10 seconds
                         },
                         'delete': {
-                            '{withdrawal_id}': 300,
+                            'withdrawals/{withdrawal_id}': 300,
                         },
                     },
                     'wallet': {
@@ -226,6 +228,26 @@ class gate(Exchange):
                         'post': {
                             'transfers': 300,
                             'sub_account_transfers': 300,
+                        },
+                    },
+                    'subAccounts': {
+                        'get': {
+                            'sub_accounts': 1,
+                            'sub_accounts/{user_id}': 1,
+                            'sub_accounts/{user_id}/keys': 1,
+                            'sub_accounts/{user_id}/keys/{key}': 1,
+                        },
+                        'post': {
+                            'sub_accounts': 1,
+                            'sub_accounts/{user_id}/keys': 1,
+                            'sub_accounts/{user_id}/lock': 1,
+                            'sub_accounts/{user_id}/unlock': 1,
+                        },
+                        'put': {
+                            'sub_accounts/{user_id}/keys/{key}': 1,
+                        },
+                        'delete': {
+                            'sub_accounts/{user_id}/keys/{key}': 1,
                         },
                     },
                     'spot': {
@@ -2670,7 +2692,7 @@ class gate(Exchange):
         if network is not None:
             request['chain'] = network
             params = self.omit(params, 'network')
-        response = self.privateWithdrawalsPost(self.extend(request, params))
+        response = self.privateWithdrawalsPostWithdrawals(self.extend(request, params))
         #
         #    {
         #        "id": "w13389675",
@@ -3863,7 +3885,19 @@ class gate(Exchange):
         :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         self.load_markets()
-        type, query = self.handle_market_type_and_params('fetchPositions', None, params)
+        market = None
+        if symbols is not None:
+            symbols = self.market_symbols(symbols)
+            symbolsLength = len(symbols)
+            if symbolsLength > 0:
+                market = self.market(symbols[0])
+                for i in range(1, len(symbols)):
+                    checkMarket = self.market(symbols[i])
+                    if checkMarket['type'] != market['type']:
+                        raise BadRequest(self.id + ' fetchPositions() does not support multiple types of positions at the same time')
+        type, query = self.handle_market_type_and_params('fetchPositions', market, params)
+        if type != 'swap' and type != 'future':
+            raise ArgumentsRequired(self.id + ' fetchPositions requires a type parameter, "swap" or "future"')
         request, requestParams = self.prepare_request(None, type, query)
         method = self.get_supported_mapping(type, {
             'swap': 'privateFuturesGetSettlePositions',
@@ -4357,6 +4391,7 @@ class gate(Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             queryString = ''
             requiresURLEncoding = False
             if type == 'futures' and method == 'POST':

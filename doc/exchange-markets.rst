@@ -2,7 +2,7 @@
 Supported Exchanges
 ===================
 
-The CCXT library currently supports the following 115 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 114 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -250,7 +250,7 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      
      - 
      - 
-   * - .. image:: https://user-images.githubusercontent.com/51840849/88317935-a8a21c80-cd22-11ea-8e2b-4b9fac5975eb.jpg
+   * - .. image:: https://user-images.githubusercontent.com/1294454/195989417-4253ddb0-afbe-4a1c-9dea-9dbcd121fa5d.jpg
           :target: https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j
           :alt: bitget
      
@@ -260,7 +260,10 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
           :target: https://bitgetlimited.github.io/apidoc/en/mix
           :alt: API Version 1
      
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg
           :target: https://www.bithumb.com
@@ -784,18 +787,6 @@ The CCXT library currently supports the following 115 cryptocurrency exchange ma
      - .. image:: https://img.shields.io/badge/3-lightgray
           :target: https://docs.digifinex.com
           :alt: API Version 3
-     
-     - 
-     - 
-   * - .. image:: https://user-images.githubusercontent.com/51840849/122649755-1a076c80-d138-11eb-8f2e-9a9166a03d79.jpg
-          :target: https://eqonex.com?referredByCode=zpa8kij4ouvBFup3
-          :alt: eqonex
-     
-     - eqonex
-     - `EQONEX <https://eqonex.com?referredByCode=zpa8kij4ouvBFup3>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://developer.eqonex.com
-          :alt: API Version *
      
      - 
      - 

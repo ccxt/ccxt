@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { BadSymbol, BadRequest, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, RateLimitExceeded, OnMaintenance } = require ('./base/errors');
+const { BadSymbol, BadRequest, ExchangeNotAvailable, ArgumentsRequired, PermissionDenied, AuthenticationError, ExchangeError, OrderNotFound, DDoSProtection, InvalidNonce, InsufficientFunds, CancelPending, InvalidOrder, InvalidAddress, RateLimitExceeded, OnMaintenance, AccountSuspended } = require ('./base/errors');
 const { TRUNCATE, TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -330,6 +330,7 @@ module.exports = class kraken extends Exchange {
                 'EFunding:Unknown asset': BadSymbol, // {"error":["EFunding:Unknown asset"]}
                 'EService:Market in post_only mode': OnMaintenance, // {"error":["EService:Market in post_only mode"]}
                 'EGeneral:Too many requests': DDoSProtection, // {"error":["EGeneral:Too many requests"]}
+                'ETrade:User Locked': AccountSuspended, // {"error":["ETrade:User Locked"]}
             },
         });
     }

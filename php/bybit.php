@@ -57,6 +57,7 @@ class bybit extends Exchange {
                 'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => true,
                 'fetchOpenInterestHistory' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -179,6 +180,7 @@ class bybit extends Exchange {
                         'option/usdc/openapi/public/v1/delivery-price' => 1,
                         'option/usdc/openapi/public/v1/query-trade-latest' => 1,
                         'option/usdc/openapi/public/v1/query-historical-volatility' => 1,
+                        'option/usdc/openapi/public/v1/all-tickers' => 1,
                         // perpetual swap USDC
                         'perpetual/usdc/openapi/public/v1/order-book' => 1,
                         'perpetual/usdc/openapi/public/v1/symbols' => 1,
@@ -579,12 +581,23 @@ class bybit extends Exchange {
                     'future' => 'CONTRACT',
                     'swap' => 'CONTRACT',
                     'option' => 'OPTION',
+                    'investment' => 'INVESTMENT',
+                    'unified' => 'UNIFIED',
                 ),
                 'accountsById' => array(
                     'SPOT' => 'spot',
                     'MARGIN' => 'spot',
                     'CONTRACT' => 'contract',
                     'OPTION' => 'option',
+                    'INVESTMENT' => 'investment',
+                    'UNIFIED' => 'unified',
+                ),
+                'networks' => array(
+                    'ERC20' => 'ETH',
+                    'TRC20' => 'TRX',
+                    'BEP20' => 'BSC',
+                    'OMNI' => 'OMNI',
+                    'SPL' => 'SOL',
                 ),
             ),
             'fees' => array(
@@ -2613,6 +2626,9 @@ class bybit extends Exchange {
         $timeInForce = $this->parse_time_in_force($this->safe_string_2($order, 'time_in_force', 'timeInForce'));
         $stopPrice = $this->safe_string_n($order, array( 'trigger_price', 'stop_px', 'stopPrice', 'triggerPrice' ));
         $postOnly = ($timeInForce === 'PO');
+        if (($market['spot'] && $type === 'market') && ($side === 'buy')) {
+            $amount = $filled;
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -4822,23 +4838,74 @@ class bybit extends Exchange {
         return $this->parse_open_interests($result, $market, $since, $limit);
     }
 
+    public function fetch_open_interest($symbol, $params = array ()) {
+        /**
+         * Retrieves the open interest of a derivative trading pair
+         * @see https://bybit-exchange.github.io/docs/derivativesV3/contract/#t-dv_marketopeninterest
+         * @param {string} $symbol Unified CCXT $market $symbol
+         * @param {array} $params exchange specific parameters
+         * @param {string|null} $params->interval 5m, 15m, 30m, 1h, 4h, 1d
+         * @param {string|null} $params->category "linear" or "inverse"
+         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure)
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['contract']) {
+            throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
+        }
+        $timeframe = $this->safe_string($params, 'interval', '1h');
+        if ($timeframe === '1m') {
+            throw new BadRequest($this->id . ' fetchOpenInterest() cannot use the 1m timeframe');
+        }
+        $subType = $market['linear'] ? 'linear' : 'inverse';
+        $category = $this->safe_string($params, 'category', $subType);
+        $request = array(
+            'symbol' => $market['id'],
+            'interval' => $timeframe,
+            'category' => $category,
+        );
+        $response = $this->publicGetDerivativesV3PublicOpenInterest (array_merge($request, $params));
+        //
+        //     {
+        //         "retCode" => 0,
+        //         "retMsg" => "OK",
+        //         "result" => array(
+        //             "symbol" => "BTCUSDT",
+        //             "category" => "linear",
+        //             "list" => array(
+        //                 array(
+        //                     "openInterest" => "64757.62400000",
+        //                     "timestamp" => "1665784800000"
+        //                 ),
+        //                 ...
+        //             )
+        //         ),
+        //         "retExtInfo" => null,
+        //         "time" => 1665784849646
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        $id = $this->safe_string($result, 'symbol');
+        $market = $this->safe_market($id, $market);
+        $data = $this->safe_value($result, 'list', array());
+        return $this->parse_open_interest($data[0], $market);
+    }
+
     public function parse_open_interest($interest, $market = null) {
         //
         //    {
-        //        "open_interest" => 805604444,
-        //        "timestamp" => 1645056000,
-        //        "symbol" => "BTCUSD"
+        //        "openInterest" => 64757.62400000,
+        //        "timestamp" => 1665784800000,
         //    }
         //
-        $id = $this->safe_string($interest, 'symbol');
-        $market = $this->safe_market($id, $market);
-        $timestamp = $this->safe_timestamp($interest, 'timestamp');
-        $numContracts = $this->safe_string($interest, 'open_interest');
-        $contractSize = $this->safe_string($market, 'contractSize');
+        $timestamp = $this->safe_integer($interest, 'timestamp');
+        $value = $this->safe_number_2($interest, 'openInterest', 'open_interest');
         return array(
-            'symbol' => $this->safe_symbol($id),
-            'baseVolume' => Precise::string_mul($numContracts, $contractSize),
-            'quoteVolume' => null,
+            'symbol' => $this->safe_symbol($market['id']),
+            'baseVolume' => $value,  // deprecated
+            'quoteVolume' => null,  // deprecated
+            'openInterestAmount' => null,
+            'openInterestValue' => $value,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
@@ -4849,9 +4916,9 @@ class bybit extends Exchange {
         /**
          * fetch the rate of interest to borrow a $currency for margin trading
          * @see https://bybit-exchange.github.io/docs/spot/#t-queryinterestquota
-         * @param {str} $code unified $currency $code
-         * @param {dict} $params extra parameters specific to the bybit api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structure}
+         * @param {string} $code unified $currency $code
+         * @param {array} $params extra parameters specific to the bybit api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structure}
          */
         $this->load_markets();
         $currency = $this->currency($code);

@@ -16,6 +16,7 @@ class bitget extends Exchange {
             'countries' => array( 'SG' ),
             'version' => 'v1',
             'rateLimit' => 50, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
+            'certified' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -109,7 +110,7 @@ class bitget extends Exchange {
             ),
             'hostname' => 'bitget.com',
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/51840849/88317935-a8a21c80-cd22-11ea-8e2b-4b9fac5975eb.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/1294454/195989417-4253ddb0-afbe-4a1c-9dea-9dbcd121fa5d.jpg',
                 'api' => array(
                     'spot' => 'https://api.{hostname}',
                     'mix' => 'https://api.{hostname}',

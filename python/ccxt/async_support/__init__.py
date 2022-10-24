@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.0.19'
+__version__ = '2.0.61'
 
 # -----------------------------------------------------------------------------
 
@@ -113,7 +113,6 @@ from ccxt.async_support.currencycom import currencycom                          
 from ccxt.async_support.delta import delta                                      # noqa: F401
 from ccxt.async_support.deribit import deribit                                  # noqa: F401
 from ccxt.async_support.digifinex import digifinex                              # noqa: F401
-from ccxt.async_support.eqonex import eqonex                                    # noqa: F401
 from ccxt.async_support.exmo import exmo                                        # noqa: F401
 from ccxt.async_support.flowbtc import flowbtc                                  # noqa: F401
 from ccxt.async_support.fmfwio import fmfwio                                    # noqa: F401
@@ -236,7 +235,6 @@ exchanges = [
     'delta',
     'deribit',
     'digifinex',
-    'eqonex',
     'exmo',
     'flowbtc',
     'fmfwio',

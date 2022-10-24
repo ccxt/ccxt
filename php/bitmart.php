@@ -2078,6 +2078,18 @@ class bitmart extends Exchange {
             $currency = $this->currency($code);
             $request['currency'] = $currency['id'];
         }
+        if ($code === 'USDT') {
+            $defaultNetworks = $this->safe_value($this->options, 'defaultNetworks');
+            $defaultNetwork = $this->safe_string_upper($defaultNetworks, $code);
+            $networks = $this->safe_value($this->options, 'networks', array());
+            $network = $this->safe_string_upper($params, 'network', $defaultNetwork); // this line allows the user to specify either ERC20 or ETH
+            $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+            if ($network !== null) {
+                $request['currency'] .= '-' . $network; // when $network the $currency need to be changed to $currency . '-' . $network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+                $currency['code'] = $request['currency']; // update $currency $code to filter
+                $params = $this->omit($params, 'network');
+            }
+        }
         $response = $this->privateGetAccountV2DepositWithdrawHistory (array_merge($request, $params));
         //
         //     {
@@ -2291,8 +2303,8 @@ class bitmart extends Exchange {
             'type' => $type,
             'updated' => null,
             'txid' => $txid,
-            'timestamp' => $timestamp !== 0 ? $timestamp : null,
-            'datetime' => $timestamp !== 0 ? $this->iso8601($timestamp) : null,
+            'timestamp' => ($timestamp !== 0) ? $timestamp : null,
+            'datetime' => ($timestamp !== 0) ? $this->iso8601($timestamp) : null,
             'fee' => $fee,
         );
     }

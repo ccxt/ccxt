@@ -58,6 +58,7 @@ module.exports = class bybit extends Exchange {
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -180,6 +181,7 @@ module.exports = class bybit extends Exchange {
                         'option/usdc/openapi/public/v1/delivery-price': 1,
                         'option/usdc/openapi/public/v1/query-trade-latest': 1,
                         'option/usdc/openapi/public/v1/query-historical-volatility': 1,
+                        'option/usdc/openapi/public/v1/all-tickers': 1,
                         // perpetual swap USDC
                         'perpetual/usdc/openapi/public/v1/order-book': 1,
                         'perpetual/usdc/openapi/public/v1/symbols': 1,
@@ -580,12 +582,23 @@ module.exports = class bybit extends Exchange {
                     'future': 'CONTRACT',
                     'swap': 'CONTRACT',
                     'option': 'OPTION',
+                    'investment': 'INVESTMENT',
+                    'unified': 'UNIFIED',
                 },
                 'accountsById': {
                     'SPOT': 'spot',
                     'MARGIN': 'spot',
                     'CONTRACT': 'contract',
                     'OPTION': 'option',
+                    'INVESTMENT': 'investment',
+                    'UNIFIED': 'unified',
+                },
+                'networks': {
+                    'ERC20': 'ETH',
+                    'TRC20': 'TRX',
+                    'BEP20': 'BSC',
+                    'OMNI': 'OMNI',
+                    'SPL': 'SOL',
                 },
             },
             'fees': {
@@ -2600,7 +2613,7 @@ module.exports = class bybit extends Exchange {
         const type = this.safeStringLowerN (order, [ 'order_type', 'type', 'orderType' ]);
         const price = this.safeString2 (order, 'price', 'orderPrice');
         const average = this.safeString2 (order, 'average_price', 'avgPrice');
-        const amount = this.safeStringN (order, [ 'qty', 'origQty', 'orderQty' ]);
+        let amount = this.safeStringN (order, [ 'qty', 'origQty', 'orderQty' ]);
         const cost = this.safeString2 (order, 'cum_exec_value', 'cumExecValue');
         const filled = this.safeStringN (order, [ 'cum_exec_qty', 'executedQty', 'cumExecQty' ]);
         const remaining = this.safeString2 (order, 'leaves_qty', 'leavesQty');
@@ -2635,6 +2648,9 @@ module.exports = class bybit extends Exchange {
         const timeInForce = this.parseTimeInForce (this.safeString2 (order, 'time_in_force', 'timeInForce'));
         const stopPrice = this.safeStringN (order, [ 'trigger_price', 'stop_px', 'stopPrice', 'triggerPrice' ]);
         const postOnly = (timeInForce === 'PO');
+        if ((market['spot'] && type === 'market') && (side === 'buy')) {
+            amount = filled;
+        }
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -4895,6 +4911,61 @@ module.exports = class bybit extends Exchange {
         return this.parseOpenInterests (data, market, since, limit);
     }
 
+    async fetchOpenInterest (symbol, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchOpenInterest
+         * @description Retrieves the open interest of a derivative trading pair
+         * @see https://bybit-exchange.github.io/docs/derivativesV3/contract/#t-dv_marketopeninterest
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {object} params exchange specific parameters
+         * @param {string|undefined} params.interval 5m, 15m, 30m, 1h, 4h, 1d
+         * @param {string|undefined} params.category "linear" or "inverse"
+         * @returns {object} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
+         */
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        if (!market['contract']) {
+            throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
+        }
+        const timeframe = this.safeString (params, 'interval', '1h');
+        if (timeframe === '1m') {
+            throw new BadRequest (this.id + ' fetchOpenInterest() cannot use the 1m timeframe');
+        }
+        const subType = market['linear'] ? 'linear' : 'inverse';
+        const category = this.safeString (params, 'category', subType);
+        const request = {
+            'symbol': market['id'],
+            'interval': timeframe,
+            'category': category,
+        };
+        const response = await this.publicGetDerivativesV3PublicOpenInterest (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "symbol": "BTCUSDT",
+        //             "category": "linear",
+        //             "list": [
+        //                 {
+        //                     "openInterest": "64757.62400000",
+        //                     "timestamp": "1665784800000"
+        //                 },
+        //                 ...
+        //             ]
+        //         },
+        //         "retExtInfo": null,
+        //         "time": 1665784849646
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const id = this.safeString (result, 'symbol');
+        market = this.safeMarket (id, market);
+        const data = this.safeValue (result, 'list', []);
+        return this.parseOpenInterest (data[0], market);
+    }
+
     parseOpenInterest (interest, market = undefined) {
         //
         //    {
@@ -4922,9 +4993,9 @@ module.exports = class bybit extends Exchange {
          * @name bybit#fetchBorrowRate
          * @description fetch the rate of interest to borrow a currency for margin trading
          * @see https://bybit-exchange.github.io/docs/spot/#t-queryinterestquota
-         * @param {str} code unified currency code
-         * @param {dict} params extra parameters specific to the bybit api endpoint
-         * @returns {dict} a [borrow rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);

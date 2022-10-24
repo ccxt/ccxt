@@ -1993,6 +1993,16 @@ class bitmart(Exchange):
         if code is not None:
             currency = self.currency(code)
             request['currency'] = currency['id']
+        if code == 'USDT':
+            defaultNetworks = self.safe_value(self.options, 'defaultNetworks')
+            defaultNetwork = self.safe_string_upper(defaultNetworks, code)
+            networks = self.safe_value(self.options, 'networks', {})
+            network = self.safe_string_upper(params, 'network', defaultNetwork)  # self line allows the user to specify either ERC20 or ETH
+            network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
+            if network is not None:
+                request['currency'] += '-' + network  # when network the currency need to be changed to currency + '-' + network https://developer-pro.bitmart.com/en/account/withdraw_apply.html on the end of page
+                currency['code'] = request['currency']  # update currency code to filter
+                params = self.omit(params, 'network')
         response = self.privateGetAccountV2DepositWithdrawHistory(self.extend(request, params))
         #
         #     {
@@ -2198,8 +2208,8 @@ class bitmart(Exchange):
             'type': type,
             'updated': None,
             'txid': txid,
-            'timestamp': timestamp != timestamp if 0 else None,
-            'datetime': timestamp != self.iso8601(timestamp) if 0 else None,
+            'timestamp': timestamp if (timestamp != 0) else None,
+            'datetime': self.iso8601(timestamp) if (timestamp != 0) else None,
             'fee': fee,
         }
 

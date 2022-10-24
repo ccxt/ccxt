@@ -78,6 +78,13 @@ class binance(Exchange, ccxt.async_support.binance):
         return newValue
 
     async def watch_order_book(self, symbol, limit=None, params={}):
+        """
+        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         #
         # todo add support for <levels>-snapshots(depth)
         # https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams        # <symbol>@depth<levels>@100ms or <symbol>@depth<levels>(1000ms)
@@ -317,6 +324,14 @@ class binance(Exchange, ccxt.async_support.binance):
         return message
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         options = self.safe_value(self.options, 'watchTrades', {})
@@ -598,6 +613,12 @@ class binance(Exchange, ccxt.async_support.binance):
         client.resolve(stored, messageHash)
 
     async def watch_ticker(self, symbol, params={}):
+        """
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         marketId = market['lowercaseId']
@@ -783,13 +804,18 @@ class binance(Exchange, ccxt.async_support.binance):
 
     async def load_balance_snapshot(self, client, messageHash, type):
         response = await self.fetch_balance({'type': type})
-        self.balance[type] = self.extend(response, self.balance[type])
+        self.balance[type] = self.extend(response, self.safe_value(self.balance, type, {}))
         # don't remove the future from the .futures cache
         future = client.futures[messageHash]
         future.resolve()
         client.resolve(self.balance[type], type + ':balance')
 
     async def watch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         await self.authenticate(params)
         defaultType = self.safe_string(self.options, 'defaultType', 'spot')
@@ -904,14 +930,25 @@ class binance(Exchange, ccxt.async_support.binance):
         client.resolve(self.balance[accountType], messageHash)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        watches information on multiple orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         await self.authenticate(params)
-        defaultType = self.safe_string_2(self.options, 'watchOrders', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
-        url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
         messageHash = 'orders'
+        market = None
         if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
             messageHash += ':' + symbol
+        type = None
+        type, params = self.handle_market_type_and_params('watchOrders', market, params)
+        url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
         client = self.client(url)
         self.set_balance_cache(client, type)
         message = None
@@ -1159,6 +1196,14 @@ class binance(Exchange, ccxt.async_support.binance):
         self.handle_order(client, message)
 
     async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        watches information on multiple trades made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         await self.load_markets()
         await self.authenticate(params)
         defaultType = self.safe_string_2(self.options, 'watchMyTrades', 'defaultType', 'spot')
