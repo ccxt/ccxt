@@ -58,6 +58,7 @@ module.exports = class bybit extends Exchange {
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -4897,23 +4898,76 @@ module.exports = class bybit extends Exchange {
         return this.parseOpenInterests (result, market, since, limit);
     }
 
+    async fetchOpenInterest (symbol, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchOpenInterest
+         * @description Retrieves the open interest of a derivative trading pair
+         * @see https://bybit-exchange.github.io/docs/derivativesV3/contract/#t-dv_marketopeninterest
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {object} params exchange specific parameters
+         * @param {string|undefined} params.interval 5m, 15m, 30m, 1h, 4h, 1d
+         * @param {string|undefined} params.category "linear" or "inverse"
+         * @returns {object} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
+         */
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        if (!market['contract']) {
+            throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
+        }
+        const timeframe = this.safeString (params, 'interval', '1h');
+        if (timeframe === '1m') {
+            throw new BadRequest (this.id + ' fetchOpenInterest() cannot use the 1m timeframe');
+        }
+        const subType = market['linear'] ? 'linear' : 'inverse';
+        const category = this.safeString (params, 'category', subType);
+        const request = {
+            'symbol': market['id'],
+            'interval': timeframe,
+            'category': category,
+        };
+        const response = await this.publicGetDerivativesV3PublicOpenInterest (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "symbol": "BTCUSDT",
+        //             "category": "linear",
+        //             "list": [
+        //                 {
+        //                     "openInterest": "64757.62400000",
+        //                     "timestamp": "1665784800000"
+        //                 },
+        //                 ...
+        //             ]
+        //         },
+        //         "retExtInfo": null,
+        //         "time": 1665784849646
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const id = this.safeString (result, 'symbol');
+        market = this.safeMarket (id, market);
+        const data = this.safeValue (result, 'list', []);
+        return this.parseOpenInterest (data[0], market);
+    }
+
     parseOpenInterest (interest, market = undefined) {
         //
         //    {
-        //        "open_interest": 805604444,
-        //        "timestamp": 1645056000,
-        //        "symbol": "BTCUSD"
+        //        "openInterest": 64757.62400000,
+        //        "timestamp": 1665784800000,
         //    }
         //
-        const id = this.safeString (interest, 'symbol');
-        market = this.safeMarket (id, market);
-        const timestamp = this.safeTimestamp (interest, 'timestamp');
-        const numContracts = this.safeString (interest, 'open_interest');
-        const contractSize = this.safeString (market, 'contractSize');
+        const timestamp = this.safeInteger (interest, 'timestamp');
+        const value = this.safeNumber2 (interest, 'openInterest', 'open_interest');
         return {
-            'symbol': this.safeSymbol (id),
-            'baseVolume': Precise.stringMul (numContracts, contractSize),
-            'quoteVolume': undefined,
+            'symbol': this.safeSymbol (market['id']),
+            'baseVolume': value,  // deprecated
+            'quoteVolume': undefined,  // deprecated
+            'openInterestAmount': undefined,
+            'openInterestValue': value,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
