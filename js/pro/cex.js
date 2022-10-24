@@ -178,7 +178,7 @@ module.exports = class cex extends cexRest {
         //  update trade
         //    ['buy', '1665467516704', '98070', '19057.7', '14541220']
         //
-        if (!this.isArray (trade)) {
+        if (!Array.isArray (trade)) {
             trade = trade.split (':');
         }
         const side = this.safeString (trade, 0);
