@@ -423,6 +423,8 @@ module.exports = class exmo extends Exchange {
          * @method
          * @name exmo#fetchTransactionFees
          * @description fetch transaction fees
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#7cdf0ca8-9ff6-4cf3-aa33-bcec83155c49
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
          * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the exmo api endpoint
          * @returns {object} a list of [transaction fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fees-structure}
@@ -481,6 +483,9 @@ module.exports = class exmo extends Exchange {
             const currency = currencyList[i];
             const currencyId = this.safeString (currency, 'name');
             const code = this.safeCurrencyCode (currencyId);
+            if (codes !== undefined && !this.inArray (code, codes)) {
+                continue;
+            }
             const providers = this.safeValue (cryptoList, currencyId, []);
             for (let j = 0; j < providers.length; j++) {
                 const provider = providers[j];
