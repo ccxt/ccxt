@@ -2845,7 +2845,7 @@ module.exports = class gate extends Exchange {
             request['chain'] = network;
             params = this.omit (params, 'network');
         }
-        const response = await this.privateWithdrawalsWithdrawalsPost (this.extend (request, params));
+        const response = await this.privateWithdrawalsPostWithdrawals (this.extend (request, params));
         //
         //    {
         //        "id": "w13389675",
