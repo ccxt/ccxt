@@ -73,6 +73,7 @@ class bybit(Exchange):
                 'fetchMarkOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': True,
                 'fetchOpenInterestHistory': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -4603,23 +4604,71 @@ class bybit(Exchange):
         result = self.safe_value(response, 'result')
         return self.parse_open_interests(result, market, since, limit)
 
+    async def fetch_open_interest(self, symbol, params={}):
+        """
+        Retrieves the open interest of a derivative trading pair
+        see https://bybit-exchange.github.io/docs/derivativesV3/contract/#t-dv_marketopeninterest
+        :param str symbol: Unified CCXT market symbol
+        :param dict params: exchange specific parameters
+        :param str|None params['interval']: 5m, 15m, 30m, 1h, 4h, 1d
+        :param str|None params['category']: "linear" or "inverse"
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure:
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['contract']:
+            raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
+        timeframe = self.safe_string(params, 'interval', '1h')
+        if timeframe == '1m':
+            raise BadRequest(self.id + ' fetchOpenInterest() cannot use the 1m timeframe')
+        subType = 'linear' if market['linear'] else 'inverse'
+        category = self.safe_string(params, 'category', subType)
+        request = {
+            'symbol': market['id'],
+            'interval': timeframe,
+            'category': category,
+        }
+        response = await self.publicGetDerivativesV3PublicOpenInterest(self.extend(request, params))
+        #
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "OK",
+        #         "result": {
+        #             "symbol": "BTCUSDT",
+        #             "category": "linear",
+        #             "list": [
+        #                 {
+        #                     "openInterest": "64757.62400000",
+        #                     "timestamp": "1665784800000"
+        #                 },
+        #                 ...
+        #             ]
+        #         },
+        #         "retExtInfo": null,
+        #         "time": 1665784849646
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        id = self.safe_string(result, 'symbol')
+        market = self.safe_market(id, market)
+        data = self.safe_value(result, 'list', [])
+        return self.parse_open_interest(data[0], market)
+
     def parse_open_interest(self, interest, market=None):
         #
         #    {
-        #        "open_interest": 805604444,
-        #        "timestamp": 1645056000,
-        #        "symbol": "BTCUSD"
+        #        "openInterest": 64757.62400000,
+        #        "timestamp": 1665784800000,
         #    }
         #
-        id = self.safe_string(interest, 'symbol')
-        market = self.safe_market(id, market)
-        timestamp = self.safe_timestamp(interest, 'timestamp')
-        numContracts = self.safe_string(interest, 'open_interest')
-        contractSize = self.safe_string(market, 'contractSize')
+        timestamp = self.safe_integer(interest, 'timestamp')
+        value = self.safe_number_2(interest, 'openInterest', 'open_interest')
         return {
-            'symbol': self.safe_symbol(id),
-            'baseVolume': Precise.string_mul(numContracts, contractSize),
-            'quoteVolume': None,
+            'symbol': self.safe_symbol(market['id']),
+            'baseVolume': value,  # deprecated
+            'quoteVolume': None,  # deprecated
+            'openInterestAmount': None,
+            'openInterestValue': value,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
