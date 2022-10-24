@@ -997,7 +997,8 @@ module.exports = class binance extends binanceRest {
             symbol = market['symbol'];
             messageHash += ':' + symbol;
         }
-        const [ type ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type);
