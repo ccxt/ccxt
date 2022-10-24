@@ -401,6 +401,7 @@ module.exports = class buda extends Exchange {
          * @method
          * @name buda#fetchTransactionFees
          * @description fetch transaction fees
+         * @see https://api.buda.com/#rest-api-llamadas-publicas-costos-de-abonos-retiros
          * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the buda api endpoint
          * @returns {object} a list of [fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
