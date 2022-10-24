@@ -940,12 +940,15 @@ class binance(Exchange, ccxt.async_support.binance):
         """
         await self.load_markets()
         await self.authenticate(params)
-        defaultType = self.safe_string_2(self.options, 'watchOrders', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
-        url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
         messageHash = 'orders'
+        market = None
         if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
             messageHash += ':' + symbol
+        type = None
+        type, params = self.handle_market_type_and_params('watchOrders', market, params)
+        url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
         client = self.client(url)
         self.set_balance_cache(client, type)
         message = None
