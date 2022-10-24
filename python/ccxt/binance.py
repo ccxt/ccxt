@@ -5983,7 +5983,7 @@ class binance(Exchange):
 
     def fetch_open_interest_history(self, symbol, timeframe='5m', since=None, limit=None, params={}):
         """
-        Retrieves the open intestest history of a currency
+        Retrieves the open interest history of a currency
         :param str symbol: Unified CCXT market symbol
         :param str timeframe: "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
         :param int|None since: the time(ms) of the earliest record to retrieve as a unix timestamp
@@ -6038,10 +6038,14 @@ class binance(Exchange):
         timestamp = self.safe_integer(interest, 'timestamp')
         id = self.safe_string(interest, 'symbol')
         market = self.safe_market(id, market)
+        amount = self.safe_number(interest, 'sumOpenInterest')
+        value = self.safe_number(interest, 'sumOpenInterestValue')
         return {
             'symbol': self.safe_symbol(id),
-            'baseVolume': self.safe_number(interest, 'sumOpenInterest'),
-            'quoteVolume': self.safe_number(interest, 'sumOpenInterestValue'),
+            'baseVolume': amount,  # deprecated
+            'quoteVolume': value,  # deprecated
+            'openInterestAmount': amount,
+            'openInterestValue': value,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,

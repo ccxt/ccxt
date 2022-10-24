@@ -4565,44 +4565,56 @@ class bybit(Exchange):
 
     async def fetch_open_interest_history(self, symbol, timeframe='1h', since=None, limit=None, params={}):
         """
-        Gets the total amount of unsettled contracts. In other words, the total number of contracts held in open positions
+        Gets the total amount of unsettled contracts. The total number of contracts held in open positions
+        see https://bybit-exchange.github.io/docs/derivativesV3/contract/#t-dv_marketopeninterest
         :param str symbol: Unified market symbol
         :param str timeframe: "5m", 15m, 30m, 1h, 4h, 1d
-        :param int since: Not used by Bybit
-        :param int limit: The number of open interest structures to return. Max 200, default 50
+        :param int|None since: Start timestamp in milliseconds
+        :param int|None limit: The number of open interest structures to return. Max 200, default 50
         :param dict params: Exchange specific parameters
+        :param str|None params['category']: "linear" or "inverse"
         :returns: An array of open interest structures
         """
         if timeframe == '1m':
-            raise BadRequest(self.id + 'fetchOpenInterestHistory cannot use the 1m timeframe')
+            raise BadRequest(self.id + ' fetchOpenInterestHistory() cannot use the 1m timeframe')
         await self.load_markets()
         market = self.market(symbol)
+        subType = 'linear' if market['linear'] else 'inverse'
+        category = self.safe_string(params, 'category', subType)
         request = {
             'symbol': market['id'],
-            'period': timeframe,
+            'interval': timeframe,
+            'category': category,
         }
+        if since is not None:
+            request['since'] = since
         if limit is not None:
             request['limit'] = limit
-        response = await self.publicGetV2PublicOpenInterest(self.extend(request, params))
+        response = await self.publicGetDerivativesV3PublicOpenInterest(self.extend(request, params))
         #
-        #    {
-        #        "ret_code": 0,
-        #        "ret_msg": "OK",
-        #        "ext_code": "",
-        #        "ext_info": "",
-        #        "result": [
-        #            {
-        #                "open_interest": 805604444,
-        #                "timestamp": 1645056000,
-        #                "symbol": "BTCUSD"
-        #            },
-        #            ...
-        #        ],
-        #        "time_now": "1645085118.727358"
-        #    }
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "OK",
+        #         "result": {
+        #             "symbol": "BTCUSDT",
+        #             "category": "linear",
+        #             "list": [
+        #                 {
+        #                     "openInterest": "64757.62400000",
+        #                     "timestamp": "1665784800000"
+        #                 },
+        #                 ...
+        #             ]
+        #         },
+        #         "retExtInfo": null,
+        #         "time": 1665784849646
+        #     }
         #
-        result = self.safe_value(response, 'result')
-        return self.parse_open_interests(result, market, since, limit)
+        result = self.safe_value(response, 'result', {})
+        id = self.safe_string(result, 'symbol')
+        market = self.safe_market(id, market)
+        data = self.safe_value(result, 'list', [])
+        return self.parse_open_interests(data, market, since, limit)
 
     async def fetch_open_interest(self, symbol, params={}):
         """
@@ -4662,7 +4674,7 @@ class bybit(Exchange):
         #    }
         #
         timestamp = self.safe_integer(interest, 'timestamp')
-        value = self.safe_number_2(interest, 'openInterest', 'open_interest')
+        value = self.safe_number(interest, 'openInterest')
         return {
             'symbol': self.safe_symbol(market['id']),
             'baseVolume': value,  # deprecated

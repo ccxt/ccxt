@@ -6154,7 +6154,7 @@ class huobi(Exchange):
         :param int|None since: Not used by huobi api, but response parsed by CCXT
         :param int|None limit: Default：48，Data Range [1,200]
         :param dict params: Exchange specific parameters
-        :param int params['amount_type']: *required* Open interest unit. 1-cont，2-cryptocurrenty
+        :param int params['amount_type']: *required* Open interest unit. 1-cont，2-cryptocurrency
         :param int|None params['pair']: eg BTC-USDT *Only for USDT-M*
         :returns dict: an array of `open interest structures <https://docs.ccxt.com/en/latest/manual.html#open-interest-structure>`
         """
@@ -6170,7 +6170,7 @@ class huobi(Exchange):
         market = self.market(symbol)
         amountType = self.safe_number_2(params, 'amount_type', 'amountType')
         if amountType is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenInterestHistory requires parameter params.amountType to be either 1(cont), or 2(cryptocurrenty)')
+            raise ArgumentsRequired(self.id + ' fetchOpenInterestHistory requires parameter params.amountType to be either 1(cont), or 2(cryptocurrency)')
         request = {
             'period': timeframes[timeframe],
             'amount_type': amountType,
@@ -6253,7 +6253,7 @@ class huobi(Exchange):
         #
         data = self.safe_value(response, 'data')
         tick = self.safe_value(data, 'tick')
-        return self.parse_open_interests(tick, None, since, limit)
+        return self.parse_open_interests(tick, market, since, limit)
 
     def fetch_open_interest(self, symbol, params={}):
         """
@@ -6409,7 +6409,7 @@ class huobi(Exchange):
         #
         timestamp = self.safe_integer(interest, 'ts')
         amount = self.safe_number(interest, 'volume')
-        value = self.safe_value(interest, 'value')
+        value = self.safe_number(interest, 'value')
         return {
             'symbol': self.safe_string(market, 'symbol'),
             'baseVolume': amount,  # deprecated

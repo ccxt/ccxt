@@ -6475,7 +6475,7 @@ class binance extends Exchange {
     public function fetch_open_interest_history($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
-             * Retrieves the open intestest history of a currency
+             * Retrieves the open interest history of a currency
              * @param {string} $symbol Unified CCXT $market $symbol
              * @param {string} $timeframe "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
              * @param {int|null} $since the time(ms) of the earliest record to retrieve as a unix timestamp
@@ -6539,10 +6539,14 @@ class binance extends Exchange {
         $timestamp = $this->safe_integer($interest, 'timestamp');
         $id = $this->safe_string($interest, 'symbol');
         $market = $this->safe_market($id, $market);
+        $amount = $this->safe_number($interest, 'sumOpenInterest');
+        $value = $this->safe_number($interest, 'sumOpenInterestValue');
         return array(
             'symbol' => $this->safe_symbol($id),
-            'baseVolume' => $this->safe_number($interest, 'sumOpenInterest'),
-            'quoteVolume' => $this->safe_number($interest, 'sumOpenInterestValue'),
+            'baseVolume' => $amount,  // deprecated
+            'quoteVolume' => $value,  // deprecated
+            'openInterestAmount' => $amount,
+            'openInterestValue' => $value,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,
