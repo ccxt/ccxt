@@ -2303,8 +2303,8 @@ class bitmart extends Exchange {
             'type' => $type,
             'updated' => null,
             'txid' => $txid,
-            'timestamp' => $timestamp !== 0 ? $timestamp : null,
-            'datetime' => $timestamp !== 0 ? $this->iso8601($timestamp) : null,
+            'timestamp' => ($timestamp !== 0) ? $timestamp : null,
+            'datetime' => ($timestamp !== 0) ? $this->iso8601($timestamp) : null,
             'fee' => $fee,
         );
     }

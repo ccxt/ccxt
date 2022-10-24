@@ -179,6 +179,7 @@ class bybit extends Exchange {
                         'option/usdc/openapi/public/v1/delivery-price' => 1,
                         'option/usdc/openapi/public/v1/query-trade-latest' => 1,
                         'option/usdc/openapi/public/v1/query-historical-volatility' => 1,
+                        'option/usdc/openapi/public/v1/all-tickers' => 1,
                         // perpetual swap USDC
                         'perpetual/usdc/openapi/public/v1/order-book' => 1,
                         'perpetual/usdc/openapi/public/v1/symbols' => 1,
@@ -579,12 +580,23 @@ class bybit extends Exchange {
                     'future' => 'CONTRACT',
                     'swap' => 'CONTRACT',
                     'option' => 'OPTION',
+                    'investment' => 'INVESTMENT',
+                    'unified' => 'UNIFIED',
                 ),
                 'accountsById' => array(
                     'SPOT' => 'spot',
                     'MARGIN' => 'spot',
                     'CONTRACT' => 'contract',
                     'OPTION' => 'option',
+                    'INVESTMENT' => 'investment',
+                    'UNIFIED' => 'unified',
+                ),
+                'networks' => array(
+                    'ERC20' => 'ETH',
+                    'TRC20' => 'TRX',
+                    'BEP20' => 'BSC',
+                    'OMNI' => 'OMNI',
+                    'SPL' => 'SOL',
                 ),
             ),
             'fees' => array(
@@ -4852,9 +4864,9 @@ class bybit extends Exchange {
         /**
          * fetch the rate of interest to borrow a $currency for margin trading
          * @see https://bybit-exchange.github.io/docs/spot/#t-queryinterestquota
-         * @param {str} $code unified $currency $code
-         * @param {dict} $params extra parameters specific to the bybit api endpoint
-         * @return {dict} a {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structure}
+         * @param {string} $code unified $currency $code
+         * @param {array} $params extra parameters specific to the bybit api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structure}
          */
         $this->load_markets();
         $currency = $this->currency($code);

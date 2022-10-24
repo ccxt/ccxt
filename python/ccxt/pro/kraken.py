@@ -225,9 +225,23 @@ class kraken(Exchange, ccxt.async_support.kraken):
         return await self.watch(url, messageHash, request, messageHash)
 
     async def watch_ticker(self, symbol, params={}):
+        """
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the kraken api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         return await self.watch_public('ticker', symbol, params)
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the kraken api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         name = 'trade'
         trades = await self.watch_public(name, symbol, params)
         if self.newUpdates:
@@ -235,6 +249,13 @@ class kraken(Exchange, ccxt.async_support.kraken):
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
+        """
+        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the kraken api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         name = 'book'
         request = {}
         if limit is not None:
@@ -515,6 +536,14 @@ class kraken(Exchange, ccxt.async_support.kraken):
         return self.filter_by_symbol_since_limit(result, symbol, since, limit, True)
 
     async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        watches information on multiple trades made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the kraken api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         return await self.watch_private('ownTrades', symbol, since, limit, params)
 
     def handle_my_trades(self, client, message, subscription=None):
@@ -656,6 +685,14 @@ class kraken(Exchange, ccxt.async_support.kraken):
         }
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        watches information on multiple orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the kraken api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         return await self.watch_private('openOrders', symbol, since, limit, params)
 
     def handle_orders(self, client, message, subscription=None):

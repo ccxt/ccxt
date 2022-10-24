@@ -29,6 +29,7 @@ module.exports = class gate extends Exchange {
                         'delivery': 'https://api.gateio.ws/api/v4',
                         'spot': 'https://api.gateio.ws/api/v4',
                         'options': 'https://api.gateio.ws/api/v4',
+                        'sub_accounts': 'https://api.gateio.ws/api/v4',
                     },
                     'private': {
                         'withdrawals': 'https://api.gateio.ws/api/v4',
@@ -38,6 +39,7 @@ module.exports = class gate extends Exchange {
                         'delivery': 'https://api.gateio.ws/api/v4',
                         'spot': 'https://api.gateio.ws/api/v4',
                         'options': 'https://api.gateio.ws/api/v4',
+                        'subAccounts': 'https://api.gateio.ws/api/v4',
                     },
                 },
                 'test': {
@@ -188,10 +190,10 @@ module.exports = class gate extends Exchange {
                 'private': {
                     'withdrawals': {
                         'post': {
-                            '': 3000, // 3000 = 10 seconds
+                            'withdrawals': 3000, // 3000 = 10 seconds
                         },
                         'delete': {
-                            '{withdrawal_id}': 300,
+                            'withdrawals/{withdrawal_id}': 300,
                         },
                     },
                     'wallet': {
@@ -208,6 +210,26 @@ module.exports = class gate extends Exchange {
                         'post': {
                             'transfers': 300,
                             'sub_account_transfers': 300,
+                        },
+                    },
+                    'subAccounts': {
+                        'get': {
+                            'sub_accounts': 1,
+                            'sub_accounts/{user_id}': 1,
+                            'sub_accounts/{user_id}/keys': 1,
+                            'sub_accounts/{user_id}/keys/{key}': 1,
+                        },
+                        'post': {
+                            'sub_accounts': 1,
+                            'sub_accounts/{user_id}/keys': 1,
+                            'sub_accounts/{user_id}/lock': 1,
+                            'sub_accounts/{user_id}/unlock': 1,
+                        },
+                        'put': {
+                            'sub_accounts/{user_id}/keys/{key}': 1,
+                        },
+                        'delete': {
+                            'sub_accounts/{user_id}/keys/{key}': 1,
                         },
                     },
                     'spot': {
@@ -2823,7 +2845,7 @@ module.exports = class gate extends Exchange {
             request['chain'] = network;
             params = this.omit (params, 'network');
         }
-        const response = await this.privateWithdrawalsPost (this.extend (request, params));
+        const response = await this.privateWithdrawalsPostWithdrawals (this.extend (request, params));
         //
         //    {
         //        "id": "w13389675",
@@ -2944,7 +2966,7 @@ module.exports = class gate extends Exchange {
          * @param {bool|undefined} params.reduceOnly *contract only* Indicates if this order is to reduce the size of a position
          * @param {bool|undefined} params.close *contract only* Set as true to close the position, with size set to 0
          * @param {bool|undefined} params.auto_size *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
-         * @returns {dict|undefined} [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object|undefined} [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -4102,7 +4124,24 @@ module.exports = class gate extends Exchange {
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
+        let market = undefined;
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols (symbols);
+            const symbolsLength = symbols.length;
+            if (symbolsLength > 0) {
+                market = this.market (symbols[0]);
+                for (let i = 1; i < symbols.length; i++) {
+                    const checkMarket = this.market (symbols[i]);
+                    if (checkMarket['type'] !== market['type']) {
+                        throw new BadRequest (this.id + ' fetchPositions() does not support multiple types of positions at the same time');
+                    }
+                }
+            }
+        }
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchPositions', market, params);
+        if (type !== 'swap' && type !== 'future') {
+            throw new ArgumentsRequired (this.id + ' fetchPositions requires a type parameter, "swap" or "future"');
+        }
         const [ request, requestParams ] = this.prepareRequest (undefined, type, query);
         const method = this.getSupportedMapping (type, {
             'swap': 'privateFuturesGetSettlePositions',
@@ -4624,6 +4663,7 @@ module.exports = class gate extends Exchange {
                 url += '?' + this.urlencode (query);
             }
         } else {
+            this.checkRequiredCredentials ();
             let queryString = '';
             let requiresURLEncoding = false;
             if (type === 'futures' && method === 'POST') {
