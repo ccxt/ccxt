@@ -2567,8 +2567,7 @@ module.exports = class Exchange {
     }
 
     isTriggerOrder (params) {
-        const paramValue = this.safeValue2 (params, 'trigger', 'stop');
-        const isTrigger = paramValue === true;
+        const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
         if (isTrigger) {
             params = this.omit (params, [ 'trigger', 'stop' ]);
         }
