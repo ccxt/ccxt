@@ -280,6 +280,7 @@ module.exports = class bybit extends Exchange {
                         'asset/v1/private/deposit/record/query': 50,
                         'asset/v1/private/withdraw/record/query': 25,
                         'asset/v1/private/coin-info/query': 25,
+                        'asset/v3/private/coin-info/query': 25,
                         'asset/v1/private/asset-info/query': 50,
                         'asset/v1/private/deposit/address': 100,
                         'asset/v1/private/universal/transfer/list': 50,
@@ -665,46 +666,58 @@ module.exports = class bybit extends Exchange {
         if (!this.checkRequiredCredentials (false)) {
             return undefined;
         }
-        const response = await this.privateGetAssetV1PrivateCoinInfoQuery (params);
+        const response = await this.privateGetAssetV3PrivateCoinInfoQuery (params);
         //
-        //     {
-        //         "ret_code":0,
-        //         "ret_msg":"OK",
-        //         "ext_code":"",
-        //         "result":{
-        //             "rows":[
-        //                 {
-        //                     "name":"BUSD",
-        //                     "coin":"BUSD",
-        //                     "remain_amount":"7500000",
-        //                     "chains":[
-        //                         {"chain_type":"BSC (BEP20)","confirmation":"20","withdraw_fee":"0.8","deposit_min":"0","withdraw_min":"1.6","chain":"BSC"},
-        //                         {"chain_type":"ERC20","confirmation":"12","withdraw_fee":"30","deposit_min":"0","withdraw_min":"30","chain":"ETH"},
-        //                     ],
-        //                 },
-        //                 {
-        //                     "name":"USDT",
-        //                     "coin":"USDT",
-        //                     "remain_amount":"15000000",
-        //                     "chains":[
-        //                         {"chain_type":"ERC20","confirmation":"12","withdraw_fee":"10","deposit_min":"0","withdraw_min":"20","chain":"ETH"},
-        //                         {"chain_type":"TRC20","confirmation":"100","withdraw_fee":"1","deposit_min":"0","withdraw_min":"10","chain":"TRX"},
-        //                         {"chain_type":"Arbitrum One","confirmation":"12","withdraw_fee":"10","deposit_min":"0","withdraw_min":"20","chain":"ARBI"},
-        //                         {"chain_type":"SOL","confirmation":"300","withdraw_fee":"1","deposit_min":"0","withdraw_min":"10","chain":"SOL"},
-        //                         {"chain_type":"BSC (BEP20)","confirmation":"20","withdraw_fee":"2","deposit_min":"0","withdraw_min":"10","chain":"BSC"},
-        //                         {"chain_type":"Zksync","confirmation":"1","withdraw_fee":"3","deposit_min":"0","withdraw_min":"3","chain":"ZKSYNC"},
-        //                         {"chain_type":"MATIC","confirmation":"128","withdraw_fee":"0.3","deposit_min":"0","withdraw_min":"0.3","chain":"MATIC"},
-        //                         {"chain_type":"OMNI","confirmation":"1","withdraw_fee":"","deposit_min":"0","withdraw_min":"","chain":"OMNI"},
-        //                     ],
-        //                 },
-        //             ],
-        //         },
-        //         "ext_info":null,
-        //         "time_now":1653312027278,
-        //         "rate_limit_status":119,
-        //         "rate_limit_reset_ms":1653312027278,
-        //         "rate_limit":1,
-        //     }
+        //    {
+        //        "retCode": "0",
+        //        "retMsg": "OK",
+        //        "result": {
+        //            "rows": [
+        //                {
+        //                    "name": "MATIC",
+        //                    "coin": "MATIC",
+        //                    "remainAmount": "1652850",
+        //                    "chains": [
+        //                        {
+        //                            "chainType": "MATIC",
+        //                            "confirmation": "128",
+        //                            "withdrawFee": "0.1",
+        //                            "depositMin": "0",
+        //                            "withdrawMin": "0.1",
+        //                            "chain": "MATIC",
+        //                            "chainDeposit": "1",
+        //                            "chainWithdraw": "1",
+        //                            "minAccuracy": "8"
+        //                        },
+        //                        {
+        //                            "chainType": "ERC20",
+        //                            "confirmation": "12",
+        //                            "withdrawFee": "10",
+        //                            "depositMin": "0",
+        //                            "withdrawMin": "20",
+        //                            "chain": "ETH",
+        //                            "chainDeposit": "1",
+        //                            "chainWithdraw": "1",
+        //                            "minAccuracy": "8"
+        //                        },
+        //                        {
+        //                            "chainType": "BSC (BEP20)",
+        //                            "confirmation": "15",
+        //                            "withdrawFee": "1",
+        //                            "depositMin": "0",
+        //                            "withdrawMin": "1",
+        //                            "chain": "BSC",
+        //                            "chainDeposit": "1",
+        //                            "chainWithdraw": "1",
+        //                            "minAccuracy": "8"
+        //                        }
+        //                    ]
+        //                },
+        //            ]
+        //        },
+        //        "retExtInfo": null,
+        //        "time": "1666728888775"
+        //    }
         //
         const data = this.safeValue (response, 'result', []);
         const rows = this.safeValue (data, 'rows', []);
@@ -716,26 +729,31 @@ module.exports = class bybit extends Exchange {
             const name = this.safeString (currency, 'name');
             const chains = this.safeValue (currency, 'chains', []);
             const networks = {};
+            let minPrecision = undefined;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'chain');
-                const network = this.safeNetwork (networkId);
-                networks[network] = {
+                const networkCode = this.safeNetwork (networkId);
+                const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'minAccuracy')));
+                minPrecision = (minPrecision === undefined) ? precision : Math.min (minPrecision, precision);
+                const depositAllowed = this.safeInteger (currency, 'chainDeposit') === 1;
+                const withdrawAllowed = this.safeInteger (currency, 'chainWithdraw') === 1;
+                networks[networkCode] = {
                     'info': chain,
                     'id': networkId,
-                    'network': network,
+                    'network': networkCode,
                     'active': undefined,
-                    'deposit': undefined,
-                    'withdraw': undefined,
-                    'fee': this.safeNumber (chain, 'withdraw_fee'),
-                    'precision': undefined,
+                    'deposit': depositAllowed,
+                    'withdraw': withdrawAllowed,
+                    'fee': this.safeNumber (chain, 'withdrawFee'),
+                    'precision': precision,
                     'limits': {
                         'withdraw': {
-                            'min': this.safeNumber (chain, 'withdraw_min'),
+                            'min': this.safeNumber (chain, 'withdrawMin'),
                             'max': undefined,
                         },
                         'deposit': {
-                            'min': this.safeNumber (chain, 'deposit_min'),
+                            'min': this.safeNumber (chain, 'depositMin'),
                             'max': undefined,
                         },
                     },
@@ -750,7 +768,7 @@ module.exports = class bybit extends Exchange {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': undefined,
-                'precision': this.parseNumber ('0.00000001'),
+                'precision': minPrecision,
                 'limits': {
                     'amount': {
                         'min': undefined,
@@ -792,42 +810,50 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchSpotMarkets (params) {
-        const response = await this.publicGetSpotV1Symbols (params);
+        const response = await this.publicGetSpotV3PublicSymbols (params);
         //
-        //     {
-        //         "ret_code":0,
-        //         "ret_msg":"",
-        //         "ext_code":null,
-        //         "ext_info":null,
-        //         "result":[
-        //             {
-        //                 "name":"BTCUSDT",
-        //                 "alias":"BTCUSDT",
-        //                 "baseCurrency":"BTC",
-        //                 "quoteCurrency":"USDT",
-        //                 "basePrecision":"0.000001",
-        //                 "quotePrecision":"0.00000001",
-        //                 "minTradeQuantity":"0.000158",
-        //                 "minTradeAmount":"10",
-        //                 "maxTradeQuantity":"4",
-        //                 "maxTradeAmount":"100000",
-        //                 "minPricePrecision":"0.01",
-        //                 "category":1,
-        //                 "showStatus":true
-        //             },
-        //         ]
-        //     }
-        const markets = this.safeValue (response, 'result', []);
+        //    {
+        //        "retCode": "0",
+        //        "retMsg": "OK",
+        //        "result": {
+        //            "list": [
+        //                {
+        //                    "name": "BTCUSDT",
+        //                    "alias": "BTCUSDT",
+        //                    "baseCoin": "BTC",
+        //                    "quoteCoin": "USDT",
+        //                    "basePrecision": "0.000001",
+        //                    "quotePrecision": "0.00000001",
+        //                    "minTradeQty": "0.00004",
+        //                    "minTradeAmt": "1",
+        //                    "maxTradeQty": "46.13",
+        //                    "maxTradeAmt": "938901",
+        //                    "minPricePrecision": "0.01",
+        //                    "category": "1",
+        //                    "showStatus": "1",
+        //                    "innovation": "0"
+        //                },
+        //            ]
+        //        },
+        //        "retExtMap": {},
+        //        "retExtInfo": null,
+        //        "time": "1666729450457"
+        //    }
+        //
+        const responseResult = this.safeValue (response, 'result', {});
+        const markets = this.safeValue (responseResult, 'list', []);
         const result = [];
+        const takerFee = this.parseNumber ('0.001');
+        const makerFee = this.parseNumber ('0.001');
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'name');
-            const baseId = this.safeString (market, 'baseCurrency');
-            const quoteId = this.safeString (market, 'quoteCurrency');
+            const baseId = this.safeString (market, 'baseCoin');
+            const quoteId = this.safeString (market, 'quoteCoin');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const active = this.safeValue (market, 'showStatus');
+            const active = this.safeInteger (market, 'showStatus') === 1;
             const quotePrecision = this.safeNumber (market, 'quotePrecision');
             result.push ({
                 'id': id,
@@ -848,8 +874,8 @@ module.exports = class bybit extends Exchange {
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'taker': this.parseNumber ('0.001'),
-                'maker': this.parseNumber ('0.001'),
+                'taker': takerFee,
+                'maker': makerFee,
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
@@ -865,16 +891,16 @@ module.exports = class bybit extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': this.safeNumber (market, 'minTradeQuantity'),
-                        'max': this.safeNumber (market, 'maxTradeQuantity'),
+                        'min': this.safeNumber (market, 'minTradeQty'),
+                        'max': this.safeNumber (market, 'maxTradeQty'),
                     },
                     'price': {
                         'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
-                        'min': this.safeNumber (market, 'minTradeAmount'),
-                        'max': this.safeNumber (market, 'maxTradeAmount'),
+                        'min': this.safeNumber (market, 'minTradeAmt'),
+                        'max': this.safeNumber (market, 'maxTradeAmt'),
                     },
                 },
                 'info': market,
@@ -2324,7 +2350,7 @@ module.exports = class bybit extends Exchange {
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let method = undefined;
         if (type === 'spot') {
-            method = 'privateGetSpotV1Account';
+            method = 'privateGetSpotV3PrivateAccount';
         } else {
             let settle = this.safeString (this.options, 'defaultSettle');
             settle = this.safeString2 (params, 'settle', 'defaultSettle', settle);
@@ -3244,7 +3270,7 @@ module.exports = class bybit extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument'); // todo: spot doesnt need symbol
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3265,7 +3291,7 @@ module.exports = class bybit extends Exchange {
         const isUsdcSettled = market['settle'] === 'USDC';
         let method = undefined;
         if (market['spot']) {
-            method = 'privateDeleteSpotV1Order';
+            method = 'privatePostSpotV3PrivateCancelOrder';
             if (id !== undefined) { // The user can also use argument params["order_link_id"]
                 request['orderId'] = id;
             }
@@ -3714,22 +3740,52 @@ module.exports = class bybit extends Exchange {
                 method = isConditional ? 'privateGetV2PrivateStopOrder' : 'privateGetV2PrivateOrder';
             }
         } else if (type === 'spot') {
-            method = 'privateGetSpotV1OpenOrders';
+            request['symbol'] = market['id'];
+            method = 'privateGetSpotV3PrivateOpenOrders';
         } else {
             // usdc
             method = 'privatePostOptionUsdcOpenapiPrivateV1QueryActiveOrders';
             request['category'] = (type === 'swap') ? 'perpetual' : 'option';
         }
         const orders = await this[method] (this.extend (request, params));
-        let result = this.safeValue (orders, 'result', []);
-        if (!Array.isArray (result)) {
-            const dataList = this.safeValue (result, 'dataList');
-            if (dataList === undefined) {
-                return this.parseOrder (result, market);
-            }
-            result = dataList;
-        }
-        // {
+        //
+        // spot
+        //
+        //    {
+        //        "retCode": "0",
+        //        "retMsg": "OK",
+        //        "result": {
+        //            "list": [
+        //                {
+        //                    "accountId": "13380434",
+        //                    "symbol": "AAVEUSDT",
+        //                    "orderLinkId": "1666726083881",
+        //                    "orderId": "1274985232006651392",
+        //                    "orderPrice": "78",
+        //                    "orderQty": "0.016",
+        //                    "execQty": "0",
+        //                    "cummulativeQuoteQty": "0",
+        //                    "avgPrice": "0",
+        //                    "status": "NEW",
+        //                    "timeInForce": "GTC",
+        //                    "orderType": "LIMIT",
+        //                    "side": "BUY",
+        //                    "stopPrice": "0.0",
+        //                    "icebergQty": "0.0",
+        //                    "createTime": "1666726083695",
+        //                    "updateTime": "1666726083701",
+        //                    "isWorking": "1",
+        //                    "orderCategory": "0"
+        //                }
+        //            ]
+        //        },
+        //        "retExtInfo": null,
+        //        "time": "1666726640738"
+        //    }
+        //
+        // others
+        //
+        //    {
         //     "ret_code":0,
         //     "ret_msg":"",
         //     "ext_code":null,
@@ -3758,7 +3814,20 @@ module.exports = class bybit extends Exchange {
         //           "isWorking":true
         //        }
         //     ]
-        //  }
+        //    }
+        //
+        let result = this.safeValue (orders, 'result', []);
+        if (type === 'spot') {
+            result = this.safeValue (result, 'list', []);
+        } else {
+            if (!Array.isArray (result)) {
+                const dataList = this.safeValue (result, 'dataList');
+                if (dataList === undefined) {
+                    return this.parseOrder (result, market);
+                }
+                result = dataList;
+            }
+        }
         return this.parseOrders (result, market, since, limit);
     }
 
