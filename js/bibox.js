@@ -2184,14 +2184,14 @@ module.exports = class bibox extends Exchange {
         const v4 = (version === 'v4');
         const prefix = v4 ? '/api' : '';
         let url = this.implodeHostname (this.urls['api']['rest']) + prefix + '/' + version + '/' + path;
-        const json_params = v1 ? this.json ([ params ]) : this.json (params);
+        const jsonParams = v1 ? this.json ([ params ]) : this.json (params);
         headers = { 'content-type': 'application/json' };
         if (access === 'public') {
             if (method !== 'GET') {
                 if (v1) {
-                    body = { 'cmds': json_params };
+                    body = { 'cmds': jsonParams };
                 } else {
-                    body = { 'body': json_params };
+                    body = { 'body': jsonParams };
                 }
             } else if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
@@ -2201,8 +2201,8 @@ module.exports = class bibox extends Exchange {
             if (version === 'v3' || version === 'v3.1') {
                 const timestamp = this.numberToString (this.milliseconds ());
                 let strToSign = timestamp;
-                if (json_params !== '{}') {
-                    strToSign += json_params;
+                if (jsonParams !== '{}') {
+                    strToSign += jsonParams;
                 }
                 const sign = this.hmac (this.encode (strToSign), this.encode (this.secret), 'md5');
                 headers['bibox-api-key'] = this.apiKey;
@@ -2211,7 +2211,7 @@ module.exports = class bibox extends Exchange {
                 if (method === 'GET') {
                     url += '?' + this.urlencode (params);
                 } else {
-                    if (json_params !== '{}') {
+                    if (jsonParams !== '{}') {
                         body = params;
                     }
                 }
@@ -2221,7 +2221,7 @@ module.exports = class bibox extends Exchange {
                     url += '?' + this.urlencode (params);
                     strToSign = this.urlencode (params);
                 } else {
-                    if (json_params !== '{}') {
+                    if (jsonParams !== '{}') {
                         body = params;
                     }
                     strToSign = this.json (body, { 'convertArraysToObjects': true });
@@ -2230,15 +2230,15 @@ module.exports = class bibox extends Exchange {
                 headers['Bibox-Api-Key'] = this.apiKey;
                 headers['Bibox-Api-Sign'] = sign;
             } else {
-                const sign = this.hmac (this.encode (json_params), this.encode (this.secret), 'md5');
+                const sign = this.hmac (this.encode (jsonParams), this.encode (this.secret), 'md5');
                 body = {
                     'apikey': this.apiKey,
                     'sign': sign,
                 };
                 if (v1) {
-                    body['cmds'] = json_params;
+                    body['cmds'] = jsonParams;
                 } else {
-                    body['body'] = json_params;
+                    body['body'] = jsonParams;
                 }
             }
         }
