@@ -2831,12 +2831,7 @@ module.exports = class bybit extends Exchange {
         const triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
         if (triggerPrice !== undefined) {
             const precisionTriggerPrice = this.priceToPrecision (symbol, triggerPrice);
-            params['TriggerPrice'] = precisionTriggerPrice;
             params['triggerPrice'] = precisionTriggerPrice;
-            params['trigger_price'] = precisionTriggerPrice;
-            params['trigger_Price'] = precisionTriggerPrice;
-            params['orderCategory'] = 0;
-            params['order_category'] = 0;
         }
         params = this.omit (params, 'stopPrice');
         const response = await this.privatePostSpotV3PrivateOrder (this.extend (request, params));
