@@ -466,6 +466,7 @@ module.exports = class bybit extends Exchange {
                     '10017': BadRequest, // request path not found or request method is invalid
                     '10018': RateLimitExceeded, // exceed ip rate limit
                     '10020': PermissionDenied, // {"retCode":10020,"retMsg":"your account is not a unified margin account, please update your account","result":null,"retExtInfo":null,"time":1664783731123}
+                    '12201': BadRequest, // {"retCode":12201,"retMsg":"Invalid orderCategory parameter.","result":{},"retExtInfo":null,"time":1666699391220}
                     '20001': OrderNotFound, // Order not exists
                     '20003': InvalidOrder, // missing parameter side
                     '20004': InvalidOrder, // invalid parameter side
@@ -2422,6 +2423,26 @@ module.exports = class bybit extends Exchange {
         //
         // createOrder
         //
+        //   spot
+        //
+        //     {
+        //         "orderId": "1274754916287346280",
+        //         "orderLinkId": "1666798627015730",
+        //         "symbol": "AAVEUSDT",
+        //         "createTime": "1666698629821",
+        //         "orderPrice": "80",
+        //         "orderQty": "0.11",
+        //         "orderType": "LIMIT",
+        //         "side": "BUY",
+        //         "status": "NEW",
+        //         "timeInForce": "GTC",
+        //         "accountId": "13380434",
+        //         "execQty": "0",
+        //         "orderCategory": "0"
+        //     }
+        //
+        //   others
+        //
         //     {
         //         "user_id": 1,
         //         "order_id": "335fd977-e5a5-4781-b6d0-c772d5bfb95b",
@@ -2646,7 +2667,7 @@ module.exports = class bybit extends Exchange {
             clientOrderId = undefined;
         }
         const timeInForce = this.parseTimeInForce (this.safeString2 (order, 'time_in_force', 'timeInForce'));
-        const stopPrice = this.safeStringN (order, [ 'trigger_price', 'stop_px', 'stopPrice', 'triggerPrice' ]);
+        const triggerPrice = this.safeStringN (order, [ 'trigger_price', 'stop_px', 'stopPrice', 'triggerPrice' ]);
         const postOnly = (timeInForce === 'PO');
         if ((market['spot'] && type === 'market') && (side === 'buy')) {
             amount = filled;
@@ -2664,7 +2685,8 @@ module.exports = class bybit extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
+            'triggerPrice': triggerPrice,
+            'stopPrice': triggerPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -2782,20 +2804,20 @@ module.exports = class bybit extends Exchange {
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
-            'type': upperCaseType, // limit, market or limit_maker
+            'orderType': upperCaseType, // limit, market or limit_maker
             'timeInForce': 'GTC', // FOK, IOC
-            'qty': this.amountToPrecision (symbol, amount),
+            'orderQty': this.amountToPrecision (symbol, amount),
             // 'orderLinkId': 'string', // unique client order id, max 36 characters
         };
         if ((upperCaseType === 'LIMIT') || (upperCaseType === 'LIMIT_MAKER')) {
             if (price === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder requires a price argument for a ' + type + ' order');
             }
-            request['price'] = parseFloat (this.priceToPrecision (symbol, price));
+            request['orderPrice'] = parseFloat (this.priceToPrecision (symbol, price));
         }
         const isPostOnly = this.isPostOnly (upperCaseType === 'MARKET', type === 'LIMIT_MAKER', params);
         if (isPostOnly) {
-            request['type'] = 'LIMIT_MAKER';
+            request['orderType'] = 'LIMIT_MAKER';
         }
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'orderLinkId');
         if (clientOrderId !== undefined) {
@@ -2806,28 +2828,40 @@ module.exports = class bybit extends Exchange {
         if (brokerId !== undefined) {
             request['agentSource'] = brokerId;
         }
-        const response = await this.privatePostSpotV1Order (this.extend (request, params));
+        const triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
+        if (triggerPrice !== undefined) {
+            const precisionTriggerPrice = this.priceToPrecision (symbol, triggerPrice);
+            params['TriggerPrice'] = precisionTriggerPrice;
+            params['triggerPrice'] = precisionTriggerPrice;
+            params['trigger_price'] = precisionTriggerPrice;
+            params['trigger_Price'] = precisionTriggerPrice;
+            params['orderCategory'] = 0;
+            params['order_category'] = 0;
+        }
+        params = this.omit (params, 'stopPrice');
+        const response = await this.privatePostSpotV3PrivateOrder (this.extend (request, params));
         //
         //    {
-        //        "ret_code": 0,
-        //        "ret_msg": "",
-        //        "ext_code": null,
-        //        "ext_info": null,
+        //        "retCode": "0",
+        //        "retMsg": "OK",
         //        "result": {
-        //           "accountId": "24478790",
-        //           "symbol": "ETHUSDT",
-        //           "symbolName": "ETHUSDT",
-        //           "orderLinkId": "1652266305358517",
-        //           "orderId": "1153687819821127168",
-        //           "transactTime": "1652266305365",
-        //           "price": "80",
-        //           "origQty": "0.05",
-        //           "executedQty": "0",
-        //           "status": "NEW",
-        //           "timeInForce": "GTC",
-        //           "type": "LIMIT",
-        //           "side": "BUY"
-        //        }
+        //            "orderId": "1274754916287346280",
+        //            "orderLinkId": "1666798627015730",
+        //            "symbol": "AAVEUSDT",
+        //            "createTime": "1666698629821",
+        //            "orderPrice": "80",
+        //            "orderQty": "0.11",
+        //            "orderType": "LIMIT",
+        //            "side": "BUY",
+        //            "status": "NEW",
+        //            "timeInForce": "GTC",
+        //            "accountId": "13380434",
+        //            "execQty": "0",
+        //            "orderCategory": "0"
+        //        },
+        //        "retExtMap": {},
+        //        "retExtInfo": null,
+        //        "time": "1666698627926"
         //    }
         //
         const order = this.safeValue (response, 'result', {});
@@ -2892,10 +2926,10 @@ module.exports = class bybit extends Exchange {
                 request['orderFilter'] = 'StopOrder';
                 request['trigger_by'] = 'LastPrice';
                 const stopPx = isStopLossOrder ? stopLossPrice : takeProfitPrice;
-                const preciseStopPrice = this.priceToPrecision (symbol, stopPx);
-                request['triggerPrice'] = preciseStopPrice;
+                const preciseTriggerPrice = this.priceToPrecision (symbol, stopPx);
+                request['triggerPrice'] = preciseTriggerPrice;
                 const delta = this.numberToString (market['precision']['price']);
-                request['basePrice'] = isStopLossOrder ? Precise.stringSub (preciseStopPrice, delta) : Precise.stringAdd (preciseStopPrice, delta);
+                request['basePrice'] = isStopLossOrder ? Precise.stringSub (preciseTriggerPrice, delta) : Precise.stringAdd (preciseTriggerPrice, delta);
             } else {
                 request['orderFilter'] = 'Order';
             }
@@ -3009,8 +3043,8 @@ module.exports = class bybit extends Exchange {
         const isTakeProfitOrder = takeProfitPrice !== undefined;
         if (isTriggerOrder) {
             request['trigger_by'] = 'LastPrice';
-            const preciseStopPrice = this.priceToPrecision (symbol, triggerPrice);
-            request['stop_px'] = parseFloat (preciseStopPrice);
+            const preciseTriggerPrice = this.priceToPrecision (symbol, triggerPrice);
+            request['stop_px'] = parseFloat (preciseTriggerPrice);
             const basePrice = this.safeValue2 (params, 'base_price', 'basePrice');
             if (basePrice === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a base_price parameter for trigger orders, your triggerPrice > max(market price, base_price) or triggerPrice < min(market price, base_price)');
