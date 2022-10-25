@@ -419,7 +419,7 @@ class Transpiler {
         ]
     }
 
-    getSyncPHPRegexes () {
+    getPHPSyncRegexes () {
         return [
             [ /\bAsync\\await\((.+)\);/g, '$1;' ], // delete await
             [ /\bAsync\\await\((.+?)\);/gs, '$1;' ], // delete await
@@ -992,7 +992,7 @@ class Transpiler {
     transpileAsyncPHPToSyncPHP (php) {
 
         // remove yield from php body
-        return this.regexAll (php, this.getSyncPHPRegexes ())
+        return this.regexAll (php, this.getPHPSyncRegexes ())
     }
 
     // ------------------------------------------------------------------------
@@ -1132,7 +1132,7 @@ class Transpiler {
             [ /ccxt\\\\async/, 'ccxt' ],
         ]
 
-        const newContents = this.regexAll (syncBody, this.getSyncPHPRegexes ().concat (phpTestRegexes));
+        const newContents = this.regexAll (syncBody, this.getPHPSyncRegexes ().concat (phpTestRegexes));
 
         fs.truncateSync (sync)
         fs.writeFileSync (sync, newContents)
