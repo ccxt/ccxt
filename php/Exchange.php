@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.0.65';
+$version = '2.0.66';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.0.65';
+    const VERSION = '2.0.66';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -411,6 +411,7 @@ class Exchange {
         'safeSymbol' => 'safe_symbol',
         'parseFundingRate' => 'parse_funding_rate',
         'parseFundingRates' => 'parse_funding_rates',
+        'isTriggerOrder' => 'is_trigger_order',
         'isPostOnly' => 'is_post_only',
         'fetchTradingFees' => 'fetch_trading_fees',
         'fetchTradingFee' => 'fetch_trading_fee',
@@ -4206,6 +4207,14 @@ class Exchange {
             $result[$parsed['symbol']] = $parsed;
         }
         return $result;
+    }
+
+    public function is_trigger_order($params) {
+        $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
+        if ($isTrigger) {
+            $params = $this->omit ($params, array( 'trigger', 'stop' ));
+        }
+        return array( $isTrigger, $params );
     }
 
     public function is_post_only($isMarketOrder, $exchangeSpecificParam, $params = array ()) {
