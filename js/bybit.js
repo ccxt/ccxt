@@ -5241,7 +5241,7 @@ module.exports = class bybit extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
-        const response = await this.privateGetSpotV1CrossMarginAccountsBalance (this.extend (request, params));
+        const response = await this.privateGetSpotV3PrivateCrossMarginAccount (this.extend (request, params));
         //
         //     {
         //         "ret_code": 0,
@@ -5471,20 +5471,23 @@ module.exports = class bybit extends Exchange {
             throw new NotSupported (this.id + ' repayMargin () cannot use isolated margin');
         }
         const request = {
-            'currency': currency['id'],
+            'coin': currency['id'],
             'qty': this.currencyToPrecision (code, amount),
         };
-        const response = await this.privatePostSpotV1CrossMarginRepay (this.extend (request, query));
+        const response = await this.privatePostSpotV3PrivateCrossMarginRepay (this.extend (request, query));
         //
-        //    {
-        //        "ret_code": 0,
-        //        "ret_msg": "",
-        //        "ext_code": null,
-        //        "ext_info": null,
-        //        "result": 307
-        //    }
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "success",
+        //         "result": {
+        //            "repayId": "12128"
+        //         },
+        //         "retExtInfo": null,
+        //         "time": 1662618298452
+        //     }
         //
-        const transaction = this.parseMarginLoan (response, currency);
+        const result = this.safeValue (response, 'result', {});
+        const transaction = this.parseMarginLoan (result, currency);
         return this.extend (transaction, {
             'symbol': symbol,
             'amount': amount,
@@ -5493,12 +5496,20 @@ module.exports = class bybit extends Exchange {
 
     parseMarginLoan (info, currency = undefined) {
         //
+        // borrowMargin
+        //
         //     {
         //         "transactId": "14143"
         //     }
         //
+        // repayMargin
+        //
+        //     {
+        //         "repayId": "12128"
+        //     }
+        //
         return {
-            'id': this.safeString (info, 'transactId'),
+            'id': this.safeString2 (info, 'transactId', 'repayId'),
             'currency': this.safeString (currency, 'code'),
             'amount': undefined,
             'symbol': undefined,
