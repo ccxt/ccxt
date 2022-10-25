@@ -1157,18 +1157,22 @@ module.exports = class kucoin extends Exchange {
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         const data = this.safeValue (response, 'data', {});
-        const address = this.safeString (data, 'address');
-        const tag = this.safeString (data, 'memo');
+        return this.parseDepositAddress (data, currency);
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        const address = this.safeString (depositAddress, 'address');
+        const code = currency['id'];
         if (code !== 'NIM') {
             // contains spaces
             this.checkAddress (address);
         }
         return {
-            'info': response,
+            'info': depositAddress,
             'currency': code,
             'address': address,
-            'tag': tag,
-            'network': network,
+            'tag': this.safeString (depositAddress, 'memo'),
+            'network': this.safeString (depositAddress, 'chain'),
         };
     }
 
