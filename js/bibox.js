@@ -1040,7 +1040,7 @@ module.exports = class bibox extends Exchange {
             'account': undefined,
             'referenceId': id,
             'referenceAccount': undefined,
-            'type': ledgerTypes[type],
+            'type': this.safeString (ledgerTypes, type, type),
             'currency': this.safeCurrencyCode (currencyId, currency),
             'amount': this.parseNumber (amount),
             'timestamp': timestamp,
