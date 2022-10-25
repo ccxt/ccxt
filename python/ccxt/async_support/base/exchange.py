@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.0.44'
+__version__ = '2.0.67'
 
 # -----------------------------------------------------------------------------
 
@@ -1724,6 +1724,12 @@ class Exchange(BaseExchange):
             parsed = self.parse_funding_rate(response[i], market)
             result[parsed['symbol']] = parsed
         return result
+
+    def is_trigger_order(self, params):
+        isTrigger = self.safe_value_2(params, 'trigger', 'stop')
+        if isTrigger:
+            params = self.omit(params, ['trigger', 'stop'])
+        return [isTrigger, params]
 
     def is_post_only(self, isMarketOrder, exchangeSpecificParam, params={}):
         """

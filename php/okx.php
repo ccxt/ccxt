@@ -149,6 +149,7 @@ class okx extends Exchange {
                         'market/ticker' => 1,
                         'market/index-tickers' => 1,
                         'market/books' => 1,
+                        'market/books-lite' => 1.66,
                         'market/candles' => 0.5,
                         'market/history-candles' => 1,
                         'market/history-mark-price-candles' => 120,
@@ -627,10 +628,6 @@ class okx extends Exchange {
                     'POLYGON' => 'Polygon',
                     'OEC' => 'OEC',
                     'ALGO' => 'ALGO', // temporarily unavailable
-                ),
-                'layerTwo' => array(
-                    'Lightning' => true,
-                    'Liquid' => true,
                 ),
                 'fetchOpenInterestHistory' => array(
                     'timeframes' => array(
@@ -1186,25 +1183,16 @@ class okx extends Exchange {
                 if (($networkId !== null) && (mb_strpos($networkId, '-') !== false)) {
                     $parts = explode('-', $networkId);
                     $chainPart = $this->safe_string($parts, 1, $networkId);
-                    $network = $this->safe_network($chainPart);
-                    $mainNet = $this->safe_value($chain, 'mainNet', false);
-                    $layerTwo = $this->safe_value($this->options, 'layerTwo', array(
-                        'Liquid' => true,
-                        'Lightning' => true,
-                    ));
-                    if ($mainNet && !(is_array($layerTwo) && array_key_exists($chainPart, $layerTwo))) {
-                        // BTC lighting and liquid are both mainnet but not the same as BTC-Bitcoin
-                        $network = $code;
-                    }
+                    $networkCode = $this->safe_network($chainPart);
                     $precision = $this->parse_precision($this->safe_string($chain, 'wdTickSz'));
                     if ($maxPrecision === null) {
                         $maxPrecision = $precision;
                     } else {
                         $maxPrecision = Precise::string_min($maxPrecision, $precision);
                     }
-                    $networks[$network] = array(
+                    $networks[$networkCode] = array(
                         'id' => $networkId,
-                        'network' => $network,
+                        'network' => $networkCode,
                         'active' => $active,
                         'deposit' => $canDeposit,
                         'withdraw' => $canWithdraw,
@@ -2119,6 +2107,7 @@ class okx extends Exchange {
             $brokerId = $this->safe_string($this->options, 'brokerId');
             if ($brokerId !== null) {
                 $request['clOrdId'] = $brokerId . $this->uuid16();
+                $request['tag'] = $brokerId;
             }
         } else {
             $request['clOrdId'] = $clientOrderId;
@@ -2444,6 +2433,10 @@ class okx extends Exchange {
             $clientOrderId = null; // fix empty $clientOrderId string
         }
         $stopPrice = $this->safe_number_n($order, array( 'triggerPx', 'slTriggerPx', 'tpTriggerPx' ));
+        $reduceOnly = $this->safe_string($order, 'reduceOnly');
+        if ($reduceOnly !== null) {
+            $reduceOnly = ($reduceOnly === 'true');
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -2466,6 +2459,7 @@ class okx extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
+            'reduceOnly' => $reduceOnly,
         ), $market);
     }
 

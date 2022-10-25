@@ -150,6 +150,7 @@ module.exports = class okx extends Exchange {
                         'market/ticker': 1,
                         'market/index-tickers': 1,
                         'market/books': 1,
+                        'market/books-lite': 1.66,
                         'market/candles': 0.5,
                         'market/history-candles': 1,
                         'market/history-mark-price-candles': 120,
@@ -628,10 +629,6 @@ module.exports = class okx extends Exchange {
                     'POLYGON': 'Polygon',
                     'OEC': 'OEC',
                     'ALGO': 'ALGO', // temporarily unavailable
-                },
-                'layerTwo': {
-                    'Lightning': true,
-                    'Liquid': true,
                 },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
@@ -1198,25 +1195,16 @@ module.exports = class okx extends Exchange {
                 if ((networkId !== undefined) && (networkId.indexOf ('-') >= 0)) {
                     const parts = networkId.split ('-');
                     const chainPart = this.safeString (parts, 1, networkId);
-                    let network = this.safeNetwork (chainPart);
-                    const mainNet = this.safeValue (chain, 'mainNet', false);
-                    const layerTwo = this.safeValue (this.options, 'layerTwo', {
-                        'Liquid': true,
-                        'Lightning': true,
-                    });
-                    if (mainNet && !(chainPart in layerTwo)) {
-                        // BTC lighting and liquid are both mainnet but not the same as BTC-Bitcoin
-                        network = code;
-                    }
+                    const networkCode = this.safeNetwork (chainPart);
                     const precision = this.parsePrecision (this.safeString (chain, 'wdTickSz'));
                     if (maxPrecision === undefined) {
                         maxPrecision = precision;
                     } else {
                         maxPrecision = Precise.stringMin (maxPrecision, precision);
                     }
-                    networks[network] = {
+                    networks[networkCode] = {
                         'id': networkId,
-                        'network': network,
+                        'network': networkCode,
                         'active': active,
                         'deposit': canDeposit,
                         'withdraw': canWithdraw,
@@ -2149,6 +2137,7 @@ module.exports = class okx extends Exchange {
             const brokerId = this.safeString (this.options, 'brokerId');
             if (brokerId !== undefined) {
                 request['clOrdId'] = brokerId + this.uuid16 ();
+                request['tag'] = brokerId;
             }
         } else {
             request['clOrdId'] = clientOrderId;
@@ -2480,6 +2469,10 @@ module.exports = class okx extends Exchange {
             clientOrderId = undefined; // fix empty clientOrderId string
         }
         const stopPrice = this.safeNumberN (order, [ 'triggerPx', 'slTriggerPx', 'tpTriggerPx' ]);
+        let reduceOnly = this.safeString (order, 'reduceOnly');
+        if (reduceOnly !== undefined) {
+            reduceOnly = (reduceOnly === 'true');
+        }
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -2502,6 +2495,7 @@ module.exports = class okx extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
+            'reduceOnly': reduceOnly,
         }, market);
     }
 

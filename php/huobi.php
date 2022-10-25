@@ -6505,7 +6505,7 @@ class huobi extends Exchange {
          * @param {int|null} $since Not used by huobi api, but $response parsed by CCXT
          * @param {int|null} $limit Default：48，Data Range [1,200]
          * @param {array} $params Exchange specific parameters
-         * @param {int} $params->amount_type *required* Open interest unit. 1-cont，2-cryptocurrenty
+         * @param {int} $params->amount_type *required* Open interest unit. 1-cont，2-cryptocurrency
          * @param {int|null} $params->pair eg BTC-USDT *Only for USDT-M*
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#open-interest-structure open interest structures}
          */
@@ -6522,7 +6522,7 @@ class huobi extends Exchange {
         $market = $this->market($symbol);
         $amountType = $this->safe_number_2($params, 'amount_type', 'amountType');
         if ($amountType === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenInterestHistory requires parameter $params->amountType to be either 1 (cont), or 2 (cryptocurrenty)');
+            throw new ArgumentsRequired($this->id . ' fetchOpenInterestHistory requires parameter $params->amountType to be either 1 (cont), or 2 (cryptocurrency)');
         }
         $request = array(
             'period' => $timeframes[$timeframe],
@@ -6608,7 +6608,7 @@ class huobi extends Exchange {
         //
         $data = $this->safe_value($response, 'data');
         $tick = $this->safe_value($data, 'tick');
-        return $this->parse_open_interests($tick, null, $since, $limit);
+        return $this->parse_open_interests($tick, $market, $since, $limit);
     }
 
     public function fetch_open_interest($symbol, $params = array ()) {
@@ -6769,7 +6769,7 @@ class huobi extends Exchange {
         //
         $timestamp = $this->safe_integer($interest, 'ts');
         $amount = $this->safe_number($interest, 'volume');
-        $value = $this->safe_value($interest, 'value');
+        $value = $this->safe_number($interest, 'value');
         return array(
             'symbol' => $this->safe_string($market, 'symbol'),
             'baseVolume' => $amount,  // deprecated

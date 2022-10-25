@@ -37,6 +37,7 @@ module.exports = class bibox extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchLedger': true,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -677,23 +678,50 @@ module.exports = class bibox extends Exchange {
         /**
          * @method
          * @name bibox#fetchOrderBook
+         * @see https://biboxcom.github.io/api/spot/v4/en/#get-order-book
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {int|undefined} limit *default=100* valid values include 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000
          * @param {object} params extra parameters specific to the bibox api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int|undefined} price_scale *default=0* depth of consolidation by price, valid values include 0, 1, 2, 3, 4, 5
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'cmd': 'depth',
-            'pair': market['id'],
+            'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['size'] = limit; // default = 200
+            const allowedValues = [ 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000 ];
+            if (!this.inArray (limit, allowedValues)) {
+                throw new BadRequest (this.id + ' fetchOrderBook limit argument by only be one of 1, 2, 5, 10, 20, 50, 100, 200, 500 or 1000');
+            }
+            request['level'] = limit;
         }
-        const response = await this.v1PublicGetMdata (this.extend (request, params));
-        return this.parseOrderBook (response['result'], market['symbol'], this.safeNumber (response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume');
+        const response = await this.v4PublicGetMarketdataOrderBook (this.extend (request, params));
+        //
+        //    {
+        //        i: '1917961902',                  // update id
+        //        t: '1666221729812',               // update time
+        //        b: [                              // buy orders
+        //            [
+        //                '0.350983',               // order price
+        //                '8760.69'                 // order amount
+        //            ],
+        //            ...
+        //        ],
+        //        a: [                              // sell orders
+        //            [
+        //                '0.351084',
+        //                '14241.62'
+        //            ],
+        //            ...
+        //        ]
+        //    }
+        //
+        return this.parseOrderBook (response, market['symbol'], this.safeInteger (response, 't'), 'b', 'a');
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -950,18 +978,24 @@ module.exports = class bibox extends Exchange {
     }
 
     parseBalance (response) {
-        const outerResult = this.safeValue (response, 'result');
-        const firstResult = this.safeValue (outerResult, 0, {});
-        const innerResult = this.safeValue (firstResult, 'result');
+        //
+        //    [
+        //        {
+        //            "s": "USDT",              // asset code
+        //            "a": 2.6617573979,        // available amount
+        //            "h": 0                    // frozen amount
+        //        },
+        //        ...
+        //    ]
+        //
         const result = { 'info': response };
-        const assetsList = this.safeValue (innerResult, 'assets_list', []);
-        for (let i = 0; i < assetsList.length; i++) {
-            const balance = assetsList[i];
-            const currencyId = this.safeString (balance, 'coin_symbol');
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString (balance, 's');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeString (balance, 'balance');
-            account['used'] = this.safeString (balance, 'freeze');
+            account['free'] = this.safeString (balance, 'a');
+            account['used'] = this.safeString (balance, 'h');
             result[code] = account;
         }
         return this.safeBalance (result);
@@ -972,39 +1006,127 @@ module.exports = class bibox extends Exchange {
          * @method
          * @name bibox#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://biboxcom.github.io/api/spot/v4/en/#get-accounts
          * @param {object} params extra parameters specific to the bibox api endpoint
+         * @param {str} params.code unified currency code
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const type = this.safeString (params, 'type', 'assets');
-        params = this.omit (params, 'type');
-        const request = {
-            'cmd': 'transfer/' + type, // assets, mainAssets
-            'body': this.extend ({
-                'select': 1, // return full info
-            }, params),
-        };
-        const response = await this.v1PrivatePostTransfer (request);
+        const code = this.safeString (params, 'code');
+        params = this.omit (params, 'code');
+        const request = {};
+        if (code !== undefined) {
+            const currency = this.currency (code);
+            request['asset'] = currency['id'];
+        }
+        const response = await this.v4PrivateGetUserdataAccounts (this.extend (request, params));
         //
-        //     {
-        //         "result":[
-        //             {
-        //                 "result":{
-        //                     "total_btc":"0.00000298",
-        //                     "total_cny":"0.99",
-        //                     "total_usd":"0.16",
-        //                     "assets_list":[
-        //                         {"coin_symbol":"BTC","BTCValue":"0.00000252","CNYValue":"0.84","USDValue":"0.14","balance":"0.00000252","freeze":"0.00000000"},
-        //                         {"coin_symbol":"LTC","BTCValue":"0.00000023","CNYValue":"0.07","USDValue":"0.01","balance":"0.00006765","freeze":"0.00000000"},
-        //                         {"coin_symbol":"USDT","BTCValue":"0.00000023","CNYValue":"0.08","USDValue":"0.01","balance":"0.01252100","freeze":"0.00000000"}
-        //                     ]
-        //                 },
-        //                 "cmd":"transfer/assets"
-        //             }
-        //         ]
-        //     }
+        //    [
+        //        {
+        //            "s": "USDT",              // asset code
+        //            "a": 2.6617573979,        // available amount
+        //            "h": 0                    // frozen amount
+        //        },
+        //        ...
+        //    ]
         //
         return this.parseBalance (response);
+    }
+
+    parseLedgerEntry (item, currency = undefined) {
+        //
+        //    {
+        //        "i": 1125899918063693495,     // entry id
+        //        "s": "USDT",                  // asset symbol
+        //        "T": "transfer_in",           // entry type: transfer, trade, fee
+        //        "a": 14.71,                   // amount
+        //        "b": 14.7100000044,           // balance
+        //        "t": 1663367640374            // time
+        //    }
+        //
+        const ledgerTypes = {
+            'transfer_in': 'transfer',
+            'transfer_out': 'transfer',
+            'trade_finish_ask': 'trade',
+            'trade_finish_bid': 'trade',
+        };
+        const id = this.safeString (item, 'i');
+        const currencyId = this.safeString (item, 's');
+        const type = this.safeString (item, 'T');
+        const timestamp = this.safeInteger (item, 't');
+        const amount = this.safeString (item, 'a');
+        let direction = 'in';
+        if (Precise.stringLt (amount, '0')) {
+            direction = 'out';
+        }
+        return {
+            'id': id,
+            'direction': direction,
+            'account': undefined,
+            'referenceId': id,
+            'referenceAccount': undefined,
+            'type': this.safeString (ledgerTypes, type, type),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.parseNumber (amount),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'before': undefined,
+            'after': this.safeNumber (item, 'b'),
+            'status': undefined,
+            'fee': undefined,
+            'info': item,
+        };
+    }
+
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bibox#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @see https://biboxcom.github.io/api/spot/v4/en/#get-an-account-39-s-ledger
+         * @param {string|undefined} code unified currency code, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {int|undefined} limit *default = 100* max number of ledger entrys to return
+         * @param {object} params extra parameters specific to the bitfinex2 api endpoint
+         * @param {int} params.until timestamp in ms of the latest ledger entry, default is undefined
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} before bill record id. limited to return the maximum id value of the bill records
+         * @param {int} after bill record id, limited to return the minimum id value of the bill records
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
+         */
+        await this.loadMarkets ();
+        let currency = undefined;
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'until');
+        const request = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['asset'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (until !== undefined) {
+            request['end_time'] = until;
+        }
+        const response = await this.v4PrivateGetUserdataLedger (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            "i": 1125899918063693495,     // entry id
+        //            "s": "USDT",                  // asset symbol
+        //            "T": "transfer_in",           // entry type: transfer, trade, fee
+        //            "a": 14.71,                   // amount
+        //            "b": 14.7100000044,           // balance
+        //            "t": 1663367640374            // time
+        //        }
+        //    ]
+        //
+        return this.parseLedger (response, currency, since, limit);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1013,67 +1135,61 @@ module.exports = class bibox extends Exchange {
          * @name bibox#fetchDeposits
          * @description fetch all deposits made to an account
          * @param {string|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch deposits for
-         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {int|undefined} since not used by bibox
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve, max=50, default=50
          * @param {object} params extra parameters specific to the bibox api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} params.page page number, default=1
+         * @param {string|undefined} params.filter_type deposit record filter, 0-all, 1-deposit in progress, 2-deposit received, 3-deposit failed
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         if (limit === undefined) {
-            limit = 100;
+            limit = 50;
         }
+        const page = this.safeInteger (params, 'page', 1);
         const request = {
-            'page': 1,
+            'page': page,
             'size': limit,
         };
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['symbol'] = currency['id'];
+            request['coin_symbol'] = currency['id'];
         }
-        const response = await this.v1PrivatePostTransfer ({
-            'cmd': 'transfer/transferInList',
-            'body': this.extend (request, params),
-        });
+        const method = 'v3.1PrivatePostTransferTransferInList';
+        const response = await this[method] (this.extend (request, params));
         //
-        //     {
-        //         "result":[
-        //             {
-        //                 "result":{
-        //                     "count":2,
-        //                     "page":1,
-        //                     "items":[
-        //                         {
-        //                             "coin_symbol":"ETH",                        // token
-        //                             "to_address":"xxxxxxxxxxxxxxxxxxxxxxxxxx",  // address
-        //                             "amount":"1.00000000",                      // amount
-        //                             "confirmCount":"15",                        // the acknowledgment number
-        //                             "createdAt":1540641511000,
-        //                             "status":2                                 // status,  1-deposit is in process，2-deposit finished，3-deposit failed
-        //                         },
-        //                         {
-        //                             "coin_symbol":"BIX",
-        //                             "to_address":"xxxxxxxxxxxxxxxxxxxxxxxxxx",
-        //                             "amount":"1.00000000",
-        //                             "confirmCount":"15",
-        //                             "createdAt":1540622460000,
-        //                             "status":2
-        //                         }
-        //                     ]
-        //                 },
-        //                 "cmd":"transfer/transferInList"
-        //             }
-        //         ]
-        //     }
+        //    {
+        //        result: {
+        //            count: '5',
+        //            page: '1',
+        //            items: [
+        //                {
+        //                    id: '3553023',
+        //                    coin_symbol: 'bUSDT',
+        //                    chain_type: 'BEP20(BSC)',
+        //                    to_address: '0xf1458ba28073b056e9666c4b2bbbc60451cda0fd',
+        //                    tx_id: '0x2f2319c4ae804893369aeeeef06dd429abf2833b61290ea2bd63ec0e363ebce6',
+        //                    amount: '14.71000000',
+        //                    confirmCount: '14',
+        //                    createdAt: '1663367581000',
+        //                    status: '2'
+        //                },
+        //                ...
+        //            ]
+        //        },
+        //        cmd: 'transferInList',
+        //        state: '0'
+        //    }
         //
-        const outerResults = this.safeValue (response, 'result');
-        const firstResult = this.safeValue (outerResults, 0, {});
-        const innerResult = this.safeValue (firstResult, 'result', {});
-        const deposits = this.safeValue (innerResult, 'items', []);
-        for (let i = 0; i < deposits.length; i++) {
-            deposits[i]['type'] = 'deposit';
+        const result = this.safeValue (response, 'result');
+        const items = this.safeValue (result, 'items');
+        for (let i = 0; i < items.length; i++) {
+            items[i]['type'] = 'deposit';
         }
-        return this.parseTransactions (deposits, currency, since, limit);
+        return this.parseTransactions (items, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1236,42 +1352,46 @@ module.exports = class bibox extends Exchange {
          * @method
          * @name bibox#createOrder
          * @description create a trade order
+         * @see https://biboxcom.github.io/api/spot/v4/en/#create-an-order
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the bibox api endpoint
-         * @param {string} params.clientOrderId client order id
+         * @param {bool|undefined} params.postOnly true or false
+         * @param {string|undefined} params.timeInForce gtc or ioc
+         * @param {string|undefined} params.clientOrderId client order id
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        type = type.toLowerCase ();
+        if (type === 'market') {
+            throw new BadRequest (this.id + ' createOrder () does not support market orders, only limit orders are allowed');
+        } else if (price === undefined) {
+            throw new ArgumentsRequired (this.id + ' createOrder () requires a price argument for limit orders');
+        }
         const request = {
             'symbol': market['id'],
             'side': side,
             'type': type,
             'quantity': this.amountToPrecision (symbol, amount),
             'price': this.priceToPrecision (symbol, price),
-            // 'client_order_id': // Order id, a string with a valid value of an int64 integer
-            // 'time_in_force': // Valid value gtc, ioc
-            // 'post_only':
         };
         const timeInForce = this.safeStringLower (params, 'timeInForce');
         if (timeInForce !== undefined) {
-            request['post_only'] = timeInForce;
-            params = this.omit (params, 'timeInForce');
+            request['time_in_force'] = timeInForce;
         }
-        const postOnly = this.safeString (params, 'postOnly');
-        if (postOnly !== undefined) {
+        const postOnly = this.isPostOnly (false, undefined, params);
+        if (postOnly) {
             request['post_only'] = postOnly;
-            params = this.omit (params, 'postOnly');
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
-            params = this.omit (params, 'clientOrderId');
         }
+        params = this.omit (params, [ 'postOnly', 'timeInForce', 'clientOrderId' ]);
         const response = await this.v4PrivatePostUserdataOrder (this.deepExtend (request, params));
         //
         //     {
@@ -1935,9 +2055,9 @@ module.exports = class bibox extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const fromMain = fromAccount === 'main' || fromAccount === 'wallet';
+        const fromMain = fromAccount === 'main' || fromAccount === 'wallet' || fromAccount === 'funding';
         const fromSpot = fromAccount === 'spot';
-        const toMain = toAccount === 'main' || toAccount === 'wallet';
+        const toMain = toAccount === 'main' || toAccount === 'wallet' || toAccount === 'funding';
         const toSpot = toAccount === 'spot';
         const toCross = toAccount === 'cross';
         const fromCross = fromAccount === 'cross';
