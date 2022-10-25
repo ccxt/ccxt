@@ -422,6 +422,7 @@ class Transpiler {
     getSyncPHPRegexes () {
         return [
             [ /\bAsync\\await\((.+)\);/g, '$1;' ], // delete await
+            [ /\bAsync\\await\((.+?)\);/gs, '$1;' ], // delete await
             [ /.+Promise\\all.+\n/g, '' ], // remove line entirely
             [ /\byield(?: from)?\s+/g, '' ], // delete yield from
         ]
