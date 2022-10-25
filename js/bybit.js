@@ -2447,10 +2447,9 @@ module.exports = class bybit extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // createOrder
+        // spot
         //
-        //   spot
-        //
+        //     createOrder, cancelOrer
         //     {
         //         "orderId": "1274754916287346280",
         //         "orderLinkId": "1666798627015730",
@@ -2467,7 +2466,19 @@ module.exports = class bybit extends Exchange {
         //         "orderCategory": "0"
         //     }
         //
-        //   others
+        //     fetchOrder, fetchOpenOrders, fetchClosedOrders - in addition to above fields exactly, there are also present:
+        //     {
+        //         "cummulativeQuoteQty": "0",
+        //         "avgPrice": "0",
+        //         "stopPrice": "0.0",
+        //         "icebergQty": "0.0",
+        //         "updateTime": "1666733357444",
+        //         "isWorking": "1",
+        //         "locked": "8.8",
+        //     }
+        //
+        //
+        // createOrder - contracts
         //
         //     {
         //         "user_id": 1,
@@ -2651,7 +2662,7 @@ module.exports = class bybit extends Exchange {
         const symbol = market['symbol'];
         let timestamp = this.parse8601 (this.safeStringN (order, [ 'created_at', 'created_time', 'create_time', 'timestamp' ]));
         if (timestamp === undefined) {
-            timestamp = this.safeNumber2 (order, 'time', 'transactTime');
+            timestamp = this.safeNumberN (order, [ 'time', 'transactTime', 'createTime' ]);
             if (timestamp === undefined) {
                 timestamp = this.safeIntegerProduct (order, 'createdAt', 0.001);
             }
@@ -2661,8 +2672,8 @@ module.exports = class bybit extends Exchange {
         const price = this.safeString2 (order, 'price', 'orderPrice');
         const average = this.safeString2 (order, 'average_price', 'avgPrice');
         let amount = this.safeStringN (order, [ 'qty', 'origQty', 'orderQty' ]);
-        const cost = this.safeString2 (order, 'cum_exec_value', 'cumExecValue');
-        const filled = this.safeStringN (order, [ 'cum_exec_qty', 'executedQty', 'cumExecQty' ]);
+        const cost = this.safeStringN (order, [ 'cum_exec_value', 'cumExecValue', 'cummulativeQuoteQty' ]);
+        const filled = this.safeStringN (order, [ 'cum_exec_qty', 'executedQty', 'execQty', 'cumExecQty' ]);
         const remaining = this.safeString2 (order, 'leaves_qty', 'leavesQty');
         let lastTradeTimestamp = this.safeTimestamp (order, 'last_exec_time');
         if (lastTradeTimestamp === 0) {
@@ -2670,7 +2681,7 @@ module.exports = class bybit extends Exchange {
         } else if (lastTradeTimestamp === undefined) {
             lastTradeTimestamp = this.parse8601 (this.safeStringN (order, [ 'updated_time', 'updated_at', 'update_time' ]));
             if (lastTradeTimestamp === undefined) {
-                lastTradeTimestamp = this.safeNumber (order, 'updateTime');
+                lastTradeTimestamp = this.safeNumber (order, 'updateTime'); // todo: trade udpate time is different than update order time
             }
         }
         const raw_status = this.safeStringN (order, [ 'order_status', 'stop_order_status', 'status', 'orderStatus' ]);
@@ -2748,9 +2759,40 @@ module.exports = class bybit extends Exchange {
             const request = {
                 'orderId': id,
             };
-            const response = await this.privateGetSpotV1Order (this.extend (params, request));
+            const response = await this.privateGetSpotV3PrivateOrder (this.extend (params, request));
+            //
+            //    {
+            //        "retCode": "0",
+            //        "retMsg": "OK",
+            //        "result": {
+            //            "accountId": "13380434",
+            //            "symbol": "AAVEUSDT",
+            //            "orderLinkId": "1666733357434617",
+            //            "orderId": "1275046248585414144",
+            //            "orderPrice": "80",
+            //            "orderQty": "0.11",
+            //            "execQty": "0",
+            //            "cummulativeQuoteQty": "0",
+            //            "avgPrice": "0",
+            //            "status": "NEW",
+            //            "timeInForce": "GTC",
+            //            "orderType": "LIMIT",
+            //            "side": "BUY",
+            //            "stopPrice": "0.0",
+            //            "icebergQty": "0.0",
+            //            "createTime": "1666733357438",
+            //            "updateTime": "1666733357444",
+            //            "isWorking": "1",
+            //            "locked": "8.8",
+            //            "orderCategory": "0"
+            //        },
+            //        "retExtMap": {},
+            //        "retExtInfo": null,
+            //        "time": "1666733357744"
+            //    }
+            //
             const result = this.safeValue (response, 'result', {});
-            return this.parseOrder (result);
+            return this.parseOrder (result, market);
         }
         const isUsdcSettled = (market['settle'] === 'USDC');
         const stopOrderId = this.safeString (params, 'stop_order_id');
@@ -3323,27 +3365,33 @@ module.exports = class bybit extends Exchange {
             }
         }
         const response = await this[method] (this.extend (request, params));
-        // spot order
-        //    {
-        //        "ret_code":0,
-        //        "ret_msg":"",
-        //        "ext_code":null,
-        //        "ext_info":null,
-        //        "result":{
-        //           "accountId":"24478790",
-        //           "symbol":"LTCUSDT",
-        //           "orderLinkId":"1652192399682",
-        //           "orderId":"1153067855569315072",
-        //           "transactTime":"1652192399866",
-        //           "price":"50",
-        //           "origQty":"0.2",
-        //           "executedQty":"0",
-        //           "status":"NEW",
-        //           "timeInForce":"GTC",
-        //           "type":"LIMIT",
-        //           "side":"BUY"
-        //        }
-        //    }
+        //
+        // spot
+        //
+        //     {
+        //         "retCode": "0",
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "orderId": "1275046248585414144",
+        //             "orderLinkId": "1666733357434617",
+        //             "symbol": "AAVEUSDT",
+        //             "status": "NEW",
+        //             "accountId": "13380434",
+        //             "createTime": "1666733357438",
+        //             "orderPrice": "80",
+        //             "orderQty": "0.11",
+        //             "execQty": "0",
+        //             "timeInForce": "GTC",
+        //             "orderType": "LIMIT",
+        //             "side": "BUY",
+        //             "orderCategory": "0"
+        //         },
+        //         "retExtMap": {},
+        //         "retExtInfo": null,
+        //         "time": "1666733839493"
+        //     }
+        //
+        //
         // linear
         //    {
         //        "ret_code":0,
@@ -3681,7 +3729,7 @@ module.exports = class bybit extends Exchange {
         const request = {};
         let method = undefined;
         if (type === 'spot') {
-            method = 'privateGetSpotV1HistoryOrders';
+            method = 'privateGetSpotV3PrivateHistoryOrders';
         } else {
             // usdc
             method = 'privatePostOptionUsdcOpenapiPrivateV1QueryOrderHistory';
@@ -3689,8 +3737,47 @@ module.exports = class bybit extends Exchange {
         }
         const orders = await this[method] (this.extend (request, params));
         let result = this.safeValue (orders, 'result', []);
+        //
+        // spot
+        //
+        //    {
+        //        "retCode": "0",
+        //        "retMsg": "OK",
+        //        "result": {
+        //            "list": [
+        //                {
+        //                    "accountId": "13380434",
+        //                    "symbol": "AAVEUSDT",
+        //                    "orderLinkId": "1666697847966604",
+        //                    "orderId": "1274748373594828288",
+        //                    "orderPrice": "80",
+        //                    "orderQty": "0.11",
+        //                    "execQty": "0",
+        //                    "cummulativeQuoteQty": "0",
+        //                    "avgPrice": "0",
+        //                    "status": "CANCELED",
+        //                    "timeInForce": "GTC",
+        //                    "orderType": "LIMIT",
+        //                    "side": "BUY",
+        //                    "stopPrice": "0.0",
+        //                    "icebergQty": "0.0",
+        //                    "createTime": "1666697847972",
+        //                    "updateTime": "1666697865809",
+        //                    "isWorking": "1",
+        //                    "orderCategory": "0"
+        //                },
+        //            ]
+        //        },
+        //        "retExtInfo": null,
+        //        "time": "1666732287588"
+        //    }
+        //
         if (!Array.isArray (result)) {
-            result = this.safeValue (result, 'dataList', []);
+            if (type === 'spot') {
+                result = this.safeValue (result, 'list', []);
+            } else {
+                result = this.safeValue (result, 'dataList', []);
+            }
         }
         return this.parseOrders (result, market, since, limit);
     }
@@ -3752,36 +3839,36 @@ module.exports = class bybit extends Exchange {
         // spot
         //
         //    {
-        //        "retCode": "0",
-        //        "retMsg": "OK",
-        //        "result": {
-        //            "list": [
-        //                {
-        //                    "accountId": "13380434",
-        //                    "symbol": "AAVEUSDT",
-        //                    "orderLinkId": "1666726083881",
-        //                    "orderId": "1274985232006651392",
-        //                    "orderPrice": "78",
-        //                    "orderQty": "0.016",
-        //                    "execQty": "0",
-        //                    "cummulativeQuoteQty": "0",
-        //                    "avgPrice": "0",
-        //                    "status": "NEW",
-        //                    "timeInForce": "GTC",
-        //                    "orderType": "LIMIT",
-        //                    "side": "BUY",
-        //                    "stopPrice": "0.0",
-        //                    "icebergQty": "0.0",
-        //                    "createTime": "1666726083695",
-        //                    "updateTime": "1666726083701",
-        //                    "isWorking": "1",
-        //                    "orderCategory": "0"
-        //                }
-        //            ]
-        //        },
-        //        "retExtInfo": null,
-        //        "time": "1666726640738"
-        //    }
+        //         "retCode": "0",
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "accountId": "13380434",
+        //                     "symbol": "AAVEUSDT",
+        //                     "orderLinkId": "1666734005300717",
+        //                     "orderId": "1275051683279281664",
+        //                     "orderPrice": "80",
+        //                     "orderQty": "0.11",
+        //                     "execQty": "0",
+        //                     "cummulativeQuoteQty": "0",
+        //                     "avgPrice": "0",
+        //                     "status": "NEW",
+        //                     "timeInForce": "GTC",
+        //                     "orderType": "LIMIT",
+        //                     "side": "BUY",
+        //                     "stopPrice": "0.0",
+        //                     "icebergQty": "0.0",
+        //                     "createTime": "1666734005304",
+        //                     "updateTime": "1666734005309",
+        //                     "isWorking": "1",
+        //                     "orderCategory": "0"
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": null,
+        //         "time": "1666734031592"
+        //     }
         //
         // others
         //
@@ -5098,21 +5185,21 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'currency': currency['id'],
+            'coin': currency['id'],
         };
-        const response = await this.privateGetSpotV1CrossMarginLoanInfo (this.extend (request, params));
+        const response = await this.privateGetSpotV3PrivateCrossMarginLoanInfo (this.extend (request, params));
         //
-        //     {
-        //         "ret_code": 0,
-        //         "ret_msg": "",
-        //         "ext_code": null,
-        //         "ext_info": null,
+        //    {
+        //         "retCode": "0",
+        //         "retMsg": "success",
         //         "result": {
-        //             "currency": "USDT",
-        //             "interestRate": "0.0001161",
-        //             "maxLoanAmount": "29999.999",
-        //             "loanAbleAmount": "21.236485336363333333"
-        //         }
+        //             "coin": "USDT",
+        //             "interestRate": "0.000107000000",
+        //             "loanAbleAmount": "",
+        //             "maxLoanAmount": "79999.999"
+        //         },
+        //         "retExtInfo": null,
+        //         "time": "1666734490778"
         //     }
         //
         const data = this.safeValue (response, 'result', {});
@@ -5122,14 +5209,14 @@ module.exports = class bybit extends Exchange {
     parseBorrowRate (info, currency = undefined) {
         //
         //     {
-        //         "currency": "USDT",
-        //         "interestRate": "0.0001161",
-        //         "maxLoanAmount": "29999.999",
-        //         "loanAbleAmount": "21.236485336363333333"
+        //         "coin": "USDT",
+        //         "interestRate": "0.000107000000",
+        //         "loanAbleAmount": "",
+        //         "maxLoanAmount": "79999.999"
         //     }
         //
         const timestamp = this.milliseconds ();
-        const currencyId = this.safeString (info, 'currency');
+        const currencyId = this.safeString (info, 'coin');
         return {
             'currency': this.safeCurrencyCode (currencyId, currency),
             'rate': this.safeNumber (info, 'interestRate'),
@@ -5342,20 +5429,23 @@ module.exports = class bybit extends Exchange {
             throw new NotSupported (this.id + ' borrowMargin () cannot use isolated margin');
         }
         const request = {
-            'currency': currency['id'],
+            'coin': currency['id'],
             'qty': this.currencyToPrecision (code, amount),
         };
-        const response = await this.privatePostSpotV1CrossMarginLoan (this.extend (request, query));
+        const response = await this.privatePostSpotV3PrivateCrossMarginLoan (this.extend (request, query));
         //
-        //    {
-        //        "ret_code": 0,
-        //        "ret_msg": "",
-        //        "ext_code": null,
-        //        "ext_info": null,
-        //        "result": 438
-        //    }
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "success",
+        //         "result": {
+        //             "transactId": "14143"
+        //         },
+        //         "retExtInfo": null,
+        //         "time": 1662617848970
+        //     }
         //
-        const transaction = this.parseMarginLoan (response, currency);
+        const result = this.safeValue (response, 'result', {});
+        const transaction = this.parseMarginLoan (result, currency);
         return this.extend (transaction, {
             'symbol': symbol,
             'amount': amount,
@@ -5403,16 +5493,12 @@ module.exports = class bybit extends Exchange {
 
     parseMarginLoan (info, currency = undefined) {
         //
-        //    {
-        //        "ret_code": 0,
-        //        "ret_msg": "",
-        //        "ext_code": null,
-        //        "ext_info": null,
-        //        "result": 307
-        //    }
+        //     {
+        //         "transactId": "14143"
+        //     }
         //
         return {
-            'id': undefined,
+            'id': this.safeString (info, 'transactId'),
             'currency': this.safeString (currency, 'code'),
             'amount': undefined,
             'symbol': undefined,
