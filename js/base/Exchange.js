@@ -547,12 +547,17 @@ module.exports = class Exchange {
     parseJson (jsonString) {
         try {
             if (this.isJsonEncodedObject (jsonString)) {
+                jsonString = this.exchangeSpecificJsonAlterations (jsonString);
                 return JSON.parse (this.onJsonResponse (jsonString))
             }
         } catch (e) {
             // SyntaxError
             return undefined
         }
+    }
+
+    exchangeSpecificJsonAlterations (jsonString) {
+        return jsonString;
     }
 
     getResponseHeaders (response) {
