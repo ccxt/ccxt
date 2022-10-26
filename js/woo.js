@@ -1793,12 +1793,17 @@ module.exports = class woo extends Exchange {
             url += path;
             const ts = this.nonce ().toString ();
             let auth = this.urlencode (params);
-            if (method === 'POST' || method === 'DELETE') {
+            if (version === 'v3' && (method === 'POST')) {
                 body = auth;
+                auth = ts + method + '/' + version + '/' + path + body;
             } else {
-                url += '?' + auth;
+                if (method === 'POST' || method === 'DELETE') {
+                    body = auth;
+                } else {
+                    url += '?' + auth;
+                }
+                auth += '|' + ts;
             }
-            auth += '|' + ts;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
             headers = {
                 'x-api-key': this.apiKey,
