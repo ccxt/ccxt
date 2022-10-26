@@ -1273,18 +1273,18 @@ module.exports = class bybit extends Exchange {
     parseTicker (ticker, market = undefined) {
         // spot
         //
-        //    {
-        //        "time": "1651743420061",
-        //        "symbol": "BTCUSDT",
-        //        "bestBidPrice": "39466.75",
-        //        "bestAskPrice": "39466.83",
-        //        "volume": "4396.082921",
-        //        "quoteVolume": "172664909.03216557",
-        //        "lastPrice": "39466.71",
-        //        "highPrice": "40032.79",
-        //        "lowPrice": "38602.39",
-        //        "openPrice": "39031.53"
-        //    }
+        //     {
+        //         "t": "1666771860025",
+        //         "s": "AAVEUSDT",
+        //         "lp": "83.8",
+        //         "h": "86.4",
+        //         "l": "81",
+        //         "o": "82.9",
+        //         "bp": "83.5",
+        //         "ap": "83.7",
+        //         "v": "7433.527",
+        //         "qv": "619835.8676"
+        //     }
         //
         // linear usdt/ inverse swap and future
         //     {
@@ -1345,19 +1345,19 @@ module.exports = class bybit extends Exchange {
         //          "theta": "-0.03262827"
         //      }
         //
-        const timestamp = this.safeInteger (ticker, 'time');
-        const marketId = this.safeString (ticker, 'symbol');
+        const timestamp = this.safeInteger2 (ticker, 'time', 't');
+        const marketId = this.safeString2 (ticker, 'symbol', 's');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeString2 (ticker, 'last_price', 'lastPrice');
-        const open = this.safeString2 (ticker, 'prev_price_24h', 'openPrice');
+        const last = this.safeStringN (ticker, [ 'last_price', 'lastPrice', 'lp' ]);
+        const open = this.safeStringN (ticker, [ 'prev_price_24h', 'openPrice', 'o' ]);
         let percentage = this.safeString2 (ticker, 'price_24h_pcnt', 'change24h');
         percentage = Precise.stringMul (percentage, '100');
-        const quoteVolume = this.safeStringN (ticker, [ 'turnover_24h', 'turnover24h', 'quoteVolume' ]);
-        const baseVolume = this.safeStringN (ticker, [ 'volume_24h', 'volume24h', 'volume' ]);
-        const bid = this.safeStringN (ticker, [ 'bid_price', 'bid', 'bestBidPrice' ]);
-        const ask = this.safeStringN (ticker, [ 'ask_price', 'ask', 'bestAskPrice' ]);
-        const high = this.safeStringN (ticker, [ 'high_price_24h', 'high24h', 'highPrice' ]);
-        const low = this.safeStringN (ticker, [ 'low_price_24h', 'low24h', 'lowPrice' ]);
+        const quoteVolume = this.safeStringN (ticker, [ 'turnover_24h', 'turnover24h', 'quoteVolume', 'qv' ]);
+        const baseVolume = this.safeStringN (ticker, [ 'volume_24h', 'volume24h', 'volume', 'v' ]);
+        const bid = this.safeStringN (ticker, [ 'bid_price', 'bid', 'bp' ]);
+        const ask = this.safeStringN (ticker, [ 'ask_price', 'ask', 'ap' ]);
+        const high = this.safeStringN (ticker, [ 'high_price_24h', 'high24h', 'highPrice', 'h' ]);
+        const low = this.safeStringN (ticker, [ 'low_price_24h', 'low24h', 'lowPrice', 'l' ]);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1396,7 +1396,7 @@ module.exports = class bybit extends Exchange {
         let method = undefined;
         const isUsdcSettled = market['settle'] === 'USDC';
         if (market['spot']) {
-            method = 'publicGetSpotQuoteV1Ticker24hr';
+            method = 'publicGetSpotV3PublicQuoteTicker24hr';
         } else if (!isUsdcSettled) {
             // inverse perpetual // usdt linear // inverse futures
             method = 'publicGetV2PublicTickers';
@@ -1411,6 +1411,27 @@ module.exports = class bybit extends Exchange {
             'symbol': market['id'],
         };
         const response = await this[method] (this.extend (request, params));
+        //
+        // spot
+        //
+        //    {
+        //         "retCode": "0",
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "t": "1666771860025",
+        //             "s": "AAVEUSDT",
+        //             "lp": "83.8",
+        //             "h": "86.4",
+        //             "l": "81",
+        //             "o": "82.9",
+        //             "bp": "83.5",
+        //             "ap": "83.7",
+        //             "v": "7433.527",
+        //             "qv": "619835.8676"
+        //         },
+        //         "retExtInfo": {},
+        //         "time": "1666771898218"
+        //     }
         //
         //     {
         //         ret_code: 0,
@@ -1486,8 +1507,7 @@ module.exports = class bybit extends Exchange {
         } else {
             rawTicker = result;
         }
-        const ticker = this.parseTicker (rawTicker, market);
-        return ticker;
+        return this.parseTicker (rawTicker, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -1520,7 +1540,7 @@ module.exports = class bybit extends Exchange {
         }
         let method = undefined;
         if (type === 'spot') {
-            method = 'publicGetSpotQuoteV1Ticker24hr';
+            method = 'publicGetSpotV3PublicQuoteTicker24hr';
         } else if (!isUsdcSettled) {
             // inverse perpetual // usdt linear // inverse futures
             method = 'publicGetV2PublicTickers';
@@ -1528,14 +1548,45 @@ module.exports = class bybit extends Exchange {
             throw new NotSupported (this.id + ' fetchTickers() is not supported for USDC markets');
         }
         const response = await this[method] (params);
+        //
+        // spot
+        //
+        //    {
+        //         "retCode": "0",
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "t": "1666772160002",
+        //                     "s": "XDCUSDT",
+        //                     "lp": "0.03109",
+        //                     "h": "0.03116",
+        //                     "l": "0.03001",
+        //                     "o": "0.03044",
+        //                     "bp": "0.03105",
+        //                     "ap": "0.03109",
+        //                     "v": "1362796.9",
+        //                     "qv": "41423.411932"
+        //                 },
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": "1666772209124"
+        //     }
+        //
         const result = this.safeValue (response, 'result', []);
-        const tickers = {};
-        for (let i = 0; i < result.length; i++) {
-            const ticker = this.parseTicker (result[i]);
-            const symbol = ticker['symbol'];
-            tickers[symbol] = ticker;
+        if (this.isArray (result)) {
+            const tickers = {};
+            for (let i = 0; i < result.length; i++) {
+                const ticker = this.parseTicker (result[i]);
+                const symbol = ticker['symbol'];
+                tickers[symbol] = ticker;
+            }
+            return this.filterByArray (tickers, 'symbol', symbols);
+        } else {
+            const list = this.safeValue (result, 'list', []);
+            return this.parseTickers (list, symbols);
         }
-        return this.filterByArray (tickers, 'symbol', symbols);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -1582,19 +1633,16 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         // spot
-        //     [
-        //         1651837620000, // start tame
-        //         "35831.5", // open
-        //         "35831.5", // high
-        //         "35801.93", // low
-        //         "35817.11", // close
-        //         "1.23453", // volume
-        //         0, // end time
-        //         "44213.97591627", // quote asset volume
-        //         24, // number of trades
-        //         "0", // taker base volume
-        //         "0" // taker quote volume
-        //     ]
+        //     {
+        //         "t": "1666759020000",
+        //         "s": "AAVEUSDT",
+        //         "sn": "AAVEUSDT",
+        //         "c": "83",
+        //         "h": "83.4",
+        //         "l": "82.9",
+        //         "o": "83.4",
+        //         "v": "149.368"
+        //     }
         //
         if (Array.isArray (ohlcv)) {
             return [
@@ -1606,17 +1654,13 @@ module.exports = class bybit extends Exchange {
                 this.safeNumber (ohlcv, 5),
             ];
         }
-        let timestamp = this.safeTimestamp2 (ohlcv, 'open_time', 'openTime');
-        if (timestamp === undefined) {
-            timestamp = this.safeTimestamp (ohlcv, 'start_at');
-        }
         return [
-            timestamp,
-            this.safeNumber (ohlcv, 'open'),
-            this.safeNumber (ohlcv, 'high'),
-            this.safeNumber (ohlcv, 'low'),
-            this.safeNumber (ohlcv, 'close'),
-            this.safeNumber2 (ohlcv, 'volume', 'turnover'),
+            this.safeTimestampN (ohlcv, [ 'open_time', 'openTime', 'start_at', 't' ]),
+            this.safeNumber2 (ohlcv, 'open', 'o'),
+            this.safeNumber2 (ohlcv, 'high', 'h'),
+            this.safeNumber2 (ohlcv, 'low', 'l'),
+            this.safeNumber2 (ohlcv, 'close', 'c'),
+            this.safeNumberN (ohlcv, [ 'volume', 'turnover', 'v' ]),
         ];
     }
 
@@ -1658,7 +1702,7 @@ module.exports = class bybit extends Exchange {
         let sinceKey = 'from';
         const isUsdcSettled = market['settle'] === 'USDC';
         if (market['spot']) {
-            method = 'publicGetSpotQuoteV1Kline';
+            method = 'publicGetSpotV3PublicQuoteKline';
         } else if (market['contract'] && !isUsdcSettled) {
             if (market['linear']) {
                 // linear swaps/futures
@@ -1742,30 +1786,34 @@ module.exports = class bybit extends Exchange {
         //         ],
         //         "time_now":"1587884120.168077"
         //     }
-        // spot
-        //     {
-        //    "ret_code": "0",
-        //    "ret_msg": null,
-        //     "result": [
-        //         [
-        //             1651837620000,
-        //             "35831.5",
-        //             "35831.5",
-        //             "35801.93",
-        //             "35817.11",
-        //             "1.23453",
-        //             0,
-        //             "44213.97591627",
-        //             24,
-        //             "0",
-        //             "0"
-        //         ]
-        //     ],
-        //     "ext_code": null,
-        //     "ext_info": null
-        // }
         //
-        const result = this.safeValue (response, 'result', {});
+        // spot
+        //
+        //    {
+        //         "retCode": "0",
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "t": "1666759020000",
+        //                     "s": "AAVEUSDT",
+        //                     "sn": "AAVEUSDT",
+        //                     "c": "83",
+        //                     "h": "83.4",
+        //                     "l": "82.9",
+        //                     "o": "83.4",
+        //                     "v": "149.368"
+        //                 },
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": "1666771001212"
+        //     }
+        //
+        let result = this.safeValue (response, 'result', {});
+        if ('list' in result) {
+            result = this.safeValue (result, 'list', {});
+        }
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
@@ -1888,7 +1936,7 @@ module.exports = class bybit extends Exchange {
         //        "price": "39548.68",
         //        "time": "1651748717850",
         //        "qty": "0.166872",
-        //        "isBuyerMaker": true
+        //        "isBuyerMaker": 0
         //     }
         //
         //   private:
@@ -1973,13 +2021,19 @@ module.exports = class bybit extends Exchange {
                 side = isBuyer ? 'buy' : 'sell';
             }
         }
-        const isMaker = this.safeInteger (trade, 'isMaker');
         let takerOrMaker = undefined;
-        if (isMaker !== 0) {
-            takerOrMaker = isMaker ? 'maker' : 'taker';
+        const isBuyerMaker = this.safeInteger (trade, 'isBuyerMaker'); // only public trade includes this
+        if (isBuyerMaker !== undefined) {
+            takerOrMaker = 'taker';
+            side = (isBuyerMaker === 1) ? 'buy' : 'sell';
         } else {
-            const lastLiquidityInd = this.safeString (trade, 'last_liquidity_ind');
-            takerOrMaker = (lastLiquidityInd === 'AddedLiquidity') ? 'maker' : 'taker';
+            const isMaker = this.safeInteger (trade, 'isMaker');
+            if (isMaker !== 0) {
+                takerOrMaker = isMaker ? 'maker' : 'taker';
+            } else {
+                const lastLiquidityInd = this.safeString (trade, 'last_liquidity_ind');
+                takerOrMaker = (lastLiquidityInd === 'AddedLiquidity') ? 'maker' : 'taker';
+            }
         }
         const feeCostString = this.safeStringN (trade, [ 'exec_fee', 'commission', 'execFee' ]);
         let fee = undefined;
@@ -2032,7 +2086,7 @@ module.exports = class bybit extends Exchange {
         };
         const isUsdcSettled = market['settle'] === 'USDC';
         if (market['type'] === 'spot') {
-            method = 'publicGetSpotQuoteV1Trades';
+            method = 'publicGetSpotV3PublicQuoteTrades';
         } else if (!isUsdcSettled) {
             // inverse perpetual // usdt linear // inverse futures
             method = market['linear'] ? 'publicGetPublicLinearRecentTradingRecords' : 'publicGetV2PublicTradingRecords';
@@ -2045,6 +2099,26 @@ module.exports = class bybit extends Exchange {
             request['limit'] = limit; // default 500, max 1000
         }
         const response = await this[method] (this.extend (request, params));
+        //
+        // spot
+        //
+        //    {
+        //         "retCode": "0",
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "price": "84",
+        //                     "time": "1666768241806",
+        //                     "qty": "0.122",
+        //                     "isBuyerMaker": "1"
+        //                 },
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": "1666770562956"
+        //     }
+        //
         //
         //     {
         //         ret_code: 0,
@@ -2086,7 +2160,7 @@ module.exports = class bybit extends Exchange {
         //
         let trades = this.safeValue (response, 'result', {});
         if (!Array.isArray (trades)) {
-            trades = this.safeValue (trades, 'dataList', []);
+            trades = this.safeValue2 (trades, 'dataList', 'list', []);
         }
         return this.parseTrades (trades, market, since, limit);
     }
@@ -2137,7 +2211,7 @@ module.exports = class bybit extends Exchange {
         const isUsdcSettled = market['settle'] === 'USDC';
         let method = undefined;
         if (market['spot']) {
-            method = 'publicGetSpotQuoteV1Depth';
+            method = 'publicGetSpotV3PublicQuoteDepth';
         } else if (!isUsdcSettled) {
             // inverse perpetual // usdt linear // inverse futures
             method = 'publicGetV2PublicOrderBookL2';
@@ -2151,20 +2225,35 @@ module.exports = class bybit extends Exchange {
         const response = await this[method] (this.extend (request, params));
         //
         // spot
-        //     {
-        //         "ret_code": 0,
-        //         "ret_msg": null,
+        //
+        //    {
+        //         "retCode": "0",
+        //         "retMsg": "OK",
         //         "result": {
-        //             "time": 1620886105740,
+        //             "time": "1666771623077",
         //             "bids": [
-        //                 ["50005.12","403.0416"]
+        //                 [
+        //                     "84",
+        //                     "7.323"
+        //                 ],
+        //                 [
+        //                     "83.9",
+        //                     "101.711"
+        //                 ],
         //             ],
         //             "asks": [
-        //                 ["50006.34", "0.2297" ]
+        //                 [
+        //                     "84.1",
+        //                     "5.898"
+        //                 ],
+        //                 [
+        //                     "84.2",
+        //                     "350.31"
+        //                 ],
         //             ]
         //         },
-        //         "ext_code": null,
-        //         "ext_info": null
+        //         "retExtInfo": {},
+        //         "time": "1666771624950"
         //     }
         //
         // linear/inverse swap/futures
