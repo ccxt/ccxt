@@ -193,6 +193,7 @@ module.exports = class mexc3 extends Exchange {
                             'batchOrders': 1,
                             'capital/withdraw/apply': 1,
                             'capital/transfer': 1,
+                            'capital/deposit/address': 1,
                             'capital/sub-account/universalTransfer': 1,
                             'margin/tradeMode': 1,
                             'margin/order': 1,
@@ -3829,7 +3830,7 @@ module.exports = class mexc3 extends Exchange {
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
-            'tag': undefined,
+            'tag': this.safeString (transaction, 'memo'),
             'tagTo': undefined,
             'tagFrom': undefined,
             'type': type,
@@ -4247,14 +4248,14 @@ module.exports = class mexc3 extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        if (tag !== undefined) {
-            address += ':' + tag;
-        }
         const request = {
             'coin': currency['id'],
             'address': address,
             'amount': amount,
         };
+        if (tag !== undefined) {
+            request['memo'] = tag;
+        }
         if (network !== undefined) {
             request['network'] = network;
             params = this.omit (params, 'network');
