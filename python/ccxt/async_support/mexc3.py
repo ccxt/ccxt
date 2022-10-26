@@ -203,6 +203,7 @@ class mexc3(Exchange):
                             'batchOrders': 1,
                             'capital/withdraw/apply': 1,
                             'capital/transfer': 1,
+                            'capital/deposit/address': 1,
                             'capital/sub-account/universalTransfer': 1,
                             'margin/tradeMode': 1,
                             'margin/order': 1,
@@ -3563,7 +3564,7 @@ class mexc3(Exchange):
             'address': address,
             'addressTo': address,
             'addressFrom': None,
-            'tag': None,
+            'tag': self.safe_string(transaction, 'memo'),
             'tagTo': None,
             'tagFrom': None,
             'type': type,
@@ -3948,13 +3949,13 @@ class mexc3(Exchange):
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
-        if tag is not None:
-            address += ':' + tag
         request = {
             'coin': currency['id'],
             'address': address,
             'amount': amount,
         }
+        if tag is not None:
+            request['memo'] = tag
         if network is not None:
             request['network'] = network
             params = self.omit(params, 'network')
