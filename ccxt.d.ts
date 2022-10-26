@@ -738,6 +738,7 @@ declare module 'ccxt' {
         class coinex extends Exchange {};
         class cryptocom extends Exchange {};
         class currencycom extends Exchange {};
+        class deribit extends Exchange {};
         class exmo extends Exchange {};
         class ftx extends Exchange {};
         class ftxus extends Exchange {};

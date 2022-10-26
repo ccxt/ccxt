@@ -1194,10 +1194,10 @@ class bibox extends Exchange {
             $currency = $this->currency($code);
             $request['symbol'] = $currency['id'];
         }
-        $response = Async\await($this->v1PrivatePostTransfer (array(
+        $response = $this->v1PrivatePostTransfer (array(
             'cmd' => 'transfer/transferOutList',
             'body' => array_merge($request, $params),
-        )));
+        ));
         //
         //     {
         //         "result":array(
@@ -1917,10 +1917,10 @@ class bibox extends Exchange {
         if ($tag !== null) {
             $request['address_remark'] = $tag;
         }
-        $response = Async\await($this->v1PrivatePostTransfer (array(
+        $response = $this->v1PrivatePostTransfer (array(
             'cmd' => 'transfer/transferOut',
             'body' => array_merge($request, $params),
-        )));
+        ));
         //
         //     {
         //         "result":array(

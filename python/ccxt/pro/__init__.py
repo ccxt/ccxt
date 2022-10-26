@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '2.0.67'
+__version__ = '2.0.68'
 
 # ----------------------------------------------------------------------------
 
@@ -36,6 +36,7 @@ from ccxt.pro.coinbasepro import coinbasepro                              # noqa
 from ccxt.pro.coinex import coinex                                        # noqa: F401
 from ccxt.pro.cryptocom import cryptocom                                  # noqa: F401
 from ccxt.pro.currencycom import currencycom                              # noqa: F401
+from ccxt.pro.deribit import deribit                                      # noqa: F401
 from ccxt.pro.exmo import exmo                                            # noqa: F401
 from ccxt.pro.ftx import ftx                                              # noqa: F401
 from ccxt.pro.ftxus import ftxus                                          # noqa: F401
@@ -84,6 +85,7 @@ exchanges = [
     'coinex',
     'cryptocom',
     'currencycom',
+    'deribit',
     'exmo',
     'ftx',
     'ftxus',

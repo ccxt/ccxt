@@ -1002,9 +1002,9 @@ class okcoin extends Exchange {
             $underlying = $this->optionGetUnderlying ($params);
             $result = array();
             for ($i = 0; $i < count($underlying); $i++) {
-                $response = Async\await($this->optionGetInstrumentsUnderlying (array(
+                $response = $this->optionGetInstrumentsUnderlying (array(
                     'underlying' => $underlying[$i],
-                )));
+                ));
                 //
                 // options markets
                 //
