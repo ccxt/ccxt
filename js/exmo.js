@@ -474,12 +474,12 @@ module.exports = class exmo extends Exchange {
         //         ],
         //     }
         //
-        const result = {
-            'info': cryptoList,
-            'withdraw': {},
-            'deposit': {},
-        };
+        const result = {};
         for (let i = 0; i < currencyList.length; i++) {
+            const resultItem = {
+                'deposit': undefined,
+                'withdraw': undefined,
+            };
             const currency = currencyList[i];
             const currencyId = this.safeString (currency, 'name');
             const code = this.safeCurrencyCode (currencyId);
@@ -491,11 +491,12 @@ module.exports = class exmo extends Exchange {
                 const provider = providers[j];
                 const type = this.safeString (provider, 'type');
                 const commissionDesc = this.safeString (provider, 'commission_desc');
-                const newFee = this.parseFixedFloatValue (commissionDesc);
-                const previousFee = this.safeNumber (result[type], code);
-                if ((previousFee === undefined) || ((newFee !== undefined) && (newFee < previousFee))) {
-                    result[type][code] = newFee;
-                }
+                const fee = this.parseFixedFloatValue (commissionDesc);
+                resultItem[type] = fee;
+            }
+            if (providers.length > 0) {
+                resultItem['info'] = providers;
+                result[code] = resultItem;
             }
         }
         // cache them for later use
@@ -1738,7 +1739,7 @@ module.exports = class exmo extends Exchange {
             const key = (type === 'withdrawal') ? 'withdraw' : 'deposit';
             let feeCost = this.safeString (transaction, 'commission');
             if (feeCost === undefined) {
-                feeCost = this.safeString (this.options['transactionFees'][key], code);
+                feeCost = this.safeString (this.options['transactionFees'][code], key);
             }
             // users don't pay for cashbacks, no fees for that
             const provider = this.safeString (transaction, 'provider');
