@@ -1699,12 +1699,14 @@ module.exports = class gate extends Exchange {
          * @method
          * @name gate#fetchTransactionFees
          * @description fetch transaction fees
+         * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
          * @param {[string]|undefined} codes not used by gate fetchTransactionFees ()
          * @param {object} params extra parameters specific to the gate api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
         const response = await this.privateWalletGetWithdrawStatus (params);
+        console.log (response)
         //
         //    {
         //        "currency": "MTN",
@@ -1722,28 +1724,34 @@ module.exports = class gate extends Exchange {
         //        }
         //    }
         //
-        const withdrawFees = {};
+        const result = {};
         for (let i = 0; i < response.length; i++) {
+            let withdrawFees = {};
             const entry = response[i];
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            withdrawFees[code] = {};
-            let withdrawFix = this.safeValue (entry, 'withdraw_fix_on_chains');
-            if (withdrawFix === undefined) {
-                withdrawFix = {};
-                withdrawFix[code] = this.safeNumber (entry, 'withdraw_fix');
+            if (codes !== undefined && !this.inArray (code, codes)) {
+                continue;
             }
-            const keys = Object.keys (withdrawFix);
-            for (let i = 0; i < keys.length; i++) {
-                const key = keys[i];
-                withdrawFees[code][key] = this.parseNumber (withdrawFix[key]);
+            const withdrawFixOnChains = this.safeValue (entry, 'withdraw_fix_on_chains');
+            if (withdrawFixOnChains === undefined) {
+                withdrawFees = this.safeNumber (entry, 'withdraw_fix');
+            } else {
+                const withdrawFees = {};
+                const keys = Object.keys (withdrawFixOnChains);
+                for (let i = 0; i < keys.length; i++) {
+                    const key = keys[i];
+                    withdrawFees[key] = this.parseNumber (withdrawFixOnChains[key]);
+                }
             }
+            // console.log (withdrawFees);
+            // result[code] = {
+            //     'withdraw': withdrawFees,
+            //     'deposit': undefined,
+            //     'info': entry,
+            // };
         }
-        return {
-            'info': response,
-            'withdraw': withdrawFees,
-            'deposit': {},
-        };
+        // return result;
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
