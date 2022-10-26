@@ -1881,14 +1881,33 @@ module.exports = class bybit extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
-        //  public spot
+        // spot
         //
-        //    {
+        //   public:
+        //     {
         //        "price": "39548.68",
         //        "time": "1651748717850",
         //        "qty": "0.166872",
         //        "isBuyerMaker": true
-        //    }
+        //     }
+        //
+        //   private:
+        //     {
+        //         "symbol": "AAVEUSDT",
+        //         "id": "1274785101965716992",
+        //         "orderId": "1274784252359089664",
+        //         "tradeId": "2270000000031365639",
+        //         "orderPrice": "82.5",
+        //         "orderQty": "0.016",
+        //         "execFee": "0",
+        //         "feeTokenId": "AAVE",
+        //         "creatTime": "1666702226326",
+        //         "isBuyer": "0",
+        //         "isMaker": "0",
+        //         "matchOrderId": "1274785101865076224",
+        //         "makerRebate": "0",
+        //         "executionTime": "1666702226335"
+        //     }
         //
         // public linear/inverse swap/future
         //
@@ -1936,69 +1955,38 @@ module.exports = class bybit extends Exchange {
         //          "trade_time_ms": "1638276374312"
         //      }
         //
-        // spot
-        //    {
-        //         "id": "1149467000412631552",
-        //         "symbol": "LTCUSDT",
-        //         "symbolName": "LTCUSDT",
-        //         "orderId": "1149467000244912384",
-        //         "ticketId": "2200000000002601358",
-        //         "matchOrderId": "1149465793552007078",
-        //         "price": "100.19",
-        //         "qty": "0.09973",
-        //         "commission": "0.0099919487",
-        //         "commissionAsset": "USDT",
-        //         "time": "1651763144465",
-        //         "isBuyer": false,
-        //         "isMaker": false,
-        //         "fee": {
-        //             "feeTokenId": "USDT",
-        //             "feeTokenName": "USDT",
-        //             "fee": "0.0099919487"
-        //         },
-        //         "feeTokenId": "USDT",
-        //         "feeAmount": "0.0099919487",
-        //         "makerRebate": "0"
-        //     }
-        //
-        const id = this.safeString2 (trade, 'id', 'exec_id');
+        const id = this.safeStringN (trade, [ 'id', 'exec_id', 'tradeId' ]);
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        let amountString = this.safeString2 (trade, 'qty', 'exec_qty');
-        if (amountString === undefined) {
-            amountString = this.safeString (trade, 'orderQty');
-        }
-        let priceString = this.safeString2 (trade, 'exec_price', 'price');
-        if (priceString === undefined) {
-            priceString = this.safeString (trade, 'orderPrice');
-        }
+        const amountString = this.safeStringN (trade, [ 'qty', 'exec_qty', 'orderQty' ]);
+        const priceString = this.safeStringN (trade, [ 'exec_price', 'price', 'orderPrice' ]);
         const costString = this.safeString (trade, 'exec_value');
         let timestamp = this.parse8601 (this.safeString (trade, 'time'));
         if (timestamp === undefined) {
-            timestamp = this.safeInteger2 (trade, 'trade_time_ms', 'time');
+            timestamp = this.safeIntegerN (trade, [ 'trade_time_ms', 'time', 'creatTime' ]);
         }
         let side = this.safeStringLower (trade, 'side');
         if (side === undefined) {
-            const isBuyer = this.safeValue (trade, 'isBuyer');
+            const isBuyer = this.safeInteger (trade, 'isBuyer');
             if (isBuyer !== undefined) {
                 side = isBuyer ? 'buy' : 'sell';
             }
         }
-        const isMaker = this.safeValue (trade, 'isMaker');
+        const isMaker = this.safeInteger (trade, 'isMaker');
         let takerOrMaker = undefined;
-        if (isMaker !== undefined) {
+        if (isMaker !== 0) {
             takerOrMaker = isMaker ? 'maker' : 'taker';
         } else {
             const lastLiquidityInd = this.safeString (trade, 'last_liquidity_ind');
             takerOrMaker = (lastLiquidityInd === 'AddedLiquidity') ? 'maker' : 'taker';
         }
-        const feeCostString = this.safeString2 (trade, 'exec_fee', 'commission');
+        const feeCostString = this.safeStringN (trade, [ 'exec_fee', 'commission', 'execFee' ]);
         let fee = undefined;
         if (feeCostString !== undefined) {
             let feeCurrencyCode = undefined;
             if (market['spot']) {
-                feeCurrencyCode = this.safeString (trade, 'commissionAsset');
+                feeCurrencyCode = this.safeString2 (trade, 'commissionAsset', 'feeTokenId');
             } else {
                 feeCurrencyCode = market['inverse'] ? market['base'] : market['quote'];
             }
@@ -3978,7 +3966,7 @@ module.exports = class bybit extends Exchange {
         }
         let method = undefined;
         if (market['spot']) {
-            method = 'privateGetSpotV1MyTrades';
+            method = 'privateGetSpotV3PrivateMyTrades';
         } else if (market['future']) {
             method = 'privateGetFuturesPrivateExecutionList';
         } else {
@@ -3988,37 +3976,35 @@ module.exports = class bybit extends Exchange {
         const response = await this[method] (this.extend (request, params));
         //
         // spot
-        //     {
-        //         "ret_code": 0,
-        //         "ret_msg": "",
-        //         "ext_code": null,
-        //         "ext_info": null,
-        //         "result": [
-        //            {
-        //                 "id": "931975237315196160",
-        //                 "symbol": "BTCUSDT",
-        //                 "symbolName": "BTCUSDT",
-        //                 "orderId": "931975236946097408",
-        //                 "ticketId": "1057753175328833537",
-        //                 "matchOrderId": "931975113180558592",
-        //                 "price": "20000.00001",
-        //                 "qty": "0.01",
-        //                 "commission": "0.02000000001",
-        //                 "commissionAsset": "USDT",
-        //                 "time": "1625836105890",
-        //                 "isBuyer": false,
-        //                 "isMaker": false,
-        //                 "fee": {
-        //                     "feeTokenId": "USDT",
-        //                     "feeTokenName": "USDT",
-        //                     "fee": "0.02000000001"
+        //
+        //    {
+        //         "retCode": "0",
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "symbol": "AAVEUSDT",
+        //                     "id": "1274785101965716992",
+        //                     "orderId": "1274784252359089664",
+        //                     "tradeId": "2270000000031365639",
+        //                     "orderPrice": "82.5",
+        //                     "orderQty": "0.016",
+        //                     "execFee": "0",
+        //                     "feeTokenId": "AAVE",
+        //                     "creatTime": "1666702226326",
+        //                     "isBuyer": "0",
+        //                     "isMaker": "0",
+        //                     "matchOrderId": "1274785101865076224",
+        //                     "makerRebate": "0",
+        //                     "executionTime": "1666702226335"
         //                 },
-        //                 "feeTokenId": "USDT",
-        //                 "feeAmount": "0.02000000001",
-        //                 "makerRebate": "0"
-        //            }
-        //         ]
+        //             ]
+        //         },
+        //         "retExtMap": {},
+        //         "retExtInfo": null,
+        //         "time": "1666768215157"
         //     }
+        //
         //
         // inverse
         //
@@ -4103,7 +4089,7 @@ module.exports = class bybit extends Exchange {
         //
         let result = this.safeValue (response, 'result', {});
         if (!Array.isArray (result)) {
-            result = this.safeValue2 (result, 'trade_list', 'data', []);
+            result = this.safeValueN (result, [ 'trade_list', 'data', 'list' ], []);
         }
         return this.parseTrades (result, market, since, limit);
     }
