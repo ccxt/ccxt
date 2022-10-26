@@ -650,6 +650,7 @@ module.exports = class gate extends gateRest {
         if (cachedTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             cachedTrades = new ArrayCacheBySymbolById (limit);
+            this.myTrades = cachedTrades;
         }
         const parsed = this.parseTrades (result);
         const marketIds = {};
