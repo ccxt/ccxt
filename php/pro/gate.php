@@ -663,6 +663,7 @@ class gate extends \ccxt\async\gate {
         if ($cachedTrades === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
             $cachedTrades = new ArrayCacheBySymbolById ($limit);
+            $this->myTrades = $cachedTrades;
         }
         $parsed = $this->parse_trades($result);
         $marketIds = array();

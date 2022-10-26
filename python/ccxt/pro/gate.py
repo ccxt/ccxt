@@ -598,6 +598,7 @@ class gate(Exchange, ccxt.async_support.gate):
         if cachedTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             cachedTrades = ArrayCacheBySymbolById(limit)
+            self.myTrades = cachedTrades
         parsed = self.parse_trades(result)
         marketIds = {}
         for i in range(0, len(parsed)):
