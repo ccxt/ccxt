@@ -151,6 +151,7 @@ module.exports = class idex extends idexRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const name = 'trades';
         const subscribeObject = {
             'name': name,

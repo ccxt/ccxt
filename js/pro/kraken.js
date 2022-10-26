@@ -252,6 +252,8 @@ module.exports = class kraken extends krakenRest {
          * @param {object} params extra parameters specific to the kraken api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const name = 'trade';
         const trades = await this.watchPublic (name, symbol, params);
         if (this.newUpdates) {

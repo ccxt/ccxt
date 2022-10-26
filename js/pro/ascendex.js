@@ -142,6 +142,7 @@ module.exports = class ascendex extends ascendexRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const channel = 'trades' + ':' + market['id'];
         params = this.extend (params, {
             'ch': channel,

@@ -467,6 +467,7 @@ module.exports = class bittrex extends bittrexRest {
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const negotiation = await this.negotiate ();
         const trades = await this.subscribeToTrades (negotiation, symbol, params);
         if (this.newUpdates) {

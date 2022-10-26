@@ -209,6 +209,7 @@ module.exports = class bitstamp extends bitstampRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = this.symbol (symbol);
         const options = this.safeValue (this.options, 'watchTrades', {});
         const type = this.safeString (options, 'type', 'live_trades');
         const messageHash = type + '_' + market['id'];

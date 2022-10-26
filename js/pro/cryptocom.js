@@ -131,6 +131,7 @@ module.exports = class cryptocom extends cryptocomRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         if (!market['spot']) {
             throw new NotSupported (this.id + ' watchTrades() supports spot markets only');
         }

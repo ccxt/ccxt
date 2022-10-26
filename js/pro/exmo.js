@@ -272,6 +272,7 @@ module.exports = class exmo extends exmoRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const url = this.urls['api']['ws']['public'];
         const messageHash = 'trades:' + symbol;
         const message = {

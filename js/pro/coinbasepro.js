@@ -96,6 +96,8 @@ module.exports = class coinbasepro extends coinbaseproRest {
          * @param {object} params extra parameters specific to the coinbasepro api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const name = 'matches';
         const trades = await this.subscribe (name, symbol, name, params);
         if (this.newUpdates) {

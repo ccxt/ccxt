@@ -369,6 +369,7 @@ module.exports = class binance extends binanceRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const options = this.safeValue (this.options, 'watchTrades', {});
         const name = this.safeString (options, 'name', 'trade');
         const messageHash = market['lowercaseId'] + '@' + name;

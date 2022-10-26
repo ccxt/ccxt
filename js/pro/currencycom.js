@@ -387,6 +387,8 @@ module.exports = class currencycom extends currencycomRest {
          * @param {object} params extra parameters specific to the currencycom api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const trades = await this.watchPublic ('trades.subscribe', symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);

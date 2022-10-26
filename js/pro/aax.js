@@ -182,6 +182,7 @@ module.exports = class aax extends aaxRest {
         const name = 'trade';
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const messageHash = market['id'] + '@' + name;
         const url = this.urls['api']['ws']['public'];
         const subscribe = {

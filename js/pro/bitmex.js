@@ -540,6 +540,7 @@ module.exports = class bitmex extends bitmexRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const table = 'trade';
         const messageHash = table + ':' + market['id'];
         const url = this.urls['api']['ws'];

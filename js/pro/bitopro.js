@@ -129,6 +129,7 @@ module.exports = class bitopro extends bitoproRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = this.symbol (symbol);
         const messageHash = 'TRADE' + ':' + symbol;
         const trades = await this.watchPublic ('trades', messageHash, market['id'], limit);
         if (this.newUpdates) {

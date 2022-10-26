@@ -371,6 +371,7 @@ module.exports = class phemex extends phemexRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const url = this.urls['api']['ws'];
         const requestId = this.requestId ();
         const name = 'trade';
