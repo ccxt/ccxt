@@ -58,12 +58,7 @@ $main = function() use ($argv) {
             ));
 
             // instantiate the exchange by id
-            $exchange = null;
-            if (in_array($id, \ccxt\pro\Exchange::$exchanges)) {
-                $exchange = '\\ccxt\\pro\\' . $id;
-            } else {
-                $exchange = '\\ccxt\\async\\' . $id;
-            }        
+            $exchange = '\\ccxt\\async\\' . $id;
             $exchange = new $exchange($config);
 
             if ($spot) {
