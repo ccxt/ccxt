@@ -5466,7 +5466,7 @@ module.exports = class bybit extends Exchange {
                 'fromAccountType': fromId,
                 'toAccountType': toId,
                 'coin': currency['id'],
-                'amount': amountToPrecision.toString (),
+                'amount': amountToPrecision,
             };
         } else {
             request = {
@@ -5474,7 +5474,7 @@ module.exports = class bybit extends Exchange {
                 'from_account_type': fromId,
                 'to_account_type': toId,
                 'coin': currency['id'],
-                'amount': amountToPrecision.toString (),
+                'amount': amountToPrecision,
             };
         }
         const response = await this[method] (this.extend (request, params));
