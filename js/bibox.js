@@ -2222,7 +2222,11 @@ module.exports = class bibox extends Exchange {
                     strToSign = this.urlencode (params);
                 } else {
                     if (jsonParams !== '{}') {
-                        body = params;
+                        const keys = Object.keys (params);
+                        for (let i = 0; i < keys.length; i++) {
+                            const key = keys[i];
+                            body[key] = params[key];
+                        }
                     }
                     strToSign = this.json (body, { 'convertArraysToObjects': true });
                 }
