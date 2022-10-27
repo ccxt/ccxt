@@ -5400,25 +5400,21 @@ module.exports = class bybit extends Exchange {
             'fromAccountType': fromId,
             'toAccountType': toId,
             'coin': currency['id'],
-            'amount': amountToPrecision,
+            'amount': amountToPrecision.toString (),
         };
         const response = await this.privatePostAssetV3PrivateTransferInterTransfer (this.extend (request, params));
         //
-        //     {
-        //         "ret_code": 0,
-        //         "ret_msg": "OK",
-        //         "ext_code": "",
-        //         "result": {
-        //             "transfer_id": "22c2bc11-ed5b-49a4-8647-c4e0f5f6f2b2"
-        //         },
-        //         "ext_info": null,
-        //         "time_now": 1658433382570,
-        //         "rate_limit_status": 19,
-        //         "rate_limit_reset_ms": 1658433382570,
-        //         "rate_limit": 1
-        //     }
+        // {
+        //     "retCode": 0,
+        //     "retMsg": "success",
+        //     "result": {
+        //         "transferId": "4244af44-f3b0-4cf6-a743-b56560d567bc"
+        //     },
+        //     "retExtInfo": {},
+        //     "time": 1666875857205
+        // }
         //
-        const timestamp = this.safeInteger (response, 'time_now');
+        const timestamp = this.safeInteger (response, 'time');
         const transfer = this.safeValue (response, 'result', {});
         return this.extend (this.parseTransfer (transfer, currency), {
             'timestamp': timestamp,
@@ -5610,8 +5606,8 @@ module.exports = class bybit extends Exchange {
         // transfer
         //
         //     {
-        //         "transfer_id": "22c2bc11-ed5b-49a4-8647-c4e0f5f6f2b2"
-        //     },
+        //         "transferId": "22c2bc11-ed5b-49a4-8647-c4e0f5f6f2b2"
+        //     }
         //
         // fetchTransfers
         //
