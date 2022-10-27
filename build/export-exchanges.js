@@ -408,7 +408,11 @@ function exportEverything () {
         {
             file: './ccxt.js',
             regex:  /(?:const|var)\s+exchanges\s+\=\s+\{[^\}]+\}/,
-            replacement: "const exchanges = {\n" + ids.map (id => ("    '" + id + "':").padEnd (30) + " require ('./js/" + id + ".js'),") .join ("\n") + "\n}",
+            replacement: "const exchanges = {\n" + ids.map (id => {
+                    const prefix = ("    '" + id + "':").padEnd (30);
+                    const requirePath = (wsIds.includes(id)) ? './js/pro/' : './pro/rest/';
+                    return prefix + " require ('" + requirePath + id + ".js'),"
+                }).join ("\n") + "    \n}",
         },
         {
             file: './ccxt.js',
