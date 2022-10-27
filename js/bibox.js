@@ -1927,6 +1927,7 @@ module.exports = class bibox extends Exchange {
          * @method
          * @name bibox#withdraw
          * @description make a withdrawal
+         * @see https://biboxcom.github.io/api/spot/v3/en/#withdrawal
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
