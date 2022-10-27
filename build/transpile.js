@@ -709,7 +709,7 @@ class Transpiler {
         const baseClasses = {
             'Exchange': 'base.exchange',
         }
-        async = (async ? '.async_support' : '')
+        async = (async ? '.async_implementation' : '')
 
         return [
             (baseClass.indexOf ('ccxt.') === 0) ?
@@ -753,7 +753,7 @@ class Transpiler {
 
     createPythonImports (baseClass, bodyAsString, async = false) {
 
-        async = (async ? '.async_support' : '')
+        async = (async ? '.async_implementation' : '')
 
 
         const pythonStandardLibraries = {
@@ -1424,7 +1424,7 @@ class Transpiler {
             const phpDelimiter = '// ' + delimiter + '\n'
             const restOfFile = '([^\n]*\n)+'
             const python2File = './python/ccxt/base/exchange.py'
-            const python3File = './python/ccxt/async_support/base/exchange.py'
+            const python3File = './python/ccxt/async_implementation/base/exchange.py'
             const phpFile = './php/Exchange.php'
             const phpAsyncFile = './php/async/Exchange.php'
             log.magenta ('→', python2File.yellow)
@@ -1911,7 +1911,7 @@ class Transpiler {
         // default pattern is '.js'
         const exchanges = process.argv.slice (2).filter (x => !x.startsWith ('--'))
             , python2Folder  = './python/ccxt/'
-            , python3Folder  = './python/ccxt/async_support/'
+            , python3Folder  = './python/ccxt/async_implementation/'
             , phpFolder      = './php/'
             , phpAsyncFolder = './php/async/'
             , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder, exchanges }
