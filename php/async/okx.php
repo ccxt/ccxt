@@ -158,6 +158,7 @@ class okx extends Exchange {
                         'market/ticker' => 1,
                         'market/index-tickers' => 1,
                         'market/books' => 1,
+                        'market/books-lite' => 1.66,
                         'market/candles' => 0.5,
                         'market/history-candles' => 1,
                         'market/history-mark-price-candles' => 120,
@@ -2478,6 +2479,10 @@ class okx extends Exchange {
             $clientOrderId = null; // fix empty $clientOrderId string
         }
         $stopPrice = $this->safe_number_n($order, array( 'triggerPx', 'slTriggerPx', 'tpTriggerPx' ));
+        $reduceOnly = $this->safe_string($order, 'reduceOnly');
+        if ($reduceOnly !== null) {
+            $reduceOnly = ($reduceOnly === 'true');
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -2500,6 +2505,7 @@ class okx extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
+            'reduceOnly' => $reduceOnly,
         ), $market);
     }
 

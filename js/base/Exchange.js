@@ -2566,6 +2566,14 @@ module.exports = class Exchange {
         return result;
     }
 
+    isTriggerOrder (params) {
+        const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
+        if (isTrigger) {
+            params = this.omit (params, [ 'trigger', 'stop' ]);
+        }
+        return [ isTrigger, params ];
+    }
+
     isPostOnly (isMarketOrder, exchangeSpecificParam, params = {}) {
         /**
          * @ignore

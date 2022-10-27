@@ -1125,9 +1125,9 @@ class bitso extends Exchange {
          * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         $this->load_markets();
-        $response = Async\await($this->privateGetOrdersOid (array(
+        $response = $this->privateGetOrdersOid (array(
             'oid' => $id,
-        )));
+        ));
         $payload = $this->safe_value($response, 'payload');
         if (gettype($payload) === 'array' && array_keys($payload) === array_keys(array_keys($payload))) {
             $numOrders = count($response['payload']);

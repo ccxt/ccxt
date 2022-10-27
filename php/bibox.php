@@ -37,6 +37,7 @@ class bibox extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchLedger' => true,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
@@ -1016,71 +1017,159 @@ class bibox extends Exchange {
         return $this->parse_balance($response);
     }
 
+    public function parse_ledger_entry($item, $currency = null) {
+        //
+        //    {
+        //        "i" => 1125899918063693495,     // entry $id
+        //        "s" => "USDT",                  // asset symbol
+        //        "T" => "transfer_in",           // entry $type => transfer, trade, fee
+        //        "a" => 14.71,                   // $amount
+        //        "b" => 14.7100000044,           // balance
+        //        "t" => 1663367640374            // time
+        //    }
+        //
+        $ledgerTypes = array(
+            'transfer_in' => 'transfer',
+            'transfer_out' => 'transfer',
+            'trade_finish_ask' => 'trade',
+            'trade_finish_bid' => 'trade',
+        );
+        $id = $this->safe_string($item, 'i');
+        $currencyId = $this->safe_string($item, 's');
+        $type = $this->safe_string($item, 'T');
+        $timestamp = $this->safe_integer($item, 't');
+        $amount = $this->safe_string($item, 'a');
+        $direction = 'in';
+        if (Precise::string_lt($amount, '0')) {
+            $direction = 'out';
+        }
+        return array(
+            'id' => $id,
+            'direction' => $direction,
+            'account' => null,
+            'referenceId' => $id,
+            'referenceAccount' => null,
+            'type' => $this->safe_string($ledgerTypes, $type, $type),
+            'currency' => $this->safe_currency_code($currencyId, $currency),
+            'amount' => $this->parse_number($amount),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'before' => null,
+            'after' => $this->safe_number($item, 'b'),
+            'status' => null,
+            'fee' => null,
+            'info' => $item,
+        );
+    }
+
+    public function fetch_ledger($code = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @see https://biboxcom.github.io/api/spot/v4/en/#get-an-account-39-s-ledger
+         * @param {string|null} $code unified $currency $code, default is null
+         * @param {int|null} $since timestamp in ms of the earliest ledger entry, default is null
+         * @param {int|null} $limit *default = 100* max number of ledger entrys to return
+         * @param {array} $params extra parameters specific to the bitfinex2 api endpoint
+         * @param {int} $params->until timestamp in ms of the latest ledger entry, default is null
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} before bill record id. limited to return the maximum id value of the bill records
+         * @param {int} after bill record id, limited to return the minimum id value of the bill records
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure ledger structure}
+         */
+        $this->load_markets();
+        $currency = null;
+        $until = $this->safe_integer($params, 'until');
+        $params = $this->omit($params, 'until');
+        $request = array();
+        if ($code !== null) {
+            $currency = $this->currency($code);
+            $request['asset'] = $currency['id'];
+        }
+        if ($since !== null) {
+            $request['start_time'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        if ($until !== null) {
+            $request['end_time'] = $until;
+        }
+        $response = $this->v4PrivateGetUserdataLedger (array_merge($request, $params));
+        //
+        //    array(
+        //        {
+        //            "i" => 1125899918063693495,     // entry id
+        //            "s" => "USDT",                  // asset symbol
+        //            "T" => "transfer_in",           // entry type => transfer, trade, fee
+        //            "a" => 14.71,                   // amount
+        //            "b" => 14.7100000044,           // balance
+        //            "t" => 1663367640374            // time
+        //        }
+        //    )
+        //
+        return $this->parse_ledger($response, $currency, $since, $limit);
+    }
+
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
         /**
-         * fetch all $deposits made to an account
+         * fetch all deposits made to an account
          * @param {string|null} $code unified $currency $code
-         * @param {int|null} $since the earliest time in ms to fetch $deposits for
-         * @param {int|null} $limit the maximum number of $deposits structures to retrieve
+         * @param {int|null} $since not used by bibox
+         * @param {int|null} $limit the maximum number of deposits structures to retrieve, max=50, default=50
          * @param {array} $params extra parameters specific to the bibox api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} $params->page $page number, default=1
+         * @param {string|null} $params->filter_type deposit record filter, 0-all, 1-deposit in progress, 2-deposit received, 3-deposit failed
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
          */
         $this->load_markets();
         if ($limit === null) {
-            $limit = 100;
+            $limit = 50;
         }
+        $page = $this->safe_integer($params, 'page', 1);
         $request = array(
-            'page' => 1,
+            'page' => $page,
             'size' => $limit,
         );
         $currency = null;
         if ($code !== null) {
             $currency = $this->currency($code);
-            $request['symbol'] = $currency['id'];
+            $request['coin_symbol'] = $currency['id'];
         }
-        $response = Async\await($this->v1PrivatePostTransfer (array(
-            'cmd' => 'transfer/transferInList',
-            'body' => array_merge($request, $params),
-        )));
+        $method = 'v3.1PrivatePostTransferTransferInList';
+        $response = $this->$method (array_merge($request, $params));
         //
-        //     {
-        //         "result":array(
-        //             {
-        //                 "result":{
-        //                     "count":2,
-        //                     "page":1,
-        //                     "items":array(
-        //                         array(
-        //                             "coin_symbol":"ETH",                        // token
-        //                             "to_address":"xxxxxxxxxxxxxxxxxxxxxxxxxx",  // address
-        //                             "amount":"1.00000000",                      // amount
-        //                             "confirmCount":"15",                        // the acknowledgment number
-        //                             "createdAt":1540641511000,
-        //                             "status":2                                 // status,  1-deposit is in process，2-deposit finished，3-deposit failed
-        //                         ),
-        //                         array(
-        //                             "coin_symbol":"BIX",
-        //                             "to_address":"xxxxxxxxxxxxxxxxxxxxxxxxxx",
-        //                             "amount":"1.00000000",
-        //                             "confirmCount":"15",
-        //                             "createdAt":1540622460000,
-        //                             "status":2
-        //                         }
-        //                     )
-        //                 ),
-        //                 "cmd":"transfer/transferInList"
-        //             }
-        //         )
-        //     }
+        //    {
+        //        $result => array(
+        //            count => '5',
+        //            $page => '1',
+        //            $items => array(
+        //                array(
+        //                    id => '3553023',
+        //                    coin_symbol => 'bUSDT',
+        //                    chain_type => 'BEP20(BSC)',
+        //                    to_address => '0xf1458ba28073b056e9666c4b2bbbc60451cda0fd',
+        //                    tx_id => '0x2f2319c4ae804893369aeeeef06dd429abf2833b61290ea2bd63ec0e363ebce6',
+        //                    amount => '14.71000000',
+        //                    confirmCount => '14',
+        //                    createdAt => '1663367581000',
+        //                    status => '2'
+        //                ),
+        //                ...
+        //            )
+        //        ),
+        //        cmd => 'transferInList',
+        //        state => '0'
+        //    }
         //
-        $outerResults = $this->safe_value($response, 'result');
-        $firstResult = $this->safe_value($outerResults, 0, array());
-        $innerResult = $this->safe_value($firstResult, 'result', array());
-        $deposits = $this->safe_value($innerResult, 'items', array());
-        for ($i = 0; $i < count($deposits); $i++) {
-            $deposits[$i]['type'] = 'deposit';
+        $result = $this->safe_value($response, 'result');
+        $items = $this->safe_value($result, 'items');
+        for ($i = 0; $i < count($items); $i++) {
+            $items[$i]['type'] = 'deposit';
         }
-        return $this->parse_transactions($deposits, $currency, $since, $limit);
+        return $this->parse_transactions($items, $currency, $since, $limit);
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
@@ -1105,10 +1194,10 @@ class bibox extends Exchange {
             $currency = $this->currency($code);
             $request['symbol'] = $currency['id'];
         }
-        $response = Async\await($this->v1PrivatePostTransfer (array(
+        $response = $this->v1PrivatePostTransfer (array(
             'cmd' => 'transfer/transferOutList',
             'body' => array_merge($request, $params),
-        )));
+        ));
         //
         //     {
         //         "result":array(
@@ -1828,10 +1917,10 @@ class bibox extends Exchange {
         if ($tag !== null) {
             $request['address_remark'] = $tag;
         }
-        $response = Async\await($this->v1PrivatePostTransfer (array(
+        $response = $this->v1PrivatePostTransfer (array(
             'cmd' => 'transfer/transferOut',
             'body' => array_merge($request, $params),
-        )));
+        ));
         //
         //     {
         //         "result":array(
@@ -1924,9 +2013,9 @@ class bibox extends Exchange {
          */
         $this->load_markets();
         $currency = $this->currency($code);
-        $fromMain = $fromAccount === 'main' || $fromAccount === 'wallet';
+        $fromMain = $fromAccount === 'main' || $fromAccount === 'wallet' || $fromAccount === 'funding';
         $fromSpot = $fromAccount === 'spot';
-        $toMain = $toAccount === 'main' || $toAccount === 'wallet';
+        $toMain = $toAccount === 'main' || $toAccount === 'wallet' || $toAccount === 'funding';
         $toSpot = $toAccount === 'spot';
         $toCross = $toAccount === 'cross';
         $fromCross = $fromAccount === 'cross';

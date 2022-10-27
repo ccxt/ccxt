@@ -150,6 +150,7 @@ module.exports = class okx extends Exchange {
                         'market/ticker': 1,
                         'market/index-tickers': 1,
                         'market/books': 1,
+                        'market/books-lite': 1.66,
                         'market/candles': 0.5,
                         'market/history-candles': 1,
                         'market/history-mark-price-candles': 120,
@@ -2468,6 +2469,10 @@ module.exports = class okx extends Exchange {
             clientOrderId = undefined; // fix empty clientOrderId string
         }
         const stopPrice = this.safeNumberN (order, [ 'triggerPx', 'slTriggerPx', 'tpTriggerPx' ]);
+        let reduceOnly = this.safeString (order, 'reduceOnly');
+        if (reduceOnly !== undefined) {
+            reduceOnly = (reduceOnly === 'true');
+        }
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -2490,6 +2495,7 @@ module.exports = class okx extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
+            'reduceOnly': reduceOnly,
         }, market);
     }
 

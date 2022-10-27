@@ -1624,10 +1624,10 @@ class kraken extends Exchange {
 
     public function fetch_orders_by_ids($ids, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $response = Async\await($this->privatePostQueryOrders (array_merge(array(
+        $response = $this->privatePostQueryOrders (array_merge(array(
             'trades' => true, // whether or not to include trades in output (optional, default false)
             'txid' => implode(',', $ids), // comma delimited list of transaction $ids to query info about (20 maximum)
-        ), $params)));
+        ), $params));
         $result = $this->safe_value($response, 'result', array());
         $orders = array();
         $orderIds = is_array($result) ? array_keys($result) : array();

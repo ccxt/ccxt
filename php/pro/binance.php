@@ -1029,7 +1029,7 @@ class binance extends \ccxt\async\binance {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
-             * @param {string|null} $symbol unified market $symbol of the market $orders were made in
+             * @param {string|null} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int|null} $since the earliest time in ms to fetch $orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the binance api endpoint
@@ -1037,13 +1037,16 @@ class binance extends \ccxt\async\binance {
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate($params));
-            $defaultType = $this->safe_string_2($this->options, 'watchOrders', 'defaultType', 'spot');
-            $type = $this->safe_string($params, 'type', $defaultType);
-            $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
             $messageHash = 'orders';
+            $market = null;
             if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
                 $messageHash .= ':' . $symbol;
             }
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
+            $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
             $client = $this->client($url);
             $this->set_balance_cache($client, $type);
             $message = null;
