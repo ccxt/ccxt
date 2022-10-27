@@ -1115,8 +1115,8 @@ module.exports = class bittrex extends Exchange {
             const operand = this.safeString (params, 'operand');
             const trailingStopPercent = this.safeNumber (params, 'trailingStopPercent');
             params = this.omit (params, 'trailingStopPercent');
-            if (operand === undefined && trailingStopPercent === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires either an operand parameter or a trailingStopPercent parameter for stop orders');
+            if (operand === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires an operand parameter for stop orders');
             }
             const orderToCreate = this.safeValue (params, 'orderToCreate');
             const orderToCancel = this.safeValue (params, 'orderToCancel');
