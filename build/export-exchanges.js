@@ -483,6 +483,14 @@ function exportEverything () {
             replacement: "public static $exchanges = array(\n        '" + ids.join ("',\n        '") + "',\n    )",
         },
         {
+            file: './php/async/async.php',
+            regex: /(class\s[a-zA-Z0-9]+\sextends\s[^{}]+{}\n)+\n*/g,
+            replacement: ids.map (id => {
+                const path = (wsIds.includes(id)) ? '\\ccxt\\pro\\' : '\\ccxt\\async_implementation\\';
+                return 'class ' + id + ' extends ' + path + id + ' {}'
+            }).join ("\n") +  "\nclass Exchange extends \\ccxt\\pro\\Exchange {}\n"  + "\n\n"
+        },
+        {
             file: './php/pro/Exchange.php',
             regex: /Exchange::\$exchanges \= array\s*\([^\)]+\)/,
             replacement: "Exchange::$exchanges = array(\n    '" + wsIds.join ("',\n    '") + "',\n)",
