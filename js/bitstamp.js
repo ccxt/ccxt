@@ -1160,6 +1160,7 @@ module.exports = class bitstamp extends Exchange {
         //     yfi_withdrawal_fee: '0.00070000',
         //     yfieur_fee: '0.000',
         //     yfiusd_fee: '0.000',
+        //
         //     zrx_available: '0.00000000',
         //     zrx_balance: '0.00000000',
         //     zrx_reserved: '0.00000000',
@@ -1170,21 +1171,37 @@ module.exports = class bitstamp extends Exchange {
         //  }
         //
         const result = {};
+        let infoObject = [];
+        let prevCode = undefined;
         const ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
+            const currencyId = id.split ('_')[0];
+            const code = this.safeCurrencyCode (currencyId);
+            if (id.indexOf ('_available') >= 0) {
+                if (infoObject.length > 0) {
+                    console.log (result);
+                    console.log (prevCode);
+                    result[prevCode]['info'] = infoObject;
+                }
+                infoObject = [];
+            } else {
+                infoObject.push (
+                    { [id]: this.safeNumber (response, id) }
+                );
+            }
             if (id.indexOf ('_withdrawal_fee') >= 0) {
-                const currencyId = id.split ('_')[0];
-                const code = this.safeCurrencyCode (currencyId);
                 if (codes !== undefined && !this.inArray (code, codes)) {
                     continue;
                 }
                 result[code] = {
                     'deposit': undefined,
                     'withdraw': this.safeNumber (response, id),
-                    'info': this.safeNumber (response, id),
+                    'info': undefined,
                 };
             }
+            // console.log (infoObject);
+            prevCode = code;
         }
         return result;
     }
