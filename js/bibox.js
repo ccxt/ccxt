@@ -290,6 +290,7 @@ module.exports = class bibox extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
+                '-2012': RateLimitExceeded, // {"error":-2102,"message":"The usage limit is 10000 in 10000ms, but 24593 have been used."}
                 '2011': AccountSuspended, // Account is locked
                 '2015': AuthenticationError, // Google authenticator is wrong
                 '2021': InsufficientFunds, // Insufficient balance available for withdrawal
