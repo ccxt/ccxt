@@ -4383,6 +4383,8 @@ class gate(Exchange):
         path = self.implode_params(path, params)
         endPart = '' if (path == '') else ('/' + path)
         entirePath = '/' + type + endPart
+        if (type == 'subAccounts') or (type == 'withdrawals'):
+            entirePath = endPart
         url = self.urls['api'][authentication][type]
         if url is None:
             raise NotSupported(self.id + ' does not have a testnet for the ' + type + ' market type.')

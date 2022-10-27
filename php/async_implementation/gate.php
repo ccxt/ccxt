@@ -4667,6 +4667,9 @@ class gate extends Exchange {
         $path = $this->implode_params($path, $params);
         $endPart = ($path === '') ? '' : ('/' . $path);
         $entirePath = '/' . $type . $endPart;
+        if (($type === 'subAccounts') || ($type === 'withdrawals')) {
+            $entirePath = $endPart;
+        }
         $url = $this->urls['api'][$authentication][$type];
         if ($url === null) {
             throw new NotSupported($this->id . ' does not have a testnet for the ' . $type . ' market $type->');
