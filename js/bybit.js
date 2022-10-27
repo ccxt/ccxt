@@ -695,13 +695,13 @@ module.exports = class bybit extends Exchange {
 
     handleNetworkCodeAndParams (params) {
         const networks = this.safeValue (this.options, 'networks', {});
-        const networkCodeInParams = this.safeStringUpper (params, 'networkCode', 'network');
-        let networkCode = undefined;
+        const networkCodeInParams = this.safeStringUpper2 (params, 'networkCode', 'network');
+        let networkId = undefined;
         if (networkCodeInParams !== undefined) {
-            networkCode = this.safeStringUpper (networks, networkCodeInParams, networkCodeInParams);
+            networkId = this.safeStringUpper (networks, networkCodeInParams, networkCodeInParams);
             params = this.omit (params, [ 'networkCode', 'network' ]);
         }
-        return [ networkCode, params ];
+        return [ networkId, params ];
     }
 
     async fetchCurrencies (params = {}) {
@@ -4314,36 +4314,69 @@ module.exports = class bybit extends Exchange {
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
-        const rawNetwork = this.safeStringUpper (params, 'network');
-        const networks = this.safeValue (this.options, 'networks', {});
-        const network = this.safeString (networks, rawNetwork, rawNetwork);
-        params = this.omit (params, 'network');
-        const response = await this.fetchDepositAddressesByNetwork (code, params);
-        let result = undefined;
-        if (network === undefined) {
-            result = this.safeValue (response, code);
-            if (result === undefined) {
-                const alias = this.safeString (networks, code, code);
-                result = this.safeValue (response, alias);
+        const [ networkId, query ] = this.handleNetworkCodeAndParams (params);
+        if (networkId !== undefined) {
+            const currency = this.currency (code);
+            const request = {
+                'coin': currency['id'],
+                'chainType': networkId,
+            };
+            const response = await this.privateGetAssetV3PrivateDepositAddressQuery (this.extend (request, query));
+            //
+            //    {
+            //         "retCode": "0",
+            //         "retMsg": "success",
+            //         "result": {
+            //             "coin": "USDT",
+            //             "chains": [
+            //                 {
+            //                     "chainType": "TRC20",
+            //                     "addressDeposit": "TC6NCAC5WSVCCiaD3kWZXyW91ZKKhLm53b",
+            //                     "tagDeposit": "",
+            //                     "chain": "TRX"
+            //                 }
+            //             ]
+            //         },
+            //         "retExtInfo": {},
+            //         "time": "1666895654316"
+            //     }
+            //
+            const result = this.safeValue (response, 'result', {});
+            const chains = this.safeValue (result, 'chains', []);
+            const addressInfo = this.safeValue (chains, 0, {});
+            return this.parseDepositAddress (addressInfo, currency);
+        } else {
+            const rawNetwork = this.safeStringUpper (params, 'network');
+            const networks = this.safeValue (this.options, 'networks', {});
+            const network = this.safeString (networks, rawNetwork, rawNetwork);
+            params = this.omit (params, 'network');
+            const response = await this.fetchDepositAddressesByNetwork (code, query);
+            let result = undefined;
+            if (network === undefined) {
+                result = this.safeValue (response, code);
                 if (result === undefined) {
-                    const defaultNetwork = this.safeString (this.options, 'defaultNetwork', 'ERC20');
-                    result = this.safeValue (response, defaultNetwork);
+                    const alias = this.safeString (networks, code, code);
+                    result = this.safeValue (response, alias);
                     if (result === undefined) {
-                        const values = Object.values (response);
-                        result = this.safeValue (values, 0);
+                        const defaultNetwork = this.safeString (this.options, 'defaultNetwork', 'ERC20');
+                        result = this.safeValue (response, defaultNetwork);
                         if (result === undefined) {
-                            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find deposit address for ' + code);
+                            const values = Object.values (response);
+                            result = this.safeValue (values, 0);
+                            if (result === undefined) {
+                                throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find deposit address for ' + code);
+                            }
                         }
                     }
                 }
+                return result;
+            }
+            result = this.safeValue (response, network);
+            if (result === undefined) {
+                throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code);
             }
             return result;
         }
-        result = this.safeValue (response, network);
-        if (result === undefined) {
-            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code);
-        }
-        return result;
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -4567,7 +4600,7 @@ module.exports = class bybit extends Exchange {
             'address': undefined,
             'addressTo': toAddress,
             'addressFrom': undefined,
-            'tag': this.safeString (transaction, 'tag', ''),
+            'tag': this.safeString (transaction, 'tag'),
             'tagTo': undefined,
             'tagFrom': undefined,
             'type': type,
@@ -4733,9 +4766,9 @@ module.exports = class bybit extends Exchange {
         if (tag !== undefined) {
             request['tag'] = tag;
         }
-        const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
-        if (networkCode !== undefined) {
-            request['chain'] = networkCode;
+        const [ networkId, query ] = this.handleNetworkCodeAndParams (params);
+        if (networkId !== undefined) {
+            request['chain'] = networkId;
         }
         const response = await this.privatePostAssetV3PrivateWithdrawCreate (this.extend (request, query));
         //
