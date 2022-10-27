@@ -365,6 +365,7 @@ module.exports = class bybit extends Exchange {
                         'spot/v3/private/cross-margin-repay': 10,
                         // account
                         'asset/v1/private/transfer': 150, // 20 per minute = 0.333 per second => cost = 50 / 0.3333 = 150
+                        'asset/v3/private/transfer/inter-transfer': 150,
                         'asset/v1/private/sub-member/transfer': 150,
                         'asset/v1/private/withdraw': 50,
                         'asset/v1/private/withdraw/cancel': 50,
@@ -586,6 +587,7 @@ module.exports = class bybit extends Exchange {
                     'option': 'OPTION',
                     'investment': 'INVESTMENT',
                     'unified': 'UNIFIED',
+                    'funding': 'FUND',
                 },
                 'accountsById': {
                     'SPOT': 'spot',
@@ -5394,13 +5396,13 @@ module.exports = class bybit extends Exchange {
         const currency = this.currency (code);
         const amountToPrecision = this.currencyToPrecision (code, amount);
         const request = {
-            'transfer_id': transferId,
-            'from_account_type': fromId,
-            'to_account_type': toId,
+            'transferId': transferId,
+            'fromAccountType': fromId,
+            'toAccountType': toId,
             'coin': currency['id'],
             'amount': amountToPrecision,
         };
-        const response = await this.privatePostAssetV1PrivateTransfer (this.extend (request, params));
+        const response = await this.privatePostAssetV3PrivateTransferInterTransfer (this.extend (request, params));
         //
         //     {
         //         "ret_code": 0,
@@ -5448,12 +5450,12 @@ module.exports = class bybit extends Exchange {
             request['coin'] = currency['id'];
         }
         if (since !== undefined) {
-            request['start_time'] = since;
+            request['startTime'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetAssetV1PrivateTransferList (this.extend (request, params));
+        const response = await this.privateGetAssetV3PrivateTransferInterTransferList (this.extend (request, params));
         //
         //     {
         //         "ret_code": 0,
