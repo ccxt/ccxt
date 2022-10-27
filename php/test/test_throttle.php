@@ -1,6 +1,6 @@
 <?php
 
-use ccxt\async\Throttle;
+use ccxt\async_implementation\Throttle;
 
 include '../../vendor/autoload.php';
 
