@@ -1706,7 +1706,7 @@ module.exports = class gate extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.privateWalletGetWithdrawStatus (params);
-        console.log (response)
+        // console.log (response);
         //
         //    {
         //        "currency": "MTN",
@@ -1725,8 +1725,9 @@ module.exports = class gate extends Exchange {
         //    }
         //
         const result = {};
+        let withdrawFees = {};
         for (let i = 0; i < response.length; i++) {
-            let withdrawFees = {};
+            withdrawFees = {};
             const entry = response[i];
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
@@ -1737,21 +1738,19 @@ module.exports = class gate extends Exchange {
             if (withdrawFixOnChains === undefined) {
                 withdrawFees = this.safeNumber (entry, 'withdraw_fix');
             } else {
-                const withdrawFees = {};
-                const keys = Object.keys (withdrawFixOnChains);
-                for (let i = 0; i < keys.length; i++) {
-                    const key = keys[i];
-                    withdrawFees[key] = this.parseNumber (withdrawFixOnChains[key]);
+                const chainKeys = Object.keys (withdrawFixOnChains);
+                for (let i = 0; i < chainKeys.length; i++) {
+                    const chainKey = chainKeys[i];
+                    withdrawFees[chainKey] = this.parseNumber (withdrawFixOnChains[chainKey]);
                 }
             }
-            // console.log (withdrawFees);
-            // result[code] = {
-            //     'withdraw': withdrawFees,
-            //     'deposit': undefined,
-            //     'info': entry,
-            // };
+            result[code] = {
+                'withdraw': withdrawFees,
+                'deposit': undefined,
+                'info': entry,
+            };
         }
-        // return result;
+        return result;
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
