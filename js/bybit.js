@@ -17,8 +17,6 @@ module.exports = class bybit extends Exchange {
             'countries': [ 'VG' ], // British Virgin Islands
             'version': 'v2',
             'userAgent': undefined,
-            // 50 requests per second for GET requests, 1000ms / 50 = 20ms between requests
-            // 20 requests per second for POST requests, cost = 50 / 20 = 2.5
             'rateLimit': 20,
             'hostname': 'bybit.com', // bybit.com, bytick.com
             'pro': true,
@@ -172,6 +170,7 @@ module.exports = class bybit extends Exchange {
                         'spot/v3/public/infos': 1,
                         // data
                         'v2/public/time': 1,
+                        'v3/public/time': 1,
                         'v2/public/announcement': 1,
                         // USDC endpoints
                         // option USDC
@@ -275,12 +274,13 @@ module.exports = class bybit extends Exchange {
                         'spot/v3/private/cross-margin-repay-history': 10,
                         // account
                         'asset/v1/private/transfer/list': 50, // 60 per minute = 1 per second => cost = 50 / 1 = 50
+                        'asset/v3/private/transfer/inter-transfer/list/query': 0.834, // 60/s
                         'asset/v1/private/sub-member/transfer/list': 50,
                         'asset/v1/private/sub-member/member-ids': 50,
                         'asset/v1/private/deposit/record/query': 50,
                         'asset/v1/private/withdraw/record/query': 25,
                         'asset/v1/private/coin-info/query': 25,
-                        'asset/v3/private/coin-info/query': 25,
+                        'asset/v3/private/coin-info/query': 25, // 2/s
                         'asset/v1/private/asset-info/query': 50,
                         'asset/v1/private/deposit/address': 100,
                         'asset/v1/private/universal/transfer/list': 50,
@@ -365,7 +365,7 @@ module.exports = class bybit extends Exchange {
                         'spot/v3/private/cross-margin-repay': 10,
                         // account
                         'asset/v1/private/transfer': 150, // 20 per minute = 0.333 per second => cost = 50 / 0.3333 = 150
-                        'asset/v3/private/transfer/inter-transfer': 150,
+                        'asset/v3/private/transfer/inter-transfer': 2.5, // 20/s
                         'asset/v1/private/sub-member/transfer': 150,
                         'asset/v1/private/withdraw': 50,
                         'asset/v1/private/withdraw/cancel': 50,
@@ -635,18 +635,20 @@ module.exports = class bybit extends Exchange {
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.publicGetV2PublicTime (params);
+        const response = await this.publicGetV3PublicTime (params);
         //
-        //     {
-        //         ret_code: 0,
-        //         ret_msg: 'OK',
-        //         ext_code: '',
-        //         ext_info: '',
-        //         result: {},
-        //         time_now: '1583933682.448826'
+        //    {
+        //         "retCode": "0",
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "timeSecond": "1666879482",
+        //             "timeNano": "1666879482792685914"
+        //         },
+        //         "retExtInfo": {},
+        //         "time": "1666879482792"
         //     }
         //
-        return this.safeTimestamp (response, 'time_now');
+        return this.safeInteger (response, 'time');
     }
 
     safeNetwork (networkId) {
@@ -5395,20 +5397,33 @@ module.exports = class bybit extends Exchange {
         const toId = this.safeString (accountTypes, toAccount, toAccount);
         const currency = this.currency (code);
         const amountToPrecision = this.currencyToPrecision (code, amount);
-        const request = {
-            'transferId': transferId,
-            'fromAccountType': fromId,
-            'toAccountType': toId,
-            'coin': currency['id'],
-            'amount': amountToPrecision.toString (),
-        };
-        const response = await this.privatePostAssetV3PrivateTransferInterTransfer (this.extend (request, params));
+        let method = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'transfer', 'method', 'privatePostAssetV1PrivateTransfer'); // v1 preferred atm, because it supports funding
+        let request = undefined;
+        if (method === 'privatePostAssetV3PrivateTransferInterTransfer') {
+            request = {
+                'transferId': transferId,
+                'fromAccountType': fromId,
+                'toAccountType': toId,
+                'coin': currency['id'],
+                'amount': amountToPrecision.toString (),
+            };
+        } else {
+            request = {
+                'transferId': transferId,
+                'from_account_type': fromId,
+                'to_account_type': toId,
+                'coin': currency['id'],
+                'amount': amountToPrecision.toString (),
+            };
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         // {
         //     "retCode": 0,
         //     "retMsg": "success",
         //     "result": {
-        //         "transferId": "4244af44-f3b0-4cf6-a743-b56560d567bc"
+        //         "transferId": "4244af44-f3b0-4cf6-a743-b56560e987bc"
         //     },
         //     "retExtInfo": {},
         //     "time": 1666875857205
@@ -5416,13 +5431,14 @@ module.exports = class bybit extends Exchange {
         //
         const timestamp = this.safeInteger (response, 'time');
         const transfer = this.safeValue (response, 'result', {});
+        const statusMsg = this.parseTransferStatus (this.safeString2 (response, 'retCode', 'retMsg'));
         return this.extend (this.parseTransfer (transfer, currency), {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'amount': this.parseNumber (amountToPrecision),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': this.parseTransferStatus (this.safeString2 (response, 'ret_code', 'ret_msg')),
+            'status': statusMsg,
         });
     }
 
@@ -5451,31 +5467,27 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetAssetV3PrivateTransferInterTransferList (this.extend (request, params));
+        const response = await this.privateGetAssetV3PrivateTransferInterTransferListQuery (this.extend (request, params));
         //
-        //     {
-        //         "ret_code": 0,
-        //         "ret_msg": "OK",
-        //         "ext_code": "",
+        //    {
+        //         "retCode": "0",
+        //         "retMsg": "success",
         //         "result": {
         //             "list": [
         //                 {
-        //                     "transfer_id": "3976014d-f3d2-4843-b3bb-1cd006babcde",
+        //                     "transferId": "e9c421c4-b010-4b16-abd6-106179f27732",
         //                     "coin": "USDT",
-        //                     "amount": "15",
-        //                     "from_account_type": "SPOT",
-        //                     "to_account_type": "CONTRACT",
-        //                     "timestamp": "1658433935",
+        //                     "amount": "8",
+        //                     "fromAccountType": "FUND",
+        //                     "toAccountType": "SPOT",
+        //                     "timestamp": "1666879426000",
         //                     "status": "SUCCESS"
         //                 },
         //             ],
-        //             "cursor": "eyJtaW5JRCI6MjMwNDM0MjIsIm1heElEIjozMTI5Njg4OX0="
+        //             "nextPageCursor": "eyJtaW5JRCI6MTY3NTM4NDcsIm1heElEIjo0OTI0ODc5NX1="
         //         },
-        //         "ext_info": null,
-        //         "time_now": 1658436371045,
-        //         "rate_limit_status": 59,
-        //         "rate_limit_reset_ms": 1658436371045,
-        //         "rate_limit": 1
+        //         "retExtInfo": {},
+        //         "time": "1666880800063"
         //     }
         //
         const data = this.safeValue (response, 'result', {});
@@ -5612,25 +5624,25 @@ module.exports = class bybit extends Exchange {
         // fetchTransfers
         //
         //     {
-        //         "transfer_id": "3976014d-f3d2-4843-b3bb-1cd006babcde",
+        //         "transferId": "e9c421c4-b010-4b16-abd6-106179f27702",
         //         "coin": "USDT",
-        //         "amount": "15",
-        //         "from_account_type": "SPOT",
-        //         "to_account_type": "CONTRACT",
-        //         "timestamp": "1658433935",
+        //         "amount": "8",
+        //         "fromAccountType": "FUND",
+        //         "toAccountType": "SPOT",
+        //         "timestamp": "1666879426000",
         //         "status": "SUCCESS"
-        //     },
+        //      }
         //
         const currencyId = this.safeString (transfer, 'coin');
         const timestamp = this.safeTimestamp (transfer, 'timestamp');
-        const fromAccountId = this.safeString (transfer, 'from_account_type');
-        const toAccountId = this.safeString (transfer, 'to_account_type');
+        const fromAccountId = this.safeString (transfer, 'fromAccountType');
+        const toAccountId = this.safeString (transfer, 'toAccountType');
         const accountIds = this.safeValue (this.options, 'accountsById', {});
         const fromAccount = this.safeString (accountIds, fromAccountId, fromAccountId);
         const toAccount = this.safeString (accountIds, toAccountId, toAccountId);
         return {
             'info': transfer,
-            'id': this.safeString (transfer, 'transfer_id'),
+            'id': this.safeString (transfer, 'transferId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'currency': this.safeCurrencyCode (currencyId, currency),
