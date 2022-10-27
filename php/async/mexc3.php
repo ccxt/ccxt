@@ -200,6 +200,7 @@ class mexc3 extends Exchange {
                             'batchOrders' => 1,
                             'capital/withdraw/apply' => 1,
                             'capital/transfer' => 1,
+                            'capital/deposit/address' => 1,
                             'capital/sub-account/universalTransfer' => 1,
                             'margin/tradeMode' => 1,
                             'margin/order' => 1,
@@ -3852,7 +3853,7 @@ class mexc3 extends Exchange {
             'address' => $address,
             'addressTo' => $address,
             'addressFrom' => null,
-            'tag' => null,
+            'tag' => $this->safe_string($transaction, 'memo'),
             'tagTo' => null,
             'tagFrom' => null,
             'type' => $type,
@@ -4271,14 +4272,14 @@ class mexc3 extends Exchange {
             $this->check_address($address);
             Async\await($this->load_markets());
             $currency = $this->currency($code);
-            if ($tag !== null) {
-                $address .= ':' . $tag;
-            }
             $request = array(
                 'coin' => $currency['id'],
                 'address' => $address,
                 'amount' => $amount,
             );
+            if ($tag !== null) {
+                $request['memo'] = $tag;
+            }
             if ($network !== null) {
                 $request['network'] = $network;
                 $params = $this->omit($params, 'network');

@@ -123,9 +123,6 @@ module.exports = class bitget extends Exchange {
                     'https://bitgetlimited.github.io/apidoc/en/broker',
                 ],
                 'fees': 'https://www.bitget.cc/zh-CN/rate?tab=1',
-                'test': {
-                    'rest': 'https://testnet.bitget.com',
-                },
                 'referral': 'https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j',
             },
             'api': {

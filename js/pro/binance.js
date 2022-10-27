@@ -1024,13 +1024,16 @@ module.exports = class binance extends binanceRest {
          */
         await this.loadMarkets ();
         await this.authenticate (params);
-        const defaultType = this.safeString2 (this.options, 'watchOrders', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         let messageHash = 'orders';
+        let market = undefined;
         if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
             messageHash += ':' + symbol;
         }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type);
         const message = undefined;

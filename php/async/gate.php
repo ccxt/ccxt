@@ -38,6 +38,7 @@ class gate extends Exchange {
                         'delivery' => 'https://api.gateio.ws/api/v4',
                         'spot' => 'https://api.gateio.ws/api/v4',
                         'options' => 'https://api.gateio.ws/api/v4',
+                        'sub_accounts' => 'https://api.gateio.ws/api/v4',
                     ),
                     'private' => array(
                         'withdrawals' => 'https://api.gateio.ws/api/v4',
@@ -47,6 +48,7 @@ class gate extends Exchange {
                         'delivery' => 'https://api.gateio.ws/api/v4',
                         'spot' => 'https://api.gateio.ws/api/v4',
                         'options' => 'https://api.gateio.ws/api/v4',
+                        'subAccounts' => 'https://api.gateio.ws/api/v4',
                     ),
                 ),
                 'test' => array(
@@ -197,10 +199,10 @@ class gate extends Exchange {
                 'private' => array(
                     'withdrawals' => array(
                         'post' => array(
-                            '' => 3000, // 3000 = 10 seconds
+                            'withdrawals' => 3000, // 3000 = 10 seconds
                         ),
                         'delete' => array(
-                            '{withdrawal_id}' => 300,
+                            'withdrawals/{withdrawal_id}' => 300,
                         ),
                     ),
                     'wallet' => array(
@@ -217,6 +219,26 @@ class gate extends Exchange {
                         'post' => array(
                             'transfers' => 300,
                             'sub_account_transfers' => 300,
+                        ),
+                    ),
+                    'subAccounts' => array(
+                        'get' => array(
+                            'sub_accounts' => 1,
+                            'sub_accounts/{user_id}' => 1,
+                            'sub_accounts/{user_id}/keys' => 1,
+                            'sub_accounts/{user_id}/keys/{key}' => 1,
+                        ),
+                        'post' => array(
+                            'sub_accounts' => 1,
+                            'sub_accounts/{user_id}/keys' => 1,
+                            'sub_accounts/{user_id}/lock' => 1,
+                            'sub_accounts/{user_id}/unlock' => 1,
+                        ),
+                        'put' => array(
+                            'sub_accounts/{user_id}/keys/{key}' => 1,
+                        ),
+                        'delete' => array(
+                            'sub_accounts/{user_id}/keys/{key}' => 1,
                         ),
                     ),
                     'spot' => array(
@@ -2835,7 +2857,7 @@ class gate extends Exchange {
                 $request['chain'] = $network;
                 $params = $this->omit($params, 'network');
             }
-            $response = Async\await($this->privateWithdrawalsPost (array_merge($request, $params)));
+            $response = Async\await($this->privateWithdrawalsPostWithdrawals (array_merge($request, $params)));
             //
             //    {
             //        "id" => "w13389675",
@@ -4645,6 +4667,9 @@ class gate extends Exchange {
         $path = $this->implode_params($path, $params);
         $endPart = ($path === '') ? '' : ('/' . $path);
         $entirePath = '/' . $type . $endPart;
+        if (($type === 'subAccounts') || ($type === 'withdrawals')) {
+            $entirePath = $endPart;
+        }
         $url = $this->urls['api'][$authentication][$type];
         if ($url === null) {
             throw new NotSupported($this->id . ' does not have a testnet for the ' . $type . ' market $type->');

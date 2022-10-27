@@ -38,6 +38,7 @@ module.exports = class bibox extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchLedger': true,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
@@ -1034,73 +1035,163 @@ module.exports = class bibox extends Exchange {
         return this.parseBalance (response);
     }
 
+    parseLedgerEntry (item, currency = undefined) {
+        //
+        //    {
+        //        "i": 1125899918063693495,     // entry id
+        //        "s": "USDT",                  // asset symbol
+        //        "T": "transfer_in",           // entry type: transfer, trade, fee
+        //        "a": 14.71,                   // amount
+        //        "b": 14.7100000044,           // balance
+        //        "t": 1663367640374            // time
+        //    }
+        //
+        const ledgerTypes = {
+            'transfer_in': 'transfer',
+            'transfer_out': 'transfer',
+            'trade_finish_ask': 'trade',
+            'trade_finish_bid': 'trade',
+        };
+        const id = this.safeString (item, 'i');
+        const currencyId = this.safeString (item, 's');
+        const type = this.safeString (item, 'T');
+        const timestamp = this.safeInteger (item, 't');
+        const amount = this.safeString (item, 'a');
+        let direction = 'in';
+        if (Precise.stringLt (amount, '0')) {
+            direction = 'out';
+        }
+        return {
+            'id': id,
+            'direction': direction,
+            'account': undefined,
+            'referenceId': id,
+            'referenceAccount': undefined,
+            'type': this.safeString (ledgerTypes, type, type),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+            'amount': this.parseNumber (amount),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'before': undefined,
+            'after': this.safeNumber (item, 'b'),
+            'status': undefined,
+            'fee': undefined,
+            'info': item,
+        };
+    }
+
+    async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bibox#fetchLedger
+         * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @see https://biboxcom.github.io/api/spot/v4/en/#get-an-account-39-s-ledger
+         * @param {string|undefined} code unified currency code, default is undefined
+         * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
+         * @param {int|undefined} limit *default = 100* max number of ledger entrys to return
+         * @param {object} params extra parameters specific to the bitfinex2 api endpoint
+         * @param {int} params.until timestamp in ms of the latest ledger entry, default is undefined
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} before bill record id. limited to return the maximum id value of the bill records
+         * @param {int} after bill record id, limited to return the minimum id value of the bill records
+         * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
+         */
+        await this.loadMarkets ();
+        let currency = undefined;
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'until');
+        const request = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['asset'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (until !== undefined) {
+            request['end_time'] = until;
+        }
+        const response = await this.v4PrivateGetUserdataLedger (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //            "i": 1125899918063693495,     // entry id
+        //            "s": "USDT",                  // asset symbol
+        //            "T": "transfer_in",           // entry type: transfer, trade, fee
+        //            "a": 14.71,                   // amount
+        //            "b": 14.7100000044,           // balance
+        //            "t": 1663367640374            // time
+        //        }
+        //    ]
+        //
+        return this.parseLedger (response, currency, since, limit);
+    }
+
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name bibox#fetchDeposits
          * @description fetch all deposits made to an account
          * @param {string|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch deposits for
-         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {int|undefined} since not used by bibox
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve, max=50, default=50
          * @param {object} params extra parameters specific to the bibox api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} params.page page number, default=1
+         * @param {string|undefined} params.filter_type deposit record filter, 0-all, 1-deposit in progress, 2-deposit received, 3-deposit failed
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         if (limit === undefined) {
-            limit = 100;
+            limit = 50;
         }
+        const page = this.safeInteger (params, 'page', 1);
         const request = {
-            'page': 1,
+            'page': page,
             'size': limit,
         };
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['symbol'] = currency['id'];
+            request['coin_symbol'] = currency['id'];
         }
-        const response = await this.v1PrivatePostTransfer ({
-            'cmd': 'transfer/transferInList',
-            'body': this.extend (request, params),
-        });
+        const method = 'v3.1PrivatePostTransferTransferInList';
+        const response = await this[method] (this.extend (request, params));
         //
-        //     {
-        //         "result":[
-        //             {
-        //                 "result":{
-        //                     "count":2,
-        //                     "page":1,
-        //                     "items":[
-        //                         {
-        //                             "coin_symbol":"ETH",                        // token
-        //                             "to_address":"xxxxxxxxxxxxxxxxxxxxxxxxxx",  // address
-        //                             "amount":"1.00000000",                      // amount
-        //                             "confirmCount":"15",                        // the acknowledgment number
-        //                             "createdAt":1540641511000,
-        //                             "status":2                                 // status,  1-deposit is in process，2-deposit finished，3-deposit failed
-        //                         },
-        //                         {
-        //                             "coin_symbol":"BIX",
-        //                             "to_address":"xxxxxxxxxxxxxxxxxxxxxxxxxx",
-        //                             "amount":"1.00000000",
-        //                             "confirmCount":"15",
-        //                             "createdAt":1540622460000,
-        //                             "status":2
-        //                         }
-        //                     ]
-        //                 },
-        //                 "cmd":"transfer/transferInList"
-        //             }
-        //         ]
-        //     }
+        //    {
+        //        result: {
+        //            count: '5',
+        //            page: '1',
+        //            items: [
+        //                {
+        //                    id: '3553023',
+        //                    coin_symbol: 'bUSDT',
+        //                    chain_type: 'BEP20(BSC)',
+        //                    to_address: '0xf1458ba28073b056e9666c4b2bbbc60451cda0fd',
+        //                    tx_id: '0x2f2319c4ae804893369aeeeef06dd429abf2833b61290ea2bd63ec0e363ebce6',
+        //                    amount: '14.71000000',
+        //                    confirmCount: '14',
+        //                    createdAt: '1663367581000',
+        //                    status: '2'
+        //                },
+        //                ...
+        //            ]
+        //        },
+        //        cmd: 'transferInList',
+        //        state: '0'
+        //    }
         //
-        const outerResults = this.safeValue (response, 'result');
-        const firstResult = this.safeValue (outerResults, 0, {});
-        const innerResult = this.safeValue (firstResult, 'result', {});
-        const deposits = this.safeValue (innerResult, 'items', []);
-        for (let i = 0; i < deposits.length; i++) {
-            deposits[i]['type'] = 'deposit';
+        const result = this.safeValue (response, 'result');
+        const items = this.safeValue (result, 'items');
+        for (let i = 0; i < items.length; i++) {
+            items[i]['type'] = 'deposit';
         }
-        return this.parseTransactions (deposits, currency, since, limit);
+        return this.parseTransactions (items, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1925,9 +2016,9 @@ module.exports = class bibox extends Exchange {
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const fromMain = fromAccount === 'main' || fromAccount === 'wallet';
+        const fromMain = fromAccount === 'main' || fromAccount === 'wallet' || fromAccount === 'funding';
         const fromSpot = fromAccount === 'spot';
-        const toMain = toAccount === 'main' || toAccount === 'wallet';
+        const toMain = toAccount === 'main' || toAccount === 'wallet' || toAccount === 'funding';
         const toSpot = toAccount === 'spot';
         const toCross = toAccount === 'cross';
         const fromCross = fromAccount === 'cross';
@@ -2054,14 +2145,14 @@ module.exports = class bibox extends Exchange {
         const v4 = (version === 'v4');
         const prefix = v4 ? '/api' : '';
         let url = this.implodeHostname (this.urls['api']['rest']) + prefix + '/' + version + '/' + path;
-        const json_params = v1 ? this.json ([ params ]) : this.json (params);
+        const jsonParams = v1 ? this.json ([ params ]) : this.json (params);
         headers = { 'content-type': 'application/json' };
         if (access === 'public') {
             if (method !== 'GET') {
                 if (v1) {
-                    body = { 'cmds': json_params };
+                    body = { 'cmds': jsonParams };
                 } else {
-                    body = { 'body': json_params };
+                    body = { 'body': jsonParams };
                 }
             } else if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
@@ -2071,8 +2162,8 @@ module.exports = class bibox extends Exchange {
             if (version === 'v3' || version === 'v3.1') {
                 const timestamp = this.numberToString (this.milliseconds ());
                 let strToSign = timestamp;
-                if (json_params !== '{}') {
-                    strToSign += json_params;
+                if (jsonParams !== '{}') {
+                    strToSign += jsonParams;
                 }
                 const sign = this.hmac (this.encode (strToSign), this.encode (this.secret), 'md5');
                 headers['bibox-api-key'] = this.apiKey;
@@ -2081,18 +2172,19 @@ module.exports = class bibox extends Exchange {
                 if (method === 'GET') {
                     url += '?' + this.urlencode (params);
                 } else {
-                    if (json_params !== '{}') {
+                    if (jsonParams !== '{}') {
                         body = params;
                     }
                 }
             } else if (v4) {
                 let strToSign = '';
+                const sortedParams = this.keysort (params);
                 if (method === 'GET') {
-                    url += '?' + this.urlencode (params);
-                    strToSign = this.urlencode (params);
+                    url += '?' + this.urlencode (sortedParams);
+                    strToSign = this.urlencode (sortedParams);
                 } else {
-                    if (json_params !== '{}') {
-                        body = params;
+                    if (jsonParams !== '{}') {
+                        body = sortedParams;
                     }
                     strToSign = this.json (body, { 'convertArraysToObjects': true });
                 }
@@ -2100,15 +2192,15 @@ module.exports = class bibox extends Exchange {
                 headers['Bibox-Api-Key'] = this.apiKey;
                 headers['Bibox-Api-Sign'] = sign;
             } else {
-                const sign = this.hmac (this.encode (json_params), this.encode (this.secret), 'md5');
+                const sign = this.hmac (this.encode (jsonParams), this.encode (this.secret), 'md5');
                 body = {
                     'apikey': this.apiKey,
                     'sign': sign,
                 };
                 if (v1) {
-                    body['cmds'] = json_params;
+                    body['cmds'] = jsonParams;
                 } else {
-                    body['body'] = json_params;
+                    body['body'] = jsonParams;
                 }
             }
         }

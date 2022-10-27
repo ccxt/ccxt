@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\ArgumentsRequired;
 use ccxt\InvalidOrder;
+use ccxt\Precise;
 use React\Async;
 
 class lbank2 extends Exchange {
@@ -998,7 +999,10 @@ class lbank2 extends Exchange {
                         if ($price === null) {
                             throw new InvalidOrder($this->id . " createOrder () requires the $price argument with $market buy orders to calculate total order $cost ($amount to spend), where $cost = $amount * $price-> Supply the $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)");
                         } else {
-                            $cost = floatval($amount) * floatval($price);
+                            $amountString = $this->number_to_string($amount);
+                            $priceString = $this->number_to_string($price);
+                            $quoteAmount = Precise::string_mul($amountString, $priceString);
+                            $cost = $this->parse_number($quoteAmount);
                             $request['price'] = $this->price_to_precision($symbol, $cost);
                         }
                     } else {

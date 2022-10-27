@@ -67,6 +67,7 @@ class bybit extends Exchange {
                 'fetchMarkOHLCV' => true,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => true,
                 'fetchOpenInterestHistory' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -600,6 +601,13 @@ class bybit extends Exchange {
                     'OPTION' => 'option',
                     'INVESTMENT' => 'investment',
                     'UNIFIED' => 'unified',
+                ),
+                'networks' => array(
+                    'ERC20' => 'ETH',
+                    'TRC20' => 'TRX',
+                    'BEP20' => 'BSC',
+                    'OMNI' => 'OMNI',
+                    'SPL' => 'SOL',
                 ),
             ),
             'fees' => array(
@@ -4882,66 +4890,132 @@ class bybit extends Exchange {
     public function fetch_open_interest_history($symbol, $timeframe = '1h', $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
-             * Gets the total amount of unsettled contracts. In other words, the total number of contracts held in open positions
+             * Gets the total amount of unsettled contracts. The total number of contracts held in open positions
+             * @see https://bybit-exchange.github.io/docs/derivativesV3/contract/#t-dv_marketopeninterest
              * @param {string} $symbol Unified $market $symbol
              * @param {string} $timeframe "5m", 15m, 30m, 1h, 4h, 1d
-             * @param {int} $since Not used by Bybit
-             * @param {int} $limit The number of open interest structures to return. Max 200, default 50
+             * @param {int|null} $since Start timestamp in milliseconds
+             * @param {int|null} $limit The number of open interest structures to return. Max 200, default 50
              * @param {array} $params Exchange specific parameters
+             * @param {string|null} $params->category "linear" or "inverse"
              * @return An array of open interest structures
              */
             if ($timeframe === '1m') {
-                throw new BadRequest($this->id . 'fetchOpenInterestHistory cannot use the 1m timeframe');
+                throw new BadRequest($this->id . ' fetchOpenInterestHistory() cannot use the 1m timeframe');
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $subType = $market['linear'] ? 'linear' : 'inverse';
+            $category = $this->safe_string($params, 'category', $subType);
             $request = array(
                 'symbol' => $market['id'],
-                'period' => $timeframe,
+                'interval' => $timeframe,
+                'category' => $category,
             );
+            if ($since !== null) {
+                $request['since'] = $since;
+            }
             if ($limit !== null) {
                 $request['limit'] = $limit;
             }
-            $response = Async\await($this->publicGetV2PublicOpenInterest (array_merge($request, $params)));
+            $response = Async\await($this->publicGetDerivativesV3PublicOpenInterest (array_merge($request, $params)));
             //
-            //    {
-            //        "ret_code" => 0,
-            //        "ret_msg" => "OK",
-            //        "ext_code" => "",
-            //        "ext_info" => "",
-            //        "result" => array(
-            //            array(
-            //                "open_interest" => 805604444,
-            //                "timestamp" => 1645056000,
-            //                "symbol" => "BTCUSD"
-            //            ),
-            //            ...
-            //        ),
-            //        "time_now" => "1645085118.727358"
-            //    }
+            //     {
+            //         "retCode" => 0,
+            //         "retMsg" => "OK",
+            //         "result" => array(
+            //             "symbol" => "BTCUSDT",
+            //             "category" => "linear",
+            //             "list" => array(
+            //                 array(
+            //                     "openInterest" => "64757.62400000",
+            //                     "timestamp" => "1665784800000"
+            //                 ),
+            //                 ...
+            //             )
+            //         ),
+            //         "retExtInfo" => null,
+            //         "time" => 1665784849646
+            //     }
             //
-            $result = $this->safe_value($response, 'result');
-            return $this->parse_open_interests($result, $market, $since, $limit);
+            $result = $this->safe_value($response, 'result', array());
+            $id = $this->safe_string($result, 'symbol');
+            $market = $this->safe_market($id, $market);
+            $data = $this->safe_value($result, 'list', array());
+            return $this->parse_open_interests($data, $market, $since, $limit);
+        }) ();
+    }
+
+    public function fetch_open_interest($symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * Retrieves the open interest of a derivative trading pair
+             * @see https://bybit-exchange.github.io/docs/derivativesV3/contract/#t-dv_marketopeninterest
+             * @param {string} $symbol Unified CCXT $market $symbol
+             * @param {array} $params exchange specific parameters
+             * @param {string|null} $params->interval 5m, 15m, 30m, 1h, 4h, 1d
+             * @param {string|null} $params->category "linear" or "inverse"
+             * @return {array} an open interest structurearray(@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure)
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['contract']) {
+                throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
+            }
+            $timeframe = $this->safe_string($params, 'interval', '1h');
+            if ($timeframe === '1m') {
+                throw new BadRequest($this->id . ' fetchOpenInterest() cannot use the 1m timeframe');
+            }
+            $subType = $market['linear'] ? 'linear' : 'inverse';
+            $category = $this->safe_string($params, 'category', $subType);
+            $request = array(
+                'symbol' => $market['id'],
+                'interval' => $timeframe,
+                'category' => $category,
+            );
+            $response = Async\await($this->publicGetDerivativesV3PublicOpenInterest (array_merge($request, $params)));
+            //
+            //     {
+            //         "retCode" => 0,
+            //         "retMsg" => "OK",
+            //         "result" => array(
+            //             "symbol" => "BTCUSDT",
+            //             "category" => "linear",
+            //             "list" => array(
+            //                 array(
+            //                     "openInterest" => "64757.62400000",
+            //                     "timestamp" => "1665784800000"
+            //                 ),
+            //                 ...
+            //             )
+            //         ),
+            //         "retExtInfo" => null,
+            //         "time" => 1665784849646
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            $id = $this->safe_string($result, 'symbol');
+            $market = $this->safe_market($id, $market);
+            $data = $this->safe_value($result, 'list', array());
+            return $this->parse_open_interest($data[0], $market);
         }) ();
     }
 
     public function parse_open_interest($interest, $market = null) {
         //
         //    {
-        //        "open_interest" => 805604444,
-        //        "timestamp" => 1645056000,
-        //        "symbol" => "BTCUSD"
+        //        "openInterest" => 64757.62400000,
+        //        "timestamp" => 1665784800000,
         //    }
         //
-        $id = $this->safe_string($interest, 'symbol');
-        $market = $this->safe_market($id, $market);
-        $timestamp = $this->safe_timestamp($interest, 'timestamp');
-        $numContracts = $this->safe_string($interest, 'open_interest');
-        $contractSize = $this->safe_string($market, 'contractSize');
+        $timestamp = $this->safe_integer($interest, 'timestamp');
+        $value = $this->safe_number($interest, 'openInterest');
         return array(
-            'symbol' => $this->safe_symbol($id),
-            'baseVolume' => Precise::string_mul($numContracts, $contractSize),
-            'quoteVolume' => null,
+            'symbol' => $this->safe_symbol($market['id']),
+            'baseVolume' => $value,  // deprecated
+            'quoteVolume' => null,  // deprecated
+            'openInterestAmount' => null,
+            'openInterestValue' => $value,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,

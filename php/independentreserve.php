@@ -455,9 +455,9 @@ class independentreserve extends Exchange {
          * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         $this->load_markets();
-        $response = Async\await($this->privatePostGetOrderDetails (array_merge(array(
+        $response = $this->privatePostGetOrderDetails (array_merge(array(
             'orderGuid' => $id,
-        ), $params)));
+        ), $params));
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);

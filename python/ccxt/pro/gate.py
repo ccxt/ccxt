@@ -598,6 +598,7 @@ class gate(Exchange, ccxt.async_support.gate):
         if cachedTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             cachedTrades = ArrayCacheBySymbolById(limit)
+            self.myTrades = cachedTrades
         parsed = self.parse_trades(result)
         marketIds = {}
         for i in range(0, len(parsed)):
@@ -727,23 +728,35 @@ class gate(Exchange, ccxt.async_support.gate):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the gate api endpoint
-        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        :param str params['type']: spot, margin, swap, future, or option. Required if listening to all symbols.
+        :param boolean params['isInverse']: if future, listen to inverse or linear contracts
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument')
         await self.load_markets()
-        market = self.market(symbol)
-        symbol = market['symbol']
-        type = 'spot'
-        if market['future'] or market['swap']:
-            type = 'futures'
-        elif market['option']:
-            type = 'options'
-        method = type + '.orders'
+        market = None
+        if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
+        type = None
+        query = None
+        type, query = self.handle_market_type_and_params('watchOrders', market, params)
+        typeId = self.get_supported_mapping(type, {
+            'spot': 'spot',
+            'margin': 'spot',
+            'future': 'futures',
+            'swap': 'futures',
+            'option': 'options',
+        })
+        method = typeId + '.orders'
         messageHash = method
-        messageHash = method + ':' + market['id']
-        url = self.get_url_by_market_type(market['type'], market['inverse'])
-        payload = [market['id']]
+        payload = ['!' + 'all']
+        if symbol is not None:
+            messageHash = method + ':' + market['id']
+            payload = [market['id']]
+        subType = None
+        subType, query = self.handle_sub_type_and_params('watchOrders', market, query)
+        isInverse = (subType == 'inverse')
+        url = self.get_url_by_market_type(type, isInverse)
         # uid required for non spot markets
         requiresUid = (type != 'spot')
         orders = await self.subscribe_private(url, method, messageHash, payload, requiresUid)
@@ -814,6 +827,7 @@ class gate(Exchange, ccxt.async_support.gate):
             for i in range(0, len(keys)):
                 messageHash = channel + ':' + keys[i]
                 client.resolve(self.orders, messageHash)
+            client.resolve(self.orders, channel)
 
     def handle_authentication_message(self, client, message, subscription):
         result = self.safe_value(message, 'result')

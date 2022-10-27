@@ -826,7 +826,10 @@ The CCXT library currently supports the following 114 cryptocurrency exchange ma
           :alt: API Version 2
      
      - 
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/51840849/87443315-01283a00-c5fe-11ea-8628-c2a0feaf07ac.jpg
           :target: https://www.digifinex.com/en-ww/from/DhOzBg?channelCode=ljaUPp
           :alt: digifinex

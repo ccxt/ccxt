@@ -172,6 +172,7 @@ class okx(Exchange):
                         'market/ticker': 1,
                         'market/index-tickers': 1,
                         'market/books': 1,
+                        'market/books-lite': 1.66,
                         'market/candles': 0.5,
                         'market/history-candles': 1,
                         'market/history-mark-price-candles': 120,
@@ -2345,6 +2346,9 @@ class okx(Exchange):
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None  # fix empty clientOrderId string
         stopPrice = self.safe_number_n(order, ['triggerPx', 'slTriggerPx', 'tpTriggerPx'])
+        reduceOnly = self.safe_string(order, 'reduceOnly')
+        if reduceOnly is not None:
+            reduceOnly = (reduceOnly == 'true')
         return self.safe_order({
             'info': order,
             'id': id,
@@ -2367,6 +2371,7 @@ class okx(Exchange):
             'status': status,
             'fee': fee,
             'trades': None,
+            'reduceOnly': reduceOnly,
         }, market)
 
     async def fetch_order(self, id, symbol=None, params={}):

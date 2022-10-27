@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.0.56';
+$version = '2.0.75';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.0.56';
+    const VERSION = '2.0.75';
 
     public $browser;
     public $marketsLoading = null;
@@ -2082,6 +2082,14 @@ class Exchange extends \ccxt\Exchange {
             $result[$parsed['symbol']] = $parsed;
         }
         return $result;
+    }
+
+    public function is_trigger_order($params) {
+        $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
+        if ($isTrigger) {
+            $params = $this->omit ($params, array( 'trigger', 'stop' ));
+        }
+        return array( $isTrigger, $params );
     }
 
     public function is_post_only($isMarketOrder, $exchangeSpecificParam, $params = array ()) {

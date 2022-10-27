@@ -1610,9 +1610,9 @@ class upbit extends Exchange {
          */
         $this->load_markets();
         $currency = $this->currency($code);
-        $response = Async\await($this->privateGetDepositsCoinAddress (array_merge(array(
+        $response = $this->privateGetDepositsCoinAddress (array_merge(array(
             'currency' => $currency['id'],
-        ), $params)));
+        ), $params));
         //
         //     {
         //         "currency" => "BTC",

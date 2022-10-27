@@ -6589,7 +6589,7 @@ module.exports = class huobi extends Exchange {
          * @param {int|undefined} since Not used by huobi api, but response parsed by CCXT
          * @param {int|undefined} limit Default：48，Data Range [1,200]
          * @param {object} params Exchange specific parameters
-         * @param {int} params.amount_type *required* Open interest unit. 1-cont，2-cryptocurrenty
+         * @param {int} params.amount_type *required* Open interest unit. 1-cont，2-cryptocurrency
          * @param {int|undefined} params.pair eg BTC-USDT *Only for USDT-M*
          * @returns {object} an array of [open interest structures]{@link https://docs.ccxt.com/en/latest/manual.html#open-interest-structure}
          */
@@ -6606,7 +6606,7 @@ module.exports = class huobi extends Exchange {
         const market = this.market (symbol);
         const amountType = this.safeNumber2 (params, 'amount_type', 'amountType');
         if (amountType === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOpenInterestHistory requires parameter params.amountType to be either 1 (cont), or 2 (cryptocurrenty)');
+            throw new ArgumentsRequired (this.id + ' fetchOpenInterestHistory requires parameter params.amountType to be either 1 (cont), or 2 (cryptocurrency)');
         }
         const request = {
             'period': timeframes[timeframe],
@@ -6692,7 +6692,7 @@ module.exports = class huobi extends Exchange {
         //
         const data = this.safeValue (response, 'data');
         const tick = this.safeValue (data, 'tick');
-        return this.parseOpenInterests (tick, undefined, since, limit);
+        return this.parseOpenInterests (tick, market, since, limit);
     }
 
     async fetchOpenInterest (symbol, params = {}) {
@@ -6855,7 +6855,7 @@ module.exports = class huobi extends Exchange {
         //
         const timestamp = this.safeInteger (interest, 'ts');
         const amount = this.safeNumber (interest, 'volume');
-        const value = this.safeValue (interest, 'value');
+        const value = this.safeNumber (interest, 'value');
         return {
             'symbol': this.safeString (market, 'symbol'),
             'baseVolume': amount,  // deprecated

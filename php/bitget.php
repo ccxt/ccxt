@@ -122,9 +122,6 @@ class bitget extends Exchange {
                     'https://bitgetlimited.github.io/apidoc/en/broker',
                 ),
                 'fees' => 'https://www.bitget.cc/zh-CN/rate?tab=1',
-                'test' => array(
-                    'rest' => 'https://testnet.bitget.com',
-                ),
                 'referral' => 'https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j',
             ),
             'api' => array(
@@ -805,9 +802,9 @@ class bitget extends Exchange {
             if ($type === 'swap') {
                 $subTypes = array( 'umcbl', 'dmcbl' );
                 for ($j = 0; $j < count($subTypes); $j++) {
-                    $markets = Async\await($this->fetch_markets_by_type($type, array_merge($params, array(
+                    $markets = $this->fetch_markets_by_type($type, array_merge($params, array(
                         'productType' => $subTypes[$j],
-                    ))));
+                    )));
                     $result = $this->array_concat($result, $markets);
                 }
             } else {
