@@ -2142,14 +2142,14 @@ class bibox extends Exchange {
         $v4 = ($version === 'v4');
         $prefix = $v4 ? '/api' : '';
         $url = $this->implode_hostname($this->urls['api']['rest']) . $prefix . '/' . $version . '/' . $path;
-        $json_params = $v1 ? $this->json(array( $params )) : $this->json($params);
+        $jsonParams = $v1 ? $this->json(array( $params )) : $this->json($params);
         $headers = array( 'content-type' => 'application/json' );
         if ($access === 'public') {
             if ($method !== 'GET') {
                 if ($v1) {
-                    $body = array( 'cmds' => $json_params );
+                    $body = array( 'cmds' => $jsonParams );
                 } else {
-                    $body = array( 'body' => $json_params );
+                    $body = array( 'body' => $jsonParams );
                 }
             } elseif ($params) {
                 $url .= '?' . $this->urlencode($params);
@@ -2159,8 +2159,8 @@ class bibox extends Exchange {
             if ($version === 'v3' || $version === 'v3.1') {
                 $timestamp = $this->number_to_string($this->milliseconds());
                 $strToSign = $timestamp;
-                if ($json_params !== '{}') {
-                    $strToSign .= $json_params;
+                if ($jsonParams !== '{}') {
+                    $strToSign .= $jsonParams;
                 }
                 $sign = $this->hmac($this->encode($strToSign), $this->encode($this->secret), 'md5');
                 $headers['bibox-$api-key'] = $this->apiKey;
@@ -2169,18 +2169,19 @@ class bibox extends Exchange {
                 if ($method === 'GET') {
                     $url .= '?' . $this->urlencode($params);
                 } else {
-                    if ($json_params !== '{}') {
+                    if ($jsonParams !== '{}') {
                         $body = $params;
                     }
                 }
             } elseif ($v4) {
                 $strToSign = '';
+                $sortedParams = $this->keysort($params);
                 if ($method === 'GET') {
-                    $url .= '?' . $this->urlencode($params);
-                    $strToSign = $this->urlencode($params);
+                    $url .= '?' . $this->urlencode($sortedParams);
+                    $strToSign = $this->urlencode($sortedParams);
                 } else {
-                    if ($json_params !== '{}') {
-                        $body = $params;
+                    if ($jsonParams !== '{}') {
+                        $body = $sortedParams;
                     }
                     $strToSign = $this->json($body, array( 'convertArraysToObjects' => true ));
                 }
@@ -2188,15 +2189,15 @@ class bibox extends Exchange {
                 $headers['Bibox-Api-Key'] = $this->apiKey;
                 $headers['Bibox-Api-Sign'] = $sign;
             } else {
-                $sign = $this->hmac($this->encode($json_params), $this->encode($this->secret), 'md5');
+                $sign = $this->hmac($this->encode($jsonParams), $this->encode($this->secret), 'md5');
                 $body = array(
                     'apikey' => $this->apiKey,
                     'sign' => $sign,
                 );
                 if ($v1) {
-                    $body['cmds'] = $json_params;
+                    $body['cmds'] = $jsonParams;
                 } else {
-                    $body['body'] = $json_params;
+                    $body['body'] = $jsonParams;
                 }
             }
         }
