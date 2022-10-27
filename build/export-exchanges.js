@@ -410,7 +410,7 @@ function exportEverything () {
             regex:  /(?:const|var)\s+exchanges\s+\=\s+\{[^\}]+\}/,
             replacement: "const exchanges = {\n" + ids.map (id => {
                     const prefix = ("    '" + id + "':").padEnd (30);
-                    const requirePath = (wsIds.includes(id)) ? './js/pro/' : './pro/rest/';
+                    const requirePath = (wsIds.includes(id)) ? './js/pro/' : './js/';
                     return prefix + " require ('" + requirePath + id + ".js'),"
                 }).join ("\n") + "    \n}",
         },
@@ -441,8 +441,21 @@ function exportEverything () {
         },
         {
             file: './python/ccxt/async_support/__init__.py',
-            regex: /(?:from ccxt\.async_support\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
-            replacement: ids.map (id => ('from ccxt.async_support.' + id + ' import ' + id).padEnd (80) + '# noqa: F401').join ("\n") + "\n\nexchanges",
+            regex: /(?:from ccxt\.(async_support|ws)\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
+            replacement: ids.map (id => {
+                let prefix = 'from ccxt.' 
+                if (wsIds.includes(id)) {
+                    prefix += 'ws.';
+                } else {
+                    prefix += 'async_support.';
+                }
+                return (prefix + id + ' import ' + id).padEnd (80) + '# noqa: F401'
+        }).join ("\n") + "\n\nexchanges",
+        },
+        {
+            file: './python/ccxt/async_support/__init__.py',
+            regex: /(?:from\sccxt\.async_support\.(\w+)\simport\s\1\sas\s\1Rest\s+\#\snoqa:\sF401\n)+\n/,
+            replacement: ids.map (id => ('from ccxt.async_support.' + id + ' import ' + id + " as " + id + "Rest").padEnd (100) + '# noqa: F401').join ("\n") + "\n\n",
         },
         {
             file: './python/ccxt/async_support/__init__.py',

@@ -62,7 +62,7 @@ class CCXTProTranspiler extends Transpiler {
 
     createPythonClassDeclaration (className, baseClass) {
         const baseClasses = (baseClass.indexOf ('Rest') >= 0) ?
-            [ 'Exchange', 'ccxt.async_support.' + baseClass.replace('Rest', '') ] :
+            [ 'Exchange', 'ccxt.async_support.' + baseClass ] :
             [ baseClass ]
         return 'class ' + className + '(' + baseClasses.join (', ') + '):'
     }
