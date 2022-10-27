@@ -291,10 +291,15 @@ module.exports = class bitmex extends Exchange {
             let depositEnabled = false;
             let withdrawEnabled = false;
             const networks = {};
+            const scale = this.safeString (currency, 'scale');
+            const precisionString = this.parsePrecision (scale);
+            const precision = this.parseNumber (this.parsePrecision (scale));
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'asset');
                 const network = this.safeNetwork (networkId);
+                const withdrawalFeeRaw = this.safeString (chain, 'withdrawalFee');
+                const withdrawalFee = this.parseNumber (Precise.stringMul (withdrawalFeeRaw, precisionString));
                 const isDepositEnabled = this.safeValue (chain, 'depositEnabled', false);
                 const isWithdrawEnabled = this.safeValue (chain, 'withdrawalEnabled', false);
                 const active = (isDepositEnabled && isWithdrawEnabled);
@@ -311,7 +316,7 @@ module.exports = class bitmex extends Exchange {
                     'active': active,
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
-                    'fee': this.safeNumber (chain, 'withdrawalFee'),
+                    'fee': withdrawalFee,
                     'precision': undefined,
                     'limits': {
                         'withdraw': {
@@ -327,8 +332,12 @@ module.exports = class bitmex extends Exchange {
             }
             const currencyEnabled = this.safeValue (currency, 'enabled');
             const currencyActive = currencyEnabled || (depositEnabled || withdrawEnabled);
-            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'scale')));
-            this.options['tempCurrencyPrecision'][code] = precision;
+            const minWithdrawalString = this.safeString (currency, 'minWithdrawalAmount');
+            const minWithdrawal = this.parseNumber (Precise.stringMul (minWithdrawalString, precisionString));
+            const maxWithdrawalString = this.safeString (currency, 'maxWithdrawalAmount');
+            const maxWithdrawal = this.parseNumber (Precise.stringMul (maxWithdrawalString, precisionString));
+            const minDepositString = this.safeString (currency, 'minDepositAmount');
+            const minDeposit = this.parseNumber (Precise.stringMul (minDepositString, precisionString));
             result[code] = {
                 'id': id,
                 'code': code,
@@ -345,11 +354,11 @@ module.exports = class bitmex extends Exchange {
                         'max': undefined,
                     },
                     'withdraw': {
-                        'min': this.safeNumber (currency, 'minWithdrawalAmount'),
-                        'max': this.safeNumber (currency, 'maxWithdrawalAmount'),
+                        'min': minWithdrawal,
+                        'max': maxWithdrawal,
                     },
                     'deposit': {
-                        'min': this.safeNumber (currency, 'minDepositAmount'),
+                        'min': minDeposit,
                         'max': undefined,
                     },
                 },
