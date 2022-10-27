@@ -414,7 +414,7 @@ module.exports = class bitfinex extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const code = this.safeCurrencyCode (id);
-            if (codes !== undefined && !this.inArray (code, codes)) {
+            if ((codes !== undefined) && !this.inArray (code, codes)) {
                 continue;
             }
             result[code] = {

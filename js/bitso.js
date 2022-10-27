@@ -1371,7 +1371,7 @@ module.exports = class bitso extends Exchange {
             const depositFee = depositFees[i];
             const currencyId = this.safeString (depositFee, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            if (codes !== undefined && !this.inArray (code, codes)) {
+            if ((codes !== undefined) && !this.inArray (code, codes)) {
                 continue;
             }
             result[code] = {
@@ -1388,7 +1388,7 @@ module.exports = class bitso extends Exchange {
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
-            if (codes !== undefined && !this.inArray (code, codes)) {
+            if ((codes !== undefined) && !this.inArray (code, codes)) {
                 continue;
             }
             result[code] = {

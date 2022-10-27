@@ -1706,7 +1706,6 @@ module.exports = class gate extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.privateWalletGetWithdrawStatus (params);
-        // console.log (response);
         //
         //    {
         //        "currency": "MTN",
@@ -1731,7 +1730,7 @@ module.exports = class gate extends Exchange {
             const entry = response[i];
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            if (codes !== undefined && !this.inArray (code, codes)) {
+            if ((codes !== undefined) && !this.inArray (code, codes)) {
                 continue;
             }
             const withdrawFixOnChains = this.safeValue (entry, 'withdraw_fix_on_chains');
