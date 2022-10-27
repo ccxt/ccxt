@@ -274,8 +274,11 @@ module.exports = class bybit extends Exchange {
                         'spot/v3/private/cross-margin-repay-history': 10,
                         // account
                         'asset/v1/private/transfer/list': 50, // 60 per minute = 1 per second => cost = 50 / 1 = 50
-                        'asset/v3/private/transfer/inter-transfer/list/query': 0.834, // 60/s
+                        'asset/v3/private/transfer/inter-transfer/list/query': 0.84, // 60/s
                         'asset/v1/private/sub-member/transfer/list': 50,
+                        'asset/v3/private/transfer/sub-member/list/query': 0.84, // 60/s
+                        'asset/v3/private/transfer/sub-member-transfer/list/query': 0.84, // 60/s
+                        'asset/v3/private/transfer/universal-transfer/list/query': 0.84, // 60/s
                         'asset/v1/private/sub-member/member-ids': 50,
                         'asset/v1/private/deposit/record/query': 50,
                         'asset/v1/private/withdraw/record/query': 25,
@@ -283,6 +286,7 @@ module.exports = class bybit extends Exchange {
                         'asset/v3/private/coin-info/query': 25, // 2/s
                         'asset/v1/private/asset-info/query': 50,
                         'asset/v1/private/deposit/address': 100,
+                        'asset/v3/private/deposit/address/query': 0.17, // 300/s
                         'asset/v1/private/universal/transfer/list': 50,
                         'contract/v3/private/copytrading/order/list': 1,
                         'contract/v3/private/copytrading/position/list': 1,
@@ -300,6 +304,15 @@ module.exports = class bybit extends Exchange {
                         'asset/v2/private/exchange/exchange-order-all': 1,
                         'unified/v3/private/account/borrow-history': 1,
                         'unified/v3/private/account/borrow-rate': 1,
+                        'user/v3/private/frozen-sub-member': 10, // 5/s
+                        'user/v3/private/query-sub-members': 5, // 10/s
+                        'user/v3/private/query-api': 5, // 10/s
+                        'asset/v3/private/transfer/transfer-coin/list/query': 0.84, // 60/s
+                        'asset/v3/private/transfer/account-coin/balance/query': 0.84, // 60/s
+                        'asset/v3/private/transfer/asset-info/query': 0.84, // 60/s
+                        'asset/v3/public/deposit/allowed-deposit-list/query': 0.17, // 300/s
+                        'asset/v3/private/deposit/record/query': 0.17, // 300/s
+                        'asset/v3/private/withdraw/record/query': 0.17, // 300/s
                     },
                     'post': {
                         // inverse swap
@@ -368,9 +381,20 @@ module.exports = class bybit extends Exchange {
                         'asset/v3/private/transfer/inter-transfer': 2.5, // 20/s
                         'asset/v1/private/sub-member/transfer': 150,
                         'asset/v1/private/withdraw': 50,
+                        'asset/v3/private/withdraw/create': 1, // 10/s
                         'asset/v1/private/withdraw/cancel': 50,
+                        'asset/v3/private/withdraw/cancel': 0.84, // 60/s
                         'asset/v1/private/transferable-subs/save': 3000,
                         'asset/v1/private/universal/transfer': 1500,
+                        'asset/v3/private/transfer/sub-member-transfer': 2.5, // 20/s
+                        'asset/v3/private/transfer/transfer-sub-member-save': 2.5, // 20/s
+                        'asset/v3/private/transfer/universal-transfer': 2.5, // 20/s
+                        'user/v3/private/create-sub-member': 10, // 5/s
+                        'user/v3/private/create-sub-api': 10, // 5/s
+                        'user/v3/private/update-api': 10, // 5/s
+                        'user/v3/private/delete-api': 10, // 5/s
+                        'user/v3/private/update-sub-api': 10, // 5/s
+                        'user/v3/private/delete-sub-api': 10, // 5/s
                         // USDC endpoints
                         // option USDC
                         'option/usdc/openapi/private/v1/place-order': 2.5,
@@ -652,6 +676,14 @@ module.exports = class bybit extends Exchange {
     }
 
     safeNetwork (networkId) {
+        const networksById = {
+            'ETH': 'ERC20',
+            'TRX': 'TRC20',
+        };
+        return this.safeString (networksById, networkId, networkId);
+    }
+
+    parseNetworkCode (networkId) {
         const networksById = {
             'ETH': 'ERC20',
             'TRX': 'TRC20',
@@ -4190,14 +4222,14 @@ module.exports = class bybit extends Exchange {
     parseDepositAddress (depositAddress, currency = undefined) {
         //
         //     {
-        //         chain_type: 'Arbitrum One',
-        //         address_deposit: '0x83a127952d266A6eA306c40Ac62A4a70668FE3BE',
-        //         tag_deposit: '',
-        //         chain: 'ARBI'
+        //         chainType: 'ERC20',
+        //         addressDeposit: '0xf56297c6717c1d1c42c30324468ed50a9b7402ee',
+        //         tagDeposit: '',
+        //         chain: 'ETH'
         //     }
         //
-        const address = this.safeString (depositAddress, 'address_deposit');
-        const tag = this.safeString (depositAddress, 'tag_deposit');
+        const address = this.safeString (depositAddress, 'addressDeposit');
+        const tag = this.safeString (depositAddress, 'tagDeposit');
         const code = this.safeString (currency, 'code');
         const chain = this.safeString (depositAddress, 'chain');
         this.checkAddress (address);
@@ -4224,25 +4256,30 @@ module.exports = class bybit extends Exchange {
         const request = {
             'coin': currency['id'],
         };
-        const response = await this.privateGetAssetV1PrivateDepositAddress (this.extend (request, params));
+        const response = await this.privateGetAssetV3PrivateDepositAddressQuery (this.extend (request, params));
         //
-        //     {
-        //         ret_code: '0',
-        //         ret_msg: 'OK',
-        //         ext_code: '',
-        //         result: {
-        //             coin: 'ETH',
-        //             chains: [
+        //    {
+        //         "retCode": "0",
+        //         "retMsg": "success",
+        //         "result": {
+        //             "coin": "USDT",
+        //             "chains": [
         //                 {
-        //                     chain_type: 'Arbitrum One',
-        //                     address_deposit: 'bybitisthebest',
-        //                     tag_deposit: '',
-        //                     chain: 'ARBI'
-        //                 }
+        //                     "chainType": "ERC20",
+        //                     "addressDeposit": "0xf56297c6717c1d1c42c30324468ed50a9b7402ee",
+        //                     "tagDeposit": "",
+        //                     "chain": "ETH"
+        //                 },
+        //                 {
+        //                     "chainType": "TRC20",
+        //                     "addressDeposit": "TC6TAC5WSVCCiaD3nWZXyW62ZKKPwm55a",
+        //                     "tagDeposit": "",
+        //                     "chain": "TRX"
+        //                 },
         //             ]
         //         },
-        //         ext_info: null,
-        //         time_now: '1653141635426'
+        //         "retExtInfo": {},
+        //         "time": "1666882145079"
         //     }
         //
         const result = this.safeValue (response, 'result', []);
@@ -4323,46 +4360,44 @@ module.exports = class bybit extends Exchange {
             request['coin'] = currency['id'];
         }
         if (since !== undefined) {
-            request['start_date'] = this.yyyymmdd (since);
+            request['startTime'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         // Currently only works for deposits prior to 2021-07-15
         // will be updated soon
-        const response = await this.privateGetV2PrivateWalletFundRecords (this.extend (request, params));
+        const response = await this.privateGetAssetV3PrivateDepositRecordQuery (this.extend (request, params));
         //
-        //     {
-        //         "ret_code": 0,
-        //         "ret_msg": "ok",
-        //         "ext_code": "",
+        //    {
+        //         "retCode": "0",
+        //         "retMsg": "success",
         //         "result": {
-        //             "data": [
+        //             "rows": [
         //                 {
-        //                     "id": 234467,
-        //                     "user_id": 1,
-        //                     "coin": "BTC",
-        //                     "wallet_id": 27913,
-        //                     "type": "Realized P&L",
-        //                     "amount": "-0.00000006",
-        //                     "tx_id": "",
-        //                     "address": "BTCUSD",
-        //                     "wallet_balance": "0.03000330",
-        //                     "exec_time": "2019-12-09T00:00:25.000Z",
-        //                     "cross_seq": 0
-        //                 }
-        //             ]
+        //                     "coin": "USDT",
+        //                     "chain": "TRX",
+        //                     "amount": "44",
+        //                     "txID": "0b038ea12fa1575e2d66693db3c346b700d4b28347afc39f80321cf089acc960",
+        //                     "status": "3",
+        //                     "toAddress": "TC6NCAC5WSVCCiaD3kWZXyW91ZKKhLm53b",
+        //                     "tag": "",
+        //                     "depositFee": "",
+        //                     "successAt": "1665142507000",
+        //                     "confirmations": "100",
+        //                     "txIndex": "0",
+        //                     "blockHash": "0000000002ac3b1064aee94bca1bd0b58c4c09c65813b084b87a2063d961129e"
+        //                 },
+        //             ],
+        //             "nextPageCursor": "eyJtaW5JRCI6MTE5OTUyNjgsIm1heElEIjoxMjI2OTA2OH0="
         //         },
-        //         "ext_info": null,
-        //         "time_now": "1577481867.115552",
-        //         "rate_limit_status": 119,
-        //         "rate_limit_reset_ms": 1577481867122,
-        //         "rate_limit": 120
+        //         "retExtInfo": {},
+        //         "time": "1666883499086"
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const data = this.safeValue (result, 'data', []);
-        return this.parseTransactions (data, currency, since, limit, { 'type': 'deposit' });
+        const data = this.safeValue (result, 'rows', []);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -4391,56 +4426,64 @@ module.exports = class bybit extends Exchange {
             request['coin'] = currency['id'];
         }
         if (since !== undefined) {
-            request['start_date'] = this.yyyymmdd (since);
+            request['startTime'] = this.yyyymmdd (since);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetV2PrivateWalletWithdrawList (this.extend (request, params));
+        const response = await this.privateGetAssetV3PrivateWithdrawRecordQuery (this.extend (request, params));
         //
-        //     {
-        //         "ret_code": 0,
-        //         "ret_msg": "ok",
-        //         "ext_code": "",
+        //    {
+        //         "retCode": "0",
+        //         "retMsg": "success",
         //         "result": {
-        //             "data": [
+        //             "rows": [
         //                 {
-        //                     "id": 137,
-        //                     "user_id": 1,
-        //                     "coin": "XRP", // Coin Enum
-        //                     "status": "Pending", // Withdraw Status Enum
-        //                     "amount": "20.00000000",
-        //                     "fee": "0.25000000",
-        //                     "address": "rH7H595XYEVTEHU2FySYsWnmfACBnZS9zM",
-        //                     "tx_id": "",
-        //                     "submited_at": "2019-06-11T02:20:24.000Z",
-        //                     "updated_at": "2019-06-11T02:20:24.000Z"
+        //                     "coin": "USDT",
+        //                     "chain": "TRX",
+        //                     "amount": "12.34",
+        //                     "txID": "de5ea0a2f2e59dc9a714837dd3ddc6d5e151b56ec5d786d351c4f52336f80d3c",
+        //                     "status": "success",
+        //                     "toAddress": "TQdmFKUoe1Lk2iwZuwRJEHJreTUBoN3BAw",
+        //                     "tag": "",
+        //                     "withdrawFee": "0.5",
+        //                     "createTime": "1665144183000",
+        //                     "updateTime": "1665144256000",
+        //                     "withdrawId": "8839035"
         //                 },
         //             ],
-        //             "current_page": 1,
-        //             "last_page": 1
+        //             "nextPageCursor": "eyJtaW5JRCI6ODczMzUyMiwibWF4SUQiOjg4MzkwMzV9"
         //         },
-        //         "ext_info": null,
-        //         "time_now": "1577482295.125488",
-        //         "rate_limit_status": 119,
-        //         "rate_limit_reset_ms": 1577482295132,
-        //         "rate_limit": 120
+        //         "retExtInfo": {},
+        //         "time": "1666887679223"
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const data = this.safeValue (result, 'data', []);
-        return this.parseTransactions (data, currency, since, limit, { 'type': 'withdrawal' });
+        const data = this.safeValue (result, 'rows', []);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     parseTransactionStatus (status) {
         const statuses = {
+            // v1/v2
             'ToBeConfirmed': 'pending',
             'UnderReview': 'pending',
-            'Pending': 'pending',
             'Success': 'ok',
+            'Expire': 'expired',
+            // v3 deposit status
+            '0': 'unknown',
+            '1': 'pending',
+            '2': 'processing',
+            '3': 'ok',
+            '4': 'fail',
+            // v3 withdrawal status
+            'SecurityCheck': 'pending',
+            'Pending': 'pending',
+            'success': 'ok',
             'CancelByUser': 'canceled',
             'Reject': 'rejected',
-            'Expire': 'expired',
+            'Fail': 'failed',
+            'BlockchainConfirmed': 'ok',
         };
         return this.safeString (statuses, status, status);
     }
@@ -4450,42 +4493,43 @@ module.exports = class bybit extends Exchange {
         // fetchWithdrawals
         //
         //     {
-        //         "id": 137,
-        //         "user_id": 1,
-        //         "coin": "XRP", // Coin Enum
-        //         "status": "Pending", // Withdraw Status Enum
-        //         "amount": "20.00000000",
-        //         "fee": "0.25000000",
-        //         "address": "rH7H595XYEVTEHU2FySYsWnmfACBnZS9zM",
-        //         "tx_id": "",
-        //         "submited_at": "2019-06-11T02:20:24.000Z",
-        //         "updated_at": "2019-06-11T02:20:24.000Z"
+        //         "coin": "USDT",
+        //         "chain": "TRX",
+        //         "amount": "12.34",
+        //         "txID": "de5ea0a2f2e59dc9a714837dd3ddc6d5e151b56ec5d786d351c4f52336f80d3c",
+        //         "status": "success",
+        //         "toAddress": "TQdmFKUoe1Lk2iwZuwRJEHJreTUBoN3BAw",
+        //         "tag": "",
+        //         "withdrawFee": "0.5",
+        //         "createTime": "1665144183000",
+        //         "updateTime": "1665144256000",
+        //         "withdrawId": "8839035"
         //     }
         //
-        // fetchDeposits ledger entries
+        // fetchDeposits
         //
         //     {
-        //         "id": 234467,
-        //         "user_id": 1,
-        //         "coin": "BTC",
-        //         "wallet_id": 27913,
-        //         "type": "Realized P&L",
-        //         "amount": "-0.00000006",
-        //         "tx_id": "",
-        //         "address": "BTCUSD",
-        //         "wallet_balance": "0.03000330",
-        //         "exec_time": "2019-12-09T00:00:25.000Z",
-        //         "cross_seq": 0
-        //     }
+        //          "coin": "USDT",
+        //          "chain": "TRX",
+        //          "amount": "44",
+        //          "txID": "0b038ea12fa1575e2d66693db3c346b700d4b28347afc39f80321cf089acc960",
+        //          "status": "3",
+        //          "toAddress": "TC6NCAC5WSVCCiaD3kWZXyW91ZKKhLm53b",
+        //          "tag": "",
+        //          "depositFee": "",
+        //          "successAt": "1665142507000",
+        //          "confirmations": "100",
+        //          "txIndex": "0",
+        //          "blockHash": "0000000002ac3b1064aee94bca1bd0b58c4c09c65813b084b87a2063d961129e"
+        //      }
         //
         const currencyId = this.safeString (transaction, 'coin');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const timestamp = this.parse8601 (this.safeString2 (transaction, 'submited_at', 'exec_time'));
-        const updated = this.parse8601 (this.safeString (transaction, 'updated_at'));
+        const timestamp = this.safeInteger2 (transaction, 'createTime', 'successAt');
+        const updated = this.safeInteger (transaction, 'updateTime');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const address = this.safeString (transaction, 'address');
-        const feeCost = this.safeNumber (transaction, 'fee');
-        const type = this.safeStringLower (transaction, 'type');
+        const feeCost = this.safeNumber2 (transaction, 'depositFee', 'withdrawFee', 0);
+        const type = ('depositFee' in transaction) ? 'deposit' : 'withdrawal';
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
@@ -4493,17 +4537,18 @@ module.exports = class bybit extends Exchange {
                 'currency': code,
             };
         }
+        const toAddress = this.safeString (transaction, 'toAddress');
         return {
             'info': transaction,
-            'id': this.safeString (transaction, 'id'),
-            'txid': this.safeString (transaction, 'tx_id'),
+            'id': this.safeString2 (transaction, 'id', 'withdrawId'),
+            'txid': this.safeString (transaction, 'txID'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': undefined,
-            'address': address,
-            'addressTo': undefined,
+            'network': this.parseNetworkCode (this.safeString (transaction, 'chain')),
+            'address': undefined,
+            'addressTo': toAddress,
             'addressFrom': undefined,
-            'tag': undefined,
+            'tag': this.safeString (transaction, 'tag', ''),
             'tagTo': undefined,
             'tagFrom': undefined,
             'type': type,
