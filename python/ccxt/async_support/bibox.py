@@ -30,9 +30,8 @@ class bibox(Exchange):
             'id': 'bibox',
             'name': 'Bibox',
             'countries': ['CN', 'US', 'KR'],
-            'version': 'v1',
-            # 30 requests per 5 seconds => 6 requests per second => rateLimit = 166.667 ms(166.6666...)
             'rateLimit': 166.667,
+            'version': 'v3.1',
             'hostname': 'bibox.com',
             'has': {
                 'CORS': None,
@@ -54,6 +53,7 @@ class bibox(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchLedger': True,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMyTrades': True,
@@ -69,56 +69,224 @@ class bibox(Exchange):
                 'fetchTradingFees': False,
                 'fetchTransactionFees': True,
                 'fetchWithdrawals': True,
+                'transfer': True,
                 'withdraw': True,
             },
             'timeframes': {
-                '1m': '1min',
-                '5m': '5min',
-                '15m': '15min',
-                '30m': '30min',
-                '1h': '1hour',
-                '2h': '2hour',
-                '4h': '4hour',
-                '6h': '6hour',
-                '12h': '12hour',
-                '1d': 'day',
-                '1w': 'week',
+                '1m': '1m',
+                '3m': '3m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '1d',
+                '1w': '1w',
+                '1M': '1M',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg',
-                'api': 'https://api.{hostname}',
+                'api': {
+                    'rest': 'https://api.{hostname}',
+                },
                 'www': 'https://www.bibox365.com',
                 'doc': [
                     'https://biboxcom.github.io/en/',
+                    'https://biboxcom.github.io/v3/spot/en/',
+                    'https://biboxcom.github.io/api/spot/v4',
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/360002336133',
                 'referral': 'https://w2.bibox365.com/login/register?invite_code=05Kj3I',
             },
             'api': {
-                'public': {
-                    'post': {
-                        # TODO: rework for full endpoint/cmd paths here
-                        'mdata': 1,
+                'v1': {
+                    'public': {
+                        'get': {
+                            'cquery': 1,
+                            'mdata': 1,
+                            'cdata': 1,
+                            'orderpending': 1,
+                        },
+                        'post': {
+                            'mdata': 1,
+                        },
                     },
-                    'get': {
-                        'cquery': 1,
-                        'mdata': 1,
-                        'cdata': 1,
-                        'orderpending': 1,
+                    'private': {
+                        'post': {
+                            'credit': 1,
+                            'cquery': 1,
+                            'ctrade': 1,
+                            'user': 1,
+                            'orderpending': 1,
+                            'transfer': 1,
+                        },
                     },
                 },
-                'private': {
-                    'post': {
-                        'cquery': 1,
-                        'ctrade': 1,
-                        'user': 1,
-                        'orderpending': 1,
-                        'transfer': 1,
+                'v1.1': {
+                    'public': {
+                        'get': [
+                            'cquery',
+                        ],
+                    },
+                    'private': {
+                        'post': [
+                            'cquery',
+                            'ctrade',
+                        ],
                     },
                 },
-                'v2private': {
-                    'post': {
-                        'assets/transfer/spot': 1,
+                'v2': {
+                    'public': {
+                        'get': [
+                            'mdata/kline',
+                            'mdata/depth',
+                        ],
+                    },
+                    'private': {
+                        'post': [
+                            'assets/transfer/spot',
+                        ],
+                    },
+                },
+                'v3': {
+                    'public': {
+                        'get': [
+                            'mdata/ping',
+                            'mdata/pairList',
+                            'mdata/kline',
+                            'mdata/marketAll',
+                            'mdata/market',
+                            'mdata/depth',
+                            'mdata/deals',
+                            'mdata/ticker',
+                            'cbc/timestamp',
+                            'cbu/timestamp',
+                        ],
+                    },
+                    'private': {
+                        'post': [
+                            'assets/transfer/spot',
+                            'assets/transfer/cbc',
+                            'cbc/order/open',
+                            'cbc/order/close',
+                            'cbc/order/closeBatch',
+                            'cbc/order/closeAll',
+                            'cbc/changeMargin',
+                            'cbc/changeMode',
+                            'cbc/assets',
+                            'cbc/position',
+                            'cbc/order/list',
+                            'cbc/order/detail',
+                            'cbc/order/listBatch',
+                            'cbc/order/listBatchByClientOid',
+                            'cbuassets/transfer',
+                            'cbu/order/open',
+                            'cbu/order/close',
+                            'cbu/order/closeBatch',
+                            'cbu/order/closeAll',
+                            'cbu/order/planOpen',
+                            'cbu/order/planOrderList',
+                            'cbu/order/planClose',
+                            'cbu/order/planCloseAll',
+                            'cbu/changeMargin',
+                            'cbu/changeMode',
+                            'cbu/assets',
+                            'cbu/position',
+                            'cbu/order/list',
+                            'bu/order/detail',
+                            'cbu/order/listBatch',
+                            'cbu/order/listBatchByClientOid',
+                        ],
+                    },
+                },
+                'v3.1': {
+                    'public': {
+                        'get': [
+                            'mdata/ping',
+                            'cquery/buFundRate',
+                            'cquery/buTagPrice',
+                            'cquery/buValue',
+                            'cquery/buUnit',
+                            'cquery/bcFundRate',
+                            'cquery/bcTagPrice',
+                            'cquery/bcValue',
+                            'cquery/bcUnit',
+                        ],
+                    },
+                    'private': {
+                        'get': [
+                            'orderpending/tradeLimit',
+                        ],
+                        'post': [
+                            'transfer/mainAssets',
+                            'spot/account/assets',
+                            'transfer/transferIn',
+                            'transfer/transferOut',
+                            'transfer/transferInList',
+                            'transfer/transferOutList',
+                            'transfer/coinConfig',
+                            'transfer/withdrawInfo',
+                            'orderpending/trade',
+                            'orderpending/cancelTrade',
+                            'orderpending/orderPendingList',
+                            'orderpending/pendingHistoryList',
+                            'orderpending/orderDetail',
+                            'orderpending/order',
+                            'orderpending/orderHistoryList',
+                            'orderpending/orderDetailsLast',
+                            'credit/transferAssets/base2credit',
+                            'credit/transferAssets/credit2base',
+                            'credit/lendOrder/get',
+                            'credit/borrowOrder/get',
+                            'credit/lendOrderbook/get',
+                            'credit/transferAssets/lendAssets',
+                            'credit/transferAssets/borrowAssets',
+                            'credit/borrowOrder/autobook',
+                            'credit/borrowOrder/refund',
+                            'credit/lendOrderbook/publish',
+                            'credit/lendOrderbook/cancel',
+                            'credit/trade/trade',
+                            'credit/trade/cancel',
+                            'cquery/base_u/dealLog',
+                            'cquery/base_u/orderDetail',
+                            'cquery/base_u/orderHistory',
+                            'cquery/base_u/orderById',
+                            'cquery/base_coin/dealLog',
+                            'cquery/base_coin/orderDetail',
+                            'cquery/base_coin/orderHistory',
+                            'cquery/base_coin/orderById',
+                        ],
+                    },
+                },
+                'v4': {
+                    'public': {
+                        'get': [
+                            'marketdata/pairs',
+                            'marketdata/order_book',
+                            'marketdata/candles',
+                            'marketdata/trades',
+                            'marketdata/ticker',
+                        ],
+                    },
+                    'private': {
+                        'get': [
+                            'userdata/accounts',
+                            'userdata/ledger',
+                            'userdata/order',
+                            'userdata/orders',
+                            'userdata/fills',
+                        ],
+                        'post': [
+                            'userdata/order',
+                        ],
+                        'delete': [
+                            'userdata/order',
+                            'userdata/orders',
+                            'userdata/fills',
+                        ],
                     },
                 },
             },
@@ -174,6 +342,12 @@ class bibox(Exchange):
                 'STAR': 'Starbase',
                 'TERN': 'Ternio-ERC20',
             },
+            'options': {
+                'typesByAccount': {
+                    'base': 'main',
+                    'credit': 'margin',
+                },
+            },
         })
 
     async def fetch_markets(self, params={}):
@@ -182,82 +356,48 @@ class bibox(Exchange):
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of objects representing market data
         """
-        request = {
-            'cmd': 'pairList',
-        }
-        response = await self.publicGetMdata(self.extend(request, params))
+        markets = await self.v4PublicGetMarketdataPairs(params)
         #
-        #     {
-        #         "result": [
-        #             {
-        #                 "id":1,
-        #                 "pair":"BIX_BTC",
-        #                 "pair_type":0,
-        #                 "area_id":7,
-        #                 "is_hide":0,
-        #                 "decimal":8,
-        #                 "amount_scale":4
-        #             }
-        #         ],
-        #         "cmd":"pairList",
-        #         "ver":"1.1"
-        #     }
+        #    [
+        #        {
+        #          symbol: 'STI_USDT',
+        #          base: 'STI',
+        #          quote: 'USDT',
+        #          min_price: '0.000001',
+        #          max_price: '100000000',
+        #          min_quantity: '0.000001',
+        #          max_quantity: '100000000',
+        #          price_scale: '6',
+        #          quantity_scale: '3',
+        #          price_increment: '0.000001',
+        #          quantity_increment: '0.001',
+        #          min_order_value: '1'
+        #        },
+        #        ...
+        #    ]
         #
-        markets = self.safe_value(response, 'result', [])
-        request2 = {
-            'cmd': 'tradeLimit',
-        }
-        response2 = await self.publicGetOrderpending(self.extend(request2, params))
-        #
-        #    {
-        #         result: {
-        #             min_trade_price: {default: '0.00000001', USDT: '0.0001', DAI: '0.0001'},
-        #             min_trade_amount: {default: '0.0001'},
-        #             min_trade_money: {
-        #                 USDT: '1',
-        #                 USDC: '1',
-        #                 DAI: '1',
-        #                 GUSD: '1',
-        #                 BIX: '3',
-        #                 BTC: '0.0002',
-        #                 ETH: '0.005'
-        #             }
-        #         },
-        #         cmd: 'tradeLimit'
-        #     }
-        #
-        result2 = self.safe_value(response2, 'result', {})
-        minCosts = self.safe_value(result2, 'min_trade_money', {})
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            numericId = self.safe_integer(market, 'id')
-            id = self.safe_string(market, 'pair')
-            baseId = None
-            quoteId = None
-            if id is not None:
-                parts = id.split('_')
-                baseId = self.safe_string(parts, 0)
-                quoteId = self.safe_string(parts, 1)
+            id = self.safe_string(market, 'symbol')
+            baseId = self.safe_string(market, 'base')
+            quoteId = self.safe_string(market, 'quote')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             symbol = base + '/' + quote
             type = 'spot'
             spot = True
-            areaId = self.safe_integer(market, 'area_id')
-            if areaId == 16:
-                # TODO: update to v3 api
-                continue
+            amountPrecision = self.safe_string(market, 'quantity_scale')
+            pricePrecision = self.safe_string(market, 'price_scale')
             result.append({
                 'id': id,
-                'numericId': numericId,
                 'symbol': symbol,
-                'base': base,
-                'quote': quote,
-                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': None,
+                'base': base,
+                'quote': quote,
+                'settle': None,
                 'type': type,
                 'spot': spot,
                 'margin': False,
@@ -274,8 +414,8 @@ class bibox(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amount_scale'))),
-                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'decimal'))),
+                    'amount': self.parse_number(self.parse_precision(amountPrecision)),
+                    'price': self.parse_number(self.parse_precision(pricePrecision)),
                 },
                 'limits': {
                     'leverage': {
@@ -283,15 +423,15 @@ class bibox(Exchange):
                         'max': None,
                     },
                     'amount': {
-                        'min': None,
-                        'max': None,
+                        'min': self.safe_number(market, 'min_quantity'),
+                        'max': self.safe_number(market, 'max_quantity'),
                     },
                     'price': {
-                        'min': None,
-                        'max': None,
+                        'min': self.safe_number(market, 'min_price'),
+                        'max': self.safe_number(market, 'max_price'),
                     },
                     'cost': {
-                        'min': self.safe_number(minCosts, quoteId),
+                        'min': self.safe_number(market, 'min_order_value'),
                         'max': None,
                     },
                 },
@@ -301,16 +441,61 @@ class bibox(Exchange):
 
     def parse_ticker(self, ticker, market=None):
         # we don't set values that are not defined by the exchange
-        timestamp = self.safe_integer(ticker, 'timestamp')
-        marketId = None
+        #
+        # fetchTicker
+        #
+        #    {
+        #        "s": "ADA_USDT",             # trading pair code
+        #        "t": 1666143212000,          # 24 hour transaction count
+        #        "o": 0.371735,               # opening price
+        #        "h": 0.373646,               # highest price
+        #        "l": 0.358383,               # lowest price
+        #        "p": 0.361708,               # latest price
+        #        "q": 8.1,                    # latest volume
+        #        "v": 1346397.88,             # 24 hour volume
+        #        "a": 494366.08822867,        # 24 hour transaction value
+        #        "c": -0.0267,                # 24 hour Change
+        #        "n": 244631,
+        #        "f": 16641250,               # 24 hour first transaction id
+        #        "bp": 0.361565,              # Best current bid price
+        #        "bq": 4324.26,               # Best current bid quantity
+        #        "ap": 0.361708,              # Best current ask price
+        #        "aq": 7726.59                # Best current ask quantity
+        #    }
+        #
+        # fetchTickers
+        #
+        #    {
+        #        is_hide: '0',
+        #        high_cny: '0.1094',
+        #        amount: '5.34',
+        #        coin_symbol: 'BIX',
+        #        last: '0.00000080',
+        #        currency_symbol: 'BTC',
+        #        change: '+0.00000001',
+        #        low_cny: '0.1080',
+        #        base_last_cny: '0.10935854',
+        #        area_id: '7',
+        #        percent: '+1.27%',
+        #        last_cny: '0.1094',
+        #        high: '0.00000080',
+        #        low: '0.00000079',
+        #        pair_type: '0',
+        #        last_usd: '0.0155',
+        #        vol24H: '6697325',
+        #        id: '1',
+        #        high_usd: '0.0155',
+        #        low_usd: '0.0153'
+        #    }
+        #
+        timestamp = self.safe_integer_2(ticker, 'timestamp', 't')
         baseId = self.safe_string(ticker, 'coin_symbol')
         quoteId = self.safe_string(ticker, 'currency_symbol')
-        if (baseId is not None) and (quoteId is not None):
+        marketId = self.safe_string(ticker, 's')
+        if (marketId is None) and (baseId is not None) and (quoteId is not None):
             marketId = baseId + '_' + quoteId
         market = self.safe_market(marketId, market)
-        last = self.safe_string(ticker, 'last')
-        change = self.safe_string(ticker, 'change')
-        baseVolume = self.safe_string_2(ticker, 'vol', 'vol24H')
+        last = self.safe_string_2(ticker, 'last', 'p')
         percentage = self.safe_string(ticker, 'percent')
         if percentage is not None:
             percentage = percentage.replace('%', '')
@@ -318,28 +503,29 @@ class bibox(Exchange):
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_string(ticker, 'high'),
-            'low': self.safe_string(ticker, 'low'),
-            'bid': self.safe_string(ticker, 'buy'),
-            'bidVolume': self.safe_string(ticker, 'buy_amount'),
-            'ask': self.safe_string(ticker, 'sell'),
-            'askVolume': self.safe_string(ticker, 'sell_amount'),
+            'high': self.safe_string_2(ticker, 'high', 'h'),
+            'low': self.safe_string_2(ticker, 'low', 'l'),
+            'bid': self.safe_string(ticker, 'bp'),
+            'bidVolume': self.safe_string(ticker, 'bq'),
+            'ask': self.safe_string(ticker, 'ap'),
+            'askVolume': self.safe_string(ticker, 'aq'),
             'vwap': None,
-            'open': None,
+            'open': self.safe_string(ticker, 'o'),
             'close': last,
             'last': last,
             'previousClose': None,
-            'change': change,
+            'change': self.safe_string(ticker, 'change'),
             'percentage': percentage,
             'average': None,
-            'baseVolume': baseVolume,
-            'quoteVolume': self.safe_string(ticker, 'amount'),
+            'baseVolume': self.safe_string_2(ticker, 'a', 'vol24H'),
+            'quoteVolume': self.safe_string_2(ticker, 'v', 'amount'),
             'info': ticker,
         }, market)
 
     async def fetch_ticker(self, symbol, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        see https://biboxcom.github.io/api/spot/v4/en/#get-tickers
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the bibox api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
@@ -347,24 +533,78 @@ class bibox(Exchange):
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'cmd': 'ticker',
-            'pair': market['id'],
+            'symbol': market['id'],
         }
-        response = await self.publicGetMdata(self.extend(request, params))
-        return self.parse_ticker(response['result'], market)
+        response = await self.v4PublicGetMarketdataTicker(self.extend(request, params))
+        #
+        #    [
+        #        {
+        #            "s": "ADA_USDT",             # trading pair code
+        #            "t": 1666143212000,          # 24 hour transaction count
+        #            "o": 0.371735,               # opening price
+        #            "h": 0.373646,               # highest price
+        #            "l": 0.358383,               # lowest price
+        #            "p": 0.361708,               # latest price
+        #            "q": 8.1,                    # latest volume
+        #            "v": 1346397.88,             # 24 hour volume
+        #            "a": 494366.08822867,        # 24 hour transaction value
+        #            "c": -0.0267,                # 24 hour Change
+        #            "n": 244631,
+        #            "f": 16641250,               # 24 hour first transaction id
+        #            "bp": 0.361565,              # Best current bid price
+        #            "bq": 4324.26,               # Best current bid quantity
+        #            "ap": 0.361708,              # Best current ask price
+        #            "aq": 7726.59                # Best current ask quantity
+        #        }
+        #    ]
+        #
+        ticker = self.safe_value(response, 0)
+        return self.parse_ticker(ticker, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
-        await self.load_markets()
         """
-        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        v1, fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bibox api endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
         request = {
             'cmd': 'marketAll',
         }
-        response = await self.publicGetMdata(self.extend(request, params))
+        response = await self.v1PublicGetMdata(self.extend(request, params))
+        #
+        #    {
+        #        result: [
+        #            {
+        #                is_hide: '0',
+        #                high_cny: '0.1094',
+        #                amount: '5.34',
+        #                coin_symbol: 'BIX',
+        #                last: '0.00000080',
+        #                currency_symbol: 'BTC',
+        #                change: '+0.00000001',
+        #                low_cny: '0.1080',
+        #                base_last_cny: '0.10935854',
+        #                area_id: '7',
+        #                percent: '+1.27%',
+        #                last_cny: '0.1094',
+        #                high: '0.00000080',
+        #                low: '0.00000079',
+        #                pair_type: '0',
+        #                last_usd: '0.0155',
+        #                vol24H: '6697325',
+        #                id: '1',
+        #                high_usd: '0.0155',
+        #                low_usd: '0.0153'
+        #            },
+        #            ...
+        #        ],
+        #        cmd: 'marketAll',
+        #        ver: '1.1'
+        #    }
+        #
         tickers = self.parse_tickers(response['result'], symbols)
         result = self.index_by(tickers, 'symbol')
         return self.filter_by_array(result, 'symbol', symbols)
@@ -425,79 +665,126 @@ class bibox(Exchange):
         }
         if limit is not None:
             request['size'] = limit  # default = 200
-        response = await self.publicGetMdata(self.extend(request, params))
+        response = await self.v1PublicGetMdata(self.extend(request, params))
         return self.parse_trades(response['result'], market, since, limit)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         """
+        see https://biboxcom.github.io/api/spot/v4/en/#get-order-book
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int|None limit: the maximum amount of order book entries to return
+        :param int|None limit: *default=100* valid values include 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000
         :param dict params: extra parameters specific to the bibox api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param int|None price_scale: *default=0* depth of consolidation by price, valid values include 0, 1, 2, 3, 4, 5
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'cmd': 'depth',
-            'pair': market['id'],
+            'symbol': market['id'],
         }
         if limit is not None:
-            request['size'] = limit  # default = 200
-        response = await self.publicGetMdata(self.extend(request, params))
-        return self.parse_order_book(response['result'], symbol, self.safe_number(response['result'], 'update_time'), 'bids', 'asks', 'price', 'volume')
+            allowedValues = [1, 2, 5, 10, 20, 50, 100, 200, 500, 1000]
+            if not self.in_array(limit, allowedValues):
+                raise BadRequest(self.id + ' fetchOrderBook limit argument by only be one of 1, 2, 5, 10, 20, 50, 100, 200, 500 or 1000')
+            request['level'] = limit
+        response = await self.v4PublicGetMarketdataOrderBook(self.extend(request, params))
+        #
+        #    {
+        #        i: '1917961902',                  # update id
+        #        t: '1666221729812',               # update time
+        #        b: [                             # buy orders
+        #            [
+        #                '0.350983',               # order price
+        #                '8760.69'                 # order amount
+        #            ],
+        #            ...
+        #        ],
+        #        a: [                             # sell orders
+        #            [
+        #                '0.351084',
+        #                '14241.62'
+        #            ],
+        #            ...
+        #        ]
+        #    }
+        #
+        return self.parse_order_book(response, market['symbol'], self.safe_integer(response, 't'), 'b', 'a')
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
-        #     {
-        #         "time":1591448220000,
-        #         "open":"0.02507029",
-        #         "high":"0.02507029",
-        #         "low":"0.02506349",
-        #         "close":"0.02506349",
-        #         "vol":"5.92000000"
-        #     }
+        #    [
+        #        '1656702000000',      # start time
+        #        '19449.4',            # opening price
+        #        '19451.7',            # maximum price
+        #        '19290.6',            # minimum price
+        #        '19401.5',            # closing price
+        #        '73.328833',          # transaction volume
+        #        '1419466.3805812',    # transaction value
+        #        '45740585',           # first transaction id
+        #        2899                  # The total number of transactions in the range
+        #    ]
         #
         return [
-            self.safe_integer(ohlcv, 'time'),
-            self.safe_number(ohlcv, 'open'),
-            self.safe_number(ohlcv, 'high'),
-            self.safe_number(ohlcv, 'low'),
-            self.safe_number(ohlcv, 'close'),
-            self.safe_number(ohlcv, 'vol'),
+            self.safe_integer(ohlcv, 0),
+            self.safe_number(ohlcv, 1),
+            self.safe_number(ohlcv, 2),
+            self.safe_number(ohlcv, 3),
+            self.safe_number(ohlcv, 4),
+            self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=1000, params={}):
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
+        see https://biboxcom.github.io/v3/spotv4/en/#get-candles
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the bibox api endpoint
+        :param int|None params['until']: timestamp in ms of the latest candle to fetch
         :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
+        until = self.safe_integer(params, 'until')
         request = {
-            'cmd': 'kline',
-            'pair': market['id'],
-            'period': self.timeframes[timeframe],
-            'size': limit,
+            'symbol': market['id'],
+            'time_frame': self.timeframes[timeframe],
         }
-        response = await self.publicGetMdata(self.extend(request, params))
+        if limit is not None:
+            request['limit'] = limit
+        if since is not None and until is not None:
+            raise BadRequest(self.id + ' fetchOHLCV cannot take both a since parameter and params["until"]')
+        elif since is not None:
+            request['after'] = since
+        elif until is not None:
+            request['before'] = until
+        response = await self.v4PublicGetMarketdataCandles(self.extend(request, params))
         #
-        #     {
-        #         "result":[
-        #             {"time":1591448220000,"open":"0.02507029","high":"0.02507029","low":"0.02506349","close":"0.02506349","vol":"5.92000000"},
-        #             {"time":1591448280000,"open":"0.02506449","high":"0.02506975","low":"0.02506108","close":"0.02506843","vol":"5.72000000"},
-        #             {"time":1591448340000,"open":"0.02506698","high":"0.02506698","low":"0.02506452","close":"0.02506519","vol":"4.86000000"},
-        #         ],
-        #         "cmd":"kline",
-        #         "ver":"1.1"
-        #     }
+        #    {
+        #        t: '3600000',
+        #        e: [
+        #            [
+        #                '1656702000000',      # start time
+        #                '19449.4',            # opening price
+        #                '19451.7',            # maximum price
+        #                '19290.6',            # minimum price
+        #                '19401.5',            # closing price
+        #                '73.328833',          # transaction volume
+        #                '1419466.3805812',    # transaction value
+        #                '45740585',           # first transaction id
+        #                2899                  # The total number of transactions in the range
+        #            ],
+        #            ...
+        #    }
         #
-        result = self.safe_value(response, 'result', [])
+        result = self.safe_value(response, 'e')
+        if result is None:
+            result = response or []
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     async def fetch_currencies(self, params={}):
@@ -515,9 +802,9 @@ class bibox(Exchange):
         request = {
             'cmd': 'currencies',
         }
-        response = await self.publicGetCdata(self.extend(request, params))
+        response = await self.v1PublicGetCdata(self.extend(request, params))
         #
-        # publicGetCdata
+        # v1PublicGetCdata
         #
         #     {
         #         "result":[
@@ -577,7 +864,7 @@ class bibox(Exchange):
             'cmd': 'transfer/coinList',
             'body': {},
         }
-        response = await self.privatePostTransfer(self.extend(request, params))
+        response = await self.v1PrivatePostTransfer(self.extend(request, params))
         #
         #     {
         #         "result":[
@@ -664,120 +951,198 @@ class bibox(Exchange):
         return result
 
     def parse_balance(self, response):
-        outerResult = self.safe_value(response, 'result')
-        firstResult = self.safe_value(outerResult, 0, {})
-        innerResult = self.safe_value(firstResult, 'result')
+        #
+        #    [
+        #        {
+        #            "s": "USDT",              # asset code
+        #            "a": 2.6617573979,        # available amount
+        #            "h": 0                    # frozen amount
+        #        },
+        #        ...
+        #    ]
+        #
         result = {'info': response}
-        assetsList = self.safe_value(innerResult, 'assets_list', [])
-        for i in range(0, len(assetsList)):
-            balance = assetsList[i]
-            currencyId = self.safe_string(balance, 'coin_symbol')
+        for i in range(0, len(response)):
+            balance = response[i]
+            currencyId = self.safe_string(balance, 's')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_string(balance, 'balance')
-            account['used'] = self.safe_string(balance, 'freeze')
+            account['free'] = self.safe_string(balance, 'a')
+            account['used'] = self.safe_string(balance, 'h')
             result[code] = account
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
+        see https://biboxcom.github.io/api/spot/v4/en/#get-accounts
         :param dict params: extra parameters specific to the bibox api endpoint
+        :param str params['code']: unified currency code
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         await self.load_markets()
-        type = self.safe_string(params, 'type', 'assets')
-        params = self.omit(params, 'type')
-        request = {
-            'cmd': 'transfer/' + type,  # assets, mainAssets
-            'body': self.extend({
-                'select': 1,  # return full info
-            }, params),
-        }
-        response = await self.privatePostTransfer(request)
+        code = self.safe_string(params, 'code')
+        params = self.omit(params, 'code')
+        request = {}
+        if code is not None:
+            currency = self.currency(code)
+            request['asset'] = currency['id']
+        response = await self.v4PrivateGetUserdataAccounts(self.extend(request, params))
         #
-        #     {
-        #         "result":[
-        #             {
-        #                 "result":{
-        #                     "total_btc":"0.00000298",
-        #                     "total_cny":"0.99",
-        #                     "total_usd":"0.16",
-        #                     "assets_list":[
-        #                         {"coin_symbol":"BTC","BTCValue":"0.00000252","CNYValue":"0.84","USDValue":"0.14","balance":"0.00000252","freeze":"0.00000000"},
-        #                         {"coin_symbol":"LTC","BTCValue":"0.00000023","CNYValue":"0.07","USDValue":"0.01","balance":"0.00006765","freeze":"0.00000000"},
-        #                         {"coin_symbol":"USDT","BTCValue":"0.00000023","CNYValue":"0.08","USDValue":"0.01","balance":"0.01252100","freeze":"0.00000000"}
-        #                     ]
-        #                 },
-        #                 "cmd":"transfer/assets"
-        #             }
-        #         ]
-        #     }
+        #    [
+        #        {
+        #            "s": "USDT",              # asset code
+        #            "a": 2.6617573979,        # available amount
+        #            "h": 0                    # frozen amount
+        #        },
+        #        ...
+        #    ]
         #
         return self.parse_balance(response)
+
+    def parse_ledger_entry(self, item, currency=None):
+        #
+        #    {
+        #        "i": 1125899918063693495,     # entry id
+        #        "s": "USDT",                  # asset symbol
+        #        "T": "transfer_in",           # entry type: transfer, trade, fee
+        #        "a": 14.71,                   # amount
+        #        "b": 14.7100000044,           # balance
+        #        "t": 1663367640374            # time
+        #    }
+        #
+        ledgerTypes = {
+            'transfer_in': 'transfer',
+            'transfer_out': 'transfer',
+            'trade_finish_ask': 'trade',
+            'trade_finish_bid': 'trade',
+        }
+        id = self.safe_string(item, 'i')
+        currencyId = self.safe_string(item, 's')
+        type = self.safe_string(item, 'T')
+        timestamp = self.safe_integer(item, 't')
+        amount = self.safe_string(item, 'a')
+        direction = 'in'
+        if Precise.string_lt(amount, '0'):
+            direction = 'out'
+        return {
+            'id': id,
+            'direction': direction,
+            'account': None,
+            'referenceId': id,
+            'referenceAccount': None,
+            'type': self.safe_string(ledgerTypes, type, type),
+            'currency': self.safe_currency_code(currencyId, currency),
+            'amount': self.parse_number(amount),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'before': None,
+            'after': self.safe_number(item, 'b'),
+            'status': None,
+            'fee': None,
+            'info': item,
+        }
+
+    async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch the history of changes, actions done by the user or operations that altered balance of the user
+        see https://biboxcom.github.io/api/spot/v4/en/#get-an-account-39-s-ledger
+        :param str|None code: unified currency code, default is None
+        :param int|None since: timestamp in ms of the earliest ledger entry, default is None
+        :param int|None limit: *default = 100* max number of ledger entrys to return
+        :param dict params: extra parameters specific to the bitfinex2 api endpoint
+        :param int params['until']: timestamp in ms of the latest ledger entry, default is None
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param int before: bill record id. limited to return the maximum id value of the bill records
+        :param int after: bill record id, limited to return the minimum id value of the bill records
+        :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
+        """
+        await self.load_markets()
+        currency = None
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, 'until')
+        request = {}
+        if code is not None:
+            currency = self.currency(code)
+            request['asset'] = currency['id']
+        if since is not None:
+            request['start_time'] = since
+        if limit is not None:
+            request['limit'] = limit
+        if until is not None:
+            request['end_time'] = until
+        response = await self.v4PrivateGetUserdataLedger(self.extend(request, params))
+        #
+        #    [
+        #        {
+        #            "i": 1125899918063693495,     # entry id
+        #            "s": "USDT",                  # asset symbol
+        #            "T": "transfer_in",           # entry type: transfer, trade, fee
+        #            "a": 14.71,                   # amount
+        #            "b": 14.7100000044,           # balance
+        #            "t": 1663367640374            # time
+        #        }
+        #    ]
+        #
+        return self.parse_ledger(response, currency, since, limit)
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         """
         fetch all deposits made to an account
         :param str|None code: unified currency code
-        :param int|None since: the earliest time in ms to fetch deposits for
-        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param int|None since: not used by bibox
+        :param int|None limit: the maximum number of deposits structures to retrieve, max=50, default=50
         :param dict params: extra parameters specific to the bibox api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param int params['page']: page number, default=1
+        :param str|None params['filter_type']: deposit record filter, 0-all, 1-deposit in progress, 2-deposit received, 3-deposit failed
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
         await self.load_markets()
         if limit is None:
-            limit = 100
+            limit = 50
+        page = self.safe_integer(params, 'page', 1)
         request = {
-            'page': 1,
+            'page': page,
             'size': limit,
         }
         currency = None
         if code is not None:
             currency = self.currency(code)
-            request['symbol'] = currency['id']
-        response = await self.privatePostTransfer({
-            'cmd': 'transfer/transferInList',
-            'body': self.extend(request, params),
-        })
+            request['coin_symbol'] = currency['id']
+        method = 'v3.1PrivatePostTransferTransferInList'
+        response = await getattr(self, method)(self.extend(request, params))
         #
-        #     {
-        #         "result":[
-        #             {
-        #                 "result":{
-        #                     "count":2,
-        #                     "page":1,
-        #                     "items":[
-        #                         {
-        #                             "coin_symbol":"ETH",                        # token
-        #                             "to_address":"xxxxxxxxxxxxxxxxxxxxxxxxxx",  # address
-        #                             "amount":"1.00000000",                      # amount
-        #                             "confirmCount":"15",                        # the acknowledgment number
-        #                             "createdAt":1540641511000,
-        #                             "status":2                                 # status,  1-deposit is in process，2-deposit finished，3-deposit failed
-        #                         },
-        #                         {
-        #                             "coin_symbol":"BIX",
-        #                             "to_address":"xxxxxxxxxxxxxxxxxxxxxxxxxx",
-        #                             "amount":"1.00000000",
-        #                             "confirmCount":"15",
-        #                             "createdAt":1540622460000,
-        #                             "status":2
-        #                         }
-        #                     ]
-        #                 },
-        #                 "cmd":"transfer/transferInList"
-        #             }
-        #         ]
-        #     }
+        #    {
+        #        result: {
+        #            count: '5',
+        #            page: '1',
+        #            items: [
+        #                {
+        #                    id: '3553023',
+        #                    coin_symbol: 'bUSDT',
+        #                    chain_type: 'BEP20(BSC)',
+        #                    to_address: '0xf1458ba28073b056e9666c4b2bbbc60451cda0fd',
+        #                    tx_id: '0x2f2319c4ae804893369aeeeef06dd429abf2833b61290ea2bd63ec0e363ebce6',
+        #                    amount: '14.71000000',
+        #                    confirmCount: '14',
+        #                    createdAt: '1663367581000',
+        #                    status: '2'
+        #                },
+        #                ...
+        #            ]
+        #        },
+        #        cmd: 'transferInList',
+        #        state: '0'
+        #    }
         #
-        outerResults = self.safe_value(response, 'result')
-        firstResult = self.safe_value(outerResults, 0, {})
-        innerResult = self.safe_value(firstResult, 'result', {})
-        deposits = self.safe_value(innerResult, 'items', [])
-        for i in range(0, len(deposits)):
-            deposits[i]['type'] = 'deposit'
-        return self.parse_transactions(deposits, currency, since, limit)
+        result = self.safe_value(response, 'result')
+        items = self.safe_value(result, 'items')
+        for i in range(0, len(items)):
+            items[i]['type'] = 'deposit'
+        return self.parse_transactions(items, currency, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         """
@@ -799,7 +1164,7 @@ class bibox(Exchange):
         if code is not None:
             currency = self.currency(code)
             request['symbol'] = currency['id']
-        response = await self.privatePostTransfer({
+        response = await self.v1PrivatePostTransfer({
             'cmd': 'transfer/transferOutList',
             'body': self.extend(request, params),
         })
@@ -928,49 +1293,66 @@ class bibox(Exchange):
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         """
         create a trade order
+        see https://biboxcom.github.io/api/spot/v4/en/#create-an-order
         :param str symbol: unified symbol of the market to create an order in
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the bibox api endpoint
+        :param bool|None params['postOnly']: True or False
+        :param str|None params['timeInForce']: gtc or ioc
+        :param str|None params['clientOrderId']: client order id
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
-        orderType = 2 if (type == 'limit') else 1
-        orderSide = 1 if (side == 'buy') else 2
+        type = type.lower()
+        if type == 'market':
+            raise BadRequest(self.id + ' createOrder() does not support market orders, only limit orders are allowed')
+        elif price is None:
+            raise ArgumentsRequired(self.id + ' createOrder() requires a price argument for limit orders')
         request = {
-            'cmd': 'orderpending/trade',
-            'body': self.extend({
-                'pair': market['id'],
-                'account_type': 0,
-                'order_type': orderType,
-                'order_side': orderSide,
-                'pay_bix': 0,
-                'amount': amount,
-                'price': price,
-            }, params),
+            'symbol': market['id'],
+            'side': side,
+            'type': type,
+            'quantity': self.amount_to_precision(symbol, amount),
+            'price': self.price_to_precision(symbol, price),
         }
-        response = await self.privatePostOrderpending(request)
+        timeInForce = self.safe_string_lower(params, 'timeInForce')
+        if timeInForce is not None:
+            request['time_in_force'] = timeInForce
+        postOnly = self.is_post_only(False, None, params)
+        if postOnly:
+            request['post_only'] = postOnly
+        clientOrderId = self.safe_string(params, 'clientOrderId')
+        if clientOrderId is not None:
+            request['client_order_id'] = clientOrderId
+        params = self.omit(params, ['postOnly', 'timeInForce', 'clientOrderId'])
+        response = await self.v4PrivatePostUserdataOrder(self.deep_extend(request, params))
         #
         #     {
-        #         "result":[
-        #             {
-        #                 "result": "100055558128036",  # order id
-        #                 "index": 12345,  # random index, specific one in a batch
-        #                 "cmd":"orderpending/trade"
-        #             }
-        #         ]
+        #         "i": 14580623695947906,
+        #         "I": "0",
+        #         "m": "LUNC_USDT",
+        #         "T": "limit",
+        #         "s": "sell",
+        #         "Q": -1015236.00000,
+        #         "P": 0.0002900000,
+        #         "t": "gtc",
+        #         "o": False,
+        #         "S": "accepted",
+        #         "E": 0,
+        #         "e": 0,
+        #         "C": 1665670398046,
+        #         "U": 1665670398046,
+        #         "V": 582952205212,
+        #         "n": 0,
+        #         "F": [],
+        #         "f": []
         #     }
         #
-        outerResults = self.safe_value(response, 'result')
-        firstResult = self.safe_value(outerResults, 0, {})
-        id = self.safe_value(firstResult, 'result')
-        return {
-            'info': response,
-            'id': id,
-        }
+        return self.parse_order(response, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
         """
@@ -986,7 +1368,7 @@ class bibox(Exchange):
                 'orders_id': id,
             }, params),
         }
-        response = await self.privatePostOrderpending(request)
+        response = await self.v1PrivatePostOrderpending(request)
         #
         #     {
         #         "result":[
@@ -1017,28 +1399,28 @@ class bibox(Exchange):
                 'account_type': 0,  # 0 = spot account
             }, params),
         }
-        response = await self.privatePostOrderpending(request)
+        response = await self.v1PrivatePostOrderpending(request)
         #
         #     {
         #         "result":[
         #             {
-        #                 "result":{
-        #                     "id":"100055558128036",
+        #                 "result": {
+        #                     "id": "100055558128036",
         #                     "createdAt": 1512756997000,
-        #                     "account_type":0,
-        #                     "coin_symbol":"LTC",        # Trading Token
-        #                     "currency_symbol":"BTC",    # Pricing Token
-        #                     "order_side":2,             # Trading side 1-Buy, 2-Sell
-        #                     "order_type":2,             # 2-limit order
-        #                     "price":"0.00900000",       # order price
-        #                     "amount":"1.00000000",      # order amount
-        #                     "money":"0.00900000",       # currency amount(price * amount)
-        #                     "deal_amount":"0.00000000",  # deal amount
-        #                     "deal_percent":"0.00%",     # deal percentage
-        #                     "unexecuted":"0.00000000",  # unexecuted amount
-        #                     "status":3                  # Status, -1-fail, 0,1-to be dealt, 2-dealt partly, 3-dealt totally, 4- cancelled partly, 5-cancelled totally, 6-to be cancelled
+        #                     "account_type": 0,
+        #                     "coin_symbol": "LTC",        # Trading Token
+        #                     "currency_symbol": "BTC",    # Pricing Token
+        #                     "order_side": 2,             # Trading side 1-Buy, 2-Sell
+        #                     "order_type": 2,             # 2-limit order
+        #                     "price": "0.00900000",       # order price
+        #                     "amount": "1.00000000",      # order amount
+        #                     "money": "0.00900000",       # currency amount(price * amount)
+        #                     "deal_amount": "0.00000000",  # deal amount
+        #                     "deal_percent": "0.00%",     # deal percentage
+        #                     "unexecuted": "0.00000000",  # unexecuted amount
+        #                     "status": 3                  # Status, -1-fail, 0,1-to be dealt, 2-dealt partly, 3-dealt totally, 4- cancelled partly, 5-cancelled totally, 6-to be cancelled
         #                 },
-        #                 "cmd":"orderpending/order"
+        #                 "cmd": "orderpending/order"
         #             }
         #         ]
         #     }
@@ -1051,42 +1433,134 @@ class bibox(Exchange):
         return self.parse_order(order)
 
     def parse_order(self, order, market=None):
-        marketId = None
-        baseId = self.safe_string(order, 'coin_symbol')
-        quoteId = self.safe_string(order, 'currency_symbol')
-        if (baseId is not None) and (quoteId is not None):
-            marketId = baseId + '_' + quoteId
+        #
+        # createOrder V4
+        #
+        #    {
+        #        "i": 4611688217450643477,  # The order id assigned by the exchange
+        #        "I": "",  # User specified order id
+        #        "m": "BTC_USDT",  # trading pair code
+        #        "T": "limit",  # order type
+        #        "s": "sell",  # order direction
+        #        "Q": -0.0100,  # order amount
+        #        "P": 10043.8500,  # order price
+        #        "t": "gtc",  # Time In Force
+        #        "o": False,  # Post Only
+        #        "S": "filled",  # order status
+        #        "E": -0.0100,  # transaction volume
+        #        "e": -100.43850000,  # transaction value
+        #        "C": 1643193746043,  # creation time
+        #        "U": 1643193746464,  # update time
+        #        "n": 2,  # Number of transactions
+        #        "F": [
+        #            {
+        #                "i": 13,  # transaction id
+        #                "t": 1643193746464,  # Transaction time
+        #                "p": 10043.85,  # transaction price
+        #                "q": -0.009,  # transaction volume
+        #                "l": "maker",  # Maker / Taker transaction
+        #                "f": {
+        #                    "a": "USDT",  # The asset used for the transaction to pay the handling fee
+        #                    "m": 0.09039465000  # The transaction fee
+        #                }
+        #            },
+        #            {
+        #                "i": 12,
+        #                "t": 1643193746266,
+        #                "p": 10043.85,
+        #                "q": -0.001,
+        #                "l": "maker",
+        #                "f": {
+        #                    "a": "USDT",
+        #                    "m": 0.01004385000
+        #                }
+        #            }
+        #        ],
+        #        "f": [
+        #            {
+        #                "a": "USDT",  # Assets used to pay fees
+        #                "m": 0.10043850000  # Total handling fee
+        #            }
+        #        ]
+        #    }
+        #
+        # fetchOrder V1, fetchOpenOrders V1, fetchClosedOrders V1
+        #
+        #     {
+        #         "id": "100055558128036",
+        #         "createdAt": 1512756997000,
+        #         "account_type": 0,
+        #         "coin_symbol": "LTC",        # Trading Token
+        #         "currency_symbol": "BTC",    # Pricing Token
+        #         "order_side": 2,             # Trading side 1-Buy, 2-Sell
+        #         "order_type": 2,             # 2-limit order
+        #         "price": "0.00900000",       # order price
+        #         "amount": "1.00000000",      # order amount
+        #         "money": "0.00900000",       # currency amount(price * amount)
+        #         "deal_amount": "0.00000000",  # deal amount
+        #         "deal_percent": "0.00%",     # deal percentage
+        #         "unexecuted": "0.00000000",  # unexecuted amount
+        #         "status": 3                  # Status,-1-fail, 0,1-to be dealt, 2-dealt partly, 3-dealt totally, 4- cancelled partly, 5-cancelled totally, 6-to be cancelled
+        #     }
+        #
+        marketId = self.safe_string(order, 'm')
+        if marketId is None:
+            baseId = self.safe_string(order, 'coin_symbol')
+            quoteId = self.safe_string(order, 'currency_symbol')
+            if (baseId is not None) and (quoteId is not None):
+                marketId = baseId + '_' + quoteId
         market = self.safe_market(marketId, market)
-        rawType = self.safe_string(order, 'order_type')
-        type = 'market' if (rawType == '1') else 'limit'
-        timestamp = self.safe_integer(order, 'createdAt')
-        price = self.safe_string(order, 'price')
+        type = self.safe_string_2(order, 'T', 'order_type')
+        if type != 'limit' and type != 'market':
+            if type == '1':
+                type = 'limit'
+            elif type == '2':
+                type = 'market'
+        timestamp = self.safe_integer_2(order, 'C', 'createdAt')
+        price = self.safe_string_2(order, 'P', 'price')
         average = self.safe_string(order, 'deal_price')
         filled = self.safe_string(order, 'deal_amount')
-        amount = self.safe_string(order, 'amount')
-        cost = self.safe_string_2(order, 'deal_money', 'money')
-        rawSide = self.safe_string(order, 'order_side')
-        side = 'buy' if (rawSide == '1') else 'sell'
-        status = self.parse_order_status(self.safe_string(order, 'status'))
-        id = self.safe_string(order, 'id')
-        feeCost = self.safe_string(order, 'fee')
+        amount = self.safe_string_2(order, 'Q', 'amount')
+        amount = Precise.string_abs(amount)
+        cost = self.safe_string_2(order, 'money', 'deal_money')
+        side = self.safe_string_2(order, 's', 'order_side')
+        if side == '1':
+            side = 'buy'
+        elif side == '2':
+            side = 'sell'
+        status = self.parse_order_status(self.safe_string_2(order, 'S', 'status'))
+        id = self.safe_string_2(order, 'i', 'id')
+        clientOrderId = self.omit_zero(self.safe_string(order, 'I'))
+        timeInForce = self.safe_string_upper(order, 't')
+        postOnly = self.safe_value(order, 'o')
+        fees = []
+        orderFees = self.safe_value(order, 'f', [])
+        for i in range(0, len(orderFees)):
+            fees.append({
+                'currency': self.safe_currency_code(self.safe_string(orderFees[i], 'a')),
+                'cost': self.safe_string(orderFees[i], 'm'),
+            })
         fee = None
-        if feeCost is not None:
-            fee = {
-                'cost': feeCost,
-                'currency': None,
-            }
+        if len(fees):
+            fee = self.safe_value(fees, 0)
+        else:
+            feeCost = self.safe_string(order, 'fee')
+            if feeCost is not None:
+                fee = {
+                    'cost': feeCost,
+                    'currency': None,
+                }
         return self.safe_order({
             'info': order,
             'id': id,
-            'clientOrderId': None,
+            'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'symbol': market['symbol'],
             'type': type,
-            'timeInForce': None,
-            'postOnly': None,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'side': side,
             'price': price,
             'stopPrice': None,
@@ -1097,6 +1571,7 @@ class bibox(Exchange):
             'remaining': None,
             'status': status,
             'fee': fee,
+            'fees': fees,
             'trades': None,
         }, market)
 
@@ -1105,10 +1580,13 @@ class bibox(Exchange):
             # original comments from bibox:
             '1': 'open',  # pending
             '2': 'open',  # part completed
+            'accepted': 'open',
             '3': 'closed',  # completed
             '4': 'canceled',  # part canceled
             '5': 'canceled',  # canceled
             '6': 'canceled',  # canceling
+            'rejected': 'rejected',
+            '-1': 'rejected',
         }
         return self.safe_string(statuses, status, status)
 
@@ -1137,7 +1615,7 @@ class bibox(Exchange):
                 'size': size,
             }, params),
         }
-        response = await self.privatePostOrderpending(request)
+        response = await self.v1PrivatePostOrderpending(request)
         #
         #     {
         #         "result":[
@@ -1182,7 +1660,7 @@ class bibox(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bibox api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a `symbol` argument')
@@ -1197,7 +1675,7 @@ class bibox(Exchange):
                 'size': limit,
             }, params),
         }
-        response = await self.privatePostOrderpending(request)
+        response = await self.v1PrivatePostOrderpending(request)
         #
         #     {
         #         "result":[
@@ -1260,7 +1738,7 @@ class bibox(Exchange):
                 'currency_symbol': market['quoteId'],
             }, params),
         }
-        response = await self.privatePostOrderpending(request)
+        response = await self.v1PrivatePostOrderpending(request)
         #
         #     {
         #         "result":[
@@ -1310,7 +1788,7 @@ class bibox(Exchange):
                 'coin_symbol': currency['id'],
             }, params),
         }
-        response = await self.privatePostTransfer(request)
+        response = await self.v1PrivatePostTransfer(request)
         #
         #     {
         #         "result":[
@@ -1374,7 +1852,7 @@ class bibox(Exchange):
         }
         if tag is not None:
             request['address_remark'] = tag
-        response = await self.privatePostTransfer({
+        response = await self.v1PrivatePostTransfer({
             'cmd': 'transfer/transferOut',
             'body': self.extend(request, params),
         })
@@ -1415,7 +1893,7 @@ class bibox(Exchange):
                     'coin_symbol': currency['id'],
                 }, params),
             }
-            response = await self.privatePostTransfer(request)
+            response = await self.v1PrivatePostTransfer(request)
             #     {
             #         "result":[
             #             {
@@ -1449,44 +1927,214 @@ class bibox(Exchange):
             'deposit': {},
         }
 
-    def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.implode_hostname(self.urls['api']) + '/' + self.version + '/' + path
-        cmds = self.json([params])
-        if api == 'public':
+    async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account, transfers must be made to/from account "main"
+        see https://biboxcom.github.io/api/spot/v3/en/#wallet-to-spot
+        see https://biboxcom.github.io/api/spot/v3/en/#wallet-to-leverage
+        see https://biboxcom.github.io/api/spot/v3/en/#leverage-to-wallet
+        see https://biboxcom.github.io/api/futures/v3/en/#2-fund-transfer
+        see https://biboxcom.github.io/api/futures-coin/v3/en/#2-fund-transfer
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: main, spot, cross, swap or an isolated margin market symbol(ex: XRP/USDT)
+        :param str toAccount: main, spot, cross, swap or an isolated margin market symbol(ex: XRP/USDT)
+        :param dict params: extra parameters specific to the bibox api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        fromMain = fromAccount == 'main' or fromAccount == 'wallet' or fromAccount == 'funding'
+        fromSpot = fromAccount == 'spot'
+        toMain = toAccount == 'main' or toAccount == 'wallet' or toAccount == 'funding'
+        toSpot = toAccount == 'spot'
+        toCross = toAccount == 'cross'
+        fromCross = fromAccount == 'cross'
+        toIsolated = self.in_array(toAccount, self.symbols)
+        fromIsolated = self.in_array(fromAccount, self.symbols)
+        toSwap = toAccount == 'swap'
+        fromSwap = fromAccount == 'swap'
+        method = 'v3PrivatePostAssetsTransferSpot'
+        request = {
+            'amount': amount,
+        }
+        if toSpot or fromSpot:
+            request['symbol'] = currency['id']
+            if fromMain:
+                request['type'] = 0
+            elif toMain:
+                request['type'] = 1
+            else:
+                raise BadRequest(self.id + ' cannot transfer from ' + fromAccount + ' to ' + toAccount)
+        elif (fromCross or fromIsolated) and toMain:
+            method = 'v3.1PrivatePostCreditTransferAssetsCredit2base'
+            request['coin_symbol'] = currency['id']
+            request['pair'] = self.market_id(fromAccount) if fromIsolated else '*_USDT'
+        elif (toCross or toIsolated) and fromMain:
+            method = 'v3.1PrivatePostCreditTransferAssetsBase2credit'
+            request['coin_symbol'] = currency['id']
+            request['pair'] = self.market_id(toAccount) if toIsolated else '*_USDT'
+        elif toSwap or fromSwap:
+            if code == 'USDT':
+                method = 'v3PrivatePostCbuassetsTransfer'
+            else:
+                method = 'v3PrivatePostAssetsTransferCbc'
+            if toMain:
+                request['type'] = 1
+            elif fromMain:
+                request['type'] = 0
+            else:
+                raise BadRequest(self.id + ' cannot transfer from ' + fromAccount + ' to ' + toAccount)
+            request['symbol'] = currency['id']
+        else:
+            raise BadRequest(self.id + ' cannot transfer from ' + fromAccount + ' to ' + toAccount)
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # spot <-> main
+        #
+        #    {
+        #        state: '0',
+        #        id: '936177661049344000'
+        #    }
+        #
+        # main <-> leverage
+        #
+        #    {
+        #        result: '1620000000049',
+        #        cmd: 'transferAssets/base2credit',
+        #        state: '0'
+        #    }
+        #
+        # main <-> swap
+        #
+        #    {
+        #        state: '0',
+        #        result: '936190233517527040'
+        #    }
+        #
+        return self.parse_transfer(response, currency)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        # spot <-> main
+        #
+        #    {
+        #        state: '0',
+        #        id: '936177661049344000'
+        #    }
+        #
+        # main <-> leverage
+        #
+        #    {
+        #        result: '1620000000049',
+        #        cmd: 'transferAssets/base2credit',
+        #        state: '0'
+        #    }
+        #
+        # main <-> swap
+        #
+        #    {
+        #        state: '0',
+        #        result: '936190233517527040'
+        #    }
+        #
+        cmd = self.safe_string(transfer, 'cmd')
+        fromAccount = None
+        toAccount = None
+        if cmd is not None:
+            accounts = self.safe_string(cmd.split('/'), 1)
+            parts = accounts.split('2')
+            fromAccount = self.safe_string(parts, 0)
+            toAccount = self.safe_string(parts, 1)
+            fromAccount = self.safe_string(self.options['typesByAccount'], fromAccount, fromAccount)
+            toAccount = self.safe_string(self.options['typesByAccount'], toAccount, toAccount)
+        return {
+            'info': transfer,
+            'id': self.safe_string_2(transfer, 'id', 'result'),
+            'timestamp': None,
+            'datetime': None,
+            'currency': self.safe_string(currency, 'code'),
+            'amount': None,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': None,
+        }
+
+    def sign(self, path, api='v1Public', method='GET', params={}, headers=None, body=None):
+        version, access = api
+        v1 = (version == 'v1')
+        v4 = (version == 'v4')
+        prefix = '/api' if v4 else ''
+        url = self.implode_hostname(self.urls['api']['rest']) + prefix + '/' + version + '/' + path
+        jsonParams = self.json([params]) if v1 else self.json(params)
+        headers = {'content-type': 'application/json'}
+        if access == 'public':
             if method != 'GET':
-                body = {'cmds': cmds}
+                if v1:
+                    body = {'cmds': jsonParams}
+                else:
+                    body = {'body': jsonParams}
             elif params:
                 url += '?' + self.urlencode(params)
-        elif api == 'v2private':
-            self.check_required_credentials()
-            url = self.implode_hostname(self.urls['api']) + '/v2/' + path
-            json_params = self.json(params)
-            body = {
-                'body': json_params,
-                'apikey': self.apiKey,
-                'sign': self.hmac(self.encode(json_params), self.encode(self.secret), hashlib.md5),
-            }
         else:
             self.check_required_credentials()
-            body = {
-                'cmds': cmds,
-                'apikey': self.apiKey,
-                'sign': self.hmac(self.encode(cmds), self.encode(self.secret), hashlib.md5),
-            }
+            if version == 'v3' or version == 'v3.1':
+                timestamp = self.number_to_string(self.milliseconds())
+                strToSign = timestamp
+                if jsonParams != '{}':
+                    strToSign += jsonParams
+                sign = self.hmac(self.encode(strToSign), self.encode(self.secret), hashlib.md5)
+                headers['bibox-api-key'] = self.apiKey
+                headers['bibox-api-sign'] = sign
+                headers['bibox-timestamp'] = timestamp
+                if method == 'GET':
+                    url += '?' + self.urlencode(params)
+                else:
+                    if jsonParams != '{}':
+                        body = params
+            elif v4:
+                strToSign = ''
+                sortedParams = self.keysort(params)
+                if method == 'GET':
+                    url += '?' + self.urlencode(sortedParams)
+                    strToSign = self.urlencode(sortedParams)
+                else:
+                    if jsonParams != '{}':
+                        body = sortedParams
+                    strToSign = self.json(body, {'convertArraysToObjects': True})
+                sign = self.hmac(self.encode(strToSign), self.encode(self.secret), hashlib.sha256)
+                headers['Bibox-Api-Key'] = self.apiKey
+                headers['Bibox-Api-Sign'] = sign
+            else:
+                sign = self.hmac(self.encode(jsonParams), self.encode(self.secret), hashlib.md5)
+                body = {
+                    'apikey': self.apiKey,
+                    'sign': sign,
+                }
+                if v1:
+                    body['cmds'] = jsonParams
+                else:
+                    body['body'] = jsonParams
         if body is not None:
             body = self.json(body, {'convertArraysToObjects': True})
-        headers = {'Content-Type': 'application/json'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return
+        if 'state' in response:
+            if self.safe_number(response, 'state') == 0:
+                return
+            raise ExchangeError(self.id + ' ' + body)
         if 'error' in response:
-            if 'code' in response['error']:
-                code = self.safe_string(response['error'], 'code')
+            if isinstance(response['error'], dict):
+                if 'code' in response['error']:
+                    code = self.safe_string(response['error'], 'code')
+                    feedback = self.id + ' ' + body
+                    self.throw_exactly_matched_exception(self.exceptions, code, feedback)
+                    raise ExchangeError(feedback)
+                raise ExchangeError(self.id + ' ' + body)
+            else:
                 feedback = self.id + ' ' + body
                 self.throw_exactly_matched_exception(self.exceptions, code, feedback)
                 raise ExchangeError(feedback)
-            raise ExchangeError(self.id + ' ' + body)
-        if not ('result' in response):
-            raise ExchangeError(self.id + ' ' + body)

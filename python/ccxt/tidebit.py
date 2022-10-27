@@ -45,12 +45,14 @@ class tidebit(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchOHLCV': True,
                 'fetchOpenInterestHistory': False,
                 'fetchOrderBook': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -80,7 +82,9 @@ class tidebit(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87460811-1e690280-c616-11ea-8652-69f187305add.jpg',
-                'api': 'https://www.tidebit.com',
+                'api': {
+                    'rest': 'https://www.tidebit.com',
+                },
                 'www': 'https://www.tidebit.com',
                 'doc': [
                     'https://www.tidebit.com/documents/api/guide',
@@ -346,6 +350,7 @@ class tidebit(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         tickers = self.publicGetTickers(params)
         ids = list(tickers.keys())
         result = {}
@@ -571,8 +576,9 @@ class tidebit(Exchange):
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'market': self.market_id(symbol),
+            'market': market['id'],
             'side': side,
             'volume': str(amount),
             'ord_type': type,
@@ -663,7 +669,7 @@ class tidebit(Exchange):
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         request = '/' + 'api/' + self.version + '/' + self.implode_params(path, params) + '.json'
         query = self.omit(params, self.extract_params(path))
-        url = self.urls['api'] + request
+        url = self.urls['api']['rest'] + request
         if api == 'public':
             if query:
                 url += '?' + self.urlencode(query)

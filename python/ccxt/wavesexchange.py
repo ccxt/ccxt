@@ -58,6 +58,7 @@ class wavesexchange(Exchange):
                 'fetchIndexOHLCV': False,
                 'fetchLeverage': False,
                 'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
@@ -68,6 +69,7 @@ class wavesexchange(Exchange):
                 'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
+                'fetchPositionMode': False,
                 'fetchPositions': False,
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
@@ -351,6 +353,7 @@ class wavesexchange(Exchange):
                 '106957828': AuthenticationError,
                 '106960131': AuthenticationError,
                 '106981137': AuthenticationError,
+                '9437184': BadRequest,  # {"error":9437184,"message":"The order is invalid: SpendAmount should be > 0","template":"The order is invalid: {{details}}","params":{"details":"SpendAmount should be > 0"},"status":"OrderRejected","success":false}
                 '9437193': OrderNotFound,
                 '1048577': BadRequest,
                 '1051904': AuthenticationError,
@@ -1039,7 +1042,8 @@ class wavesexchange(Exchange):
                 address = self.safe_string(response, 'address')
                 return {
                     'address': address,
-                    'code': code,
+                    'code': code,  # kept here for backward-compatibility, but will be removed soon
+                    'currency': code,
                     'network': network,
                     'tag': None,
                     'info': response,
@@ -1081,7 +1085,8 @@ class wavesexchange(Exchange):
         address = self.safe_string(addresses, 0)
         return {
             'address': address,
-            'code': code,
+            'code': code,  # kept here for backward-compatibility, but will be removed soon
+            'currency': code,
             'tag': None,
             'network': unifiedNetwork,
             'info': response,
@@ -1389,7 +1394,7 @@ class wavesexchange(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the wavesexchange api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.check_required_dependencies()
         self.check_required_keys()
@@ -1460,7 +1465,7 @@ class wavesexchange(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the wavesexchange api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         self.sign_in()

@@ -69,6 +69,8 @@ class ndax(Exchange):
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
+                'fetchTickers': False,
+                'fetchTime': False,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
@@ -222,8 +224,8 @@ class ndax(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.2 / 100,
-                    'taker': 0.25 / 100,
+                    'maker': self.parse_number('0.002'),
+                    'taker': self.parse_number('0.0025'),
                 },
             },
             'requiredCredentials': {
@@ -1230,40 +1232,27 @@ class ndax(Exchange):
         #         "OMSId":1
         #     }
         #
-        id = self.safe_string_2(order, 'ReplacementOrderId', 'OrderId')
         timestamp = self.safe_integer(order, 'ReceiveTime')
-        lastTradeTimestamp = self.safe_integer(order, 'LastUpdatedTime')
         marketId = self.safe_string(order, 'Instrument')
-        symbol = self.safe_symbol(marketId, market)
-        side = self.safe_string_lower(order, 'Side')
-        type = self.safe_string_lower(order, 'OrderType')
-        clientOrderId = self.safe_string_2(order, 'ReplacementClOrdId', 'ClientOrderId')
-        price = self.safe_string(order, 'Price')
-        amount = self.safe_string(order, 'OrigQuantity')
-        filled = self.safe_string(order, 'QuantityExecuted')
-        cost = self.safe_string(order, 'GrossValueExecuted')
-        average = self.safe_string(order, 'AvgPrice')
-        stopPrice = self.parse_number(self.omit_zero(self.safe_string(order, 'StopPrice')))
-        status = self.parse_order_status(self.safe_string(order, 'OrderState'))
         return self.safe_order({
-            'id': id,
-            'clientOrderId': clientOrderId,
+            'id': self.safe_string_2(order, 'ReplacementOrderId', 'OrderId'),
+            'clientOrderId': self.safe_string_2(order, 'ReplacementClOrdId', 'ClientOrderId'),
             'info': order,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'status': status,
-            'symbol': symbol,
-            'type': type,
+            'lastTradeTimestamp': self.safe_integer(order, 'LastUpdatedTime'),
+            'status': self.parse_order_status(self.safe_string(order, 'OrderState')),
+            'symbol': self.safe_symbol(marketId, market),
+            'type': self.safe_string_lower(order, 'OrderType'),
             'timeInForce': None,
             'postOnly': None,
-            'side': side,
-            'price': price,
-            'stopPrice': stopPrice,
-            'cost': cost,
-            'amount': amount,
-            'filled': filled,
-            'average': average,
+            'side': self.safe_string_lower(order, 'Side'),
+            'price': self.safe_string(order, 'Price'),
+            'stopPrice': self.parse_number(self.omit_zero(self.safe_string(order, 'StopPrice'))),
+            'cost': self.safe_string(order, 'GrossValueExecuted'),
+            'amount': self.safe_string(order, 'OrigQuantity'),
+            'filled': self.safe_string(order, 'QuantityExecuted'),
+            'average': self.safe_string(order, 'AvgPrice'),
             'remaining': None,
             'fee': None,
             'trades': None,
@@ -1596,7 +1585,7 @@ class ndax(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the ndax api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         omsId = self.safe_integer(self.options, 'omsId', 1)
         await self.load_markets()

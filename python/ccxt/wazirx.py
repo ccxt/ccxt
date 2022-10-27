@@ -51,6 +51,7 @@ class wazirx(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': False,
@@ -60,6 +61,7 @@ class wazirx(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPositionMode': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTicker': True,
@@ -77,7 +79,9 @@ class wazirx(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/148647666-c109c20b-f8ac-472f-91c3-5f658cb90f49.jpeg',
-                'api': 'https://api.wazirx.com/sapi/v1',
+                'api': {
+                    'rest': 'https://api.wazirx.com/sapi/v1',
+                },
                 'www': 'https://wazirx.com',
                 'doc': 'https://docs.wazirx.com/#public-rest-api-for-wazirx',
                 'fees': 'https://wazirx.com/fees',
@@ -535,7 +539,7 @@ class wazirx(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the wazirx api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrders() requires a `symbol` argument')
@@ -549,33 +553,35 @@ class wazirx(Exchange):
         if limit is not None:
             request['limit'] = limit
         response = self.privateGetAllOrders(self.extend(request, params))
-        # [
-        #     {
-        #         "id": 28,
-        #         "symbol": "wrxinr",
-        #         "price": "9293.0",
-        #         "origQty": "10.0",
-        #         "executedQty": "8.2",
-        #         "status": "cancel",
-        #         "type": "limit",
-        #         "side": "sell",
-        #         "createdTime": 1499827319559,
-        #         "updatedTime": 1499827319559
-        #     },
-        #     {
-        #         "id": 30,
-        #         "symbol": "wrxinr",
-        #         "price": "9293.0",
-        #         "stopPrice": "9200.0",
-        #         "origQty": "10.0",
-        #         "executedQty": "0.0",
-        #         "status": "cancel",
-        #         "type": "stop_limit",
-        #         "side": "sell",
-        #         "createdTime": 1499827319559,
-        #         "updatedTime": 1507725176595
-        #     }
-        # ]
+        #
+        #   [
+        #       {
+        #           "id": 28,
+        #           "symbol": "wrxinr",
+        #           "price": "9293.0",
+        #           "origQty": "10.0",
+        #           "executedQty": "8.2",
+        #           "status": "cancel",
+        #           "type": "limit",
+        #           "side": "sell",
+        #           "createdTime": 1499827319559,
+        #           "updatedTime": 1499827319559
+        #       },
+        #       {
+        #           "id": 30,
+        #           "symbol": "wrxinr",
+        #           "price": "9293.0",
+        #           "stopPrice": "9200.0",
+        #           "origQty": "10.0",
+        #           "executedQty": "0.0",
+        #           "status": "cancel",
+        #           "type": "stop_limit",
+        #           "side": "sell",
+        #           "createdTime": 1499827319559,
+        #           "updatedTime": 1507725176595
+        #       }
+        #   ]
+        #
         orders = self.parse_orders(response, market, since, limit)
         orders = self.filter_by(orders, 'symbol', symbol)
         return orders
@@ -760,7 +766,7 @@ class wazirx(Exchange):
         return self.safe_string(statuses, status, status)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + path
+        url = self.urls['api']['rest'] + '/' + path
         if api == 'public':
             if params:
                 url += '?' + self.urlencode(params)

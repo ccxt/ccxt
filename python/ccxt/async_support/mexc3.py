@@ -6,6 +6,7 @@
 from ccxt.async_support.base.exchange import Exchange
 import hashlib
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
@@ -29,11 +30,12 @@ class mexc3(Exchange):
             'has': {
                 'CORS': None,
                 'spot': None,
-                'margin': None,
+                'margin': True,
                 'swap': None,
                 'future': None,
                 'option': None,
                 'addMargin': True,
+                'borrowMargin': True,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
                 'cancelOrders': None,
@@ -41,6 +43,7 @@ class mexc3(Exchange):
                 'createLimitOrder': None,
                 'createMarketOrder': None,
                 'createOrder': True,
+                'createReduceOnlyOrder': True,
                 'deposit': None,
                 'editOrder': None,
                 'fetchAccounts': True,
@@ -68,6 +71,7 @@ class mexc3(Exchange):
                 'fetchLedger': None,
                 'fetchLedgerEntry': None,
                 'fetchLeverageTiers': True,
+                'fetchMarginMode': False,
                 'fetchMarketLeverageTiers': None,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': True,
@@ -81,6 +85,7 @@ class mexc3(Exchange):
                 'fetchOrders': True,
                 'fetchOrderTrades': True,
                 'fetchPosition': True,
+                'fetchPositionMode': True,
                 'fetchPositions': True,
                 'fetchPositionsRisk': None,
                 'fetchPremiumIndexOHLCV': False,
@@ -99,13 +104,13 @@ class mexc3(Exchange):
                 'fetchTransfers': True,
                 'fetchWithdrawal': None,
                 'fetchWithdrawals': True,
-                'loadMarkets': None,
                 'privateAPI': True,
                 'publicAPI': True,
                 'reduceMargin': True,
+                'repayMargin': True,
                 'setLeverage': True,
                 'setMarginMode': None,
-                'setPositionMode': None,
+                'setPositionMode': True,
                 'signIn': None,
                 'transfer': None,
                 'withdraw': True,
@@ -164,17 +169,53 @@ class mexc3(Exchange):
                             'myTrades': 1,
                             'sub-account/list': 1,
                             'sub-account/apiKey': 1,
+                            'capital/config/getall': 1,
+                            'capital/deposit/hisrec': 1,
+                            'capital/withdraw/history': 1,
+                            'capital/deposit/address': 1,
+                            'capital/transfer': 1,
+                            'capital/sub-account/universalTransfer': 1,
+                            'margin/loan': 1,
+                            'margin/allOrders': 1,
+                            'margin/myTrades': 1,
+                            'margin/openOrders': 1,
+                            'margin/maxTransferable': 1,
+                            'margin/priceIndex': 1,
+                            'margin/order': 1,
+                            'margin/isolated/account': 1,
+                            'margin/maxBorrowable': 1,
+                            'margin/repay': 1,
+                            'margin/isolated/pair': 1,
+                            'margin/forceLiquidationRec': 1,
+                            'margin/isolatedMarginData': 1,
+                            'margin/isolatedMarginTier': 1,
+                            'rebate/taxQuery': 1,
+                            'rebate/detail': 1,
+                            'rebate/detail/kickback': 1,
                         },
                         'post': {
                             'order': 1,
                             'order/test': 1,
                             'sub-account/virtualSubAccount': 1,
                             'sub-account/apiKey': 1,
+                            'sub-account/futures': 1,
+                            'sub-account/margin': 1,
+                            'batchOrders': 1,
+                            'capital/withdraw/apply': 1,
+                            'capital/transfer': 1,
+                            'capital/deposit/address': 1,
+                            'capital/sub-account/universalTransfer': 1,
+                            'margin/tradeMode': 1,
+                            'margin/order': 1,
+                            'margin/loan': 1,
+                            'margin/repay': 1,
                         },
                         'delete': {
                             'order': 1,
                             'openOrders': 1,
                             'sub-account/apiKey': 1,
+                            'margin/order': 1,
+                            'margin/openOrders': 1,
                         },
                     },
                 },
@@ -207,6 +248,7 @@ class mexc3(Exchange):
                             'position/list/history_positions': 2,
                             'position/open_positions': 2,
                             'position/funding_records': 2,
+                            'position/position_mode': 2,
                             'order/list/open_orders/{symbol}': 2,
                             'order/list/history_orders': 2,
                             'order/external/{symbol}/{external_oid}': 2,
@@ -219,10 +261,12 @@ class mexc3(Exchange):
                             'stoporder/order_details/{stop_order_id}': 2,
                             'account/risk_limit': 2,  # TO_DO: gets max/min position size, allowed sides, leverage, maintenance margin, initial margin, etc...
                             'account/tiered_fee_rate': 2,  # TO_DO: taker/maker fees for account
+                            'position/leverage': 2,
                         },
                         'post': {
                             'position/change_margin': 2,
                             'position/change_leverage': 2,
+                            'position/change_position_mode': 2,
                             'order/submit': 2,
                             'order/submit_batch': 40,
                             'order/cancel': 2,
@@ -273,6 +317,7 @@ class mexc3(Exchange):
                         'post': {
                             'order/place': 1,
                             'order/place_batch': 1,
+                            'order/advanced/place_batch': 1,
                             'asset/withdraw': 2,
                             'asset/internal/transfer': 10,
                         },
@@ -306,8 +351,8 @@ class mexc3(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.2 / 100,  # maker / taker
-                    'taker': 0.2 / 100,
+                    'maker': self.parse_number('0.002'),  # maker / taker
+                    'taker': self.parse_number('0.002'),
                 },
             },
             'options': {
@@ -363,10 +408,8 @@ class mexc3(Exchange):
                 },
                 'defaultType': 'spot',  # spot, swap
                 'networks': {
-                    'TRX': 'TRC-20',
-                    'TRC20': 'TRC-20',
-                    'ETH': 'ERC-20',
-                    'ERC20': 'ERC-20',
+                    'TRX': 'TRC20',
+                    'ETH': 'ERC20',
                     'BEP20': 'BEP20(BSC)',
                     'BSC': 'BEP20(BSC)',
                 },
@@ -388,10 +431,12 @@ class mexc3(Exchange):
                 'FLUX1': 'FLUX',  # switched places
                 'FLUX': 'FLUX1',  # switched places
                 'FREE': 'FreeRossDAO',  # conflict with FREE Coin
+                'GMT': 'GMT Token',
                 'HERO': 'Step Hero',  # conflict with Metahero
                 'MIMO': 'Mimosa',
                 'PROS': 'Pros.Finance',  # conflict with Prosper
                 'SIN': 'Sin City Token',
+                'STEPN': 'GMT',
             },
             'exceptions': {
                 'exact': {
@@ -399,15 +444,22 @@ class mexc3(Exchange):
                     '-1128': BadRequest,
                     '-2011': BadRequest,
                     '-1121': BadSymbol,
+                    '10101': InsufficientFunds,  # {"msg":"资金不足","code":10101}
                     '2009': InvalidOrder,  # {"success":false,"code":2009,"message":"Position is not exists or closed."}
                     '2011': BadRequest,
                     '30004': InsufficientFunds,
+                    '33333': 'BadRequest',  # {"msg":"Not support transfer","code":33333}
                     '1002': InvalidOrder,
                     '30019': BadRequest,
                     '30005': InvalidOrder,
                     '2003': InvalidOrder,
                     '2005': InsufficientFunds,
                     '600': BadRequest,
+                    '70011': PermissionDenied,  # {"code":70011,"msg":"Pair user ban trade apikey."}
+                    '88004': InsufficientFunds,  # {"msg":"超出最大可借，最大可借币为:18.09833211","code":88004}
+                    '88009': ExchangeError,  # v3 {"msg":"Loan record does not exist","code":88009}
+                    '88013': InvalidOrder,  # {"msg":"最小交易额不能小于：5USDT","code":88013}
+                    '88015': InsufficientFunds,  # {"msg":"持仓不足","code":88015}
                 },
                 'broad': {
                     'Order quantity error, please try to modify.': BadRequest,  # code:2011
@@ -479,61 +531,83 @@ class mexc3(Exchange):
     async def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
+        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
         :param dict params: extra parameters specific to the mexc3 api endpoint
         :returns dict: an associative dictionary of currencies
         """
-        response = await self.spot2PublicGetMarketCoinList(params)
+        # self endpoint requires authentication
+        # while fetchCurrencies is a public API method by design
+        # therefore we check the keys here
+        # and fallback to generating the currencies from the markets
+        if not self.check_required_credentials(False):
+            return None
+        response = await self.spotPrivateGetCapitalConfigGetall(params)
         #
-        #     {
-        #         "code":200,
-        #         "data":[
-        #             {
-        #                 "currency":"AGLD",
-        #                 "coins":[
-        #                     {
-        #                         "chain":"ERC20",
-        #                         "precision":18,
-        #                         "fee":8.09,
-        #                         "is_withdraw_enabled":true,
-        #                         "is_deposit_enabled":true,
-        #                         "deposit_min_confirm":16,
-        #                         "withdraw_limit_max":500000.0,
-        #                         "withdraw_limit_min":14.0
-        #                     }
-        #                 ],
-        #                 "full_name":"Adventure Gold"
-        #             },
-        #         ]
-        #     }
+        # {
+        #     coin: 'QANX',
+        #     name: 'QANplatform',
+        #     networkList: [
+        #       {
+        #         coin: 'QANX',
+        #         depositDesc: null,
+        #         depositEnable: True,
+        #         minConfirm: '0',
+        #         name: 'QANplatform',
+        #         network: 'BEP20(BSC)',
+        #         withdrawEnable: False,
+        #         withdrawFee: '42.000000000000000000',
+        #         withdrawIntegerMultiple: null,
+        #         withdrawMax: '24000000.000000000000000000',
+        #         withdrawMin: '20.000000000000000000',
+        #         sameAddress: False,
+        #         contract: '0xAAA7A10a8ee237ea61E8AC46C50A8Db8bCC1baaa'
+        #       },
+        #       {
+        #         coin: 'QANX',
+        #         depositDesc: null,
+        #         depositEnable: True,
+        #         minConfirm: '0',
+        #         name: 'QANplatform',
+        #         network: 'ERC20',
+        #         withdrawEnable: True,
+        #         withdrawFee: '2732.000000000000000000',
+        #         withdrawIntegerMultiple: null,
+        #         withdrawMax: '24000000.000000000000000000',
+        #         withdrawMin: '240.000000000000000000',
+        #         sameAddress: False,
+        #         contract: '0xAAA7A10a8ee237ea61E8AC46C50A8Db8bCC1baaa'
+        #       }
+        #     ]
+        #   }
         #
-        data = self.safe_value(response, 'data', [])
         result = {}
-        for i in range(0, len(data)):
-            currency = data[i]
-            id = self.safe_string(currency, 'currency')
+        for i in range(0, len(response)):
+            currency = response[i]
+            id = self.safe_string(currency, 'coin')
             code = self.safe_currency_code(id)
-            name = self.safe_string(currency, 'full_name')
+            name = self.safe_string(currency, 'name')
             currencyActive = False
-            currencyPrecision = None
             currencyFee = None
             currencyWithdrawMin = None
             currencyWithdrawMax = None
-            networks = {}
-            chains = self.safe_value(currency, 'coins', [])
             depositEnabled = False
             withdrawEnabled = False
+            networks = {}
+            chains = self.safe_value(currency, 'networkList', [])
             for j in range(0, len(chains)):
                 chain = chains[j]
-                networkId = self.safe_string(chain, 'chain')
+                networkId = self.safe_string(chain, 'network')
                 network = self.safe_network(networkId)
-                isDepositEnabled = self.safe_value(chain, 'is_deposit_enabled', False)
-                isWithdrawEnabled = self.safe_value(chain, 'is_withdraw_enabled', False)
+                isDepositEnabled = self.safe_value(chain, 'depositEnable', False)
+                isWithdrawEnabled = self.safe_value(chain, 'withdrawEnable', False)
                 active = (isDepositEnabled and isWithdrawEnabled)
                 currencyActive = active or currencyActive
-                withdrawMin = self.safe_string(chain, 'withdraw_limit_min')
-                withdrawMax = self.safe_string(chain, 'withdraw_limit_max')
+                withdrawMin = self.safe_string(chain, 'withdrawMin')
+                withdrawMax = self.safe_string(chain, 'withdrawMax')
                 currencyWithdrawMin = withdrawMin if (currencyWithdrawMin is None) else currencyWithdrawMin
                 currencyWithdrawMax = withdrawMax if (currencyWithdrawMax is None) else currencyWithdrawMax
+                fee = self.safe_number(chain, 'withdrawFee')
+                currencyFee = fee if (currencyFee is None) else currencyFee
                 if Precise.string_gt(currencyWithdrawMin, withdrawMin):
                     currencyWithdrawMin = withdrawMin
                 if Precise.string_lt(currencyWithdrawMax, withdrawMax):
@@ -550,7 +624,7 @@ class mexc3(Exchange):
                     'deposit': isDepositEnabled,
                     'withdraw': isWithdrawEnabled,
                     'fee': self.safe_number(chain, 'fee'),
-                    'precision': self.parse_number(self.parse_precision(self.safe_string(chain, 'precision'))),
+                    'precision': None,
                     'limits': {
                         'withdraw': {
                             'min': withdrawMin,
@@ -564,17 +638,16 @@ class mexc3(Exchange):
                 defaultNetwork = self.safe_value_2(networks, 'NONE', networkKeysLength - 1)
                 if defaultNetwork is not None:
                     currencyFee = defaultNetwork['fee']
-                    currencyPrecision = defaultNetwork['precision']
             result[code] = {
+                'info': currency,
                 'id': id,
                 'code': code,
-                'info': currency,
                 'name': name,
                 'active': currencyActive,
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': currencyFee,
-                'precision': currencyPrecision,
+                'precision': None,
                 'limits': {
                     'amount': {
                         'min': None,
@@ -643,11 +716,11 @@ class mexc3(Exchange):
         #                    "MARGIN"
         #                ],
         #                "filters": [],
-        #                "baseSizePrecision": "0.01",  # seems to be derived of 'baseAssetPrecision'
+        #                "baseSizePrecision": "0.01",  # self turned out to be a minimum base amount for order
         #                "maxQuoteAmount": "5000000",
         #                "makerCommission": "0.002",
         #                "takerCommission": "0.002"
-        #                "quoteAmountPrecision": "5",  # seem totally unrelated value, as neither quote/base have anything related to self number
+        #                "quoteAmountPrecision": "5",  # self turned out to be a minimum cost amount for order
         #                "quotePrecision": "4",  # deprecated in favor of 'quoteAssetPrecision'( https://dev.binance.vision/t/what-is-the-difference-between-quoteprecision-and-quoteassetprecision/4333 )
         #                # note, "icebergAllowed" & "ocoAllowed" fields were recently removed
         #            },
@@ -667,6 +740,11 @@ class mexc3(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             status = self.safe_string(market, 'status')
+            isSpotTradingAllowed = self.safe_value(market, 'isSpotTradingAllowed')
+            active = False
+            if (status == 'ENABLED') and (isSpotTradingAllowed):
+                active = True
+            isMarginTradingAllowed = self.safe_value(market, 'isMarginTradingAllowed')
             makerCommission = self.safe_number(market, 'makerCommission')
             takerCommission = self.safe_number(market, 'takerCommission')
             maxQuoteAmount = self.safe_number(market, 'maxQuoteAmount')
@@ -681,11 +759,11 @@ class mexc3(Exchange):
                 'settleId': None,
                 'type': 'spot',
                 'spot': True,
-                'margin': False,
+                'margin': isMarginTradingAllowed,
                 'swap': False,
                 'future': False,
                 'option': False,
-                'active': (status == 'ENABLED'),
+                'active': active,
                 'contract': False,
                 'linear': None,
                 'inverse': None,
@@ -706,7 +784,7 @@ class mexc3(Exchange):
                         'max': None,
                     },
                     'amount': {
-                        'min': None,
+                        'min': self.safe_number(market, 'baseSizePrecision'),
                         'max': None,
                     },
                     'price': {
@@ -714,7 +792,7 @@ class mexc3(Exchange):
                         'max': None,
                     },
                     'cost': {
-                        'min': None,
+                        'min': self.safe_number(market, 'quoteAmountPrecision'),
                         'max': maxQuoteAmount,
                     },
                 },
@@ -1062,7 +1140,7 @@ class mexc3(Exchange):
                 amountString = self.safe_string(trade, 'vol')
                 side = self.parse_order_side(self.safe_string(trade, 'side'))
                 fee = {
-                    'cost': self.safe_number(trade, 'fee'),
+                    'cost': self.safe_string(trade, 'fee'),
                     'currency': self.safe_currency_code(self.safe_string(trade, 'feeCurrency')),
                 }
                 takerOrMaker = 'taker' if self.safe_value(trade, 'taker') else 'maker'
@@ -1083,7 +1161,7 @@ class mexc3(Exchange):
                 feeAsset = self.safe_string(trade, 'commissionAsset')
                 if feeAsset is not None:
                     fee = {
-                        'cost': self.safe_number(trade, 'commission'),
+                        'cost': self.safe_string(trade, 'commission'),
                         'currency': self.safe_currency_code(feeAsset),
                     }
         if id is None:
@@ -1510,16 +1588,18 @@ class mexc3(Exchange):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the mexc3 api endpoint
+        :param str|None params['marginMode']: only 'isolated' is supported for spot-margin trading
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
+        marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
         if market['spot']:
-            return await self.create_spot_order(market, type, side, amount, price, params)
+            return await self.create_spot_order(market, type, side, amount, price, marginMode, query)
         elif market['swap']:
-            return await self.create_swap_order(market, type, side, amount, price, params)
+            return await self.create_swap_order(market, type, side, amount, price, marginMode, query)
 
-    async def create_spot_order(self, market, type, side, amount, price=None, params={}):
+    async def create_spot_order(self, market, type, side, amount, price=None, marginMode=None, params={}):
         symbol = market['symbol']
         orderSide = 'BUY' if (side == 'buy') else 'SELL'
         request = {
@@ -1535,7 +1615,10 @@ class mexc3(Exchange):
                 if price is None:
                     raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
                 else:
-                    amount = amount * price
+                    amountString = self.number_to_string(amount)
+                    priceString = self.number_to_string(price)
+                    quoteAmount = Precise.string_mul(amountString, priceString)
+                    amount = self.parse_number(quoteAmount)
             request['quoteOrderQty'] = amount
         else:
             request['quantity'] = self.amount_to_precision(symbol, amount)
@@ -1545,7 +1628,12 @@ class mexc3(Exchange):
         if clientOrderId is not None:
             request['newClientOrderId'] = clientOrderId
             params = self.omit(params, ['type', 'clientOrderId'])
-        response = await self.spotPrivatePostOrder(self.extend(request, params))
+        method = 'spotPrivatePostOrder'
+        if marginMode is not None:
+            if marginMode != 'isolated':
+                raise BadRequest(self.id + ' createOrder() does not support marginMode ' + marginMode + ' for spot-margin trading')
+            method = 'spotPrivatePostMarginOrder'
+        response = await getattr(self, method)(self.extend(request, params))
         #
         # spot
         #
@@ -1555,6 +1643,16 @@ class mexc3(Exchange):
         #         "orderListId": -1
         #     }
         #
+        # margin
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "orderId": "762634301354414080",
+        #         "clientOrderId": null,
+        #         "isIsolated": True,
+        #         "transactTime": 1661992652132
+        #     }
+        #
         return self.extend(self.parse_order(response, market), {
             'side': side,
             'type': type,
@@ -1562,7 +1660,7 @@ class mexc3(Exchange):
             'amount': amount,
         })
 
-    async def create_swap_order(self, market, type, side, amount, price=None, params={}):
+    async def create_swap_order(self, market, type, side, amount, price=None, marginMode=None, params={}):
         await self.load_markets()
         symbol = market['symbol']
         unavailableContracts = self.safe_value(self.options, 'unavailableContracts', {})
@@ -1570,14 +1668,13 @@ class mexc3(Exchange):
         if isContractUnavaiable:
             raise NotSupported(self.id + ' createSwapOrder() does not support yet self symbol:' + symbol)
         openType = None
-        marginType = self.safe_string_lower(params, 'margin')
-        if marginType is not None:
-            if marginType == 'cross':
+        if marginMode is not None:
+            if marginMode == 'cross':
                 openType = 2
-            elif marginType == 'isolated':
+            elif marginMode == 'isolated':
                 openType = 1
             else:
-                raise ArgumentsRequired(self.id + ' createSwapOrder() margin parameter should be either "cross" or "isolated"')
+                raise ArgumentsRequired(self.id + ' createSwapOrder() marginMode parameter should be either "cross" or "isolated"')
         else:
             openType = self.safe_integer(params, 'openType', 2)  # defaulting to cross margin
         if (type != 'limit') and (type != 'market') and (type != 1) and (type != 2) and (type != 3) and (type != 4) and (type != 5) and (type != 6):
@@ -1589,15 +1686,12 @@ class mexc3(Exchange):
             type = 1
         elif type == 'market':
             type = 6
-        # TODO: side not unified
-        if (side != 1) and (side != 2) and (side != 3) and (side != 4):
-            raise InvalidOrder(self.id + ' createSwapOrder() order side must be 1 open long, 2 close short, 3 open short or 4 close long')
         request = {
             'symbol': market['id'],
             # 'price': float(self.price_to_precision(symbol, price)),
             'vol': float(self.amount_to_precision(symbol, amount)),
             # 'leverage': int,  # required for isolated margin
-            'side': side,  # 1 open long, 2 close short, 3 open short, 4 close long
+            # 'side': side,  # 1 open long, 2 close short, 3 open short, 4 close long
             #
             # supported order types
             #
@@ -1634,6 +1728,11 @@ class mexc3(Exchange):
             leverage = self.safe_integer(params, 'leverage')
             if leverage is None:
                 raise ArgumentsRequired(self.id + ' createSwapOrder() requires a leverage parameter for isolated margin orders')
+        reduceOnly = self.safe_value(params, 'reduceOnly', False)
+        if reduceOnly:
+            request['side'] = 2 if (side == 'buy') else 4
+        else:
+            request['side'] = 1 if (side == 'buy') else 3
         clientOrderId = self.safe_string_2(params, 'clientOrderId', 'externalOid')
         if clientOrderId is not None:
             request['externalOid'] = clientOrderId
@@ -1654,6 +1753,7 @@ class mexc3(Exchange):
         fetches information on an order made by the user
         :param str symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the mexc3 api endpoint
+        :param str|None params['marginMode']: only 'isolated' is supported, for spot-margin trading
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
@@ -1671,7 +1771,15 @@ class mexc3(Exchange):
                 request['origClientOrderId'] = clientOrderId
             else:
                 request['orderId'] = id
-            data = await self.spotPrivateGetOrder(self.extend(request, params))
+            marginMode, query = self.handle_margin_mode_and_params('fetchOrder', params)
+            method = 'spotPrivateGetOrder'
+            if marginMode is not None:
+                if marginMode != 'isolated':
+                    raise BadRequest(self.id + ' fetchOrder() does not support marginMode ' + marginMode + ' for spot-margin trading')
+                method = 'spotPrivateGetMarginOrder'
+            data = await getattr(self, method)(self.extend(request, query))
+            #
+            # spot
             #
             #     {
             #         "symbol": "BTCUSDT",
@@ -1692,6 +1800,26 @@ class mexc3(Exchange):
             #         "updateTime": "1647708567000",
             #         "isWorking": True,
             #         "origQuoteOrderQty": "6"
+            #     }
+            #
+            # margin
+            #
+            #     {
+            #         "symbol": "BTCUSDT",
+            #         "orderId": "763307297891028992",
+            #         "orderListId": "-1",
+            #         "clientOrderId": null,
+            #         "price": "18000",
+            #         "origQty": "0.0014",
+            #         "executedQty": "0",
+            #         "cummulativeQuoteQty": "0",
+            #         "status": "NEW",
+            #         "type": "LIMIT",
+            #         "side": "BUY",
+            #         "isIsolated": True,
+            #         "isWorking": True,
+            #         "time": 1662153107000,
+            #         "updateTime": 1662153107000
             #     }
             #
         elif market['swap']:
@@ -1739,7 +1867,8 @@ class mexc3(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :param str|None params['marginMode']: only 'isolated' is supported, for spot-margin trading
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         request = {}
@@ -1750,12 +1879,20 @@ class mexc3(Exchange):
         marketType, query = self.handle_market_type_and_params('fetchOrders', market, params)
         if marketType == 'spot':
             if symbol is None:
-                raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument for spot market')
+                raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument for spot market')
+            marginMode, query = self.handle_margin_mode_and_params('fetchOrders', params)
+            method = 'spotPrivateGetAllOrders'
+            if marginMode is not None:
+                if marginMode != 'isolated':
+                    raise BadRequest(self.id + ' fetchOrders() does not support marginMode ' + marginMode + ' for spot-margin trading')
+                method = 'spotPrivateGetMarginAllOrders'
             if since is not None:
                 request['startTime'] = since
             if limit is not None:
                 request['limit'] = limit
-            response = await self.spotPrivateGetAllOrders(self.extend(request, query))
+            response = await getattr(self, method)(self.extend(request, query))
+            #
+            # spot
             #
             #     [
             #         {
@@ -1780,6 +1917,28 @@ class mexc3(Exchange):
             #         },
             #     ]
             #
+            # margin
+            #
+            #     [
+            #         {
+            #             "symbol": "BTCUSDT",
+            #             "orderId": "763307297891028992",
+            #             "orderListId": "-1",
+            #             "clientOrderId": null,
+            #             "price": "18000",
+            #             "origQty": "0.0014",
+            #             "executedQty": "0",
+            #             "cummulativeQuoteQty": "0",
+            #             "status": "NEW",
+            #             "type": "LIMIT",
+            #             "side": "BUY",
+            #             "isIsolated": True,
+            #             "isWorking": True,
+            #             "time": 1662153107000,
+            #             "updateTime": 1662153107000
+            #         }
+            #     ]
+            #
             return self.parse_orders(response, market, since, limit)
         else:
             if since is not None:
@@ -1789,7 +1948,7 @@ class mexc3(Exchange):
                     request['end_time'] = self.sum(since, self.options['maxTimeTillEnd'])
             if limit is not None:
                 request['page_size'] = limit
-            method = self.safe_string(self.options, 'cancelOrder', 'contractPrivateGetOrderListHistoryOrders')  # contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
+            method = self.safe_string(self.options, 'fetchOrders', 'contractPrivateGetOrderListHistoryOrders')
             method = self.safe_string(query, 'method', method)
             ordersOfRegular = []
             ordersOfTrigger = []
@@ -1920,6 +2079,7 @@ class mexc3(Exchange):
         :param int|None since: the earliest time in ms to fetch open orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the mexc3 api endpoint
+        :param str|None params['marginMode']: only 'isolated' is supported, for spot-margin trading
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
@@ -1928,11 +2088,18 @@ class mexc3(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        marketType, query = self.handle_market_type_and_params('fetchOpenOrders', market, params)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchOpenOrders', market, params)
         if marketType == 'spot':
             if symbol is None:
-                raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument for spot market')
-            response = await self.spotPrivateGetOpenOrders(self.extend(request, query))
+                raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument for spot market')
+            method = 'spotPrivateGetOpenOrders'
+            marginMode, query = self.handle_margin_mode_and_params('fetchOpenOrders', params)
+            if marginMode is not None:
+                if marginMode != 'isolated':
+                    raise BadRequest(self.id + ' fetchOpenOrders() does not support marginMode ' + marginMode + ' for spot-margin trading')
+                method = 'spotPrivateGetMarginOpenOrders'
+            response = await getattr(self, method)(self.extend(request, query))
             #
             # spot
             #
@@ -1959,6 +2126,28 @@ class mexc3(Exchange):
             #         }
             #     ]
             #
+            # margin
+            #
+            #     [
+            #         {
+            #             "symbol": "BTCUSDT",
+            #             "orderId": "764547676405633024",
+            #             "orderListId": "-1",
+            #             "clientOrderId": null,
+            #             "price": "18000",
+            #             "origQty": "0.0013",
+            #             "executedQty": "0",
+            #             "cummulativeQuoteQty": "0",
+            #             "status": "NEW",
+            #             "type": "LIMIT",
+            #             "side": "BUY",
+            #             "isIsolated": True,
+            #             "isWorking": True,
+            #             "time": 1662448836000,
+            #             "updateTime": 1662448836000
+            #         }
+            #     ]
+            #
             return self.parse_orders(response, market, since, limit)
         else:
             # TO_DO: another possible way is through: open_orders/{symbol}, but as they have same ratelimits, and less granularity, i think historical orders are more convenient, as it supports more params(however, theoretically, open-orders endpoint might be sligthly fast)
@@ -1971,7 +2160,7 @@ class mexc3(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the mexc3 api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         return await self.fetch_orders_by_state(3, symbol, since, limit, params)
 
@@ -2006,6 +2195,7 @@ class mexc3(Exchange):
         :param str id: order id
         :param str|None symbol: unified symbol of the market the order was made in
         :param dict params: extra parameters specific to the mexc3 api endpoint
+        :param str|None params['marginMode']: only 'isolated' is supported for spot-margin trading
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
@@ -2014,7 +2204,9 @@ class mexc3(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['symbol'] = market['id']
-        marketType, query = self.handle_market_type_and_params('cancelOrder', market, params)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('cancelOrder', market, params)
+        marginMode, query = self.handle_margin_mode_and_params('cancelOrder', params)
         data = None
         if marketType == 'spot':
             if symbol is None:
@@ -2028,7 +2220,14 @@ class mexc3(Exchange):
                 request['origClientOrderId'] = clientOrderId
             else:
                 request['orderId'] = id
-            data = await self.spotPrivateDeleteOrder(self.extend(request, params))
+            method = 'spotPrivateDeleteOrder'
+            if marginMode is not None:
+                if marginMode != 'isolated':
+                    raise BadRequest(self.id + ' cancelOrder() does not support marginMode ' + marginMode + ' for spot-margin trading')
+                method = 'spotPrivateDeleteMarginOrder'
+            data = await getattr(self, method)(self.extend(request, query))
+            #
+            # spot
             #
             #     {
             #         "symbol": "BTCUSDT",
@@ -2038,6 +2237,28 @@ class mexc3(Exchange):
             #         "type": "LIMIT",
             #         "side": "BUY"
             #     }
+            #
+            # margin
+            #
+            #     [
+            #         {
+            #             "symbol": "BTCUSDT",
+            #             "orderId": "762640232574226432",
+            #             "orderListId": "-1",
+            #             "clientOrderId": null,
+            #             "price": "18000",
+            #             "origQty": "0.00147",
+            #             "executedQty": "0",
+            #             "cummulativeQuoteQty": "0",
+            #             "status": "NEW",
+            #             "type": "LIMIT",
+            #             "side": "BUY",
+            #             "isIsolated": True,
+            #             "isWorking": True,
+            #             "time": 1661994066000,
+            #             "updateTime": 1661994066000
+            #         }
+            #     ]
             #
         else:
             # TODO: PlanorderCancel endpoint has bug atm. waiting for fix.
@@ -2073,7 +2294,7 @@ class mexc3(Exchange):
         :returns dict: an list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
-        market = symbol is not self.market(symbol) if None else None
+        market = self.market(symbol) if (symbol is not None) else None
         marketType = self.handle_market_type_and_params('cancelOrders', market, params)
         if marketType == 'spot':
             raise BadRequest(self.id + ' cancelOrders() is not supported for ' + marketType)
@@ -2100,17 +2321,27 @@ class mexc3(Exchange):
         cancel all open orders
         :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
         :param dict params: extra parameters specific to the mexc3 api endpoint
+        :param str|None params['marginMode']: only 'isolated' is supported for spot-margin trading
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
-        market = symbol is not self.market(symbol) if None else None
+        market = self.market(symbol) if (symbol is not None) else None
         request = {}
-        marketType, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('cancelAllOrders', market, params)
+        marginMode, query = self.handle_margin_mode_and_params('cancelAllOrders', params)
         if marketType == 'spot':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a symbol argument on spot')
             request['symbol'] = market['id']
-            response = await self.spotPrivateDeleteOpenOrders(self.extend(request, query))
+            method = 'spotPrivateDeleteOpenOrders'
+            if marginMode is not None:
+                if marginMode != 'isolated':
+                    raise BadRequest(self.id + ' cancelAllOrders() does not support marginMode ' + marginMode + ' for spot-margin trading')
+                method = 'spotPrivateDeleteMarginOpenOrders'
+            response = await getattr(self, method)(self.extend(request, query))
+            #
+            # spot
             #
             #     [
             #         {
@@ -2121,6 +2352,28 @@ class mexc3(Exchange):
             #             "type": "LIMIT",
             #             "side": "BUY"
             #         },
+            #     ]
+            #
+            # margin
+            #
+            #     [
+            #         {
+            #             "symbol": "BTCUSDT",
+            #             "orderId": "762640232574226432",
+            #             "orderListId": "-1",
+            #             "clientOrderId": null,
+            #             "price": "18000",
+            #             "origQty": "0.00147",
+            #             "executedQty": "0",
+            #             "cummulativeQuoteQty": "0",
+            #             "status": "NEW",
+            #             "type": "LIMIT",
+            #             "side": "BUY",
+            #             "isIsolated": True,
+            #             "isWorking": True,
+            #             "time": 1661994066000,
+            #             "updateTime": 1661994066000
+            #         }
             #     ]
             #
             return self.parse_orders(response, market)
@@ -2145,7 +2398,21 @@ class mexc3(Exchange):
         #
         # spot: createOrder
         #
-        #     {"symbol": "BTCUSDT", "orderId": "123738410679123456", "orderListId": -1}
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "orderId": "123738410679123456",
+        #         "orderListId": -1
+        #     }
+        #
+        # margin: createOrder
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "orderId": "762634301354414080",
+        #         "clientOrderId": null,
+        #         "isIsolated": True,
+        #         "transactTime": 1661992652132
+        #     }
         #
         # spot: cancelOrder, cancelAllOrders
         #
@@ -2158,7 +2425,28 @@ class mexc3(Exchange):
         #         "side": "BUY"
         #     }
         #
+        # margin: cancelOrder, cancelAllOrders
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "orderId": "762640232574226432",
+        #         "orderListId": "-1",
+        #         "clientOrderId": null,
+        #         "price": "18000",
+        #         "origQty": "0.00147",
+        #         "executedQty": "0",
+        #         "cummulativeQuoteQty": "0",
+        #         "status": "NEW",
+        #         "type": "LIMIT",
+        #         "side": "BUY",
+        #         "isIsolated": True,
+        #         "isWorking": True,
+        #         "time": 1661994066000,
+        #         "updateTime": 1661994066000
+        #     }
+        #
         # spot: fetchOrder, fetchOpenOrders, fetchOrders
+        #
         #     {
         #         "symbol": "BTCUSDT",
         #         "orderId": "133734823834147272",
@@ -2178,6 +2466,26 @@ class mexc3(Exchange):
         #         "updateTime": "1647708567000",
         #         "isWorking": True,
         #         "origQuoteOrderQty": "6"
+        #     }
+        #
+        # margin: fetchOrder, fetchOrders
+        #
+        #     {
+        #         "symbol": "BTCUSDT",
+        #         "orderId": "763307297891028992",
+        #         "orderListId": "-1",
+        #         "clientOrderId": null,
+        #         "price": "18000",
+        #         "origQty": "0.0014",
+        #         "executedQty": "0",
+        #         "cummulativeQuoteQty": "0",
+        #         "status": "NEW",
+        #         "type": "LIMIT",
+        #         "side": "BUY",
+        #         "isIsolated": True,
+        #         "isWorking": True,
+        #         "time": 1662153107000,
+        #         "updateTime": 1662153107000
         #     }
         #
         # swap: createOrder
@@ -2242,7 +2550,7 @@ class mexc3(Exchange):
             id = self.safe_string_2(order, 'orderId', 'id')
         marketId = self.safe_string(order, 'symbol')
         market = self.safe_market(marketId, market)
-        timestamp = self.safe_integer_2(order, 'time', 'createTime')
+        timestamp = self.safe_integer_n(order, ['time', 'createTime', 'transactTime'])
         fee = None
         feeCurrency = self.safe_string(order, 'feeCurrency')
         if feeCurrency is not None:
@@ -2348,7 +2656,7 @@ class mexc3(Exchange):
             #     }
             #
         elif type == 'swap':
-            response = self.contractPrivateGetAccountAssets(params)
+            response = await self.contractPrivateGetAccountAssets(params)
             #
             #     {
             #         "success":true,
@@ -2742,7 +3050,7 @@ class mexc3(Exchange):
         result = []
         for i in range(0, len(resultList)):
             entry = resultList[i]
-            timestamp = self.safe_string(entry, 'settleTime')
+            timestamp = self.safe_integer(entry, 'settleTime')
             result.append({
                 'info': entry,
                 'symbol': symbol,
@@ -2781,12 +3089,12 @@ class mexc3(Exchange):
             'estimatedSettlePrice': None,
             'timestamp': timestamp,
             'datetime': datetime,
-            'fundingRate': None,
-            'fundingTimestamp': None,
-            'fundingDatetime': None,
-            'nextFundingRate': nextFundingRate,
-            'nextFundingTimestamp': nextFundingTimestamp,
-            'nextFundingDatetime': self.iso8601(nextFundingTimestamp),
+            'fundingRate': nextFundingRate,
+            'fundingTimestamp': nextFundingTimestamp,
+            'fundingDatetime': self.iso8601(nextFundingTimestamp),
+            'nextFundingRate': None,
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
             'previousFundingRate': None,
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
@@ -2875,7 +3183,7 @@ class mexc3(Exchange):
             entry = result[i]
             marketId = self.safe_string(entry, 'symbol')
             symbol = self.safe_symbol(marketId)
-            timestamp = self.safe_string(entry, 'settleTime')
+            timestamp = self.safe_integer(entry, 'settleTime')
             rates.append({
                 'info': entry,
                 'symbol': symbol,
@@ -3033,6 +3341,7 @@ class mexc3(Exchange):
     async def fetch_deposit_addresses_by_network(self, code, params={}):
         """
         fetch a dictionary of addresses for a currency, indexed by network
+        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
         :param str code: unified currency code of the currency for the deposit address
         :param dict params: extra parameters specific to the mexc3 api endpoint
         :returns dict: a dictionary of `address structures <https://docs.ccxt.com/en/latest/manual.html#address-structure>` indexed by the network
@@ -3040,35 +3349,30 @@ class mexc3(Exchange):
         await self.load_markets()
         currency = self.currency(code)
         request = {
-            'currency': currency['id'],
+            'coin': currency['id'],
         }
-        response = await self.spot2PrivateGetAssetDepositAddressList(self.extend(request, params))
-        #
-        #     {
-        #         "code":200,
-        #         "data":{
-        #             "currency":"USDC",
-        #             "chains":[
-        #                 {"chain":"ERC-20","address":"0x55cbd73db24eafcca97369e3f2db74b2490586e6"},
-        #                 {"chain":"MATIC","address":"0x05aa3236f1970eae0f8feb17ec19435b39574d74"},
-        #                 {"chain":"TRC20","address":"TGaPfhW41EXD3sAfs1grLF6DKfugfqANNw"},
-        #                 {"chain":"SOL","address":"5FSpUKuh2gjw4mF89T2e7sEjzUA1SkRKjBChFqP43KhV"},
-        #                 {"chain":"ALGO","address":"B3XTZND2JJTSYR7R2TQVCUDT4QSSYVAIZYDPWVBX34DGAYATBU3AUV43VU"}
-        #             ]
-        #         }
-        #     }
-        #
-        data = self.safe_value(response, 'data', {})
-        chains = self.safe_value(data, 'chains', [])
-        depositAddresses = []
-        for i in range(0, len(chains)):
-            depositAddress = self.parse_deposit_address(chains[i], currency)
-            depositAddresses.append(depositAddress)
-        return self.index_by(depositAddresses, 'network')
+        response = await self.spotPrivateGetCapitalDepositAddress(self.extend(request, params))
+        result = []
+        for i in range(0, len(response)):
+            depositAddress = response[i]
+            coin = self.safe_string(depositAddress, 'coin')
+            currency = self.currency(coin)
+            networkId = self.safe_string(depositAddress, 'network')
+            network = self.safe_network(networkId)
+            address = self.safe_string(depositAddress, 'address', None)
+            tag = self.safe_string(depositAddress, 'tag', None)
+            result.append({
+                'currency': currency['id'],
+                'network': network,
+                'address': address,
+                'tag': tag,
+            })
+        return result
 
     async def fetch_deposit_address(self, code, params={}):
         """
         fetch the deposit address for a currency associated with self account
+        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-network
         :param str code: unified currency code
         :param dict params: extra parameters specific to the mexc3 api endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
@@ -3076,175 +3380,153 @@ class mexc3(Exchange):
         rawNetwork = self.safe_string_upper(params, 'network')
         params = self.omit(params, 'network')
         response = await self.fetch_deposit_addresses_by_network(code, params)
-        networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string(networks, rawNetwork, rawNetwork)
-        result = None
-        if network is None:
-            result = self.safe_value(response, code)
-            if result is None:
-                alias = self.safe_string(networks, code, code)
-                result = self.safe_value(response, alias)
-                if result is None:
-                    defaultNetwork = self.safe_string(self.options, 'defaultNetwork', 'ERC20')
-                    result = self.safe_value(response, defaultNetwork)
-                    if result is None:
-                        values = list(response.values())
-                        result = self.safe_value(values, 0)
-                        if result is None:
-                            raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find deposit address for ' + code)
-            return result
-        # TODO: add support for all aliases here
-        result = self.safe_value(response, rawNetwork)
+        if rawNetwork is not None:
+            for i in range(0, len(response)):
+                depositAddress = response[i]
+                network = self.safe_string_upper(depositAddress, 'network')
+                if rawNetwork == network:
+                    return depositAddress
+        result = self.safe_value(response, 0)
         if result is None:
-            raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code)
+            raise InvalidAddress(self.id + ' fetchDepositAddress() cannot find a deposit address for ' + code + ', consider creating one using the MEXC platform')
         return result
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         """
         fetch all deposits made to an account
-        :param str|None code: unified currency code
+        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-history-supporting-network
+        :param str code: unified currency code
         :param int|None since: the earliest time in ms to fetch deposits for
         :param int|None limit: the maximum number of deposits structures to retrieve
         :param dict params: extra parameters specific to the mexc3 api endpoint
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchDeposits() requires a currency code argument')
         await self.load_markets()
         request = {
-            # 'currency': currency['id'] + network example: USDT-TRX,
-            # 'state': 'state',
-            # 'start_time': since,  # default 1 day
-            # 'end_time': self.milliseconds(),
-            # 'page_num': 1,
-            # 'page_size': limit,  # default 20, maximum 50
+            # 'coin': currency['id'] + network example: USDT-TRX,
+            # 'status': 'status',
+            # 'startTime': since,  # default 90 days
+            # 'endTime': self.milliseconds(),
+            # 'limit': limit,  # default 1000, maximum 1000
         }
         currency = None
-        if code is not None:
-            rawNetwork = self.safe_string(params, 'network')
-            params = self.omit(params, 'network')
-            if rawNetwork is None:
-                raise ArgumentsRequired(self.id + ' fetchDeposits() requires a network parameter when the currency is specified')
-            # currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
-            # due to that I'm applying the network parameter directly so the user can control it on its side
-            currency = self.currency(code)
-            request['currency'] = currency['id'] + '-' + rawNetwork
+        rawNetwork = self.safe_string(params, 'network')
+        params = self.omit(params, 'network')
+        if rawNetwork is None:
+            raise ArgumentsRequired(self.id + ' fetchDeposits() requires a network parameter when the currency is specified')
+        # currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
+        # due to that I'm applying the network parameter directly so the user can control it on its side
+        currency = self.currency(code)
+        request['coin'] = currency['id'] + '-' + rawNetwork
         if since is not None:
-            request['start_time'] = since
+            request['startTime'] = since
         if limit is not None:
+            if limit > 1000:
+                raise ExchangeError('This exchange supports a maximum limit of 1000')
             request['limit'] = limit
-        response = await self.spot2PrivateGetAssetDepositList(self.extend(request, params))
+        response = await self.spotPrivateGetCapitalDepositHisrec(self.extend(request, params))
         #
+        # [
         #     {
-        #         "code":200,
-        #         "data":{
-        #             "page_size":20,
-        #             "total_page":1,
-        #             "total_size":1,
-        #             "page_num":1,
-        #             "result_list":[
-        #                 {
-        #                     "currency":"USDC",
-        #                     "amount":150.0,
-        #                     "fee":0.0,
-        #                     "confirmations":19,
-        #                     "address":"0x55cbd73db24eafcca97369e3f2db74b2490586e6",
-        #                     "state":"SUCCESS",
-        #                     "tx_id":"0xc65a9b09e1b71def81bf8bb3ec724c0c1b2b4c82200c8c142e4ea4c1469fd789:0",
-        #                     "require_confirmations":12,
-        #                     "create_time":"2021-10-11T18:58:25.000+00:00",
-        #                     "update_time":"2021-10-11T19:01:06.000+00:00"
-        #                 }
-        #             ]
-        #         }
+        #         amount: '10',
+        #         coin: 'USDC-TRX',
+        #         network: 'TRX',
+        #         status: '5',
+        #         address: 'TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh',
+        #         addressTag: null,
+        #         txId: '51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b',
+        #         insertTime: '1664805021000',
+        #         unlockConfirm: '200',
+        #         confirmTimes: '203'
         #     }
+        # ]
         #
-        data = self.safe_value(response, 'data', {})
-        resultList = self.safe_value(data, 'result_list', [])
-        return self.parse_transactions(resultList, code, since, limit)
+        return self.parse_transactions(response, currency, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
         """
         fetch all withdrawals made from an account
-        :param str|None code: unified currency code
+        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#withdraw-history-supporting-network
+        :param str code: unified currency code
         :param int|None since: the earliest time in ms to fetch withdrawals for
         :param int|None limit: the maximum number of withdrawals structures to retrieve
         :param dict params: extra parameters specific to the mexc3 api endpoint
         :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
         """
+        if code is None:
+            raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a currency code argument')
         await self.load_markets()
         request = {
-            # 'withdrawal_id': '4b450616042a48c99dd45cacb4b092a7',  # string
-            # 'currency': currency['id'],
-            # 'state': 'state',
-            # 'start_time': since,  # default 1 day
-            # 'end_time': self.milliseconds(),
-            # 'page_num': 1,
-            # 'page_size': limit,  # default 20, maximum 50
+            # 'coin': currency['id'],
+            # 'status': 'status',
+            # 'startTime': since,  # default 90 days
+            # 'endTime': self.milliseconds(),
+            # 'limit': limit,  # default 1000, maximum 1000
         }
-        currency = None
-        if code is not None:
-            currency = self.currency(code)
-            request['currency'] = currency['id']
+        currency = self.currency(code)
+        request['coin'] = currency['id']
         if since is not None:
-            request['start_time'] = since
+            request['startTime'] = since
         if limit is not None:
+            if limit > 1000:
+                raise ExchangeError('This exchange supports a maximum limit of 1000')
             request['limit'] = limit
-        response = await self.spot2PrivateGetAssetWithdrawList(self.extend(request, params))
+        response = await self.spotPrivateGetCapitalWithdrawHistory(self.extend(request, params))
         #
+        # [
         #     {
-        #         "code":200,
-        #         "data":{
-        #             "page_size":20,
-        #             "total_page":1,
-        #             "total_size":1,
-        #             "page_num":1,
-        #             "result_list":[
-        #                 {
-        #                     "id":"4b450616042a48c99dd45cacb4b092a7",
-        #                     "currency":"USDT-TRX",
-        #                     "address":"TRHKnx74Gb8UVcpDCMwzZVe4NqXfkdtPak",
-        #                     "amount":30.0,
-        #                     "fee":1.0,
-        #                     "remark":"self is my first withdrawal remark",
-        #                     "state":"WAIT",
-        #                     "create_time":"2021-10-11T20:45:08.000+00:00"
-        #                 }
-        #             ]
-        #         }
+        #       id: 'adcd1c8322154de691b815eedcd10c42',
+        #       txId: '0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0',
+        #       coin: 'USDC-MATIC',
+        #       network: 'MATIC',
+        #       address: '0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62',
+        #       amount: '2',
+        #       transferType: '0',
+        #       status: '7',
+        #       transactionFee: '1',
+        #       confirmNo: null,
+        #       applyTime: '1664882739000',
+        #       remark: ''
         #     }
+        # ]
         #
-        data = self.safe_value(response, 'data', {})
-        resultList = self.safe_value(data, 'result_list', [])
-        return self.parse_transactions(resultList, code, since, limit)
+        return self.parse_transactions(response, currency, since, limit)
 
     def parse_transaction(self, transaction, currency=None):
         #
         # fetchDeposits
         #
-        #     {
-        #         "currency":"USDC",
-        #         "amount":150.0,
-        #         "fee":0.0,
-        #         "confirmations":19,
-        #         "address":"0x55cbd73db24eafcca97369e3f2db74b2490586e6",
-        #         "state":"SUCCESS",
-        #         "tx_id":"0xc65a9b09e1b71def81bf8bb3ec724c0c1b2b4c82200c8c142e4ea4c1469fd789:0",
-        #         "require_confirmations":12,
-        #         "create_time":"2021-10-11T18:58:25.000+00:00",
-        #         "update_time":"2021-10-11T19:01:06.000+00:00"
-        #     }
+        # {
+        #     amount: '10',
+        #     coin: 'USDC-TRX',
+        #     network: 'TRX',
+        #     status: '5',
+        #     address: 'TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh',
+        #     addressTag: null,
+        #     txId: '51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b',
+        #     insertTime: '1664805021000',
+        #     unlockConfirm: '200',
+        #     confirmTimes: '203'
+        # }
         #
         # fetchWithdrawals
         #
-        #     {
-        #         "id":"4b450616042a48c99dd45cacb4b092a7",
-        #         "currency":"USDT-TRX",
-        #         "address":"TRHKnx74Gb8UVcpDCMwzZVe4NqXfkdtPak",
-        #         "amount":30.0,
-        #         "fee":1.0,
-        #         "remark":"self is my first withdrawal remark",
-        #         "state":"WAIT",
-        #         "create_time":"2021-10-11T20:45:08.000+00:00"
-        #     }
+        # {
+        #     id: 'adcd1c8322154de691b815eedcd10c42',
+        #     txId: '0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0',
+        #     coin: 'USDC-MATIC',
+        #     network: 'MATIC',
+        #     address: '0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62',
+        #     amount: '2',
+        #     transferType: '0',
+        #     status: '7',
+        #     transactionFee: '1',
+        #     confirmNo: null,
+        #     applyTime: '1664882739000',
+        #     remark: ''
+        #   }
         #
         # withdraw
         #
@@ -3252,24 +3534,18 @@ class mexc3(Exchange):
         #         "withdrawId":"25fb2831fb6d4fc7aa4094612a26c81d"
         #     }
         #
-        id = self.safe_string_2(transaction, 'id', 'withdrawId')
+        id = self.safe_string(transaction, 'id')
         type = 'deposit' if (id is None) else 'withdrawal'
-        timestamp = self.parse8601(self.safe_string(transaction, 'create_time'))
-        updated = self.parse8601(self.safe_string(transaction, 'update_time'))
+        timestamp = self.safe_integer_2(transaction, 'insertTime', 'applyTime')
         currencyId = self.safe_string(transaction, 'currency')
-        network = None
-        if (currencyId is not None) and (currencyId.find('-') >= 0):
-            parts = currencyId.split('-')
-            currencyId = self.safe_string(parts, 0)
-            networkId = self.safe_string(parts, 1)
-            network = self.safe_network(networkId)
+        network = self.safe_string(transaction, 'network')
         code = self.safe_currency_code(currencyId, currency)
-        status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
+        status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
         amountString = self.safe_string(transaction, 'amount')
         address = self.safe_string(transaction, 'address')
-        txid = self.safe_string(transaction, 'tx_id')
+        txid = self.safe_string(transaction, 'txId')
         fee = None
-        feeCostString = self.safe_string(transaction, 'fee')
+        feeCostString = self.safe_string(transaction, 'transactionFee')
         if feeCostString is not None:
             fee = {
                 'cost': self.parse_number(feeCostString),
@@ -3286,16 +3562,16 @@ class mexc3(Exchange):
             'datetime': self.iso8601(timestamp),
             'network': network,
             'address': address,
-            'addressTo': None,
+            'addressTo': address,
             'addressFrom': None,
-            'tag': None,
+            'tag': self.safe_string(transaction, 'memo'),
             'tagTo': None,
             'tagFrom': None,
             'type': type,
             'amount': self.parse_number(amountString),
             'currency': code,
             'status': status,
-            'updated': updated,
+            'updated': None,
             'fee': fee,
         }
 
@@ -3403,6 +3679,7 @@ class mexc3(Exchange):
         timestamp = self.safe_number(position, 'updateTime')
         return {
             'info': position,
+            'id': None,
             'symbol': symbol,
             'contracts': self.parse_number(contracts),
             'contractSize': None,
@@ -3532,18 +3809,21 @@ class mexc3(Exchange):
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
+        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#user-universal-transfer
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict params: extra parameters specific to the mexc3 api endpoint
+        :param str|None params['symbol']: market symbol required for margin account transfers eg:BTCUSDT
         :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
         accounts = {
-            'spot': 'MAIN',
-            'swap': 'CONTRACT',
+            'spot': 'SPOT',
+            'swap': 'FUTURES',
+            'margin': 'ISOLATED_MARGIN',
         }
         fromId = self.safe_string(accounts, fromAccount)
         toId = self.safe_string(accounts, toAccount)
@@ -3554,31 +3834,34 @@ class mexc3(Exchange):
             keys = list(accounts.keys())
             raise ExchangeError(self.id + ' toAccount must be one of ' + ', '.join(keys))
         request = {
-            'currency': currency['id'],
+            'asset': currency['id'],
             'amount': amount,
-            'from': fromId,
-            'to': toId,
+            'fromAccountType': fromId,
+            'toAccountType': toId,
         }
-        response = await self.spot2PrivatePostAssetInternalTransfer(self.extend(request, params))
+        if (fromId == 'ISOLATED_MARGIN') or (toId == 'ISOLATED_MARGIN'):
+            symbol = self.safe_string(params, 'symbol')
+            params = self.omit(params, 'symbol')
+            if symbol is None:
+                raise ArgumentsRequired(self.id + ' transfer() requires a symbol argument for isolated margin')
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        response = await self.spotPrivatePostCapitalTransfer(self.extend(request, params))
         #
         #     {
-        #         code: '200',
-        #         data: {
-        #             currency: 'USDT',
-        #             amount: '1',
-        #             transact_id: 'b60c1df8e7b24b268858003f374ecb75',
-        #             from: 'MAIN',
-        #             to: 'CONTRACT',
-        #             transact_state: 'WAIT'
-        #         }
+        #         "tranId": "ebb06123e6a64f4ab234b396c548d57e"
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        return self.parse_transfer(data, currency)
+        transaction = self.parse_transfer(response, currency)
+        return self.extend(transaction, {
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+        })
 
     def parse_transfer(self, transfer, currency=None):
         #
-        # spot:
+        # spot: fetchTransfer
         #
         #     {
         #         currency: 'USDT',
@@ -3589,7 +3872,7 @@ class mexc3(Exchange):
         #         transact_state: 'WAIT'
         #     }
         #
-        # swap
+        # swap: fetchTransfer
         #
         #     {
         #         "currency": "USDT",
@@ -3602,8 +3885,14 @@ class mexc3(Exchange):
         #         "updateTime": "1648849076000"
         #     }
         #
+        # transfer
+        #
+        #     {
+        #         "tranId": "ebb06123e6a64f4ab234b396c548d57e"
+        #     }
+        #
         currencyId = self.safe_string(transfer, 'currency')
-        id = self.safe_string_2(transfer, 'transact_id', 'txid')
+        id = self.safe_string_n(transfer, ['transact_id', 'txid', 'tranId'])
         timestamp = self.safe_integer(transfer, 'createTime')
         datetime = self.iso8601(timestamp) if (timestamp is not None) else None
         direction = self.safe_string(transfer, 'type')
@@ -3645,6 +3934,7 @@ class mexc3(Exchange):
     async def withdraw(self, code, amount, address, tag=None, params={}):
         """
         make a withdrawal
+        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#withdraw
         :param str code: unified currency code
         :param float amount: the amount to withdraw
         :param str address: the address to withdraw to
@@ -3654,32 +3944,157 @@ class mexc3(Exchange):
         """
         tag, params = self.handle_withdraw_tag_and_params(tag, params)
         networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string_2(params, 'network', 'chain')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string_upper_2(params, 'network', 'chain')  # self line allows the user to specify either ERC20 or ETH
         network = self.safe_string(networks, network, network)  # handle ETH > ERC-20 alias
         self.check_address(address)
         await self.load_markets()
         currency = self.currency(code)
-        if tag is not None:
-            address += ':' + tag
         request = {
-            'currency': currency['id'],
+            'coin': currency['id'],
             'address': address,
             'amount': amount,
         }
+        if tag is not None:
+            request['memo'] = tag
         if network is not None:
-            request['chain'] = network
-            params = self.omit(params, ['network', 'chain'])
-        response = await self.spot2PrivatePostAssetWithdraw(self.extend(request, params))
+            request['network'] = network
+            params = self.omit(params, 'network')
+        response = await self.spotPrivatePostCapitalWithdrawApply(self.extend(request, params))
         #
         #     {
-        #         "code":200,
-        #         "data": {
-        #             "withdrawId":"25fb2831fb6d4fc7aa4094612a26c81d"
-        #         }
+        #       "id":"7213fea8e94b4a5593d507237e5a555b"
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        return self.parse_transaction(data, currency)
+        return self.parse_transaction(response, currency)
+
+    async def set_position_mode(self, hedged, symbol=None, params={}):
+        request = {
+            'positionMode': 1 if hedged else 2,  # 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
+        }
+        response = await self.contractPrivatePostPositionChangePositionMode(self.extend(request, params))
+        #
+        #     {
+        #         "success":true,
+        #         "code":0
+        #     }
+        #
+        return response
+
+    async def fetch_position_mode(self, symbol=None, params={}):
+        response = await self.contractPrivateGetPositionPositionMode(params)
+        #
+        #     {
+        #         "success":true,
+        #         "code":0,
+        #         "data":2
+        #     }
+        #
+        positionMode = self.safe_integer(response, 'data')
+        return {
+            'info': response,
+            'hedged': (positionMode == 1),
+        }
+
+    async def borrow_margin(self, code, amount, symbol=None, params={}):
+        """
+        create a loan to borrow margin
+        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#loan
+        :param str code: unified currency code of the currency to borrow
+        :param float amount: the amount to borrow
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the mexc3 api endpoint
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
+        """
+        await self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument for isolated margin')
+        market = self.market(symbol)
+        currency = self.currency(code)
+        request = {
+            'asset': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+            'symbol': market['id'],
+        }
+        response = await self.spotPrivatePostMarginLoan(self.extend(request, params))
+        #
+        #     {
+        #         "tranId": "762407666453712896"
+        #     }
+        #
+        transaction = self.parse_margin_loan(response, currency)
+        return self.extend(transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        })
+
+    async def repay_margin(self, code, amount, symbol=None, params={}):
+        """
+        repay borrowed margin and interest
+        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#repayment
+        :param str code: unified currency code of the currency to repay
+        :param float amount: the amount to repay
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the mexc3 api endpoint
+        :param str params['borrowId']: transaction id '762407666453712896'
+        :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
+        """
+        await self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' repayMargin() requires a symbol argument for isolated margin')
+        id = self.safe_string_2(params, 'id', 'borrowId')
+        if id is None:
+            raise ArgumentsRequired(self.id + ' repayMargin() requires a borrowId argument in the params')
+        market = self.market(symbol)
+        currency = self.currency(code)
+        request = {
+            'asset': currency['id'],
+            'amount': self.currency_to_precision(code, amount),
+            'borrowId': id,
+            'symbol': market['id'],
+        }
+        response = await self.spotPrivatePostMarginRepay(self.extend(request, params))
+        #
+        #     {
+        #         "tranId": "762407666453712896"
+        #     }
+        #
+        transaction = self.parse_margin_loan(response, currency)
+        return self.extend(transaction, {
+            'amount': amount,
+            'symbol': symbol,
+        })
+
+    def parse_margin_loan(self, info, currency=None):
+        #
+        #     {
+        #         "tranId": "762407666453712896"
+        #     }
+        #
+        return {
+            'id': self.safe_string(info, 'tranId'),
+            'currency': self.safe_currency_code(None, currency),
+            'amount': None,
+            'symbol': None,
+            'timestamp': None,
+            'datetime': None,
+            'info': info,
+        }
+
+    def handle_margin_mode_and_params(self, methodName, params={}):
+        """
+         * @ignore
+        marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :param bool|None params['margin']: True for trading spot-margin
+        :returns [str|None, dict]: the marginMode in lowercase
+        """
+        defaultType = self.safe_string(self.options, 'defaultType')
+        isMargin = self.safe_value(params, 'margin', False)
+        marginMode = None
+        marginMode, params = super(mexc3, self).handle_margin_mode_and_params(methodName, params)
+        if (defaultType == 'margin') or (isMargin is True):
+            marginMode = 'isolated'
+        return [marginMode, params]
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         section, access = api

@@ -44,6 +44,7 @@ module.exports = class ripio extends Exchange {
                 'fetchIndexOHLCV': false,
                 'fetchLeverage': false,
                 'fetchLeverageTiers': false,
+                'fetchMarginMode': false,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOpenInterestHistory': false,
@@ -52,6 +53,7 @@ module.exports = class ripio extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': false,
+                'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -106,8 +108,8 @@ module.exports = class ripio extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': 0.0 / 100,
-                    'maker': 0.0 / 100,
+                    'taker': this.parseNumber ('0.0'),
+                    'maker': this.parseNumber ('0.0'),
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -147,8 +149,8 @@ module.exports = class ripio extends Exchange {
          * @method
          * @name ripio#fetchMarkets
          * @description retrieves data on all markets for ripio
-         * @param {dict} params extra parameters specific to the exchange api endpoint
-         * @returns {[dict]} an array of objects representing market data
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[object]} an array of objects representing market data
          */
         const response = await this.publicGetPair (params);
         //
@@ -251,8 +253,8 @@ module.exports = class ripio extends Exchange {
          * @method
          * @name ripio#fetchCurrencies
          * @description fetches all available currencies on an exchange
-         * @param {dict} params extra parameters specific to the ripio api endpoint
-         * @returns {dict} an associative dictionary of currencies
+         * @param {object} params extra parameters specific to the ripio api endpoint
+         * @returns {object} an associative dictionary of currencies
          */
         const response = await this.publicGetCurrency (params);
         //
@@ -372,9 +374,9 @@ module.exports = class ripio extends Exchange {
          * @method
          * @name ripio#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {str} symbol unified symbol of the market to fetch the ticker for
-         * @param {dict} params extra parameters specific to the ripio api endpoint
-         * @returns {dict} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the ripio api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -410,11 +412,12 @@ module.exports = class ripio extends Exchange {
          * @method
          * @name ripio#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[str]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {dict} params extra parameters specific to the ripio api endpoint
-         * @returns {dict} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} params extra parameters specific to the ripio api endpoint
+         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.publicGetRateAll (params);
         //
         //     [
@@ -452,14 +455,15 @@ module.exports = class ripio extends Exchange {
          * @method
          * @name ripio#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {str} symbol unified symbol of the market to fetch the order book for
+         * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {dict} params extra parameters specific to the ripio api endpoint
-         * @returns {dict} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         * @param {object} params extra parameters specific to the ripio api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'pair': this.marketId (symbol),
+            'pair': market['id'],
         };
         const response = await this.publicGetOrderbookPair (this.extend (request, params));
         //
@@ -477,7 +481,7 @@ module.exports = class ripio extends Exchange {
         //         "updated_id":47225
         //     }
         //
-        const orderbook = this.parseOrderBook (response, symbol, undefined, 'buy', 'sell', 'price', 'amount');
+        const orderbook = this.parseOrderBook (response, market['symbol'], undefined, 'buy', 'sell', 'price', 'amount');
         orderbook['nonce'] = this.safeInteger (response, 'updated_id');
         return orderbook;
     }
@@ -569,11 +573,11 @@ module.exports = class ripio extends Exchange {
          * @method
          * @name ripio#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @param {str} symbol unified symbol of the market to fetch trades for
+         * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {dict} params extra parameters specific to the ripio api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         * @param {object} params extra parameters specific to the ripio api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -603,8 +607,8 @@ module.exports = class ripio extends Exchange {
          * @method
          * @name ripio#fetchTradingFees
          * @description fetch the trading fees for multiple markets
-         * @param {dict} params extra parameters specific to the ripio api endpoint
-         * @returns {dict} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         * @param {object} params extra parameters specific to the ripio api endpoint
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
         await this.loadMarkets ();
         const response = await this.publicGetPair (params);
@@ -676,8 +680,8 @@ module.exports = class ripio extends Exchange {
          * @method
          * @name ripio#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {dict} params extra parameters specific to the ripio api endpoint
-         * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         * @param {object} params extra parameters specific to the ripio api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
         const response = await this.privateGetBalancesExchangeBalances (params);
@@ -702,13 +706,13 @@ module.exports = class ripio extends Exchange {
          * @method
          * @name ripio#createOrder
          * @description create a trade order
-         * @param {str} symbol unified symbol of the market to create an order in
-         * @param {str} type 'market' or 'limit'
-         * @param {str} side 'buy' or 'sell'
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
-         * @param {dict} params extra parameters specific to the ripio api endpoint
-         * @returns {dict} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} params extra parameters specific to the ripio api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -782,10 +786,10 @@ module.exports = class ripio extends Exchange {
          * @method
          * @name ripio#cancelOrder
          * @description cancels an open order
-         * @param {str} id order id
-         * @param {str} symbol unified symbol of the market the order was made in
-         * @param {dict} params extra parameters specific to the ripio api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the ripio api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
@@ -823,9 +827,9 @@ module.exports = class ripio extends Exchange {
          * @method
          * @name ripio#fetchOrder
          * @description fetches information on an order made by the user
-         * @param {str} symbol unified symbol of the market the order was made in
-         * @param {dict} params extra parameters specific to the ripio api endpoint
-         * @returns {dict} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the ripio api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
@@ -863,11 +867,11 @@ module.exports = class ripio extends Exchange {
          * @method
          * @name ripio#fetchOrders
          * @description fetches information on multiple orders made by the user
-         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {dict} params extra parameters specific to the ripio api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {object} params extra parameters specific to the ripio api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
@@ -920,11 +924,11 @@ module.exports = class ripio extends Exchange {
          * @method
          * @name ripio#fetchOpenOrders
          * @description fetch all unfilled currently open orders
-         * @param {str} symbol unified market symbol
+         * @param {string} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {dict} params extra parameters specific to the ripio api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {object} params extra parameters specific to the ripio api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const request = {
             'status': 'OPEN,PART',
@@ -937,11 +941,11 @@ module.exports = class ripio extends Exchange {
          * @method
          * @name ripio#fetchClosedOrders
          * @description fetches information on multiple closed orders made by the user
-         * @param {str} symbol unified market symbol of the market orders were made in
+         * @param {string} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {dict} params extra parameters specific to the ripio api endpoint
-         * @returns {[dict]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         * @param {object} params extra parameters specific to the ripio api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         const request = {
             'status': 'CLOS,CANC,COMP',
@@ -982,104 +986,71 @@ module.exports = class ripio extends Exchange {
         //     }
         //
         //     {
-        //         "order_id":"d6b60c01-8624-44f2-9e6c-9e8cd677ea5c",
-        //         "pair":"BTC_USDC",
-        //         "side":"BUY",
-        //         "amount":"0.00200",
-        //         "notional":"50",
-        //         "fill_or_kill":false,
-        //         "all_or_none":false,
-        //         "order_type":"MARKET",
-        //         "status":"OPEN",
-        //         "created_at":1601730306,
-        //         "filled":"0.00000",
-        //         "fill_price":10593.99,
-        //         "fee":0.0,
-        //         "fills":[
+        //         "order_id": "d6b60c01-8624-44f2-9e6c-9e8cd677ea5c",
+        //         "pair": "BTC_USDC",
+        //         "side": "BUY",
+        //         "amount": "0.00200",
+        //         "notional": "50",
+        //         "fill_or_kill": false,
+        //         "all_or_none": false,
+        //         "order_type": "MARKET",
+        //         "status": "OPEN",
+        //         "created_at": 1601730306,
+        //         "filled": "0.00000",
+        //         "fill_price": 10593.99,
+        //         "fee": 0.0,
+        //         "fills": [
         //             {
-        //                 "pair":"BTC_USDC",
-        //                 "exchanged":0.002,
-        //                 "match_price":10593.99,
-        //                 "maker_fee":0.0,
-        //                 "taker_fee":0.0,
-        //                 "timestamp":1601730306942
+        //                 "pair": "BTC_USDC",
+        //                 "exchanged": 0.002,
+        //                 "match_price": 10593.99,
+        //                 "maker_fee": 0.0,
+        //                 "taker_fee": 0.0,
+        //                 "timestamp": 1601730306942
         //             }
         //         ],
-        //         "filled_at":"2020-10-03T13:05:06.942186Z",
-        //         "limit_price":"0.000000",
-        //         "stop_price":null,
-        //         "distance":null
+        //         "filled_at": "2020-10-03T13:05:06.942186Z",
+        //         "limit_price": "0.000000",
+        //         "stop_price": null,
+        //         "distance": null
         //     }
         //
         const id = this.safeString (order, 'order_id');
-        const amount = this.safeNumber (order, 'amount');
-        let cost = this.safeNumber (order, 'notional');
+        const amount = this.safeString (order, 'amount');
+        const cost = this.safeString (order, 'notional');
         const type = this.safeStringLower (order, 'order_type');
         const priceField = (type === 'market') ? 'fill_price' : 'limit_price';
-        const price = this.safeNumber (order, priceField);
+        const price = this.safeString (order, priceField);
         const side = this.safeStringLower (order, 'side');
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const timestamp = this.safeTimestamp (order, 'created_at');
-        let average = this.safeValue (order, 'fill_price');
-        let filled = this.safeNumber (order, 'filled');
-        let remaining = undefined;
+        const average = this.safeString (order, 'fill_price');
+        const filled = this.safeString (order, 'filled');
         const fills = this.safeValue (order, 'fills');
-        let trades = undefined;
-        let lastTradeTimestamp = undefined;
-        if (fills !== undefined) {
-            const numFills = fills.length;
-            if (numFills > 0) {
-                filled = 0;
-                cost = 0;
-                trades = this.parseTrades (fills, market, undefined, undefined, {
-                    'order': id,
-                    'side': side,
-                });
-                for (let i = 0; i < trades.length; i++) {
-                    const trade = trades[i];
-                    filled = this.sum (trade['amount'], filled);
-                    cost = this.sum (trade['cost'], cost);
-                    lastTradeTimestamp = trade['timestamp'];
-                }
-                if ((average === undefined) && (filled > 0)) {
-                    average = cost / filled;
-                }
-            }
-        }
-        if (filled !== undefined) {
-            if ((cost === undefined) && (price !== undefined)) {
-                cost = price * filled;
-            }
-            if (amount !== undefined) {
-                remaining = Math.max (0, amount - filled);
-            }
-        }
         const marketId = this.safeString (order, 'pair');
-        const symbol = this.safeSymbol (marketId, market, '_');
-        const stopPrice = this.safeNumber (order, 'stop_price');
-        return {
+        return this.safeOrder ({
+            'info': order,
             'id': id,
             'clientOrderId': undefined,
-            'info': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
-            'symbol': symbol,
+            'lastTradeTimestamp': undefined,
+            'symbol': this.safeSymbol (marketId, market, '_'),
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
             'price': price,
-            'stopPrice': stopPrice,
+            'stopPrice': this.safeString (order, 'stop_price'),
             'amount': amount,
             'cost': cost,
             'average': average,
             'filled': filled,
-            'remaining': remaining,
+            'remaining': undefined,
             'status': status,
             'fee': undefined,
-            'trades': trades,
-        };
+            'trades': fills,
+        }, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1087,11 +1058,11 @@ module.exports = class ripio extends Exchange {
          * @method
          * @name ripio#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {str} symbol unified market symbol
+         * @param {string} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch trades for
          * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {dict} params extra parameters specific to the ripio api endpoint
-         * @returns {[dict]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         * @param {object} params extra parameters specific to the ripio api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');

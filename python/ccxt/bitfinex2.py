@@ -5,7 +5,6 @@
 
 from ccxt.base.exchange import Exchange
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -694,7 +693,7 @@ class bitfinex2(Exchange):
             fees = self.safe_value(feeValues, 1, [])
             fee = self.safe_number(fees, 1)
             undl = self.safe_value(indexed['undl'], id, [])
-            precision = 8  # default precision, todo: fix "magic constants"
+            precision = '8'  # default precision, todo: fix "magic constants"
             fid = 'f' + id
             result[code] = {
                 'id': fid,
@@ -707,10 +706,10 @@ class bitfinex2(Exchange):
                 'deposit': None,
                 'withdraw': None,
                 'fee': fee,
-                'precision': precision,
+                'precision': int(precision),
                 'limits': {
                     'amount': {
-                        'min': 1 / math.pow(10, precision),
+                        'min': self.parse_number(self.parse_precision(precision)),
                         'max': None,
                     },
                     'withdraw': {
@@ -904,7 +903,7 @@ class bitfinex2(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'status': self.parse_transfer_status(status),
-            'amount': self.safe_number(transfer, 7),
+            'amount': self.safe_number(info, 7),
             'currency': self.safe_currency_code(currencyId, currency),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
@@ -960,8 +959,9 @@ class bitfinex2(Exchange):
         """
         self.load_markets()
         precision = self.safe_value(self.options, 'precision', 'R0')
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
             'precision': precision,
         }
         if limit is not None:
@@ -970,7 +970,7 @@ class bitfinex2(Exchange):
         orderbook = self.publicGetBookSymbolPrecision(fullRequest)
         timestamp = self.milliseconds()
         result = {
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'bids': [],
             'asks': [],
             'timestamp': timestamp,
@@ -981,10 +981,10 @@ class bitfinex2(Exchange):
         for i in range(0, len(orderbook)):
             order = orderbook[i]
             price = self.safe_number(order, priceIndex)
-            signedAmount = self.safe_number(order, 2)
-            amount = abs(signedAmount)
-            side = 'bids' if (signedAmount > 0) else 'asks'
-            result[side].append([price, amount])
+            signedAmount = self.safe_string(order, 2)
+            amount = Precise.string_abs(signedAmount)
+            side = 'bids' if Precise.string_gt(signedAmount, '0') else 'asks'
+            result[side].append([price, self.parse_number(amount)])
         result['bids'] = self.sort_by(result['bids'], 0, True)
         result['asks'] = self.sort_by(result['asks'], 0)
         return result
@@ -1065,6 +1065,7 @@ class bitfinex2(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         request = {}
         if symbols is not None:
             ids = self.market_ids(symbols)
@@ -1468,7 +1469,7 @@ class bitfinex2(Exchange):
         clientOrderId = self.safe_value_2(params, 'cid', 'clientOrderId')
         params = self.omit(params, ['triggerPrice', 'stopPrice', 'timeInForce', 'postOnly', 'reduceOnly', 'price_aux_limit'])
         amountString = self.amount_to_precision(symbol, amount)
-        amountString = amountString if (side == 'buy') else Precise.string_neg(amount)
+        amountString = amountString if (side == 'buy') else Precise.string_neg(amountString)
         request = {
             # 'gid': 0123456789,  # int32,  optional group id for the order
             # 'cid': 0123456789,  # int32 client order id
@@ -1720,7 +1721,7 @@ class bitfinex2(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the bitfinex2 api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         # returns the most recent closed or canceled orders up to circa two weeks ago
         self.load_markets()
@@ -1974,9 +1975,9 @@ class bitfinex2(Exchange):
             timestamp = self.safe_integer(transaction, 0)
             if currency is not None:
                 code = currency['code']
-            feeCost = self.safe_number(data, 8)
+            feeCost = self.safe_string(data, 8)
             if feeCost is not None:
-                feeCost = -feeCost
+                feeCost = Precise.string_neg(feeCost)
             amount = self.safe_number(data, 5)
             id = self.safe_value(data, 0)
             status = 'ok'
@@ -1992,15 +1993,15 @@ class bitfinex2(Exchange):
             timestamp = self.safe_integer(transaction, 5)
             updated = self.safe_integer(transaction, 6)
             status = self.parse_transaction_status(self.safe_string(transaction, 9))
-            amount = self.safe_number(transaction, 12)
+            amount = self.safe_string(transaction, 12)
             if amount is not None:
-                if amount < 0:
+                if Precise.string_lt(amount, '0'):
                     type = 'withdrawal'
                 else:
                     type = 'deposit'
-            feeCost = self.safe_number(transaction, 13)
+            feeCost = self.safe_string(transaction, 13)
             if feeCost is not None:
-                feeCost = -feeCost
+                feeCost = Precise.string_neg(feeCost)
             addressTo = self.safe_string(transaction, 16)
             txid = self.safe_string(transaction, 20)
         return {
@@ -2017,13 +2018,13 @@ class bitfinex2(Exchange):
             'tag': tag,  # refix it properly for the tag from description
             'tagTo': tag,
             'type': type,
-            'amount': amount,
+            'amount': self.parse_number(amount),
             'currency': code,
             'status': status,
             'updated': updated,
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': self.parse_number(feeCost),
                 'rate': None,
             },
         }
@@ -2354,9 +2355,9 @@ class bitfinex2(Exchange):
             errorCode = self.number_to_string(response[1])
             errorText = response[2]
             feedback = self.id + ' ' + errorText
+            self.throw_broadly_matched_exception(self.exceptions['broad'], errorText, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorText, feedback)
-            self.throw_broadly_matched_exception(self.exceptions['broad'], errorText, feedback)
             raise ExchangeError(self.id + ' ' + errorText + '(#' + errorCode + ')')
         return response
 

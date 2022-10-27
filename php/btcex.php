@@ -6,14 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\AuthenticationError;
-use \ccxt\ArgumentsRequired;
 
 class btcex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'btcex',
             'name' => 'BTCEX',
             'countries' => array( 'CA' ), // Canada
@@ -27,7 +24,9 @@ class btcex extends Exchange {
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/173489620-d49807a4-55cd-4f4e-aca9-534921298bbf.jpg',
                 'www' => 'https://www.btcex.com/',
-                'api' => 'https://api.btcex.com',
+                'api' => array(
+                    'rest' => 'https://api.btcex.com',
+                ),
                 'doc' => 'https://docs.btcex.com/',
                 'fees' => 'https://support.btcex.com/hc/en-us/articles/4415995130647',
                 'referral' => array(
@@ -55,7 +54,6 @@ class btcex extends Exchange {
                 'fetchCurrencies' => false,
                 'fetchDepositAddress' => false,
                 'fetchDeposits' => true,
-                'fetchFundingFees' => null,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -81,6 +79,7 @@ class btcex extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
+                'fetchTransactionFees' => null,
                 'fetchWithdrawal' => true,
                 'fetchWithdrawals' => true,
                 'signIn' => true,
@@ -561,7 +560,7 @@ class btcex extends Exchange {
         //     }
         //
         $timestamp = $this->safe_integer($result, 'timestamp');
-        return $this->parse_order_book($result, $symbol, $timestamp);
+        return $this->parse_order_book($result, $market['symbol'], $timestamp);
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -1573,6 +1572,7 @@ class btcex extends Exchange {
         $marginType = $this->safe_string($position, 'margin_type');
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => null,
             'datetime' => null,
@@ -1904,7 +1904,7 @@ class btcex extends Exchange {
                 }
             }
         }
-        $url = $this->urls['api'] . $request;
+        $url = $this->urls['api']['rest'] . $request;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 

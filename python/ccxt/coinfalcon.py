@@ -81,7 +81,9 @@ class coinfalcon(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/41822275-ed982188-77f5-11e8-92bb-496bcd14ca52.jpg',
-                'api': 'https://coinfalcon.com',
+                'api': {
+                    'rest': 'https://coinfalcon.com',
+                },
                 'www': 'https://coinfalcon.com',
                 'doc': 'https://docs.coinfalcon.com',
                 'fees': 'https://coinfalcon.com/fees',
@@ -280,6 +282,7 @@ class coinfalcon(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = self.publicGetMarkets(params)
         #
         #     {
@@ -317,13 +320,14 @@ class coinfalcon(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'market': self.market_id(symbol),
+            'market': market['id'],
             'level': '3',
         }
         response = self.publicGetMarketsMarketOrders(self.extend(request, params))
         data = self.safe_value(response, 'data', {})
-        return self.parse_order_book(data, symbol, None, 'bids', 'asks', 'price', 'size')
+        return self.parse_order_book(data, market['symbol'], None, 'bids', 'asks', 'price', 'size')
 
     def parse_trade(self, trade, market=None):
         #
@@ -806,7 +810,7 @@ class coinfalcon(Exchange):
         self.load_markets()
         currency = self.currency(code)
         request = {
-            'currency': self.safeStingLower(currency, 'id'),
+            'currency': self.safe_string_lower(currency, 'id'),
             'address': address,
             'amount': amount,
             # 'tag': 'string',  # withdraw tag/memo
@@ -936,7 +940,7 @@ class coinfalcon(Exchange):
                 'CF-API-SIGNATURE': signature,
                 'Content-Type': 'application/json',
             }
-        url = self.urls['api'] + request
+        url = self.urls['api']['rest'] + request
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

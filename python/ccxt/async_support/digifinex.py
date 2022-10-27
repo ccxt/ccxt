@@ -89,7 +89,9 @@ class digifinex(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87443315-01283a00-c5fe-11ea-8628-c2a0feaf07ac.jpg',
-                'api': 'https://openapi.digifinex.com',
+                'api': {
+                    'rest': 'https://openapi.digifinex.com',
+                },
                 'www': 'https://www.digifinex.com',
                 'doc': [
                     'https://docs.digifinex.com',
@@ -236,6 +238,12 @@ class digifinex(Exchange):
             },
         })
 
+    def safe_network(self, networkId):
+        if networkId is None:
+            return None
+        else:
+            return networkId.upper()
+
     async def fetch_currencies(self, params={}):
         """
         fetches all available currencies on an exchange
@@ -291,12 +299,48 @@ class digifinex(Exchange):
             deposit = depositStatus > 0
             withdraw = withdrawStatus > 0
             active = deposit and withdraw
-            fee = self.safe_number(currency, 'withdraw_fee_rate')
+            fee = self.safe_number(currency, 'min_withdraw_fee')  # withdraw_fee_rate was zero for all currencies, so self was the worst case scenario
+            minWithdraw = self.safe_number(currency, 'min_withdraw_amount')
+            minDeposit = self.safe_number(currency, 'min_deposit_amount')
+            networkId = self.safe_string(currency, 'chain')
+            network = {
+                'id': networkId,
+                'network': self.safe_network(networkId),
+                'name': None,
+                'active': active,
+                'fee': fee,
+                'precision': self.parse_number('0.00000001'),  # todo fix hardcoded value
+                'deposit': deposit,
+                'withdraw': withdraw,
+                'limits': {
+                    'amount': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'withdraw': {
+                        'min': minWithdraw,
+                        'max': None,
+                    },
+                    'deposit': {
+                        'min': minDeposit,
+                        'max': None,
+                    },
+                },
+                'info': currency,
+            }
             if code in result:
                 if isinstance(result[code]['info'], list):
                     result[code]['info'].append(currency)
                 else:
                     result[code]['info'] = [result[code]['info'], currency]
+                if withdraw:
+                    result[code]['withdraw'] = True
+                    result[code]['limits']['withdraw']['min'] = min(result[code]['limits']['withdraw']['min'], minWithdraw)
+                if deposit:
+                    result[code]['deposit'] = True
+                    result[code]['limits']['deposit']['min'] = min(result[code]['limits']['deposit']['min'], minDeposit)
+                if active:
+                    result[code]['active'] = True
             else:
                 result[code] = {
                     'id': id,
@@ -315,11 +359,17 @@ class digifinex(Exchange):
                             'max': None,
                         },
                         'withdraw': {
-                            'min': self.safe_number(currency, 'min_withdraw_amount'),
+                            'min': minWithdraw,
+                            'max': None,
+                        },
+                        'deposit': {
+                            'min': minDeposit,
                             'max': None,
                         },
                     },
+                    'networks': {},
                 }
+            result[code]['networks'][networkId] = network
         return result
 
     async def fetch_markets(self, params={}):
@@ -598,7 +648,7 @@ class digifinex(Exchange):
         #     }
         #
         timestamp = self.safe_timestamp(response, 'date')
-        return self.parse_order_book(response, symbol, timestamp)
+        return self.parse_order_book(response, market['symbol'], timestamp)
 
     async def fetch_tickers(self, symbols=None, params={}):
         """
@@ -608,6 +658,7 @@ class digifinex(Exchange):
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = await self.publicGetTicker(params)
         #
         #    {
@@ -944,14 +995,14 @@ class digifinex(Exchange):
         request = {
             'market': orderType,
             'symbol': market['id'],
-            'amount': self.amount_to_precision(symbol, amount),
+            'amount': self.amount_to_precision(market['symbol'], amount),
             # 'post_only': 0,  # 0 by default, if set to 1 the order will be canceled if it can be executed immediately, making sure there will be no market taking
         }
         suffix = ''
         if type == 'market':
             suffix = '_market'
         else:
-            request['price'] = self.price_to_precision(symbol, price)
+            request['price'] = self.price_to_precision(market['symbol'], price)
         request['type'] = side + suffix
         response = await self.privatePostMarketOrderNew(self.extend(request, params))
         #
@@ -962,7 +1013,7 @@ class digifinex(Exchange):
         #
         result = self.parse_order(response, market)
         return self.extend(result, {
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'side': side,
             'type': type,
             'amount': amount,
@@ -1171,7 +1222,7 @@ class digifinex(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the digifinex api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         defaultType = self.safe_string(self.options, 'defaultType', 'spot')
         orderType = self.safe_string(params, 'type', defaultType)
@@ -1831,7 +1882,7 @@ class digifinex(Exchange):
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         version = self.version
-        url = self.urls['api'] + '/' + version + '/' + self.implode_params(path, params)
+        url = self.urls['api']['rest'] + '/' + version + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         urlencoded = self.urlencode(self.keysort(query))
         if api == 'private':

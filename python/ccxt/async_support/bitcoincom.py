@@ -11,4 +11,5 @@ class bitcoincom(fmfwio):
     def describe(self):
         return self.deep_extend(super(bitcoincom, self).describe(), {
             'id': 'bitcoincom',
+            'alias': True,
         })

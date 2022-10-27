@@ -18,6 +18,7 @@ from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class zonda(Exchange):
@@ -201,52 +202,52 @@ class zonda(Exchange):
                     'tierBased': False,
                 },
                 'fiat': {
-                    'maker': 0.30 / 100,
-                    'taker': 0.43 / 100,
+                    'maker': self.parse_number('0.0030'),
+                    'taker': self.parse_number('0.0043'),
                     'percentage': True,
                     'tierBased': True,
                     'tiers': {
                         'taker': [
-                            [0.0043, 0],
-                            [0.0042, 1250],
-                            [0.0041, 3750],
-                            [0.0040, 7500],
-                            [0.0039, 10000],
-                            [0.0038, 15000],
-                            [0.0037, 20000],
-                            [0.0036, 25000],
-                            [0.0035, 37500],
-                            [0.0034, 50000],
-                            [0.0033, 75000],
-                            [0.0032, 100000],
-                            [0.0031, 150000],
-                            [0.0030, 200000],
-                            [0.0029, 250000],
-                            [0.0028, 375000],
-                            [0.0027, 500000],
-                            [0.0026, 625000],
-                            [0.0025, 875000],
+                            [self.parse_number('0.0043'), self.parse_number('0')],
+                            [self.parse_number('0.0042'), self.parse_number('1250')],
+                            [self.parse_number('0.0041'), self.parse_number('3750')],
+                            [self.parse_number('0.0040'), self.parse_number('7500')],
+                            [self.parse_number('0.0039'), self.parse_number('10000')],
+                            [self.parse_number('0.0038'), self.parse_number('15000')],
+                            [self.parse_number('0.0037'), self.parse_number('20000')],
+                            [self.parse_number('0.0036'), self.parse_number('25000')],
+                            [self.parse_number('0.0035'), self.parse_number('37500')],
+                            [self.parse_number('0.0034'), self.parse_number('50000')],
+                            [self.parse_number('0.0033'), self.parse_number('75000')],
+                            [self.parse_number('0.0032'), self.parse_number('100000')],
+                            [self.parse_number('0.0031'), self.parse_number('150000')],
+                            [self.parse_number('0.0030'), self.parse_number('200000')],
+                            [self.parse_number('0.0029'), self.parse_number('250000')],
+                            [self.parse_number('0.0028'), self.parse_number('375000')],
+                            [self.parse_number('0.0027'), self.parse_number('500000')],
+                            [self.parse_number('0.0026'), self.parse_number('625000')],
+                            [self.parse_number('0.0025'), self.parse_number('875000')],
                         ],
                         'maker': [
-                            [0.0030, 0],
-                            [0.0029, 1250],
-                            [0.0028, 3750],
-                            [0.0028, 7500],
-                            [0.0027, 10000],
-                            [0.0026, 15000],
-                            [0.0025, 20000],
-                            [0.0025, 25000],
-                            [0.0024, 37500],
-                            [0.0023, 50000],
-                            [0.0023, 75000],
-                            [0.0022, 100000],
-                            [0.0021, 150000],
-                            [0.0021, 200000],
-                            [0.0020, 250000],
-                            [0.0019, 375000],
-                            [0.0018, 500000],
-                            [0.0018, 625000],
-                            [0.0017, 875000],
+                            [self.parse_number('0.0030'), self.parse_number('0')],
+                            [self.parse_number('0.0029'), self.parse_number('1250')],
+                            [self.parse_number('0.0028'), self.parse_number('3750')],
+                            [self.parse_number('0.0028'), self.parse_number('7500')],
+                            [self.parse_number('0.0027'), self.parse_number('10000')],
+                            [self.parse_number('0.0026'), self.parse_number('15000')],
+                            [self.parse_number('0.0025'), self.parse_number('20000')],
+                            [self.parse_number('0.0025'), self.parse_number('25000')],
+                            [self.parse_number('0.0024'), self.parse_number('37500')],
+                            [self.parse_number('0.0023'), self.parse_number('50000')],
+                            [self.parse_number('0.0023'), self.parse_number('75000')],
+                            [self.parse_number('0.0022'), self.parse_number('100000')],
+                            [self.parse_number('0.0021'), self.parse_number('150000')],
+                            [self.parse_number('0.0021'), self.parse_number('200000')],
+                            [self.parse_number('0.0020'), self.parse_number('250000')],
+                            [self.parse_number('0.0019'), self.parse_number('375000')],
+                            [self.parse_number('0.0018'), self.parse_number('500000')],
+                            [self.parse_number('0.0018'), self.parse_number('625000')],
+                            [self.parse_number('0.0017'), self.parse_number('875000')],
                         ],
                     },
                 },
@@ -469,6 +470,7 @@ class zonda(Exchange):
         request = {}
         if symbol:
             markets = [self.market_id(symbol)]
+            symbol = self.symbol(symbol)
             request['markets'] = markets
         query = {'query': self.json(self.extend(request, params))}
         response = await self.v1_01PrivateGetTradingHistoryTransactions(query)
@@ -532,8 +534,9 @@ class zonda(Exchange):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
         }
         response = await self.v1_01PublicGetTradingOrderbookSymbol(self.extend(request, params))
         #
@@ -557,7 +560,7 @@ class zonda(Exchange):
         rawAsks = self.safe_value(response, 'sell', [])
         timestamp = self.safe_integer(response, 'timestamp')
         return {
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'bids': self.parse_bids_asks(rawBids, 'ra', 'ca'),
             'asks': self.parse_bids_asks(rawAsks, 'ra', 'ca'),
             'timestamp': timestamp,
@@ -955,34 +958,28 @@ class zonda(Exchange):
         timestamp = self.safe_integer(item, 'time')
         balance = self.safe_value(item, 'balance', {})
         currencyId = self.safe_string(balance, 'currency')
-        code = self.safe_currency_code(currencyId)
         change = self.safe_value(item, 'change', {})
-        amount = self.safe_number(change, 'total')
+        amount = self.safe_string(change, 'total')
         direction = 'in'
-        if amount < 0:
+        if Precise.string_lt(amount, '0'):
             direction = 'out'
-            amount = -amount
-        id = self.safe_string(item, 'historyId')
+            amount = Precise.string_neg(amount)
         # there are 2 undocumented api calls: (v1_01PrivateGetPaymentsDepositDetailId and v1_01PrivateGetPaymentsWithdrawalDetailId)
         # that can be used to enrich the transfers with txid, address etc(you need to use info.detailId as a parameter)
-        referenceId = self.safe_string(item, 'detailId')
-        type = self.parse_ledger_entry_type(self.safe_string(item, 'type'))
         fundsBefore = self.safe_value(item, 'fundsBefore', {})
-        before = self.safe_number(fundsBefore, 'total')
         fundsAfter = self.safe_value(item, 'fundsAfter', {})
-        after = self.safe_number(fundsAfter, 'total')
         return {
             'info': item,
-            'id': id,
+            'id': self.safe_string(item, 'historyId'),
             'direction': direction,
             'account': None,
-            'referenceId': referenceId,
+            'referenceId': self.safe_string(item, 'detailId'),
             'referenceAccount': None,
-            'type': type,
-            'currency': code,
+            'type': self.parse_ledger_entry_type(self.safe_string(item, 'type')),
+            'currency': self.safe_currency_code(currencyId),
             'amount': amount,
-            'before': before,
-            'after': after,
+            'before': self.safe_number(fundsBefore, 'total'),
+            'after': self.safe_number(fundsAfter, 'total'),
             'status': 'ok',
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -1317,7 +1314,7 @@ class zonda(Exchange):
         }
         # {status: 'Fail', errors: ['NOT_RECOGNIZED_OFFER_TYPE']}  -- if required params are missing
         # {status: 'Ok', errors: []}
-        return self.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice(self.extend(request, params))
+        return await self.v1_01PrivateDeleteTradingOfferSymbolIdSidePrice(self.extend(request, params))
 
     def is_fiat(self, currency):
         fiatCurrencies = {

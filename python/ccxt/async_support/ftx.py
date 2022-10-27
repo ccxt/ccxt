@@ -35,7 +35,7 @@ class ftx(Exchange):
             # cancels do not count towards rateLimit
             # only 'order-making' requests count towards ratelimit
             'rateLimit': 28.57,
-            'certified': True,
+            'certified': False,
             'pro': True,
             'hostname': 'ftx.com',  # or ftx.us
             'urls': {
@@ -48,7 +48,7 @@ class ftx(Exchange):
                 'doc': 'https://github.com/ftexchange/ftx',
                 'fees': 'https://ftexchange.zendesk.com/hc/en-us/articles/360024479432-Fees',
                 'referral': {
-                    'url': 'https://ftx.com/#a=ccxt',
+                    'url': 'https://ftx.com/referrals#a=1623029',
                     'discount': 0.05,
                 },
             },
@@ -61,7 +61,9 @@ class ftx(Exchange):
                 'option': False,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
+                'cancelOrders': True,
                 'createOrder': True,
+                'createPostOnlyOrder': True,
                 'createReduceOnlyOrder': True,
                 'createStopLimitOrder': True,
                 'createStopMarketOrder': True,
@@ -89,6 +91,7 @@ class ftx(Exchange):
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': True,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -249,6 +252,15 @@ class ftx(Exchange):
                         'stats/latency_stats': 1,
                         # pnl
                         'pnl/historical_changes': 1,
+                        # support tickets
+                        'support/tickets': 1,
+                        'support/tickets/{ticketId}/messages': 1,
+                        'support/tickets/count_unread': 1,
+                        'twap_orders': 1,
+                        'twap_orders/{twap_order_id}': 1,
+                        'historical_balances/requests': 1,
+                        'historical_balances/requests/{request_id}': 1,
+                        'fast_access_settings/list_ips': 1,
                     },
                     'post': {
                         # subaccounts
@@ -293,6 +305,16 @@ class ftx(Exchange):
                         'nft/gallery_settings': 1,
                         # ftx pay
                         'ftxpay/apps/{user_specific_id}/orders': 1,
+                        # support tickets
+                        'support/tickets': 1,
+                        'support/tickets/{ticketId}/messages': 1,
+                        'support/tickets/{ticketId}/status': 1,
+                        'support/tickets/{ticketId}/mark_as_read': 1,
+                        'twap_orders': 1,
+                        'historical_balances/requests': 1,
+                        'fast_access_settings/add_ip': 1,
+                        'fast_access_settings/enable_ip/{ipAddress}': 1,
+                        'fast_access_settings/disable_ip/{ipAddress}': 1,
                     },
                     'delete': {
                         # subaccounts
@@ -304,11 +326,15 @@ class ftx(Exchange):
                         'orders/by_client_id/{client_order_id}': 1,
                         'orders': 1,
                         'conditional_orders/{order_id}': 1,
+                        'bulk_orders': 1,
+                        'bulk_orders_by_client_id': 1,
                         # options
                         'options/requests/{request_id}': 1,
                         'options/quotes/{quote_id}': 1,
                         # staking
                         'staking/unstake_requests/{request_id}': 1,
+                        'twap_orders/{twap_order_id}': 1,
+                        'fast_access_settings/delete_ip/{ipAddress}': 1,
                     },
                 },
             },
@@ -406,17 +432,20 @@ class ftx(Exchange):
                     'ftx.us': 'FTXUS',
                 },
                 'networks': {
+                    'AVAX': 'avax',
+                    'BEP2': 'bep2',
+                    'BEP20': 'bsc',
+                    'BNB': 'bep2',
+                    'BSC': 'bsc',
+                    'ERC20': 'erc20',
+                    'ETH': 'eth',
+                    'FTM': 'ftm',
+                    'MATIC': 'matic',
+                    'OMNI': 'omni',
                     'SOL': 'sol',
                     'SPL': 'sol',
-                    'TRX': 'trx',
                     'TRC20': 'trx',
-                    'ETH': 'erc20',
-                    'ERC20': 'erc20',
-                    'OMNI': 'omni',
-                    'BEP2': 'bep2',
-                    'BNB': 'bep2',
-                    'BEP20': 'bsc',
-                    'BSC': 'bsc',
+                    'TRX': 'trx',
                 },
             },
             'commonCurrencies': {
@@ -722,11 +751,10 @@ class ftx(Exchange):
         #     }
         #
         marketId = self.safe_string(ticker, 'name')
-        if marketId in self.markets_by_id:
-            market = self.markets_by_id[marketId]
-        symbol = self.safe_symbol(marketId, market)
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         last = self.safe_string(ticker, 'last')
-        timestamp = self.safe_timestamp(ticker, 'time', self.milliseconds())
+        timestamp = self.safe_timestamp(ticker, 'time')
         percentage = self.safe_string(ticker, 'change24h')
         if percentage is not None:
             percentage = Precise.string_mul(percentage, '100')
@@ -1795,16 +1823,17 @@ class ftx(Exchange):
         defaultMethod = self.safe_string(options, 'method', 'privateDeleteOrdersOrderId')
         method = self.safe_string(params, 'method', defaultMethod)
         type = self.safe_value(params, 'type')  # Deprecated: use params.stop instead
-        stop = self.safe_value(params, 'stop')
+        isTriggerOrder = None
+        isTriggerOrder, params = self.is_trigger_order(params)
         clientOrderId = self.safe_value_2(params, 'client_order_id', 'clientOrderId')
         if clientOrderId is None:
             request['order_id'] = int(id)
-            if stop or (type == 'stop') or (type == 'trailingStop') or (type == 'takeProfit'):
+            if isTriggerOrder or self.in_array(type, ['stop', 'trailingStop', 'takeProfit']):
                 method = 'privateDeleteConditionalOrdersOrderId'
         else:
             request['client_order_id'] = clientOrderId
             method = 'privateDeleteOrdersByClientIdClientOrderId'
-        query = self.omit(params, ['method', 'type', 'client_order_id', 'clientOrderId', 'stop'])
+        query = self.omit(params, ['method', 'type', 'client_order_id', 'clientOrderId'])
         response = await getattr(self, method)(self.extend(request, query))
         #
         #     {
@@ -1814,6 +1843,32 @@ class ftx(Exchange):
         #
         result = self.safe_value(response, 'result', {})
         return result
+
+    async def cancel_orders(self, ids, symbol=None, params={}):
+        """
+        cancel multiple orders
+        :param [str] ids: order ids
+        :param str|None symbol: not used by ftx cancelOrders()
+        :param dict params: extra parameters specific to the ftx api endpoint
+        :returns dict: raw - a list of order ids queued for cancelation
+        """
+        await self.load_markets()
+        # https://docs.ccxt.com/en/latest/manual.html#user-defined-clientorderid
+        clientOrderIds = self.safe_value(params, 'clientOrderIds')
+        # FTX doesn't have endpoint for trigger orders related to cancelOrders
+        if clientOrderIds is not None:
+            #
+            #     {success: True, result: ['billy', 'bob', 'gina']}
+            #
+            return await self.privateDeleteBulkOrdersByClientId(params)
+        else:
+            request = {
+                'orderIds': ids,
+            }
+            #
+            #     {success: True, result: [181542119006, 181542179014]}
+            #
+            return await self.privateDeleteBulkOrders(self.extend(request, params))
 
     async def cancel_all_orders(self, symbol=None, params={}):
         """
@@ -1831,6 +1886,12 @@ class ftx(Exchange):
         marketId = self.get_market_id(symbol, 'market', params)
         if marketId is not None:
             request['market'] = marketId
+        isTriggerOrder = None
+        isTriggerOrder, params = self.is_trigger_order(params)
+        # if user wants to cancel only conditional orders, then set below fields. Otherwise, request will cancel all orders - conditional and regular orders
+        if isTriggerOrder:
+            request['conditionalOrdersOnly'] = True
+            request['limitOrdersOnly'] = False
         response = await self.privateDeleteOrders(self.extend(request, params))
         result = self.safe_value(response, 'result', {})
         #
@@ -1905,10 +1966,11 @@ class ftx(Exchange):
         defaultMethod = self.safe_string(options, 'method', 'privateGetOrders')
         method = self.safe_string(params, 'method', defaultMethod)
         type = self.safe_value(params, 'type')
-        stop = self.safe_value(params, 'stop')
-        if stop or (type == 'stop') or (type == 'trailingStop') or (type == 'takeProfit'):
+        isTriggerOrder = None
+        isTriggerOrder, params = self.is_trigger_order(params)
+        if isTriggerOrder or self.in_array(type, ['trigger', 'stop', 'trailingStop', 'takeProfit']):
             method = 'privateGetConditionalOrders'
-        query = self.omit(params, ['method', 'type', 'stop'])
+        query = self.omit(params, ['method', 'type'])
         response = await getattr(self, method)(self.extend(request, query))
         #
         #     {
@@ -1945,7 +2007,7 @@ class ftx(Exchange):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the ftx api endpoint
-        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
         request = {}
@@ -1962,7 +2024,9 @@ class ftx(Exchange):
         defaultMethod = self.safe_string(options, 'method', 'privateGetOrdersHistory')
         method = self.safe_string(params, 'method', defaultMethod)
         type = self.safe_value(params, 'type')
-        if (type == 'stop') or (type == 'trailingStop') or (type == 'takeProfit'):
+        isTriggerOrder = None
+        isTriggerOrder, params = self.is_trigger_order(params)
+        if isTriggerOrder or self.in_array(type, ['trigger', 'stop', 'trailingStop', 'takeProfit']):
             method = 'privateGetConditionalOrdersHistory'
         query = self.omit(params, ['method', 'type'])
         response = await getattr(self, method)(self.extend(request, query))
@@ -2007,7 +2071,45 @@ class ftx(Exchange):
         request = {
             'orderId': id,
         }
+        # if it's conditional order
+        type = self.safe_value(params, 'type')
+        params = self.omit(params, 'type')
+        isTriggerOrder = None
+        isTriggerOrder, params = self.is_trigger_order(params)
+        if isTriggerOrder or self.in_array(type, ['trigger', 'stop', 'trailingStop', 'takeProfit']):
+            # if it is conditional order, then it would have a reference order id to be sent to the specific endpoint, from where we will get the actual order ID and then use that ID
+            realOrderId = await self.fetch_order_if_from_conditional_order(id)
+            if realOrderId is not None:
+                request['orderId'] = realOrderId
+            else:
+                # if order-id was not found, then there were no fills and no need to make any further request
+                return []
         return await self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
+
+    async def fetch_order_if_from_conditional_order(self, id):
+        request = {
+            'conditional_order_id': id,
+        }
+        response = await self.privateGetConditionalOrdersConditionalOrderIdTriggers(request)
+        # Note: if endpoint retuns non-empy "result" property, then it means order had fill and returns the order reference ID, which is the real id of the regular order
+        #
+        # {
+        #     "success": True,
+        #     "result": [
+        #         {
+        #             "time": "2022-03-29T04:54:04.390665+00:00",
+        #             "orderId": 132144259673,  # self is not the same conditional-order's id, instead it is the regular order id, which can be used in regular methods
+        #             "error": null,
+        #             "orderSize": 0.1234,
+        #             "filledSize": 0.1234
+        #         }
+        #     ]
+        # }
+        #
+        # Also note, the above endpoint seems to return one object in array
+        result = self.safe_value(response, 'result')
+        orderObject = self.safe_value(result, 0, {})
+        return self.safe_string(orderObject, 'orderId')
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         """
@@ -2255,11 +2357,10 @@ class ftx(Exchange):
         symbol = self.safe_symbol(marketId, market)
         liquidationPriceString = self.safe_string(position, 'estimatedLiquidationPrice')
         initialMarginPercentage = self.safe_string(position, 'initialMarginRequirement')
-        leverage = int(Precise.string_div('1', initialMarginPercentage, 0))
         # on ftx the entryPrice is actually the mark price
         markPriceString = self.safe_string(position, 'entryPrice')
         notionalString = Precise.string_mul(contractsString, markPriceString)
-        initialMargin = Precise.string_mul(notionalString, initialMarginPercentage)
+        initialMargin = self.safe_string(position, 'collateralUsed')
         maintenanceMarginPercentageString = self.safe_string(position, 'maintenanceMarginRequirement')
         maintenanceMarginString = Precise.string_mul(notionalString, maintenanceMarginPercentageString)
         unrealizedPnlString = self.safe_string(position, 'recentPnl')
@@ -2268,7 +2369,11 @@ class ftx(Exchange):
         difference = None
         collateral = None
         marginRatio = None
-        if (entryPriceString is not None) and (Precise.string_gt(liquidationPriceString, '0')):
+        leverage = None
+        if Precise.string_eq(liquidationPriceString, '0'):
+            # position is fully collateralized
+            collateral = notionalString
+        elif entryPriceString is not None:
             # collateral = maintenanceMargin ±((markPrice - liquidationPrice) * size)
             if side == 'long':
                 difference = Precise.string_sub(markPriceString, liquidationPriceString)
@@ -2276,11 +2381,13 @@ class ftx(Exchange):
                 difference = Precise.string_sub(liquidationPriceString, markPriceString)
             loss = Precise.string_mul(difference, contractsString)
             collateral = Precise.string_add(loss, maintenanceMarginString)
+            leverage = self.parse_number(Precise.string_div(Precise.string_add(Precise.string_div(notionalString, collateral), '0.005'), '1', 2))
             marginRatio = self.parse_number(Precise.string_div(maintenanceMarginString, collateral, 4))
         # ftx has a weird definition of realizedPnl
         # it keeps the historical record of the realizedPnl per contract forever
         # so we cannot use self data
         return {
+            'id': None,
             'info': position,
             'symbol': symbol,
             'timestamp': None,
@@ -2429,6 +2536,8 @@ class ftx(Exchange):
         if not isinstance(address, str):
             tag = self.safe_string(address, 'tag')
             address = self.safe_string(address, 'address')
+        else:
+            tag = self.safe_string(transaction, 'tag')
         if address is None:
             # parse address from internal transfer
             notes = self.safe_string(transaction, 'notes')
@@ -2538,7 +2647,7 @@ class ftx(Exchange):
         query = self.omit(params, self.extract_params(path))
         baseUrl = self.implode_hostname(self.urls['api'][api])
         url = baseUrl + request
-        if method != 'POST':
+        if method == 'GET':
             if query:
                 suffix = '?' + self.urlencode(query)
                 url += suffix
@@ -2919,4 +3028,56 @@ class ftx(Exchange):
             'timestamp': self.parse8601(datetime),
             'datetime': datetime,
             'info': info,
+        }
+
+    async def fetch_open_interest(self, symbol, params={}):
+        """
+        Retrieves the open interest of a currency
+        see https://docs.ftx.com/#get-future-stats
+        :param str symbol: Unified CCXT market symbol
+        :param dict params: exchange specific parameters
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure:
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['contract']:
+            raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
+        request = {
+            'future_name': market['id'],
+        }
+        response = await self.publicGetFuturesFutureNameStats(self.extend(request, params))
+        #
+        #     {
+        #         "success": True,
+        #         "result": {
+        #             "volume": 207681.9947,
+        #             "nextFundingRate": -5e-6,
+        #             "nextFundingTime": "2022-09-30T22:00:00+00:00",
+        #             "openInterest": 64745.8474
+        #         }
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        return self.parse_open_interest(result, market)
+
+    def parse_open_interest(self, interest, market=None):
+        #
+        #     {
+        #         "volume": 207681.9947,
+        #         "nextFundingRate": -5e-6,
+        #         "nextFundingTime": "2022-09-30T22:00:00+00:00",
+        #         "openInterest": 64745.8474
+        #     }
+        #
+        market = self.safe_market(None, market)
+        openInterest = self.safe_number(interest, 'openInterest')
+        return {
+            'symbol': market['symbol'],
+            'openInterestAmount': openInterest,
+            'openInterestValue': None,
+            'baseVolume': openInterest,  # deprecated
+            'quoteVolume': None,  # deprecated
+            'timestamp': None,
+            'datetime': None,
+            'info': interest,
         }
