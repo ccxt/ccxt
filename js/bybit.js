@@ -1635,8 +1635,8 @@ module.exports = class bybit extends Exchange {
             }
             return this.filterByArray (tickers, 'symbol', symbols);
         } else {
-            const list = this.safeValue (result, 'list', []);
-            return this.parseTickers (list, symbols);
+            const datalist = this.safeValue (result, 'list', []);
+            return this.parseTickers (datalist, symbols);
         }
     }
 
