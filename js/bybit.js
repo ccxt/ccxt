@@ -704,8 +704,6 @@ module.exports = class bybit extends Exchange {
         return [ networkCode, params ];
     }
 
-
-
     async fetchCurrencies (params = {}) {
         /**
          * @method
