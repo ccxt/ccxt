@@ -36,7 +36,7 @@ module.exports = class bybit extends Exchange {
                 'createStopOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
-                'fetchBorrowInterest': true,
+                'fetchBorrowInterest': false, // temporarily disabled, as it does not work
                 'fetchBorrowRate': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
