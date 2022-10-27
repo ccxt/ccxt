@@ -879,7 +879,7 @@ class Transpiler {
 
         let bodyAsString = body.join ("\n")
 
-        let header = this.createPHPClassHeader (className, baseClass, bodyAsString, async ? 'ccxt\\async' : 'ccxt')
+        let header = this.createPHPClassHeader (className, baseClass, bodyAsString, async ? 'ccxt\\async_implementation' : 'ccxt')
 
         const errorImports = []
 
@@ -1426,7 +1426,7 @@ class Transpiler {
             const python2File = './python/ccxt/base/exchange.py'
             const python3File = './python/ccxt/async_implementation/base/exchange.py'
             const phpFile = './php/Exchange.php'
-            const phpAsyncFile = './php/async/Exchange.php'
+            const phpAsyncFile = './php/async_implementation/Exchange.php'
             log.magenta ('→', python2File.yellow)
             replaceInFile (python2File,  new RegExp (pythonDelimiter + restOfFile), pythonDelimiter + python2.join ('\n') + '\n')
             log.magenta ('→', python3File.yellow)
@@ -1913,7 +1913,7 @@ class Transpiler {
             , python2Folder  = './python/ccxt/'
             , python3Folder  = './python/ccxt/async_implementation/'
             , phpFolder      = './php/'
-            , phpAsyncFolder = './php/async/'
+            , phpAsyncFolder = './php/async_implementation/'
             , options = { python2Folder, python3Folder, phpFolder, phpAsyncFolder, exchanges }
 
         if (!child) {
