@@ -2218,11 +2218,19 @@ module.exports = class bibox extends Exchange {
             } else if (v4) {
                 let strToSign = '';
                 if (method === 'GET') {
-                    url += '?' + this.urlencode (params);
-                    strToSign = this.urlencode (params);
+                    const sortedParams = {};
+                    const keys = Object.keys (params);
+                    keys.sort ();
+                    for (let i = 0; i < keys.length; i++) {
+                        const key = keys[i];
+                        sortedParams[key] = params[key];
+                    }
+                    url += '?' + this.urlencode (sortedParams);
+                    strToSign = this.urlencode (sortedParams);
                 } else {
                     if (jsonParams !== '{}') {
                         const keys = Object.keys (params);
+                        keys.sort ();
                         for (let i = 0; i < keys.length; i++) {
                             const key = keys[i];
                             body[key] = params[key];
