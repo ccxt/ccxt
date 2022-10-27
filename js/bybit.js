@@ -683,8 +683,8 @@ module.exports = class bybit extends Exchange {
         return this.safeInteger (response, 'time');
     }
 
-    parseNetworkId (networkId) {
-        const networksById = this.safeString (this.options, 'networksById', {});
+    networkIdToCode (networkId) {
+        const networksById = this.safeValue (this.options, 'networksById', {});
         return this.safeString (networksById, networkId, networkId);
     }
 
@@ -782,7 +782,7 @@ module.exports = class bybit extends Exchange {
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'chain');
-                const networkCode = this.parseNetworkId (networkId);
+                const networkCode = this.networkIdToCode (networkId);
                 const precision = this.parseNumber (this.parsePrecision (this.safeString (chain, 'minAccuracy')));
                 minPrecision = (minPrecision === undefined) ? precision : Math.min (minPrecision, precision);
                 const depositAllowed = this.safeInteger (chain, 'chainDeposit') === 1;
@@ -1624,7 +1624,7 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', []);
-        if (this.isArray (result)) {
+        if (Array.isArray (result)) {
             const tickers = {};
             for (let i = 0; i < result.length; i++) {
                 const ticker = this.parseTicker (result[i]);
@@ -4596,7 +4596,7 @@ module.exports = class bybit extends Exchange {
             'txid': this.safeString (transaction, 'txID'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': this.parseNetworkId (this.safeString (transaction, 'chain')),
+            'network': this.networkIdToCode (this.safeString (transaction, 'chain')),
             'address': undefined,
             'addressTo': toAddress,
             'addressFrom': undefined,
