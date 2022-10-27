@@ -463,7 +463,7 @@ function exportEverything () {
         }).join ("\n") + "\n\nexchanges",
         },
         {
-            file: './python/ccxt/async_support/__init__.py',
+            file: './python/ccxt/async_implementation/__init__.py',
             regex: /exchanges \= \[[^\]]+\]/,
             replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
         },
@@ -471,6 +471,11 @@ function exportEverything () {
             file: './python/ccxt/async_support/__init__.py',
             regex: /exchanges \= \[[^\]]+\]/,
             replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
+        },
+        {
+            file: './python/ccxt/async_support/__init__.py',
+            regex: /pro \= \[[^\]]+\]/,
+            replacement: "pro = [\n" + "    '" + wsIds.join ("',\n    '") + "'," + "\n]",
         },
         {
             file: './php/Exchange.php',

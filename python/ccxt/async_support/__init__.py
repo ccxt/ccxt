@@ -7,7 +7,7 @@
 __version__ = '2.0.72'
 
 # -----------------------------------------------------------------------------
-from ccxt.rest.async_support.base.exchange import Exchange                   # noqa: F401
+from ccxt.async_implementation.base.exchange import Exchange                   # noqa: F401
 
 from ccxt.base.decimal_to_precision import decimal_to_precision  # noqa: F401
 from ccxt.base.decimal_to_precision import TRUNCATE              # noqa: F401
@@ -294,6 +294,56 @@ exchanges = [
     'zb',
     'zipmex',
     'zonda',
+]
+
+pro = [
+    'aax',
+    'ascendex',
+    'bequant',
+    'binance',
+    'binancecoinm',
+    'binanceus',
+    'binanceusdm',
+    'bitcoincom',
+    'bitfinex',
+    'bitfinex2',
+    'bitmart',
+    'bitmex',
+    'bitopro',
+    'bitstamp',
+    'bittrex',
+    'bitvavo',
+    'bybit',
+    'coinbaseprime',
+    'coinbasepro',
+    'coinex',
+    'cryptocom',
+    'currencycom',
+    'deribit',
+    'exmo',
+    'ftx',
+    'ftxus',
+    'gate',
+    'gateio',
+    'hitbtc',
+    'hollaex',
+    'huobi',
+    'huobijp',
+    'huobipro',
+    'idex',
+    'kraken',
+    'kucoin',
+    'mexc',
+    'ndax',
+    'okcoin',
+    'okex',
+    'okx',
+    'phemex',
+    'ripio',
+    'upbit',
+    'whitebit',
+    'zb',
+    'zipmex',
 ]
 
 base = [

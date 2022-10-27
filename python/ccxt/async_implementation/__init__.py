@@ -40,6 +40,17 @@ from ccxt.base.errors import OrderNotFound                            # noqa: F4
 from ccxt.base.errors import OrderNotCached                           # noqa: F401
 from ccxt.base.errors import CancelPending                            # noqa: F401
 from ccxt.base.errors import OrderImmediatelyFillable                 # noqa: F401
+from ccxt.base.errors import OrderNotFillable                         # noqa: F401
+from ccxt.base.errors import DuplicateOrderId                         # noqa: F401
+from ccxt.base.errors import NotSupported                             # noqa: F401
+from ccxt.base.errors import NetworkError                             # noqa: F401
+from ccxt.base.errors import DDoSProtection                           # noqa: F401
+from ccxt.base.errors import RateLimitExceeded                        # noqa: F401
+from ccxt.base.errors import ExchangeNotAvailable                     # noqa: F401
+from ccxt.base.errors import OnMaintenance                            # noqa: F401
+from ccxt.base.errors import InvalidNonce                             # noqa: F401
+from ccxt.base.errors import RequestTimeout                           # noqa: F401
+from ccxt.base.errors import error_hierarchy                          # noqa: F401
 
 # # -----------------------------------------------------------------------------
 
@@ -287,10 +298,10 @@ exchanges = [
     'zonda',
 ]
 
-# base = [
-#     'Exchange',
-#     'exchanges',
-#     'decimal_to_precision',
-# ]
+base = [
+    'Exchange',
+    'exchanges',
+    'decimal_to_precision',
+]
 
-# __all__ = base + errors.__all__ + exchanges
+__all__ = base + errors.__all__ + exchanges
