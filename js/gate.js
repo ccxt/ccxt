@@ -4652,7 +4652,10 @@ module.exports = class gate extends Exchange {
         let query = this.omit (params, this.extractParams (path));
         path = this.implodeParams (path, params);
         const endPart = (path === '') ? '' : ('/' + path);
-        const entirePath = '/' + type + endPart;
+        let entirePath = '/' + type + endPart;
+        if ((type === 'subAccounts') || (type === 'withdrawals')) {
+            entirePath = endPart;
+        }
         let url = this.urls['api'][authentication][type];
         if (url === undefined) {
             throw new NotSupported (this.id + ' does not have a testnet for the ' + type + ' market type.');
