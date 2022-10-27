@@ -1114,8 +1114,9 @@ module.exports = class bittrex extends Exchange {
             method = 'privatePostConditionalOrders';
             const operand = this.safeString (params, 'operand');
             const trailingStopPercent = this.safeNumber (params, 'trailingStopPercent');
-            if (operand === undefined) {
-                throw new ArgumentsRequired (this.id + ' createOrder() requires either an operand parameter or an trailingStopPercent parameter for stop orders');
+            params = this.omit (params, 'trailingStopPercent');
+            if (operand === undefined && trailingStopPercent === undefined) {
+                throw new ArgumentsRequired (this.id + ' createOrder() requires either an operand parameter or a trailingStopPercent parameter for stop orders');
             }
             const orderToCreate = this.safeValue (params, 'orderToCreate');
             const orderToCancel = this.safeValue (params, 'orderToCancel');
