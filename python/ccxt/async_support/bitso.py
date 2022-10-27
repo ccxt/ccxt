@@ -1281,7 +1281,7 @@ class bitso(Exchange):
             depositFee = depositFees[i]
             currencyId = self.safe_string(depositFee, 'currency')
             code = self.safe_currency_code(currencyId)
-            if codes is not None and not self.in_array(code, codes):
+            if (codes is not None) and not self.in_array(code, codes):
                 continue
             result[code] = {
                 'deposit': self.safe_number(depositFee, 'fee'),
@@ -1296,7 +1296,7 @@ class bitso(Exchange):
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]
             code = self.safe_currency_code(currencyId)
-            if codes is not None and not self.in_array(code, codes):
+            if (codes is not None) and not self.in_array(code, codes):
                 continue
             result[code] = {
                 'deposit': self.safe_value(result[code], 'deposit'),
