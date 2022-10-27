@@ -493,6 +493,7 @@ module.exports = class bybit extends Exchange {
                     '10018': RateLimitExceeded, // exceed ip rate limit
                     '10020': PermissionDenied, // {"retCode":10020,"retMsg":"your account is not a unified margin account, please update your account","result":null,"retExtInfo":null,"time":1664783731123}
                     '12201': BadRequest, // {"retCode":12201,"retMsg":"Invalid orderCategory parameter.","result":{},"retExtInfo":null,"time":1666699391220}
+                    '131001': InsufficientFunds, // {"retCode":131001,"retMsg":"the available balance is not sufficient to cover the handling fee","result":{},"retExtInfo":{},"time":1666892821245}
                     '20001': OrderNotFound, // Order not exists
                     '20003': InvalidOrder, // missing parameter side
                     '20004': InvalidOrder, // invalid parameter side
@@ -628,6 +629,13 @@ module.exports = class bybit extends Exchange {
                     'OMNI': 'OMNI',
                     'SPL': 'SOL',
                 },
+                'networksById': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                    'BSC': 'BEP20',
+                    'OMNI': 'OMNI',
+                    'SPL': 'SOL',
+                },
             },
             'fees': {
                 'trading': {
@@ -675,21 +683,28 @@ module.exports = class bybit extends Exchange {
         return this.safeInteger (response, 'time');
     }
 
-    safeNetwork (networkId) {
-        const networksById = {
-            'ETH': 'ERC20',
-            'TRX': 'TRC20',
-        };
+    parseNetworkId (networkId) {
+        const networksById = this.safeString (this.options, 'networksById', {});
         return this.safeString (networksById, networkId, networkId);
     }
 
-    parseNetworkCode (networkId) {
-        const networksById = {
-            'ETH': 'ERC20',
-            'TRX': 'TRC20',
-        };
-        return this.safeString (networksById, networkId, networkId);
+    networkCodeToId (networkCode) {
+        const networks = this.safeValue (this.options, 'networks', {});
+        return this.safeStringUpper (networks, networkCode, networkCode);
     }
+
+    handleNetworkCodeAndParams (params) {
+        const networks = this.safeValue (this.options, 'networks', {});
+        const networkCodeInParams = this.safeStringUpper (params, 'networkCode', 'network');
+        let networkCode = undefined;
+        if (networkCodeInParams !== undefined) {
+            networkCode = this.safeStringUpper (networks, networkCodeInParams, networkCodeInParams);
+            params = this.omit (params, [ 'networkCode', 'network' ]);
+        }
+        return [ networkCode, params ];
+    }
+
+
 
     async fetchCurrencies (params = {}) {
         /**
@@ -769,7 +784,7 @@ module.exports = class bybit extends Exchange {
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'chain');
-                const networkCode = this.safeNetwork (networkId);
+                const networkCode = this.parseNetworkId (networkId);
                 const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'minAccuracy')));
                 minPrecision = (minPrecision === undefined) ? precision : Math.min (minPrecision, precision);
                 const depositAllowed = this.safeInteger (currency, 'chainDeposit') === 1;
@@ -4509,19 +4524,25 @@ module.exports = class bybit extends Exchange {
         // fetchDeposits
         //
         //     {
-        //          "coin": "USDT",
-        //          "chain": "TRX",
-        //          "amount": "44",
-        //          "txID": "0b038ea12fa1575e2d66693db3c346b700d4b28347afc39f80321cf089acc960",
-        //          "status": "3",
-        //          "toAddress": "TC6NCAC5WSVCCiaD3kWZXyW91ZKKhLm53b",
-        //          "tag": "",
-        //          "depositFee": "",
-        //          "successAt": "1665142507000",
-        //          "confirmations": "100",
-        //          "txIndex": "0",
-        //          "blockHash": "0000000002ac3b1064aee94bca1bd0b58c4c09c65813b084b87a2063d961129e"
-        //      }
+        //         "coin": "USDT",
+        //         "chain": "TRX",
+        //         "amount": "44",
+        //         "txID": "0b038ea12fa1575e2d66693db3c346b700d4b28347afc39f80321cf089acc960",
+        //         "status": "3",
+        //         "toAddress": "TC6NCAC5WSVCCiaD3kWZXyW91ZKKhLm53b",
+        //         "tag": "",
+        //         "depositFee": "",
+        //         "successAt": "1665142507000",
+        //         "confirmations": "100",
+        //         "txIndex": "0",
+        //         "blockHash": "0000000002ac3b1064aee94bca1bd0b58c4c09c65813b084b87a2063d961129e"
+        //     }
+        //
+        // withdraw
+        //
+        //     {
+        //         "id": "9377266"
+        //     }
         //
         const currencyId = this.safeString (transaction, 'coin');
         const code = this.safeCurrencyCode (currencyId, currency);
@@ -4544,7 +4565,7 @@ module.exports = class bybit extends Exchange {
             'txid': this.safeString (transaction, 'txID'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': this.parseNetworkCode (this.safeString (transaction, 'chain')),
+            'network': this.parseNetworkId (this.safeString (transaction, 'chain')),
             'address': undefined,
             'addressTo': toAddress,
             'addressFrom': undefined,
@@ -4714,24 +4735,20 @@ module.exports = class bybit extends Exchange {
         if (tag !== undefined) {
             request['tag'] = tag;
         }
-        const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeStringUpper (networks, network, network); // handle ERC20>ETH alias
-        if (network !== undefined) {
-            request['chain'] = network;
-            params = this.omit (params, 'network');
+        const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            request['chain'] = networkCode;
         }
-        const response = await this.privatePostAssetV1PrivateWithdraw (this.extend (request, params));
+        const response = await this.privatePostAssetV3PrivateWithdrawCreate (this.extend (request, query));
         //
-        //     {
-        //         "ret_code":0,
-        //         "ret_msg":"OK"
-        //         "ext_code":"",
-        //         "result":{
-        //             "id":"bybitistheone"
+        //    {
+        //         "retCode": "0",
+        //         "retMsg": "success",
+        //         "result": {
+        //             "id": "9377266"
         //         },
-        //         "ext_info":null,
-        //         "time_now":1653149296617
+        //         "retExtInfo": {},
+        //         "time": "1666892894902"
         //     }
         //
         const result = this.safeValue (response, 'result', {});
