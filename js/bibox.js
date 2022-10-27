@@ -1930,7 +1930,7 @@ module.exports = class bibox extends Exchange {
          * @param {string} code unified currency code
          * @param {float} amount the amount to withdraw
          * @param {string} address the address to withdraw to
-         * @param {string|undefined} tag
+         * @param {string|undefined} tag memo
          * @param {object} params extra parameters specific to the bibox api endpoint
          * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
@@ -1938,40 +1938,24 @@ module.exports = class bibox extends Exchange {
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        if (this.password === undefined) {
-            if (!('trade_pwd' in params)) {
-                throw new ExchangeError (this.id + ' withdraw() requires this.password set on the exchange instance or a trade_pwd parameter');
-            }
-        }
-        if (!('totp_code' in params)) {
-            throw new ExchangeError (this.id + ' withdraw() requires a totp_code parameter for 2FA authentication');
-        }
         const request = {
-            'trade_pwd': this.password,
             'coin_symbol': currency['id'],
             'amount': amount,
             'addr': address,
         };
         if (tag !== undefined) {
-            request['address_remark'] = tag;
+            request['memo'] = tag;
         }
-        const response = await this.v1PrivatePostTransfer ({
-            'cmd': 'transfer/transferOut',
-            'body': this.extend (request, params),
-        });
+        const method = 'v3.1PrivatePostTransferTransferOut';
+        const response = await this[method] (this.extend (request, params));
         //
-        //     {
-        //         "result":[
-        //             {
-        //                 "result": 228, // withdrawal id
-        //                 "cmd":"transfer/transferOut"
-        //             }
-        //         ]
-        //     }
+        //    {
+        //        "state": 0,
+        //        "result": 228,
+        //        "cmd": "transfer/transferOut"
+        //    }
         //
-        const outerResults = this.safeValue (response, 'result');
-        const firstResult = this.safeValue (outerResults, 0, {});
-        return this.parseTransaction (firstResult, currency);
+        return this.parseTransaction (response, currency);
     }
 
     async fetchTransactionFees (codes = undefined, params = {}) {
