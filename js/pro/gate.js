@@ -163,7 +163,7 @@ module.exports = class gate extends gateRest {
                     }
                 } else {
                     // throw upon failing to synchronize in maxAttempts
-                    client.subscriptions[messageHash] = undefined;
+                    delete client.subscriptions[messageHash];
                     throw new InvalidNonce (this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + maxAttempts.toString () + ' attempts');
                 }
             } else {
