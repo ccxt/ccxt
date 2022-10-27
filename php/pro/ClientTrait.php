@@ -2,7 +2,7 @@
 
 namespace ccxt\pro;
 
-use ccxt\async\Throttle;
+use ccxt\async_implementation\Throttle;
 use React\Async;
 use React\EventLoop\Loop;
 
