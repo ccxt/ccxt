@@ -22,12 +22,12 @@ async def main():
     await exchange.load_markets()
     market_id = 'ETH-221028-1700-C'
     try:
-        response = await exchange.eapiPrivateGetPosition({
+        response = await exchange.eapiPublicGetTicker({
             # 'symbol': market_id,  # optional
         })
         pprint(response)
     except Exception as e:
-        print('eapiPrivateGetPosition() failed')
+        print('eapiPublicGetTicker() failed')
         print(e)
     await exchange.close()
 

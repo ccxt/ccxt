@@ -20,14 +20,16 @@ async def main():
         # 'verbose': True,  # for debug output
     })
     await exchange.load_markets()
-    market_id = 'ETH-221028-1700-C'
+    market_id = 'ETH-221028-1500-C'
+    limit = 10
     try:
-        response = await exchange.eapiPrivateGetPosition({
-            # 'symbol': market_id,  # optional
+        response = await exchange.eapiPublicGetDepth({
+            'symbol': market_id,
+            # 'limit': limit,  # optional
         })
         pprint(response)
     except Exception as e:
-        print('eapiPrivateGetPosition() failed')
+        print('eapiPublicGetDepth() failed')
         print(e)
     await exchange.close()
 

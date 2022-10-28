@@ -21,13 +21,19 @@ async def main():
     })
     await exchange.load_markets()
     market_id = 'ETH-221028-1700-C'
+    timeframe = '1m'
+    since = 1592317127349
+    limit = 10
     try:
-        response = await exchange.eapiPrivateGetPosition({
-            # 'symbol': market_id,  # optional
+        response = await exchange.eapiPublicGetKlines({
+            'symbol': market_id,
+            'interval': timeframe,
+            # 'startTime': since,  # optional
+            # 'limit': limit,  # optional
         })
         pprint(response)
     except Exception as e:
-        print('eapiPrivateGetPosition() failed')
+        print('eapiPublicGetKlines() failed')
         print(e)
     await exchange.close()
 
