@@ -380,6 +380,7 @@ class ftx extends Exchange {
                     'Not authorized for subaccount-specific access' => '\\ccxt\\PermissionDenied', // array("success":false,"error":"Not authorized for subaccount-specific access")
                     'Not approved to trade this product' => '\\ccxt\\PermissionDenied', // array("success":false,"error":"Not approved to trade this product")
                     'Internal Error' => '\\ccxt\\ExchangeNotAvailable', // array("success":false,"error":"Internal Error")
+                    'Order took too long to process' => '\\ccxt\\ExchangeNotAvailable', // array("success":false,"error":"Order took too long to process")
                 ),
                 'broad' => array(
                     // array("error":"Not logged in","success":false)
