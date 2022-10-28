@@ -2421,6 +2421,7 @@ module.exports = class stex extends Exchange {
          * @method
          * @name stex#fetchTransactionFees
          * @description fetch transaction fees
+         * @see https://apidocs.stex.com/#tag/Public/paths/~1public~1currencies/get
          * @param {[string]|undefined} codes not used by stex fetchTransactionFees ()
          * @param {object} params extra parameters specific to the stex api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
@@ -2467,19 +2468,21 @@ module.exports = class stex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        const withdrawFees = {};
-        const depositFees = {};
+        const result = {};
         for (let i = 0; i < data.length; i++) {
-            const id = this.safeString (data[i], 'id');
+            const item = data[i];
+            const id = this.safeString (item, 'id');
             const code = this.safeCurrencyCode (id);
-            withdrawFees[code] = this.safeNumber (data[i], 'withdrawal_fee_const');
-            depositFees[code] = this.safeNumber (data[i], 'deposit_fee_const');
+            if (codes !== undefined && !this.inArray (code, codes)) {
+                continue;
+            }
+            result[code] = {
+                'withdraw': this.safeNumber (item, 'withdrawal_fee_const'),
+                'deposit': this.safeNumber (item, 'deposit_fee_const'),
+                'info': item,
+            };
         }
-        return {
-            'withdraw': withdrawFees,
-            'deposit': depositFees,
-            'info': response,
-        };
+        return result;
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
