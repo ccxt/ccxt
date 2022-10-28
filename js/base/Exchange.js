@@ -1226,7 +1226,7 @@ module.exports = class Exchange {
         if (!market['spot']) {
             key = this.safeString (market, 'settle', key);
         }
-        // override for 'market' types, independent whether what `takerOrMaker` argument was set to
+        // even if `takerOrMaker` argument was set to 'maker', for 'market' orders we should forcefully override it to 'taker'
         if (type === 'market') {
             takerOrMaker = 'taker';
         }
