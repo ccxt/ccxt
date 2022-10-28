@@ -1749,7 +1749,7 @@ module.exports = class bibox extends Exchange {
          * @param {object} params extra parameters specific to the bibox api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        return this.fetchOrdersByStatus ('open', symbol, since, limit, params);
+        return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
