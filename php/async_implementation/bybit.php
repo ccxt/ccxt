@@ -3161,18 +3161,22 @@ class bybit extends Exchange {
                 // 'stop_order_id' => $id, // only for conditional orders
                 // 'p_r_trigger_price' => 123.45, // new trigger $price also known as stop_px
             );
-            $orderType = $this->safe_string($params, 'orderType');
-            $isStop = $this->safe_value($params, 'stop', false);
-            $isConditionalOrder = $isStop || ($orderType === 'stop' || $orderType === 'conditional');
-            $params = $this->omit($params, array( 'orderType', 'stop' ));
-            $idKey = $isConditionalOrder ? 'stop_order_id' : 'order_id';
-            $request[$idKey] = $id;
             if ($amount !== null) {
                 $request['p_r_qty'] = $this->amount_to_precision($symbol, $amount);
             }
             if ($price !== null) {
                 $request['p_r_price'] = $this->price_to_precision($symbol, $price);
             }
+            $isConditionalOrder = false;
+            $idKey = 'order_id';
+            $triggerPrice = $this->safe_value_n($params, array( 'stopPrice', 'triggerPrice' ));
+            if ($triggerPrice !== null) {
+                $isConditionalOrder = true;
+                $idKey = 'stop_order_id';
+                $request['p_r_trigger_price'] = $this->price_to_precision($symbol, $triggerPrice);
+                $params = $this->omit($params, array( 'stopPrice', 'triggerPrice' ));
+            }
+            $request[$idKey] = $id;
             $method = null;
             if ($market['linear']) {
                 $method = $isConditionalOrder ? 'privatePostPrivateLinearStopOrderReplace' : 'privatePostPrivateLinearOrderReplace';

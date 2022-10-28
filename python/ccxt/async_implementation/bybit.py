@@ -2987,16 +2987,19 @@ class bybit(Exchange):
             # 'stop_order_id': id,  # only for conditional orders
             # 'p_r_trigger_price': 123.45,  # new trigger price also known as stop_px
         }
-        orderType = self.safe_string(params, 'orderType')
-        isStop = self.safe_value(params, 'stop', False)
-        isConditionalOrder = isStop or (orderType == 'stop' or orderType == 'conditional')
-        params = self.omit(params, ['orderType', 'stop'])
-        idKey = 'stop_order_id' if isConditionalOrder else 'order_id'
-        request[idKey] = id
         if amount is not None:
             request['p_r_qty'] = self.amount_to_precision(symbol, amount)
         if price is not None:
             request['p_r_price'] = self.price_to_precision(symbol, price)
+        isConditionalOrder = False
+        idKey = 'order_id'
+        triggerPrice = self.safe_value_n(params, ['stopPrice', 'triggerPrice'])
+        if triggerPrice is not None:
+            isConditionalOrder = True
+            idKey = 'stop_order_id'
+            request['p_r_trigger_price'] = self.price_to_precision(symbol, triggerPrice)
+            params = self.omit(params, ['stopPrice', 'triggerPrice'])
+        request[idKey] = id
         method = None
         if market['linear']:
             method = 'privatePostPrivateLinearStopOrderReplace' if isConditionalOrder else 'privatePostPrivateLinearOrderReplace'

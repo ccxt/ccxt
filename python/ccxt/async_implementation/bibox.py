@@ -40,6 +40,7 @@ class bibox(Exchange):
                 'swap': None,  # has but unimplemented
                 'future': None,
                 'option': None,
+                'cancelAllOrders': True,
                 'cancelOrder': True,
                 'createMarketOrder': None,  # or they will return https://github.com/ccxt/ccxt/issues/2338
                 'createOrder': True,
@@ -61,6 +62,7 @@ class bibox(Exchange):
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchOrdersByStatus': True,
                 'fetchPositionMode': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -328,6 +330,8 @@ class bibox(Exchange):
                 '3025': AuthenticationError,  # signature failed
                 '4000': ExchangeNotAvailable,  # current network is unstable
                 '4003': DDoSProtection,  # server busy please try again later
+                '-2004': InvalidOrder,  # Invalid parameter 'price': price limit
+                '-2102': RateLimitExceeded,  # The usage limit is 10000 in 10000ms, but 10296 have been used.
             },
             'commonCurrencies': {
                 'APENFT(NFT)': 'NFT',
@@ -1354,6 +1358,26 @@ class bibox(Exchange):
         #
         return self.parse_order(response, market)
 
+    async def cancel_all_orders(self, symbol=None, params={}):
+        """
+        cancels all open orders
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bibox api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        await self.load_markets()
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' cancelAllOrders requires a symbol argument')
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.v4PrivateDeleteUserdataOrders(self.extend(request, params))
+        #
+        # []
+        #
+        return self.parse_orders(response, market)
+
     async def cancel_order(self, id, symbol=None, params={}):
         """
         cancels an open order
@@ -1363,26 +1387,59 @@ class bibox(Exchange):
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         request = {
-            'cmd': 'orderpending/cancelTrade',
-            'body': self.extend({
-                'orders_id': id,
-            }, params),
+            'id': id,
         }
-        response = await self.v1PrivatePostOrderpending(request)
+        response = await self.v4PrivateDeleteUserdataOrder(self.extend(request, params))
         #
-        #     {
-        #         "result":[
-        #             {
-        #                 "result":"OK",  # only indicates if the server received the cancelling request, and the cancelling result can be obtained from the order record
-        #                 "index": 12345,  # random index, specific one in a batch
-        #                 "cmd":"orderpending/cancelTrade"
-        #             }
-        #         ]
-        #     }
+        #    {
+        #        "i": 4611688217450643477,  # The order id assigned by the exchange
+        #        "I": "",  # User specified order id
+        #        "m": "BTC_USDT",  # trading pair code
+        #        "T": "limit",  # order type
+        #        "s": "sell",  # order direction
+        #        "Q": -0.0100,  # Order amount
+        #        "P": 10043.8500,  # order price
+        #        "t": "gtc",  # Time In Force
+        #        "o": False,  # Post Only
+        #        "S": "filled",  # order status
+        #        "E": -0.0100,  # transaction volume
+        #        "e": -100.43850000,  # transaction value
+        #        "C": 1643193746043,  # creation time
+        #        "U": 1643193746464,  # update time
+        #        "n": 2,  # number of transactions
+        #        "F": [
+        #            {
+        #                "i": 13,  # deal id
+        #                "t": 1643193746464,  # transaction time
+        #                "p": 10043.85,  # transaction price
+        #                "q": -0.009,  # transaction volume
+        #                "l": "maker",  # Maker / Taker transaction
+        #                "f": {
+        #                    "a": "USDT",  # This transaction is used to pay the transaction fee
+        #                    "m": 0.09039465000  # The handling fee for self transaction
+        #                }
+        #            },
+        #            {
+        #                "i": 12,
+        #                "t": 1643193746266,
+        #                "p": 10043.85,
+        #                "q": -0.001,
+        #                "l": "maker",
+        #                "f": {
+        #                        "a": "USDT",
+        #                        "m": 0.01004385000
+        #                    }
+        #                }
+        #        ],
+        #        "f": [
+        #            {
+        #                "a": "USDT",  # Assets used to pay fees
+        #                "m": 0.10043850000  # Total handling fee
+        #            }
+        #        ]
+        #    }
         #
-        outerResults = self.safe_value(response, 'result')
-        firstResult = self.safe_value(outerResults, 0, {})
-        return firstResult
+        return self.parse_order(response)
 
     async def fetch_order(self, id, symbol=None, params={}):
         """
@@ -1393,146 +1450,98 @@ class bibox(Exchange):
         """
         await self.load_markets()
         request = {
-            'cmd': 'orderpending/order',
-            'body': self.extend({
-                'id': str(id),
-                'account_type': 0,  # 0 = spot account
-            }, params),
+            'id': id,
         }
-        response = await self.v1PrivatePostOrderpending(request)
-        #
-        #     {
-        #         "result":[
-        #             {
-        #                 "result": {
-        #                     "id": "100055558128036",
-        #                     "createdAt": 1512756997000,
-        #                     "account_type": 0,
-        #                     "coin_symbol": "LTC",        # Trading Token
-        #                     "currency_symbol": "BTC",    # Pricing Token
-        #                     "order_side": 2,             # Trading side 1-Buy, 2-Sell
-        #                     "order_type": 2,             # 2-limit order
-        #                     "price": "0.00900000",       # order price
-        #                     "amount": "1.00000000",      # order amount
-        #                     "money": "0.00900000",       # currency amount(price * amount)
-        #                     "deal_amount": "0.00000000",  # deal amount
-        #                     "deal_percent": "0.00%",     # deal percentage
-        #                     "unexecuted": "0.00000000",  # unexecuted amount
-        #                     "status": 3                  # Status, -1-fail, 0,1-to be dealt, 2-dealt partly, 3-dealt totally, 4- cancelled partly, 5-cancelled totally, 6-to be cancelled
-        #                 },
-        #                 "cmd": "orderpending/order"
-        #             }
-        #         ]
-        #     }
-        #
-        outerResults = self.safe_value(response, 'result')
-        firstResult = self.safe_value(outerResults, 0, {})
-        order = self.safe_value(firstResult, 'result')
-        if self.is_empty(order):
-            raise OrderNotFound(self.id + ' order ' + id + ' not found')
-        return self.parse_order(order)
-
-    def parse_order(self, order, market=None):
-        #
-        # createOrder V4
+        response = await self.v4PrivateGetUserdataOrder(self.extend(request, params))
         #
         #    {
-        #        "i": 4611688217450643477,  # The order id assigned by the exchange
-        #        "I": "",  # User specified order id
-        #        "m": "BTC_USDT",  # trading pair code
-        #        "T": "limit",  # order type
-        #        "s": "sell",  # order direction
-        #        "Q": -0.0100,  # order amount
-        #        "P": 10043.8500,  # order price
-        #        "t": "gtc",  # Time In Force
-        #        "o": False,  # Post Only
-        #        "S": "filled",  # order status
-        #        "E": -0.0100,  # transaction volume
-        #        "e": -100.43850000,  # transaction value
-        #        "C": 1643193746043,  # creation time
-        #        "U": 1643193746464,  # update time
-        #        "n": 2,  # Number of transactions
-        #        "F": [
+        #        i: '14580623696203099',       # the order id assigned by the exchange
+        #        I: '0',                       # user specified order id
+        #        m: 'ADA_USDT',                # trading pair code
+        #        T: 'limit',                   # order type
+        #        s: 'buy',                     # order direction
+        #        Q: '4.000000',                # order amount
+        #        P: '0.300000',                # order price
+        #        t: 'gtc',                     # time in force
+        #        o: False,                     # post only
+        #        S: 'accepted',                # order status
+        #        E: '0',                       # transaction volume
+        #        e: '0',                       # transaction value
+        #        C: '1666235804233',           # creation time
+        #        U: '1666235804233',           # update time
+        #        V: '586925436933',
+        #        n: '0',                       # number of transactions
+        #        F: [
         #            {
-        #                "i": 13,  # transaction id
-        #                "t": 1643193746464,  # Transaction time
-        #                "p": 10043.85,  # transaction price
-        #                "q": -0.009,  # transaction volume
-        #                "l": "maker",  # Maker / Taker transaction
-        #                "f": {
-        #                    "a": "USDT",  # The asset used for the transaction to pay the handling fee
-        #                    "m": 0.09039465000  # The transaction fee
+        #                i: 13,                # transaction id
+        #                t: 1643193746464,     # transaction time
+        #                p: 10043.85,          # transaction price
+        #                q: -0.009,            # transaction volume
+        #                l: "maker",           # maker / taker transaction
+        #                f: {
+        #                    a: "USDT",        # the asset used for the transaction to pay the handling fee
+        #                    m: 0.09039465000  # the transaction fee
         #                }
         #            },
-        #            {
-        #                "i": 12,
-        #                "t": 1643193746266,
-        #                "p": 10043.85,
-        #                "q": -0.001,
-        #                "l": "maker",
-        #                "f": {
-        #                    "a": "USDT",
-        #                    "m": 0.01004385000
-        #                }
-        #            }
+        #            ...
         #        ],
-        #        "f": [
+        #        f: [
         #            {
-        #                "a": "USDT",  # Assets used to pay fees
-        #                "m": 0.10043850000  # Total handling fee
+        #                a: "USDT",            # Assets used to pay fees
+        #                m: 0.10043850000      # Total handling fee
         #            }
         #        ]
         #    }
         #
-        # fetchOrder V1, fetchOpenOrders V1, fetchClosedOrders V1
+        return self.parse_order(response)
+
+    def parse_order(self, order, market=None):
         #
-        #     {
-        #         "id": "100055558128036",
-        #         "createdAt": 1512756997000,
-        #         "account_type": 0,
-        #         "coin_symbol": "LTC",        # Trading Token
-        #         "currency_symbol": "BTC",    # Pricing Token
-        #         "order_side": 2,             # Trading side 1-Buy, 2-Sell
-        #         "order_type": 2,             # 2-limit order
-        #         "price": "0.00900000",       # order price
-        #         "amount": "1.00000000",      # order amount
-        #         "money": "0.00900000",       # currency amount(price * amount)
-        #         "deal_amount": "0.00000000",  # deal amount
-        #         "deal_percent": "0.00%",     # deal percentage
-        #         "unexecuted": "0.00000000",  # unexecuted amount
-        #         "status": 3                  # Status,-1-fail, 0,1-to be dealt, 2-dealt partly, 3-dealt totally, 4- cancelled partly, 5-cancelled totally, 6-to be cancelled
-        #     }
+        #    {
+        #        i: '14580623696203099',       # the order id assigned by the exchange
+        #        I: '0',                       # user specified order id
+        #        m: 'ADA_USDT',                # trading pair code
+        #        T: 'limit',                   # order type
+        #        s: 'buy',                     # order direction
+        #        Q: '4.000000',                # order amount
+        #        P: '0.300000',                # order price
+        #        t: 'gtc',                     # time in force
+        #        o: False,                     # post only
+        #        S: 'accepted',                # order status
+        #        E: '0',                       # transaction volume
+        #        e: '0',                       # transaction value
+        #        C: '1666235804233',           # creation time
+        #        U: '1666235804233',           # update time
+        #        V: '586925436933',
+        #        n: '0',                       # number of transactions
+        #        F: [
+        #            {
+        #                i: 13,                # transaction id
+        #                t: 1643193746464,     # transaction time
+        #                p: 10043.85,          # transaction price
+        #                q: -0.009,            # transaction volume
+        #                l: "maker",           # maker / taker transaction
+        #                f: {
+        #                    a: "USDT",        # the asset used for the transaction to pay the handling fee
+        #                    m: 0.09039465000  # the transaction fee
+        #                }
+        #            },
+        #            ...
+        #        ],
+        #        f: [
+        #            {
+        #                a: "USDT",            # Assets used to pay fees
+        #                m: 0.10043850000      # Total handling fee
+        #            }
+        #        ]
+        #    }
         #
         marketId = self.safe_string(order, 'm')
-        if marketId is None:
-            baseId = self.safe_string(order, 'coin_symbol')
-            quoteId = self.safe_string(order, 'currency_symbol')
-            if (baseId is not None) and (quoteId is not None):
-                marketId = baseId + '_' + quoteId
         market = self.safe_market(marketId, market)
-        type = self.safe_string_2(order, 'T', 'order_type')
-        if type != 'limit' and type != 'market':
-            if type == '1':
-                type = 'limit'
-            elif type == '2':
-                type = 'market'
-        timestamp = self.safe_integer_2(order, 'C', 'createdAt')
-        price = self.safe_string_2(order, 'P', 'price')
-        average = self.safe_string(order, 'deal_price')
-        filled = self.safe_string(order, 'deal_amount')
-        amount = self.safe_string_2(order, 'Q', 'amount')
+        timestamp = self.safe_integer(order, 'C')
+        amount = self.safe_string(order, 'Q')
         amount = Precise.string_abs(amount)
-        cost = self.safe_string_2(order, 'money', 'deal_money')
-        side = self.safe_string_2(order, 's', 'order_side')
-        if side == '1':
-            side = 'buy'
-        elif side == '2':
-            side = 'sell'
-        status = self.parse_order_status(self.safe_string_2(order, 'S', 'status'))
-        id = self.safe_string_2(order, 'i', 'id')
-        clientOrderId = self.omit_zero(self.safe_string(order, 'I'))
-        timeInForce = self.safe_string_upper(order, 't')
-        postOnly = self.safe_value(order, 'o')
+        side = self.safe_string(order, 's')
         fees = []
         orderFees = self.safe_value(order, 'f', [])
         for i in range(0, len(orderFees)):
@@ -1540,39 +1549,34 @@ class bibox(Exchange):
                 'currency': self.safe_currency_code(self.safe_string(orderFees[i], 'a')),
                 'cost': self.safe_string(orderFees[i], 'm'),
             })
-        fee = None
-        if len(fees):
-            fee = self.safe_value(fees, 0)
-        else:
-            feeCost = self.safe_string(order, 'fee')
-            if feeCost is not None:
-                fee = {
-                    'cost': feeCost,
-                    'currency': None,
-                }
+        transactions = self.safe_value(order, 'F')
+        trades = []
+        for i in range(0, len(transactions)):
+            trade = self.parse_trade(transactions[i])
+            trades.append(trade)
         return self.safe_order({
             'info': order,
-            'id': id,
-            'clientOrderId': clientOrderId,
+            'id': self.safe_string(order, 'i'),
+            'clientOrderId': self.omit_zero(self.safe_string(order, 'I')),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'lastTradeTimestamp': None,
             'symbol': market['symbol'],
-            'type': type,
-            'timeInForce': timeInForce,
-            'postOnly': postOnly,
+            'type': self.safe_string(order, 'T'),
+            'timeInForce': self.safe_string_upper(order, 't'),
+            'postOnly': self.safe_value(order, 'o'),
             'side': side,
-            'price': price,
+            'price': self.safe_string(order, 'P'),
             'stopPrice': None,
             'amount': amount,
-            'cost': cost,
-            'average': average,
-            'filled': filled,
+            'cost': self.safe_string(order, 'e'),
+            'average': None,
+            'filled': self.safe_string(order, 'E'),
             'remaining': None,
-            'status': status,
-            'fee': fee,
+            'status': self.parse_order_status(self.safe_string(order, 'S')),
+            'fee': self.safe_value(fees, 0),
             'fees': fees,
-            'trades': None,
+            'trades': trades,
         }, market)
 
     def parse_order_status(self, status):
@@ -1590,70 +1594,77 @@ class bibox(Exchange):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def fetch_orders_by_status(self, status, symbol=None, since=None, limit=None, params={}):
         """
         fetch all unfilled currently open orders
+         * @param status open or closed
         :param str|None symbol: unified market symbol
-        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  open orders structures to retrieve
         :param dict params: extra parameters specific to the bibox api endpoint
+        :param int params['until']: the latest time in ms to fetch orders for
+         *
+         * EXCHANGE SPECIFIC PARMETERS
+        :param str params['before']: order update id limited to return the maximum update id of the order
+        :param str params['after']: delegate update id limited to return the minimum update id of the order
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
+        request = {}
         market = None
-        pair = None
+        until = self.safe_integer(params, 'until')
+        open = (status == 'open')
+        unsettled = (status == 'unsettled')
+        params = self.omit(params, 'until')
+        if until is not None:              # The order of request parameters must go end_time -> limit -> start_time -> status -> symbol
+            request['end_time'] = until
+        if limit is not None:
+            request['limit'] = limit
+        if since is not None:
+            request['start_time'] = since
+        request['status'] = 'unsettled' if (open or unsettled) else 'settled'
         if symbol is not None:
             market = self.market(symbol)
-            pair = market['id']
-        size = limit if limit else 200
-        request = {
-            'cmd': 'orderpending/orderPendingList',
-            'body': self.extend({
-                'pair': pair,
-                'account_type': 0,  # 0 - regular, 1 - margin
-                'page': 1,
-                'size': size,
-            }, params),
-        }
-        response = await self.v1PrivatePostOrderpending(request)
+            request['symbol'] = market['id']
+        response = await self.v4PrivateGetUserdataOrders(self.extend(request, params))
         #
-        #     {
-        #         "result":[
-        #             {
-        #                 "result":{
-        #                     "count":1,
-        #                     "page":1,
-        #                     "items":[
-        #                         {
-        #                             "id":"100055558128036",
-        #                             "createdAt": 1512756997000,
-        #                             "account_type":0,
-        #                             "coin_symbol":"LTC",        # Trading Token
-        #                             "currency_symbol":"BTC",    # Pricing Token
-        #                             "order_side":2,             # Trading side 1-Buy, 2-Sell
-        #                             "order_type":2,             # 2-limit order
-        #                             "price":"0.00900000",       # order price
-        #                             "amount":"1.00000000",      # order amount
-        #                             "money":"0.00900000",       # currency amount(price * amount)
-        #                             "deal_amount":"0.00000000",  # deal amount
-        #                             "deal_percent":"0.00%",     # deal percentage
-        #                             "unexecuted":"0.00000000",  # unexecuted amount
-        #                             "status":1                  # Status,-1-fail, 0,1-to be dealt, 2-dealt partly, 3-dealt totally, 4- cancelled partly, 5-cancelled totally, 6-to be cancelled
-        #                         }
-        #                     ]
-        #                 },
-        #                 "cmd":"orderpending/orderPendingList"
-        #             }
-        #         ]
-        #     }
+        #    [
+        #        {
+        #            "i": 14589419788970785,
+        #            "I": "0",
+        #            "m": "ADA_USDT",
+        #            "T": "limit",
+        #            "s": "buy",
+        #            "Q": 4.000000,
+        #            "P": 0.300000,
+        #            "t": "gtc",
+        #            "o": False,
+        #            "S": "accepted",
+        #            "E": 0,
+        #            "e": 0,
+        #            "C": 1666373682656,
+        #            "U": 1666373682656,
+        #            "V": 587932155076,
+        #            "n": 0,
+        #            "F": [],
+        #            "f": []
+        #        }
+        #    ]
         #
-        outerResults = self.safe_value(response, 'result')
-        firstResult = self.safe_value(outerResults, 0, {})
-        innerResult = self.safe_value(firstResult, 'result', {})
-        orders = self.safe_value(innerResult, 'items', [])
-        return self.parse_orders(orders, market, since, limit)
+        return self.parse_orders(response, market, since, limit)
 
-    async def fetch_closed_orders(self, symbol=None, since=None, limit=200, params={}):
+    async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of order structures to retrieve
+        :param dict params: extra parameters specific to the bibox api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        return await self.fetch_orders_by_status('open', symbol, since, limit, params)
+
+    async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
         """
         fetches information on multiple closed orders made by the user
         :param str symbol: unified market symbol of the market orders were made in
@@ -1663,55 +1674,8 @@ class bibox(Exchange):
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a `symbol` argument')
-        await self.load_markets()
-        market = self.market(symbol)
-        request = {
-            'cmd': 'orderpending/pendingHistoryList',
-            'body': self.extend({
-                'pair': market['id'],
-                'account_type': 0,  # 0 - regular, 1 - margin
-                'page': 1,
-                'size': limit,
-            }, params),
-        }
-        response = await self.v1PrivatePostOrderpending(request)
-        #
-        #     {
-        #         "result":[
-        #             {
-        #                 "result":{
-        #                     "count":1,
-        #                     "page":1,
-        #                     "items":[
-        #                         {
-        #                             "id":"100055558128036",
-        #                             "createdAt": 1512756997000,
-        #                             "account_type":0,
-        #                             "coin_symbol":"LTC",        # Trading Token
-        #                             "currency_symbol":"BTC",    # Pricing Token
-        #                             "order_side":2,             # Trading side 1-Buy, 2-Sell
-        #                             "order_type":2,             # 2-limit order
-        #                             "price":"0.00900000",       # order price
-        #                             "amount":"1.00000000",      # order amount
-        #                             "money":"0.00900000",       # currency amount(price * amount)
-        #                             "deal_amount":"0.00000000",  # deal amount
-        #                             "deal_percent":"0.00%",     # deal percentage
-        #                             "unexecuted":"0.00000000",  # unexecuted amount
-        #                             "status":3                  # Status,-1-fail, 0,1-to be dealt, 2-dealt partly, 3-dealt totally, 4- cancelled partly, 5-cancelled totally, 6-to be cancelled
-        #                         }
-        #                     ]
-        #                 },
-        #                 "cmd":"orderpending/pendingHistoryList"
-        #             }
-        #         ]
-        #     }
-        #
-        outerResults = self.safe_value(response, 'result')
-        firstResult = self.safe_value(outerResults, 0, {})
-        innerResult = self.safe_value(firstResult, 'result', {})
-        orders = self.safe_value(innerResult, 'items', [])
-        return self.parse_orders(orders, market, since, limit)
+            raise ArgumentsRequired(self.id + ' fetchClosedOrders requires a symbol argument')
+        return await self.fetch_orders_by_status('closed', symbol, since, limit, params)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         """
@@ -2135,6 +2099,7 @@ class bibox(Exchange):
                     raise ExchangeError(feedback)
                 raise ExchangeError(self.id + ' ' + body)
             else:
+                code = self.safe_string(response, 'error')
                 feedback = self.id + ' ' + body
                 self.throw_exactly_matched_exception(self.exceptions, code, feedback)
                 raise ExchangeError(feedback)
