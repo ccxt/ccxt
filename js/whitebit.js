@@ -431,7 +431,8 @@ module.exports = class whitebit extends Exchange {
          * @method
          * @name whitebit#fetchTransactionFees
          * @description fetch transaction fees
-         * @param {[string]|undefined} codes not used by fetchTransactionFees ()
+         * @see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Public/http-v4.md#fee
+         * @param {[string]|undefined}  codes list of unified currency codes
          * @param {object} params extra parameters specific to the whitebit api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
@@ -463,22 +464,23 @@ module.exports = class whitebit extends Exchange {
         //      }
         //
         const currenciesIds = Object.keys (response);
-        const withdrawFees = {};
-        const depositFees = {};
+        const result = {};
         for (let i = 0; i < currenciesIds.length; i++) {
             const currency = currenciesIds[i];
             const data = response[currency];
             const code = this.safeCurrencyCode (currency);
+            if (codes !== undefined && !this.inArray (code, codes)) {
+                continue;
+            }
             const withdraw = this.safeValue (data, 'withdraw', {});
-            withdrawFees[code] = this.safeString (withdraw, 'fixed');
             const deposit = this.safeValue (data, 'deposit', {});
-            depositFees[code] = this.safeString (deposit, 'fixed');
+            result[code] = {
+                'withdraw': this.safeNumber (withdraw, 'fixed'),
+                'deposit': this.safeNumber (deposit, 'fixed'),
+                'info': data,
+            };
         }
-        return {
-            'withdraw': withdrawFees,
-            'deposit': depositFees,
-            'info': response,
-        };
+        return result;
     }
 
     async fetchTradingFees (params = {}) {
