@@ -2053,8 +2053,8 @@ module.exports = class lbank2 extends Exchange {
         const data = this.safeValue (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const item = data[i];
-            const canWithdraw = this.safeString (item, 'canWithDraw');
-            if (canWithdraw === 'true') {
+            const canWithdraw = this.safeValue (item, 'canWithDraw');
+            if (canWithdraw === true) {
                 const currencyId = this.safeString (item, 'assetCode');
                 const code = this.safeCurrencyCode (currencyId);
                 if (codes !== undefined && !this.inArray (code, codes)) {
