@@ -1638,6 +1638,7 @@ class gate(Exchange):
     def fetch_transaction_fees(self, codes=None, params={}):
         """
         fetch transaction fees
+        see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
         :param [str]|None codes: not used by gate fetchTransactionFees()
         :param dict params: extra parameters specific to the gate api endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
@@ -1661,25 +1662,29 @@ class gate(Exchange):
         #        }
         #    }
         #
+        result = {}
         withdrawFees = {}
         for i in range(0, len(response)):
+            withdrawFees = {}
             entry = response[i]
             currencyId = self.safe_string(entry, 'currency')
             code = self.safe_currency_code(currencyId)
-            withdrawFees[code] = {}
-            withdrawFix = self.safe_value(entry, 'withdraw_fix_on_chains')
-            if withdrawFix is None:
-                withdrawFix = {}
-                withdrawFix[code] = self.safe_number(entry, 'withdraw_fix')
-            keys = list(withdrawFix.keys())
-            for i in range(0, len(keys)):
-                key = keys[i]
-                withdrawFees[code][key] = self.parse_number(withdrawFix[key])
-        return {
-            'info': response,
-            'withdraw': withdrawFees,
-            'deposit': {},
-        }
+            if (codes is not None) and not self.in_array(code, codes):
+                continue
+            withdrawFixOnChains = self.safe_value(entry, 'withdraw_fix_on_chains')
+            if withdrawFixOnChains is None:
+                withdrawFees = self.safe_number(entry, 'withdraw_fix')
+            else:
+                chainKeys = list(withdrawFixOnChains.keys())
+                for i in range(0, len(chainKeys)):
+                    chainKey = chainKeys[i]
+                    withdrawFees[chainKey] = self.parse_number(withdrawFixOnChains[chainKey])
+            result[code] = {
+                'withdraw': withdrawFees,
+                'deposit': None,
+                'info': entry,
+            }
+        return result
 
     def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
         """

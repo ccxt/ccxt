@@ -411,7 +411,7 @@ class bitfinex extends Exchange {
         for ($i = 0; $i < count($ids); $i++) {
             $id = $ids[$i];
             $code = $this->safe_currency_code($id);
-            if ($codes !== null && !$this->in_array($code, $codes)) {
+            if (($codes !== null) && !$this->in_array($code, $codes)) {
                 continue;
             }
             $result[$code] = array(

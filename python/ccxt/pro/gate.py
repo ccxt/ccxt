@@ -160,7 +160,7 @@ class gate(Exchange, ccxt.async_support.gate):
                         self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
                 else:
                     # raise upon failing to synchronize in maxAttempts
-                    client.subscriptions[messageHash] = None
+                    del client.subscriptions[messageHash]
                     raise InvalidNonce(self.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + str(maxAttempts) + ' attempts')
             else:
                 orderbook.reset(snapshot)
