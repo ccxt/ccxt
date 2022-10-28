@@ -409,30 +409,29 @@ module.exports = class buda extends Exchange {
         //  by default it will try load withdrawal fees of all currencies (with separate requests)
         //  however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
         await this.loadMarkets ();
-        const withdrawFees = {};
-        const depositFees = {};
-        const info = {};
+        const result = {};
         if (codes === undefined) {
             codes = Object.keys (this.currencies);
         }
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
+            if (!this.inArray (code, codes)) {
+                continue;
+            }
             const currency = this.currency (code);
             const request = { 'currency': currency['id'] };
             const withdrawResponse = await this.publicGetCurrenciesCurrencyFeesWithdrawal (request);
             const depositResponse = await this.publicGetCurrenciesCurrencyFeesDeposit (request);
-            withdrawFees[code] = this.parseTransactionFee (withdrawResponse['fee']);
-            depositFees[code] = this.parseTransactionFee (depositResponse['fee']);
-            info[code] = {
-                'withdraw': withdrawResponse,
-                'deposit': depositResponse,
+            result[code] = {
+                'withdraw': this.parseTransactionFee (withdrawResponse['fee']),
+                'deposit': this.parseTransactionFee (depositResponse['fee']),
+                'info': {
+                    'withdraw': withdrawResponse,
+                    'deposit': depositResponse,
+                },
             };
         }
-        return {
-            'withdraw': withdrawFees,
-            'deposit': depositFees,
-            'info': info,
-        };
+        return result;
     }
 
     parseTransactionFee (fee, type = undefined) {
