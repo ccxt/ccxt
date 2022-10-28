@@ -1170,7 +1170,7 @@ module.exports = class bitstamp extends Exchange {
         //  }
         //
         const result = {};
-        let infoObject = [];
+        let infoObject = {};
         let infoObjectLen = undefined;
         let prevCode = undefined;
         let mainCurrencyId = undefined;
@@ -1192,19 +1192,17 @@ module.exports = class bitstamp extends Exchange {
                 infoObjectLen = infoObject.length;
                 if (infoObjectLen > 0) {
                     result[prevCode]['info'] = infoObject;
-                    infoObject = [];
+                    infoObject = {};
                 }
             }
             if (currencyId === mainCurrencyId) {
-                infoObject.push (
-                    { [id]: this.safeNumber (response, id) }
-                );
+                infoObject[id] = this.safeNumber (response, id);
             }
             if (id.indexOf ('_withdrawal_fee') >= 0) {
                 result[code]['withdraw'] = this.safeNumber (response, id);
             }
             prevCode = this.safeCurrencyCode (mainCurrencyId);
-            if (i === ids.length - 1 && infoObjectLen > 0) {
+            if ((i === ids.length - 1 && infoObjectLen > 0) || this.inArray (code, codes)) {
                 result[prevCode]['info'] = infoObject;
             }
         }
