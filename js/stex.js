@@ -2422,7 +2422,7 @@ module.exports = class stex extends Exchange {
          * @name stex#fetchTransactionFees
          * @description fetch transaction fees
          * @see https://apidocs.stex.com/#tag/Public/paths/~1public~1currencies/get
-         * @param {[string]|undefined} codes not used by stex fetchTransactionFees ()
+         * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the stex api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
