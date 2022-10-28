@@ -314,6 +314,8 @@ module.exports = class bibox extends Exchange {
                 '3025': AuthenticationError, // signature failed
                 '4000': ExchangeNotAvailable, // current network is unstable
                 '4003': DDoSProtection, // server busy please try again later
+                '-2004': InvalidOrder, // Invalid parameter 'price': price limit
+                '-2102': RateLimitExceeded, // The usage limit is 10000 in 10000ms, but 10296 have been used.
             },
             'commonCurrencies': {
                 'APENFT(NFT)': 'NFT',
@@ -1423,12 +1425,16 @@ module.exports = class bibox extends Exchange {
     async cancelAllOrders (symbol = undefined, params = {}) {
         /**
          * @method
-         * @name bibox#cancelOrder
+         * @name bibox#cancelAllOrders
          * @description cancels all open orders
          * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the bibox api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders requires a symbol argument');
+        }
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
@@ -1609,7 +1615,7 @@ module.exports = class bibox extends Exchange {
         const timestamp = this.safeInteger (order, 'C');
         let amount = this.safeString (order, 'Q');
         amount = Precise.stringAbs (amount);
-        const side = this.safeString2 (order, 's');
+        const side = this.safeString (order, 's');
         const fees = [];
         const orderFees = this.safeValue (order, 'f', []);
         for (let i = 0; i < orderFees.length; i++) {
@@ -1626,7 +1632,7 @@ module.exports = class bibox extends Exchange {
         }
         return this.safeOrder ({
             'info': order,
-            'id': this.safeString2 (order, 'i'),
+            'id': this.safeString (order, 'i'),
             'clientOrderId': this.omitZero (this.safeString (order, 'I')),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -1636,7 +1642,7 @@ module.exports = class bibox extends Exchange {
             'timeInForce': this.safeStringUpper (order, 't'),
             'postOnly': this.safeValue (order, 'o'),
             'side': side,
-            'price': this.safeString2 (order, 'P'),
+            'price': this.safeString (order, 'P'),
             'stopPrice': undefined,
             'amount': amount,
             'cost': this.safeString (order, 'e'),
@@ -2230,6 +2236,7 @@ module.exports = class bibox extends Exchange {
                 }
                 throw new ExchangeError (this.id + ' ' + body);
             } else {
+                const code = this.safeString (response, 'error');
                 const feedback = this.id + ' ' + body;
                 this.throwExactlyMatchedException (this.exceptions, code, feedback);
                 throw new ExchangeError (feedback);
