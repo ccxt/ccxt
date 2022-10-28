@@ -389,6 +389,7 @@ class ftx(Exchange):
                     'Not authorized for subaccount-specific access': PermissionDenied,  # {"success":false,"error":"Not authorized for subaccount-specific access"}
                     'Not approved to trade self product': PermissionDenied,  # {"success":false,"error":"Not approved to trade self product"}
                     'Internal Error': ExchangeNotAvailable,  # {"success":false,"error":"Internal Error"}
+                    'Order took too long to process': ExchangeNotAvailable,  # {"success":false,"error":"Order took too long to process"}
                 },
                 'broad': {
                     # {"error":"Not logged in","success":false}
