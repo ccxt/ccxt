@@ -1709,6 +1709,7 @@ class gate extends Exchange {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch transaction fees
+             * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
              * @param {[string]|null} $codes not used by gate fetchTransactionFees ()
              * @param {array} $params extra parameters specific to the gate api endpoint
              * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
@@ -1732,28 +1733,33 @@ class gate extends Exchange {
             //        }
             //    }
             //
+            $result = array();
             $withdrawFees = array();
             for ($i = 0; $i < count($response); $i++) {
+                $withdrawFees = array();
                 $entry = $response[$i];
                 $currencyId = $this->safe_string($entry, 'currency');
                 $code = $this->safe_currency_code($currencyId);
-                $withdrawFees[$code] = array();
-                $withdrawFix = $this->safe_value($entry, 'withdraw_fix_on_chains');
-                if ($withdrawFix === null) {
-                    $withdrawFix = array();
-                    $withdrawFix[$code] = $this->safe_number($entry, 'withdraw_fix');
+                if (($codes !== null) && !$this->in_array($code, $codes)) {
+                    continue;
                 }
-                $keys = is_array($withdrawFix) ? array_keys($withdrawFix) : array();
-                for ($i = 0; $i < count($keys); $i++) {
-                    $key = $keys[$i];
-                    $withdrawFees[$code][$key] = $this->parse_number($withdrawFix[$key]);
+                $withdrawFixOnChains = $this->safe_value($entry, 'withdraw_fix_on_chains');
+                if ($withdrawFixOnChains === null) {
+                    $withdrawFees = $this->safe_number($entry, 'withdraw_fix');
+                } else {
+                    $chainKeys = is_array($withdrawFixOnChains) ? array_keys($withdrawFixOnChains) : array();
+                    for ($i = 0; $i < count($chainKeys); $i++) {
+                        $chainKey = $chainKeys[$i];
+                        $withdrawFees[$chainKey] = $this->parse_number($withdrawFixOnChains[$chainKey]);
+                    }
                 }
+                $result[$code] = array(
+                    'withdraw' => $withdrawFees,
+                    'deposit' => null,
+                    'info' => $entry,
+                );
             }
-            return array(
-                'info' => $response,
-                'withdraw' => $withdrawFees,
-                'deposit' => array(),
-            );
+            return $result;
         }) ();
     }
 

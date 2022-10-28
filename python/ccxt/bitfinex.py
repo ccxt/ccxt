@@ -427,7 +427,7 @@ class bitfinex(Exchange):
         for i in range(0, len(ids)):
             id = ids[i]
             code = self.safe_currency_code(id)
-            if codes is not None and not self.in_array(code, codes):
+            if (codes is not None) and not self.in_array(code, codes):
                 continue
             result[code] = {
                 'withdraw': self.safe_number(fees, id),

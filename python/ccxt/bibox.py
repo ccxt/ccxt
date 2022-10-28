@@ -2066,14 +2066,14 @@ class bibox(Exchange):
         v4 = (version == 'v4')
         prefix = '/api' if v4 else ''
         url = self.implode_hostname(self.urls['api']['rest']) + prefix + '/' + version + '/' + path
-        json_params = self.json([params]) if v1 else self.json(params)
+        jsonParams = self.json([params]) if v1 else self.json(params)
         headers = {'content-type': 'application/json'}
         if access == 'public':
             if method != 'GET':
                 if v1:
-                    body = {'cmds': json_params}
+                    body = {'cmds': jsonParams}
                 else:
-                    body = {'body': json_params}
+                    body = {'body': jsonParams}
             elif params:
                 url += '?' + self.urlencode(params)
         else:
@@ -2081,8 +2081,8 @@ class bibox(Exchange):
             if version == 'v3' or version == 'v3.1':
                 timestamp = self.number_to_string(self.milliseconds())
                 strToSign = timestamp
-                if json_params != '{}':
-                    strToSign += json_params
+                if jsonParams != '{}':
+                    strToSign += jsonParams
                 sign = self.hmac(self.encode(strToSign), self.encode(self.secret), hashlib.md5)
                 headers['bibox-api-key'] = self.apiKey
                 headers['bibox-api-sign'] = sign
@@ -2090,30 +2090,31 @@ class bibox(Exchange):
                 if method == 'GET':
                     url += '?' + self.urlencode(params)
                 else:
-                    if json_params != '{}':
+                    if jsonParams != '{}':
                         body = params
             elif v4:
                 strToSign = ''
+                sortedParams = self.keysort(params)
                 if method == 'GET':
-                    url += '?' + self.urlencode(params)
-                    strToSign = self.urlencode(params)
+                    url += '?' + self.urlencode(sortedParams)
+                    strToSign = self.urlencode(sortedParams)
                 else:
-                    if json_params != '{}':
-                        body = params
+                    if jsonParams != '{}':
+                        body = sortedParams
                     strToSign = self.json(body, {'convertArraysToObjects': True})
                 sign = self.hmac(self.encode(strToSign), self.encode(self.secret), hashlib.sha256)
                 headers['Bibox-Api-Key'] = self.apiKey
                 headers['Bibox-Api-Sign'] = sign
             else:
-                sign = self.hmac(self.encode(json_params), self.encode(self.secret), hashlib.md5)
+                sign = self.hmac(self.encode(jsonParams), self.encode(self.secret), hashlib.md5)
                 body = {
                     'apikey': self.apiKey,
                     'sign': sign,
                 }
                 if v1:
-                    body['cmds'] = json_params
+                    body['cmds'] = jsonParams
                 else:
-                    body['body'] = json_params
+                    body['body'] = jsonParams
         if body is not None:
             body = self.json(body, {'convertArraysToObjects': True})
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
