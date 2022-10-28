@@ -1209,7 +1209,7 @@ module.exports = class Exchange {
             // the fee is always in the currency you get
             cost = amountString;
             if (side === 'sell') {
-                cost = priceString;
+                cost = Precise.stringMul (cost, priceString);
             } else {
                 key = 'base';
             }
@@ -1222,9 +1222,17 @@ module.exports = class Exchange {
                 key = 'base';
             }
         }
+        if (!market['spot']) {
+            key = this.safeString (market, 'settle', key);
+        }
+        // override for 'market' types, independent whether what `takerOrMaker` argument was set to
+        if (type === 'market') {
+            takerOrMaker = 'taker';
+        }
         const rate = this.numberToString (market[takerOrMaker]);
         if (cost !== undefined) {
             cost = Precise.stringMul (cost, rate);
+            // cost = this.costToPrecision (symbol, cost);
         }
         return {
             'type': takerOrMaker,
