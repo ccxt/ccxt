@@ -3131,25 +3131,22 @@ module.exports = class bybit extends Exchange {
             // 'stop_order_id': id, // only for conditional orders
             // 'p_r_trigger_price': 123.45, // new trigger price also known as stop_px
         };
-        const orderType = this.safeString (params, 'orderType');
-        const isStop = this.safeValue (params, 'stop', false);
-        const isConditionalOrder = isStop || (orderType === 'stop' || orderType === 'conditional');
-        params = this.omit (params, [ 'orderType', 'stop' ]);
-        const idKey = isConditionalOrder ? 'stop_order_id' : 'order_id';
-        request[idKey] = id;
         if (amount !== undefined) {
             request['p_r_qty'] = this.amountToPrecision (symbol, amount);
         }
         if (price !== undefined) {
             request['p_r_price'] = this.priceToPrecision (symbol, price);
         }
-        if (isConditionalOrder) {
-            const triggerPrice = this.safeValueN (params, [ 'stopPrice', 'triggerPrice' ]);
-            if (triggerPrice !== undefined) {
-                request['p_r_trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
-                params = this.omit (params, [ 'stopPrice', 'triggerPrice' ]);
-            }
+        let isConditionalOrder = false;
+        let idKey = 'order_id';
+        const triggerPrice = this.safeValueN (params, [ 'stopPrice', 'triggerPrice' ]);
+        if (triggerPrice !== undefined) {
+            isConditionalOrder = true;
+            idKey = 'stop_order_id';
+            request['p_r_trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
+            params = this.omit (params, [ 'stopPrice', 'triggerPrice' ]);
         }
+        request[idKey] = id;
         let method = undefined;
         if (market['linear']) {
             method = isConditionalOrder ? 'privatePostPrivateLinearStopOrderReplace' : 'privatePostPrivateLinearOrderReplace';
