@@ -1222,6 +1222,7 @@ module.exports = class Exchange {
                 key = 'base';
             }
         }
+        // for derivatives, the fee is in 'settle' currency
         if (!market['spot']) {
             key = this.safeString (market, 'settle', key);
         }
