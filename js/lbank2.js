@@ -2016,10 +2016,16 @@ module.exports = class lbank2 extends Exchange {
         const code = this.safeString2 (params, 'coin', 'assetCode');
         params = this.omit (params, [ 'coin', 'assetCode' ]);
         const request = {};
-        const codesLength = codes.length;
-        if (codesLength === 1 || code !== undefined) {
-            const currency = this.currency (codes[0]);
+        if (code !== undefined) {
+            const currency = this.currency (code);
             request['assetCode'] = currency['id'];
+        }
+        if (codes !== undefined) {
+            const codesLength = codes.length;
+            if (codesLength === 1) {
+                const currency = this.currency (codes[0]);
+                request['assetCode'] = currency['id'];
+            }
         }
         const response = await this.publicGetWithdrawConfigs (this.extend (request, params));
         //
@@ -2043,31 +2049,35 @@ module.exports = class lbank2 extends Exchange {
         //        ts: '1663364435973'
         //    }
         //
-        const result = this.safeValue (response, 'data', []);
-        const withdrawFees = {};
-        for (let i = 0; i < result.length; i++) {
-            const item = result[i];
+        const result = {};
+        const data = this.safeValue (response, 'data', []);
+        for (let i = 0; i < data.length; i++) {
+            const item = data[i];
             const canWithdraw = this.safeString (item, 'canWithDraw');
             if (canWithdraw === 'true') {
                 const currencyId = this.safeString (item, 'assetCode');
                 const code = this.safeCurrencyCode (currencyId);
+                if (codes !== undefined && !this.inArray (code, codes)) {
+                    continue;
+                }
+                result[code] = {
+                    'deposit': undefined,
+                    'withdraw': {},
+                    'info': item,
+                };
                 const chain = this.safeString (item, 'chain');
                 let network = this.safeString (this.options['inverse-networks'], chain, chain);
                 if (network === undefined) {
                     network = code;
                 }
                 const fee = this.safeString (item, 'fee');
-                if (withdrawFees[code] === undefined) {
-                    withdrawFees[code] = {};
+                if (result[code] === undefined) {
+                    result[code] = {};
                 }
-                withdrawFees[code][network] = this.parseNumber (fee);
+                result[code]['withdraw'][network] = this.parseNumber (fee);
             }
         }
-        return {
-            'withdraw': withdrawFees,
-            'deposit': {},
-            'info': response,
-        };
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
