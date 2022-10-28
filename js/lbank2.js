@@ -1924,7 +1924,7 @@ module.exports = class lbank2 extends Exchange {
          * @description fetch transaction fees
          * @see https://www.lbank.info/en-US/docs/index.html#get-all-coins-information
          * @see https://www.lbank.info/en-US/docs/index.html#withdrawal-configurations
-         * @param {[string]|undefined} codes not used by lbank2 fetchTransactionFees ()
+         * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the lbank2 api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
