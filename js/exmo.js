@@ -429,8 +429,6 @@ module.exports = class exmo extends Exchange {
          * @returns {object} a list of [transaction fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fees-structure}
          */
         await this.loadMarkets ();
-        const currencies = this.currencies;
-        const currencyKeys = Object.keys (currencies);
         const cryptoList = await this.publicGetPaymentsProvidersCryptoList (params);
         //
         //     {
@@ -467,29 +465,27 @@ module.exports = class exmo extends Exchange {
         //     }
         //
         const result = {};
-        for (let i = 0; i < currencyKeys.length; i++) {
-            const resultItem = {
-                'deposit': undefined,
-                'withdraw': undefined,
-            };
-            const code = currencyKeys[i];
-            const currency = this.currency (code);
-            const currencyId = this.safeString (currency, 'id');
+        const cryptoListKeys = Object.keys (cryptoList);
+        for (let i = 0; i < cryptoListKeys.length; i++) {
+            const code = cryptoListKeys[i];
             if (codes !== undefined && !this.inArray (code, codes)) {
                 continue;
             }
+            result[code] = {
+                'deposit': undefined,
+                'withdraw': undefined,
+            };
+            const currency = this.currency (code);
+            const currencyId = this.safeString (currency, 'id');
             const providers = this.safeValue (cryptoList, currencyId, []);
             for (let j = 0; j < providers.length; j++) {
                 const provider = providers[j];
                 const type = this.safeString (provider, 'type');
                 const commissionDesc = this.safeString (provider, 'commission_desc');
                 const fee = this.parseFixedFloatValue (commissionDesc);
-                resultItem[type] = fee;
+                result[code][type] = fee;
             }
-            if (providers.length > 0) {
-                resultItem['info'] = providers;
-                result[code] = resultItem;
-            }
+            result[code]['info'] = providers;
         }
         // cache them for later use
         this.options['transactionFees'] = result;
