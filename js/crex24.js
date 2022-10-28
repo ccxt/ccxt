@@ -486,7 +486,8 @@ module.exports = class crex24 extends Exchange {
          * @method
          * @name crex24#fetchTransactionFees
          * @description fetch transaction fees
-         * @param {[string]|undefined} codes not used by crex24 fetchTransactionFees
+         * @see https://docs.crex24.com/trade-api/v2/#currencies-withdrawal-fees
+         * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the crex24 api endpoint
          * @returns {object} a list of [transaction fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
@@ -510,26 +511,29 @@ module.exports = class crex24 extends Exchange {
         //         }
         //     ]
         //
-        const withdrawFees = {};
+        const result = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
+            if (codes !== undefined && !this.inArray (code, codes)) {
+                continue;
+            }
             const networkList = this.safeValue (entry, 'fees');
-            withdrawFees[code] = {};
+            result[code] = {
+                'withdraw': {},
+                'deposit': undefined,
+                'info': entry,
+            };
             for (let j = 0; j < networkList.length; j++) {
                 const networkEntry = networkList[j];
                 const networkId = this.safeString (networkEntry, 'feeCurrency');
                 const networkCode = this.safeCurrencyCode (networkId);
                 const fee = this.safeNumber (networkEntry, 'amount');
-                withdrawFees[code][networkCode] = fee;
+                result[code]['withdraw'][networkCode] = fee;
             }
         }
-        return {
-            'withdraw': withdrawFees,
-            'deposit': {},
-            'info': response,
-        };
+        return result;
     }
 
     parseBalance (response) {
