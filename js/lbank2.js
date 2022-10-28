@@ -1922,6 +1922,8 @@ module.exports = class lbank2 extends Exchange {
          * @method
          * @name lbank2#fetchTransactionFees
          * @description fetch transaction fees
+         * @see https://www.lbank.info/en-US/docs/index.html#get-all-coins-information
+         * @see https://www.lbank.info/en-US/docs/index.html#withdrawal-configurations
          * @param {[string]|undefined} codes not used by lbank2 fetchTransactionFees ()
          * @param {object} params extra parameters specific to the lbank2 api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
@@ -1937,14 +1939,14 @@ module.exports = class lbank2 extends Exchange {
                 const options = this.safeValue (this.options, 'fetchTransactionFees', {});
                 method = this.safeString (options, 'method', 'fetchPrivateTransactionFees');
             }
-            result = await this[method] (params);
+            result = await this[method] (codes, params);
         } else {
             result = await this.fetchPublicTransactionFees (params);
         }
         return result;
     }
 
-    async fetchPrivateTransactionFees (params = {}) {
+    async fetchPrivateTransactionFees (codes, params = {}) {
         // complete response
         // incl. for coins which undefined in public method
         await this.loadMarkets ();
@@ -1979,40 +1981,44 @@ module.exports = class lbank2 extends Exchange {
         //        "code": 0
         //    }
         //
-        const result = this.safeValue (response, 'data', []);
-        const withdrawFees = {};
-        for (let i = 0; i < result.length; i++) {
-            const entry = result[i];
+        const result = {};
+        const data = this.safeValue (response, 'data', {});
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
             const currencyId = this.safeString (entry, 'coin');
             const code = this.safeCurrencyCode (currencyId);
+            if (codes !== undefined && !this.inArray (code, codes)) {
+                continue;
+            }
             const networkList = this.safeValue (entry, 'networkList', []);
-            withdrawFees[code] = {};
+            result[code] = {
+                'withdraw': {},
+                'deposit': undefined,
+                'info': entry,
+            };
             for (let j = 0; j < networkList.length; j++) {
                 const networkEntry = networkList[j];
                 const networkId = this.safeString (networkEntry, 'name');
                 const networkCode = this.safeString (this.options['inverse-networks'], networkId, networkId);
                 const fee = this.safeNumber (networkEntry, 'withdrawFee');
                 if (fee !== undefined) {
-                    withdrawFees[code][networkCode] = fee;
+                    result[code]['withdraw'][networkCode] = fee;
                 }
             }
         }
-        return {
-            'withdraw': withdrawFees,
-            'deposit': {},
-            'info': response,
-        };
+        return result;
     }
 
-    async fetchPublicTransactionFees (params = {}) {
+    async fetchPublicTransactionFees (codes, params = {}) {
         // extremely incomplete response
         // vast majority fees undefined
         await this.loadMarkets ();
         const code = this.safeString2 (params, 'coin', 'assetCode');
         params = this.omit (params, [ 'coin', 'assetCode' ]);
         const request = {};
-        if (code !== undefined) {
-            const currency = this.currency (code);
+        const codesLength = codes.length;
+        if (codesLength === 1 || code !== undefined) {
+            const currency = this.currency (codes[0]);
             request['assetCode'] = currency['id'];
         }
         const response = await this.publicGetWithdrawConfigs (this.extend (request, params));
