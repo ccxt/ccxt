@@ -201,6 +201,7 @@ class bitget(Exchange):
                             'trade/fills': 1,
                             'wallet/transfer': 4,
                             'wallet/withdrawal': 4,
+                            'wallet/subTransfer': 10,
                         },
                     },
                     'mix': {
