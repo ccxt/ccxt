@@ -113,7 +113,7 @@ class okx(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': False,
-                'fetchTradingLimits': None,
+                'fetchTradingLimits': False,
                 'fetchTransactionFee': False,
                 'fetchTransactionFees': False,
                 'fetchTransactions': False,

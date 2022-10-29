@@ -91,7 +91,7 @@ class okx extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => false,
-                'fetchTradingLimits' => null,
+                'fetchTradingLimits' => false,
                 'fetchTransactionFee' => false,
                 'fetchTransactionFees' => false,
                 'fetchTransactions' => false,
