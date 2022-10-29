@@ -253,7 +253,8 @@ module.exports = class gemini extends geminiRest {
         //
         const type = this.safeString (message, 'type', '');
         let timeframeId = type.slice (8);
-        timeframeId = timeframeId.slice (0, timeframeId.indexOf ('_'));
+        const timeframeEndIndex = timeframeId.indexOf ('_');
+        timeframeId = timeframeId.slice (0, timeframeEndIndex);
         const marketId = this.safeString (message, 'symbol', '').toLowerCase ();
         const market = this.safeMarket (marketId);
         const symbol = this.safeSymbol (marketId, market);
