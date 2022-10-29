@@ -223,6 +223,7 @@ module.exports = class bittrex extends bittrexRest {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const authentication = await this.authenticate ();
         const orders = await this.subscribeToOrders (authentication, params);
         if (this.newUpdates) {
@@ -360,6 +361,7 @@ module.exports = class bittrex extends bittrexRest {
     async subscribeToTicker (negotiation, symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const name = 'ticker';
         const messageHash = name + '_' + market['id'];
         const subscription = {
@@ -396,6 +398,7 @@ module.exports = class bittrex extends bittrexRest {
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const negotiation = await this.negotiate ();
         const ohlcv = await this.subscribeToOHLCV (negotiation, symbol, timeframe, params);
         if (this.newUpdates) {
@@ -467,6 +470,7 @@ module.exports = class bittrex extends bittrexRest {
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const negotiation = await this.negotiate ();
         const trades = await this.subscribeToTrades (negotiation, symbol, params);
         if (this.newUpdates) {
@@ -535,6 +539,7 @@ module.exports = class bittrex extends bittrexRest {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
          */
         await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const authentication = await this.authenticate ();
         const trades = await this.subscribeToMyTrades (authentication, params);
         if (this.newUpdates) {
@@ -597,6 +602,7 @@ module.exports = class bittrex extends bittrexRest {
             throw new BadRequest (this.id + ' watchOrderBook() limit argument must be undefined, 1, 25 or 500, default is 25');
         }
         await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const negotiation = await this.negotiate ();
         //
         //     1. Subscribe to the relevant socket streams
