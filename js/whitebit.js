@@ -471,9 +471,6 @@ module.exports = class whitebit extends Exchange {
             const currency = codes[i];
             const data = response[currency];
             const code = this.safeCurrencyCode (currency);
-            if (codes !== undefined && !this.inArray (code, codes)) {
-                continue;
-            }
             const withdraw = this.safeValue (data, 'withdraw', {});
             const deposit = this.safeValue (data, 'deposit', {});
             result[code] = {
