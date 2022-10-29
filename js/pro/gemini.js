@@ -270,7 +270,9 @@ module.exports = class gemini extends geminiRest {
             stored = new ArrayCacheByTimestamp (limit);
             this.ohlcvs[symbol][timeframe] = stored;
         }
-        for (let i = 0; i < changes.length; i++) {
+        const changesLength = changes.length;
+        // reverse order of array to store candles in ascending order
+        for (let i = changesLength - 1; i >= 0; i--) {
             const parsed = this.parseOHLCV (changes[i], market);
             stored.append (parsed);
         }
