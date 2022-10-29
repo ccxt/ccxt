@@ -1,4 +1,6 @@
 <?php
+error_reporting(E_ALL | E_STRICT);
+date_default_timezone_set('UTC');
 include dirname(dirname(dirname(dirname(__FILE__)))). '/ccxt.php';
 
 $binance_id = '\\ccxt\\pro\\binance';
@@ -14,7 +16,7 @@ $wrapper_func = function($exchange, $symbol, $method_name) {
         while (true) {
             try {
                 $orderbook = yield $exchange->$method_name($symbol);
-                print("$method_name received: $exchange->id -> $symbol : " . substr(json_encode($orderbook), 0 , 70) . "...\n");
+                print("$exchange->id -> $method_name -> $symbol : " . substr(json_encode($orderbook), 0 , 70) . "...\n");
             } catch (\Exception $ex) {
                 print($ex->getMessage());
                 sleep(5);
