@@ -35,6 +35,6 @@ function runAsync (...$args) {
 // runAsync($wrapper_func, ...[$exchange, 'ETH/USDT', 'watchOrders']);
 // runAsync($wrapper_func, ...[$exchange, 'ETH/USDT', 'watchMyTrades']);
 
-runAsync($wrapper_func, ...[$binance_exchange, 'BNB/USDT', 'watchTrades']);
+runAsync($wrapper_func, ...[$binance_exchange, 'SOL/USDT', 'watchTrades']);
 runAsync($wrapper_func, ...[$ftx_exchange, 'ETH/USDT', 'watchTrades']);
 
