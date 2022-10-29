@@ -93,6 +93,8 @@ module.exports = class bitmart extends bitmartRest {
          * @param {object} params extra parameters specific to the bitmart api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const trades = await this.subscribe ('trade', symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -128,6 +130,7 @@ module.exports = class bitmart extends bitmartRest {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         if (market['type'] !== 'spot') {
             throw new ArgumentsRequired (this.id + ' watchOrders supports spot markets only');
         }
@@ -313,6 +316,8 @@ module.exports = class bitmart extends bitmartRest {
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const timeframes = this.safeValue (this.options, 'timeframes', {});
         const interval = this.safeString (timeframes, timeframe);
         const name = 'kline' + interval;
