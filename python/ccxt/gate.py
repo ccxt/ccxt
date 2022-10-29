@@ -1639,7 +1639,7 @@ class gate(Exchange):
         """
         fetch transaction fees
         see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
-        :param [str]|None codes: not used by gate fetchTransactionFees()
+        :param [str]|None codes: list of unified currency codes
         :param dict params: extra parameters specific to the gate api endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
         """

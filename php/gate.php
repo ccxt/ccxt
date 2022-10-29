@@ -1677,7 +1677,7 @@ class gate extends Exchange {
         /**
          * fetch transaction fees
          * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
-         * @param {[string]|null} $codes not used by gate fetchTransactionFees ()
+         * @param {[string]|null} $codes list of unified currency $codes
          * @param {array} $params extra parameters specific to the gate api endpoint
          * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
          */

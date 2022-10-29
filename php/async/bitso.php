@@ -1319,7 +1319,7 @@ class bitso extends Exchange {
             /**
              * fetch transaction fees
              * @see https://bitso.com/api_info#fees
-             * @param {[string]|null} $codes not used by bitso fetchTransactionFees
+             * @param {[string]|null} $codes list of unified currency $codes
              * @param {array} $params extra parameters specific to the bitso api endpoint
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
              */

@@ -408,7 +408,7 @@ class bitfinex(Exchange):
         """
         fetch transaction fees
         see https://docs.bitfinex.com/v1/reference/rest-auth-fees
-        :param [str]|None codes: not used by bitfinex2 fetchTransactionFees()
+        :param [str]|None codes: list of unified currency codes
         :param dict params: extra parameters specific to the bitfinex api endpoint
         :returns [dict]: a list of `fees structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
         """
