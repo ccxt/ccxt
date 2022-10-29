@@ -1314,7 +1314,7 @@ module.exports = class binance extends binanceRest {
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         let messageHash = 'myTrades';
         if (symbol !== undefined) {
-            symbol = this.symbol (symbol)
+            symbol = this.symbol (symbol);
             messageHash += ':' + symbol;
         }
         const client = this.client (url);
