@@ -9,7 +9,6 @@ $binance_exchange = new $binance_id( /*[ 'apiKey' => _YOUR_APIKEY_HERE_, 'secret
 $ftx_id = '\\ccxt\\pro\\ftx';
 $ftx_exchange = new $ftx_id( /*['apiKey' => _YOUR_APIKEY_HERE_, 'secret' => _YOUR_SECRET_HERE_]*/ ); 
 
-
 $wrapper_func = function($exchange, $symbol, $method_name) {
     if ($exchange->has[$method_name]) {
         print ("Starting $method_name for $exchange->id -> $symbol\n");
