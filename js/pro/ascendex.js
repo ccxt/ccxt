@@ -77,6 +77,7 @@ module.exports = class ascendex extends ascendexRest {
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         if ((limit === undefined) || (limit > 1440)) {
             limit = 100;
         }
@@ -142,6 +143,7 @@ module.exports = class ascendex extends ascendexRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const channel = 'trades' + ':' + market['id'];
         params = this.extend (params, {
             'ch': channel,
@@ -481,6 +483,7 @@ module.exports = class ascendex extends ascendexRest {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            symbol = market['symbol'];
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         let messageHash = undefined;
