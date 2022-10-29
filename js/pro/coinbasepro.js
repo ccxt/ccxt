@@ -120,6 +120,8 @@ module.exports = class coinbasepro extends coinbaseproRest {
         if (symbol === undefined) {
             throw new BadSymbol (this.id + ' watchMyTrades requires a symbol');
         }
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const name = 'user';
         const messageHash = 'myTrades';
         const authentication = this.authenticate ();

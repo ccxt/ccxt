@@ -478,6 +478,7 @@ module.exports = class bitvavo extends bitvavoRest {
         await this.loadMarkets ();
         await this.authenticate ();
         const market = this.market (symbol);
+        symbol = this.symbol (symbol);
         const marketId = market['id'];
         const url = this.urls['api']['ws'];
         const name = 'account';

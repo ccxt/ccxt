@@ -838,6 +838,7 @@ module.exports = class bitmex extends bitmexRest {
         const subscriptionHash = name;
         let messageHash = name;
         if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
             messageHash += ':' + symbol;
         }
         const url = this.urls['api']['ws'];

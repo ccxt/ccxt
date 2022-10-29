@@ -224,6 +224,7 @@ module.exports = class bitfinex2 extends bitfinex2Rest {
         let messageHash = 'myTrade';
         if (symbol !== undefined) {
             const market = this.market (symbol);
+            symbol = market['symbol'];
             messageHash += ':' + market['id'];
         }
         const trades = await this.subscribePrivate (messageHash);
