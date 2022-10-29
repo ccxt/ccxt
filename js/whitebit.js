@@ -463,10 +463,12 @@ module.exports = class whitebit extends Exchange {
         //           {...}
         //      }
         //
-        const currenciesIds = Object.keys (response);
         const result = {};
-        for (let i = 0; i < currenciesIds.length; i++) {
-            const currency = currenciesIds[i];
+        if (codes === undefined) {
+            codes = Object.keys (response);
+        }
+        for (let i = 0; i < codes.length; i++) {
+            const currency = codes[i];
             const data = response[currency];
             const code = this.safeCurrencyCode (currency);
             if (codes !== undefined && !this.inArray (code, codes)) {
