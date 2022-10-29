@@ -2427,7 +2427,6 @@ module.exports = class stex extends Exchange {
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const response = await this.publicGetCurrencies (params);
         //
         //     {
         //         "success": true,
@@ -2467,19 +2466,19 @@ module.exports = class stex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const currencyKeys = Object.keys (this.currencies);
         const result = {};
-        for (let i = 0; i < data.length; i++) {
-            const item = data[i];
-            const id = this.safeString (item, 'id');
-            const code = this.safeCurrencyCode (id);
+        for (let i = 0; i < currencyKeys.length; i++) {
+            const code = currencyKeys[i];
+            const currency = this.currencies[code];
             if (codes !== undefined && !this.inArray (code, codes)) {
                 continue;
             }
+            const info = this.safeValue (currency, 'info');
             result[code] = {
-                'withdraw': this.safeNumber (item, 'withdrawal_fee_const'),
-                'deposit': this.safeNumber (item, 'deposit_fee_const'),
-                'info': item,
+                'withdraw': this.safeNumber (currency, 'fee'),
+                'deposit': this.safeNumber (info, 'deposit_fee_const'),
+                'info': info,
             };
         }
         return result;
