@@ -43,6 +43,7 @@ class aax(Exchange, ccxt.async_support.aax):
         await self.load_markets()
         name = 'candles'
         market = self.market(symbol)
+        symbol = market['symbol']
         interval = self.timeframes[timeframe]
         messageHash = market['id'] + '@' + interval + '_' + name
         url = self.urls['api']['ws']['public']
@@ -173,6 +174,7 @@ class aax(Exchange, ccxt.async_support.aax):
         name = 'trade'
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         messageHash = market['id'] + '@' + name
         url = self.urls['api']['ws']['public']
         subscribe = {
@@ -451,6 +453,7 @@ class aax(Exchange, ccxt.async_support.aax):
         channel = 'user/' + userId
         messageHash = 'orders'
         if symbol is not None:
+            symbol = self.symbol(symbol)
             messageHash += ':' + symbol
         requestId = self.request_id()
         subscribe = {
