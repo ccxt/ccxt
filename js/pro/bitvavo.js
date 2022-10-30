@@ -113,6 +113,8 @@ module.exports = class bitvavo extends bitvavoRest {
          * @param {object} params extra parameters specific to the bitvavo api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const trades = await this.watchPublic ('trades', symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -151,6 +153,7 @@ module.exports = class bitvavo extends bitvavoRest {
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const name = 'candles';
         const marketId = market['id'];
         const interval = this.timeframes[timeframe];
@@ -228,6 +231,7 @@ module.exports = class bitvavo extends bitvavoRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const name = 'book';
         const messageHash = name + '@' + market['id'];
         const url = this.urls['api']['ws'];
@@ -438,6 +442,7 @@ module.exports = class bitvavo extends bitvavoRest {
         await this.loadMarkets ();
         await this.authenticate ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const marketId = market['id'];
         const url = this.urls['api']['ws'];
         const name = 'account';
@@ -476,6 +481,7 @@ module.exports = class bitvavo extends bitvavoRest {
         await this.loadMarkets ();
         await this.authenticate ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const marketId = market['id'];
         const url = this.urls['api']['ws'];
         const name = 'account';
