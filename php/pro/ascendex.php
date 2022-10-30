@@ -86,6 +86,7 @@ class ascendex extends \ccxt\async\ascendex {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             if (($limit === null) || ($limit > 1440)) {
                 $limit = 100;
             }
@@ -151,6 +152,7 @@ class ascendex extends \ccxt\async\ascendex {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $channel = 'trades' . ':' . $market['id'];
             $params = array_merge($params, array(
                 'ch' => $channel,
@@ -492,6 +494,7 @@ class ascendex extends \ccxt\async\ascendex {
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
+                $symbol = $market['symbol'];
             }
             list($type, $query) = $this->handle_market_type_and_params('watchOrders', $market, $params);
             $messageHash = null;
