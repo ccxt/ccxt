@@ -40,6 +40,7 @@ module.exports = class aax extends aaxRest {
         await this.loadMarkets ();
         const name = 'candles';
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const interval = this.timeframes[timeframe];
         const messageHash = market['id'] + '@' + interval + '_' + name;
         const url = this.urls['api']['ws']['public'];
@@ -182,6 +183,7 @@ module.exports = class aax extends aaxRest {
         const name = 'trade';
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const messageHash = market['id'] + '@' + name;
         const url = this.urls['api']['ws']['public'];
         const subscribe = {
@@ -486,6 +488,7 @@ module.exports = class aax extends aaxRest {
         const channel = 'user/' + userId;
         let messageHash = 'orders';
         if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
             messageHash += ':' + symbol;
         }
         const requestId = this.requestId ();
