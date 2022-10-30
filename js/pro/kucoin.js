@@ -647,7 +647,7 @@ module.exports = class kucoin extends kucoinRest {
         //         'side': 'buy',
         //         'orderId': '6249167327218b000135e749',
         //         'type': 'canceled',
-        //         'orderTime': 1648957043065280224,
+        //         'orderTime': 1667131314575,
         //         'size': '100.452',
         //         'filledSize': '0',
         //         'price': '2.9635',
@@ -665,7 +665,7 @@ module.exports = class kucoin extends kucoinRest {
         const amount = this.safeString (order, 'size');
         const rawType = this.safeString (order, 'type');
         const status = this.parseWsOrderStatus (rawType);
-        const timestamp = this.safeIntegerProduct (order, 'orderTime', 0.000001);
+        const timestamp = this.safeString (order, 'orderTime');
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
