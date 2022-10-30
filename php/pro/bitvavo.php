@@ -119,6 +119,8 @@ class bitvavo extends \ccxt\async\bitvavo {
              * @param {array} $params extra parameters specific to the bitvavo api endpoint
              * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
+            Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
             $trades = Async\await($this->watch_public('trades', $symbol, $params));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
@@ -159,6 +161,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $name = 'candles';
             $marketId = $market['id'];
             $interval = $this->timeframes[$timeframe];
@@ -236,6 +239,7 @@ class bitvavo extends \ccxt\async\bitvavo {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $name = 'book';
             $messageHash = $name . '@' . $market['id'];
             $url = $this->urls['api']['ws'];
@@ -448,6 +452,7 @@ class bitvavo extends \ccxt\async\bitvavo {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $marketId = $market['id'];
             $url = $this->urls['api']['ws'];
             $name = 'account';
@@ -486,6 +491,7 @@ class bitvavo extends \ccxt\async\bitvavo {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $marketId = $market['id'];
             $url = $this->urls['api']['ws'];
             $name = 'account';

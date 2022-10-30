@@ -107,6 +107,8 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
         :param dict params: extra parameters specific to the bitvavo api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
+        await self.load_markets()
+        symbol = self.symbol(symbol)
         trades = await self.watch_public('trades', symbol, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
@@ -141,6 +143,7 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         name = 'candles'
         marketId = market['id']
         interval = self.timeframes[timeframe]
@@ -211,6 +214,7 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         name = 'book'
         messageHash = name + '@' + market['id']
         url = self.urls['api']['ws']
@@ -396,6 +400,7 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
         await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
+        symbol = market['symbol']
         marketId = market['id']
         url = self.urls['api']['ws']
         name = 'account'
@@ -429,6 +434,7 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
         await self.load_markets()
         await self.authenticate()
         market = self.market(symbol)
+        symbol = market['symbol']
         marketId = market['id']
         url = self.urls['api']['ws']
         name = 'account'
