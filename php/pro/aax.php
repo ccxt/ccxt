@@ -47,6 +47,7 @@ class aax extends \ccxt\async\aax {
             Async\await($this->load_markets());
             $name = 'candles';
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $interval = $this->timeframes[$timeframe];
             $messageHash = $market['id'] . '@' . $interval . '_' . $name;
             $url = $this->urls['api']['ws']['public'];
@@ -189,6 +190,7 @@ class aax extends \ccxt\async\aax {
             $name = 'trade';
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $messageHash = $market['id'] . '@' . $name;
             $url = $this->urls['api']['ws']['public'];
             $subscribe = array(
@@ -497,6 +499,7 @@ class aax extends \ccxt\async\aax {
             $channel = 'user/' . $userId;
             $messageHash = 'orders';
             if ($symbol !== null) {
+                $symbol = $this->symbol($symbol);
                 $messageHash .= ':' . $symbol;
             }
             $requestId = $this->request_id();

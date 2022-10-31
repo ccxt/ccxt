@@ -92,6 +92,8 @@ class bitmart(Exchange, ccxt.async_support.bitmart):
         :param dict params: extra parameters specific to the bitmart api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
+        await self.load_markets()
+        symbol = self.symbol(symbol)
         trades = await self.subscribe('trade', symbol, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
@@ -119,6 +121,7 @@ class bitmart(Exchange, ccxt.async_support.bitmart):
             raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         if market['type'] != 'spot':
             raise ArgumentsRequired(self.id + ' watchOrders supports spot markets only')
         channel = 'spot/user/order'
@@ -290,6 +293,8 @@ class bitmart(Exchange, ccxt.async_support.bitmart):
         return message
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
+        symbol = self.symbol(symbol)
         timeframes = self.safe_value(self.options, 'timeframes', {})
         interval = self.safe_string(timeframes, timeframe)
         name = 'kline' + interval

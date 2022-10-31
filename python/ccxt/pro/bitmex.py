@@ -528,6 +528,7 @@ class bitmex(Exchange, ccxt.async_support.bitmex):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         table = 'trade'
         messageHash = table + ':' + market['id']
         url = self.urls['api']['ws']
@@ -598,6 +599,7 @@ class bitmex(Exchange, ccxt.async_support.bitmex):
         subscriptionHash = name
         messageHash = name
         if symbol is not None:
+            symbol = self.symbol(symbol)
             messageHash += ':' + symbol
         url = self.urls['api']['ws']
         request = {
@@ -803,6 +805,7 @@ class bitmex(Exchange, ccxt.async_support.bitmex):
         subscriptionHash = name
         messageHash = name
         if symbol is not None:
+            symbol = self.symbol(symbol)
             messageHash += ':' + symbol
         url = self.urls['api']['ws']
         request = {
@@ -929,6 +932,7 @@ class bitmex(Exchange, ccxt.async_support.bitmex):
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         table = 'tradeBin' + self.timeframes[timeframe]
         messageHash = table + ':' + market['id']
         url = self.urls['api']['ws']

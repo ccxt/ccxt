@@ -544,6 +544,7 @@ class bitmex extends \ccxt\async\bitmex {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $table = 'trade';
             $messageHash = $table . ':' . $market['id'];
             $url = $this->urls['api']['ws'];
@@ -627,6 +628,7 @@ class bitmex extends \ccxt\async\bitmex {
             $subscriptionHash = $name;
             $messageHash = $name;
             if ($symbol !== null) {
+                $symbol = $this->symbol($symbol);
                 $messageHash .= ':' . $symbol;
             }
             $url = $this->urls['api']['ws'];
@@ -843,6 +845,7 @@ class bitmex extends \ccxt\async\bitmex {
             $subscriptionHash = $name;
             $messageHash = $name;
             if ($symbol !== null) {
+                $symbol = $this->symbol($symbol);
                 $messageHash .= ':' . $symbol;
             }
             $url = $this->urls['api']['ws'];
@@ -983,6 +986,7 @@ class bitmex extends \ccxt\async\bitmex {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $table = 'tradeBin' . $this->timeframes[$timeframe];
             $messageHash = $table . ':' . $market['id'];
             $url = $this->urls['api']['ws'];

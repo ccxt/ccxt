@@ -77,6 +77,7 @@ class ascendex(Exchange, ccxt.async_support.ascendex):
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         if (limit is None) or (limit > 1440):
             limit = 100
         interval = self.timeframes[timeframe]
@@ -135,6 +136,7 @@ class ascendex(Exchange, ccxt.async_support.ascendex):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         channel = 'trades' + ':' + market['id']
         params = self.extend(params, {
             'ch': channel,
@@ -443,6 +445,7 @@ class ascendex(Exchange, ccxt.async_support.ascendex):
         market = None
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
         type, query = self.handle_market_type_and_params('watchOrders', market, params)
         messageHash = None
         channel = None

@@ -101,6 +101,8 @@ class bitmart extends \ccxt\async\bitmart {
              * @param {array} $params extra parameters specific to the bitmart api endpoint
              * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
+            Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
             $trades = Async\await($this->subscribe('trade', $symbol, $params));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
@@ -136,6 +138,7 @@ class bitmart extends \ccxt\async\bitmart {
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             if ($market['type'] !== 'spot') {
                 throw new ArgumentsRequired($this->id . ' watchOrders supports spot markets only');
             }
@@ -323,6 +326,8 @@ class bitmart extends \ccxt\async\bitmart {
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
             $timeframes = $this->safe_value($this->options, 'timeframes', array());
             $interval = $this->safe_string($timeframes, $timeframe);
             $name = 'kline' . $interval;
