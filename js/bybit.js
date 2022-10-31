@@ -2561,48 +2561,17 @@ module.exports = class bybit extends Exchange {
         };
     }
 
-    async fetchOrderBook (symbol, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bybit#fetchOrderBook
-         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} symbol unified symbol of the market to fetch the order book for
-         * @param {int|undefined} limit the maximum amount of order book entries to return
-         * @param {object} params extra parameters specific to the bybit api endpoint
-         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
-         */
+    async fetchSpotOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
-        const isUsdcSettled = market['settle'] === 'USDC';
-        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
-        let method = undefined;
-        if (market['spot']) {
-            method = 'publicGetSpotQuoteV1Depth';
-        } else if (enableUnifiedMargin) {
-            method = 'publicGetDerivativesV3PublicOrderBookL2';
-            if (market['option']) {
-                request['category'] = 'option';
-            } else if (market['inverse']) {
-                request['category'] = 'inverse';
-            } else if (market['linear']) {
-                request['category'] = 'linear';
-            }
-        } else if (!isUsdcSettled) {
-            // inverse perpetual // usdt linear // inverse futures
-            method = 'publicGetV2PublicOrderBookL2';
-        } else {
-            // usdc option/ swap
-            method = market['option'] ? 'publicGetOptionUsdcOpenapiPublicV1OrderBook' : 'publicGetPerpetualUsdcOpenapiPublicV1OrderBook';
-        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.publicGetSpotQuoteV1Depth (this.extend (request, params));
         //
-        // spot
         //     {
         //         "ret_code": 0,
         //         "ret_msg": null,
@@ -2619,41 +2588,28 @@ module.exports = class bybit extends Exchange {
         //         "ext_info": null
         //     }
         //
-        // linear/inverse swap/futures
-        //
-        //     {
-        //         ret_code: 0,
-        //         ret_msg: 'OK',
-        //         ext_code: '',
-        //         ext_info: '',
-        //         result: [
-        //             { symbol: 'BTCUSD', price: '7767.5', size: 677956, side: 'Buy' },
-        //             { symbol: 'BTCUSD', price: '7767', size: 580690, side: 'Buy' },
-        //             { symbol: 'BTCUSD', price: '7766.5', size: 475252, side: 'Buy' },
-        //         ],
-        //         time_now: '1583954829.874823'
-        //     }
-        //
-        // usdc markets
-        //
-        //     {
-        //         "retCode": 0,
-        //           "retMsg": "SUCCESS",
-        //           "result": [
-        //           {
-        //             "price": "5000.00000000",
-        //             "size": "2.0000",
-        //             "side": "Buy" // bids
-        //           },
-        //           {
-        //             "price": "5900.00000000",
-        //             "size": "0.9000",
-        //             "side": "Sell" // asks
-        //           }
-        //         ]
-        //    }
-        //
-        // Unified Margin
+        const result = this.safeValue (response, 'result', []);
+        const timestamp = this.safeInteger (result, 'time');
+        return this.parseOrderBook (result, symbol, timestamp);
+    }
+
+    async fetchUnifiedMarginOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (market['option']) {
+            request['category'] = 'option';
+        } else if (market['inverse']) {
+            request['category'] = 'inverse';
+        } else if (market['linear']) {
+            request['category'] = 'linear';
+        }
+        const response = await this.publicGetDerivativesV3PublicOrderBookL2 (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -2686,15 +2642,97 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', []);
-        let timestamp = this.safeTimestamp (response, 'time_now');
-        if (timestamp === undefined) {
-            timestamp = this.safeInteger2 (result, 'time', 'ts');
+        const timestamp = this.safeInteger (result, 'ts');
+        return this.parseOrderBook (result, symbol, timestamp);
+    }
+
+    async fetchDerivativesOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
         }
-        const bidsKey = market['spot'] ? 'bids' : 'Buy';
-        const asksKey = market['spot'] ? 'asks' : 'Sell';
-        const priceKey = market['spot'] ? 0 : 'price';
-        const sizeKey = market['spot'] ? 1 : 'size';
-        return this.parseOrderBook (result, symbol, timestamp, bidsKey, asksKey, priceKey, sizeKey);
+        const response = await this.publicGetV2PublicOrderBookL2 (this.extend (request, params));
+        //
+        //     {
+        //         ret_code: 0,
+        //         ret_msg: 'OK',
+        //         ext_code: '',
+        //         ext_info: '',
+        //         result: [
+        //             { symbol: 'BTCUSD', price: '7767.5', size: 677956, side: 'Buy' },
+        //             { symbol: 'BTCUSD', price: '7767', size: 580690, side: 'Buy' },
+        //             { symbol: 'BTCUSD', price: '7766.5', size: 475252, side: 'Buy' },
+        //         ],
+        //         time_now: '1583954829.874823'
+        //     }
+        //
+        const result = this.safeValue (response, 'result', []);
+        const timestamp = this.safeTimestamp (response, 'time_now');
+        return this.parseOrderBook (result, symbol, timestamp, 'Buy', 'Sell', 'price', 'size');
+    }
+
+    async fetchUSDCOrderBook (symbol, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const method = market['option'] ? 'publicGetOptionUsdcOpenapiPublicV1OrderBook' : 'publicGetPerpetualUsdcOpenapiPublicV1OrderBook';
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //           "retMsg": "SUCCESS",
+        //           "result": [
+        //           {
+        //             "price": "5000.00000000",
+        //             "size": "2.0000",
+        //             "side": "Buy" // bids
+        //           },
+        //           {
+        //             "price": "5900.00000000",
+        //             "size": "0.9000",
+        //             "side": "Sell" // asks
+        //           }
+        //         ]
+        //    }
+        //
+        const result = this.safeValue (response, 'result', []);
+        const timestamp = this.safeInteger (response, 'time');
+        return this.parseOrderBook (result, symbol, timestamp, 'Buy', 'Sell', 'price', 'size');
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const isUsdcSettled = market['settle'] === 'USDC';
+        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+        if (market['spot']) {
+            return this.fetchSpotOrderBook (symbol, limit, params);
+        } else if (enableUnifiedMargin) {
+            return this.fetchUnifiedMarginOrderBook (symbol, limit, params);
+        } else if (!isUsdcSettled) {
+            // inverse perpetual // usdt linear // inverse futures
+            return this.fetchDerivativesOrderBook (symbol, limit, params);
+        }
+        // usdc option/ swap
+        return this.fetchUSDCOrderBook (symbol, limit, params);
     }
 
     parseBalance (response) {
