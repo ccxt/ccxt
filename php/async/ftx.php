@@ -6,12 +6,13 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\BadResponse;
-use \ccxt\InvalidOrder;
-use \ccxt\Precise;
+use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
+use ccxt\BadRequest;
+use ccxt\BadResponse;
+use ccxt\InvalidOrder;
+use ccxt\Precise;
+use React\Async;
 
 class ftx extends Exchange {
 
@@ -25,7 +26,7 @@ class ftx extends Exchange {
             // cancels do not count towards rateLimit
             // only 'order-making' requests count towards ratelimit
             'rateLimit' => 28.57,
-            'certified' => true,
+            'certified' => false,
             'pro' => true,
             'hostname' => 'ftx.com', // or ftx.us
             'urls' => array(
@@ -38,7 +39,7 @@ class ftx extends Exchange {
                 'doc' => 'https://github.com/ftexchange/ftx',
                 'fees' => 'https://ftexchange.zendesk.com/hc/en-us/articles/360024479432-Fees',
                 'referral' => array(
-                    'url' => 'https://ftx.com/#a=ccxt',
+                    'url' => 'https://ftx.com/referrals#a=1623029',
                     'discount' => 0.05,
                 ),
             ),
@@ -81,6 +82,7 @@ class ftx extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => true,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -249,6 +251,7 @@ class ftx extends Exchange {
                         'twap_orders/{twap_order_id}' => 1,
                         'historical_balances/requests' => 1,
                         'historical_balances/requests/{request_id}' => 1,
+                        'fast_access_settings/list_ips' => 1,
                     ),
                     'post' => array(
                         // subaccounts
@@ -300,6 +303,9 @@ class ftx extends Exchange {
                         'support/tickets/{ticketId}/mark_as_read' => 1,
                         'twap_orders' => 1,
                         'historical_balances/requests' => 1,
+                        'fast_access_settings/add_ip' => 1,
+                        'fast_access_settings/enable_ip/{ipAddress}' => 1,
+                        'fast_access_settings/disable_ip/{ipAddress}' => 1,
                     ),
                     'delete' => array(
                         // subaccounts
@@ -319,6 +325,7 @@ class ftx extends Exchange {
                         // staking
                         'staking/unstake_requests/{request_id}' => 1,
                         'twap_orders/{twap_order_id}' => 1,
+                        'fast_access_settings/delete_ip/{ipAddress}' => 1,
                     ),
                 ),
             ),
@@ -373,6 +380,7 @@ class ftx extends Exchange {
                     'Not authorized for subaccount-specific access' => '\\ccxt\\PermissionDenied', // array("success":false,"error":"Not authorized for subaccount-specific access")
                     'Not approved to trade this product' => '\\ccxt\\PermissionDenied', // array("success":false,"error":"Not approved to trade this product")
                     'Internal Error' => '\\ccxt\\ExchangeNotAvailable', // array("success":false,"error":"Internal Error")
+                    'Order took too long to process' => '\\ccxt\\ExchangeNotAvailable', // array("success":false,"error":"Order took too long to process")
                 ),
                 'broad' => array(
                     // array("error":"Not logged in","success":false)
@@ -440,287 +448,291 @@ class ftx extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
-        /**
-         * fetches all available $currencies on an exchange
-         * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @return {array} an associative dictionary of $currencies
-         */
-        $response = yield $this->publicGetCoins ($params);
-        $currencies = $this->safe_value($response, 'result', array());
-        //
-        //     {
-        //         "success":true,
-        //         "result" => array(
-        //             array("id":"BTC","name":"Bitcoin"),
-        //             array("id":"ETH","name":"Ethereum"),
-        //             array("id":"ETHMOON","name":"10X Long Ethereum Token","underlying":"ETH"),
-        //             array("id":"EOSBULL","name":"3X Long EOS Token","underlying":"EOS"),
-        //         ),
-        //     }
-        //
-        $result = array();
-        for ($i = 0; $i < count($currencies); $i++) {
-            $currency = $currencies[$i];
-            $id = $this->safe_string($currency, 'id');
-            $code = $this->safe_currency_code($id);
-            $name = $this->safe_string($currency, 'name');
-            $result[$code] = array(
-                'id' => $id,
-                'code' => $code,
-                'info' => $currency,
-                'type' => null,
-                'name' => $name,
-                'active' => null,
-                'deposit' => null,
-                'withdraw' => null,
-                'fee' => null,
-                'precision' => null,
-                'limits' => array(
-                    'withdraw' => array( 'min' => null, 'max' => null ),
-                    'amount' => array( 'min' => null, 'max' => null ),
-                ),
-            );
-        }
-        return $result;
+        return Async\async(function () use ($params) {
+            /**
+             * fetches all available $currencies on an exchange
+             * @param {array} $params extra parameters specific to the ftx api endpoint
+             * @return {array} an associative dictionary of $currencies
+             */
+            $response = Async\await($this->publicGetCoins ($params));
+            $currencies = $this->safe_value($response, 'result', array());
+            //
+            //     {
+            //         "success":true,
+            //         "result" => array(
+            //             array("id":"BTC","name":"Bitcoin"),
+            //             array("id":"ETH","name":"Ethereum"),
+            //             array("id":"ETHMOON","name":"10X Long Ethereum Token","underlying":"ETH"),
+            //             array("id":"EOSBULL","name":"3X Long EOS Token","underlying":"EOS"),
+            //         ),
+            //     }
+            //
+            $result = array();
+            for ($i = 0; $i < count($currencies); $i++) {
+                $currency = $currencies[$i];
+                $id = $this->safe_string($currency, 'id');
+                $code = $this->safe_currency_code($id);
+                $name = $this->safe_string($currency, 'name');
+                $result[$code] = array(
+                    'id' => $id,
+                    'code' => $code,
+                    'info' => $currency,
+                    'type' => null,
+                    'name' => $name,
+                    'active' => null,
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'fee' => null,
+                    'precision' => null,
+                    'limits' => array(
+                        'withdraw' => array( 'min' => null, 'max' => null ),
+                        'amount' => array( 'min' => null, 'max' => null ),
+                    ),
+                );
+            }
+            return $result;
+        }) ();
     }
 
     public function fetch_markets($params = array ()) {
-        /**
-         * retrieves data on all $markets for ftx
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing $market data
-         */
-        $response = yield $this->publicGetMarkets ($params);
-        //
-        //     {
-        //         'success' => true,
-        //         "result" => array(
-        //             array(
-        //                 "ask":170.37,
-        //                 "baseCurrency":null,
-        //                 "bid":170.31,
-        //                 "change1h":-0.019001554672655036,
-        //                 "change24h":-0.024841165359738997,
-        //                 "changeBod":-0.03816406029469881,
-        //                 "enabled":true,
-        //                 "last":170.37,
-        //                 "name":"ETH-PERP",
-        //                 "price":170.37,
-        //                 "priceIncrement":0.01,
-        //                 "quoteCurrency":null,
-        //                 "quoteVolume24h":7742164.59889,
-        //                 "sizeIncrement":0.001,
-        //                 "type":"future",
-        //                 "underlying":"ETH",
-        //                 "volumeUsd24h":7742164.59889
-        //             ),
-        //             array(
-        //                 "ask":170.44,
-        //                 "baseCurrency":"ETH",
-        //                 "bid":170.41,
-        //                 "change1h":-0.018485459257126403,
-        //                 "change24h":-0.023825887743413515,
-        //                 "changeBod":-0.037605872388481086,
-        //                 "enabled":true,
-        //                 "last":172.72,
-        //                 "name":"ETH/USD",
-        //                 "price":170.44,
-        //                 "priceIncrement":0.01,
-        //                 "quoteCurrency":"USD",
-        //                 "quoteVolume24h":382802.0252,
-        //                 "sizeIncrement":0.001,
-        //                 "type":"spot",
-        //                 "underlying":null,
-        //                 "volumeUsd24h":382802.0252
-        //             ),
-        //         ),
-        //     }
-        //
-        //     {
-        //         name => "BTC-PERP",
-        //         enabled =>  true,
-        //         postOnly =>  false,
-        //         priceIncrement => "1.0",
-        //         $sizeIncrement => "0.0001",
-        //         $minProvideSize => "0.001",
-        //         last => "60397.0",
-        //         bid => "60387.0",
-        //         ask => "60388.0",
-        //         price => "60388.0",
-        //         $type => "future",
-        //         baseCurrency =>  null,
-        //         quoteCurrency =>  null,
-        //         underlying => "BTC",
-        //         restricted =>  false,
-        //         highLeverageFeeExempt =>  true,
-        //         change1h => "-0.0036463231533270636",
-        //         change24h => "-0.01844838515677064",
-        //         changeBod => "-0.010130151132675475",
-        //         quoteVolume24h => "2892083192.6099",
-        //         volumeUsd24h => "2892083192.6099"
-        //     }
-        //
-        $allFuturesResponse = null;
-        if ($this->has['future'] && ($this->hostname !== 'ftx.us')) {
-            $allFuturesResponse = yield $this->publicGetFutures ();
-        }
-        //
-        //    {
-        //        success => true,
-        //        $result => array(
-        //            array(
-        //                name => "1INCH-PERP",
-        //                underlying => "1INCH",
-        //                description => "1INCH Token Perpetual Futures",
-        //                $type => "perpetual",
-        //                $expiry => null,
-        //                $perpetual => true,
-        //                expired => false,
-        //                enabled => true,
-        //                postOnly => false,
-        //                priceIncrement => "0.0001",
-        //                $sizeIncrement => "1.0",
-        //                last => "2.5556",
-        //                bid => "2.5555",
-        //                ask => "2.5563",
-        //                index => "2.5612449804010833",
-        //                mark => "2.5587",
-        //                imfFactor => "0.0005",
-        //                lowerBound => "2.4315",
-        //                upperBound => "2.6893",
-        //                underlyingDescription => "1INCH Token",
-        //                expiryDescription => "Perpetual",
-        //                moveStart => null,
-        //                marginPrice => "2.5587",
-        //                positionLimitWeight => "20.0",
-        //                group => "perpetual",
-        //                change1h => "0.00799716356760164",
-        //                change24h => "0.004909276569004792",
-        //                changeBod => "0.008394419484511705",
-        //                volumeUsd24h => "17834492.0818",
-        //                volume => "7224898.0",
-        //                openInterest => "5597917.0",
-        //                openInterestUsd => "14323390.2279",
-        //            ),
-        //            ...
-        //        ),
-        //    }
-        //
-        $result = array();
-        $markets = $this->safe_value($response, 'result', array());
-        $allFutures = $this->safe_value($allFuturesResponse, 'result', array());
-        $allFuturesDict = $this->index_by($allFutures, 'name');
-        for ($i = 0; $i < count($markets); $i++) {
-            $market = $markets[$i];
-            $id = $this->safe_string($market, 'name');
-            $future = $this->safe_value($allFuturesDict, $id);
-            $marketType = $this->safe_string($market, 'type');
-            $contract = ($marketType === 'future');
-            $baseId = $this->safe_string_2($market, 'baseCurrency', 'underlying');
-            $quoteId = $this->safe_string($market, 'quoteCurrency', 'USD');
-            $settleId = $contract ? 'USD' : null;
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $settle = $this->safe_currency_code($settleId);
-            $spot = !$contract;
-            $margin = !$contract;
-            $perpetual = $this->safe_value($future, 'perpetual', false);
-            $swap = $perpetual;
-            $option = false;
-            $isFuture = $contract && !$swap;
-            $expiry = null;
-            $expiryDatetime = $this->safe_string($future, 'expiry');
-            $type = 'spot';
-            $symbol = $base . '/' . $quote;
-            if ($swap) {
-                $type = 'swap';
-                $symbol = $base . '/' . $quote . ':' . $settle;
-            } elseif ($isFuture) {
-                $type = 'future';
-                $expiry = $this->parse8601($expiryDatetime);
-                if ($expiry === null) {
-                    // it is likely a $future that is expiring in this moment
-                    $options = $this->safe_value($this->options, 'fetchMarkets', array());
-                    $throwOnUndefinedExpiry = $this->safe_value($options, 'throwOnUndefinedExpiry', false);
-                    if ($throwOnUndefinedExpiry) {
-                        throw new BadResponse($this->id . " $symbol '" . $id . "' is a $future $contract with an invalid $expiry datetime.");
-                    } else {
-                        continue;
+        return Async\async(function () use ($params) {
+            /**
+             * retrieves data on all $markets for ftx
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @return {[array]} an array of objects representing $market data
+             */
+            $response = Async\await($this->publicGetMarkets ($params));
+            //
+            //     {
+            //         'success' => true,
+            //         "result" => array(
+            //             array(
+            //                 "ask":170.37,
+            //                 "baseCurrency":null,
+            //                 "bid":170.31,
+            //                 "change1h":-0.019001554672655036,
+            //                 "change24h":-0.024841165359738997,
+            //                 "changeBod":-0.03816406029469881,
+            //                 "enabled":true,
+            //                 "last":170.37,
+            //                 "name":"ETH-PERP",
+            //                 "price":170.37,
+            //                 "priceIncrement":0.01,
+            //                 "quoteCurrency":null,
+            //                 "quoteVolume24h":7742164.59889,
+            //                 "sizeIncrement":0.001,
+            //                 "type":"future",
+            //                 "underlying":"ETH",
+            //                 "volumeUsd24h":7742164.59889
+            //             ),
+            //             array(
+            //                 "ask":170.44,
+            //                 "baseCurrency":"ETH",
+            //                 "bid":170.41,
+            //                 "change1h":-0.018485459257126403,
+            //                 "change24h":-0.023825887743413515,
+            //                 "changeBod":-0.037605872388481086,
+            //                 "enabled":true,
+            //                 "last":172.72,
+            //                 "name":"ETH/USD",
+            //                 "price":170.44,
+            //                 "priceIncrement":0.01,
+            //                 "quoteCurrency":"USD",
+            //                 "quoteVolume24h":382802.0252,
+            //                 "sizeIncrement":0.001,
+            //                 "type":"spot",
+            //                 "underlying":null,
+            //                 "volumeUsd24h":382802.0252
+            //             ),
+            //         ),
+            //     }
+            //
+            //     {
+            //         name => "BTC-PERP",
+            //         enabled =>  true,
+            //         postOnly =>  false,
+            //         priceIncrement => "1.0",
+            //         $sizeIncrement => "0.0001",
+            //         $minProvideSize => "0.001",
+            //         last => "60397.0",
+            //         bid => "60387.0",
+            //         ask => "60388.0",
+            //         price => "60388.0",
+            //         $type => "future",
+            //         baseCurrency =>  null,
+            //         quoteCurrency =>  null,
+            //         underlying => "BTC",
+            //         restricted =>  false,
+            //         highLeverageFeeExempt =>  true,
+            //         change1h => "-0.0036463231533270636",
+            //         change24h => "-0.01844838515677064",
+            //         changeBod => "-0.010130151132675475",
+            //         quoteVolume24h => "2892083192.6099",
+            //         volumeUsd24h => "2892083192.6099"
+            //     }
+            //
+            $allFuturesResponse = null;
+            if ($this->has['future'] && ($this->hostname !== 'ftx.us')) {
+                $allFuturesResponse = Async\await($this->publicGetFutures ());
+            }
+            //
+            //    {
+            //        success => true,
+            //        $result => array(
+            //            array(
+            //                name => "1INCH-PERP",
+            //                underlying => "1INCH",
+            //                description => "1INCH Token Perpetual Futures",
+            //                $type => "perpetual",
+            //                $expiry => null,
+            //                $perpetual => true,
+            //                expired => false,
+            //                enabled => true,
+            //                postOnly => false,
+            //                priceIncrement => "0.0001",
+            //                $sizeIncrement => "1.0",
+            //                last => "2.5556",
+            //                bid => "2.5555",
+            //                ask => "2.5563",
+            //                index => "2.5612449804010833",
+            //                mark => "2.5587",
+            //                imfFactor => "0.0005",
+            //                lowerBound => "2.4315",
+            //                upperBound => "2.6893",
+            //                underlyingDescription => "1INCH Token",
+            //                expiryDescription => "Perpetual",
+            //                moveStart => null,
+            //                marginPrice => "2.5587",
+            //                positionLimitWeight => "20.0",
+            //                group => "perpetual",
+            //                change1h => "0.00799716356760164",
+            //                change24h => "0.004909276569004792",
+            //                changeBod => "0.008394419484511705",
+            //                volumeUsd24h => "17834492.0818",
+            //                volume => "7224898.0",
+            //                openInterest => "5597917.0",
+            //                openInterestUsd => "14323390.2279",
+            //            ),
+            //            ...
+            //        ),
+            //    }
+            //
+            $result = array();
+            $markets = $this->safe_value($response, 'result', array());
+            $allFutures = $this->safe_value($allFuturesResponse, 'result', array());
+            $allFuturesDict = $this->index_by($allFutures, 'name');
+            for ($i = 0; $i < count($markets); $i++) {
+                $market = $markets[$i];
+                $id = $this->safe_string($market, 'name');
+                $future = $this->safe_value($allFuturesDict, $id);
+                $marketType = $this->safe_string($market, 'type');
+                $contract = ($marketType === 'future');
+                $baseId = $this->safe_string_2($market, 'baseCurrency', 'underlying');
+                $quoteId = $this->safe_string($market, 'quoteCurrency', 'USD');
+                $settleId = $contract ? 'USD' : null;
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $settle = $this->safe_currency_code($settleId);
+                $spot = !$contract;
+                $margin = !$contract;
+                $perpetual = $this->safe_value($future, 'perpetual', false);
+                $swap = $perpetual;
+                $option = false;
+                $isFuture = $contract && !$swap;
+                $expiry = null;
+                $expiryDatetime = $this->safe_string($future, 'expiry');
+                $type = 'spot';
+                $symbol = $base . '/' . $quote;
+                if ($swap) {
+                    $type = 'swap';
+                    $symbol = $base . '/' . $quote . ':' . $settle;
+                } elseif ($isFuture) {
+                    $type = 'future';
+                    $expiry = $this->parse8601($expiryDatetime);
+                    if ($expiry === null) {
+                        // it is likely a $future that is expiring in this moment
+                        $options = $this->safe_value($this->options, 'fetchMarkets', array());
+                        $throwOnUndefinedExpiry = $this->safe_value($options, 'throwOnUndefinedExpiry', false);
+                        if ($throwOnUndefinedExpiry) {
+                            throw new BadResponse($this->id . " $symbol '" . $id . "' is a $future $contract with an invalid $expiry datetime.");
+                        } else {
+                            continue;
+                        }
                     }
+                    $parsedId = explode('-', $id);
+                    $length = count($parsedId);
+                    if ($length > 2) {
+                        // handling for MOVE contracts
+                        // BTC-MOVE-2022Q1
+                        // BTC-MOVE-0106
+                        // BTC-MOVE-WK-0121
+                        array_pop($parsedId);
+                        // remove $expiry
+                        // array( 'BTC', 'MOVE' )
+                        // array( 'BTC', 'MOVE' )
+                        // array( 'BTC', 'MOVE', 'WK' )
+                        $base = implode('-', $parsedId);
+                    }
+                    $symbol = $base . '/' . $quote . ':' . $settle . '-' . $this->yymmdd($expiry, '');
                 }
-                $parsedId = explode('-', $id);
-                $length = count($parsedId);
-                if ($length > 2) {
-                    // handling for MOVE contracts
-                    // BTC-MOVE-2022Q1
-                    // BTC-MOVE-0106
-                    // BTC-MOVE-WK-0121
-                    array_pop($parsedId);
-                    // remove $expiry
-                    // array( 'BTC', 'MOVE' )
-                    // array( 'BTC', 'MOVE' )
-                    // array( 'BTC', 'MOVE', 'WK' )
-                    $base = implode('-', $parsedId);
+                // check if a $market is a $spot or $future $market
+                $sizeIncrement = $this->safe_string($market, 'sizeIncrement');
+                $minProvideSize = $this->safe_string($market, 'minProvideSize');
+                $minAmountString = $sizeIncrement;
+                if ($minProvideSize !== null) {
+                    $minAmountString = Precise::string_gt($minProvideSize, $sizeIncrement) ? $sizeIncrement : $minProvideSize;
                 }
-                $symbol = $base . '/' . $quote . ':' . $settle . '-' . $this->yymmdd($expiry, '');
+                $result[] = array(
+                    'id' => $id,
+                    'symbol' => $symbol,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'settle' => $settle,
+                    'baseId' => $baseId,
+                    'quoteId' => $quoteId,
+                    'settleId' => $settleId,
+                    'type' => $type,
+                    'spot' => $spot,
+                    'margin' => $margin,
+                    'swap' => $swap,
+                    'future' => $isFuture,
+                    'option' => $option,
+                    'active' => $this->safe_value($market, 'enabled'),
+                    'contract' => $contract,
+                    'linear' => $contract ? true : null,
+                    'inverse' => $contract ? false : null,
+                    'contractSize' => $this->parse_number('1'),
+                    'expiry' => $expiry,
+                    'expiryDatetime' => $this->iso8601($expiry),
+                    'strike' => null,
+                    'optionType' => null,
+                    'precision' => array(
+                        'amount' => $this->parse_number($sizeIncrement),
+                        'price' => $this->safe_number($market, 'priceIncrement'),
+                    ),
+                    'limits' => array(
+                        'leverage' => array(
+                            'min' => $this->parse_number('1'),
+                            'max' => $this->parse_number('20'),
+                        ),
+                        'amount' => array(
+                            'min' => $this->parse_number($minAmountString),
+                            'max' => null,
+                        ),
+                        'price' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'cost' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                    'info' => $market,
+                );
             }
-            // check if a $market is a $spot or $future $market
-            $sizeIncrement = $this->safe_string($market, 'sizeIncrement');
-            $minProvideSize = $this->safe_string($market, 'minProvideSize');
-            $minAmountString = $sizeIncrement;
-            if ($minProvideSize !== null) {
-                $minAmountString = Precise::string_gt($minProvideSize, $sizeIncrement) ? $sizeIncrement : $minProvideSize;
-            }
-            $result[] = array(
-                'id' => $id,
-                'symbol' => $symbol,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => $settle,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => $settleId,
-                'type' => $type,
-                'spot' => $spot,
-                'margin' => $margin,
-                'swap' => $swap,
-                'future' => $isFuture,
-                'option' => $option,
-                'active' => $this->safe_value($market, 'enabled'),
-                'contract' => $contract,
-                'linear' => $contract ? true : null,
-                'inverse' => $contract ? false : null,
-                'contractSize' => $this->parse_number('1'),
-                'expiry' => $expiry,
-                'expiryDatetime' => $this->iso8601($expiry),
-                'strike' => null,
-                'optionType' => null,
-                'precision' => array(
-                    'amount' => $this->parse_number($sizeIncrement),
-                    'price' => $this->safe_number($market, 'priceIncrement'),
-                ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => $this->parse_number('1'),
-                        'max' => $this->parse_number('20'),
-                    ),
-                    'amount' => array(
-                        'min' => $this->parse_number($minAmountString),
-                        'max' => null,
-                    ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-                'info' => $market,
-            );
-        }
-        return $result;
+            return $result;
+        }) ();
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -779,122 +791,128 @@ class ftx extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
-        /**
-         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-         * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'market_name' => $market['id'],
-        );
-        $response = yield $this->publicGetMarketsMarketName (array_merge($request, $params));
-        //
-        //     {
-        //         "success":true,
-        //         "result":{
-        //             "ask":171.29,
-        //             "baseCurrency":null, // base currency for spot markets
-        //             "bid":171.24,
-        //             "change1h":-0.0012244897959183673,
-        //             "change24h":-0.031603346901854366,
-        //             "changeBod":-0.03297013492914808,
-        //             "enabled":true,
-        //             "last":171.44,
-        //             "name":"ETH-PERP",
-        //             "price":171.29,
-        //             "priceIncrement":0.01,
-        //             "quoteCurrency":null, // quote currency for spot markets
-        //             "quoteVolume24h":8570651.12113,
-        //             "sizeIncrement":0.001,
-        //             "type":"future",
-        //             "underlying":"ETH", // null for spot markets
-        //             "volumeUsd24h":8570651.12113,
-        //         }
-        //     }
-        //
-        $result = $this->safe_value($response, 'result', array());
-        return $this->parse_ticker($result, $market);
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+             * @param {array} $params extra parameters specific to the ftx api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'market_name' => $market['id'],
+            );
+            $response = Async\await($this->publicGetMarketsMarketName (array_merge($request, $params)));
+            //
+            //     {
+            //         "success":true,
+            //         "result":{
+            //             "ask":171.29,
+            //             "baseCurrency":null, // base currency for spot markets
+            //             "bid":171.24,
+            //             "change1h":-0.0012244897959183673,
+            //             "change24h":-0.031603346901854366,
+            //             "changeBod":-0.03297013492914808,
+            //             "enabled":true,
+            //             "last":171.44,
+            //             "name":"ETH-PERP",
+            //             "price":171.29,
+            //             "priceIncrement":0.01,
+            //             "quoteCurrency":null, // quote currency for spot markets
+            //             "quoteVolume24h":8570651.12113,
+            //             "sizeIncrement":0.001,
+            //             "type":"future",
+            //             "underlying":"ETH", // null for spot markets
+            //             "volumeUsd24h":8570651.12113,
+            //         }
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            return $this->parse_ticker($result, $market);
+        }) ();
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
-        /**
-         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
-         * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
-         */
-        yield $this->load_markets();
-        $symbols = $this->market_symbols($symbols);
-        $response = yield $this->publicGetMarkets ($params);
-        //
-        //     {
-        //         'success' => true,
-        //         "result" => array(
-        //             array(
-        //                 "ask":170.44,
-        //                 "baseCurrency":"ETH",
-        //                 "bid":170.41,
-        //                 "change1h":-0.018485459257126403,
-        //                 "change24h":-0.023825887743413515,
-        //                 "changeBod":-0.037605872388481086,
-        //                 "enabled":true,
-        //                 "last":172.72,
-        //                 "name":"ETH/USD",
-        //                 "price":170.44,
-        //                 "priceIncrement":0.01,
-        //                 "quoteCurrency":"USD",
-        //                 "quoteVolume24h":382802.0252,
-        //                 "sizeIncrement":0.001,
-        //                 "type":"spot",
-        //                 "underlying":null,
-        //                 "volumeUsd24h":382802.0252
-        //             ),
-        //         ),
-        //     }
-        //
-        $tickers = $this->safe_value($response, 'result', array());
-        return $this->parse_tickers($tickers, $symbols);
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
+             * @param {array} $params extra parameters specific to the ftx api endpoint
+             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $response = Async\await($this->publicGetMarkets ($params));
+            //
+            //     {
+            //         'success' => true,
+            //         "result" => array(
+            //             array(
+            //                 "ask":170.44,
+            //                 "baseCurrency":"ETH",
+            //                 "bid":170.41,
+            //                 "change1h":-0.018485459257126403,
+            //                 "change24h":-0.023825887743413515,
+            //                 "changeBod":-0.037605872388481086,
+            //                 "enabled":true,
+            //                 "last":172.72,
+            //                 "name":"ETH/USD",
+            //                 "price":170.44,
+            //                 "priceIncrement":0.01,
+            //                 "quoteCurrency":"USD",
+            //                 "quoteVolume24h":382802.0252,
+            //                 "sizeIncrement":0.001,
+            //                 "type":"spot",
+            //                 "underlying":null,
+            //                 "volumeUsd24h":382802.0252
+            //             ),
+            //         ),
+            //     }
+            //
+            $tickers = $this->safe_value($response, 'result', array());
+            return $this->parse_tickers($tickers, $symbols);
+        }) ();
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
-        /**
-         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'market_name' => $market['id'],
-        );
-        if ($limit !== null) {
-            $request['depth'] = $limit; // max 100, default 20
-        }
-        $response = yield $this->publicGetMarketsMarketNameOrderbook (array_merge($request, $params));
-        //
-        //     {
-        //         "success":true,
-        //         "result":{
-        //             "asks":[
-        //                 [171.95,279.865],
-        //                 [171.98,102.42],
-        //                 [171.99,124.11],
-        //             ],
-        //             "bids":[
-        //                 [171.93,69.749],
-        //                 [171.9,288.325],
-        //                 [171.88,87.47],
-        //             ],
-        //         }
-        //     }
-        //
-        $result = $this->safe_value($response, 'result', array());
-        return $this->parse_order_book($result, $symbol);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {array} $params extra parameters specific to the ftx api endpoint
+             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'market_name' => $market['id'],
+            );
+            if ($limit !== null) {
+                $request['depth'] = $limit; // max 100, default 20
+            }
+            $response = Async\await($this->publicGetMarketsMarketNameOrderbook (array_merge($request, $params)));
+            //
+            //     {
+            //         "success":true,
+            //         "result":{
+            //             "asks":[
+            //                 [171.95,279.865],
+            //                 [171.98,102.42],
+            //                 [171.99,124.11],
+            //             ],
+            //             "bids":[
+            //                 [171.93,69.749],
+            //                 [171.9,288.325],
+            //                 [171.88,87.47],
+            //             ],
+            //         }
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            return $this->parse_order_book($result, $symbol);
+        }) ();
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -937,82 +955,84 @@ class ftx extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
-         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-         * @param {string} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @param {string|null} $params->price "index" for index $price candles
-         * @param {int|null} $params->until timestamp in ms of the latest candle to fetch
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume (is_array(quote currency) && array_key_exists(units, quote currency))
-         */
-        yield $this->load_markets();
-        list($market, $marketId) = $this->get_market_params($symbol, 'market_name', $params);
-        // max 1501 candles, including the current candle when $since is not specified
-        $maxLimit = 5000;
-        $defaultLimit = 1500;
-        $limit = ($limit === null) ? $defaultLimit : min ($limit, $maxLimit);
-        $request = array(
-            'resolution' => $this->timeframes[$timeframe],
-            'market_name' => $marketId,
-            // 'start_time' => intval($since / 1000),
-            // 'end_time' => $this->seconds(),
-            'limit' => $limit,
-        );
-        $price = $this->safe_string($params, 'price');
-        $until = $this->safe_integer($params, 'until');
-        $params = $this->omit($params, array( 'price', 'until' ));
-        if ($since !== null) {
-            $startTime = intval($since / 1000);
-            $request['start_time'] = $startTime;
-            $duration = $this->parse_timeframe($timeframe);
-            $endTime = $this->sum($startTime, $limit * $duration);
-            $request['end_time'] = min ($endTime, $this->seconds());
-            if ($duration > 86400) {
-                $wholeDaysInTimeframe = intval($duration / 86400);
-                $request['limit'] = min ($limit * $wholeDaysInTimeframe, $maxLimit);
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * fetches historical candlestick data containing the open, high, low, and close $price, and the volume of a $market
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of candles to fetch
+             * @param {array} $params extra parameters specific to the ftx api endpoint
+             * @param {string|null} $params->price "index" for index $price candles
+             * @param {int|null} $params->until timestamp in ms of the latest candle to fetch
+             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume (is_array(quote currency) && array_key_exists(units, quote currency))
+             */
+            Async\await($this->load_markets());
+            list($market, $marketId) = $this->get_market_params($symbol, 'market_name', $params);
+            // max 1501 candles, including the current candle when $since is not specified
+            $maxLimit = 5000;
+            $defaultLimit = 1500;
+            $limit = ($limit === null) ? $defaultLimit : min ($limit, $maxLimit);
+            $request = array(
+                'resolution' => $this->timeframes[$timeframe],
+                'market_name' => $marketId,
+                // 'start_time' => intval($since / 1000),
+                // 'end_time' => $this->seconds(),
+                'limit' => $limit,
+            );
+            $price = $this->safe_string($params, 'price');
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, array( 'price', 'until' ));
+            if ($since !== null) {
+                $startTime = intval($since / 1000);
+                $request['start_time'] = $startTime;
+                $duration = $this->parse_timeframe($timeframe);
+                $endTime = $this->sum($startTime, $limit * $duration);
+                $request['end_time'] = min ($endTime, $this->seconds());
+                if ($duration > 86400) {
+                    $wholeDaysInTimeframe = intval($duration / 86400);
+                    $request['limit'] = min ($limit * $wholeDaysInTimeframe, $maxLimit);
+                }
             }
-        }
-        if ($until !== null) {
-            $request['end_time'] = intval($until / 1000);
-        }
-        $method = 'publicGetMarketsMarketNameCandles';
-        if ($price === 'index') {
-            if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
-                $request['market_name'] = $market['baseId'];
+            if ($until !== null) {
+                $request['end_time'] = intval($until / 1000);
             }
-            $method = 'publicGetIndexesMarketNameCandles';
-        }
-        $response = yield $this->$method (array_merge($request, $params));
-        //
-        //     {
-        //         "success" => true,
-        //         "result":array(
-        //             array(
-        //                 "close":177.23,
-        //                 "high":177.45,
-        //                 "low":177.2,
-        //                 "open":177.43,
-        //                 "startTime":"2019-10-17T13:27:00+00:00",
-        //                 "time":1571318820000.0,
-        //                 "volume":0.0
-        //             ),
-        //             array(
-        //                 "close":177.26,
-        //                 "high":177.33,
-        //                 "low":177.23,
-        //                 "open":177.23,
-        //                 "startTime":"2019-10-17T13:28:00+00:00",
-        //                 "time":1571318880000.0,
-        //                 "volume":0.0
-        //             ),
-        //         ),
-        //     }
-        //
-        $result = $this->safe_value($response, 'result', array());
-        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
+            $method = 'publicGetMarketsMarketNameCandles';
+            if ($price === 'index') {
+                if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
+                    $request['market_name'] = $market['baseId'];
+                }
+                $method = 'publicGetIndexesMarketNameCandles';
+            }
+            $response = Async\await($this->$method (array_merge($request, $params)));
+            //
+            //     {
+            //         "success" => true,
+            //         "result":array(
+            //             array(
+            //                 "close":177.23,
+            //                 "high":177.45,
+            //                 "low":177.2,
+            //                 "open":177.43,
+            //                 "startTime":"2019-10-17T13:27:00+00:00",
+            //                 "time":1571318820000.0,
+            //                 "volume":0.0
+            //             ),
+            //             array(
+            //                 "close":177.26,
+            //                 "high":177.33,
+            //                 "low":177.23,
+            //                 "open":177.23,
+            //                 "startTime":"2019-10-17T13:28:00+00:00",
+            //                 "time":1571318880000.0,
+            //                 "volume":0.0
+            //             ),
+            //         ),
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
+        }) ();
     }
 
     public function parse_trade($trade, $market = null) {
@@ -1153,58 +1173,60 @@ class ftx extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        /**
-         * get the list of most recent trades for a particular $symbol
-         * @param {string} $symbol unified $symbol of the $market to fetch trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of trades to fetch
-         * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
-         */
-        yield $this->load_markets();
-        list($market, $marketId) = $this->get_market_params($symbol, 'market_name', $params);
-        $request = array(
-            'market_name' => $marketId,
-        );
-        if ($since !== null) {
-            // the exchange aligns results to end_time returning 5000 trades max
-            // the user must set the end_time (in seconds) close enough to start_time
-            // for a proper pagination, fetch the most recent trades first
-            // then set the end_time parameter to the timestamp of the last trade
-            // start_time and end_time must be in seconds, divided by a thousand
-            $request['start_time'] = intval($since / 1000);
-            // start_time doesn't work without end_time
-            $request['end_time'] = $this->seconds();
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $response = yield $this->publicGetMarketsMarketNameTrades (array_merge($request, $params));
-        //
-        //     {
-        //         "success":true,
-        //         "result":array(
-        //             array(
-        //                 "id":1715826,
-        //                 "liquidation":false,
-        //                 "price":171.62,
-        //                 "side":"buy",
-        //                 "size":2.095,
-        //                 "time":"2019-10-18T12:59:54.288166+00:00"
-        //             ),
-        //             array(
-        //                 "id":1715763,
-        //                 "liquidation":false,
-        //                 "price":171.89,
-        //                 "side":"sell",
-        //                 "size":1.477,
-        //                 "time":"2019-10-18T12:58:38.443734+00:00"
-        //             ),
-        //         ),
-        //     }
-        //
-        $result = $this->safe_value($response, 'result', array());
-        return $this->parse_trades($result, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * get the list of most recent trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the $market to fetch trades for
+             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+             * @param {int|null} $limit the maximum amount of trades to fetch
+             * @param {array} $params extra parameters specific to the ftx api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             */
+            Async\await($this->load_markets());
+            list($market, $marketId) = $this->get_market_params($symbol, 'market_name', $params);
+            $request = array(
+                'market_name' => $marketId,
+            );
+            if ($since !== null) {
+                // the exchange aligns results to end_time returning 5000 trades max
+                // the user must set the end_time (in seconds) close enough to start_time
+                // for a proper pagination, fetch the most recent trades first
+                // then set the end_time parameter to the timestamp of the last trade
+                // start_time and end_time must be in seconds, divided by a thousand
+                $request['start_time'] = intval($since / 1000);
+                // start_time doesn't work without end_time
+                $request['end_time'] = $this->seconds();
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->publicGetMarketsMarketNameTrades (array_merge($request, $params)));
+            //
+            //     {
+            //         "success":true,
+            //         "result":array(
+            //             array(
+            //                 "id":1715826,
+            //                 "liquidation":false,
+            //                 "price":171.62,
+            //                 "side":"buy",
+            //                 "size":2.095,
+            //                 "time":"2019-10-18T12:59:54.288166+00:00"
+            //             ),
+            //             array(
+            //                 "id":1715763,
+            //                 "liquidation":false,
+            //                 "price":171.89,
+            //                 "side":"sell",
+            //                 "size":1.477,
+            //                 "time":"2019-10-18T12:58:38.443734+00:00"
+            //             ),
+            //         ),
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            return $this->parse_trades($result, $market, $since, $limit);
+        }) ();
     }
 
     public function parse_trading_fee($fee, $market = null) {
@@ -1266,122 +1288,128 @@ class ftx extends Exchange {
     }
 
     public function fetch_trading_fee($symbol, $params = array ()) {
-        /**
-         * fetch the trading fee for a $market
-         * @param {string} $symbol unified $symbol of the $market to fetch the fee for
-         * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $response = yield $this->privateGetAccount ($params);
-        $result = $this->safe_value($response, 'result', array());
-        return $this->parse_trading_fee($result, $market);
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the trading fee for a $market
+             * @param {string} $symbol unified $symbol of the $market to fetch the fee for
+             * @param {array} $params extra parameters specific to the ftx api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $response = Async\await($this->privateGetAccount ($params));
+            $result = $this->safe_value($response, 'result', array());
+            return $this->parse_trading_fee($result, $market);
+        }) ();
     }
 
     public function fetch_trading_fees($params = array ()) {
-        /**
-         * fetch the trading fees for multiple markets
-         * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
-         */
-        yield $this->load_markets();
-        $response = yield $this->privateGetAccount ($params);
-        //
-        //     {
-        //         "success" => true,
-        //         "result" => array(
-        //             "backstopProvider" => true,
-        //             "collateral" => 3568181.02691129,
-        //             "freeCollateral" => 1786071.456884368,
-        //             "initialMarginRequirement" => 0.12222384240257728,
-        //             "liquidating" => false,
-        //             "maintenanceMarginRequirement" => 0.07177992558058484,
-        //             "makerFee" => 0.0002,
-        //             "marginFraction" => 0.5588433331419503,
-        //             "openMarginFraction" => 0.2447194090423075,
-        //             "takerFee" => 0.0005,
-        //             "totalAccountValue" => 3568180.98341129,
-        //             "totalPositionSize" => 6384939.6992,
-        //             "username" => "user@domain.com",
-        //             "positions" => array(
-        //                 array(
-        //                     "cost" => -31.7906,
-        //                     "entryPrice" => 138.22,
-        //                     "future" => "ETH-PERP",
-        //                     "initialMarginRequirement" => 0.1,
-        //                     "longOrderSize" => 1744.55,
-        //                     "maintenanceMarginRequirement" => 0.04,
-        //                     "netSize" => -0.23,
-        //                     "openSize" => 1744.32,
-        //                     "realizedPnl" => 3.39441714,
-        //                     "shortOrderSize" => 1732.09,
-        //                     "side" => "sell",
-        //                     "size" => 0.23,
-        //                     "unrealizedPnl" => 0,
-        //                 ),
-        //             ),
-        //         ),
-        //     }
-        //
-        $result = $this->safe_value($response, 'result', array());
-        return $this->parse_trading_fees($result);
+        return Async\async(function () use ($params) {
+            /**
+             * fetch the trading fees for multiple markets
+             * @param {array} $params extra parameters specific to the ftx api endpoint
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->privateGetAccount ($params));
+            //
+            //     {
+            //         "success" => true,
+            //         "result" => array(
+            //             "backstopProvider" => true,
+            //             "collateral" => 3568181.02691129,
+            //             "freeCollateral" => 1786071.456884368,
+            //             "initialMarginRequirement" => 0.12222384240257728,
+            //             "liquidating" => false,
+            //             "maintenanceMarginRequirement" => 0.07177992558058484,
+            //             "makerFee" => 0.0002,
+            //             "marginFraction" => 0.5588433331419503,
+            //             "openMarginFraction" => 0.2447194090423075,
+            //             "takerFee" => 0.0005,
+            //             "totalAccountValue" => 3568180.98341129,
+            //             "totalPositionSize" => 6384939.6992,
+            //             "username" => "user@domain.com",
+            //             "positions" => array(
+            //                 array(
+            //                     "cost" => -31.7906,
+            //                     "entryPrice" => 138.22,
+            //                     "future" => "ETH-PERP",
+            //                     "initialMarginRequirement" => 0.1,
+            //                     "longOrderSize" => 1744.55,
+            //                     "maintenanceMarginRequirement" => 0.04,
+            //                     "netSize" => -0.23,
+            //                     "openSize" => 1744.32,
+            //                     "realizedPnl" => 3.39441714,
+            //                     "shortOrderSize" => 1732.09,
+            //                     "side" => "sell",
+            //                     "size" => 0.23,
+            //                     "unrealizedPnl" => 0,
+            //                 ),
+            //             ),
+            //         ),
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            return $this->parse_trading_fees($result);
+        }) ();
     }
 
     public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches historical funding rate prices
-         * @param {string|null} $symbol unified $symbol of the $market to fetch the funding rate history for
-         * @param {int|null} $since $timestamp in ms of the earliest funding rate to fetch
-         * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
-         * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @param {int|null} $params->until $timestamp in ms of the latest funding rate to fetch
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
-         */
-        yield $this->load_markets();
-        $request = array();
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-            $request['future'] = $market['id'];
-        }
-        if ($since !== null) {
-            $request['start_time'] = intval($since / 1000);
-        }
-        $until = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
-        $params = $this->omit($params, array( 'until', 'till' ));
-        if ($until !== null) {
-            $request['end_time'] = intval($until / 1000);
-        }
-        $response = yield $this->publicGetFundingRates (array_merge($request, $params));
-        //
-        //     {
-        //        "success" => true,
-        //        "result" => array(
-        //          {
-        //            "future" => "BTC-PERP",
-        //            "rate" => 0.0025,
-        //            "time" => "2019-06-02T08:00:00+00:00"
-        //          }
-        //        )
-        //      }
-        //
-        $result = $this->safe_value($response, 'result', array());
-        $rates = array();
-        for ($i = 0; $i < count($result); $i++) {
-            $entry = $result[$i];
-            $marketId = $this->safe_string($entry, 'future');
-            $timestamp = $this->parse8601($this->safe_string($entry, 'time'));
-            $rates[] = array(
-                'info' => $entry,
-                'symbol' => $this->safe_symbol($marketId),
-                'fundingRate' => $this->safe_number($entry, 'rate'),
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
-            );
-        }
-        $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches historical funding rate prices
+             * @param {string|null} $symbol unified $symbol of the $market to fetch the funding rate history for
+             * @param {int|null} $since $timestamp in ms of the earliest funding rate to fetch
+             * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
+             * @param {array} $params extra parameters specific to the ftx api endpoint
+             * @param {int|null} $params->until $timestamp in ms of the latest funding rate to fetch
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
+                $request['future'] = $market['id'];
+            }
+            if ($since !== null) {
+                $request['start_time'] = intval($since / 1000);
+            }
+            $until = $this->safe_integer_2($params, 'until', 'till'); // unified in milliseconds
+            $params = $this->omit($params, array( 'until', 'till' ));
+            if ($until !== null) {
+                $request['end_time'] = intval($until / 1000);
+            }
+            $response = Async\await($this->publicGetFundingRates (array_merge($request, $params)));
+            //
+            //     {
+            //        "success" => true,
+            //        "result" => array(
+            //          {
+            //            "future" => "BTC-PERP",
+            //            "rate" => 0.0025,
+            //            "time" => "2019-06-02T08:00:00+00:00"
+            //          }
+            //        )
+            //      }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            $rates = array();
+            for ($i = 0; $i < count($result); $i++) {
+                $entry = $result[$i];
+                $marketId = $this->safe_string($entry, 'future');
+                $timestamp = $this->parse8601($this->safe_string($entry, 'time'));
+                $rates[] = array(
+                    'info' => $entry,
+                    'symbol' => $this->safe_symbol($marketId),
+                    'fundingRate' => $this->safe_number($entry, 'rate'),
+                    'timestamp' => $timestamp,
+                    'datetime' => $this->iso8601($timestamp),
+                );
+            }
+            $sorted = $this->sort_by($rates, 'timestamp');
+            return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
+        }) ();
     }
 
     public function parse_balance($response) {
@@ -1401,26 +1429,28 @@ class ftx extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
-        /**
-         * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
-         */
-        yield $this->load_markets();
-        $response = yield $this->privateGetWalletBalances ($params);
-        //
-        //     {
-        //         "success" => true,
-        //         "result" => array(
-        //             array(
-        //                 "coin" => "USDTBEAR",
-        //                 "free" => 2320.2,
-        //                 "total" => 2340.2
-        //             ),
-        //         ),
-        //     }
-        //
-        return $this->parse_balance($response);
+        return Async\async(function () use ($params) {
+            /**
+             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} $params extra parameters specific to the ftx api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->privateGetWalletBalances ($params));
+            //
+            //     {
+            //         "success" => true,
+            //         "result" => array(
+            //             array(
+            //                 "coin" => "USDTBEAR",
+            //                 "free" => 2320.2,
+            //                 "total" => 2340.2
+            //             ),
+            //         ),
+            //     }
+            //
+            return $this->parse_balance($response);
+        }) ();
     }
 
     public function parse_order_status($status) {
@@ -1603,638 +1633,715 @@ class ftx extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        /**
-         * create a trade order
-         * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type 'market' or 'limit'
-         * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'market' => $market['id'],
-            'side' => $side, // 'buy' or 'sell'
-            // 'price' => 0.306525, // send null for $market orders
-            'size' => floatval($this->amount_to_precision($symbol, $amount)),
-            // 'reduceOnly' => false, // optional, default is false
-            // 'ioc' => false, // optional, default is false, limit or $market orders only
-            // 'postOnly' => false, // optional, default is false, limit or $market orders only
-            // 'clientId' => 'abcdef0123456789', // string, optional, client order id, limit or $market orders only
-            // 'triggerPrice' => 0.306525, // required for stop and takeProfit orders
-            // 'trailValue' => -0.306525, // required for trailingStop orders, negative for "sell"; positive for "buy"
-            // 'orderPrice' => 0.306525, // optional, for stop and takeProfit orders only ($market by default). If not specified, a $market order will be submitted
-        );
-        $reduceOnly = $this->safe_value($params, 'reduceOnly');
-        if ($reduceOnly === true) {
-            $request['reduceOnly'] = $reduceOnly;
-        }
-        $clientOrderId = $this->safe_string_2($params, 'clientId', 'clientOrderId');
-        if ($clientOrderId !== null) {
-            $request['clientId'] = $clientOrderId;
-            $params = $this->omit($params, array( 'clientId', 'clientOrderId' ));
-        }
-        $method = null;
-        $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
-        $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
-        $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
-        $isTakeProfit = $type === 'takeProfit';
-        $isStopLoss = $type === 'stop';
-        $isTriggerPrice = false;
-        if ($triggerPrice !== null) {
-            $isTriggerPrice = !$isTakeProfit && !$isStopLoss;
-        } elseif ($takeProfitPrice !== null) {
-            $isTakeProfit = true;
-            $triggerPrice = $takeProfitPrice;
-        } elseif ($stopLossPrice !== null) {
-            $isStopLoss = true;
-            $triggerPrice = $stopLossPrice;
-        }
-        if (!$isTriggerPrice) {
-            $request['type'] = $type;
-        }
-        $isStopOrder = $isTakeProfit || $isStopLoss || $isTriggerPrice;
-        $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
-        if ($isStopOrder) {
-            if ($triggerPrice === null) {
-                if ($isTakeProfit) {
-                    throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice param, a stopPrice or a $takeProfitPrice param for a takeProfit order');
-                } elseif ($isStopLoss) {
-                    throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice param, a stopPrice or a $stopLossPrice param for a stop order');
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * create a trade order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the ftx api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'market' => $market['id'],
+                'side' => $side, // 'buy' or 'sell'
+                // 'price' => 0.306525, // send null for $market orders
+                'size' => floatval($this->amount_to_precision($symbol, $amount)),
+                // 'reduceOnly' => false, // optional, default is false
+                // 'ioc' => false, // optional, default is false, limit or $market orders only
+                // 'postOnly' => false, // optional, default is false, limit or $market orders only
+                // 'clientId' => 'abcdef0123456789', // string, optional, client order id, limit or $market orders only
+                // 'triggerPrice' => 0.306525, // required for stop and takeProfit orders
+                // 'trailValue' => -0.306525, // required for trailingStop orders, negative for "sell"; positive for "buy"
+                // 'orderPrice' => 0.306525, // optional, for stop and takeProfit orders only ($market by default). If not specified, a $market order will be submitted
+            );
+            $reduceOnly = $this->safe_value($params, 'reduceOnly');
+            if ($reduceOnly === true) {
+                $request['reduceOnly'] = $reduceOnly;
+            }
+            $clientOrderId = $this->safe_string_2($params, 'clientId', 'clientOrderId');
+            if ($clientOrderId !== null) {
+                $request['clientId'] = $clientOrderId;
+                $params = $this->omit($params, array( 'clientId', 'clientOrderId' ));
+            }
+            $method = null;
+            $triggerPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
+            $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
+            $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
+            $isTakeProfit = $type === 'takeProfit';
+            $isStopLoss = $type === 'stop';
+            $isTriggerPrice = false;
+            if ($triggerPrice !== null) {
+                $isTriggerPrice = !$isTakeProfit && !$isStopLoss;
+            } elseif ($takeProfitPrice !== null) {
+                $isTakeProfit = true;
+                $triggerPrice = $takeProfitPrice;
+            } elseif ($stopLossPrice !== null) {
+                $isStopLoss = true;
+                $triggerPrice = $stopLossPrice;
+            }
+            if (!$isTriggerPrice) {
+                $request['type'] = $type;
+            }
+            $isStopOrder = $isTakeProfit || $isStopLoss || $isTriggerPrice;
+            $params = $this->omit($params, array( 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice' ));
+            if ($isStopOrder) {
+                if ($triggerPrice === null) {
+                    if ($isTakeProfit) {
+                        throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice param, a stopPrice or a $takeProfitPrice param for a takeProfit order');
+                    } elseif ($isStopLoss) {
+                        throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice param, a stopPrice or a $stopLossPrice param for a stop order');
+                    }
                 }
-            }
-            $method = 'privatePostConditionalOrders';
-            $request['triggerPrice'] = floatval($this->price_to_precision($symbol, $triggerPrice));
-            if (($type === 'limit') && ($price === null)) {
-                throw new ArgumentsRequired($this->id . ' createOrder () requires a $price argument for stop limit orders');
-            }
-            if ($price !== null) {
-                $request['orderPrice'] = floatval($this->price_to_precision($symbol, $price)); // optional, order $type is limit if this is specified, otherwise $market
-            }
-            if ($isStopLoss || $isTakeProfit) {
-                $request['type'] = $isStopLoss ? 'stop' : 'takeProfit';
-            }
-        } elseif (($type === 'limit') || ($type === 'market')) {
-            $method = 'privatePostOrders';
-            $isMarketOrder = false;
-            if ($type === 'limit') {
-                $request['price'] = floatval($this->price_to_precision($symbol, $price));
-            } elseif ($type === 'market') {
-                $request['price'] = null;
-                $isMarketOrder = true;
-            }
-            $timeInForce = $this->safe_string($params, 'timeInForce');
-            $postOnly = $this->is_post_only($isMarketOrder, null, $params);
-            $params = $this->omit($params, array( 'timeInForce', 'postOnly' ));
-            if ($timeInForce !== null) {
-                if (!(($timeInForce === 'IOC') || ($timeInForce === 'PO'))) {
-                    throw new InvalidOrder($this->id . ' createOrder () does not accept $timeInForce => ' . $timeInForce . ' orders, only IOC and PO orders are allowed');
+                $method = 'privatePostConditionalOrders';
+                $request['triggerPrice'] = floatval($this->price_to_precision($symbol, $triggerPrice));
+                if (($type === 'limit') && ($price === null)) {
+                    throw new ArgumentsRequired($this->id . ' createOrder () requires a $price argument for stop limit orders');
                 }
+                if ($price !== null) {
+                    $request['orderPrice'] = floatval($this->price_to_precision($symbol, $price)); // optional, order $type is limit if this is specified, otherwise $market
+                }
+                if ($isStopLoss || $isTakeProfit) {
+                    $request['type'] = $isStopLoss ? 'stop' : 'takeProfit';
+                }
+            } elseif (($type === 'limit') || ($type === 'market')) {
+                $method = 'privatePostOrders';
+                $isMarketOrder = false;
+                if ($type === 'limit') {
+                    $request['price'] = floatval($this->price_to_precision($symbol, $price));
+                } elseif ($type === 'market') {
+                    $request['price'] = null;
+                    $isMarketOrder = true;
+                }
+                $timeInForce = $this->safe_string($params, 'timeInForce');
+                $postOnly = $this->is_post_only($isMarketOrder, null, $params);
+                $params = $this->omit($params, array( 'timeInForce', 'postOnly' ));
+                if ($timeInForce !== null) {
+                    if (!(($timeInForce === 'IOC') || ($timeInForce === 'PO'))) {
+                        throw new InvalidOrder($this->id . ' createOrder () does not accept $timeInForce => ' . $timeInForce . ' orders, only IOC and PO orders are allowed');
+                    }
+                }
+                $ioc = ($timeInForce === 'IOC');
+                if ($postOnly) {
+                    $request['postOnly'] = true;
+                }
+                if ($ioc) {
+                    $request['ioc'] = true;
+                }
+            } elseif ($type === 'trailingStop') {
+                $trailValue = $this->safe_number($params, 'trailValue', $price);
+                if ($trailValue === null) {
+                    throw new ArgumentsRequired($this->id . ' createOrder () requires a $trailValue parameter or a $price argument (negative or positive) for a ' . $type . ' order');
+                }
+                $method = 'privatePostConditionalOrders';
+                $request['trailValue'] = floatval($this->price_to_precision($symbol, $trailValue)); // negative for "sell", positive for "buy"
+            } else {
+                throw new InvalidOrder($this->id . ' createOrder () does not support order $type ' . $type . ', only limit, $market, stop, trailingStop, or takeProfit orders are supported');
             }
-            $ioc = ($timeInForce === 'IOC');
-            if ($postOnly) {
-                $request['postOnly'] = true;
-            }
-            if ($ioc) {
-                $request['ioc'] = true;
-            }
-        } elseif ($type === 'trailingStop') {
-            $trailValue = $this->safe_number($params, 'trailValue', $price);
-            if ($trailValue === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder () requires a $trailValue parameter or a $price argument (negative or positive) for a ' . $type . ' order');
-            }
-            $method = 'privatePostConditionalOrders';
-            $request['trailValue'] = floatval($this->price_to_precision($symbol, $trailValue)); // negative for "sell", positive for "buy"
-        } else {
-            throw new InvalidOrder($this->id . ' createOrder () does not support order $type ' . $type . ', only limit, $market, stop, trailingStop, or takeProfit orders are supported');
-        }
-        $response = yield $this->$method (array_merge($request, $params));
-        //
-        // regular orders
-        //
-        //     {
-        //         "success" => true,
-        //         "result" => array(
-        //             {
-        //                 "createdAt" => "2019-03-05T09:56:55.728933+00:00",
-        //                 "filledSize" => 0,
-        //                 "future" => "XRP-PERP",
-        //                 "id" => 9596912,
-        //                 "market" => "XRP-PERP",
-        //                 "price" => 0.306525,
-        //                 "remainingSize" => 31431,
-        //                 "side" => "sell",
-        //                 "size" => 31431,
-        //                 "status" => "open",
-        //                 "type" => "limit",
-        //                 "reduceOnly" => false,
-        //                 "ioc" => false,
-        //                 "postOnly" => false,
-        //                 "clientId" => null,
-        //             }
-        //         )
-        //     }
-        //
-        // conditional orders
-        //
-        //     {
-        //         "success":true,
-        //         "result":{
-        //             "id":215826320,
-        //             "market":"BTC/USD",
-        //             "future":null,
-        //             "side":"sell",
-        //             "type":"take_profit", // the API accepts the "takeProfit" string in camelCase notation but returns the "take_profit" $type with underscore
-        //             "orderPrice":40000.0,
-        //             "triggerPrice":39000.0,
-        //             "size":0.001,
-        //             "status":"open",
-        //             "createdAt":"2022-06-12T15:41:41.836788+00:00",
-        //             "triggeredAt":null,
-        //             "orderId":null,
-        //             "error":null,
-        //             "reduceOnly":false,
-        //             "trailValue":null,
-        //             "trailStart":null,
-        //             "cancelledAt":null,
-        //             "cancelReason":null,
-        //             "retryUntilFilled":false,
-        //             "orderType":"limit"
-        //         }
-        //     }
-        //
-        $result = $this->safe_value($response, 'result', array());
-        return $this->parse_order($result, $market);
+            $response = Async\await($this->$method (array_merge($request, $params)));
+            //
+            // regular orders
+            //
+            //     {
+            //         "success" => true,
+            //         "result" => array(
+            //             {
+            //                 "createdAt" => "2019-03-05T09:56:55.728933+00:00",
+            //                 "filledSize" => 0,
+            //                 "future" => "XRP-PERP",
+            //                 "id" => 9596912,
+            //                 "market" => "XRP-PERP",
+            //                 "price" => 0.306525,
+            //                 "remainingSize" => 31431,
+            //                 "side" => "sell",
+            //                 "size" => 31431,
+            //                 "status" => "open",
+            //                 "type" => "limit",
+            //                 "reduceOnly" => false,
+            //                 "ioc" => false,
+            //                 "postOnly" => false,
+            //                 "clientId" => null,
+            //             }
+            //         )
+            //     }
+            //
+            // conditional orders
+            //
+            //     {
+            //         "success":true,
+            //         "result":{
+            //             "id":215826320,
+            //             "market":"BTC/USD",
+            //             "future":null,
+            //             "side":"sell",
+            //             "type":"take_profit", // the API accepts the "takeProfit" string in camelCase notation but returns the "take_profit" $type with underscore
+            //             "orderPrice":40000.0,
+            //             "triggerPrice":39000.0,
+            //             "size":0.001,
+            //             "status":"open",
+            //             "createdAt":"2022-06-12T15:41:41.836788+00:00",
+            //             "triggeredAt":null,
+            //             "orderId":null,
+            //             "error":null,
+            //             "reduceOnly":false,
+            //             "trailValue":null,
+            //             "trailStart":null,
+            //             "cancelledAt":null,
+            //             "cancelReason":null,
+            //             "retryUntilFilled":false,
+            //             "orderType":"limit"
+            //         }
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            return $this->parse_order($result, $market);
+        }) ();
     }
 
     public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array();
-        $method = null;
-        $clientOrderId = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
-        $triggerPrice = $this->safe_number($params, 'triggerPrice');
-        $orderPrice = $this->safe_number($params, 'orderPrice');
-        $trailValue = $this->safe_number($params, 'trailValue');
-        $params = $this->omit($params, array( 'client_order_id', 'clientOrderId', 'triggerPrice', 'orderPrice', 'trailValue' ));
-        $triggerPriceIsDefined = ($triggerPrice !== null);
-        $orderPriceIsDefined = ($orderPrice !== null);
-        $trailValueIsDefined = ($trailValue !== null);
-        if ($triggerPriceIsDefined || $orderPriceIsDefined || $trailValueIsDefined) {
-            $method = 'privatePostConditionalOrdersOrderIdModify';
-            $request['order_id'] = $id;
-            if ($triggerPriceIsDefined) {
-                $request['triggerPrice'] = floatval($this->price_to_precision($symbol, $triggerPrice));
-            }
-            if ($orderPriceIsDefined) {
-                // only for stop limit or take profit limit orders
-                $request['orderPrice'] = floatval($this->price_to_precision($symbol, $orderPrice));
-            }
-            if ($trailValueIsDefined) {
-                // negative for sell orders, positive for buy orders
-                $request['trailValue'] = floatval($this->price_to_precision($symbol, $trailValue));
-            }
-        } else {
-            if ($clientOrderId === null) {
-                $method = 'privatePostOrdersOrderIdModify';
+        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array();
+            $method = null;
+            $clientOrderId = $this->safe_string_2($params, 'client_order_id', 'clientOrderId');
+            $triggerPrice = $this->safe_number($params, 'triggerPrice');
+            $orderPrice = $this->safe_number($params, 'orderPrice');
+            $trailValue = $this->safe_number($params, 'trailValue');
+            $params = $this->omit($params, array( 'client_order_id', 'clientOrderId', 'triggerPrice', 'orderPrice', 'trailValue' ));
+            $triggerPriceIsDefined = ($triggerPrice !== null);
+            $orderPriceIsDefined = ($orderPrice !== null);
+            $trailValueIsDefined = ($trailValue !== null);
+            if ($triggerPriceIsDefined || $orderPriceIsDefined || $trailValueIsDefined) {
+                $method = 'privatePostConditionalOrdersOrderIdModify';
                 $request['order_id'] = $id;
+                if ($triggerPriceIsDefined) {
+                    $request['triggerPrice'] = floatval($this->price_to_precision($symbol, $triggerPrice));
+                }
+                if ($orderPriceIsDefined) {
+                    // only for stop limit or take profit limit orders
+                    $request['orderPrice'] = floatval($this->price_to_precision($symbol, $orderPrice));
+                }
+                if ($trailValueIsDefined) {
+                    // negative for sell orders, positive for buy orders
+                    $request['trailValue'] = floatval($this->price_to_precision($symbol, $trailValue));
+                }
             } else {
-                $method = 'privatePostOrdersByClientIdClientOrderIdModify';
-                $request['client_order_id'] = $clientOrderId;
-                // $request['clientId'] = $clientOrderId;
+                if ($clientOrderId === null) {
+                    $method = 'privatePostOrdersOrderIdModify';
+                    $request['order_id'] = $id;
+                } else {
+                    $method = 'privatePostOrdersByClientIdClientOrderIdModify';
+                    $request['client_order_id'] = $clientOrderId;
+                    // $request['clientId'] = $clientOrderId;
+                }
+                if ($price !== null) {
+                    $request['price'] = floatval($this->price_to_precision($symbol, $price));
+                }
             }
-            if ($price !== null) {
-                $request['price'] = floatval($this->price_to_precision($symbol, $price));
+            if ($amount !== null) {
+                $request['size'] = floatval($this->amount_to_precision($symbol, $amount));
             }
-        }
-        if ($amount !== null) {
-            $request['size'] = floatval($this->amount_to_precision($symbol, $amount));
-        }
-        $response = yield $this->$method (array_merge($request, $params));
-        //
-        // regular order
-        //
-        //     {
-        //         "success" => true,
-        //         "result" => {
-        //             "createdAt" => "2019-03-05T11:56:55.728933+00:00",
-        //             "filledSize" => 0,
-        //             "future" => "XRP-PERP",
-        //             "id" => 9596932,
-        //             "market" => "XRP-PERP",
-        //             "price" => 0.326525,
-        //             "remainingSize" => 31431,
-        //             "side" => "sell",
-        //             "size" => 31431,
-        //             "status" => "open",
-        //             "type" => "limit",
-        //             "reduceOnly" => false,
-        //             "ioc" => false,
-        //             "postOnly" => false,
-        //             "clientId" => null,
-        //         }
-        //     }
-        //
-        // conditional trigger order
-        //
-        //     {
-        //         "success" => true,
-        //         "result" => {
-        //             "createdAt" => "2019-03-05T09:56:55.728933+00:00",
-        //             "future" => "XRP-PERP",
-        //             "id" => 9596912,
-        //             "market" => "XRP-PERP",
-        //             "triggerPrice" => 0.306225,
-        //             "orderId" => null,
-        //             "side" => "sell",
-        //             "size" => 31431,
-        //             "status" => "open",
-        //             "type" => "stop",
-        //             "orderPrice" => null,
-        //             "error" => null,
-        //             "triggeredAt" => null,
-        //             "reduceOnly" => false,
-        //             "orderType" => "market",
-        //             "filledSize" => 0,
-        //             "avgFillPrice" => null,
-        //             "retryUntilFilled" => false
-        //         }
-        //     }
-        //
-        $result = $this->safe_value($response, 'result', array());
-        return $this->parse_order($result, $market);
+            $response = Async\await($this->$method (array_merge($request, $params)));
+            //
+            // regular order
+            //
+            //     {
+            //         "success" => true,
+            //         "result" => {
+            //             "createdAt" => "2019-03-05T11:56:55.728933+00:00",
+            //             "filledSize" => 0,
+            //             "future" => "XRP-PERP",
+            //             "id" => 9596932,
+            //             "market" => "XRP-PERP",
+            //             "price" => 0.326525,
+            //             "remainingSize" => 31431,
+            //             "side" => "sell",
+            //             "size" => 31431,
+            //             "status" => "open",
+            //             "type" => "limit",
+            //             "reduceOnly" => false,
+            //             "ioc" => false,
+            //             "postOnly" => false,
+            //             "clientId" => null,
+            //         }
+            //     }
+            //
+            // conditional trigger order
+            //
+            //     {
+            //         "success" => true,
+            //         "result" => {
+            //             "createdAt" => "2019-03-05T09:56:55.728933+00:00",
+            //             "future" => "XRP-PERP",
+            //             "id" => 9596912,
+            //             "market" => "XRP-PERP",
+            //             "triggerPrice" => 0.306225,
+            //             "orderId" => null,
+            //             "side" => "sell",
+            //             "size" => 31431,
+            //             "status" => "open",
+            //             "type" => "stop",
+            //             "orderPrice" => null,
+            //             "error" => null,
+            //             "triggeredAt" => null,
+            //             "reduceOnly" => false,
+            //             "orderType" => "market",
+            //             "filledSize" => 0,
+            //             "avgFillPrice" => null,
+            //             "retryUntilFilled" => false
+            //         }
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            return $this->parse_order($result, $market);
+        }) ();
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        /**
-         * cancels an open order
-         * @param {string} $id order $id
-         * @param {string|null} $symbol not used by ftx cancelOrder ()
-         * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @param {bool} $params->stop true if cancelling a stop/trigger order
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        yield $this->load_markets();
-        $request = array();
-        // support for canceling conditional orders
-        // https://github.com/ccxt/ccxt/issues/6669
-        $options = $this->safe_value($this->options, 'cancelOrder', array());
-        $defaultMethod = $this->safe_string($options, 'method', 'privateDeleteOrdersOrderId');
-        $method = $this->safe_string($params, 'method', $defaultMethod);
-        $type = $this->safe_value($params, 'type');  // Deprecated => use $params->stop instead
-        $stop = $this->safe_value($params, 'stop');
-        $clientOrderId = $this->safe_value_2($params, 'client_order_id', 'clientOrderId');
-        if ($clientOrderId === null) {
-            $request['order_id'] = intval($id);
-            if ($stop || ($type === 'stop') || ($type === 'trailingStop') || ($type === 'takeProfit')) {
-                $method = 'privateDeleteConditionalOrdersOrderId';
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * cancels an open order
+             * @param {string} $id order $id
+             * @param {string|null} $symbol not used by ftx cancelOrder ()
+             * @param {array} $params extra parameters specific to the ftx api endpoint
+             * @param {bool} $params->stop true if cancelling a stop/trigger order
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            // support for canceling conditional orders
+            // https://github.com/ccxt/ccxt/issues/6669
+            $options = $this->safe_value($this->options, 'cancelOrder', array());
+            $defaultMethod = $this->safe_string($options, 'method', 'privateDeleteOrdersOrderId');
+            $method = $this->safe_string($params, 'method', $defaultMethod);
+            $type = $this->safe_value($params, 'type');  // Deprecated => use $params->stop instead
+            $isTriggerOrder = null;
+            list($isTriggerOrder, $params) = $this->is_trigger_order($params);
+            $clientOrderId = $this->safe_value_2($params, 'client_order_id', 'clientOrderId');
+            if ($clientOrderId === null) {
+                $request['order_id'] = intval($id);
+                if ($isTriggerOrder || $this->in_array($type, array( 'stop', 'trailingStop', 'takeProfit' ))) {
+                    $method = 'privateDeleteConditionalOrdersOrderId';
+                }
+            } else {
+                $request['client_order_id'] = $clientOrderId;
+                $method = 'privateDeleteOrdersByClientIdClientOrderId';
             }
-        } else {
-            $request['client_order_id'] = $clientOrderId;
-            $method = 'privateDeleteOrdersByClientIdClientOrderId';
-        }
-        $query = $this->omit($params, array( 'method', 'type', 'client_order_id', 'clientOrderId', 'stop' ));
-        $response = yield $this->$method (array_merge($request, $query));
-        //
-        //     {
-        //         "success" => true,
-        //         "result" => "Order queued for cancelation"
-        //     }
-        //
-        $result = $this->safe_value($response, 'result', array());
-        return $result;
+            $query = $this->omit($params, array( 'method', 'type', 'client_order_id', 'clientOrderId' ));
+            $response = Async\await($this->$method (array_merge($request, $query)));
+            //
+            //     {
+            //         "success" => true,
+            //         "result" => "Order queued for cancelation"
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            return $result;
+        }) ();
     }
 
     public function cancel_orders($ids, $symbol = null, $params = array ()) {
-        /**
-         * cancel multiple orders
-         * @param {[string]} $ids order $ids
-         * @param {string|null} $symbol not used by ftx cancelOrders ()
-         * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @return {array} raw - a list of order $ids queued for cancelation
-         */
-        yield $this->load_markets();
-        // https://docs.ccxt.com/en/latest/manual.html#user-defined-clientorderid
-        $clientOrderIds = $this->safe_value($params, 'clientOrderIds');
-        if ($clientOrderIds !== null) {
-            //
-            //     array( success => true, result => array( 'billy', 'bob', 'gina' ) )
-            //
-            return yield $this->privateDeleteBulkOrdersByClientId ($params);
-        } else {
-            $request = array(
-                'orderIds' => $ids,
-            );
-            //
-            //     array( success => true, result => array( 181542119006, 181542179014 ) )
-            //
-            return yield $this->privateDeleteBulkOrders (array_merge($request, $params));
-        }
+        return Async\async(function () use ($ids, $symbol, $params) {
+            /**
+             * cancel multiple orders
+             * @param {[string]} $ids order $ids
+             * @param {string|null} $symbol not used by ftx cancelOrders ()
+             * @param {array} $params extra parameters specific to the ftx api endpoint
+             * @return {array} raw - a list of order $ids queued for cancelation
+             */
+            Async\await($this->load_markets());
+            // https://docs.ccxt.com/en/latest/manual.html#user-defined-clientorderid
+            $clientOrderIds = $this->safe_value($params, 'clientOrderIds');
+            // FTX doesn't have endpoint for trigger orders related to cancelOrders
+            if ($clientOrderIds !== null) {
+                //
+                //     array( success => true, result => array( 'billy', 'bob', 'gina' ) )
+                //
+                return Async\await($this->privateDeleteBulkOrdersByClientId ($params));
+            } else {
+                $request = array(
+                    'orderIds' => $ids,
+                );
+                //
+                //     array( success => true, result => array( 181542119006, 181542179014 ) )
+                //
+                return Async\await($this->privateDeleteBulkOrders (array_merge($request, $params)));
+            }
+        }) ();
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
-        /**
-         * cancel all open orders
-         * @param {string|null} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
-         * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        yield $this->load_markets();
-        $request = array(
-            // 'market' => market['id'], // optional
-            // 'conditionalOrdersOnly' => false, // cancel conditional orders only
-            // 'limitOrdersOnly' => false, // cancel existing limit orders (non-conditional orders) only
-        );
-        $marketId = $this->get_market_id($symbol, 'market', $params);
-        if ($marketId !== null) {
-            $request['market'] = $marketId;
-        }
-        $response = yield $this->privateDeleteOrders (array_merge($request, $params));
-        $result = $this->safe_value($response, 'result', array());
-        //
-        //     {
-        //         "success" => true,
-        //         "result" => "Orders queued for cancelation"
-        //     }
-        //
-        return $result;
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * cancel all open orders
+             * @param {string|null} $symbol unified market $symbol, only orders in the market of this $symbol are cancelled when $symbol is not null
+             * @param {array} $params extra parameters specific to the ftx api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                // 'market' => market['id'], // optional
+                // 'conditionalOrdersOnly' => false, // cancel conditional orders only
+                // 'limitOrdersOnly' => false, // cancel existing limit orders (non-conditional orders) only
+            );
+            $marketId = $this->get_market_id($symbol, 'market', $params);
+            if ($marketId !== null) {
+                $request['market'] = $marketId;
+            }
+            $isTriggerOrder = null;
+            list($isTriggerOrder, $params) = $this->is_trigger_order($params);
+            // if user wants to cancel only conditional orders, then set below fields. Otherwise, $request will cancel all orders - conditional and regular orders
+            if ($isTriggerOrder) {
+                $request['conditionalOrdersOnly'] = true;
+                $request['limitOrdersOnly'] = false;
+            }
+            $response = Async\await($this->privateDeleteOrders (array_merge($request, $params)));
+            $result = $this->safe_value($response, 'result', array());
+            //
+            //     {
+            //         "success" => true,
+            //         "result" => "Orders queued for cancelation"
+            //     }
+            //
+            return $result;
+        }) ();
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
-        /**
-         * fetches information on an order made by the user
-         * @param {string|null} $symbol not used by ftx fetchOrder
-         * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        yield $this->load_markets();
-        $request = array();
-        $clientOrderId = $this->safe_value_2($params, 'client_order_id', 'clientOrderId');
-        $method = 'privateGetOrdersOrderId';
-        if ($clientOrderId === null) {
-            $request['order_id'] = $id;
-        } else {
-            $request['client_order_id'] = $clientOrderId;
-            $params = $this->omit($params, array( 'client_order_id', 'clientOrderId' ));
-            $method = 'privateGetOrdersByClientIdClientOrderId';
-        }
-        $response = yield $this->$method (array_merge($request, $params));
-        //
-        //     {
-        //         "success" => true,
-        //         "result" => {
-        //             "createdAt" => "2019-03-05T09:56:55.728933+00:00",
-        //             "filledSize" => 10,
-        //             "future" => "XRP-PERP",
-        //             "id" => 9596912,
-        //             "market" => "XRP-PERP",
-        //             "price" => 0.306525,
-        //             "avgFillPrice" => 0.306526,
-        //             "remainingSize" => 31421,
-        //             "side" => "sell",
-        //             "size" => 31431,
-        //             "status" => "open",
-        //             "type" => "limit",
-        //             "reduceOnly" => false,
-        //             "ioc" => false,
-        //             "postOnly" => false,
-        //             "clientId" => null
-        //         }
-        //     }
-        //
-        $result = $this->safe_value($response, 'result', array());
-        return $this->parse_order($result);
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * fetches information on an order made by the user
+             * @param {string|null} $symbol not used by ftx fetchOrder
+             * @param {array} $params extra parameters specific to the ftx api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            $clientOrderId = $this->safe_value_2($params, 'client_order_id', 'clientOrderId');
+            $method = 'privateGetOrdersOrderId';
+            if ($clientOrderId === null) {
+                $request['order_id'] = $id;
+            } else {
+                $request['client_order_id'] = $clientOrderId;
+                $params = $this->omit($params, array( 'client_order_id', 'clientOrderId' ));
+                $method = 'privateGetOrdersByClientIdClientOrderId';
+            }
+            $response = Async\await($this->$method (array_merge($request, $params)));
+            //
+            //     {
+            //         "success" => true,
+            //         "result" => {
+            //             "createdAt" => "2019-03-05T09:56:55.728933+00:00",
+            //             "filledSize" => 10,
+            //             "future" => "XRP-PERP",
+            //             "id" => 9596912,
+            //             "market" => "XRP-PERP",
+            //             "price" => 0.306525,
+            //             "avgFillPrice" => 0.306526,
+            //             "remainingSize" => 31421,
+            //             "side" => "sell",
+            //             "size" => 31431,
+            //             "status" => "open",
+            //             "type" => "limit",
+            //             "reduceOnly" => false,
+            //             "ioc" => false,
+            //             "postOnly" => false,
+            //             "clientId" => null
+            //         }
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            return $this->parse_order($result);
+        }) ();
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all unfilled currently open orders
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch open orders for
-         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-         * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        yield $this->load_markets();
-        $request = array();
-        list($market, $marketId) = $this->get_market_params($symbol, 'market', $params);
-        if ($marketId !== null) {
-            $request['market'] = $marketId;
-        }
-        // support for canceling conditional orders
-        // https://github.com/ccxt/ccxt/issues/6669
-        $options = $this->safe_value($this->options, 'fetchOpenOrders', array());
-        $defaultMethod = $this->safe_string($options, 'method', 'privateGetOrders');
-        $method = $this->safe_string($params, 'method', $defaultMethod);
-        $type = $this->safe_value($params, 'type');
-        $stop = $this->safe_value($params, 'stop');
-        if ($stop || ($type === 'stop') || ($type === 'trailingStop') || ($type === 'takeProfit')) {
-            $method = 'privateGetConditionalOrders';
-        }
-        $query = $this->omit($params, array( 'method', 'type', 'stop' ));
-        $response = yield $this->$method (array_merge($request, $query));
-        //
-        //     {
-        //         "success" => true,
-        //         "result" => array(
-        //             {
-        //                 "createdAt" => "2019-03-05T09:56:55.728933+00:00",
-        //                 "filledSize" => 10,
-        //                 "future" => "XRP-PERP",
-        //                 "id" => 9596912,
-        //                 "market" => "XRP-PERP",
-        //                 "price" => 0.306525,
-        //                 "avgFillPrice" => 0.306526,
-        //                 "remainingSize" => 31421,
-        //                 "side" => "sell",
-        //                 "size" => 31431,
-        //                 "status" => "open",
-        //                 "type" => "limit",
-        //                 "reduceOnly" => false,
-        //                 "ioc" => false,
-        //                 "postOnly" => false,
-        //                 "clientId" => null
-        //             }
-        //         )
-        //     }
-        //
-        $result = $this->safe_value($response, 'result', array());
-        return $this->parse_orders($result, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all unfilled currently open orders
+             * @param {string|null} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch open orders for
+             * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+             * @param {array} $params extra parameters specific to the ftx api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            list($market, $marketId) = $this->get_market_params($symbol, 'market', $params);
+            if ($marketId !== null) {
+                $request['market'] = $marketId;
+            }
+            // support for canceling conditional orders
+            // https://github.com/ccxt/ccxt/issues/6669
+            $options = $this->safe_value($this->options, 'fetchOpenOrders', array());
+            $defaultMethod = $this->safe_string($options, 'method', 'privateGetOrders');
+            $method = $this->safe_string($params, 'method', $defaultMethod);
+            $type = $this->safe_value($params, 'type');
+            $isTriggerOrder = null;
+            list($isTriggerOrder, $params) = $this->is_trigger_order($params);
+            if ($isTriggerOrder || $this->in_array($type, array( 'trigger', 'stop', 'trailingStop', 'takeProfit' ))) {
+                $method = 'privateGetConditionalOrders';
+            }
+            $query = $this->omit($params, array( 'method', 'type' ));
+            $response = Async\await($this->$method (array_merge($request, $query)));
+            //
+            //     {
+            //         "success" => true,
+            //         "result" => array(
+            //             {
+            //                 "createdAt" => "2019-03-05T09:56:55.728933+00:00",
+            //                 "filledSize" => 10,
+            //                 "future" => "XRP-PERP",
+            //                 "id" => 9596912,
+            //                 "market" => "XRP-PERP",
+            //                 "price" => 0.306525,
+            //                 "avgFillPrice" => 0.306526,
+            //                 "remainingSize" => 31421,
+            //                 "side" => "sell",
+            //                 "size" => 31431,
+            //                 "status" => "open",
+            //                 "type" => "limit",
+            //                 "reduceOnly" => false,
+            //                 "ioc" => false,
+            //                 "postOnly" => false,
+            //                 "clientId" => null
+            //             }
+            //         )
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            return $this->parse_orders($result, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches information on multiple orders made by the user
-         * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        yield $this->load_markets();
-        $request = array();
-        list($market, $marketId) = $this->get_market_params($symbol, 'market', $params);
-        if ($marketId !== null) {
-            $request['market'] = $marketId;
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit; // default 100, max 100
-        }
-        if ($since !== null) {
-            $request['start_time'] = intval($since / 1000);
-        }
-        // support for canceling conditional orders
-        // https://github.com/ccxt/ccxt/issues/6669
-        $options = $this->safe_value($this->options, 'fetchOrders', array());
-        $defaultMethod = $this->safe_string($options, 'method', 'privateGetOrdersHistory');
-        $method = $this->safe_string($params, 'method', $defaultMethod);
-        $type = $this->safe_value($params, 'type');
-        if (($type === 'stop') || ($type === 'trailingStop') || ($type === 'takeProfit')) {
-            $method = 'privateGetConditionalOrdersHistory';
-        }
-        $query = $this->omit($params, array( 'method', 'type' ));
-        $response = yield $this->$method (array_merge($request, $query));
-        //
-        //     {
-        //         "success" => true,
-        //         "result" => array(
-        //             {
-        //                 "createdAt" => "2019-03-05T09:56:55.728933+00:00",
-        //                 "filledSize" => 10,
-        //                 "future" => "XRP-PERP",
-        //                 "id" => 9596912,
-        //                 "market" => "XRP-PERP",
-        //                 "price" => 0.306525,
-        //                 "avgFillPrice" => 0.306526,
-        //                 "remainingSize" => 31421,
-        //                 "side" => "sell",
-        //                 "size" => 31431,
-        //                 "status" => "open",
-        //                 "type" => "limit",
-        //                 "reduceOnly" => false,
-        //                 "ioc" => false,
-        //                 "postOnly" => false,
-        //                 "clientId" => null
-        //             }
-        //         )
-        //     }
-        //
-        $result = $this->safe_value($response, 'result', array());
-        return $this->parse_orders($result, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple orders made by the user
+             * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch orders for
+             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {array} $params extra parameters specific to the ftx api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            list($market, $marketId) = $this->get_market_params($symbol, 'market', $params);
+            if ($marketId !== null) {
+                $request['market'] = $marketId;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit; // default 100, max 100
+            }
+            if ($since !== null) {
+                $request['start_time'] = intval($since / 1000);
+            }
+            // support for canceling conditional orders
+            // https://github.com/ccxt/ccxt/issues/6669
+            $options = $this->safe_value($this->options, 'fetchOrders', array());
+            $defaultMethod = $this->safe_string($options, 'method', 'privateGetOrdersHistory');
+            $method = $this->safe_string($params, 'method', $defaultMethod);
+            $type = $this->safe_value($params, 'type');
+            $isTriggerOrder = null;
+            list($isTriggerOrder, $params) = $this->is_trigger_order($params);
+            if ($isTriggerOrder || $this->in_array($type, array( 'trigger', 'stop', 'trailingStop', 'takeProfit' ))) {
+                $method = 'privateGetConditionalOrdersHistory';
+            }
+            $query = $this->omit($params, array( 'method', 'type' ));
+            $response = Async\await($this->$method (array_merge($request, $query)));
+            //
+            //     {
+            //         "success" => true,
+            //         "result" => array(
+            //             {
+            //                 "createdAt" => "2019-03-05T09:56:55.728933+00:00",
+            //                 "filledSize" => 10,
+            //                 "future" => "XRP-PERP",
+            //                 "id" => 9596912,
+            //                 "market" => "XRP-PERP",
+            //                 "price" => 0.306525,
+            //                 "avgFillPrice" => 0.306526,
+            //                 "remainingSize" => 31421,
+            //                 "side" => "sell",
+            //                 "size" => 31431,
+            //                 "status" => "open",
+            //                 "type" => "limit",
+            //                 "reduceOnly" => false,
+            //                 "ioc" => false,
+            //                 "postOnly" => false,
+            //                 "clientId" => null
+            //             }
+            //         )
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            return $this->parse_orders($result, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all the trades made from a single order
-         * @param {string} $id order $id
-         * @param {string|null} $symbol unified market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch trades for
-         * @param {int|null} $limit the maximum number of trades to retrieve
-         * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
-         */
-        $request = array(
-            'orderId' => $id,
-        );
-        return yield $this->fetch_my_trades($symbol, $since, $limit, array_merge($request, $params));
+        return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
+            /**
+             * fetch all the trades made from a single order
+             * @param {string} $id order $id
+             * @param {string|null} $symbol unified market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch trades for
+             * @param {int|null} $limit the maximum number of trades to retrieve
+             * @param {array} $params extra parameters specific to the ftx api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             */
+            $request = array(
+                'orderId' => $id,
+            );
+            // if it's conditional order
+            $type = $this->safe_value($params, 'type');
+            $params = $this->omit($params, 'type');
+            $isTriggerOrder = null;
+            list($isTriggerOrder, $params) = $this->is_trigger_order($params);
+            if ($isTriggerOrder || $this->in_array($type, array( 'trigger', 'stop', 'trailingStop', 'takeProfit' ))) {
+                // if it is conditional order, then it would have a reference order $id to be sent to the specific endpoint, from where we will get the actual order ID and then use that ID
+                $realOrderId = Async\await($this->fetch_order_if_from_conditional_order($id));
+                if ($realOrderId !== null) {
+                    $request['orderId'] = $realOrderId;
+                } else {
+                    // if order-$id was not found, then there were no fills and no need to make any further $request
+                    return array();
+                }
+            }
+            return Async\await($this->fetch_my_trades($symbol, $since, $limit, array_merge($request, $params)));
+        }) ();
+    }
+
+    public function fetch_order_if_from_conditional_order($id) {
+        return Async\async(function () use ($id) {
+            $request = array(
+                'conditional_order_id' => $id,
+            );
+            $response = Async\await($this->privateGetConditionalOrdersConditionalOrderIdTriggers ($request));
+            // Note => if endpoint retuns non-empy "result" property, then it means order had fill and returns the order reference ID, which is the real $id of the regular order
+            //
+            // {
+            //     "success" => true,
+            //     "result" => array(
+            //         {
+            //             "time" => "2022-03-29T04:54:04.390665+00:00",
+            //             "orderId" => 132144259673, // this is not the same conditional-order's $id, instead it is the regular order $id, which can be used in regular methods
+            //             "error" => null,
+            //             "orderSize" => 0.1234,
+            //             "filledSize" => 0.1234
+            //         }
+            //     )
+            // }
+            //
+            // Also note, the above endpoint seems to return one object in array
+            $result = $this->safe_value($response, 'result');
+            $orderObject = $this->safe_value($result, 0, array());
+            return $this->safe_string($orderObject, 'orderId');
+        }) ();
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch $trades specific to you account
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch $trades for
-         * @param {int|null} $limit the maximum number of $trades structures to retrieve
-         * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @param {int|null} $params->until timestamp in ms of the latest trade
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
-         */
-        yield $this->load_markets();
-        list($market, $marketId) = $this->get_market_params($symbol, 'market', $params);
-        $request = array();
-        if ($marketId !== null) {
-            $request['market'] = $marketId;
-        }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        $until = $this->safe_integer_2($params, 'until', 'till');
-        if ($since !== null) {
-            $request['start_time'] = intval($since / 1000);
-            $request['end_time'] = $this->seconds();
-        }
-        if ($until !== null) {
-            $request['end_time'] = intval($until / 1000);
-            $params = $this->omit($params, array( 'until', 'till' ));
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $response = yield $this->privateGetFills (array_merge($request, $params));
-        //
-        //     {
-        //         "success" => true,
-        //         "result" => array(
-        //             {
-        //                 "fee" => 20.1374935,
-        //                 "feeRate" => 0.0005,
-        //                 "future" => "EOS-0329",
-        //                 "id" => 11215,
-        //                 "liquidity" => "taker",
-        //                 "market" => "EOS-0329",
-        //                 "baseCurrency" => null,
-        //                 "quoteCurrency" => null,
-        //                 "orderId" => 8436981,
-        //                 "price" => 4.201,
-        //                 "side" => "buy",
-        //                 "size" => 9587,
-        //                 "time" => "2019-03-27T19:15:10.204619+00:00",
-        //                 "type" => "order"
-        //             }
-        //         )
-        //     }
-        //
-        $trades = $this->safe_value($response, 'result', array());
-        return $this->parse_trades($trades, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch $trades specific to you account
+             * @param {string|null} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch $trades for
+             * @param {int|null} $limit the maximum number of $trades structures to retrieve
+             * @param {array} $params extra parameters specific to the ftx api endpoint
+             * @param {int|null} $params->until timestamp in ms of the latest trade
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             */
+            Async\await($this->load_markets());
+            list($market, $marketId) = $this->get_market_params($symbol, 'market', $params);
+            $request = array();
+            if ($marketId !== null) {
+                $request['market'] = $marketId;
+            }
+            if ($market !== null) {
+                $symbol = $market['symbol'];
+            }
+            $until = $this->safe_integer_2($params, 'until', 'till');
+            if ($since !== null) {
+                $request['start_time'] = intval($since / 1000);
+                $request['end_time'] = $this->seconds();
+            }
+            if ($until !== null) {
+                $request['end_time'] = intval($until / 1000);
+                $params = $this->omit($params, array( 'until', 'till' ));
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->privateGetFills (array_merge($request, $params)));
+            //
+            //     {
+            //         "success" => true,
+            //         "result" => array(
+            //             {
+            //                 "fee" => 20.1374935,
+            //                 "feeRate" => 0.0005,
+            //                 "future" => "EOS-0329",
+            //                 "id" => 11215,
+            //                 "liquidity" => "taker",
+            //                 "market" => "EOS-0329",
+            //                 "baseCurrency" => null,
+            //                 "quoteCurrency" => null,
+            //                 "orderId" => 8436981,
+            //                 "price" => 4.201,
+            //                 "side" => "buy",
+            //                 "size" => 9587,
+            //                 "time" => "2019-03-27T19:15:10.204619+00:00",
+            //                 "type" => "order"
+            //             }
+            //         )
+            //     }
+            //
+            $trades = $this->safe_value($response, 'result', array());
+            return $this->parse_trades($trades, $market, $since, $limit);
+        }) ();
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
-        /**
-         * transfer $currency internally between wallets on the same account
-         * @param {string} $code unified $currency $code
-         * @param {float} $amount amount to transfer
-         * @param {string} $fromAccount account to transfer from
-         * @param {string} $toAccount account to transfer to
-         * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
-         */
-        yield $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'coin' => $currency['id'],
-            'source' => $fromAccount,
-            'destination' => $toAccount,
-            'size' => $amount,
-        );
-        $response = yield $this->privatePostSubaccountsTransfer (array_merge($request, $params));
-        //
-        //     {
-        //         success => true,
-        //         $result => {
-        //             id => '31222278',
-        //             coin => 'USDT',
-        //             size => '1.0',
-        //             time => '2022-04-01T11:18:27.194188+00:00',
-        //             notes => 'Transfer from main account to testSubaccount',
-        //             status => 'complete'
-        //         }
-        //     }
-        //
-        $result = $this->safe_value($response, 'result', array());
-        return $this->parse_transfer($result, $currency);
+        return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
+            /**
+             * transfer $currency internally between wallets on the same account
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount amount to transfer
+             * @param {string} $fromAccount account to transfer from
+             * @param {string} $toAccount account to transfer to
+             * @param {array} $params extra parameters specific to the ftx api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'coin' => $currency['id'],
+                'source' => $fromAccount,
+                'destination' => $toAccount,
+                'size' => $amount,
+            );
+            $response = Async\await($this->privatePostSubaccountsTransfer (array_merge($request, $params)));
+            //
+            //     {
+            //         success => true,
+            //         $result => {
+            //             id => '31222278',
+            //             coin => 'USDT',
+            //             size => '1.0',
+            //             time => '2022-04-01T11:18:27.194188+00:00',
+            //             notes => 'Transfer from main account to testSubaccount',
+            //             status => 'complete'
+            //         }
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            return $this->parse_transfer($result, $currency);
+        }) ();
     }
 
     public function parse_transfer($transfer, $currency = null) {
@@ -2278,101 +2385,105 @@ class ftx extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
-        /**
-         * make a withdrawal
-         * @param {string} $code unified $currency $code
-         * @param {float} $amount the $amount to withdraw
-         * @param {string} $address the $address to withdraw to
-         * @param {string|null} $tag
-         * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
-         */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        yield $this->load_markets();
-        $this->check_address($address);
-        $currency = $this->currency($code);
-        $request = array(
-            'coin' => $currency['id'],
-            'size' => $amount,
-            'address' => $address,
-            // 'password' => 'string', // optional withdrawal password if it is required for your account
-            // 'code' => '192837', // optional 2fa $code if it is required for your account
-        );
-        if ($this->password !== null) {
-            $request['password'] = $this->password;
-        }
-        if ($tag !== null) {
-            $request['tag'] = $tag;
-        }
-        $networks = $this->safe_value($this->options, 'networks', array());
-        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        $network = $this->safe_string_lower($networks, $network, $network); // handle ERC20>ETH alias
-        if ($network !== null) {
-            $request['method'] = $network;
-            $params = $this->omit($params, 'network');
-        }
-        $response = yield $this->privatePostWalletWithdrawals (array_merge($request, $params));
-        //
-        //     {
-        //         "success" => true,
-        //         "result" => {
-        //             "coin" => "USDTBEAR",
-        //             "address" => "0x83a127952d266A6eA306c40Ac62A4a70668FE3BE",
-        //             "tag" => "null",
-        //             "fee" => 0,
-        //             "id" => 1,
-        //             "size" => "20.2",
-        //             "status" => "requested",
-        //             "time" => "2019-03-05T09:56:55.728933+00:00",
-        //             "txid" => "null"
-        //         }
-        //     }
-        //
-        $result = $this->safe_value($response, 'result', array());
-        return $this->parse_transaction($result, $currency);
+        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
+            /**
+             * make a withdrawal
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount the $amount to withdraw
+             * @param {string} $address the $address to withdraw to
+             * @param {string|null} $tag
+             * @param {array} $params extra parameters specific to the ftx api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             */
+            list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+            Async\await($this->load_markets());
+            $this->check_address($address);
+            $currency = $this->currency($code);
+            $request = array(
+                'coin' => $currency['id'],
+                'size' => $amount,
+                'address' => $address,
+                // 'password' => 'string', // optional withdrawal password if it is required for your account
+                // 'code' => '192837', // optional 2fa $code if it is required for your account
+            );
+            if ($this->password !== null) {
+                $request['password'] = $this->password;
+            }
+            if ($tag !== null) {
+                $request['tag'] = $tag;
+            }
+            $networks = $this->safe_value($this->options, 'networks', array());
+            $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+            $network = $this->safe_string_lower($networks, $network, $network); // handle ERC20>ETH alias
+            if ($network !== null) {
+                $request['method'] = $network;
+                $params = $this->omit($params, 'network');
+            }
+            $response = Async\await($this->privatePostWalletWithdrawals (array_merge($request, $params)));
+            //
+            //     {
+            //         "success" => true,
+            //         "result" => {
+            //             "coin" => "USDTBEAR",
+            //             "address" => "0x83a127952d266A6eA306c40Ac62A4a70668FE3BE",
+            //             "tag" => "null",
+            //             "fee" => 0,
+            //             "id" => 1,
+            //             "size" => "20.2",
+            //             "status" => "requested",
+            //             "time" => "2019-03-05T09:56:55.728933+00:00",
+            //             "txid" => "null"
+            //         }
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            return $this->parse_transaction($result, $currency);
+        }) ();
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {
-        /**
-         * fetch all open positions
-         * @param {[string]|null} $symbols list of unified market $symbols
-         * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
-         */
-        yield $this->load_markets();
-        $request = array(
-            'showAvgPrice' => true,
-        );
-        $response = yield $this->privateGetPositions (array_merge($request, $params));
-        //
-        //     {
-        //         "success" => true,
-        //         "result" => array(
-        //             {
-        //                 "cost" => -31.7906,
-        //                 "entryPrice" => 138.22,
-        //                 "estimatedLiquidationPrice" => 152.1,
-        //                 "future" => "ETH-PERP",
-        //                 "initialMarginRequirement" => 0.1,
-        //                 "longOrderSize" => 1744.55,
-        //                 "maintenanceMarginRequirement" => 0.04,
-        //                 "netSize" => -0.23,
-        //                 "openSize" => 1744.32,
-        //                 "realizedPnl" => 3.39441714,
-        //                 "shortOrderSize" => 1732.09,
-        //                 "recentAverageOpenPrice" => 278.98,
-        //                 "recentPnl" => 2.44,
-        //                 "recentBreakEvenPrice" => 278.98,
-        //                 "side" => "sell",
-        //                 "size" => 0.23,
-        //                 "unrealizedPnl" => 0,
-        //                 "collateralUsed" => 3.17906
-        //             }
-        //         )
-        //     }
-        //
-        $result = $this->safe_value($response, 'result', array());
-        return $this->parse_positions($result, $symbols);
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetch all open positions
+             * @param {[string]|null} $symbols list of unified market $symbols
+             * @param {array} $params extra parameters specific to the ftx api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'showAvgPrice' => true,
+            );
+            $response = Async\await($this->privateGetPositions (array_merge($request, $params)));
+            //
+            //     {
+            //         "success" => true,
+            //         "result" => array(
+            //             {
+            //                 "cost" => -31.7906,
+            //                 "entryPrice" => 138.22,
+            //                 "estimatedLiquidationPrice" => 152.1,
+            //                 "future" => "ETH-PERP",
+            //                 "initialMarginRequirement" => 0.1,
+            //                 "longOrderSize" => 1744.55,
+            //                 "maintenanceMarginRequirement" => 0.04,
+            //                 "netSize" => -0.23,
+            //                 "openSize" => 1744.32,
+            //                 "realizedPnl" => 3.39441714,
+            //                 "shortOrderSize" => 1732.09,
+            //                 "recentAverageOpenPrice" => 278.98,
+            //                 "recentPnl" => 2.44,
+            //                 "recentBreakEvenPrice" => 278.98,
+            //                 "side" => "sell",
+            //                 "size" => 0.23,
+            //                 "unrealizedPnl" => 0,
+            //                 "collateralUsed" => 3.17906
+            //             }
+            //         )
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            return $this->parse_positions($result, $symbols);
+        }) ();
     }
 
     public function parse_position($position, $market = null) {
@@ -2402,20 +2513,23 @@ class ftx extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market);
         $liquidationPriceString = $this->safe_string($position, 'estimatedLiquidationPrice');
         $initialMarginPercentage = $this->safe_string($position, 'initialMarginRequirement');
-        $leverage = intval(Precise::string_div('1', $initialMarginPercentage, 0));
         // on ftx the entryPrice is actually the mark price
         $markPriceString = $this->safe_string($position, 'entryPrice');
         $notionalString = Precise::string_mul($contractsString, $markPriceString);
-        $initialMargin = Precise::string_mul($notionalString, $initialMarginPercentage);
+        $initialMargin = $this->safe_string($position, 'collateralUsed');
         $maintenanceMarginPercentageString = $this->safe_string($position, 'maintenanceMarginRequirement');
         $maintenanceMarginString = Precise::string_mul($notionalString, $maintenanceMarginPercentageString);
-        $unrealizedPnlString = $this->safe_string($position, 'unrealizedPnl');
+        $unrealizedPnlString = $this->safe_string($position, 'recentPnl');
         $percentage = $this->parse_number(Precise::string_mul(Precise::string_div($unrealizedPnlString, $initialMargin, 4), '100'));
         $entryPriceString = $this->safe_string($position, 'recentAverageOpenPrice');
         $difference = null;
         $collateral = null;
         $marginRatio = null;
-        if (($entryPriceString !== null) && (Precise::string_gt($liquidationPriceString, '0'))) {
+        $leverage = null;
+        if (Precise::string_eq($liquidationPriceString, '0')) {
+            // $position is fully collateralized
+            $collateral = $notionalString;
+        } elseif ($entryPriceString !== null) {
             // $collateral = maintenanceMargin ± ((markPrice - liquidationPrice) * size)
             if ($side === 'long') {
                 $difference = Precise::string_sub($markPriceString, $liquidationPriceString);
@@ -2424,6 +2538,7 @@ class ftx extends Exchange {
             }
             $loss = Precise::string_mul($difference, $contractsString);
             $collateral = Precise::string_add($loss, $maintenanceMarginString);
+            $leverage = $this->parse_number(Precise::string_div(Precise::string_add(Precise::string_div($notionalString, $collateral), '0.005'), '1', 2));
             $marginRatio = $this->parse_number(Precise::string_div($maintenanceMarginString, $collateral, 4));
         }
         // ftx has a weird definition of realizedPnl
@@ -2456,47 +2571,49 @@ class ftx extends Exchange {
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
-        /**
-         * fetch the deposit $address for a $currency associated with this account
-         * @param {string} $code unified $currency $code
-         * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
-         */
-        yield $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'coin' => $currency['id'],
-        );
-        $networks = $this->safe_value($this->options, 'networks', array());
-        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        $network = $this->safe_string_lower($networks, $network, $network); // handle ERC20>ETH alias
-        if ($network !== null) {
-            $request['method'] = $network;
-            $params = $this->omit($params, 'network');
-        }
-        $response = yield $this->privateGetWalletDepositAddressCoin (array_merge($request, $params));
-        //
-        //     {
-        //         "success" => true,
-        //         "result" => {
-        //             "address" => "0x83a127952d266A6eA306c40Ac62A4a70668FE3BE",
-        //             "tag" => null,
-        //             "method" => "erc20",
-        //             "coin" => null
-        //         }
-        //     }
-        //
-        $result = $this->safe_value($response, 'result', array());
-        $networkId = $this->safe_string($result, 'method');
-        $address = $this->safe_string($result, 'address');
-        $this->check_address($address);
-        return array(
-            'currency' => $code,
-            'address' => $address,
-            'tag' => $this->safe_string($result, 'tag'),
-            'network' => $this->safe_network($networkId),
-            'info' => $response,
-        );
+        return Async\async(function () use ($code, $params) {
+            /**
+             * fetch the deposit $address for a $currency associated with this account
+             * @param {string} $code unified $currency $code
+             * @param {array} $params extra parameters specific to the ftx api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'coin' => $currency['id'],
+            );
+            $networks = $this->safe_value($this->options, 'networks', array());
+            $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+            $network = $this->safe_string_lower($networks, $network, $network); // handle ERC20>ETH alias
+            if ($network !== null) {
+                $request['method'] = $network;
+                $params = $this->omit($params, 'network');
+            }
+            $response = Async\await($this->privateGetWalletDepositAddressCoin (array_merge($request, $params)));
+            //
+            //     {
+            //         "success" => true,
+            //         "result" => {
+            //             "address" => "0x83a127952d266A6eA306c40Ac62A4a70668FE3BE",
+            //             "tag" => null,
+            //             "method" => "erc20",
+            //             "coin" => null
+            //         }
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            $networkId = $this->safe_string($result, 'method');
+            $address = $this->safe_string($result, 'address');
+            $this->check_address($address);
+            return array(
+                'currency' => $code,
+                'address' => $address,
+                'tag' => $this->safe_string($result, 'tag'),
+                'network' => $this->safe_network($networkId),
+                'info' => $response,
+            );
+        }) ();
     }
 
     public function safe_network($networkId) {
@@ -2622,74 +2739,78 @@ class ftx extends Exchange {
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all deposits made to an account
-         * @param {string|null} $code unified $currency $code
-         * @param {int|null} $since the earliest time in ms to fetch deposits for
-         * @param {int|null} $limit the maximum number of deposits structures to retrieve
-         * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
-         */
-        yield $this->load_markets();
-        $response = yield $this->privateGetWalletDeposits ($params);
-        //
-        //     {
-        //         "success" => true,
-        //         "result" => {
-        //             "coin" => "TUSD",
-        //             "confirmations" => 64,
-        //             "confirmedTime" => "2019-03-05T09:56:55.728933+00:00",
-        //             "fee" => 0,
-        //             "id" => 1,
-        //             "sentTime" => "2019-03-05T09:56:55.735929+00:00",
-        //             "size" => "99.0",
-        //             "status" => "confirmed",
-        //             "time" => "2019-03-05T09:56:55.728933+00:00",
-        //             "txid" => "0x8078356ae4b06a036d64747546c274af19581f1c78c510b60505798a7ffcaf1"
-        //         }
-        //     }
-        //
-        $result = $this->safe_value($response, 'result', array());
-        $currency = null;
-        if ($code !== null) {
-            $currency = $this->currency($code);
-        }
-        return $this->parse_transactions($result, $currency, $since, $limit, array( 'type' => 'deposit' ));
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch all deposits made to an account
+             * @param {string|null} $code unified $currency $code
+             * @param {int|null} $since the earliest time in ms to fetch deposits for
+             * @param {int|null} $limit the maximum number of deposits structures to retrieve
+             * @param {array} $params extra parameters specific to the ftx api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->privateGetWalletDeposits ($params));
+            //
+            //     {
+            //         "success" => true,
+            //         "result" => {
+            //             "coin" => "TUSD",
+            //             "confirmations" => 64,
+            //             "confirmedTime" => "2019-03-05T09:56:55.728933+00:00",
+            //             "fee" => 0,
+            //             "id" => 1,
+            //             "sentTime" => "2019-03-05T09:56:55.735929+00:00",
+            //             "size" => "99.0",
+            //             "status" => "confirmed",
+            //             "time" => "2019-03-05T09:56:55.728933+00:00",
+            //             "txid" => "0x8078356ae4b06a036d64747546c274af19581f1c78c510b60505798a7ffcaf1"
+            //         }
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            $currency = null;
+            if ($code !== null) {
+                $currency = $this->currency($code);
+            }
+            return $this->parse_transactions($result, $currency, $since, $limit, array( 'type' => 'deposit' ));
+        }) ();
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all withdrawals made from an account
-         * @param {string|null} $code unified $currency $code
-         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
-         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
-         * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
-         */
-        yield $this->load_markets();
-        $response = yield $this->privateGetWalletWithdrawals ($params);
-        //
-        //     {
-        //         "success" => true,
-        //         "result" => {
-        //             "coin" => "TUSD",
-        //             "address" => "0x83a127952d266A6eA306c40Ac62A4a70668FE3BE",
-        //             "tag" => "null",
-        //             "fee" => 0,
-        //             "id" => 1,
-        //             "size" => "99.0",
-        //             "status" => "complete",
-        //             "time" => "2019-03-05T09:56:55.728933+00:00",
-        //             "txid" => "0x8078356ae4b06a036d64747546c274af19581f1c78c510b60505798a7ffcaf1"
-        //         }
-        //     }
-        //
-        $result = $this->safe_value($response, 'result', array());
-        $currency = null;
-        if ($code !== null) {
-            $currency = $this->currency($code);
-        }
-        return $this->parse_transactions($result, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch all withdrawals made from an account
+             * @param {string|null} $code unified $currency $code
+             * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+             * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+             * @param {array} $params extra parameters specific to the ftx api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->privateGetWalletWithdrawals ($params));
+            //
+            //     {
+            //         "success" => true,
+            //         "result" => {
+            //             "coin" => "TUSD",
+            //             "address" => "0x83a127952d266A6eA306c40Ac62A4a70668FE3BE",
+            //             "tag" => "null",
+            //             "fee" => 0,
+            //             "id" => 1,
+            //             "size" => "99.0",
+            //             "status" => "complete",
+            //             "time" => "2019-03-05T09:56:55.728933+00:00",
+            //             "txid" => "0x8078356ae4b06a036d64747546c274af19581f1c78c510b60505798a7ffcaf1"
+            //         }
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            $currency = null;
+            if ($code !== null) {
+                $currency = $this->currency($code);
+            }
+            return $this->parse_transactions($result, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
+        }) ();
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
@@ -2751,22 +2872,24 @@ class ftx extends Exchange {
     }
 
     public function set_leverage($leverage, $symbol = null, $params = array ()) {
-        /**
-         * set the level of $leverage for a market
-         * @param {float} $leverage the rate of $leverage
-         * @param {string|null} $symbol not used by ftx setLeverage ()
-         * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @return {array} response from the exchange
-         */
-        // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
-        // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
-        if (($leverage < 1) || ($leverage > 20)) {
-            throw new BadRequest($this->id . ' setLeverage () $leverage should be between 1 and 20');
-        }
-        $request = array(
-            'leverage' => $leverage,
-        );
-        return yield $this->privatePostAccountLeverage (array_merge($request, $params));
+        return Async\async(function () use ($leverage, $symbol, $params) {
+            /**
+             * set the level of $leverage for a market
+             * @param {float} $leverage the rate of $leverage
+             * @param {string|null} $symbol not used by ftx setLeverage ()
+             * @param {array} $params extra parameters specific to the ftx api endpoint
+             * @return {array} response from the exchange
+             */
+            // WARNING => THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
+            // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+            if (($leverage < 1) || ($leverage > 20)) {
+                throw new BadRequest($this->id . ' setLeverage () $leverage should be between 1 and 20');
+            }
+            $request = array(
+                'leverage' => $leverage,
+            );
+            return Async\await($this->privatePostAccountLeverage (array_merge($request, $params)));
+        }) ();
     }
 
     public function parse_income($income, $market = null) {
@@ -2811,33 +2934,35 @@ class ftx extends Exchange {
     }
 
     public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch the history of funding payments paid and received on this account
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch funding history for
-         * @param {int|null} $limit the maximum number of funding history structures to retrieve
-         * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure funding history structure}
-         */
-        yield $this->load_markets();
-        $request = array();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['future'] = $market['id'];
-        }
-        if ($since !== null) {
-            $request['start_time'] = intval($since / 1000);
-            $request['end_time'] = $this->seconds();
-        }
-        $till = $this->safe_integer($params, 'till');
-        if ($till !== null) {
-            $request['end_time'] = intval($till / 1000);
-            $params = $this->omit($params, 'till');
-        }
-        $response = yield $this->privateGetFundingPayments (array_merge($request, $params));
-        $result = $this->safe_value($response, 'result', array());
-        return $this->parse_incomes($result, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch the history of funding payments paid and received on this account
+             * @param {string|null} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch funding history for
+             * @param {int|null} $limit the maximum number of funding history structures to retrieve
+             * @param {array} $params extra parameters specific to the ftx api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure funding history structure}
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['future'] = $market['id'];
+            }
+            if ($since !== null) {
+                $request['start_time'] = intval($since / 1000);
+                $request['end_time'] = $this->seconds();
+            }
+            $till = $this->safe_integer($params, 'till');
+            if ($till !== null) {
+                $request['end_time'] = intval($till / 1000);
+                $params = $this->omit($params, 'till');
+            }
+            $response = Async\await($this->privateGetFundingPayments (array_merge($request, $params)));
+            $result = $this->safe_value($response, 'result', array());
+            return $this->parse_incomes($result, $market, $since, $limit);
+        }) ();
     }
 
     public function parse_funding_rate($contract, $market = null) {
@@ -2882,147 +3007,155 @@ class ftx extends Exchange {
     }
 
     public function fetch_funding_rate($symbol, $params = array ()) {
-        /**
-         * fetch the current funding rate
-         * @param {string} $symbol unified $market $symbol
-         * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'future_name' => $market['id'],
-        );
-        $response = yield $this->publicGetFuturesFutureNameStats (array_merge($request, $params));
-        //
-        //     {
-        //       "success" => true,
-        //       "result" => {
-        //         "volume" => "71294.7636",
-        //         "nextFundingRate" => "0.000033",
-        //         "nextFundingTime" => "2021-10-14T20:00:00+00:00",
-        //         "openInterest" => "47142.994"
-        //       }
-        //     }
-        //
-        $result = $this->safe_value($response, 'result', array());
-        return $this->parse_funding_rate($result, $market);
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the current funding rate
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} $params extra parameters specific to the ftx api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'future_name' => $market['id'],
+            );
+            $response = Async\await($this->publicGetFuturesFutureNameStats (array_merge($request, $params)));
+            //
+            //     {
+            //       "success" => true,
+            //       "result" => {
+            //         "volume" => "71294.7636",
+            //         "nextFundingRate" => "0.000033",
+            //         "nextFundingTime" => "2021-10-14T20:00:00+00:00",
+            //         "openInterest" => "47142.994"
+            //       }
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            return $this->parse_funding_rate($result, $market);
+        }) ();
     }
 
     public function fetch_borrow_rates($params = array ()) {
-        /**
-         * fetch the borrow interest rates of all currencies
-         * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures}
-         */
-        yield $this->load_markets();
-        $response = yield $this->privateGetSpotMarginBorrowRates ($params);
-        //
-        //     {
-        //         "success":true,
-        //         "result":array(
-        //             array("coin":"1INCH","previous":4.8763e-6,"estimate":4.8048e-6),
-        //             array("coin":"AAPL","previous":0.0000326469,"estimate":0.0000326469),
-        //             array("coin":"AAVE","previous":1.43e-6,"estimate":1.43e-6),
-        //         )
-        //     }
-        //
-        $result = $this->safe_value($response, 'result');
-        return $this->parse_borrow_rates($result, 'coin');
+        return Async\async(function () use ($params) {
+            /**
+             * fetch the borrow interest rates of all currencies
+             * @param {array} $params extra parameters specific to the ftx api endpoint
+             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures}
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->privateGetSpotMarginBorrowRates ($params));
+            //
+            //     {
+            //         "success":true,
+            //         "result":array(
+            //             array("coin":"1INCH","previous":4.8763e-6,"estimate":4.8048e-6),
+            //             array("coin":"AAPL","previous":0.0000326469,"estimate":0.0000326469),
+            //             array("coin":"AAVE","previous":1.43e-6,"estimate":1.43e-6),
+            //         )
+            //     }
+            //
+            $result = $this->safe_value($response, 'result');
+            return $this->parse_borrow_rates($result, 'coin');
+        }) ();
     }
 
     public function fetch_borrow_rate_histories($codes = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is null
-         * @param {[string]|null} $codes list of unified $currency $codes, default is null
-         * @param {int|null} $since timestamp in ms of the earliest borrowRate, default is null
-         * @param {int|null} $limit max number of borrow rate prices to return, default is null
-         * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @param {array} $params->till timestamp in ms of the latest time to fetch the borrow rate
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} indexed by the market symbol
-         */
-        yield $this->load_markets();
-        $request = array();
-        $numCodes = 0;
-        $endTime = $this->safe_number_2($params, 'till', 'end_time');
-        if ($codes !== null) {
-            $numCodes = count($codes);
-        }
-        if ($numCodes === 1) {
-            $millisecondsPer5000Hours = 18000000000;
-            if (($limit !== null) && ($limit > 5000)) {
-                throw new BadRequest($this->id . ' fetchBorrowRateHistories () $limit cannot exceed 5000 for a single currency');
+        return Async\async(function () use ($codes, $since, $limit, $params) {
+            /**
+             * retrieves a history of a multiple currencies borrow interest rate at specific time slots, returns all currencies if no symbols passed, default is null
+             * @param {[string]|null} $codes list of unified $currency $codes, default is null
+             * @param {int|null} $since timestamp in ms of the earliest borrowRate, default is null
+             * @param {int|null} $limit max number of borrow rate prices to return, default is null
+             * @param {array} $params extra parameters specific to the ftx api endpoint
+             * @param {array} $params->till timestamp in ms of the latest time to fetch the borrow rate
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} indexed by the market symbol
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            $numCodes = 0;
+            $endTime = $this->safe_number_2($params, 'till', 'end_time');
+            if ($codes !== null) {
+                $numCodes = count($codes);
             }
-            if (($endTime !== null) && ($since !== null) && (($endTime - $since) > $millisecondsPer5000Hours)) {
-                throw new BadRequest($this->id . ' fetchBorrowRateHistories () requires the time range between the $since time and the end time to be less than 5000 hours for a single currency');
-            }
-            $currency = $this->currency($codes[0]);
-            $request['coin'] = $currency['id'];
-        } else {
-            $millisecondsPer2Days = 172800000;
-            if (($limit !== null) && ($limit > 48)) {
-                throw new BadRequest($this->id . ' fetchBorrowRateHistories () $limit cannot exceed 48 for multiple currencies');
-            }
-            if (($endTime !== null) && ($since !== null) && (($endTime - $since) > $millisecondsPer2Days)) {
-                throw new BadRequest($this->id . ' fetchBorrowRateHistories () requires the time range between the $since time and the end time to be less than 48 hours for multiple currencies');
-            }
-        }
-        $millisecondsPerHour = 3600000;
-        if ($since !== null) {
-            $request['start_time'] = intval($since / 1000);
-            if ($endTime === null) {
-                $now = $this->milliseconds();
-                $sinceLimit = ($limit === null) ? 2 : $limit;
-                $endTime = $this->sum($since, $millisecondsPerHour * ($sinceLimit - 1));
-                $endTime = min ($endTime, $now);
-            }
-        } else {
-            if ($limit !== null) {
-                if ($endTime === null) {
-                    $endTime = $this->milliseconds();
+            if ($numCodes === 1) {
+                $millisecondsPer5000Hours = 18000000000;
+                if (($limit !== null) && ($limit > 5000)) {
+                    throw new BadRequest($this->id . ' fetchBorrowRateHistories () $limit cannot exceed 5000 for a single currency');
                 }
-                $startTime = $this->sum(($endTime - $millisecondsPerHour * $limit), 1000);
-                $request['start_time'] = intval($startTime / 1000);
+                if (($endTime !== null) && ($since !== null) && (($endTime - $since) > $millisecondsPer5000Hours)) {
+                    throw new BadRequest($this->id . ' fetchBorrowRateHistories () requires the time range between the $since time and the end time to be less than 5000 hours for a single currency');
+                }
+                $currency = $this->currency($codes[0]);
+                $request['coin'] = $currency['id'];
+            } else {
+                $millisecondsPer2Days = 172800000;
+                if (($limit !== null) && ($limit > 48)) {
+                    throw new BadRequest($this->id . ' fetchBorrowRateHistories () $limit cannot exceed 48 for multiple currencies');
+                }
+                if (($endTime !== null) && ($since !== null) && (($endTime - $since) > $millisecondsPer2Days)) {
+                    throw new BadRequest($this->id . ' fetchBorrowRateHistories () requires the time range between the $since time and the end time to be less than 48 hours for multiple currencies');
+                }
             }
-        }
-        if ($endTime !== null) {
-            $request['end_time'] = intval($endTime / 1000);
-        }
-        $response = yield $this->publicGetSpotMarginHistory (array_merge($request, $params));
-        //
-        //    {
-        //        "success" => true,
-        //        "result" => array(
-        //            array(
-        //                "coin" => "PYPL",
-        //                "time" => "2022-01-24T13:00:00+00:00",
-        //                "size" => 0.00500172,
-        //                "rate" => 1e-6
-        //            ),
-        //            ...
-        //        )
-        //    }
-        //
-        $result = $this->safe_value($response, 'result');
-        return $this->parse_borrow_rate_histories($result, $codes, $since, $limit);
+            $millisecondsPerHour = 3600000;
+            if ($since !== null) {
+                $request['start_time'] = intval($since / 1000);
+                if ($endTime === null) {
+                    $now = $this->milliseconds();
+                    $sinceLimit = ($limit === null) ? 2 : $limit;
+                    $endTime = $this->sum($since, $millisecondsPerHour * ($sinceLimit - 1));
+                    $endTime = min ($endTime, $now);
+                }
+            } else {
+                if ($limit !== null) {
+                    if ($endTime === null) {
+                        $endTime = $this->milliseconds();
+                    }
+                    $startTime = $this->sum(($endTime - $millisecondsPerHour * $limit), 1000);
+                    $request['start_time'] = intval($startTime / 1000);
+                }
+            }
+            if ($endTime !== null) {
+                $request['end_time'] = intval($endTime / 1000);
+            }
+            $response = Async\await($this->publicGetSpotMarginHistory (array_merge($request, $params)));
+            //
+            //    {
+            //        "success" => true,
+            //        "result" => array(
+            //            array(
+            //                "coin" => "PYPL",
+            //                "time" => "2022-01-24T13:00:00+00:00",
+            //                "size" => 0.00500172,
+            //                "rate" => 1e-6
+            //            ),
+            //            ...
+            //        )
+            //    }
+            //
+            $result = $this->safe_value($response, 'result');
+            return $this->parse_borrow_rate_histories($result, $codes, $since, $limit);
+        }) ();
     }
 
     public function fetch_borrow_rate_history($code, $since = null, $limit = null, $params = array ()) {
-        /**
-         * retrieves a history of a currencies borrow interest rate at specific time slots
-         * @param {string} $code unified currency $code
-         * @param {int|null} $since timestamp for the earliest borrow rate
-         * @param {int|null} $limit the maximum number of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} to retrieve
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @param {int|null} $params->till Timestamp in ms of the latest time to fetch the borrow rate
-         * @return {[array]} an array of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures}
-         */
-        $histories = yield $this->fetch_borrow_rate_histories(array( $code ), $since, $limit, $params);
-        $borrowRateHistory = $this->safe_value($histories, $code);
-        if ($borrowRateHistory === null) {
-            throw new BadRequest($this->id . ' fetchBorrowRateHistory () returned no data for ' . $code);
-        }
-        return $borrowRateHistory;
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * retrieves a history of a currencies borrow interest rate at specific time slots
+             * @param {string} $code unified currency $code
+             * @param {int|null} $since timestamp for the earliest borrow rate
+             * @param {int|null} $limit the maximum number of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures} to retrieve
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @param {int|null} $params->till Timestamp in ms of the latest time to fetch the borrow rate
+             * @return {[array]} an array of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure borrow rate structures}
+             */
+            $histories = Async\await($this->fetch_borrow_rate_histories(array( $code ), $since, $limit, $params));
+            $borrowRateHistory = $this->safe_value($histories, $code);
+            if ($borrowRateHistory === null) {
+                throw new BadRequest($this->id . ' fetchBorrowRateHistory () returned no data for ' . $code);
+            }
+            return $borrowRateHistory;
+        }) ();
     }
 
     public function parse_borrow_rate_histories($response, $codes, $since, $limit) {
@@ -3086,34 +3219,36 @@ class ftx extends Exchange {
     }
 
     public function fetch_borrow_interest($code = null, $symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch the $interest owed by the user for borrowing currency for margin trading
-         * @param {string|null} $code unified currency $code
-         * @param {string|null} $symbol unified market $symbol when fetch $interest in isolated markets
-         * @param {int|null} $since the earliest time in ms to fetch borrrow $interest for
-         * @param {int|null} $limit the maximum number of structures to retrieve
-         * @param {array} $params extra parameters specific to the ftx api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$interest-structure borrow $interest structures}
-         */
-        yield $this->load_markets();
-        $request = array();
-        if ($since !== null) {
-            $request['start_time'] = intval($since / 1000);
-        }
-        $response = yield $this->privateGetSpotMarginBorrowHistory (array_merge($request, $params));
-        //
-        //     {
-        //         "success":true,
-        //         "result":array(
-        //             array("coin":"USDT","time":"2021-12-26T01:00:00+00:00","size":4593.74214725,"rate":3.3003e-6,"cost":0.0151607272085692,"feeUsd":0.0151683341034461),
-        //             array("coin":"USDT","time":"2021-12-26T00:00:00+00:00","size":4593.97110361,"rate":3.3003e-6,"cost":0.0151614828332441,"feeUsd":0.015169697173028324),
-        //             array("coin":"USDT","time":"2021-12-25T23:00:00+00:00","size":4594.20005922,"rate":3.3003e-6,"cost":0.0151622384554438,"feeUsd":0.015170200298479137),
-        //         )
-        //     }
-        //
-        $result = $this->safe_value($response, 'result');
-        $interest = $this->parse_borrow_interests($result);
-        return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
+        return Async\async(function () use ($code, $symbol, $since, $limit, $params) {
+            /**
+             * fetch the $interest owed by the user for borrowing currency for margin trading
+             * @param {string|null} $code unified currency $code
+             * @param {string|null} $symbol unified market $symbol when fetch $interest in isolated markets
+             * @param {int|null} $since the earliest time in ms to fetch borrrow $interest for
+             * @param {int|null} $limit the maximum number of structures to retrieve
+             * @param {array} $params extra parameters specific to the ftx api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#borrow-$interest-structure borrow $interest structures}
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            if ($since !== null) {
+                $request['start_time'] = intval($since / 1000);
+            }
+            $response = Async\await($this->privateGetSpotMarginBorrowHistory (array_merge($request, $params)));
+            //
+            //     {
+            //         "success":true,
+            //         "result":array(
+            //             array("coin":"USDT","time":"2021-12-26T01:00:00+00:00","size":4593.74214725,"rate":3.3003e-6,"cost":0.0151607272085692,"feeUsd":0.0151683341034461),
+            //             array("coin":"USDT","time":"2021-12-26T00:00:00+00:00","size":4593.97110361,"rate":3.3003e-6,"cost":0.0151614828332441,"feeUsd":0.015169697173028324),
+            //             array("coin":"USDT","time":"2021-12-25T23:00:00+00:00","size":4594.20005922,"rate":3.3003e-6,"cost":0.0151622384554438,"feeUsd":0.015170200298479137),
+            //         )
+            //     }
+            //
+            $result = $this->safe_value($response, 'result');
+            $interest = $this->parse_borrow_interests($result);
+            return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
+        }) ();
     }
 
     public function parse_borrow_interest($info, $market = null) {
@@ -3130,6 +3265,63 @@ class ftx extends Exchange {
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
             'info' => $info,
+        );
+    }
+
+    public function fetch_open_interest($symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * Retrieves the open interest of a currency
+             * @see https://docs.ftx.com/#get-future-stats
+             * @param {string} $symbol Unified CCXT $market $symbol
+             * @param {array} $params exchange specific parameters
+             * @return {array} an open interest structurearray(@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure)
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['contract']) {
+                throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
+            }
+            $request = array(
+                'future_name' => $market['id'],
+            );
+            $response = Async\await($this->publicGetFuturesFutureNameStats (array_merge($request, $params)));
+            //
+            //     {
+            //         "success" => true,
+            //         "result" => {
+            //             "volume" => 207681.9947,
+            //             "nextFundingRate" => -5e-6,
+            //             "nextFundingTime" => "2022-09-30T22:00:00+00:00",
+            //             "openInterest" => 64745.8474
+            //         }
+            //     }
+            //
+            $result = $this->safe_value($response, 'result', array());
+            return $this->parse_open_interest($result, $market);
+        }) ();
+    }
+
+    public function parse_open_interest($interest, $market = null) {
+        //
+        //     {
+        //         "volume" => 207681.9947,
+        //         "nextFundingRate" => -5e-6,
+        //         "nextFundingTime" => "2022-09-30T22:00:00+00:00",
+        //         "openInterest" => 64745.8474
+        //     }
+        //
+        $market = $this->safe_market(null, $market);
+        $openInterest = $this->safe_number($interest, 'openInterest');
+        return array(
+            'symbol' => $market['symbol'],
+            'openInterestAmount' => $openInterest,
+            'openInterestValue' => null,
+            'baseVolume' => $openInterest, // deprecated
+            'quoteVolume' => null, // deprecated
+            'timestamp' => null,
+            'datetime' => null,
+            'info' => $interest,
         );
     }
 }

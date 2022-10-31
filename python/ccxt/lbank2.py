@@ -17,6 +17,7 @@ from ccxt.base.errors import DuplicateOrderId
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
 class lbank2(Exchange):
@@ -269,6 +270,9 @@ class lbank2(Exchange):
                     'oec': 'OEC',
                     'btctron': 'BTCTRON',
                     'xrp': 'XRP',
+                },
+                'defaultNetworks': {
+                    'USDT': 'TRC20',
                 },
             },
         })
@@ -648,10 +652,11 @@ class lbank2(Exchange):
         # endpoint doesnt work
         self.load_markets()
         market = self.market(symbol)
-        if since is None:
-            raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument')
         if limit is None:
             limit = 100
+        if since is None:
+            duration = self.parse_timeframe(timeframe)
+            since = self.milliseconds() - duration * 1000 * limit
         request = {
             'symbol': market['id'],
             'type': self.timeframes[timeframe],
@@ -819,6 +824,36 @@ class lbank2(Exchange):
             options = self.safe_value(self.options, 'fetchBalance', {})
             method = self.safe_string(options, 'method', 'privatePostSupplementUserInfo')
         response = getattr(self, method)()
+        #
+        #    {
+        #        "result": "true",
+        #        "data": [
+        #            {
+        #                "usableAmt": "14.36",
+        #                "assetAmt": "14.36",
+        #                "networkList": [
+        #                    {
+        #                        "isDefault": False,
+        #                        "withdrawFeeRate": "",
+        #                        "name": "erc20",
+        #                        "withdrawMin": 30,
+        #                        "minLimit": 0.0001,
+        #                        "minDeposit": 20,
+        #                        "feeAssetCode": "usdt",
+        #                        "withdrawFee": "30",
+        #                        "type": 1,
+        #                        "coin": "usdt",
+        #                        "network": "eth"
+        #                    },
+        #                    ...
+        #                ],
+        #                "freezeAmt": "0",
+        #                "coin": "ada"
+        #            }
+        #        ],
+        #        "code": 0
+        #    }
+        #
         return self.parse_balance(response)
 
     def parse_trading_fee(self, fee, market=None):
@@ -911,7 +946,10 @@ class lbank2(Exchange):
                     if price is None:
                         raise InvalidOrder(self.id + " createOrder() requires the price argument with market buy orders to calculate total order cost(amount to spend), where cost = amount * price. Supply the price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = False to supply the cost in the amount argument(the exchange-specific behaviour)")
                     else:
-                        cost = float(amount) * float(price)
+                        amountString = self.number_to_string(amount)
+                        priceString = self.number_to_string(price)
+                        quoteAmount = Precise.string_mul(amountString, priceString)
+                        cost = self.parse_number(quoteAmount)
                         request['price'] = self.price_to_precision(symbol, cost)
                 else:
                     request['price'] = amount
@@ -1393,6 +1431,14 @@ class lbank2(Exchange):
         result = self.safe_value(response, 'data', [])
         return result
 
+    def get_network_code_for_currency(self, currencyCode, params):
+        defaultNetworks = self.safe_value(self.options, 'defaultNetworks')
+        defaultNetwork = self.safe_string_upper(defaultNetworks, currencyCode)
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network', defaultNetwork)  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
+        return network
+
     def fetch_deposit_address(self, code, params={}):
         """
         fetch the deposit address for a currency associated with self account
@@ -1414,9 +1460,7 @@ class lbank2(Exchange):
         request = {
             'assetCode': currency['id'],
         }
-        networks = self.safe_value(self.options, 'networks')
-        network = self.safe_string_upper(params, 'network')
-        network = self.safe_string(networks, network, network)
+        network = self.get_network_code_for_currency(code, params)
         if network is not None:
             request['netWork'] = network  # ... yes, really lol
             params = self.omit(params, 'network')
@@ -1770,6 +1814,36 @@ class lbank2(Exchange):
         # incl. for coins which None in public method
         self.load_markets()
         response = self.privatePostSupplementUserInfo()
+        #
+        #    {
+        #        "result": "true",
+        #        "data": [
+        #            {
+        #                "usableAmt": "14.36",
+        #                "assetAmt": "14.36",
+        #                "networkList": [
+        #                    {
+        #                        "isDefault": False,
+        #                        "withdrawFeeRate": "",
+        #                        "name": "erc20",
+        #                        "withdrawMin": 30,
+        #                        "minLimit": 0.0001,
+        #                        "minDeposit": 20,
+        #                        "feeAssetCode": "usdt",
+        #                        "withdrawFee": "30",
+        #                        "type": 1,
+        #                        "coin": "usdt",
+        #                        "network": "eth"
+        #                    },
+        #                    ...
+        #                ],
+        #                "freezeAmt": "0",
+        #                "coin": "ada"
+        #            }
+        #        ],
+        #        "code": 0
+        #    }
+        #
         result = self.safe_value(response, 'data', [])
         withdrawFees = {}
         for i in range(0, len(result)):
@@ -1802,6 +1876,27 @@ class lbank2(Exchange):
             currency = self.currency(code)
             request['assetCode'] = currency['id']
         response = self.publicGetWithdrawConfigs(self.extend(request, params))
+        #
+        #    {
+        #        result: 'true',
+        #        data: [
+        #          {
+        #            amountScale: '4',
+        #            chain: 'heco',
+        #            assetCode: 'lbk',
+        #            min: '200',
+        #            transferAmtScale: '4',
+        #            canWithDraw: True,
+        #            fee: '100',
+        #            minTransfer: '0.0001',
+        #            type: '1'
+        #          },
+        #          ...
+        #        ],
+        #        error_code: '0',
+        #        ts: '1663364435973'
+        #    }
+        #
         result = self.safe_value(response, 'data', [])
         withdrawFees = {}
         for i in range(0, len(result)):

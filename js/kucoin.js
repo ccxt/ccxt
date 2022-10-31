@@ -87,7 +87,7 @@ module.exports = class kucoin extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg',
-                'referral': 'https://www.kucoin.com/?rcode=E5wkqe',
+                'referral': 'https://www.kucoin.com/ucenter/signup?rcode=E5wkqe',
                 'api': {
                     'public': 'https://api.kucoin.com',
                     'private': 'https://api.kucoin.com',
@@ -1041,7 +1041,7 @@ module.exports = class kucoin extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '15m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#fetchOHLCV
@@ -1157,18 +1157,22 @@ module.exports = class kucoin extends Exchange {
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         const data = this.safeValue (response, 'data', {});
-        const address = this.safeString (data, 'address');
-        const tag = this.safeString (data, 'memo');
+        return this.parseDepositAddress (data, currency);
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        const address = this.safeString (depositAddress, 'address');
+        const code = currency['id'];
         if (code !== 'NIM') {
             // contains spaces
             this.checkAddress (address);
         }
         return {
-            'info': response,
+            'info': depositAddress,
             'currency': code,
             'address': address,
-            'tag': tag,
-            'network': network,
+            'tag': this.safeString (depositAddress, 'memo'),
+            'network': this.safeString (depositAddress, 'chain'),
         };
     }
 

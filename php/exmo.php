@@ -6,10 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\InvalidOrder;
 
 class exmo extends Exchange {
 
@@ -721,14 +717,13 @@ class exmo extends Exchange {
         $now = $this->milliseconds();
         if ($since === null) {
             if ($limit === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument or a $limit argument');
-            } else {
-                if ($limit > $maxLimit) {
-                    throw new BadRequest($this->id . ' fetchOHLCV() will serve ' . (string) $maxLimit . ' $candles at most');
-                }
-                $request['from'] = intval($now / 1000) - $limit * $duration - 1;
-                $request['to'] = intval($now / 1000);
+                $limit = 1000; // cap default at generous amount
             }
+            if ($limit > $maxLimit) {
+                $limit = $maxLimit; // avoid exception
+            }
+            $request['from'] = intval($now / 1000) - $limit * $duration - 1;
+            $request['to'] = intval($now / 1000);
         } else {
             $request['from'] = intval($since / 1000) - 1;
             if ($limit === null) {
@@ -1527,6 +1522,12 @@ class exmo extends Exchange {
          */
         $this->load_markets();
         $response = $this->privatePostDepositAddress ($params);
+        //
+        //     {
+        //         "TRX":"TBnwrf4ZdoYXE3C8L2KMs7YPSL3fg6q6V9",
+        //         "USDTTRC20":"TBnwrf4ZdoYXE3C8L2KMs7YPSL3fg6q6V9"
+        //     }
+        //
         $depositAddress = $this->safe_string($response, $code);
         $address = null;
         $tag = null;

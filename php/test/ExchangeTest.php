@@ -2,12 +2,12 @@
 
 use ccxt\Exchange;
 use PHPUnit\Framework\TestCase;
-use const ccxt\DECIMAL_PLACES;
-use const ccxt\NO_PADDING;
-use const ccxt\PAD_WITH_ZERO;
-use const ccxt\ROUND;
-use const ccxt\SIGNIFICANT_DIGITS;
-use const ccxt\TRUNCATE;
+// use const ccxt\DECIMAL_PLACES;
+// use const ccxt\NO_PADDING;
+// use const ccxt\PAD_WITH_ZERO;
+// use const ccxt\ROUND;
+// use const ccxt\SIGNIFICANT_DIGITS;
+// use const ccxt\TRUNCATE;
 
 class ExchangeTest extends TestCase {
 

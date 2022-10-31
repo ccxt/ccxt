@@ -448,7 +448,7 @@ declare module 'ccxt' {
         withdraw (currency: string, amount: number, address: string, tag?: string, params?: Params): Promise<WithdrawalResponse>;
         YmdHMS (timestamp: string, infix: string) : string;
     }
-
+    
     /* tslint:disable */
 
     export class aax extends Exchange {}
@@ -511,7 +511,6 @@ declare module 'ccxt' {
     export class delta extends Exchange {}
     export class deribit extends Exchange {}
     export class digifinex extends Exchange {}
-    export class eqonex extends Exchange {}
     export class exmo extends Exchange {}
     export class flowbtc extends ndax {}
     export class fmfwio extends hitbtc {}
@@ -573,6 +572,7 @@ declare module 'ccxt' {
     export class zipmex extends ndax {}
     export class zonda extends Exchange {}
 
+    
     /* tslint:enable */
 
     export type ExchangeId =
@@ -636,7 +636,6 @@ declare module 'ccxt' {
         | 'delta'
         | 'deribit'
         | 'digifinex'
-        | 'eqonex'
         | 'exmo'
         | 'flowbtc'
         | 'fmfwio'
@@ -697,5 +696,72 @@ declare module 'ccxt' {
         | 'zb'
         | 'zipmex'
         | 'zonda'
+        
 
+    // Pro related exports
+    class ExchangePro extends Exchange {
+        watchTicker (symbol: string, params?: Params): Promise<Ticker>;
+        watchTickers (symbols?: string[], params?: Params): Promise<Dictionary<Ticker>>;
+        watchOrderBook (symbol: string, limit?: number, params?: Params): Promise<OrderBook>;
+        watchOHLCV (symbol: string, timeframe?: string, since?: number, limit?: number, params?: Params): Promise<OHLCV[]>;
+        watchTrades (symbol: string, since?: number, limit?: number, params?: Params): Promise<Trade[]>;
+        watchBalance (params?: Params): Promise<Balances>;
+        watchOrder (id: string, symbol: string, params?: Params): Promise<Order>;
+        watchOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
+        watchOpenOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
+        watchClosedOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
+        watchMyTrades (symbol?: string, since?: any, limit?: any, params?: Params): Promise<Trade[]>;
+    }
+
+    export namespace pro {
+        export const exchanges: string[]
+        class Exchange  extends ExchangePro {}
+        class aax extends Exchange {}
+        class ascendex extends Exchange {}
+        class bequant extends Exchange {}
+        class binance extends Exchange {}
+        class binancecoinm extends Exchange {}
+        class binanceus extends Exchange {}
+        class binanceusdm extends Exchange {}
+        class bitcoincom extends Exchange {}
+        class bitfinex extends Exchange {}
+        class bitfinex2 extends Exchange {}
+        class bitmart extends Exchange {}
+        class bitmex extends Exchange {}
+        class bitopro extends Exchange {}
+        class bitstamp extends Exchange {}
+        class bittrex extends Exchange {}
+        class bitvavo extends Exchange {}
+        class bybit extends Exchange {}
+        class coinbaseprime extends Exchange {}
+        class coinbasepro extends Exchange {}
+        class coinex extends Exchange {}
+        class cryptocom extends Exchange {}
+        class currencycom extends Exchange {}
+        class deribit extends Exchange {}
+        class exmo extends Exchange {}
+        class ftx extends Exchange {}
+        class ftxus extends Exchange {}
+        class gate extends Exchange {}
+        class gateio extends Exchange {}
+        class hitbtc extends Exchange {}
+        class hollaex extends Exchange {}
+        class huobi extends Exchange {}
+        class huobijp extends Exchange {}
+        class huobipro extends Exchange {}
+        class idex extends Exchange {}
+        class kraken extends Exchange {}
+        class kucoin extends Exchange {}
+        class mexc extends Exchange {}
+        class ndax extends Exchange {}
+        class okcoin extends Exchange {}
+        class okex extends Exchange {}
+        class okx extends Exchange {}
+        class phemex extends Exchange {}
+        class ripio extends Exchange {}
+        class upbit extends Exchange {}
+        class whitebit extends Exchange {}
+        class zb extends Exchange {}
+        class zipmex extends Exchange {}
+    }
 }

@@ -81,7 +81,6 @@ class btcalpha(Exchange):
                 'withdraw': False,
             },
             'timeframes': {
-                '1m': '1',
                 '5m': '5',
                 '15m': '15',
                 '30m': '30',
@@ -605,9 +604,10 @@ class btcalpha(Exchange):
         if not response['success']:
             raise InvalidOrder(self.id + ' ' + self.json(response))
         order = self.parse_order(response, market)
-        amount = order['amount'] if (order['amount'] > 0) else amount
+        orderAmount = str(order['amount'])
+        amount = order['amount'] if Precise.string_gt(orderAmount, '0') else amount
         return self.extend(order, {
-            'amount': amount,
+            'amount': self.parse_number(amount),
         })
 
     async def cancel_order(self, id, symbol=None, params={}):

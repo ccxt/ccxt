@@ -6,12 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\AuthenticationError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\InsufficientFunds;
-use \ccxt\InvalidOrder;
 
 class wavesexchange extends Exchange {
 
@@ -347,6 +341,7 @@ class wavesexchange extends Exchange {
                 '106957828' => '\\ccxt\\AuthenticationError',
                 '106960131' => '\\ccxt\\AuthenticationError',
                 '106981137' => '\\ccxt\\AuthenticationError',
+                '9437184' => '\\ccxt\\BadRequest', // array("error":9437184,"message":"The order is invalid => SpendAmount should be > 0","template":"The order is invalid => array({details})","params":array("details":"SpendAmount should be > 0"),"status":"OrderRejected","success":false)
                 '9437193' => '\\ccxt\\OrderNotFound',
                 '1048577' => '\\ccxt\\BadRequest',
                 '1051904' => '\\ccxt\\AuthenticationError',

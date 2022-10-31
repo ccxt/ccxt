@@ -6,7 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
 
 class poloniex extends Exchange {
 
@@ -188,6 +187,7 @@ class poloniex extends Exchange {
             ),
             'options' => array(
                 'networks' => array(
+                    'BEP20' => 'BSC',
                     'ERC20' => 'ETH',
                     'TRX' => 'TRON',
                     'TRC20' => 'TRON',
@@ -286,7 +286,7 @@ class poloniex extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
@@ -1349,18 +1349,21 @@ class poloniex extends Exchange {
          * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
          */
         $this->load_markets();
-        // USDT, USDTETH, USDTTRON
-        $currencyId = null;
-        $currency = null;
-        if (is_array($this->currencies) && array_key_exists($code, $this->currencies)) {
-            $currency = $this->currency($code);
-            $currencyId = $currency['id'];
-        } else {
-            $currencyId = $code;
-        }
+        $currency = $this->currency($code);
         $request = array(
-            'currency' => $currencyId,
+            'currency' => $currency['id'],
         );
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+        if ($network !== null) {
+            $request['currency'] .= $network; // when $network the $currency need to be changed to $currency+$network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
+            $params = $this->omit($params, 'network');
+        } else {
+            if ($currency['id'] === 'USDT') {
+                throw new ArgumentsRequired($this->id . ' createDepositAddress requires a $network parameter for ' . $code . '.');
+            }
+        }
         $response = $this->privatePostWalletsAddress (array_merge($request, $params));
         //
         //     {
@@ -1381,6 +1384,7 @@ class poloniex extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
+            'network' => $network,
             'info' => $response,
         );
     }
@@ -1393,25 +1397,28 @@ class poloniex extends Exchange {
          * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
          */
         $this->load_markets();
-        // USDT, USDTETH, USDTTRON
-        $currencyId = null;
-        $currency = null;
-        if (is_array($this->currencies) && array_key_exists($code, $this->currencies)) {
-            $currency = $this->currency($code);
-            $currencyId = $currency['id'];
-        } else {
-            $currencyId = $code;
-        }
+        $currency = $this->currency($code);
         $request = array(
-            'currency' => $currencyId,
+            'currency' => $currency['id'],
         );
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+        if ($network !== null) {
+            $request['currency'] .= $network; // when $network the $currency need to be changed to $currency+$network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
+            $params = $this->omit($params, 'network');
+        } else {
+            if ($currency['id'] === 'USDT') {
+                throw new ArgumentsRequired($this->id . ' fetchDepositAddress requires a $network parameter for ' . $code . '.');
+            }
+        }
         $response = $this->privateGetWalletsAddresses (array_merge($request, $params));
         //
         //     {
         //         "USDTTRON" : "Txxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxp"
         //     }
         //
-        $address = $this->safe_string($response, $currencyId);
+        $address = $this->safe_string($response, $request['currency']);
         $tag = null;
         $this->check_address($address);
         if ($currency !== null) {
@@ -1425,7 +1432,7 @@ class poloniex extends Exchange {
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
-            'network' => null,
+            'network' => $network,
             'info' => $response,
         );
     }

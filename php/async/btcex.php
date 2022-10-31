@@ -6,10 +6,11 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\AuthenticationError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\Precise;
+use ccxt\ExchangeError;
+use ccxt\AuthenticationError;
+use ccxt\ArgumentsRequired;
+use ccxt\Precise;
+use React\Async;
 
 class btcex extends Exchange {
 
@@ -302,155 +303,157 @@ class btcex extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        $response = yield $this->publicGetGetInstruments ($params);
-        $markets = $this->safe_value($response, 'result', array());
-        //
-        //     {
-        //         "jsonrpc":"2.0",
-        //         "usIn":1647533492507,
-        //         "usOut":1647533492511,
-        //         "usDiff":4,
-        //         "result":[array(
-        //             "currency":"BTC",
-        //             "base_currency":"USDT",
-        //             "contract_size":"0.01",
-        //             "creation_timestamp":"1632384961348",
-        //             "expiration_timestamp":"1648195200000",
-        //             "instrument_name":"BTC-25MAR22",
-        //             "show_name":"BTC-25MAR22",
-        //             "is_active":true,
-        //             "kind":"future",
-        //             "leverage":0,
-        //             "maker_commission":"10",
-        //             "taker_commission":"17",
-        //             "min_trade_amount":"0.01",
-        //             "option_type":"init",
-        //             "quote_currency":"USDT",
-        //             "settlement_period":"week",
-        //             "strike":"0",
-        //             "tick_size":"0.1",
-        //             "instr_multiple":"0.01",
-        //             "order_price_low_rate":"0.8",
-        //             "order_price_high_rate":"1.2",
-        //             "order_price_limit_type":0,
-        //             "min_qty":"0.01",
-        //             "min_notional":"0",
-        //             "support_trace_trade":false
-        //         )]
-        //     }
-        //
-        $result = array();
-        for ($i = 0; $i < count($markets); $i++) {
-            $market = $markets[$i];
-            $id = $this->safe_string($market, 'instrument_name');
-            $type = $this->safe_string($market, 'kind');
-            $unifiedType = $type;
-            if ($type === 'perpetual') {
-                $unifiedType = 'swap';
-            }
-            $baseId = $this->safe_string($market, 'quote_currency');
-            $quoteId = $this->safe_string($market, 'base_currency');
-            $swap = ($type === 'perpetual');
-            $spot = ($type === 'spot');
-            $margin = ($type === 'margin');
-            $option = ($type === 'option');
-            $future = ($type === 'future');
-            $contract = $swap || $future || $option;
-            $expiry = null;
-            if ($option || $future) {
-                $baseId = $this->safe_string($market, 'currency');
-                $expiry = $this->safe_integer($market, 'expiration_timestamp');
-            }
-            $contractSize = null;
-            $settleId = null;
-            $settle = null;
-            if ($contract) {
-                $settleId = $quoteId;
-                $settle = $this->safe_currency_code($settleId);
-            }
-            $optionType = null;
-            $strike = null;
-            if ($option) {
-                $optionType = $this->safe_string($market, 'option_type');
-                $strike = $this->safe_number($market, 'strike');
-            }
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $symbol = null;
-            if ($margin) {
-                $symbol = $id;
-            } else {
-                $symbol = $base . '/' . $quote;
-            }
-            if ($contract) {
-                $contractSize = $this->safe_number($market, 'contract_size');
-                $symbol = $symbol . ':' . $settle;
-                if ($future || $option) {
-                    $symbol = $symbol . '-' . $this->yymmdd($expiry);
-                    if ($option) {
-                        $letter = ($optionType === 'call') ? 'C' : 'P';
-                        $symbol = $symbol . ':' . $this->number_to_string($strike) . ':' . $letter;
+        return Async\async(function () use ($params) {
+            $response = Async\await($this->publicGetGetInstruments ($params));
+            $markets = $this->safe_value($response, 'result', array());
+            //
+            //     {
+            //         "jsonrpc":"2.0",
+            //         "usIn":1647533492507,
+            //         "usOut":1647533492511,
+            //         "usDiff":4,
+            //         "result":[array(
+            //             "currency":"BTC",
+            //             "base_currency":"USDT",
+            //             "contract_size":"0.01",
+            //             "creation_timestamp":"1632384961348",
+            //             "expiration_timestamp":"1648195200000",
+            //             "instrument_name":"BTC-25MAR22",
+            //             "show_name":"BTC-25MAR22",
+            //             "is_active":true,
+            //             "kind":"future",
+            //             "leverage":0,
+            //             "maker_commission":"10",
+            //             "taker_commission":"17",
+            //             "min_trade_amount":"0.01",
+            //             "option_type":"init",
+            //             "quote_currency":"USDT",
+            //             "settlement_period":"week",
+            //             "strike":"0",
+            //             "tick_size":"0.1",
+            //             "instr_multiple":"0.01",
+            //             "order_price_low_rate":"0.8",
+            //             "order_price_high_rate":"1.2",
+            //             "order_price_limit_type":0,
+            //             "min_qty":"0.01",
+            //             "min_notional":"0",
+            //             "support_trace_trade":false
+            //         )]
+            //     }
+            //
+            $result = array();
+            for ($i = 0; $i < count($markets); $i++) {
+                $market = $markets[$i];
+                $id = $this->safe_string($market, 'instrument_name');
+                $type = $this->safe_string($market, 'kind');
+                $unifiedType = $type;
+                if ($type === 'perpetual') {
+                    $unifiedType = 'swap';
+                }
+                $baseId = $this->safe_string($market, 'quote_currency');
+                $quoteId = $this->safe_string($market, 'base_currency');
+                $swap = ($type === 'perpetual');
+                $spot = ($type === 'spot');
+                $margin = ($type === 'margin');
+                $option = ($type === 'option');
+                $future = ($type === 'future');
+                $contract = $swap || $future || $option;
+                $expiry = null;
+                if ($option || $future) {
+                    $baseId = $this->safe_string($market, 'currency');
+                    $expiry = $this->safe_integer($market, 'expiration_timestamp');
+                }
+                $contractSize = null;
+                $settleId = null;
+                $settle = null;
+                if ($contract) {
+                    $settleId = $quoteId;
+                    $settle = $this->safe_currency_code($settleId);
+                }
+                $optionType = null;
+                $strike = null;
+                if ($option) {
+                    $optionType = $this->safe_string($market, 'option_type');
+                    $strike = $this->safe_number($market, 'strike');
+                }
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $symbol = null;
+                if ($margin) {
+                    $symbol = $id;
+                } else {
+                    $symbol = $base . '/' . $quote;
+                }
+                if ($contract) {
+                    $contractSize = $this->safe_number($market, 'contract_size');
+                    $symbol = $symbol . ':' . $settle;
+                    if ($future || $option) {
+                        $symbol = $symbol . '-' . $this->yymmdd($expiry);
+                        if ($option) {
+                            $letter = ($optionType === 'call') ? 'C' : 'P';
+                            $symbol = $symbol . ':' . $this->number_to_string($strike) . ':' . $letter;
+                        }
                     }
                 }
+                $minTradeAmount = $this->safe_number($market, 'min_trade_amount');
+                $tickSize = $this->safe_number($market, 'tick_size');
+                $maker = $this->safe_number($market, 'maker_commission');
+                $taker = $this->safe_number($market, 'taker_commission');
+                $percentage = !($option || $future);
+                $result[] = array(
+                    'id' => $id,
+                    'symbol' => $symbol,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'baseId' => $baseId,
+                    'quoteId' => $quoteId,
+                    'settleId' => $settleId,
+                    'settle' => $settle,
+                    'type' => $unifiedType,
+                    'maker' => $maker,
+                    'taker' => $taker,
+                    'percentage' => $percentage,
+                    'spot' => $spot,
+                    'margin' => $margin,
+                    'swap' => $swap,
+                    'future' => $future,
+                    'option' => $option,
+                    'active' => $this->safe_value($market, 'is_active'),
+                    'contract' => $contract,
+                    'linear' => $contract ? true : null,
+                    'inverse' => $contract ? false : null,
+                    'contractSize' => $contractSize,
+                    'expiry' => $expiry,
+                    'expiryDatetime' => $this->iso8601($expiry),
+                    'strike' => $strike,
+                    'optionType' => $optionType,
+                    'precision' => array(
+                        'amount' => $minTradeAmount,
+                        'price' => $tickSize,
+                    ),
+                    'limits' => array(
+                        'leverage' => array(
+                            'min' => null,
+                            'max' => $this->safe_string($market, 'leverage'),
+                        ),
+                        'amount' => array(
+                            'min' => $minTradeAmount,
+                            'max' => null,
+                        ),
+                        'price' => array(
+                            'min' => $tickSize,
+                            'max' => null,
+                        ),
+                        'cost' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                    'info' => $market,
+                );
             }
-            $minTradeAmount = $this->safe_number($market, 'min_trade_amount');
-            $tickSize = $this->safe_number($market, 'tick_size');
-            $maker = $this->safe_number($market, 'maker_commission');
-            $taker = $this->safe_number($market, 'taker_commission');
-            $percentage = !($option || $future);
-            $result[] = array(
-                'id' => $id,
-                'symbol' => $symbol,
-                'base' => $base,
-                'quote' => $quote,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => $settleId,
-                'settle' => $settle,
-                'type' => $unifiedType,
-                'maker' => $maker,
-                'taker' => $taker,
-                'percentage' => $percentage,
-                'spot' => $spot,
-                'margin' => $margin,
-                'swap' => $swap,
-                'future' => $future,
-                'option' => $option,
-                'active' => $this->safe_value($market, 'is_active'),
-                'contract' => $contract,
-                'linear' => $contract ? true : null,
-                'inverse' => $contract ? false : null,
-                'contractSize' => $contractSize,
-                'expiry' => $expiry,
-                'expiryDatetime' => $this->iso8601($expiry),
-                'strike' => $strike,
-                'optionType' => $optionType,
-                'precision' => array(
-                    'amount' => $minTradeAmount,
-                    'price' => $tickSize,
-                ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => $this->safe_string($market, 'leverage'),
-                    ),
-                    'amount' => array(
-                        'min' => $minTradeAmount,
-                        'max' => null,
-                    ),
-                    'price' => array(
-                        'min' => $tickSize,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-                'info' => $market,
-            );
-        }
-        return $result;
+            return $result;
+        }) ();
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -504,67 +507,71 @@ class btcex extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'instrument_name' => $market['id'],
-        );
-        $response = yield $this->publicGetTickers (array_merge($request, $params));
-        $result = $this->safe_value($response, 'result', array());
-        //
-        //     {
-        //         "jsonrpc":"2.0",
-        //         "usIn":1647569487238,
-        //         "usOut":1647569487240,
-        //         "usDiff":2,
-        //         "result":[array(
-        //             "best_ask_amount":"0.20962",
-        //             "best_ask_price":"40491.7",
-        //             "best_bid_amount":"0.08855",
-        //             "best_bid_price":"40491.6",
-        //             "instrument_name":"BTC-USDT",
-        //             "last_price":"40493",
-        //             "mark_price":"40493.10644717",
-        //             "state":"open",
-        //             "stats":array(
-        //                 "high":"41468.8",
-        //                 "low":"40254.9",
-        //                 "price_change":"-0.0159",
-        //                 "volume":"3847.35240000000000005"
-        //             ),
-        //             "timestamp":"1647569486224"
-        //         )]
-        //     }
-        //
-        $ticker = $this->safe_value($result, 0);
-        return $this->parse_ticker($ticker, $market);
+        return Async\async(function () use ($symbol, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'instrument_name' => $market['id'],
+            );
+            $response = Async\await($this->publicGetTickers (array_merge($request, $params)));
+            $result = $this->safe_value($response, 'result', array());
+            //
+            //     {
+            //         "jsonrpc":"2.0",
+            //         "usIn":1647569487238,
+            //         "usOut":1647569487240,
+            //         "usDiff":2,
+            //         "result":[array(
+            //             "best_ask_amount":"0.20962",
+            //             "best_ask_price":"40491.7",
+            //             "best_bid_amount":"0.08855",
+            //             "best_bid_price":"40491.6",
+            //             "instrument_name":"BTC-USDT",
+            //             "last_price":"40493",
+            //             "mark_price":"40493.10644717",
+            //             "state":"open",
+            //             "stats":array(
+            //                 "high":"41468.8",
+            //                 "low":"40254.9",
+            //                 "price_change":"-0.0159",
+            //                 "volume":"3847.35240000000000005"
+            //             ),
+            //             "timestamp":"1647569486224"
+            //         )]
+            //     }
+            //
+            $ticker = $this->safe_value($result, 0);
+            return $this->parse_ticker($ticker, $market);
+        }) ();
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'instrument_name' => $market['id'],
-        );
-        $response = yield $this->publicGetGetOrderBook (array_merge($request, $params));
-        $result = $this->safe_value($response, 'result', array());
-        //
-        //     {
-        //         "jsonrpc":"2.0",
-        //         "usIn":1647573916524,
-        //         "usOut":1647573916526,
-        //         "usDiff":2,
-        //         "result":{
-        //             "asks":[["10155.00000","0.200","186.980","0.000"],["10663.00000","0.200","217.480","0.000"]],
-        //             "bids":[["7896.00000","0.200","1.000","0.000"],["7481.00000","0.200","1.000","0.000"]],
-        //             "timestamp":"1647573916525",
-        //             "instrument_name":"BTC-25MAR22-32000-C",
-        //             "version":1002541
-        //         }
-        //     }
-        //
-        $timestamp = $this->safe_integer($result, 'timestamp');
-        return $this->parse_order_book($result, $market['symbol'], $timestamp);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'instrument_name' => $market['id'],
+            );
+            $response = Async\await($this->publicGetGetOrderBook (array_merge($request, $params)));
+            $result = $this->safe_value($response, 'result', array());
+            //
+            //     {
+            //         "jsonrpc":"2.0",
+            //         "usIn":1647573916524,
+            //         "usOut":1647573916526,
+            //         "usDiff":2,
+            //         "result":{
+            //             "asks":[["10155.00000","0.200","186.980","0.000"],["10663.00000","0.200","217.480","0.000"]],
+            //             "bids":[["7896.00000","0.200","1.000","0.000"],["7481.00000","0.200","1.000","0.000"]],
+            //             "timestamp":"1647573916525",
+            //             "instrument_name":"BTC-25MAR22-32000-C",
+            //             "version":1002541
+            //         }
+            //     }
+            //
+            $timestamp = $this->safe_integer($result, 'timestamp');
+            return $this->parse_order_book($result, $market['symbol'], $timestamp);
+        }) ();
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -590,50 +597,52 @@ class btcex extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        if ($limit === null) {
-            $limit = 10;
-        }
-        $request = array(
-            'resolution' => $this->timeframes[$timeframe],
-            // 'start_timestamp' => 0,
-            // 'end_timestamp' => 0,
-        );
-        $marketId = $market['id'];
-        if ($market['spot'] || $market['margin']) {
-            $marketId = $market['baseId'] . '-' . $market['quoteId'];
-        }
-        $request['instrument_name'] = $marketId;
-        if ($since === null) {
-            $request['end_timestamp'] = $this->milliseconds();
-            $request['start_timestamp'] = 0;
-        } else {
-            $timeframeInSeconds = $this->parse_timeframe($timeframe);
-            $timeframeInMilliseconds = $timeframeInSeconds * 1000;
-            $request['start_timestamp'] = $since;
-            $request['end_timestamp'] = $this->sum($request['start_timestamp'], $limit * $timeframeInMilliseconds);
-        }
-        $response = yield $this->publicGetGetTradingviewChartData (array_merge($request, $params));
-        $result = $this->safe_value($response, 'result', array());
-        //
-        //     {
-        //         "jsonrpc":"2.0",
-        //         "usIn":1647578562427,
-        //         "usOut":1647578562428,
-        //         "usDiff":1,
-        //         "result":[array(
-        //             "tick":1647547200,
-        //             "open":"40868.16800000",
-        //             "high":"40877.65600000",
-        //             "low":"40647.00000000",
-        //             "close":"40699.10000000",
-        //             "volume":"100.27789000",
-        //             "cost":"4083185.78337596"
-        //         )]
-        //     }
-        //
-        return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if ($limit === null) {
+                $limit = 10;
+            }
+            $request = array(
+                'resolution' => $this->timeframes[$timeframe],
+                // 'start_timestamp' => 0,
+                // 'end_timestamp' => 0,
+            );
+            $marketId = $market['id'];
+            if ($market['spot'] || $market['margin']) {
+                $marketId = $market['baseId'] . '-' . $market['quoteId'];
+            }
+            $request['instrument_name'] = $marketId;
+            if ($since === null) {
+                $request['end_timestamp'] = $this->milliseconds();
+                $request['start_timestamp'] = 0;
+            } else {
+                $timeframeInSeconds = $this->parse_timeframe($timeframe);
+                $timeframeInMilliseconds = $timeframeInSeconds * 1000;
+                $request['start_timestamp'] = $since;
+                $request['end_timestamp'] = $this->sum($request['start_timestamp'], $limit * $timeframeInMilliseconds);
+            }
+            $response = Async\await($this->publicGetGetTradingviewChartData (array_merge($request, $params)));
+            $result = $this->safe_value($response, 'result', array());
+            //
+            //     {
+            //         "jsonrpc":"2.0",
+            //         "usIn":1647578562427,
+            //         "usOut":1647578562428,
+            //         "usDiff":1,
+            //         "result":[array(
+            //             "tick":1647547200,
+            //             "open":"40868.16800000",
+            //             "high":"40877.65600000",
+            //             "low":"40647.00000000",
+            //             "close":"40699.10000000",
+            //             "volume":"100.27789000",
+            //             "cost":"4083185.78337596"
+            //         )]
+            //     }
+            //
+            return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
+        }) ();
     }
 
     public function parse_trade($trade, $market = null) {
@@ -705,76 +714,80 @@ class btcex extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'instrument_name' => $market['id'],
-            // 'start_id' : 0,
-            // 'end_id' => 0,
-            // 'sorting' => 'asc', // asc | desc
-        );
-        if ($limit !== null) {
-            $request['count'] = $limit; // default 10
-        }
-        $response = yield $this->publicGetGetLastTradesByInstrument (array_merge($request, $params));
-        $result = $this->safe_value($response, 'result', array());
-        //
-        //     {
-        //         "jsonrpc":"2.0",
-        //         "usIn":1647582703220,
-        //         "usOut":1647582703253,
-        //         "usDiff":33,
-        //         "result":{
-        //             "trades":[array(
-        //                 "amount":"0.0003",
-        //                 "direction":"sell",
-        //                 "iv":"0",
-        //                 "price":"40767.18",
-        //                 "timestamp":"1647582687050",
-        //                 "instrument_name":"BTC-USDT-SPOT",
-        //                 "trade_id":57499240
-        //             )],
-        //             "has_more":true
-        //         }
-        //     }
-        //
-        $trades = $this->safe_value($result, 'trades', array());
-        return $this->parse_trades($trades, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'instrument_name' => $market['id'],
+                // 'start_id' : 0,
+                // 'end_id' => 0,
+                // 'sorting' => 'asc', // asc | desc
+            );
+            if ($limit !== null) {
+                $request['count'] = $limit; // default 10
+            }
+            $response = Async\await($this->publicGetGetLastTradesByInstrument (array_merge($request, $params)));
+            $result = $this->safe_value($response, 'result', array());
+            //
+            //     {
+            //         "jsonrpc":"2.0",
+            //         "usIn":1647582703220,
+            //         "usOut":1647582703253,
+            //         "usDiff":33,
+            //         "result":{
+            //             "trades":[array(
+            //                 "amount":"0.0003",
+            //                 "direction":"sell",
+            //                 "iv":"0",
+            //                 "price":"40767.18",
+            //                 "timestamp":"1647582687050",
+            //                 "instrument_name":"BTC-USDT-SPOT",
+            //                 "trade_id":57499240
+            //             )],
+            //             "has_more":true
+            //         }
+            //     }
+            //
+            $trades = $this->safe_value($result, 'trades', array());
+            return $this->parse_trades($trades, $market, $since, $limit);
+        }) ();
     }
 
     public function sign_in($params = array ()) {
-        $accessToken = $this->safe_string($this->options, 'accessToken');
-        if ($accessToken !== null) {
+        return Async\async(function () use ($params) {
+            $accessToken = $this->safe_string($this->options, 'accessToken');
+            if ($accessToken !== null) {
+                return $accessToken;
+            }
+            $this->check_required_credentials();
+            $request = array(
+                'grant_type' => 'client_credentials', // client_signature || refresh_token
+                'client_id' => $this->apiKey,
+                'client_secret' => $this->secret,
+                // 'refresh_token' => '', // Required for grant type refresh_token
+                // 'signature' => '', // Required for grant type client_signature
+            );
+            $response = Async\await($this->publicPostAuth (array_merge($request, $params)));
+            $result = $this->safe_value($response, 'result');
+            //
+            //     {
+            //         jsonrpc => '2.0',
+            //         usIn => '1647601525586',
+            //         usOut => '1647601525597',
+            //         usDiff => '11',
+            //         $result => {
+            //         access_token => '',
+            //         token_type => 'bearer',
+            //         refresh_token => '',
+            //         expires_in => '604799',
+            //         scope => 'account:read_write block_trade:read_write trade:read_write wallet:read_write'
+            //         }
+            //     }
+            //
+            $accessToken = $this->safe_string($result, 'access_token');
+            $this->options['accessToken'] = $accessToken;
             return $accessToken;
-        }
-        $this->check_required_credentials();
-        $request = array(
-            'grant_type' => 'client_credentials', // client_signature || refresh_token
-            'client_id' => $this->apiKey,
-            'client_secret' => $this->secret,
-            // 'refresh_token' => '', // Required for grant type refresh_token
-            // 'signature' => '', // Required for grant type client_signature
-        );
-        $response = yield $this->publicPostAuth (array_merge($request, $params));
-        $result = $this->safe_value($response, 'result');
-        //
-        //     {
-        //         jsonrpc => '2.0',
-        //         usIn => '1647601525586',
-        //         usOut => '1647601525597',
-        //         usDiff => '11',
-        //         $result => {
-        //         access_token => '',
-        //         token_type => 'bearer',
-        //         refresh_token => '',
-        //         expires_in => '604799',
-        //         scope => 'account:read_write block_trade:read_write trade:read_write wallet:read_write'
-        //         }
-        //     }
-        //
-        $accessToken = $this->safe_string($result, 'access_token');
-        $this->options['accessToken'] = $accessToken;
-        return $accessToken;
+        }) ();
     }
 
     public function parse_balance($response) {
@@ -924,139 +937,141 @@ class btcex extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
-        yield $this->sign_in();
-        yield $this->load_markets();
-        $type = $this->safe_string_lower($params, 'type', 'spot');
-        $types = $this->safe_value($this->options, 'accountsByType', array());
-        $assetType = $this->safe_string($types, $type, $type);
-        $params = $this->omit($params, 'type');
-        $request = array(
-            'asset_type' => array( $assetType ),
-        );
-        $response = yield $this->privatePostGetAssetsInfo (array_merge($request, $params));
-        $result = $this->safe_value($response, 'result', array());
-        //
-        //     {
-        //         "id":"1647675393",
-        //         "jsonrpc":"2.0",
-        //         "usIn":1647675394091,
-        //         "usOut":1647675394104,
-        //         "usDiff":13,
-        //         "result":{
-        //             "WALLET":array(
-        //                 "total":"0",
-        //                 "coupon":"0",
-        //                 "details":[array(
-        //                     "available":"0",
-        //                     "freeze":"0",
-        //                     "coin_type":"1INCH",
-        //                     "current_mark_price":"1.657"
-        //                 )]
-        //             ),
-        //             "MARGIN":array(
-        //                 "total":"0",
-        //                 "net":"0",
-        //                 "available":"0",
-        //                 "borrowed":"0",
-        //                 "details":array(),
-        //                 "maintenance_margin":"0",
-        //                 "interest_owed":"0"
-        //             ),
-        //             "SPOT":array(
-        //                 "total":"3.965",
-        //                 "available":"15.887066",
-        //                 "details":[array(
-        //                     "available":"0",
-        //                     "freeze":"0",
-        //                     "total":"0",
-        //                     "coin_type":"1INCH",
-        //                     "current_mark_price":"1.657"
-        //                 )]
-        //             ),
-        //             "BTC":array(
-        //                 "currency":"BTC",
-        //                 "balance":"0",
-        //                 "freeze":"0",
-        //                 "equity":"0",
-        //                 "base_currency":"USDT",
-        //                 "available_funds":"0",
-        //                 "available_withdrawal_funds":"0",
-        //                 "initial_margin":"0",
-        //                 "maintenance_margin":"0",
-        //                 "margin_balance":"0",
-        //                 "session_funding":"0",
-        //                 "session_rpl":"0",
-        //                 "session_upl":"0",
-        //                 "futures_pl":"0",
-        //                 "futures_session_rpl":"0",
-        //                 "futures_session_upl":"0",
-        //                 "options_value":"0",
-        //                 "options_pl":"0",
-        //                 "options_session_rpl":"0",
-        //                 "options_session_upl":"0",
-        //                 "total_pl":"0",
-        //                 "options_delta":"0",
-        //                 "options_gamma":"0",
-        //                 "options_theta":"0",
-        //                 "options_vega":"0",
-        //                 "delta_total":"0"
-        //             ),
-        //             "ETH":array(
-        //                 "currency":"ETH",
-        //                 "balance":"0",
-        //                 "freeze":"0",
-        //                 "equity":"0",
-        //                 "base_currency":"USDT",
-        //                 "available_funds":"0",
-        //                 "available_withdrawal_funds":"0",
-        //                 "initial_margin":"0",
-        //                 "maintenance_margin":"0",
-        //                 "margin_balance":"0",
-        //                 "session_funding":"0",
-        //                 "session_rpl":"0",
-        //                 "session_upl":"0",
-        //                 "futures_pl":"0",
-        //                 "futures_session_rpl":"0",
-        //                 "futures_session_upl":"0",
-        //                 "options_value":"0",
-        //                 "options_pl":"0",
-        //                 "options_session_rpl":"0",
-        //                 "options_session_upl":"0",
-        //                 "total_pl":"0",
-        //                 "options_delta":"0",
-        //                 "options_gamma":"0",
-        //                 "options_theta":"0",
-        //                 "options_vega":"0",
-        //                 "delta_total":"0"
-        //             ),
-        //             "PERPETUAL":{
-        //                 "bonus":"0",
-        //                 "global_state":0,
-        //                 "available_funds":"0",
-        //                 "wallet_balance":"0",
-        //                 "available_withdraw_funds":"0",
-        //                 "total_pl":"0",
-        //                 "total_upl":"0",
-        //                 "position_rpl":"0",
-        //                 "total_upl_isolated":"0",
-        //                 "total_upl_cross":"0",
-        //                 "total_initial_margin_cross":"0",
-        //                 "total_initial_margin_isolated":"0",
-        //                 "total_margin_balance_isolated":"0",
-        //                 "total_margin_balance":"0",
-        //                 "total_margin_balance_cross":"0",
-        //                 "total_maintenance_margin_cross":"0",
-        //                 "total_wallet_balance_isolated":"0",
-        //                 "order_frozen":"0",
-        //                 "order_cross_frozen":"0",
-        //                 "order_isolated_frozen":"0",
-        //                 "risk_level":"0",
-        //                 "bonus_max":"0"
-        //             }
-        //         }
-        //     }
-        //
-        return $this->parse_balance($result);
+        return Async\async(function () use ($params) {
+            Async\await($this->sign_in());
+            Async\await($this->load_markets());
+            $type = $this->safe_string_lower($params, 'type', 'spot');
+            $types = $this->safe_value($this->options, 'accountsByType', array());
+            $assetType = $this->safe_string($types, $type, $type);
+            $params = $this->omit($params, 'type');
+            $request = array(
+                'asset_type' => array( $assetType ),
+            );
+            $response = Async\await($this->privatePostGetAssetsInfo (array_merge($request, $params)));
+            $result = $this->safe_value($response, 'result', array());
+            //
+            //     {
+            //         "id":"1647675393",
+            //         "jsonrpc":"2.0",
+            //         "usIn":1647675394091,
+            //         "usOut":1647675394104,
+            //         "usDiff":13,
+            //         "result":{
+            //             "WALLET":array(
+            //                 "total":"0",
+            //                 "coupon":"0",
+            //                 "details":[array(
+            //                     "available":"0",
+            //                     "freeze":"0",
+            //                     "coin_type":"1INCH",
+            //                     "current_mark_price":"1.657"
+            //                 )]
+            //             ),
+            //             "MARGIN":array(
+            //                 "total":"0",
+            //                 "net":"0",
+            //                 "available":"0",
+            //                 "borrowed":"0",
+            //                 "details":array(),
+            //                 "maintenance_margin":"0",
+            //                 "interest_owed":"0"
+            //             ),
+            //             "SPOT":array(
+            //                 "total":"3.965",
+            //                 "available":"15.887066",
+            //                 "details":[array(
+            //                     "available":"0",
+            //                     "freeze":"0",
+            //                     "total":"0",
+            //                     "coin_type":"1INCH",
+            //                     "current_mark_price":"1.657"
+            //                 )]
+            //             ),
+            //             "BTC":array(
+            //                 "currency":"BTC",
+            //                 "balance":"0",
+            //                 "freeze":"0",
+            //                 "equity":"0",
+            //                 "base_currency":"USDT",
+            //                 "available_funds":"0",
+            //                 "available_withdrawal_funds":"0",
+            //                 "initial_margin":"0",
+            //                 "maintenance_margin":"0",
+            //                 "margin_balance":"0",
+            //                 "session_funding":"0",
+            //                 "session_rpl":"0",
+            //                 "session_upl":"0",
+            //                 "futures_pl":"0",
+            //                 "futures_session_rpl":"0",
+            //                 "futures_session_upl":"0",
+            //                 "options_value":"0",
+            //                 "options_pl":"0",
+            //                 "options_session_rpl":"0",
+            //                 "options_session_upl":"0",
+            //                 "total_pl":"0",
+            //                 "options_delta":"0",
+            //                 "options_gamma":"0",
+            //                 "options_theta":"0",
+            //                 "options_vega":"0",
+            //                 "delta_total":"0"
+            //             ),
+            //             "ETH":array(
+            //                 "currency":"ETH",
+            //                 "balance":"0",
+            //                 "freeze":"0",
+            //                 "equity":"0",
+            //                 "base_currency":"USDT",
+            //                 "available_funds":"0",
+            //                 "available_withdrawal_funds":"0",
+            //                 "initial_margin":"0",
+            //                 "maintenance_margin":"0",
+            //                 "margin_balance":"0",
+            //                 "session_funding":"0",
+            //                 "session_rpl":"0",
+            //                 "session_upl":"0",
+            //                 "futures_pl":"0",
+            //                 "futures_session_rpl":"0",
+            //                 "futures_session_upl":"0",
+            //                 "options_value":"0",
+            //                 "options_pl":"0",
+            //                 "options_session_rpl":"0",
+            //                 "options_session_upl":"0",
+            //                 "total_pl":"0",
+            //                 "options_delta":"0",
+            //                 "options_gamma":"0",
+            //                 "options_theta":"0",
+            //                 "options_vega":"0",
+            //                 "delta_total":"0"
+            //             ),
+            //             "PERPETUAL":{
+            //                 "bonus":"0",
+            //                 "global_state":0,
+            //                 "available_funds":"0",
+            //                 "wallet_balance":"0",
+            //                 "available_withdraw_funds":"0",
+            //                 "total_pl":"0",
+            //                 "total_upl":"0",
+            //                 "position_rpl":"0",
+            //                 "total_upl_isolated":"0",
+            //                 "total_upl_cross":"0",
+            //                 "total_initial_margin_cross":"0",
+            //                 "total_initial_margin_isolated":"0",
+            //                 "total_margin_balance_isolated":"0",
+            //                 "total_margin_balance":"0",
+            //                 "total_margin_balance_cross":"0",
+            //                 "total_maintenance_margin_cross":"0",
+            //                 "total_wallet_balance_isolated":"0",
+            //                 "order_frozen":"0",
+            //                 "order_cross_frozen":"0",
+            //                 "order_isolated_frozen":"0",
+            //                 "risk_level":"0",
+            //                 "bonus_max":"0"
+            //             }
+            //         }
+            //     }
+            //
+            return $this->parse_balance($result);
+        }) ();
     }
 
     public function parse_order_status($status) {
@@ -1181,351 +1196,367 @@ class btcex extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
-        yield $this->load_markets();
-        $request = array(
-            'order_id' => $id,
-        );
-        $response = yield $this->privateGetGetOrderState (array_merge($request, $params));
-        $result = $this->safe_value($response, 'result');
-        //
-        //     {
-        //         "jsonrpc":"2.0",
-        //         "usIn":1647672034018,
-        //         "usOut":1647672034033,
-        //         "usDiff":15,
-        //         "result":{
-        //             "currency":"SPOT",
-        //             "kind":"spot",
-        //             "direction":"sell",
-        //             "amount":"0.03",
-        //             "price":"-1",
-        //             "advanced":"usdt",
-        //             "source":"api",
-        //             "mmp":false,
-        //             "version":1,
-        //             "order_id":"250979478947823616",
-        //             "order_state":"filled",
-        //             "instrument_name":"BNB-USDT-SPOT",
-        //             "filled_amount":"0.03",
-        //             "average_price":"397.8",
-        //             "order_type":"market",
-        //             "time_in_force":"GTC",
-        //             "post_only":false,
-        //             "reduce_only":false,
-        //             "creation_timestamp":1647668570759,
-        //             "last_update_timestamp":1647668570761
-        //         }
-        //     }
-        //
-        return $this->parse_order($result);
+        return Async\async(function () use ($id, $symbol, $params) {
+            Async\await($this->load_markets());
+            $request = array(
+                'order_id' => $id,
+            );
+            $response = Async\await($this->privateGetGetOrderState (array_merge($request, $params)));
+            $result = $this->safe_value($response, 'result');
+            //
+            //     {
+            //         "jsonrpc":"2.0",
+            //         "usIn":1647672034018,
+            //         "usOut":1647672034033,
+            //         "usDiff":15,
+            //         "result":{
+            //             "currency":"SPOT",
+            //             "kind":"spot",
+            //             "direction":"sell",
+            //             "amount":"0.03",
+            //             "price":"-1",
+            //             "advanced":"usdt",
+            //             "source":"api",
+            //             "mmp":false,
+            //             "version":1,
+            //             "order_id":"250979478947823616",
+            //             "order_state":"filled",
+            //             "instrument_name":"BNB-USDT-SPOT",
+            //             "filled_amount":"0.03",
+            //             "average_price":"397.8",
+            //             "order_type":"market",
+            //             "time_in_force":"GTC",
+            //             "post_only":false,
+            //             "reduce_only":false,
+            //             "creation_timestamp":1647668570759,
+            //             "last_update_timestamp":1647668570761
+            //         }
+            //     }
+            //
+            return $this->parse_order($result);
+        }) ();
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        yield $this->sign_in();
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'instrument_name' => $market['id'],
-            'amount' => $this->amount_to_precision($symbol, $amount),
-            'type' => $type, // limit, $market, default is limit
-            // 'price' => $this->price_to_precision($symbol, 123.45), // The $order $price for limit $order-> When adding options $order with advanced=iv, the field $price should be a value of implied volatility in percentages. For example, $price=100, means implied volatility of 100%
-            // 'time_in_force' : 'good_til_cancelled', // good_til_cancelled, good_til_date, fill_or_kill, immediate_or_cancel Specifies how long the $order remains in effect, default => good_til_cancelled
-            // 'post_only' => false, // If true, the $order is considered post-only, default => false
-            // 'reduce_only' => false, // If true, the $order is considered reduce-only which is intended to only reduce a current position. default => false
-            // 'condition_type' => '', // NORMAL, STOP, TRAILING, IF_TOUCHED, Condition sheet policy, the default is NORMAL. Available when kind is future
-            // 'trigger_price' => 'index_price', // trigger $price-> Available when condition_type is STOP or IF_TOUCHED
-            // 'trail_price' => false, // trail $price, Tracking $price change Delta. Available when condition_type is TRAILING
-            // 'advanced' => 'usd', // Advanced option $order $type, (Only for options), default => usdt. If set to iv，then the $price field means iv value
-        );
-        if ($type === 'limit') {
-            $request['price'] = $this->price_to_precision($symbol, $price);
-        }
-        if ($market['contract']) {
-            $timeInForce = $this->safe_string_upper($params, 'timeInForce');
-            if ($timeInForce === 'GTC') {
-                $request['time_in_force'] = 'good_till_cancelled';
-            } elseif ($timeInForce === 'FOK') {
-                $request['time_in_force'] = 'fill_or_kill';
-            } elseif ($timeInForce === 'IOC') {
-                $request['time_in_force'] = 'immediate_or_cancel';
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            Async\await($this->sign_in());
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'instrument_name' => $market['id'],
+                'amount' => $this->amount_to_precision($symbol, $amount),
+                'type' => $type, // limit, $market, default is limit
+                // 'price' => $this->price_to_precision($symbol, 123.45), // The $order $price for limit $order-> When adding options $order with advanced=iv, the field $price should be a value of implied volatility in percentages. For example, $price=100, means implied volatility of 100%
+                // 'time_in_force' : 'good_til_cancelled', // good_til_cancelled, good_til_date, fill_or_kill, immediate_or_cancel Specifies how long the $order remains in effect, default => good_til_cancelled
+                // 'post_only' => false, // If true, the $order is considered post-only, default => false
+                // 'reduce_only' => false, // If true, the $order is considered reduce-only which is intended to only reduce a current position. default => false
+                // 'condition_type' => '', // NORMAL, STOP, TRAILING, IF_TOUCHED, Condition sheet policy, the default is NORMAL. Available when kind is future
+                // 'trigger_price' => 'index_price', // trigger $price-> Available when condition_type is STOP or IF_TOUCHED
+                // 'trail_price' => false, // trail $price, Tracking $price change Delta. Available when condition_type is TRAILING
+                // 'advanced' => 'usd', // Advanced option $order $type, (Only for options), default => usdt. If set to iv，then the $price field means iv value
+            );
+            if ($type === 'limit') {
+                $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $isMarketOrder = $type === 'market';
-            $exchangeSpecificParam = $this->safe_value($params, 'post_only', false);
-            $postOnly = $this->is_post_only($isMarketOrder, $exchangeSpecificParam, $params);
-            if ($postOnly) {
-                $request['post_only'] = true;
+            if ($market['contract']) {
+                $timeInForce = $this->safe_string_upper($params, 'timeInForce');
+                if ($timeInForce === 'GTC') {
+                    $request['time_in_force'] = 'good_till_cancelled';
+                } elseif ($timeInForce === 'FOK') {
+                    $request['time_in_force'] = 'fill_or_kill';
+                } elseif ($timeInForce === 'IOC') {
+                    $request['time_in_force'] = 'immediate_or_cancel';
+                }
+                $isMarketOrder = $type === 'market';
+                $exchangeSpecificParam = $this->safe_value($params, 'post_only', false);
+                $postOnly = $this->is_post_only($isMarketOrder, $exchangeSpecificParam, $params);
+                if ($postOnly) {
+                    $request['post_only'] = true;
+                }
+                $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
+                if ($reduceOnly) {
+                    $request['reduce_only'] = true;
+                }
+                $params = $this->omit($params, array( 'timeInForce', 'postOnly', 'reduceOnly' ));
             }
-            $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
-            if ($reduceOnly) {
-                $request['reduce_only'] = true;
-            }
-            $params = $this->omit($params, array( 'timeInForce', 'postOnly', 'reduceOnly' ));
-        }
-        $method = 'privatePost' . $this->capitalize($side);
-        $response = yield $this->$method (array_merge($request, $params));
-        $result = $this->safe_value($response, 'result', array());
-        //
-        //     {
-        //         "id":"1647686073",
-        //         "jsonrpc":"2.0",
-        //         "usIn":1647686073252,
-        //         "usOut":1647686073264,
-        //         "usDiff":12,
-        //         "result":{
-        //             "order":{
-        //                 "order_id":"251052889774161920",
-        //                 "custom_order_id":"-"
-        //             }
-        //         }
-        //     }
-        //
-        $order = $this->safe_value($result, 'order');
-        return $this->parse_order($order, $market);
+            $method = 'privatePost' . $this->capitalize($side);
+            $response = Async\await($this->$method (array_merge($request, $params)));
+            $result = $this->safe_value($response, 'result', array());
+            //
+            //     {
+            //         "id":"1647686073",
+            //         "jsonrpc":"2.0",
+            //         "usIn":1647686073252,
+            //         "usOut":1647686073264,
+            //         "usDiff":12,
+            //         "result":{
+            //             "order":{
+            //                 "order_id":"251052889774161920",
+            //                 "custom_order_id":"-"
+            //             }
+            //         }
+            //     }
+            //
+            $order = $this->safe_value($result, 'order');
+            return $this->parse_order($order, $market);
+        }) ();
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        yield $this->sign_in();
-        yield $this->load_markets();
-        $request = array(
-            'order_id' => $id,
-        );
-        $response = yield $this->privatePostCancel (array_merge($request, $params));
-        $result = $this->safe_value($response, 'result', array());
-        //
-        //     {
-        //         "id":"1647675007",
-        //         "jsonrpc":"2.0",
-        //         "usIn":1647675007485,
-        //         "usOut":1647675007494,
-        //         "usDiff":9,
-        //         "result":{
-        //             "order_id":"250979354159153152"
-        //         }
-        //     }
-        //
-        return $this->parse_order($result);
+        return Async\async(function () use ($id, $symbol, $params) {
+            Async\await($this->sign_in());
+            Async\await($this->load_markets());
+            $request = array(
+                'order_id' => $id,
+            );
+            $response = Async\await($this->privatePostCancel (array_merge($request, $params)));
+            $result = $this->safe_value($response, 'result', array());
+            //
+            //     {
+            //         "id":"1647675007",
+            //         "jsonrpc":"2.0",
+            //         "usIn":1647675007485,
+            //         "usOut":1647675007494,
+            //         "usDiff":9,
+            //         "result":{
+            //             "order_id":"250979354159153152"
+            //         }
+            //     }
+            //
+            return $this->parse_order($result);
+        }) ();
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
-        }
-        yield $this->sign_in();
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'instrument_name' => $market['id'],
-        );
-        $response = yield $this->privatePostCancelAllByInstrument (array_merge($request, $params));
-        //
-        //     {
-        //         "id":"1647686580",
-        //         "jsonrpc":"2.0",
-        //         "usIn":1647686581216,
-        //         "usOut":1647686581224,
-        //         "usDiff":8,
-        //         "result":2
-        //     }
-        //
-        return $response;
+        return Async\async(function () use ($symbol, $params) {
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
+            }
+            Async\await($this->sign_in());
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'instrument_name' => $market['id'],
+            );
+            $response = Async\await($this->privatePostCancelAllByInstrument (array_merge($request, $params)));
+            //
+            //     {
+            //         "id":"1647686580",
+            //         "jsonrpc":"2.0",
+            //         "usIn":1647686581216,
+            //         "usOut":1647686581224,
+            //         "usDiff":8,
+            //         "result":2
+            //     }
+            //
+            return $response;
+        }) ();
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
-        }
-        yield $this->sign_in();
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'instrument_name' => $market['id'],
-        );
-        $response = yield $this->privateGetGetOpenOrdersByInstrument (array_merge($request, $params));
-        $result = $this->safe_value($response, 'result', array());
-        //
-        //     {
-        //         "jsonrpc":"2.0",
-        //         "usIn":1647667026285,
-        //         "usOut":1647667026291,
-        //         "usDiff":6,
-        //         "result":[array(
-        //             "kind":"spot",
-        //             "direction":"sell",
-        //             "amount":"0.02",
-        //             "price":"900",
-        //             "advanced":"usdt",
-        //             "source":"api",
-        //             "mmp":false,
-        //             "version":1,
-        //             "order_id":"250971492850401280",
-        //             "order_state":"open",
-        //             "instrument_name":"BNB-USDT-SPOT",
-        //             "filled_amount":"0",
-        //             "average_price":"0",
-        //             "order_type":"limit",
-        //             "time_in_force":"GTC",
-        //             "post_only":false,
-        //             "reduce_only":false,
-        //             "creation_timestamp":1647666666723,
-        //             "last_update_timestamp":1647666666725
-        //         )]
-        //     }
-        //
-        return $this->parse_orders($result, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+            }
+            Async\await($this->sign_in());
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'instrument_name' => $market['id'],
+            );
+            $response = Async\await($this->privateGetGetOpenOrdersByInstrument (array_merge($request, $params)));
+            $result = $this->safe_value($response, 'result', array());
+            //
+            //     {
+            //         "jsonrpc":"2.0",
+            //         "usIn":1647667026285,
+            //         "usOut":1647667026291,
+            //         "usDiff":6,
+            //         "result":[array(
+            //             "kind":"spot",
+            //             "direction":"sell",
+            //             "amount":"0.02",
+            //             "price":"900",
+            //             "advanced":"usdt",
+            //             "source":"api",
+            //             "mmp":false,
+            //             "version":1,
+            //             "order_id":"250971492850401280",
+            //             "order_state":"open",
+            //             "instrument_name":"BNB-USDT-SPOT",
+            //             "filled_amount":"0",
+            //             "average_price":"0",
+            //             "order_type":"limit",
+            //             "time_in_force":"GTC",
+            //             "post_only":false,
+            //             "reduce_only":false,
+            //             "creation_timestamp":1647666666723,
+            //             "last_update_timestamp":1647666666725
+            //         )]
+            //     }
+            //
+            return $this->parse_orders($result, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
-        }
-        yield $this->sign_in();
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'instrument_name' => $market['id'],
-        );
-        if ($limit !== null) {
-            $request['count'] = $limit;
-        }
-        $response = yield $this->privateGetGetOrderHistoryByInstrument (array_merge($request, $params));
-        $result = $this->safe_value($response, 'result', array());
-        //
-        //     {
-        //         "jsonrpc":"2.0",
-        //         "usIn":1647671721716,
-        //         "usOut":1647671721730,
-        //         "usDiff":14,
-        //         "result":[array(
-        //             "currency":"SPOT",
-        //             "kind":"spot",
-        //             "direction":"sell",
-        //             "amount":"0.03",
-        //             "price":"-1",
-        //             "advanced":"usdt",
-        //             "source":"api",
-        //             "mmp":false,
-        //             "version":1,
-        //             "order_id":"250979478947823616",
-        //             "order_state":"filled",
-        //             "instrument_name":"BNB-USDT-SPOT",
-        //             "filled_amount":"0.03",
-        //             "average_price":"397.8",
-        //             "order_type":"market",
-        //             "time_in_force":"GTC",
-        //             "post_only":false,
-        //             "reduce_only":false,
-        //             "creation_timestamp":1647668570759,
-        //             "last_update_timestamp":1647668570761
-        //         )]
-        //     }
-        //
-        return $this->parse_orders($result, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a $symbol argument');
+            }
+            Async\await($this->sign_in());
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'instrument_name' => $market['id'],
+            );
+            if ($limit !== null) {
+                $request['count'] = $limit;
+            }
+            $response = Async\await($this->privateGetGetOrderHistoryByInstrument (array_merge($request, $params)));
+            $result = $this->safe_value($response, 'result', array());
+            //
+            //     {
+            //         "jsonrpc":"2.0",
+            //         "usIn":1647671721716,
+            //         "usOut":1647671721730,
+            //         "usDiff":14,
+            //         "result":[array(
+            //             "currency":"SPOT",
+            //             "kind":"spot",
+            //             "direction":"sell",
+            //             "amount":"0.03",
+            //             "price":"-1",
+            //             "advanced":"usdt",
+            //             "source":"api",
+            //             "mmp":false,
+            //             "version":1,
+            //             "order_id":"250979478947823616",
+            //             "order_state":"filled",
+            //             "instrument_name":"BNB-USDT-SPOT",
+            //             "filled_amount":"0.03",
+            //             "average_price":"397.8",
+            //             "order_type":"market",
+            //             "time_in_force":"GTC",
+            //             "post_only":false,
+            //             "reduce_only":false,
+            //             "creation_timestamp":1647668570759,
+            //             "last_update_timestamp":1647668570761
+            //         )]
+            //     }
+            //
+            return $this->parse_orders($result, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
-        if ($id === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $id argument');
-        }
-        yield $this->load_markets();
-        $request = array(
-            'order_id' => $id,
-            // 'start_id' => 0, // The ID number of the first trade to be returned
-            // 'end_id' => 0, // The ID number of the last trade to be returned
-            // 'sorting' => '', // Direction of results sorting,default => desc
-        );
-        if ($limit !== null) {
-            $request['count'] = $limit; // default 20
-        }
-        $response = yield $this->privateGetGetUserTradesByOrder (array_merge($request, $params));
-        $result = $this->safe_value($response, 'result', array());
-        //
-        //     {
-        //         "jsonrpc":"2.0",
-        //         "usIn":1647671425457,
-        //         "usOut":1647671425470,
-        //         "usDiff":13,
-        //         "result":{
-        //             "count":1,
-        //             "trades":[array(
-        //                 "direction":"sell",
-        //                 "amount":"0.03",
-        //                 "price":"397.8",
-        //                 "fee":"0.011934",
-        //                 "timestamp":1647668570759,
-        //                 "role":"taker",
-        //                 "trade_id":"58319385",
-        //                 "order_id":"250979478947823616",
-        //                 "instrument_name":"BNB-USDT-SPOT",
-        //                 "order_type":"market",
-        //                 "fee_use_coupon":false,
-        //                 "fee_coin_type":"USDT",
-        //                 "index_price":"",
-        //                 "self_trade":false
-        //             )],
-        //             "has_more":false
-        //         }
-        //     }
-        //
-        $trades = $this->safe_value($result, 'trades', array());
-        return $this->parse_trades($trades, null, $since, $limit);
+        return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
+            if ($id === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $id argument');
+            }
+            Async\await($this->load_markets());
+            $request = array(
+                'order_id' => $id,
+                // 'start_id' => 0, // The ID number of the first trade to be returned
+                // 'end_id' => 0, // The ID number of the last trade to be returned
+                // 'sorting' => '', // Direction of results sorting,default => desc
+            );
+            if ($limit !== null) {
+                $request['count'] = $limit; // default 20
+            }
+            $response = Async\await($this->privateGetGetUserTradesByOrder (array_merge($request, $params)));
+            $result = $this->safe_value($response, 'result', array());
+            //
+            //     {
+            //         "jsonrpc":"2.0",
+            //         "usIn":1647671425457,
+            //         "usOut":1647671425470,
+            //         "usDiff":13,
+            //         "result":{
+            //             "count":1,
+            //             "trades":[array(
+            //                 "direction":"sell",
+            //                 "amount":"0.03",
+            //                 "price":"397.8",
+            //                 "fee":"0.011934",
+            //                 "timestamp":1647668570759,
+            //                 "role":"taker",
+            //                 "trade_id":"58319385",
+            //                 "order_id":"250979478947823616",
+            //                 "instrument_name":"BNB-USDT-SPOT",
+            //                 "order_type":"market",
+            //                 "fee_use_coupon":false,
+            //                 "fee_coin_type":"USDT",
+            //                 "index_price":"",
+            //                 "self_trade":false
+            //             )],
+            //             "has_more":false
+            //         }
+            //     }
+            //
+            $trades = $this->safe_value($result, 'trades', array());
+            return $this->parse_trades($trades, null, $since, $limit);
+        }) ();
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a id argument');
-        }
-        yield $this->sign_in();
-        yield $this->load_markets();
-        $request = array(
-            // 'kind' => '', // The order kind, eg. margin, spot, option, future, perpetual. only used when call privateGetGetUserTradesByCurrency
-            // 'start_id' => 0, // The ID number of the first trade to be returned
-            // 'end_id' => 0, // The ID number of the last trade to be returned
-            // 'sorting' => '', // Direction of results sorting,default => desc
-            // 'self_trade' => false, // If not set, query all
-        );
-        $method = null;
-        $market = $this->market($symbol);
-        $request['instrument_name'] = $market['id'];
-        if ($since === null) {
-            $method = 'privateGetGetUserTradesByInstrument';
-        } else {
-            $method = 'privateGetGetUserTradesByInstrumentAndTime';
-        }
-        if ($limit !== null) {
-            $request['count'] = $limit; // default 20
-        }
-        $response = yield $this->$method (array_merge($request, $params));
-        $result = $this->safe_value($response, 'result', array());
-        //
-        //     {
-        //         "jsonrpc":"2.0",
-        //         "usIn":1647668582167,
-        //         "usOut":1647668582187,
-        //         "usDiff":20,
-        //         "result":{
-        //             "count":1,
-        //             "trades":[array(
-        //                 "direction":"sell",
-        //                 "amount":"0.03",
-        //                 "price":"397.8",
-        //                 "fee":"0.011934",
-        //                 "timestamp":1647668570759,
-        //                 "role":"taker",
-        //                 "trade_id":"58319385",
-        //                 "order_id":"250979478947823616",
-        //                 "instrument_name":"BNB-USDT-SPOT",
-        //                 "order_type":"market",
-        //                 "fee_use_coupon":false,
-        //                 "fee_coin_type":"USDT",
-        //                 "index_price":"",
-        //                 "self_trade":false
-        //             )],
-        //             "has_more":false
-        //         }
-        //     }
-        //
-        $trades = $this->safe_value($result, 'trades', array());
-        return $this->parse_trades($trades, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a id argument');
+            }
+            Async\await($this->sign_in());
+            Async\await($this->load_markets());
+            $request = array(
+                // 'kind' => '', // The order kind, eg. margin, spot, option, future, perpetual. only used when call privateGetGetUserTradesByCurrency
+                // 'start_id' => 0, // The ID number of the first trade to be returned
+                // 'end_id' => 0, // The ID number of the last trade to be returned
+                // 'sorting' => '', // Direction of results sorting,default => desc
+                // 'self_trade' => false, // If not set, query all
+            );
+            $method = null;
+            $market = $this->market($symbol);
+            $request['instrument_name'] = $market['id'];
+            if ($since === null) {
+                $method = 'privateGetGetUserTradesByInstrument';
+            } else {
+                $method = 'privateGetGetUserTradesByInstrumentAndTime';
+            }
+            if ($limit !== null) {
+                $request['count'] = $limit; // default 20
+            }
+            $response = Async\await($this->$method (array_merge($request, $params)));
+            $result = $this->safe_value($response, 'result', array());
+            //
+            //     {
+            //         "jsonrpc":"2.0",
+            //         "usIn":1647668582167,
+            //         "usOut":1647668582187,
+            //         "usDiff":20,
+            //         "result":{
+            //             "count":1,
+            //             "trades":[array(
+            //                 "direction":"sell",
+            //                 "amount":"0.03",
+            //                 "price":"397.8",
+            //                 "fee":"0.011934",
+            //                 "timestamp":1647668570759,
+            //                 "role":"taker",
+            //                 "trade_id":"58319385",
+            //                 "order_id":"250979478947823616",
+            //                 "instrument_name":"BNB-USDT-SPOT",
+            //                 "order_type":"market",
+            //                 "fee_use_coupon":false,
+            //                 "fee_coin_type":"USDT",
+            //                 "index_price":"",
+            //                 "self_trade":false
+            //             )],
+            //             "has_more":false
+            //         }
+            //     }
+            //
+            $trades = $this->safe_value($result, 'trades', array());
+            return $this->parse_trades($trades, $market, $since, $limit);
+        }) ();
     }
 
     public function parse_position($position, $market = null) {
@@ -1601,97 +1632,101 @@ class btcex extends Exchange {
     }
 
     public function fetch_position($symbol, $params = array ()) {
-        yield $this->sign_in();
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'instrument_name' => $market['id'],
-        );
-        $response = yield $this->privateGetGetPosition (array_merge($request, $params));
-        $result = $this->safe_value($response, 'result');
-        //
-        //     {
-        //         "jsonrpc":"2.0",
-        //         "usIn":1647693832273,
-        //         "usOut":1647693832282,
-        //         "usDiff":9,
-        //         "result":{
-        //             "currency":"PERPETUAL",
-        //             "kind":"perpetual",
-        //             "size":"-0.08",
-        //             "direction":"sell",
-        //             "leverage":"3",
-        //             "margin":"10.7724",
-        //             "version":"553",
-        //             "roe":"-0.000483",
-        //             "traceType":0,
-        //             "pos_id":"0",
-        //             "instrument_name":"BNB-USDT-PERPETUAL",
-        //             "average_price":"403.9",
-        //             "mark_price":"403.965",
-        //             "initial_margin":"10.77066668",
-        //             "maintenance_margin":"0.2100618",
-        //             "floating_profit_loss":"-0.0052",
-        //             "liquid_price":"549.15437158",
-        //             "margin_type":"cross",
-        //             "risk_level":"0.017651",
-        //             "available_withdraw_funds":"1.13004332",
-        //             "order_id":"251085320510201856",
-        //             "stop_loss_price":"0",
-        //             "stop_loss_type":1,
-        //             "take_profit_price":"0",
-        //             "take_profit_type":1
-        //         }
-        //     }
-        //
-        return $this->parse_position($result);
+        return Async\async(function () use ($symbol, $params) {
+            Async\await($this->sign_in());
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'instrument_name' => $market['id'],
+            );
+            $response = Async\await($this->privateGetGetPosition (array_merge($request, $params)));
+            $result = $this->safe_value($response, 'result');
+            //
+            //     {
+            //         "jsonrpc":"2.0",
+            //         "usIn":1647693832273,
+            //         "usOut":1647693832282,
+            //         "usDiff":9,
+            //         "result":{
+            //             "currency":"PERPETUAL",
+            //             "kind":"perpetual",
+            //             "size":"-0.08",
+            //             "direction":"sell",
+            //             "leverage":"3",
+            //             "margin":"10.7724",
+            //             "version":"553",
+            //             "roe":"-0.000483",
+            //             "traceType":0,
+            //             "pos_id":"0",
+            //             "instrument_name":"BNB-USDT-PERPETUAL",
+            //             "average_price":"403.9",
+            //             "mark_price":"403.965",
+            //             "initial_margin":"10.77066668",
+            //             "maintenance_margin":"0.2100618",
+            //             "floating_profit_loss":"-0.0052",
+            //             "liquid_price":"549.15437158",
+            //             "margin_type":"cross",
+            //             "risk_level":"0.017651",
+            //             "available_withdraw_funds":"1.13004332",
+            //             "order_id":"251085320510201856",
+            //             "stop_loss_price":"0",
+            //             "stop_loss_type":1,
+            //             "take_profit_price":"0",
+            //             "take_profit_type":1
+            //         }
+            //     }
+            //
+            return $this->parse_position($result);
+        }) ();
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {
-        yield $this->sign_in();
-        yield $this->load_markets();
-        $request = array(
-            'currency' => 'PERPETUAL',
-            // 'kind' : '', // option, future, spot, margin,perpetual The order kind
-        );
-        $response = yield $this->privateGetGetPositions (array_merge($request, $params));
-        $result = $this->safe_value($response, 'result');
-        //
-        //     {
-        //         "jsonrpc":"2.0",
-        //         "usIn":1647694531356,
-        //         "usOut":1647694531364,
-        //         "usDiff":8,
-        //         "result":[array(
-        //             "currency":"PERPETUAL",
-        //             "kind":"perpetual",
-        //             "size":"-0.08",
-        //             "direction":"sell",
-        //             "leverage":"3",
-        //             "margin":"10.7836",
-        //             "version":"1251",
-        //             "roe":"-0.003602",
-        //             "traceType":0,
-        //             "pos_id":"0",
-        //             "instrument_name":"BNB-USDT-PERPETUAL",
-        //             "average_price":"403.9",
-        //             "mark_price":"404.385",
-        //             "initial_margin":"10.77066668",
-        //             "maintenance_margin":"0.2102802",
-        //             "floating_profit_loss":"-0.0388",
-        //             "liquid_price":"549.15437158",
-        //             "margin_type":"cross",
-        //             "risk_level":"0.01772",
-        //             "available_withdraw_funds":"1.09644332",
-        //             "order_id":"251085320510201856",
-        //             "stop_loss_price":"0",
-        //             "stop_loss_type":1,
-        //             "take_profit_price":"0",
-        //             "take_profit_type":1
-        //         )]
-        //     }
-        //
-        return $this->parse_positions($result, $symbols);
+        return Async\async(function () use ($symbols, $params) {
+            Async\await($this->sign_in());
+            Async\await($this->load_markets());
+            $request = array(
+                'currency' => 'PERPETUAL',
+                // 'kind' : '', // option, future, spot, margin,perpetual The order kind
+            );
+            $response = Async\await($this->privateGetGetPositions (array_merge($request, $params)));
+            $result = $this->safe_value($response, 'result');
+            //
+            //     {
+            //         "jsonrpc":"2.0",
+            //         "usIn":1647694531356,
+            //         "usOut":1647694531364,
+            //         "usDiff":8,
+            //         "result":[array(
+            //             "currency":"PERPETUAL",
+            //             "kind":"perpetual",
+            //             "size":"-0.08",
+            //             "direction":"sell",
+            //             "leverage":"3",
+            //             "margin":"10.7836",
+            //             "version":"1251",
+            //             "roe":"-0.003602",
+            //             "traceType":0,
+            //             "pos_id":"0",
+            //             "instrument_name":"BNB-USDT-PERPETUAL",
+            //             "average_price":"403.9",
+            //             "mark_price":"404.385",
+            //             "initial_margin":"10.77066668",
+            //             "maintenance_margin":"0.2102802",
+            //             "floating_profit_loss":"-0.0388",
+            //             "liquid_price":"549.15437158",
+            //             "margin_type":"cross",
+            //             "risk_level":"0.01772",
+            //             "available_withdraw_funds":"1.09644332",
+            //             "order_id":"251085320510201856",
+            //             "stop_loss_price":"0",
+            //             "stop_loss_type":1,
+            //             "take_profit_price":"0",
+            //             "take_profit_type":1
+            //         )]
+            //     }
+            //
+            return $this->parse_positions($result, $symbols);
+        }) ();
     }
 
     public function parse_transaction_status($status) {
@@ -1768,110 +1803,116 @@ class btcex extends Exchange {
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
-        if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchDeposits() requires the $code argument');
-        }
-        yield $this->sign_in();
-        yield $this->load_markets();
-        $currency = $this->safe_currency($code);
-        $request = array(
-            'coin_type' => $currency['id'],
-        );
-        $response = yield $this->privateGetGetDepositRecord (array_merge($request, $params));
-        $result = $this->safe_value($response, 'result', array());
-        //
-        //     {
-        //         "jsonrpc":"2.0",
-        //         "usIn":1647606752447,
-        //         "usOut":1647606752457,
-        //         "usDiff":10,
-        //         "result":[array(
-        //             "id":"250325458128736256",
-        //             "amount":"0.04",
-        //             "state":"deposit_confirmed",
-        //             "coin_type":"BNB",
-        //             "token_code":"BNB",
-        //             "create_time":"1647512640040",
-        //             "update_time":"1647512640053",
-        //             "tx_hash":"",
-        //             "full_name":"Binance Coin"
-        //         )]
-        //     }
-        //     }
-        //
-        return $this->parse_transactions($result, $currency, $since, $limit, array( 'type' => 'deposit' ));
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            if ($code === null) {
+                throw new ArgumentsRequired($this->id . ' fetchDeposits() requires the $code argument');
+            }
+            Async\await($this->sign_in());
+            Async\await($this->load_markets());
+            $currency = $this->safe_currency($code);
+            $request = array(
+                'coin_type' => $currency['id'],
+            );
+            $response = Async\await($this->privateGetGetDepositRecord (array_merge($request, $params)));
+            $result = $this->safe_value($response, 'result', array());
+            //
+            //     {
+            //         "jsonrpc":"2.0",
+            //         "usIn":1647606752447,
+            //         "usOut":1647606752457,
+            //         "usDiff":10,
+            //         "result":[array(
+            //             "id":"250325458128736256",
+            //             "amount":"0.04",
+            //             "state":"deposit_confirmed",
+            //             "coin_type":"BNB",
+            //             "token_code":"BNB",
+            //             "create_time":"1647512640040",
+            //             "update_time":"1647512640053",
+            //             "tx_hash":"",
+            //             "full_name":"Binance Coin"
+            //         )]
+            //     }
+            //     }
+            //
+            return $this->parse_transactions($result, $currency, $since, $limit, array( 'type' => 'deposit' ));
+        }) ();
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
-        if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires the $code argument');
-        }
-        yield $this->sign_in();
-        yield $this->load_markets();
-        $currency = $this->safe_currency($code);
-        $request = array(
-            'coin_type' => $currency['id'],
-            // 'withdraw_id' => 0,
-        );
-        $response = yield $this->privateGetGetWithdrawRecord (array_merge($request, $params));
-        $result = $this->safe_value($response, 'result', array());
-        //
-        //     {
-        //         "jsonrpc":"2.0",
-        //         "usIn":1647691750112,
-        //         "usOut":1647691750125,
-        //         "usDiff":13,
-        //         "result":[array(
-        //             "id":"251076247882829824",
-        //             "address":"",
-        //             "amount":"0.01",
-        //             "state":"withdraw_auditing",
-        //             "coin_type":"BNB",
-        //             "create_time":"1647691642267",
-        //             "update_time":"1647691650090",
-        //             "full_name":"Binance Coin",
-        //             "token_code":"BNB"
-        //         )]
-        //     }
-        //
-        return $this->parse_transactions($result, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            if ($code === null) {
+                throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires the $code argument');
+            }
+            Async\await($this->sign_in());
+            Async\await($this->load_markets());
+            $currency = $this->safe_currency($code);
+            $request = array(
+                'coin_type' => $currency['id'],
+                // 'withdraw_id' => 0,
+            );
+            $response = Async\await($this->privateGetGetWithdrawRecord (array_merge($request, $params)));
+            $result = $this->safe_value($response, 'result', array());
+            //
+            //     {
+            //         "jsonrpc":"2.0",
+            //         "usIn":1647691750112,
+            //         "usOut":1647691750125,
+            //         "usDiff":13,
+            //         "result":[array(
+            //             "id":"251076247882829824",
+            //             "address":"",
+            //             "amount":"0.01",
+            //             "state":"withdraw_auditing",
+            //             "coin_type":"BNB",
+            //             "create_time":"1647691642267",
+            //             "update_time":"1647691650090",
+            //             "full_name":"Binance Coin",
+            //             "token_code":"BNB"
+            //         )]
+            //     }
+            //
+            return $this->parse_transactions($result, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
+        }) ();
     }
 
     public function fetch_withdrawal($id, $code = null, $params = array ()) {
-        if ($code === null) {
-            throw new ArgumentsRequired($this->id . ' fetchWithdrawal() requires the $code argument');
-        }
-        yield $this->sign_in();
-        yield $this->load_markets();
-        $currency = $this->safe_currency($code);
-        $request = array(
-            'coin_type' => $currency['id'],
-            'withdraw_id' => $id,
-        );
-        $response = yield $this->privateGetGetWithdrawRecord (array_merge($request, $params));
-        $result = $this->safe_value($response, 'result', array());
-        //
-        //     {
-        //         "jsonrpc":"2.0",
-        //         "usIn":1647691750112,
-        //         "usOut":1647691750125,
-        //         "usDiff":13,
-        //         "result":[array(
-        //             "id":"251076247882829824",
-        //             "address":"",
-        //             "amount":"0.01",
-        //             "state":"withdraw_auditing",
-        //             "coin_type":"BNB",
-        //             "create_time":"1647691642267",
-        //             "update_time":"1647691650090",
-        //             "full_name":"Binance Coin",
-        //             "token_code":"BNB"
-        //         )]
-        //     }
-        //
-        $records = $this->filter_by($result, 'id', $id);
-        $record = $this->safe_value($records, 0);
-        return $this->parse_transaction($record, $currency);
+        return Async\async(function () use ($id, $code, $params) {
+            if ($code === null) {
+                throw new ArgumentsRequired($this->id . ' fetchWithdrawal() requires the $code argument');
+            }
+            Async\await($this->sign_in());
+            Async\await($this->load_markets());
+            $currency = $this->safe_currency($code);
+            $request = array(
+                'coin_type' => $currency['id'],
+                'withdraw_id' => $id,
+            );
+            $response = Async\await($this->privateGetGetWithdrawRecord (array_merge($request, $params)));
+            $result = $this->safe_value($response, 'result', array());
+            //
+            //     {
+            //         "jsonrpc":"2.0",
+            //         "usIn":1647691750112,
+            //         "usOut":1647691750125,
+            //         "usDiff":13,
+            //         "result":[array(
+            //             "id":"251076247882829824",
+            //             "address":"",
+            //             "amount":"0.01",
+            //             "state":"withdraw_auditing",
+            //             "coin_type":"BNB",
+            //             "create_time":"1647691642267",
+            //             "update_time":"1647691650090",
+            //             "full_name":"Binance Coin",
+            //             "token_code":"BNB"
+            //         )]
+            //     }
+            //
+            $records = $this->filter_by($result, 'id', $id);
+            $record = $this->safe_value($records, 0);
+            return $this->parse_transaction($record, $currency);
+        }) ();
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

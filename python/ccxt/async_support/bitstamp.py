@@ -7,7 +7,6 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
@@ -960,7 +959,7 @@ class bitstamp(Exchange):
         duration = self.parse_timeframe(timeframe)
         if limit is None:
             if since is None:
-                raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument or a limit argument')
+                request['limit'] = 1000  # we need to specify an allowed amount of `limit` if no `since` is set and there is no default limit by exchange
             else:
                 limit = 1000
                 start = int(since / 1000)
@@ -1461,8 +1460,10 @@ class bitstamp(Exchange):
         }
 
     def parse_transaction_status(self, status):
-        # withdrawals:
-        # 0(open), 1(in process), 2(finished), 3(canceled) or 4(failed).
+        #
+        #   withdrawals:
+        #   0(open), 1(in process), 2(finished), 3(canceled) or 4(failed).
+        #
         statuses = {
             '0': 'pending',  # Open
             '1': 'pending',  # In process
@@ -1473,43 +1474,44 @@ class bitstamp(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
-        # from fetch order:
-        #   {status: 'Finished',
-        #     id: 731693945,
-        #     client_order_id: '',
-        #     transactions:
-        #     [{fee: '0.000019',
-        #         price: '0.00015803',
-        #         datetime: '2018-01-07 10:45:34.132551',
-        #         btc: '0.0079015000000000',
-        #         tid: 42777395,
-        #         type: 2,
-        #         xrp: '50.00000000'}]}
         #
-        # partially filled order:
-        #   {"id": 468646390,
-        #     "client_order_id": "",
-        #     "status": "Canceled",
-        #     "transactions": [{
-        #         "eth": "0.23000000",
-        #         "fee": "0.09",
-        #         "tid": 25810126,
-        #         "usd": "69.8947000000000000",
-        #         "type": 2,
-        #         "price": "303.89000000",
-        #         "datetime": "2017-11-11 07:22:20.710567"
-        #     }]}
+        #   from fetch order:
+        #     {status: 'Finished',
+        #       id: 731693945,
+        #       client_order_id: '',
+        #       transactions:
+        #       [{fee: '0.000019',
+        #           price: '0.00015803',
+        #           datetime: '2018-01-07 10:45:34.132551',
+        #           btc: '0.0079015000000000',
+        #           tid: 42777395,
+        #           type: 2,
+        #           xrp: '50.00000000'}]}
         #
-        # from create order response:
-        #     {
-        #         price: '0.00008012',
-        #         client_order_id: '',
-        #         currency_pair: 'XRP/BTC',
-        #         datetime: '2019-01-31 21:23:36',
-        #         amount: '15.00000000',
-        #         type: '0',
-        #         id: '2814205012'
-        #     }
+        #   partially filled order:
+        #     {"id": 468646390,
+        #       "client_order_id": "",
+        #       "status": "Canceled",
+        #       "transactions": [{
+        #           "eth": "0.23000000",
+        #           "fee": "0.09",
+        #           "tid": 25810126,
+        #           "usd": "69.8947000000000000",
+        #           "type": 2,
+        #           "price": "303.89000000",
+        #           "datetime": "2017-11-11 07:22:20.710567"
+        #       }]}
+        #
+        #   from create order response:
+        #       {
+        #           price: '0.00008012',
+        #           client_order_id: '',
+        #           currency_pair: 'XRP/BTC',
+        #           datetime: '2019-01-31 21:23:36',
+        #           amount: '15.00000000',
+        #           type: '0',
+        #           id: '2814205012'
+        #       }
         #
         id = self.safe_string(order, 'id')
         clientOrderId = self.safe_string(order, 'client_order_id')
@@ -1620,13 +1622,13 @@ class bitstamp(Exchange):
             parsedTransaction = self.parse_transaction(item, currency)
             direction = None
             if 'amount' in item:
-                amount = self.safe_number(item, 'amount')
-                direction = 'in' if (amount > 0) else 'out'
+                amount = self.safe_string(item, 'amount')
+                direction = 'in' if Precise.string_gt(amount, '0') else 'out'
             elif ('currency' in parsedTransaction) and parsedTransaction['currency'] is not None:
                 currencyCode = self.safe_string(parsedTransaction, 'currency')
                 currency = self.currency(currencyCode)
-                amount = self.safe_number(item, currency['id'])
-                direction = 'in' if (amount > 0) else 'out'
+                amount = self.safe_string(item, currency['id'])
+                direction = 'in' if Precise.string_gt(amount, '0') else 'out'
             return {
                 'id': parsedTransaction['id'],
                 'info': item,
@@ -1678,6 +1680,7 @@ class bitstamp(Exchange):
         if symbol is not None:
             market = self.market(symbol)
         response = await self.privatePostOpenOrdersAll(params)
+        #
         #     [
         #         {
         #             price: '0.00008012',
@@ -1696,6 +1699,11 @@ class bitstamp(Exchange):
         })
 
     def get_currency_name(self, code):
+        """
+         * @ignore
+        :param str code: Unified currency code
+        :returns str: lowercase version of code
+        """
         return code.lower()
 
     def is_fiat(self, code):
@@ -1812,6 +1820,7 @@ class bitstamp(Exchange):
         #     {"error": "No permission found"}  # fetchDepositAddress returns self on apiKeys that don't have the permission required
         #     {"status": "error", "reason": {"__all__": ["Minimum order size is 5.0 EUR."]}}
         #     reuse of a nonce gives: {status: 'error', reason: 'Invalid nonce', code: 'API0004'}
+        #
         status = self.safe_string(response, 'status')
         error = self.safe_value(response, 'error')
         if (status == 'error') or (error is not None):

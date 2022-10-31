@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '1.93.108';
+$version = '2.0.91';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '1.93.108';
+    const VERSION = '2.0.91';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -122,7 +122,6 @@ class Exchange {
         'delta',
         'deribit',
         'digifinex',
-        'eqonex',
         'exmo',
         'flowbtc',
         'fmfwio',
@@ -412,6 +411,7 @@ class Exchange {
         'safeSymbol' => 'safe_symbol',
         'parseFundingRate' => 'parse_funding_rate',
         'parseFundingRates' => 'parse_funding_rates',
+        'isTriggerOrder' => 'is_trigger_order',
         'isPostOnly' => 'is_post_only',
         'fetchTradingFees' => 'fetch_trading_fees',
         'fetchTradingFee' => 'fetch_trading_fee',
@@ -2031,7 +2031,7 @@ class Exchange {
                 $result = (string) ($toNearest * static::decimal_to_precision($x / $toNearest, $roundingMode, 0, DECIMAL_PLACES, $paddingMode));
             }
             if ($roundingMode === TRUNCATE) {
-                $result = static::decimal_to_precision($x - $x % $toNearest, $roundingMode, 0, DECIMAL_PLACES, $paddingMode);
+                $result = static::decimal_to_precision($x - ( (int) $x % $toNearest), $roundingMode, 0, DECIMAL_PLACES, $paddingMode);
             }
             return $result;
         }
@@ -2072,7 +2072,7 @@ class Exchange {
                 $numPrecisionDigits = min(14, $numPrecisionDigits);
                 $result = number_format(round($x, $numPrecisionDigits, PHP_ROUND_HALF_UP), $numPrecisionDigits, '.', '');
             } elseif ($countingMode === SIGNIFICANT_DIGITS) {
-                $significantPosition = log(abs($x), 10) % 10;
+                $significantPosition = ((int) log( abs($x), 10)) % 10;
                 if ($significantPosition > 0) {
                     ++$significantPosition;
                 }
@@ -2840,38 +2840,40 @@ class Exchange {
         $feeSide = $this->safe_string($market, 'feeSide', 'quote');
         $key = 'quote';
         $cost = null;
+        $amountString = $this->number_to_string($amount);
+        $priceString = $this->number_to_string($price);
         if ($feeSide === 'quote') {
             // the fee is always in quote currency
-            $cost = $amount * $price;
+            $cost = Precise::string_mul($amountString, $priceString);
         } elseif ($feeSide === 'base') {
             // the fee is always in base currency
-            $cost = $amount;
+            $cost = $amountString;
         } elseif ($feeSide === 'get') {
             // the fee is always in the currency you get
-            $cost = $amount;
+            $cost = $amountString;
             if ($side === 'sell') {
-                $cost *= $price;
+                $cost = $priceString;
             } else {
                 $key = 'base';
             }
         } elseif ($feeSide === 'give') {
             // the fee is always in the currency you give
-            $cost = $amount;
+            $cost = $amountString;
             if ($side === 'buy') {
-                $cost *= $price;
+                $cost = Precise::string_mul($cost, $priceString);
             } else {
                 $key = 'base';
             }
         }
-        $rate = $market[$takerOrMaker];
+        $rate = $this->number_to_string($market[$takerOrMaker]);
         if ($cost !== null) {
-            $cost *= $rate;
+            $cost = Precise::string_mul($cost, $rate);
         }
         return array(
             'type' => $takerOrMaker,
             'currency' => $market[$key],
-            'rate' => $rate,
-            'cost' => $cost,
+            'rate' => $this->parse_number($rate),
+            'cost' => $this->parse_number($cost),
         );
     }
 
@@ -4205,6 +4207,14 @@ class Exchange {
             $result[$parsed['symbol']] = $parsed;
         }
         return $result;
+    }
+
+    public function is_trigger_order($params) {
+        $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
+        if ($isTrigger) {
+            $params = $this->omit ($params, array( 'trigger', 'stop' ));
+        }
+        return array( $isTrigger, $params );
     }
 
     public function is_post_only($isMarketOrder, $exchangeSpecificParam, $params = array ()) {

@@ -6,8 +6,10 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ArgumentsRequired;
-use \ccxt\InvalidOrder;
+use ccxt\ArgumentsRequired;
+use ccxt\InvalidOrder;
+use ccxt\Precise;
+use React\Async;
 
 class lbank2 extends Exchange {
 
@@ -260,102 +262,107 @@ class lbank2 extends Exchange {
                     'btctron' => 'BTCTRON',
                     'xrp' => 'XRP',
                 ),
+                'defaultNetworks' => array(
+                    'USDT' => 'TRC20',
+                ),
             ),
         ));
     }
 
     public function fetch_markets($params = array ()) {
-        /**
-         * retrieves $data on all markets for lbank2
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing $market $data
-         */
-        // needs to return a list of unified $market structures
-        $response = yield $this->publicGetAccuracy ();
-        $data = $this->safe_value($response, 'data');
-        //      array(
-        //          {
-        //              $symbol => 'snx3s_usdt',
-        //              quantityAccuracy => '2',
-        //              minTranQua => '0.01',
-        //              priceAccuracy => '6'
-        //          }
-        //     )
-        $result = array();
-        for ($i = 0; $i < count($data); $i++) {
-            $market = $data[$i];
-            $marketId = $this->safe_string($market, 'symbol');
-            $parts = explode('_', $marketId);
-            $baseId = $parts[0];
-            $quoteId = $parts[1];
-            $base = strtoupper($baseId);
-            $quote = strtoupper($quoteId);
-            $symbol = $base . '/' . $quote;
-            $productTypes = array(
-                '3l' => true,
-                '5l' => true,
-                '3s' => true,
-                '5s' => true,
-            );
-            $ending = mb_substr($baseId, -2);
-            $isLeveragedProduct = $this->safe_value($productTypes, $ending, false);
-            if ($isLeveragedProduct) {
-                $symbol .= ':' . $quote;
+        return Async\async(function () use ($params) {
+            /**
+             * retrieves $data on all markets for lbank2
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @return {[array]} an array of objects representing $market $data
+             */
+            // needs to return a list of unified $market structures
+            $response = Async\await($this->publicGetAccuracy ());
+            $data = $this->safe_value($response, 'data');
+            //      array(
+            //          {
+            //              $symbol => 'snx3s_usdt',
+            //              quantityAccuracy => '2',
+            //              minTranQua => '0.01',
+            //              priceAccuracy => '6'
+            //          }
+            //     )
+            $result = array();
+            for ($i = 0; $i < count($data); $i++) {
+                $market = $data[$i];
+                $marketId = $this->safe_string($market, 'symbol');
+                $parts = explode('_', $marketId);
+                $baseId = $parts[0];
+                $quoteId = $parts[1];
+                $base = strtoupper($baseId);
+                $quote = strtoupper($quoteId);
+                $symbol = $base . '/' . $quote;
+                $productTypes = array(
+                    '3l' => true,
+                    '5l' => true,
+                    '3s' => true,
+                    '5s' => true,
+                );
+                $ending = mb_substr($baseId, -2);
+                $isLeveragedProduct = $this->safe_value($productTypes, $ending, false);
+                if ($isLeveragedProduct) {
+                    $symbol .= ':' . $quote;
+                }
+                $linear = null;
+                if ($isLeveragedProduct === true) {
+                    $linear = true;
+                }
+                $result[] = array(
+                    'id' => $marketId,
+                    'symbol' => $symbol,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'settle' => null,
+                    'baseId' => $baseId,
+                    'quoteId' => $quoteId,
+                    'settleId' => null,
+                    'type' => 'spot',
+                    'spot' => true,
+                    'margin' => false,
+                    'swap' => $isLeveragedProduct,
+                    'future' => false,
+                    'option' => false,
+                    'active' => true,
+                    'contract' => $isLeveragedProduct,
+                    'linear' => $linear, // all leveraged ETF products are in USDT
+                    'inverse' => null,
+                    'contractSize' => null,
+                    'expiry' => null,
+                    'expiryDatetime' => null,
+                    'strike' => null,
+                    'optionType' => null,
+                    'precision' => array(
+                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantityAccuracy'))),
+                        'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'priceAccuracy'))),
+                    ),
+                    'limits' => array(
+                        'leverage' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'amount' => array(
+                            'min' => $this->safe_number($market, 'minTranQua'),
+                            'max' => null,
+                        ),
+                        'price' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'cost' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                    'info' => $market,
+                );
             }
-            $linear = null;
-            if ($isLeveragedProduct === true) {
-                $linear = true;
-            }
-            $result[] = array(
-                'id' => $marketId,
-                'symbol' => $symbol,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => null,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => null,
-                'type' => 'spot',
-                'spot' => true,
-                'margin' => false,
-                'swap' => $isLeveragedProduct,
-                'future' => false,
-                'option' => false,
-                'active' => true,
-                'contract' => $isLeveragedProduct,
-                'linear' => $linear, // all leveraged ETF products are in USDT
-                'inverse' => null,
-                'contractSize' => null,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'strike' => null,
-                'optionType' => null,
-                'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantityAccuracy'))),
-                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'priceAccuracy'))),
-                ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'amount' => array(
-                        'min' => $this->safe_number($market, 'minTranQua'),
-                        'max' => null,
-                    ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-                'info' => $market,
-            );
-        }
-        return $result;
+            return $result;
+        }) ();
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -402,80 +409,86 @@ class lbank2 extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
-        /**
-         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-         * @param {array} $params extra parameters specific to the lbank2 api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        $response = yield $this->publicGetTicker24hr (array_merge($request, $params));
-        //
-        //      {
-        //          "result":"true",
-        //          "data" => array(
-        //              {
-        //                  "symbol":"btc_usdt",
-        //                  "ticker":array(
-        //                          "high":40200.88,
-        //                          "vol":7508.3096,
-        //                          "low":38239.38,
-        //                          "change":0.75,
-        //                          "turnover":292962771.34,
-        //                          "latest":39577.95
-        //                      ),
-        //                  "timestamp":1647005189792
-        //               }
-        //                   ),
-        //          "error_code":0,"ts":1647005190755
-        //      }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        $first = $this->safe_value($data, 0, array());
-        return $this->parse_ticker($first, $market);
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+             * @param {array} $params extra parameters specific to the lbank2 api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->publicGetTicker24hr (array_merge($request, $params)));
+            //
+            //      {
+            //          "result":"true",
+            //          "data" => array(
+            //              {
+            //                  "symbol":"btc_usdt",
+            //                  "ticker":array(
+            //                          "high":40200.88,
+            //                          "vol":7508.3096,
+            //                          "low":38239.38,
+            //                          "change":0.75,
+            //                          "turnover":292962771.34,
+            //                          "latest":39577.95
+            //                      ),
+            //                  "timestamp":1647005189792
+            //               }
+            //                   ),
+            //          "error_code":0,"ts":1647005190755
+            //      }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            $first = $this->safe_value($data, 0, array());
+            return $this->parse_ticker($first, $market);
+        }) ();
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
-        /**
-         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {array} $params extra parameters specific to the lbank api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
-         */
-        yield $this->load_markets();
-        $request = array(
-            'symbol' => 'all',
-        );
-        $response = yield $this->publicGetTicker24hr (array_merge($request, $params));
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_tickers($data, $symbols);
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+             * @param {array} $params extra parameters specific to the lbank api endpoint
+             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'symbol' => 'all',
+            );
+            $response = Async\await($this->publicGetTicker24hr (array_merge($request, $params)));
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_tickers($data, $symbols);
+        }) ();
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
-        /**
-         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {array} $params extra parameters specific to the lbank2 api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        if ($limit === null) {
-            $limit = 60;
-        }
-        $request = array(
-            'symbol' => $market['id'],
-            'size' => $limit,
-        );
-        $response = yield $this->publicGetDepth (array_merge($request, $params));
-        $orderbook = $response['data'];
-        $timestamp = $this->milliseconds();
-        return $this->parse_order_book($orderbook, $market['symbol'], $timestamp);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {array} $params extra parameters specific to the lbank2 api endpoint
+             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if ($limit === null) {
+                $limit = 60;
+            }
+            $request = array(
+                'symbol' => $market['id'],
+                'size' => $limit,
+            );
+            $response = Async\await($this->publicGetDepth (array_merge($request, $params)));
+            $orderbook = $response['data'];
+            $timestamp = $this->milliseconds();
+            return $this->parse_order_book($orderbook, $market['symbol'], $timestamp);
+        }) ();
     }
 
     public function parse_trade($trade, $market = null) {
@@ -582,51 +595,53 @@ class lbank2 extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        /**
-         * get the list of most recent $trades for a particular $symbol
-         * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of $trades to fetch
-         * @param {array} $params extra parameters specific to the lbank2 api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        if ($since !== null) {
-            $request['time'] = $since;
-        }
-        if ($limit !== null) {
-            $request['size'] = $limit;
-        } else {
-            $request['size'] = 600; // max
-        }
-        $method = $this->safe_string($params, 'method');
-        $params = $this->omit($params, 'method');
-        if ($method === null) {
-            $options = $this->safe_value($this->options, 'fetchTrades', array());
-            $method = $this->safe_string($options, 'method', 'publicGetTrades');
-        }
-        $response = yield $this->$method (array_merge($request, $params));
-        //
-        //      {
-        //          "result":"true",
-        //          "data" => array(
-        //              {
-        //                  "date_ms":1647021989789,
-        //                  "amount":0.0028,
-        //                  "price":38804.2,
-        //                  "type":"buy",
-        //                  "tid":"52d5616ee35c43019edddebe59b3e094"
-        //               }
-        //           ),
-        //           "error_code":0,
-        //           "ts":1647021999308
-        //      }
-        $trades = $this->safe_value($response, 'data', array());
-        return $this->parse_trades($trades, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * get the list of most recent $trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+             * @param {int|null} $limit the maximum amount of $trades to fetch
+             * @param {array} $params extra parameters specific to the lbank2 api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            if ($since !== null) {
+                $request['time'] = $since;
+            }
+            if ($limit !== null) {
+                $request['size'] = $limit;
+            } else {
+                $request['size'] = 600; // max
+            }
+            $method = $this->safe_string($params, 'method');
+            $params = $this->omit($params, 'method');
+            if ($method === null) {
+                $options = $this->safe_value($this->options, 'fetchTrades', array());
+                $method = $this->safe_string($options, 'method', 'publicGetTrades');
+            }
+            $response = Async\await($this->$method (array_merge($request, $params)));
+            //
+            //      {
+            //          "result":"true",
+            //          "data" => array(
+            //              {
+            //                  "date_ms":1647021989789,
+            //                  "amount":0.0028,
+            //                  "price":38804.2,
+            //                  "type":"buy",
+            //                  "tid":"52d5616ee35c43019edddebe59b3e094"
+            //               }
+            //           ),
+            //           "error_code":0,
+            //           "ts":1647021999308
+            //      }
+            $trades = $this->safe_value($response, 'data', array());
+            return $this->parse_trades($trades, $market, $since, $limit);
+        }) ();
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -651,54 +666,57 @@ class lbank2 extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-         * @param {string} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {array} $params extra parameters specific to the lbank2 api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
-        // endpoint doesnt work
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        if ($since === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOHLCV () requires a $since argument');
-        }
-        if ($limit === null) {
-            $limit = 100;
-        }
-        $request = array(
-            'symbol' => $market['id'],
-            'type' => $this->timeframes[$timeframe],
-            'time' => intval($since / 1000),
-            'size' => $limit, // max 2000
-        );
-        $response = yield $this->publicGetKline (array_merge($request, $params));
-        $ohlcvs = $this->safe_value($response, 'data', array());
-        //
-        //
-        // array(
-        //   array(
-        //     1482311500,
-        //     5423.23,
-        //     5472.80,
-        //     5516.09,
-        //     5462,
-        //     234.3250
-        //   ),
-        //   array(
-        //     1482311400,
-        //     5432.52,
-        //     5459.87,
-        //     5414.30,
-        //     5428.23,
-        //     213.7329
-        //   )
-        // )
-        //
-        return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of candles to fetch
+             * @param {array} $params extra parameters specific to the lbank2 api endpoint
+             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             */
+            // endpoint doesnt work
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if ($limit === null) {
+                $limit = 100;
+            }
+            if ($since === null) {
+                $duration = $this->parse_timeframe($timeframe);
+                $since = $this->milliseconds() - $duration * 1000 * $limit;
+            }
+            $request = array(
+                'symbol' => $market['id'],
+                'type' => $this->timeframes[$timeframe],
+                'time' => intval($since / 1000),
+                'size' => $limit, // max 2000
+            );
+            $response = Async\await($this->publicGetKline (array_merge($request, $params)));
+            $ohlcvs = $this->safe_value($response, 'data', array());
+            //
+            //
+            // array(
+            //   array(
+            //     1482311500,
+            //     5423.23,
+            //     5472.80,
+            //     5516.09,
+            //     5462,
+            //     234.3250
+            //   ),
+            //   array(
+            //     1482311400,
+            //     5432.52,
+            //     5459.87,
+            //     5414.30,
+            //     5428.23,
+            //     213.7329
+            //   )
+            // )
+            //
+            return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
+        }) ();
     }
 
     public function parse_balance($response) {
@@ -833,19 +851,51 @@ class lbank2 extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
-        /**
-         * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} $params extra parameters specific to the lbank2 api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
-         */
-        yield $this->load_markets();
-        $method = $this->safe_string($params, 'method');
-        if ($method === null) {
-            $options = $this->safe_value($this->options, 'fetchBalance', array());
-            $method = $this->safe_string($options, 'method', 'privatePostSupplementUserInfo');
-        }
-        $response = yield $this->$method ();
-        return $this->parse_balance($response);
+        return Async\async(function () use ($params) {
+            /**
+             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} $params extra parameters specific to the lbank2 api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             */
+            Async\await($this->load_markets());
+            $method = $this->safe_string($params, 'method');
+            if ($method === null) {
+                $options = $this->safe_value($this->options, 'fetchBalance', array());
+                $method = $this->safe_string($options, 'method', 'privatePostSupplementUserInfo');
+            }
+            $response = Async\await($this->$method ());
+            //
+            //    {
+            //        "result" => "true",
+            //        "data" => array(
+            //            {
+            //                "usableAmt" => "14.36",
+            //                "assetAmt" => "14.36",
+            //                "networkList" => array(
+            //                    array(
+            //                        "isDefault" => false,
+            //                        "withdrawFeeRate" => "",
+            //                        "name" => "erc20",
+            //                        "withdrawMin" => 30,
+            //                        "minLimit" => 0.0001,
+            //                        "minDeposit" => 20,
+            //                        "feeAssetCode" => "usdt",
+            //                        "withdrawFee" => "30",
+            //                        "type" => 1,
+            //                        "coin" => "usdt",
+            //                        "network" => "eth"
+            //                    ),
+            //                    ...
+            //                ),
+            //                "freezeAmt" => "0",
+            //                "coin" => "ada"
+            //            }
+            //        ),
+            //        "code" => 0
+            //    }
+            //
+            return $this->parse_balance($response);
+        }) ();
     }
 
     public function parse_trading_fee($fee, $market = null) {
@@ -867,118 +917,127 @@ class lbank2 extends Exchange {
     }
 
     public function fetch_trading_fee($symbol, $params = array ()) {
-        /**
-         * fetch the trading fees for a $market
-         * @param {string} $symbol unified $market $symbol
-         * @param {array} $params extra parameters specific to the lbank2 api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
-         */
-        $market = $this->market($symbol);
-        $result = yield $this->fetch_trading_fees(array_merge($params, array( 'category' => $market['id'] )));
-        return $result;
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the trading fees for a $market
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} $params extra parameters specific to the lbank2 api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+             */
+            $market = $this->market($symbol);
+            $result = Async\await($this->fetch_trading_fees(array_merge($params, array( 'category' => $market['id'] ))));
+            return $result;
+        }) ();
     }
 
     public function fetch_trading_fees($params = array ()) {
-        /**
-         * fetch the trading $fees for multiple markets
-         * @param {array} $params extra parameters specific to the lbank2 api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structures} indexed by market symbols
-         */
-        yield $this->load_markets();
-        $request = array();
-        $response = yield $this->privatePostSupplementCustomerTradeFee (array_merge($request, $params));
-        $fees = $this->safe_value($response, 'data', array());
-        $result = array();
-        for ($i = 0; $i < count($fees); $i++) {
-            $fee = $this->parse_trading_fee($fees[$i]);
-            $symbol = $fee['symbol'];
-            $result[$symbol] = $fee;
-        }
-        return $result;
+        return Async\async(function () use ($params) {
+            /**
+             * fetch the trading $fees for multiple markets
+             * @param {array} $params extra parameters specific to the lbank2 api endpoint
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structures} indexed by market symbols
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            $response = Async\await($this->privatePostSupplementCustomerTradeFee (array_merge($request, $params)));
+            $fees = $this->safe_value($response, 'data', array());
+            $result = array();
+            for ($i = 0; $i < count($fees); $i++) {
+                $fee = $this->parse_trading_fee($fees[$i]);
+                $symbol = $fee['symbol'];
+                $result[$symbol] = $fee;
+            }
+            return $result;
+        }) ();
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        /**
-         * create a trade order
-         * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type 'market' or 'limit'
-         * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the lbank2 api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $clientOrderId = $this->safe_string_2($params, 'custom_id', 'clientOrderId');
-        $postOnly = $this->safe_value($params, 'postOnly', false);
-        $timeInForce = $this->safe_string_upper($params, 'timeInForce');
-        $params = $this->omit($params, array( 'custom_id', 'clientOrderId', 'timeInForce', 'postOnly' ));
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        $ioc = ($timeInForce === 'IOC');
-        $fok = ($timeInForce === 'FOK');
-        $maker = ($postOnly || ($timeInForce === 'PO'));
-        if (($type === 'market') && ($ioc || $fok || $maker)) {
-            throw new InvalidOrder($this->id . ' createOrder () does not allow $market FOK, IOC, or $postOnly orders. Only limit IOC, FOK, and $postOnly orders are allowed');
-        }
-        if ($type === 'limit') {
-            $request['type'] = $side;
-            $request['price'] = $this->price_to_precision($symbol, $price);
-            $request['amount'] = $this->amount_to_precision($symbol, $amount);
-            if ($ioc) {
-                $request['type'] = $side . '_' . 'ioc';
-            } elseif ($fok) {
-                $request['type'] = $side . '_' . 'fok';
-            } elseif ($maker) {
-                $request['type'] = $side . '_' . 'maker';
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * create a trade order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the lbank2 api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $clientOrderId = $this->safe_string_2($params, 'custom_id', 'clientOrderId');
+            $postOnly = $this->safe_value($params, 'postOnly', false);
+            $timeInForce = $this->safe_string_upper($params, 'timeInForce');
+            $params = $this->omit($params, array( 'custom_id', 'clientOrderId', 'timeInForce', 'postOnly' ));
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $ioc = ($timeInForce === 'IOC');
+            $fok = ($timeInForce === 'FOK');
+            $maker = ($postOnly || ($timeInForce === 'PO'));
+            if (($type === 'market') && ($ioc || $fok || $maker)) {
+                throw new InvalidOrder($this->id . ' createOrder () does not allow $market FOK, IOC, or $postOnly orders. Only limit IOC, FOK, and $postOnly orders are allowed');
             }
-        } elseif ($type === 'market') {
-            if ($side === 'sell') {
-                $request['type'] = $side . '_' . 'market';
+            if ($type === 'limit') {
+                $request['type'] = $side;
+                $request['price'] = $this->price_to_precision($symbol, $price);
                 $request['amount'] = $this->amount_to_precision($symbol, $amount);
-            } elseif ($side === 'buy') {
-                $request['type'] = $side . '_' . 'market';
-                if ($this->options['createMarketBuyOrderRequiresPrice']) {
-                    if ($price === null) {
-                        throw new InvalidOrder($this->id . " createOrder () requires the $price argument with $market buy orders to calculate total order $cost ($amount to spend), where $cost = $amount * $price-> Supply the $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)");
+                if ($ioc) {
+                    $request['type'] = $side . '_' . 'ioc';
+                } elseif ($fok) {
+                    $request['type'] = $side . '_' . 'fok';
+                } elseif ($maker) {
+                    $request['type'] = $side . '_' . 'maker';
+                }
+            } elseif ($type === 'market') {
+                if ($side === 'sell') {
+                    $request['type'] = $side . '_' . 'market';
+                    $request['amount'] = $this->amount_to_precision($symbol, $amount);
+                } elseif ($side === 'buy') {
+                    $request['type'] = $side . '_' . 'market';
+                    if ($this->options['createMarketBuyOrderRequiresPrice']) {
+                        if ($price === null) {
+                            throw new InvalidOrder($this->id . " createOrder () requires the $price argument with $market buy orders to calculate total order $cost ($amount to spend), where $cost = $amount * $price-> Supply the $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)");
+                        } else {
+                            $amountString = $this->number_to_string($amount);
+                            $priceString = $this->number_to_string($price);
+                            $quoteAmount = Precise::string_mul($amountString, $priceString);
+                            $cost = $this->parse_number($quoteAmount);
+                            $request['price'] = $this->price_to_precision($symbol, $cost);
+                        }
                     } else {
-                        $cost = floatval($amount) * floatval($price);
-                        $request['price'] = $this->price_to_precision($symbol, $cost);
+                        $request['price'] = $amount;
                     }
-                } else {
-                    $request['price'] = $amount;
                 }
             }
-        }
-        if ($clientOrderId !== null) {
-            $request['custom_id'] = $clientOrderId;
-        }
-        $method = null;
-        $method = $this->safe_string($params, 'method');
-        $params = $this->omit($params, 'method');
-        if ($method === null) {
-            $options = $this->safe_value($this->options, 'createOrder', array());
-            $method = $this->safe_string($options, 'method', 'privatePostSupplementCreateOrder');
-        }
-        $response = yield $this->$method (array_merge($request, $params));
-        //
-        //      {
-        //          "result":true,
-        //          "data":array(
-        //              "symbol":"doge_usdt",
-        //              "order_id":"0cf8a3de-4597-4296-af45-be7abaa06b07"
-        //              ),
-        //          "error_code":0,
-        //          "ts":1648162321043
-        //      }
-        //
-        $result = $this->safe_value($response, 'data', array());
-        return array(
-            'id' => $this->safe_string($result, 'order_id'),
-            'info' => $result,
-        );
+            if ($clientOrderId !== null) {
+                $request['custom_id'] = $clientOrderId;
+            }
+            $method = null;
+            $method = $this->safe_string($params, 'method');
+            $params = $this->omit($params, 'method');
+            if ($method === null) {
+                $options = $this->safe_value($this->options, 'createOrder', array());
+                $method = $this->safe_string($options, 'method', 'privatePostSupplementCreateOrder');
+            }
+            $response = Async\await($this->$method (array_merge($request, $params)));
+            //
+            //      {
+            //          "result":true,
+            //          "data":array(
+            //              "symbol":"doge_usdt",
+            //              "order_id":"0cf8a3de-4597-4296-af45-be7abaa06b07"
+            //              ),
+            //          "error_code":0,
+            //          "ts":1648162321043
+            //      }
+            //
+            $result = $this->safe_value($response, 'data', array());
+            return array(
+                'id' => $this->safe_string($result, 'order_id'),
+                'info' => $result,
+            );
+        }) ();
     }
 
     public function parse_order_status($status) {
@@ -1119,508 +1178,539 @@ class lbank2 extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
-        /**
-         * fetches information on an order made by the user
-         * @param {string|null} $symbol unified $symbol of the market the order was made in
-         * @param {array} $params extra parameters specific to the lbank2 api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        yield $this->load_markets();
-        $method = $this->safe_string($params, 'method');
-        if ($method === null) {
-            $options = $this->safe_value($this->options, 'fetchOrder', array());
-            $method = $this->safe_string($options, 'method', 'fetchOrderSupplement');
-        }
-        $result = yield $this->$method ($id, $symbol, $params);
-        return $result;
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * fetches information on an order made by the user
+             * @param {string|null} $symbol unified $symbol of the market the order was made in
+             * @param {array} $params extra parameters specific to the lbank2 api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $method = $this->safe_string($params, 'method');
+            if ($method === null) {
+                $options = $this->safe_value($this->options, 'fetchOrder', array());
+                $method = $this->safe_string($options, 'method', 'fetchOrderSupplement');
+            }
+            $result = Async\await($this->$method ($id, $symbol, $params));
+            return $result;
+        }) ();
     }
 
     public function fetch_order_supplement($id, $symbol = null, $params = array ()) {
-        yield $this->load_markets();
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder () requires a $symbol argument');
-        }
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-            'orderId' => $id,
-        );
-        $response = yield $this->privatePostSupplementOrdersInfo (array_merge($request, $params));
-        //
-        //      {
-        //          "result":true,
-        //          "data":array(
-        //              "cummulativeQuoteQty":0,
-        //              "symbol":"doge_usdt",
-        //              "executedQty":0,
-        //              "orderId":"53d2d53e-70fb-4398-b722-f48571a5f61e",
-        //              "origQty":1E+2,
-        //              "price":0.05,
-        //              "clientOrderId":null,
-        //              "origQuoteOrderQty":5,
-        //              "updateTime":1648163406000,
-        //              "time":1648163139387,
-        //              "type":"buy_maker",
-        //              "status":-1
-        //              ),
-        //          "error_code":0,
-        //          "ts":1648164471827
-        //      }
-        //
-        $result = $this->safe_value($response, 'data', array());
-        return $this->parse_order($result);
+        return Async\async(function () use ($id, $symbol, $params) {
+            Async\await($this->load_markets());
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOrder () requires a $symbol argument');
+            }
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+                'orderId' => $id,
+            );
+            $response = Async\await($this->privatePostSupplementOrdersInfo (array_merge($request, $params)));
+            //
+            //      {
+            //          "result":true,
+            //          "data":array(
+            //              "cummulativeQuoteQty":0,
+            //              "symbol":"doge_usdt",
+            //              "executedQty":0,
+            //              "orderId":"53d2d53e-70fb-4398-b722-f48571a5f61e",
+            //              "origQty":1E+2,
+            //              "price":0.05,
+            //              "clientOrderId":null,
+            //              "origQuoteOrderQty":5,
+            //              "updateTime":1648163406000,
+            //              "time":1648163139387,
+            //              "type":"buy_maker",
+            //              "status":-1
+            //              ),
+            //          "error_code":0,
+            //          "ts":1648164471827
+            //      }
+            //
+            $result = $this->safe_value($response, 'data', array());
+            return $this->parse_order($result);
+        }) ();
     }
 
     public function fetch_order_default($id, $symbol = null, $params = array ()) {
-        // Id can be a list of ids delimited by a comma
-        yield $this->load_markets();
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder () requires a $symbol argument');
-        }
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-            'order_id' => $id,
-        );
-        $response = yield $this->privatePostOrdersInfo (array_merge($request, $params));
-        //
-        //      {
-        //          "result":true,
-        //          "data":array(
-        //              {
-        //                  "symbol":"doge_usdt",
-        //                  "amount":18,
-        //                  "create_time":1647455223186,
-        //                  "price":0,
-        //                  "avg_price":0.113344,
-        //                  "type":"sell_market",
-        //                  "order_id":"d4ca1ddd-40d9-42c1-9717-5de435865bec",
-        //                  "deal_amount":18,
-        //                  "status":2
-        //                }
-        //            ),
-        //          "error_code":0,
-        //          "ts":1647455270776
-        //      }
-        //
-        $result = $this->safe_value($response, 'data', array());
-        $numOrders = count($result);
-        if ($numOrders === 1) {
-            return $this->parse_order($result[0]);
-        } else {
-            $parsedOrders = array();
-            for ($i = 0; $i < $numOrders; $i++) {
-                $parsedOrder = $this->parse_order($result[$i]);
-                $parsedOrders[] = $parsedOrder;
+        return Async\async(function () use ($id, $symbol, $params) {
+            // Id can be a list of ids delimited by a comma
+            Async\await($this->load_markets());
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOrder () requires a $symbol argument');
             }
-            return $parsedOrders;
-        }
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+                'order_id' => $id,
+            );
+            $response = Async\await($this->privatePostOrdersInfo (array_merge($request, $params)));
+            //
+            //      {
+            //          "result":true,
+            //          "data":array(
+            //              {
+            //                  "symbol":"doge_usdt",
+            //                  "amount":18,
+            //                  "create_time":1647455223186,
+            //                  "price":0,
+            //                  "avg_price":0.113344,
+            //                  "type":"sell_market",
+            //                  "order_id":"d4ca1ddd-40d9-42c1-9717-5de435865bec",
+            //                  "deal_amount":18,
+            //                  "status":2
+            //                }
+            //            ),
+            //          "error_code":0,
+            //          "ts":1647455270776
+            //      }
+            //
+            $result = $this->safe_value($response, 'data', array());
+            $numOrders = count($result);
+            if ($numOrders === 1) {
+                return $this->parse_order($result[0]);
+            } else {
+                $parsedOrders = array();
+                for ($i = 0; $i < $numOrders; $i++) {
+                    $parsedOrder = $this->parse_order($result[$i]);
+                    $parsedOrders[] = $parsedOrder;
+                }
+                return $parsedOrders;
+            }
+        }) ();
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all $trades made by the user
-         * @param {string} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch $trades for
-         * @param {int|null} $limit the maximum number of $trades structures to retrieve
-         * @param {array} $params extra parameters specific to the lbank2 api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades () requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $since = $this->safe_value($params, 'start_date', $since);
-        $params = $this->omit($params, 'start_date');
-        $request = array(
-            'symbol' => $market['id'],
-            // 'start_date' => 'strval' Start time yyyy-mm-dd, the maximum is today, the default is yesterday
-            // 'end_date' => 'strval' Finish time yyyy-mm-dd, the maximum is today, the default is today
-            // 'The start' => and end date of the query window is up to 2 days
-            // 'from' => 'strval' Initial transaction number inquiring
-            // 'direct' => 'strval' inquire direction,The default is the 'next' which is the positive sequence of dealing time，the 'prev' is inverted order of dealing time
-            // 'size' => 'strval' Query the number of defaults to 100
-        );
-        if ($limit !== null) {
-            $request['size'] = $limit;
-        }
-        if ($since !== null) {
-            $request['start_date'] = $this->ymd($since, '-'); // max query 2 days ago
-        }
-        $response = yield $this->privatePostTransactionHistory (array_merge($request, $params));
-        //
-        //      {
-        //          "result":true,
-        //          "data":array(
-        //              {
-        //                  "orderUuid":"38b4e7a4-14f6-45fd-aba1-1a37024124a0",
-        //                  "tradeFeeRate":0.0010000000,
-        //                  "dealTime":1648500944496,
-        //                  "dealQuantity":30.00000000000000000000,
-        //                  "tradeFee":0.00453300000000000000,
-        //                  "txUuid":"11f3850cc6214ea3b495adad3a032794",
-        //                  "dealPrice":0.15111300000000000000,
-        //                  "dealVolumePrice":4.53339000000000000000,
-        //                  "tradeType":"sell_market"
-        //              }
-        //          ),
-        //          "error_code":0,
-        //          "ts":1648509742164
-        //      }
-        //
-        $trades = $this->safe_value($response, 'data', array());
-        return $this->parse_trades($trades, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all $trades made by the user
+             * @param {string} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch $trades for
+             * @param {int|null} $limit the maximum number of $trades structures to retrieve
+             * @param {array} $params extra parameters specific to the lbank2 api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchMyTrades () requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $since = $this->safe_value($params, 'start_date', $since);
+            $params = $this->omit($params, 'start_date');
+            $request = array(
+                'symbol' => $market['id'],
+                // 'start_date' => 'strval' Start time yyyy-mm-dd, the maximum is today, the default is yesterday
+                // 'end_date' => 'strval' Finish time yyyy-mm-dd, the maximum is today, the default is today
+                // 'The start' => and end date of the query window is up to 2 days
+                // 'from' => 'strval' Initial transaction number inquiring
+                // 'direct' => 'strval' inquire direction,The default is the 'next' which is the positive sequence of dealing time，the 'prev' is inverted order of dealing time
+                // 'size' => 'strval' Query the number of defaults to 100
+            );
+            if ($limit !== null) {
+                $request['size'] = $limit;
+            }
+            if ($since !== null) {
+                $request['start_date'] = $this->ymd($since, '-'); // max query 2 days ago
+            }
+            $response = Async\await($this->privatePostTransactionHistory (array_merge($request, $params)));
+            //
+            //      {
+            //          "result":true,
+            //          "data":array(
+            //              {
+            //                  "orderUuid":"38b4e7a4-14f6-45fd-aba1-1a37024124a0",
+            //                  "tradeFeeRate":0.0010000000,
+            //                  "dealTime":1648500944496,
+            //                  "dealQuantity":30.00000000000000000000,
+            //                  "tradeFee":0.00453300000000000000,
+            //                  "txUuid":"11f3850cc6214ea3b495adad3a032794",
+            //                  "dealPrice":0.15111300000000000000,
+            //                  "dealVolumePrice":4.53339000000000000000,
+            //                  "tradeType":"sell_market"
+            //              }
+            //          ),
+            //          "error_code":0,
+            //          "ts":1648509742164
+            //      }
+            //
+            $trades = $this->safe_value($response, 'data', array());
+            return $this->parse_trades($trades, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches information on multiple $orders made by the user
-         * @param {string} $symbol unified $market $symbol of the $market $orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch $orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {array} $params extra parameters specific to the lbank2 api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        // default query is for canceled and completely filled $orders
-        // does not return open $orders unless specified explicitly
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        if ($limit === null) {
-            $limit = 100;
-        }
-        $request = array(
-            'symbol' => $market['id'],
-            'current_page' => 1,
-            'page_length' => $limit,
-            // 'status'  -1 => Cancelled, 0 => Unfilled, 1 => Partially filled, 2 => Completely filled, 3 => Partially filled and cancelled, 4 => Cancellation is being processed
-        );
-        $response = yield $this->privatePostSupplementOrdersInfoHistory (array_merge($request, $params));
-        //
-        //      {
-        //          "result":true,
-        //          "data":array(
-        //              "total":1,
-        //              "page_length":100,
-        //              "orders":array(
-        //                  array(
-        //                      "cummulativeQuoteQty":0,
-        //                      "symbol":"doge_usdt",
-        //                      "executedQty":0,
-        //                      "orderId":"2cadc7cc-b5f6-486b-a5b4-d6ac49a9c186",
-        //                      "origQty":100,
-        //                      "price":0.05,
-        //                      "origQuoteOrderQty":5,
-        //                      "updateTime":1648501384000,
-        //                      "time":1648501363889,
-        //                      "type":"buy",
-        //                      "status":-1
-        //                  ), ...
-        //              ),
-        //              "current_page":1
-        //          ),
-        //          "error_code":0,
-        //          "ts":1648505706348
-        //      }
-        //
-        $result = $this->safe_value($response, 'data', array());
-        $orders = $this->safe_value($result, 'orders', array());
-        return $this->parse_orders($orders, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple $orders made by the user
+             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch $orders for
+             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {array} $params extra parameters specific to the lbank2 api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            // default query is for canceled and completely filled $orders
+            // does not return open $orders unless specified explicitly
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if ($limit === null) {
+                $limit = 100;
+            }
+            $request = array(
+                'symbol' => $market['id'],
+                'current_page' => 1,
+                'page_length' => $limit,
+                // 'status'  -1 => Cancelled, 0 => Unfilled, 1 => Partially filled, 2 => Completely filled, 3 => Partially filled and cancelled, 4 => Cancellation is being processed
+            );
+            $response = Async\await($this->privatePostSupplementOrdersInfoHistory (array_merge($request, $params)));
+            //
+            //      {
+            //          "result":true,
+            //          "data":array(
+            //              "total":1,
+            //              "page_length":100,
+            //              "orders":array(
+            //                  array(
+            //                      "cummulativeQuoteQty":0,
+            //                      "symbol":"doge_usdt",
+            //                      "executedQty":0,
+            //                      "orderId":"2cadc7cc-b5f6-486b-a5b4-d6ac49a9c186",
+            //                      "origQty":100,
+            //                      "price":0.05,
+            //                      "origQuoteOrderQty":5,
+            //                      "updateTime":1648501384000,
+            //                      "time":1648501363889,
+            //                      "type":"buy",
+            //                      "status":-1
+            //                  ), ...
+            //              ),
+            //              "current_page":1
+            //          ),
+            //          "error_code":0,
+            //          "ts":1648505706348
+            //      }
+            //
+            $result = $this->safe_value($response, 'data', array());
+            $orders = $this->safe_value($result, 'orders', array());
+            return $this->parse_orders($orders, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all unfilled currently open $orders
-         * @param {string} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch open $orders for
-         * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
-         * @param {array} $params extra parameters specific to the lbank2 api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        if ($limit === null) {
-            $limit = 100;
-        }
-        $request = array(
-            'symbol' => $market['id'],
-            'current_page' => 1,
-            'page_length' => $limit,
-        );
-        $response = yield $this->privatePostSupplementOrdersInfoNoDeal (array_merge($request, $params));
-        //
-        //      {
-        //          "result":true,
-        //          "data":array(
-        //              "total":1,
-        //              "page_length":100,
-        //              "orders":array(
-        //                  array(
-        //                      "cummulativeQuoteQty":0,
-        //                      "symbol":"doge_usdt",
-        //                      "executedQty":0,
-        //                      "orderId":"73878edf-008d-4e4c-8041-df1f1b2cd8bb",
-        //                      "origQty":100,
-        //                      "price":0.05,
-        //                      "origQuoteOrderQty":5,
-        //                      "updateTime":1648501762000,
-        //                      "time":1648501762353,
-        //                      "type":"buy",
-        //                      "status":0
-        //                  ), ...
-        //             ),
-        //             "current_page":1
-        //         ),
-        //         "error_code":0,
-        //         "ts":1648506110196
-        //     }
-        //
-        $result = $this->safe_value($response, 'data', array());
-        $orders = $this->safe_value($result, 'orders', array());
-        return $this->parse_orders($orders, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all unfilled currently open $orders
+             * @param {string} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch open $orders for
+             * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
+             * @param {array} $params extra parameters specific to the lbank2 api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if ($limit === null) {
+                $limit = 100;
+            }
+            $request = array(
+                'symbol' => $market['id'],
+                'current_page' => 1,
+                'page_length' => $limit,
+            );
+            $response = Async\await($this->privatePostSupplementOrdersInfoNoDeal (array_merge($request, $params)));
+            //
+            //      {
+            //          "result":true,
+            //          "data":array(
+            //              "total":1,
+            //              "page_length":100,
+            //              "orders":array(
+            //                  array(
+            //                      "cummulativeQuoteQty":0,
+            //                      "symbol":"doge_usdt",
+            //                      "executedQty":0,
+            //                      "orderId":"73878edf-008d-4e4c-8041-df1f1b2cd8bb",
+            //                      "origQty":100,
+            //                      "price":0.05,
+            //                      "origQuoteOrderQty":5,
+            //                      "updateTime":1648501762000,
+            //                      "time":1648501762353,
+            //                      "type":"buy",
+            //                      "status":0
+            //                  ), ...
+            //             ),
+            //             "current_page":1
+            //         ),
+            //         "error_code":0,
+            //         "ts":1648506110196
+            //     }
+            //
+            $result = $this->safe_value($response, 'data', array());
+            $orders = $this->safe_value($result, 'orders', array());
+            return $this->parse_orders($orders, $market, $since, $limit);
+        }) ();
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        /**
-         * cancels an open order
-         * @param {string} $id order $id
-         * @param {string} $symbol unified $symbol of the $market the order was made in
-         * @param {array} $params extra parameters specific to the lbank2 api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $clientOrderId = $this->safe_string_2($params, 'origClientOrderId', 'clientOrderId');
-        $params = $this->omit($params, array( 'origClientOrderId', 'clientOrderId' ));
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        if ($clientOrderId !== null) {
-            $request['origClientOrderId'] = $clientOrderId;
-        }
-        $request['orderId'] = $id;
-        $response = yield $this->privatePostSupplementCancelOrder (array_merge($request, $params));
-        //
-        //   {
-        //      "result":true,
-        //      "data":array(
-        //          "executedQty":0.0,
-        //          "price":0.05,
-        //          "origQty":100.0,
-        //          "tradeType":"buy",
-        //          "status":0
-        //          ),
-        //      "error_code":0,
-        //      "ts":1648501286196
-        //  }
-        $result = $this->safe_value($response, 'data', array());
-        return $result;
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * cancels an open order
+             * @param {string} $id order $id
+             * @param {string} $symbol unified $symbol of the $market the order was made in
+             * @param {array} $params extra parameters specific to the lbank2 api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $clientOrderId = $this->safe_string_2($params, 'origClientOrderId', 'clientOrderId');
+            $params = $this->omit($params, array( 'origClientOrderId', 'clientOrderId' ));
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            if ($clientOrderId !== null) {
+                $request['origClientOrderId'] = $clientOrderId;
+            }
+            $request['orderId'] = $id;
+            $response = Async\await($this->privatePostSupplementCancelOrder (array_merge($request, $params)));
+            //
+            //   {
+            //      "result":true,
+            //      "data":array(
+            //          "executedQty":0.0,
+            //          "price":0.05,
+            //          "origQty":100.0,
+            //          "tradeType":"buy",
+            //          "status":0
+            //          ),
+            //      "error_code":0,
+            //      "ts":1648501286196
+            //  }
+            $result = $this->safe_value($response, 'data', array());
+            return $result;
+        }) ();
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
-        /**
-         * cancel all open orders in a $market
-         * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
-         * @param {array} $params extra parameters specific to the lbank2 api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        $response = yield $this->privatePostSupplementCancelOrderBySymbol (array_merge($request, $params));
-        //
-        //      {
-        //          "result":"true",
-        //          "data":array(
-        //              array(
-        //                  "executedQty":0.00000000000000000000,
-        //                  "orderId":"293ef71b-3e67-4962-af93-aa06990a045f",
-        //                  "price":0.05000000000000000000,
-        //                  "origQty":100.00000000000000000000,
-        //                  "tradeType":"buy",
-        //                  "status":0
-        //              ),
-        //          ),
-        //          "error_code":0,
-        //          "ts":1648506641469
-        //      }
-        //
-        $result = $this->safe_value($response, 'data', array());
-        return $result;
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * cancel all open orders in a $market
+             * @param {string} $symbol unified $market $symbol of the $market to cancel orders in
+             * @param {array} $params extra parameters specific to the lbank2 api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->privatePostSupplementCancelOrderBySymbol (array_merge($request, $params)));
+            //
+            //      {
+            //          "result":"true",
+            //          "data":array(
+            //              array(
+            //                  "executedQty":0.00000000000000000000,
+            //                  "orderId":"293ef71b-3e67-4962-af93-aa06990a045f",
+            //                  "price":0.05000000000000000000,
+            //                  "origQty":100.00000000000000000000,
+            //                  "tradeType":"buy",
+            //                  "status":0
+            //              ),
+            //          ),
+            //          "error_code":0,
+            //          "ts":1648506641469
+            //      }
+            //
+            $result = $this->safe_value($response, 'data', array());
+            return $result;
+        }) ();
+    }
+
+    public function get_network_code_for_currency($currencyCode, $params) {
+        $defaultNetworks = $this->safe_value($this->options, 'defaultNetworks');
+        $defaultNetwork = $this->safe_string_upper($defaultNetworks, $currencyCode);
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper($params, 'network', $defaultNetwork); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+        return $network;
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
-        /**
-         * fetch the deposit address for a currency associated with this account
-         * @param {string} $code unified currency $code
-         * @param {array} $params extra parameters specific to the lbank2 api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
-         */
-        yield $this->load_markets();
-        $method = $this->safe_string($params, 'method');
-        $params = $this->omit($params, 'method');
-        if ($method === null) {
-            $options = $this->safe_value($this->options, 'fetchDepositAddress', array());
-            $method = $this->safe_string($options, 'method', 'fetchPrivateTradingFees');
-        }
-        return yield $this->$method ($code, $params);
+        return Async\async(function () use ($code, $params) {
+            /**
+             * fetch the deposit address for a currency associated with this account
+             * @param {string} $code unified currency $code
+             * @param {array} $params extra parameters specific to the lbank2 api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+             */
+            Async\await($this->load_markets());
+            $method = $this->safe_string($params, 'method');
+            $params = $this->omit($params, 'method');
+            if ($method === null) {
+                $options = $this->safe_value($this->options, 'fetchDepositAddress', array());
+                $method = $this->safe_string($options, 'method', 'fetchPrivateTradingFees');
+            }
+            return Async\await($this->$method ($code, $params));
+        }) ();
     }
 
     public function fetch_deposit_address_default($code, $params = array ()) {
-        yield $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'assetCode' => $currency['id'],
-        );
-        $networks = $this->safe_value($this->options, 'networks');
-        $network = $this->safe_string_upper($params, 'network');
-        $network = $this->safe_string($networks, $network, $network);
-        if ($network !== null) {
-            $request['netWork'] = $network; // ... yes, really lol
-            $params = $this->omit($params, 'network');
-        }
-        $response = yield $this->privatePostGetDepositAddress (array_merge($request, $params));
-        //
-        //      {
-        //          "result":true,
-        //          "data":array(
-        //              "assetCode":"usdt",
-        //              "address":"0xc85689d37ca650bf2f2161364cdedee21eb6ca53",
-        //              "memo":null,
-        //              "netWork":"bep20(bsc)"
-        //              ),
-        //          "error_code":0,
-        //          "ts":1648075865103
-        //      }
-        //
-        $result = $this->safe_value($response, 'data');
-        $address = $this->safe_string($result, 'address');
-        $tag = $this->safe_string($result, 'memo');
-        $networkId = $this->safe_string($result, 'netWork');
-        $inverseNetworks = $this->safe_value($this->options, 'inverse-networks', array());
-        $networkCode = $this->safe_string_upper($inverseNetworks, $networkId, $networkId);
-        return array(
-            'currency' => $code,
-            'address' => $address,
-            'tag' => $tag,
-            'network' => $networkCode,
-            'info' => $response,
-        );
+        return Async\async(function () use ($code, $params) {
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'assetCode' => $currency['id'],
+            );
+            $network = $this->get_network_code_for_currency($code, $params);
+            if ($network !== null) {
+                $request['netWork'] = $network; // ... yes, really lol
+                $params = $this->omit($params, 'network');
+            }
+            $response = Async\await($this->privatePostGetDepositAddress (array_merge($request, $params)));
+            //
+            //      {
+            //          "result":true,
+            //          "data":array(
+            //              "assetCode":"usdt",
+            //              "address":"0xc85689d37ca650bf2f2161364cdedee21eb6ca53",
+            //              "memo":null,
+            //              "netWork":"bep20(bsc)"
+            //              ),
+            //          "error_code":0,
+            //          "ts":1648075865103
+            //      }
+            //
+            $result = $this->safe_value($response, 'data');
+            $address = $this->safe_string($result, 'address');
+            $tag = $this->safe_string($result, 'memo');
+            $networkId = $this->safe_string($result, 'netWork');
+            $inverseNetworks = $this->safe_value($this->options, 'inverse-networks', array());
+            $networkCode = $this->safe_string_upper($inverseNetworks, $networkId, $networkId);
+            return array(
+                'currency' => $code,
+                'address' => $address,
+                'tag' => $tag,
+                'network' => $networkCode,
+                'info' => $response,
+            );
+        }) ();
     }
 
     public function fetch_deposit_address_supplement($code, $params = array ()) {
-        // returns the $address for whatever the default $network is...
-        yield $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'coin' => $currency['id'],
-        );
-        $networks = $this->safe_value($this->options, 'networks');
-        $network = $this->safe_string_upper($params, 'network');
-        $network = $this->safe_string($networks, $network, $network);
-        if ($network !== null) {
-            $request['networkName'] = $network;
-            $params = $this->omit($params, 'network');
-        }
-        $response = yield $this->privatePostSupplementGetDepositAddress (array_merge($request, $params));
-        //
-        //      {
-        //          "result":true,
-        //          "data":array(
-        //              "address":"TDxtabCC8iQwaxUUrPcE4WL2jArGAfvQ5A",
-        //              "memo":null,
-        //              "coin":"usdt"
-        //              ),
-        //          "error_code":0,
-        //          "ts":1648073818880
-        //     }
-        //
-        $result = $this->safe_value($response, 'data');
-        $address = $this->safe_string($result, 'address');
-        $tag = $this->safe_string($result, 'memo');
-        $inverseNetworks = $this->safe_value($this->options, 'inverse-networks', array());
-        $networkCode = $this->safe_string_upper($inverseNetworks, $network, $network);
-        return array(
-            'currency' => $code,
-            'address' => $address,
-            'tag' => $tag,
-            'network' => $networkCode, // will be null if not specified in $request
-            'info' => $response,
-        );
+        return Async\async(function () use ($code, $params) {
+            // returns the $address for whatever the default $network is...
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'coin' => $currency['id'],
+            );
+            $networks = $this->safe_value($this->options, 'networks');
+            $network = $this->safe_string_upper($params, 'network');
+            $network = $this->safe_string($networks, $network, $network);
+            if ($network !== null) {
+                $request['networkName'] = $network;
+                $params = $this->omit($params, 'network');
+            }
+            $response = Async\await($this->privatePostSupplementGetDepositAddress (array_merge($request, $params)));
+            //
+            //      {
+            //          "result":true,
+            //          "data":array(
+            //              "address":"TDxtabCC8iQwaxUUrPcE4WL2jArGAfvQ5A",
+            //              "memo":null,
+            //              "coin":"usdt"
+            //              ),
+            //          "error_code":0,
+            //          "ts":1648073818880
+            //     }
+            //
+            $result = $this->safe_value($response, 'data');
+            $address = $this->safe_string($result, 'address');
+            $tag = $this->safe_string($result, 'memo');
+            $inverseNetworks = $this->safe_value($this->options, 'inverse-networks', array());
+            $networkCode = $this->safe_string_upper($inverseNetworks, $network, $network);
+            return array(
+                'currency' => $code,
+                'address' => $address,
+                'tag' => $tag,
+                'network' => $networkCode, // will be null if not specified in $request
+                'info' => $response,
+            );
+        }) ();
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
-        /**
-         * make a withdrawal
-         * @param {string} $code unified $currency $code
-         * @param {float} $amount the $amount to withdraw
-         * @param {string} $address the $address to withdraw to
-         * @param {string|null} $tag
-         * @param {array} $params extra parameters specific to the lbank2 api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
-         */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
-        yield $this->load_markets();
-        $fee = $this->safe_string($params, 'fee');
-        $params = $this->omit($params, 'fee');
-        if ($fee === null) {
-            throw new ArgumentsRequired($this->id . ' withdraw () requires a $fee argument to be supplied in $params, the relevant coin $network $fee can be found by calling fetchTransactionFees (), note => if no $network param is supplied then the default $network will be used, this can also be found in fetchTransactionFees ()');
-        }
-        $currency = $this->currency($code);
-        $request = array(
-            'address' => $address,
-            'coin' => $currency['id'],
-            'amount' => $amount,
-            'fee' => $fee, // the correct coin-$network $fee must be supplied, which can be found by calling fetchTransactionFees (private)
-            // 'networkName' => defaults to the defaultNetwork of the coin which can be found in the /supplement/user_info endpoint
-            // 'memo' => memo => memo word of bts and dct
-            // 'mark' => Withdrawal Notes
-            // 'name' => Remarks of the $address-> After filling in this parameter, it will be added to the withdrawal $address book of the $currency->
-            // 'withdrawOrderId' => withdrawOrderId
-            // 'type' => type=1 is for intra-site transfer
-        );
-        if ($tag !== null) {
-            $request['memo'] = $tag;
-        }
-        $network = $this->safe_string_upper_2($params, 'network', 'networkName');
-        $params = $this->omit($params, array( 'network', 'networkName' ));
-        $networks = $this->safe_value($this->options, 'networks');
-        $networkId = $this->safe_string($networks, $network, $network);
-        if ($networkId !== null) {
-            $request['networkName'] = $networkId;
-        }
-        $response = yield $this->privatePostSupplementWithdraw (array_merge($request, $params));
-        //
-        //      {
-        //          "result":true,
-        //          "data" => array(
-        //              "fee":10.00000000000000000000,
-        //              "withdrawId":1900376
-        //              ),
-        //          "error_code":0,
-        //          "ts":1648992501414
-        //      }
-        //
-        $result = $this->safe_value($response, 'data', array());
-        return array(
-            'info' => $result,
-            'id' => $this->safe_string($result, 'withdrawId'),
-        );
+        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
+            /**
+             * make a withdrawal
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount the $amount to withdraw
+             * @param {string} $address the $address to withdraw to
+             * @param {string|null} $tag
+             * @param {array} $params extra parameters specific to the lbank2 api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             */
+            list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+            $this->check_address($address);
+            Async\await($this->load_markets());
+            $fee = $this->safe_string($params, 'fee');
+            $params = $this->omit($params, 'fee');
+            if ($fee === null) {
+                throw new ArgumentsRequired($this->id . ' withdraw () requires a $fee argument to be supplied in $params, the relevant coin $network $fee can be found by calling fetchTransactionFees (), note => if no $network param is supplied then the default $network will be used, this can also be found in fetchTransactionFees ()');
+            }
+            $currency = $this->currency($code);
+            $request = array(
+                'address' => $address,
+                'coin' => $currency['id'],
+                'amount' => $amount,
+                'fee' => $fee, // the correct coin-$network $fee must be supplied, which can be found by calling fetchTransactionFees (private)
+                // 'networkName' => defaults to the defaultNetwork of the coin which can be found in the /supplement/user_info endpoint
+                // 'memo' => memo => memo word of bts and dct
+                // 'mark' => Withdrawal Notes
+                // 'name' => Remarks of the $address-> After filling in this parameter, it will be added to the withdrawal $address book of the $currency->
+                // 'withdrawOrderId' => withdrawOrderId
+                // 'type' => type=1 is for intra-site transfer
+            );
+            if ($tag !== null) {
+                $request['memo'] = $tag;
+            }
+            $network = $this->safe_string_upper_2($params, 'network', 'networkName');
+            $params = $this->omit($params, array( 'network', 'networkName' ));
+            $networks = $this->safe_value($this->options, 'networks');
+            $networkId = $this->safe_string($networks, $network, $network);
+            if ($networkId !== null) {
+                $request['networkName'] = $networkId;
+            }
+            $response = Async\await($this->privatePostSupplementWithdraw (array_merge($request, $params)));
+            //
+            //      {
+            //          "result":true,
+            //          "data" => array(
+            //              "fee":10.00000000000000000000,
+            //              "withdrawId":1900376
+            //              ),
+            //          "error_code":0,
+            //          "ts":1648992501414
+            //      }
+            //
+            $result = $this->safe_value($response, 'data', array());
+            return array(
+                'info' => $result,
+                'id' => $this->safe_string($result, 'withdrawId'),
+            );
+        }) ();
     }
 
     public function parse_transaction_status($status, $type) {
@@ -1729,203 +1819,264 @@ class lbank2 extends Exchange {
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all $deposits made to an account
-         * @param {string|null} $code unified $currency $code
-         * @param {int|null} $since the earliest time in ms to fetch $deposits for
-         * @param {int|null} $limit the maximum number of $deposits structures to retrieve
-         * @param {array} $params extra parameters specific to the lbank2 api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
-         */
-        yield $this->load_markets();
-        $request = array(
-            // 'status' => Recharge status => ("1","Applying"),("2","Recharge successful"),("3","Recharge failed"),("4","Already Cancel"), ("5", "Transfer")
-            // 'endTime' => end time, timestamp in milliseconds, default now
-        );
-        $currency = null;
-        if ($code !== null) {
-            $currency = $this->currency($code);
-            $request['coin'] = $currency['id'];
-        }
-        if ($since !== null) {
-            $request['startTime'] = $since;
-        }
-        $response = yield $this->privatePostSupplementDepositHistory (array_merge($request, $params));
-        //
-        //      {
-        //          "result":true,
-        //          "data" => array(
-        //              "total":1,
-        //              "depositOrders" => array(
-        //                  array(
-        //                      "insertTime":1649012310000,
-        //                      "amount":9.00000000000000000000,
-        //                      "address":"TYASr5UV6HEcXatwdFQfmLVUqQQQMUxHLS",
-        //                      "networkName":"trc20",
-        //                      "txId":"081e4e9351dd0274922168da5f2d14ea6c495b1c3b440244f4a6dd9fe196bf2b",
-        //                      "coin":"usdt",
-        //                      "status":"2"
-        //                  ),
-        //              ),
-        //              "page_length":20,
-        //              "current_page":1
-        //          ),
-        //          "error_code":0,
-        //          "ts":1649719721758
-        //      }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        $deposits = $this->safe_value($data, 'depositOrders', array());
-        return $this->parse_transactions($deposits, $currency, $since, $limit);
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch all $deposits made to an account
+             * @param {string|null} $code unified $currency $code
+             * @param {int|null} $since the earliest time in ms to fetch $deposits for
+             * @param {int|null} $limit the maximum number of $deposits structures to retrieve
+             * @param {array} $params extra parameters specific to the lbank2 api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                // 'status' => Recharge status => ("1","Applying"),("2","Recharge successful"),("3","Recharge failed"),("4","Already Cancel"), ("5", "Transfer")
+                // 'endTime' => end time, timestamp in milliseconds, default now
+            );
+            $currency = null;
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['coin'] = $currency['id'];
+            }
+            if ($since !== null) {
+                $request['startTime'] = $since;
+            }
+            $response = Async\await($this->privatePostSupplementDepositHistory (array_merge($request, $params)));
+            //
+            //      {
+            //          "result":true,
+            //          "data" => array(
+            //              "total":1,
+            //              "depositOrders" => array(
+            //                  array(
+            //                      "insertTime":1649012310000,
+            //                      "amount":9.00000000000000000000,
+            //                      "address":"TYASr5UV6HEcXatwdFQfmLVUqQQQMUxHLS",
+            //                      "networkName":"trc20",
+            //                      "txId":"081e4e9351dd0274922168da5f2d14ea6c495b1c3b440244f4a6dd9fe196bf2b",
+            //                      "coin":"usdt",
+            //                      "status":"2"
+            //                  ),
+            //              ),
+            //              "page_length":20,
+            //              "current_page":1
+            //          ),
+            //          "error_code":0,
+            //          "ts":1649719721758
+            //      }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            $deposits = $this->safe_value($data, 'depositOrders', array());
+            return $this->parse_transactions($deposits, $currency, $since, $limit);
+        }) ();
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all withdrawals made from an account
-         * @param {string|null} $code unified $currency $code
-         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
-         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
-         * @param {array} $params extra parameters specific to the lbank2 api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
-         */
-        yield $this->load_markets();
-        $request = array(
-            // 'status' => Recharge status => ("1","Applying"),("2","Recharge successful"),("3","Recharge failed"),("4","Already Cancel"), ("5", "Transfer")
-            // 'endTime' => end time, timestamp in milliseconds, default now
-            // 'withdrawOrderId' => Custom withdrawal id
-        );
-        $currency = null;
-        if ($code !== null) {
-            $currency = $this->currency($code);
-            $request['coin'] = $currency['id'];
-        }
-        if ($since !== null) {
-            $request['startTime'] = $since;
-        }
-        $response = yield $this->privatePostSupplementWithdraws (array_merge($request, $params));
-        //
-        //      {
-        //          "result":true,
-        //          "data" => array(
-        //              "total":1,
-        //              "withdraws" => array(
-        //                  array(
-        //                      "amount":2.00000000000000000000,
-        //                      "address":"TBjrW5JHDyPZjFc5nrRMhRWUDaJmhGhmD6",
-        //                      "fee":1.00000000000000000000,
-        //                      "networkName":"trc20",
-        //                      "coid":"usdt",
-        //                      "transferType":"数字资产提现",
-        //                      "txId":"47eeee2763ad49b8817524dacfa7d092fb58f8b0ab7e5d25473314df1a793c3d",
-        //                      "id":1902194,
-        //                      "applyTime":1649014002000,
-        //                      "status":"4"
-        //                  ),
-        //              ),
-        //              "page_length":20,
-        //              "current_page":1
-        //          ),
-        //          "error_code":0,
-        //          "ts":1649720362362
-        //      }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        $withdraws = $this->safe_value($data, 'withdraws', array());
-        return $this->parse_transactions($withdraws, $currency, $since, $limit);
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch all withdrawals made from an account
+             * @param {string|null} $code unified $currency $code
+             * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+             * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+             * @param {array} $params extra parameters specific to the lbank2 api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                // 'status' => Recharge status => ("1","Applying"),("2","Recharge successful"),("3","Recharge failed"),("4","Already Cancel"), ("5", "Transfer")
+                // 'endTime' => end time, timestamp in milliseconds, default now
+                // 'withdrawOrderId' => Custom withdrawal id
+            );
+            $currency = null;
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['coin'] = $currency['id'];
+            }
+            if ($since !== null) {
+                $request['startTime'] = $since;
+            }
+            $response = Async\await($this->privatePostSupplementWithdraws (array_merge($request, $params)));
+            //
+            //      {
+            //          "result":true,
+            //          "data" => array(
+            //              "total":1,
+            //              "withdraws" => array(
+            //                  array(
+            //                      "amount":2.00000000000000000000,
+            //                      "address":"TBjrW5JHDyPZjFc5nrRMhRWUDaJmhGhmD6",
+            //                      "fee":1.00000000000000000000,
+            //                      "networkName":"trc20",
+            //                      "coid":"usdt",
+            //                      "transferType":"数字资产提现",
+            //                      "txId":"47eeee2763ad49b8817524dacfa7d092fb58f8b0ab7e5d25473314df1a793c3d",
+            //                      "id":1902194,
+            //                      "applyTime":1649014002000,
+            //                      "status":"4"
+            //                  ),
+            //              ),
+            //              "page_length":20,
+            //              "current_page":1
+            //          ),
+            //          "error_code":0,
+            //          "ts":1649720362362
+            //      }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            $withdraws = $this->safe_value($data, 'withdraws', array());
+            return $this->parse_transactions($withdraws, $currency, $since, $limit);
+        }) ();
     }
 
     public function fetch_transaction_fees($codes = null, $params = array ()) {
-        /**
-         * fetch transaction fees
-         * @param {[string]|null} $codes not used by lbank2 fetchTransactionFees ()
-         * @param {array} $params extra parameters specific to the lbank2 api endpoint
-         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
-         */
-        // private only returns information for currencies with non-zero balance
-        yield $this->load_markets();
-        $isAuthorized = $this->check_required_credentials(false);
-        $result = null;
-        if ($isAuthorized === true) {
-            $method = $this->safe_string($params, 'method');
-            $params = $this->omit($params, 'method');
-            if ($method === null) {
-                $options = $this->safe_value($this->options, 'fetchTransactionFees', array());
-                $method = $this->safe_string($options, 'method', 'fetchPrivateTransactionFees');
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * fetch transaction fees
+             * @param {[string]|null} $codes not used by lbank2 fetchTransactionFees ()
+             * @param {array} $params extra parameters specific to the lbank2 api endpoint
+             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+             */
+            // private only returns information for currencies with non-zero balance
+            Async\await($this->load_markets());
+            $isAuthorized = $this->check_required_credentials(false);
+            $result = null;
+            if ($isAuthorized === true) {
+                $method = $this->safe_string($params, 'method');
+                $params = $this->omit($params, 'method');
+                if ($method === null) {
+                    $options = $this->safe_value($this->options, 'fetchTransactionFees', array());
+                    $method = $this->safe_string($options, 'method', 'fetchPrivateTransactionFees');
+                }
+                $result = Async\await($this->$method ($params));
+            } else {
+                $result = Async\await($this->fetch_public_transaction_fees($params));
             }
-            $result = yield $this->$method ($params);
-        } else {
-            $result = yield $this->fetch_public_transaction_fees($params);
-        }
-        return $result;
+            return $result;
+        }) ();
     }
 
     public function fetch_private_transaction_fees($params = array ()) {
-        // complete $response
-        // incl. for coins which null in public method
-        yield $this->load_markets();
-        $response = yield $this->privatePostSupplementUserInfo ();
-        $result = $this->safe_value($response, 'data', array());
-        $withdrawFees = array();
-        for ($i = 0; $i < count($result); $i++) {
-            $entry = $result[$i];
-            $currencyId = $this->safe_string($entry, 'coin');
-            $code = $this->safe_currency_code($currencyId);
-            $networkList = $this->safe_value($entry, 'networkList', array());
-            $withdrawFees[$code] = array();
-            for ($j = 0; $j < count($networkList); $j++) {
-                $networkEntry = $networkList[$j];
-                $networkId = $this->safe_string($networkEntry, 'name');
-                $networkCode = $this->safe_string($this->options['inverse-networks'], $networkId, $networkId);
-                $fee = $this->safe_number($networkEntry, 'withdrawFee');
-                if ($fee !== null) {
-                    $withdrawFees[$code][$networkCode] = $fee;
+        return Async\async(function () use ($params) {
+            // complete $response
+            // incl. for coins which null in public method
+            Async\await($this->load_markets());
+            $response = Async\await($this->privatePostSupplementUserInfo ());
+            //
+            //    {
+            //        "result" => "true",
+            //        "data" => array(
+            //            {
+            //                "usableAmt" => "14.36",
+            //                "assetAmt" => "14.36",
+            //                "networkList" => array(
+            //                    array(
+            //                        "isDefault" => false,
+            //                        "withdrawFeeRate" => "",
+            //                        "name" => "erc20",
+            //                        "withdrawMin" => 30,
+            //                        "minLimit" => 0.0001,
+            //                        "minDeposit" => 20,
+            //                        "feeAssetCode" => "usdt",
+            //                        "withdrawFee" => "30",
+            //                        "type" => 1,
+            //                        "coin" => "usdt",
+            //                        "network" => "eth"
+            //                    ),
+            //                    ...
+            //                ),
+            //                "freezeAmt" => "0",
+            //                "coin" => "ada"
+            //            }
+            //        ),
+            //        "code" => 0
+            //    }
+            //
+            $result = $this->safe_value($response, 'data', array());
+            $withdrawFees = array();
+            for ($i = 0; $i < count($result); $i++) {
+                $entry = $result[$i];
+                $currencyId = $this->safe_string($entry, 'coin');
+                $code = $this->safe_currency_code($currencyId);
+                $networkList = $this->safe_value($entry, 'networkList', array());
+                $withdrawFees[$code] = array();
+                for ($j = 0; $j < count($networkList); $j++) {
+                    $networkEntry = $networkList[$j];
+                    $networkId = $this->safe_string($networkEntry, 'name');
+                    $networkCode = $this->safe_string($this->options['inverse-networks'], $networkId, $networkId);
+                    $fee = $this->safe_number($networkEntry, 'withdrawFee');
+                    if ($fee !== null) {
+                        $withdrawFees[$code][$networkCode] = $fee;
+                    }
                 }
             }
-        }
-        return array(
-            'withdraw' => $withdrawFees,
-            'deposit' => array(),
-            'info' => $response,
-        );
+            return array(
+                'withdraw' => $withdrawFees,
+                'deposit' => array(),
+                'info' => $response,
+            );
+        }) ();
     }
 
     public function fetch_public_transaction_fees($params = array ()) {
-        // extremely incomplete $response
-        // vast majority fees null
-        yield $this->load_markets();
-        $code = $this->safe_string_2($params, 'coin', 'assetCode');
-        $params = $this->omit($params, array( 'coin', 'assetCode' ));
-        $request = array();
-        if ($code !== null) {
-            $currency = $this->currency($code);
-            $request['assetCode'] = $currency['id'];
-        }
-        $response = yield $this->publicGetWithdrawConfigs (array_merge($request, $params));
-        $result = $this->safe_value($response, 'data', array());
-        $withdrawFees = array();
-        for ($i = 0; $i < count($result); $i++) {
-            $item = $result[$i];
-            $canWithdraw = $this->safe_string($item, 'canWithDraw');
-            if ($canWithdraw === 'true') {
-                $currencyId = $this->safe_string($item, 'assetCode');
-                $code = $this->safe_currency_code($currencyId);
-                $chain = $this->safe_string($item, 'chain');
-                $network = $this->safe_string($this->options['inverse-networks'], $chain, $chain);
-                if ($network === null) {
-                    $network = $code;
-                }
-                $fee = $this->safe_string($item, 'fee');
-                if ($withdrawFees[$code] === null) {
-                    $withdrawFees[$code] = array();
-                }
-                $withdrawFees[$code][$network] = $this->parse_number($fee);
+        return Async\async(function () use ($params) {
+            // extremely incomplete $response
+            // vast majority fees null
+            Async\await($this->load_markets());
+            $code = $this->safe_string_2($params, 'coin', 'assetCode');
+            $params = $this->omit($params, array( 'coin', 'assetCode' ));
+            $request = array();
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['assetCode'] = $currency['id'];
             }
-        }
-        return array(
-            'withdraw' => $withdrawFees,
-            'deposit' => array(),
-            'info' => $response,
-        );
+            $response = Async\await($this->publicGetWithdrawConfigs (array_merge($request, $params)));
+            //
+            //    {
+            //        $result => 'true',
+            //        data => array(
+            //          array(
+            //            amountScale => '4',
+            //            $chain => 'heco',
+            //            assetCode => 'lbk',
+            //            min => '200',
+            //            transferAmtScale => '4',
+            //            canWithDraw => true,
+            //            $fee => '100',
+            //            minTransfer => '0.0001',
+            //            type => '1'
+            //          ),
+            //          ...
+            //        ),
+            //        error_code => '0',
+            //        ts => '1663364435973'
+            //    }
+            //
+            $result = $this->safe_value($response, 'data', array());
+            $withdrawFees = array();
+            for ($i = 0; $i < count($result); $i++) {
+                $item = $result[$i];
+                $canWithdraw = $this->safe_string($item, 'canWithDraw');
+                if ($canWithdraw === 'true') {
+                    $currencyId = $this->safe_string($item, 'assetCode');
+                    $code = $this->safe_currency_code($currencyId);
+                    $chain = $this->safe_string($item, 'chain');
+                    $network = $this->safe_string($this->options['inverse-networks'], $chain, $chain);
+                    if ($network === null) {
+                        $network = $code;
+                    }
+                    $fee = $this->safe_string($item, 'fee');
+                    if ($withdrawFees[$code] === null) {
+                        $withdrawFees[$code] = array();
+                    }
+                    $withdrawFees[$code][$network] = $this->parse_number($fee);
+                }
+            }
+            return array(
+                'withdraw' => $withdrawFees,
+                'deposit' => array(),
+                'info' => $response,
+            );
+        }) ();
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

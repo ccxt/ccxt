@@ -6,9 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\InvalidOrder;
 
 class kucoin extends Exchange {
 
@@ -89,7 +86,7 @@ class kucoin extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg',
-                'referral' => 'https://www.kucoin.com/?rcode=E5wkqe',
+                'referral' => 'https://www.kucoin.com/ucenter/signup?rcode=E5wkqe',
                 'api' => array(
                     'public' => 'https://api.kucoin.com',
                     'private' => 'https://api.kucoin.com',
@@ -1027,7 +1024,7 @@ class kucoin extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '15m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
@@ -1111,10 +1108,10 @@ class kucoin extends Exchange {
 
     public function fetch_deposit_address($code, $params = array ()) {
         /**
-         * fetch the deposit $address for a $currency associated with this account
+         * fetch the deposit address for a $currency associated with this account
          * @param {string} $code unified $currency $code
          * @param {array} $params extra parameters specific to the kucoin api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
          */
         $this->load_markets();
         $currency = $this->currency($code);
@@ -1137,18 +1134,22 @@ class kucoin extends Exchange {
         // BCH array("code":"200000","data":array("address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""))
         // BTC array("code":"200000","data":array("address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""))
         $data = $this->safe_value($response, 'data', array());
-        $address = $this->safe_string($data, 'address');
-        $tag = $this->safe_string($data, 'memo');
+        return $this->parse_deposit_address($data, $currency);
+    }
+
+    public function parse_deposit_address($depositAddress, $currency = null) {
+        $address = $this->safe_string($depositAddress, 'address');
+        $code = $currency['id'];
         if ($code !== 'NIM') {
             // contains spaces
             $this->check_address($address);
         }
         return array(
-            'info' => $response,
+            'info' => $depositAddress,
             'currency' => $code,
             'address' => $address,
-            'tag' => $tag,
-            'network' => $network,
+            'tag' => $this->safe_string($depositAddress, 'memo'),
+            'network' => $this->safe_string($depositAddress, 'chain'),
         );
     }
 

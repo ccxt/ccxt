@@ -6,13 +6,14 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\InvalidAddress;
-use \ccxt\InvalidOrder;
-use \ccxt\NotSupported;
-use \ccxt\Precise;
+use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
+use ccxt\BadRequest;
+use ccxt\InvalidAddress;
+use ccxt\InvalidOrder;
+use ccxt\NotSupported;
+use ccxt\Precise;
+use React\Async;
 
 class mexc3 extends Exchange {
 
@@ -26,7 +27,7 @@ class mexc3 extends Exchange {
             'has' => array(
                 'CORS' => null,
                 'spot' => null,
-                'margin' => null,
+                'margin' => true,
                 'swap' => null,
                 'future' => null,
                 'option' => null,
@@ -199,6 +200,7 @@ class mexc3 extends Exchange {
                             'batchOrders' => 1,
                             'capital/withdraw/apply' => 1,
                             'capital/transfer' => 1,
+                            'capital/deposit/address' => 1,
                             'capital/sub-account/universalTransfer' => 1,
                             'margin/tradeMode' => 1,
                             'margin/order' => 1,
@@ -256,6 +258,7 @@ class mexc3 extends Exchange {
                             'stoporder/order_details/{stop_order_id}' => 2,
                             'account/risk_limit' => 2, // TO_DO => gets max/min position size, allowed sides, leverage, maintenance margin, initial margin, etc...
                             'account/tiered_fee_rate' => 2, // TO_DO => taker/maker fees for account
+                            'position/leverage' => 2,
                         ),
                         'post' => array(
                             'position/change_margin' => 2,
@@ -345,8 +348,8 @@ class mexc3 extends Exchange {
                 'trading' => array(
                     'tierBased' => false,
                     'percentage' => true,
-                    'maker' => 0.2 / 100, // maker / taker
-                    'taker' => 0.2 / 100,
+                    'maker' => $this->parse_number('0.002'), // maker / taker
+                    'taker' => $this->parse_number('0.002'),
                 ),
             ),
             'options' => array(
@@ -402,10 +405,8 @@ class mexc3 extends Exchange {
                 ),
                 'defaultType' => 'spot', // spot, swap
                 'networks' => array(
-                    'TRX' => 'TRC-20',
-                    'TRC20' => 'TRC-20',
-                    'ETH' => 'ERC-20',
-                    'ERC20' => 'ERC-20',
+                    'TRX' => 'TRC20',
+                    'ETH' => 'ERC20',
                     'BEP20' => 'BEP20(BSC)',
                     'BSC' => 'BEP20(BSC)',
                 ),
@@ -474,181 +475,209 @@ class mexc3 extends Exchange {
     }
 
     public function fetch_status($params = array ()) {
-        /**
-         * the latest known information on the availability of the exchange API
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-$status-structure $status structure}
-         */
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchStatus', null, $params);
-        $response = null;
-        $status = null;
-        $updated = null;
-        if ($marketType === 'spot') {
-            $response = yield $this->spotPublicGetPing ($query);
-            //
-            //     array()
-            //
-            $status = $response ? $this->json($response) : 'ok';
-        } elseif ($marketType === 'swap') {
-            $response = yield $this->contractPublicGetPing ($query);
-            //
-            //     array("success":true,"code":"0","data":"1648124374985")
-            //
-            $status = $this->safe_value($response, 'success') ? 'ok' : $this->json($response);
-            $updated = $this->safe_integer($response, 'data');
-        }
-        return array(
-            'status' => $status,
-            'updated' => $updated,
-            'url' => null,
-            'eta' => null,
-            'info' => $response,
-        );
+        return Async\async(function () use ($params) {
+            /**
+             * the latest known information on the availability of the exchange API
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-$status-structure $status structure}
+             */
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchStatus', null, $params);
+            $response = null;
+            $status = null;
+            $updated = null;
+            if ($marketType === 'spot') {
+                $response = Async\await($this->spotPublicGetPing ($query));
+                //
+                //     array()
+                //
+                $status = $response ? $this->json($response) : 'ok';
+            } elseif ($marketType === 'swap') {
+                $response = Async\await($this->contractPublicGetPing ($query));
+                //
+                //     array("success":true,"code":"0","data":"1648124374985")
+                //
+                $status = $this->safe_value($response, 'success') ? 'ok' : $this->json($response);
+                $updated = $this->safe_integer($response, 'data');
+            }
+            return array(
+                'status' => $status,
+                'updated' => $updated,
+                'url' => null,
+                'eta' => null,
+                'info' => $response,
+            );
+        }) ();
     }
 
     public function fetch_time($params = array ()) {
-        /**
-         * fetches the current integer timestamp in milliseconds from the exchange server
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {int} the current integer timestamp in milliseconds from the exchange server
-         */
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchTime', null, $params);
-        $response = null;
-        if ($marketType === 'spot') {
-            $response = yield $this->spotPublicGetTime ($query);
-            //
-            //     array("serverTime" => "1647519277579")
-            //
-            return $this->safe_integer($response, 'serverTime');
-        } elseif ($marketType === 'swap') {
-            $response = yield $this->contractPublicGetPing ($query);
-            //
-            //     array("success":true,"code":"0","data":"1648124374985")
-            //
-            return $this->safe_integer($response, 'data');
-        }
+        return Async\async(function () use ($params) {
+            /**
+             * fetches the current integer timestamp in milliseconds from the exchange server
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {int} the current integer timestamp in milliseconds from the exchange server
+             */
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchTime', null, $params);
+            $response = null;
+            if ($marketType === 'spot') {
+                $response = Async\await($this->spotPublicGetTime ($query));
+                //
+                //     array("serverTime" => "1647519277579")
+                //
+                return $this->safe_integer($response, 'serverTime');
+            } elseif ($marketType === 'swap') {
+                $response = Async\await($this->contractPublicGetPing ($query));
+                //
+                //     array("success":true,"code":"0","data":"1648124374985")
+                //
+                return $this->safe_integer($response, 'data');
+            }
+        }) ();
     }
 
     public function fetch_currencies($params = array ()) {
-        /**
-         * fetches all available currencies on an exchange
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {array} an associative dictionary of currencies
-         */
-        $response = yield $this->spot2PublicGetMarketCoinList ($params);
-        //
-        //     {
-        //         "code":200,
-        //         "data":array(
-        //             {
-        //                 "currency":"AGLD",
-        //                 "coins":array(
-        //                     array(
-        //                         "chain":"ERC20",
-        //                         "precision":18,
-        //                         "fee":8.09,
-        //                         "is_withdraw_enabled":true,
-        //                         "is_deposit_enabled":true,
-        //                         "deposit_min_confirm":16,
-        //                         "withdraw_limit_max":500000.0,
-        //                         "withdraw_limit_min":14.0
-        //                     }
-        //                 ),
-        //                 "full_name":"Adventure Gold"
-        //             ),
-        //         )
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        $result = array();
-        for ($i = 0; $i < count($data); $i++) {
-            $currency = $data[$i];
-            $id = $this->safe_string($currency, 'currency');
-            $code = $this->safe_currency_code($id);
-            $name = $this->safe_string($currency, 'full_name');
-            $currencyActive = false;
-            $currencyPrecision = null;
-            $currencyFee = null;
-            $currencyWithdrawMin = null;
-            $currencyWithdrawMax = null;
-            $networks = array();
-            $chains = $this->safe_value($currency, 'coins', array());
-            $depositEnabled = false;
-            $withdrawEnabled = false;
-            for ($j = 0; $j < count($chains); $j++) {
-                $chain = $chains[$j];
-                $networkId = $this->safe_string($chain, 'chain');
-                $network = $this->safe_network($networkId);
-                $isDepositEnabled = $this->safe_value($chain, 'is_deposit_enabled', false);
-                $isWithdrawEnabled = $this->safe_value($chain, 'is_withdraw_enabled', false);
-                $active = ($isDepositEnabled && $isWithdrawEnabled);
-                $currencyActive = $active || $currencyActive;
-                $withdrawMin = $this->safe_string($chain, 'withdraw_limit_min');
-                $withdrawMax = $this->safe_string($chain, 'withdraw_limit_max');
-                $currencyWithdrawMin = ($currencyWithdrawMin === null) ? $withdrawMin : $currencyWithdrawMin;
-                $currencyWithdrawMax = ($currencyWithdrawMax === null) ? $withdrawMax : $currencyWithdrawMax;
-                if (Precise::string_gt($currencyWithdrawMin, $withdrawMin)) {
-                    $currencyWithdrawMin = $withdrawMin;
+        return Async\async(function () use ($params) {
+            /**
+             * fetches all available currencies on an exchange
+             * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-the-$currency-information
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {array} an associative dictionary of currencies
+             */
+            // this endpoint requires authentication
+            // while fetchCurrencies is a public API method by design
+            // therefore we check the keys here
+            // and fallback to generating the currencies from the markets
+            if (!$this->check_required_credentials(false)) {
+                return null;
+            }
+            $response = Async\await($this->spotPrivateGetCapitalConfigGetall ($params));
+            //
+            // {
+            //     coin => 'QANX',
+            //     $name => 'QANplatform',
+            //     networkList => array(
+            //       array(
+            //         coin => 'QANX',
+            //         depositDesc => null,
+            //         depositEnable => true,
+            //         minConfirm => '0',
+            //         $name => 'QANplatform',
+            //         $network => 'BEP20(BSC)',
+            //         withdrawEnable => false,
+            //         withdrawFee => '42.000000000000000000',
+            //         withdrawIntegerMultiple => null,
+            //         $withdrawMax => '24000000.000000000000000000',
+            //         $withdrawMin => '20.000000000000000000',
+            //         sameAddress => false,
+            //         contract => '0xAAA7A10a8ee237ea61E8AC46C50A8Db8bCC1baaa'
+            //       ),
+            //       {
+            //         coin => 'QANX',
+            //         depositDesc => null,
+            //         depositEnable => true,
+            //         minConfirm => '0',
+            //         $name => 'QANplatform',
+            //         $network => 'ERC20',
+            //         withdrawEnable => true,
+            //         withdrawFee => '2732.000000000000000000',
+            //         withdrawIntegerMultiple => null,
+            //         $withdrawMax => '24000000.000000000000000000',
+            //         $withdrawMin => '240.000000000000000000',
+            //         sameAddress => false,
+            //         contract => '0xAAA7A10a8ee237ea61E8AC46C50A8Db8bCC1baaa'
+            //       }
+            //     )
+            //   }
+            //
+            $result = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $currency = $response[$i];
+                $id = $this->safe_string($currency, 'coin');
+                $code = $this->safe_currency_code($id);
+                $name = $this->safe_string($currency, 'name');
+                $currencyActive = false;
+                $currencyFee = null;
+                $currencyWithdrawMin = null;
+                $currencyWithdrawMax = null;
+                $depositEnabled = false;
+                $withdrawEnabled = false;
+                $networks = array();
+                $chains = $this->safe_value($currency, 'networkList', array());
+                for ($j = 0; $j < count($chains); $j++) {
+                    $chain = $chains[$j];
+                    $networkId = $this->safe_string($chain, 'network');
+                    $network = $this->safe_network($networkId);
+                    $isDepositEnabled = $this->safe_value($chain, 'depositEnable', false);
+                    $isWithdrawEnabled = $this->safe_value($chain, 'withdrawEnable', false);
+                    $active = ($isDepositEnabled && $isWithdrawEnabled);
+                    $currencyActive = $active || $currencyActive;
+                    $withdrawMin = $this->safe_string($chain, 'withdrawMin');
+                    $withdrawMax = $this->safe_string($chain, 'withdrawMax');
+                    $currencyWithdrawMin = ($currencyWithdrawMin === null) ? $withdrawMin : $currencyWithdrawMin;
+                    $currencyWithdrawMax = ($currencyWithdrawMax === null) ? $withdrawMax : $currencyWithdrawMax;
+                    $fee = $this->safe_number($chain, 'withdrawFee');
+                    $currencyFee = ($currencyFee === null) ? $fee : $currencyFee;
+                    if (Precise::string_gt($currencyWithdrawMin, $withdrawMin)) {
+                        $currencyWithdrawMin = $withdrawMin;
+                    }
+                    if (Precise::string_lt($currencyWithdrawMax, $withdrawMax)) {
+                        $currencyWithdrawMax = $withdrawMax;
+                    }
+                    if ($isDepositEnabled) {
+                        $depositEnabled = true;
+                    }
+                    if ($isWithdrawEnabled) {
+                        $withdrawEnabled = true;
+                    }
+                    $networks[$network] = array(
+                        'info' => $chain,
+                        'id' => $networkId,
+                        'network' => $network,
+                        'active' => $active,
+                        'deposit' => $isDepositEnabled,
+                        'withdraw' => $isWithdrawEnabled,
+                        'fee' => $this->safe_number($chain, 'fee'),
+                        'precision' => null,
+                        'limits' => array(
+                            'withdraw' => array(
+                                'min' => $withdrawMin,
+                                'max' => $withdrawMax,
+                            ),
+                        ),
+                    );
                 }
-                if (Precise::string_lt($currencyWithdrawMax, $withdrawMax)) {
-                    $currencyWithdrawMax = $withdrawMax;
+                $networkKeys = is_array($networks) ? array_keys($networks) : array();
+                $networkKeysLength = count($networkKeys);
+                if (($networkKeysLength === 1) || (is_array($networks) && array_key_exists('NONE', $networks))) {
+                    $defaultNetwork = $this->safe_value_2($networks, 'NONE', $networkKeysLength - 1);
+                    if ($defaultNetwork !== null) {
+                        $currencyFee = $defaultNetwork['fee'];
+                    }
                 }
-                if ($isDepositEnabled) {
-                    $depositEnabled = true;
-                }
-                if ($isWithdrawEnabled) {
-                    $withdrawEnabled = true;
-                }
-                $networks[$network] = array(
-                    'info' => $chain,
-                    'id' => $networkId,
-                    'network' => $network,
-                    'active' => $active,
-                    'deposit' => $isDepositEnabled,
-                    'withdraw' => $isWithdrawEnabled,
-                    'fee' => $this->safe_number($chain, 'fee'),
-                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'precision'))),
+                $result[$code] = array(
+                    'info' => $currency,
+                    'id' => $id,
+                    'code' => $code,
+                    'name' => $name,
+                    'active' => $currencyActive,
+                    'deposit' => $depositEnabled,
+                    'withdraw' => $withdrawEnabled,
+                    'fee' => $currencyFee,
+                    'precision' => null,
                     'limits' => array(
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
                         'withdraw' => array(
-                            'min' => $withdrawMin,
-                            'max' => $withdrawMax,
+                            'min' => $currencyWithdrawMin,
+                            'max' => $currencyWithdrawMax,
                         ),
                     ),
+                    'networks' => $networks,
                 );
             }
-            $networkKeys = is_array($networks) ? array_keys($networks) : array();
-            $networkKeysLength = count($networkKeys);
-            if (($networkKeysLength === 1) || (is_array($networks) && array_key_exists('NONE', $networks))) {
-                $defaultNetwork = $this->safe_value_2($networks, 'NONE', $networkKeysLength - 1);
-                if ($defaultNetwork !== null) {
-                    $currencyFee = $defaultNetwork['fee'];
-                    $currencyPrecision = $defaultNetwork['precision'];
-                }
-            }
-            $result[$code] = array(
-                'id' => $id,
-                'code' => $code,
-                'info' => $currency,
-                'name' => $name,
-                'active' => $currencyActive,
-                'deposit' => $depositEnabled,
-                'withdraw' => $withdrawEnabled,
-                'fee' => $currencyFee,
-                'precision' => $currencyPrecision,
-                'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'withdraw' => array(
-                        'min' => $currencyWithdrawMin,
-                        'max' => $currencyWithdrawMax,
-                    ),
-                ),
-                'networks' => $networks,
-            );
-        }
-        return $result;
+            return $result;
+        }) ();
     }
 
     public function safe_network($networkId) {
@@ -668,383 +697,393 @@ class mexc3 extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        /**
-         * retrieves data on all markets for mexc3
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing market data
-         */
-        $spotMarket = yield $this->fetch_spot_markets($params);
-        $swapMarket = yield $this->fetch_swap_markets($params);
-        return $this->array_concat($spotMarket, $swapMarket);
+        return Async\async(function () use ($params) {
+            /**
+             * retrieves data on all markets for mexc3
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @return {[array]} an array of objects representing market data
+             */
+            $spotMarket = Async\await($this->fetch_spot_markets($params));
+            $swapMarket = Async\await($this->fetch_swap_markets($params));
+            return $this->array_concat($spotMarket, $swapMarket);
+        }) ();
     }
 
     public function fetch_spot_markets($params = array ()) {
-        $response = yield $this->spotPublicGetExchangeInfo ($params);
-        //
-        //     {
-        //         "timezone" => "CST",
-        //         "serverTime" => 1647521860402,
-        //         "rateLimits" => array(),
-        //         "exchangeFilters" => array(),
-        //         "symbols" => array(
-        //           array(
-        //                "symbol" => "OGNUSDT",
-        //                "status" => "ENABLED",
-        //                "baseAsset" => "OGN",
-        //                "baseAssetPrecision" => "2",
-        //                "quoteAsset" => "USDT",
-        //                "quoteAssetPrecision" => "4",
-        //                "orderTypes" => array(
-        //                    "LIMIT",
-        //                    "LIMIT_MAKER"
-        //                ),
-        //                "baseCommissionPrecision" => "2",
-        //                "quoteCommissionPrecision" => "4",
-        //                "quoteOrderQtyMarketAllowed" => false,
-        //                "isSpotTradingAllowed" => true,
-        //                "isMarginTradingAllowed" => true,
-        //                "permissions" => array(
-        //                    "SPOT",
-        //                    "MARGIN"
-        //                ),
-        //                "filters" => array(),
-        //                "baseSizePrecision" => "0.01", // seems to be derived of 'baseAssetPrecision'
-        //                "maxQuoteAmount" => "5000000",
-        //                "makerCommission" => "0.002",
-        //                "takerCommission" => "0.002"
-        //                "quoteAmountPrecision" => "5", // seem totally unrelated value, as neither quote/base have anything related to this number
-        //                "quotePrecision" => "4", // deprecated in favor of 'quoteAssetPrecision' ( https://dev.binance.vision/t/what-is-the-difference-between-quoteprecision-and-quoteassetprecision/4333 )
-        //                // note, "icebergAllowed" & "ocoAllowed" fields were recently removed
-        //            ),
-        //         )
-        //     }
-        //
-        // Notes:
-        // - 'quoteAssetPrecision' & 'baseAssetPrecision' are not currency's real blockchain precision (to view currency's actual individual precision, refer to fetchCurrencies() method).
-        //
-        $data = $this->safe_value($response, 'symbols', array());
-        $result = array();
-        for ($i = 0; $i < count($data); $i++) {
-            $market = $data[$i];
-            $id = $this->safe_string($market, 'symbol');
-            $baseId = $this->safe_string($market, 'baseAsset');
-            $quoteId = $this->safe_string($market, 'quoteAsset');
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $status = $this->safe_string($market, 'status');
-            $isSpotTradingAllowed = $this->safe_value($market, 'isSpotTradingAllowed');
-            $active = false;
-            if (($status === 'ENABLED') && ($isSpotTradingAllowed)) {
-                $active = true;
+        return Async\async(function () use ($params) {
+            $response = Async\await($this->spotPublicGetExchangeInfo ($params));
+            //
+            //     {
+            //         "timezone" => "CST",
+            //         "serverTime" => 1647521860402,
+            //         "rateLimits" => array(),
+            //         "exchangeFilters" => array(),
+            //         "symbols" => array(
+            //           array(
+            //                "symbol" => "OGNUSDT",
+            //                "status" => "ENABLED",
+            //                "baseAsset" => "OGN",
+            //                "baseAssetPrecision" => "2",
+            //                "quoteAsset" => "USDT",
+            //                "quoteAssetPrecision" => "4",
+            //                "orderTypes" => array(
+            //                    "LIMIT",
+            //                    "LIMIT_MAKER"
+            //                ),
+            //                "baseCommissionPrecision" => "2",
+            //                "quoteCommissionPrecision" => "4",
+            //                "quoteOrderQtyMarketAllowed" => false,
+            //                "isSpotTradingAllowed" => true,
+            //                "isMarginTradingAllowed" => true,
+            //                "permissions" => array(
+            //                    "SPOT",
+            //                    "MARGIN"
+            //                ),
+            //                "filters" => array(),
+            //                "baseSizePrecision" => "0.01", // this turned out to be a minimum $base amount for order
+            //                "maxQuoteAmount" => "5000000",
+            //                "makerCommission" => "0.002",
+            //                "takerCommission" => "0.002"
+            //                "quoteAmountPrecision" => "5", // this turned out to be a minimum cost amount for order
+            //                "quotePrecision" => "4", // deprecated in favor of 'quoteAssetPrecision' ( https://dev.binance.vision/t/what-is-the-difference-between-quoteprecision-and-quoteassetprecision/4333 )
+            //                // note, "icebergAllowed" & "ocoAllowed" fields were recently removed
+            //            ),
+            //         )
+            //     }
+            //
+            // Notes:
+            // - 'quoteAssetPrecision' & 'baseAssetPrecision' are not currency's real blockchain precision (to view currency's actual individual precision, refer to fetchCurrencies() method).
+            //
+            $data = $this->safe_value($response, 'symbols', array());
+            $result = array();
+            for ($i = 0; $i < count($data); $i++) {
+                $market = $data[$i];
+                $id = $this->safe_string($market, 'symbol');
+                $baseId = $this->safe_string($market, 'baseAsset');
+                $quoteId = $this->safe_string($market, 'quoteAsset');
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $status = $this->safe_string($market, 'status');
+                $isSpotTradingAllowed = $this->safe_value($market, 'isSpotTradingAllowed');
+                $active = false;
+                if (($status === 'ENABLED') && ($isSpotTradingAllowed)) {
+                    $active = true;
+                }
+                $isMarginTradingAllowed = $this->safe_value($market, 'isMarginTradingAllowed');
+                $makerCommission = $this->safe_number($market, 'makerCommission');
+                $takerCommission = $this->safe_number($market, 'takerCommission');
+                $maxQuoteAmount = $this->safe_number($market, 'maxQuoteAmount');
+                $result[] = array(
+                    'id' => $id,
+                    'symbol' => $base . '/' . $quote,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'settle' => null,
+                    'baseId' => $baseId,
+                    'quoteId' => $quoteId,
+                    'settleId' => null,
+                    'type' => 'spot',
+                    'spot' => true,
+                    'margin' => $isMarginTradingAllowed,
+                    'swap' => false,
+                    'future' => false,
+                    'option' => false,
+                    'active' => $active,
+                    'contract' => false,
+                    'linear' => null,
+                    'inverse' => null,
+                    'taker' => $takerCommission,
+                    'maker' => $makerCommission,
+                    'contractSize' => null,
+                    'expiry' => null,
+                    'expiryDatetime' => null,
+                    'strike' => null,
+                    'optionType' => null,
+                    'precision' => array(
+                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'baseAssetPrecision'))),
+                        'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quoteAssetPrecision'))),
+                    ),
+                    'limits' => array(
+                        'leverage' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'amount' => array(
+                            'min' => $this->safe_number($market, 'baseSizePrecision'),
+                            'max' => null,
+                        ),
+                        'price' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'cost' => array(
+                            'min' => $this->safe_number($market, 'quoteAmountPrecision'),
+                            'max' => $maxQuoteAmount,
+                        ),
+                    ),
+                    'info' => $market,
+                );
             }
-            $isMarginTradingAllowed = $this->safe_value($market, 'isMarginTradingAllowed');
-            $makerCommission = $this->safe_number($market, 'makerCommission');
-            $takerCommission = $this->safe_number($market, 'takerCommission');
-            $maxQuoteAmount = $this->safe_number($market, 'maxQuoteAmount');
-            $result[] = array(
-                'id' => $id,
-                'symbol' => $base . '/' . $quote,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => null,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => null,
-                'type' => 'spot',
-                'spot' => true,
-                'margin' => $isMarginTradingAllowed,
-                'swap' => false,
-                'future' => false,
-                'option' => false,
-                'active' => $active,
-                'contract' => false,
-                'linear' => null,
-                'inverse' => null,
-                'taker' => $takerCommission,
-                'maker' => $makerCommission,
-                'contractSize' => null,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'strike' => null,
-                'optionType' => null,
-                'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'baseAssetPrecision'))),
-                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quoteAssetPrecision'))),
-                ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => $maxQuoteAmount,
-                    ),
-                ),
-                'info' => $market,
-            );
-        }
-        return $result;
+            return $result;
+        }) ();
     }
 
     public function fetch_swap_markets($params = array ()) {
-        $response = yield $this->contractPublicGetDetail ($params);
-        //
-        //     {
-        //         "success":true,
-        //         "code":0,
-        //         "data":[
-        //             array(
-        //                 "symbol":"BTC_USDT",
-        //                 "displayName":"BTC_USDT永续",
-        //                 "displayNameEn":"BTC_USDT SWAP",
-        //                 "positionOpenType":3,
-        //                 "baseCoin":"BTC",
-        //                 "quoteCoin":"USDT",
-        //                 "settleCoin":"USDT",
-        //                 "contractSize":0.0001,
-        //                 "minLeverage":1,
-        //                 "maxLeverage":125,
-        //                 "priceScale":2, // seems useless atm, as it's just how UI shows the price, $i->e. 29583.50 for BTC/USDT:USDT, while price ticksize is 0.5
-        //                 "volScale":0, // probably => contract amount precision
-        //                 "amountScale":4, // probably => $quote currency precision
-        //                 "priceUnit":0.5, // price tick size
-        //                 "volUnit":1, // probably => contract tick size
-        //                 "minVol":1,
-        //                 "maxVol":1000000,
-        //                 "bidLimitPriceRate":0.1,
-        //                 "askLimitPriceRate":0.1,
-        //                 "takerFeeRate":0.0006,
-        //                 "makerFeeRate":0.0002,
-        //                 "maintenanceMarginRate":0.004,
-        //                 "initialMarginRate":0.008,
-        //                 "riskBaseVol":10000,
-        //                 "riskIncrVol":200000,
-        //                 "riskIncrMmr":0.004,
-        //                 "riskIncrImr":0.004,
-        //                 "riskLevelLimit":5,
-        //                 "priceCoefficientVariation":0.1,
-        //                 "indexOrigin":["BINANCE","GATEIO","HUOBI","MXC"],
-        //                 "state":0, // 0 enabled, 1 delivery, 2 completed, 3 offline, 4 pause
-        //                 "isNew":false,
-        //                 "isHot":true,
-        //                 "isHidden":false
-        //             ),
-        //         ]
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        $result = array();
-        for ($i = 0; $i < count($data); $i++) {
-            $market = $data[$i];
-            $id = $this->safe_string($market, 'symbol');
-            $baseId = $this->safe_string($market, 'baseCoin');
-            $quoteId = $this->safe_string($market, 'quoteCoin');
-            $settleId = $this->safe_string($market, 'settleCoin');
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $settle = $this->safe_currency_code($settleId);
-            $state = $this->safe_string($market, 'state');
-            $result[] = array(
-                'id' => $id,
-                'symbol' => $base . '/' . $quote . ':' . $settle,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => $settle,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => $settleId,
-                'type' => 'swap',
-                'spot' => false,
-                'margin' => false,
-                'swap' => true,
-                'future' => false,
-                'option' => false,
-                'active' => ($state === '0'),
-                'contract' => true,
-                'linear' => true,
-                'inverse' => false,
-                'taker' => $this->safe_number($market, 'takerFeeRate'),
-                'maker' => $this->safe_number($market, 'makerFeeRate'),
-                'contractSize' => $this->safe_number($market, 'contractSize'),
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'strike' => null,
-                'optionType' => null,
-                'precision' => array(
-                    'amount' => $this->safe_number($market, 'volUnit'),
-                    'price' => $this->safe_number($market, 'priceUnit'),
-                ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => $this->safe_number($market, 'minLeverage'),
-                        'max' => $this->safe_number($market, 'maxLeverage'),
-                    ),
-                    'amount' => array(
-                        'min' => $this->safe_number($market, 'minVol'),
-                        'max' => $this->safe_number($market, 'maxVol'),
-                    ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-                'info' => $market,
-            );
-        }
-        return $result;
-    }
-
-    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
-        /**
-         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
-         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $orderbook = null;
-        if ($market['spot']) {
-            $response = yield $this->spotPublicGetDepth (array_merge($request, $params));
-            //
-            //     {
-            //         "lastUpdateId" => "744267132",
-            //         "bids" => [
-            //             ["40838.50","0.387864"],
-            //             ["40837.95","0.008400"],
-            //         ],
-            //         "asks" => [
-            //             ["40838.61","6.544908"],
-            //             ["40838.88","0.498000"],
-            //         ]
-            //     }
-            //
-            $orderbook = $this->parse_order_book($response, $symbol);
-            $orderbook['nonce'] = $this->safe_integer($response, 'lastUpdateId');
-        } elseif ($market['swap']) {
-            $response = yield $this->contractPublicGetDepthSymbol (array_merge($request, $params));
+        return Async\async(function () use ($params) {
+            $response = Async\await($this->contractPublicGetDetail ($params));
             //
             //     {
             //         "success":true,
             //         "code":0,
-            //         "data":{
-            //             "asks":[
-            //                 [3445.72,48379,1],
-            //                 [3445.75,34994,1],
-            //             ],
-            //             "bids":[
-            //                 [3445.55,44081,1],
-            //                 [3445.51,24857,1],
-            //             ],
-            //             "version":2827730444,
-            //             "timestamp":1634117846232
-            //         }
+            //         "data":[
+            //             array(
+            //                 "symbol":"BTC_USDT",
+            //                 "displayName":"BTC_USDT永续",
+            //                 "displayNameEn":"BTC_USDT SWAP",
+            //                 "positionOpenType":3,
+            //                 "baseCoin":"BTC",
+            //                 "quoteCoin":"USDT",
+            //                 "settleCoin":"USDT",
+            //                 "contractSize":0.0001,
+            //                 "minLeverage":1,
+            //                 "maxLeverage":125,
+            //                 "priceScale":2, // seems useless atm, as it's just how UI shows the price, $i->e. 29583.50 for BTC/USDT:USDT, while price ticksize is 0.5
+            //                 "volScale":0, // probably => contract amount precision
+            //                 "amountScale":4, // probably => $quote currency precision
+            //                 "priceUnit":0.5, // price tick size
+            //                 "volUnit":1, // probably => contract tick size
+            //                 "minVol":1,
+            //                 "maxVol":1000000,
+            //                 "bidLimitPriceRate":0.1,
+            //                 "askLimitPriceRate":0.1,
+            //                 "takerFeeRate":0.0006,
+            //                 "makerFeeRate":0.0002,
+            //                 "maintenanceMarginRate":0.004,
+            //                 "initialMarginRate":0.008,
+            //                 "riskBaseVol":10000,
+            //                 "riskIncrVol":200000,
+            //                 "riskIncrMmr":0.004,
+            //                 "riskIncrImr":0.004,
+            //                 "riskLevelLimit":5,
+            //                 "priceCoefficientVariation":0.1,
+            //                 "indexOrigin":["BINANCE","GATEIO","HUOBI","MXC"],
+            //                 "state":0, // 0 enabled, 1 delivery, 2 completed, 3 offline, 4 pause
+            //                 "isNew":false,
+            //                 "isHot":true,
+            //                 "isHidden":false
+            //             ),
+            //         ]
             //     }
             //
-            $data = $this->safe_value($response, 'data');
-            $timestamp = $this->safe_integer($data, 'timestamp');
-            $orderbook = $this->parse_order_book($data, $symbol, $timestamp);
-            $orderbook['nonce'] = $this->safe_integer($data, 'version');
-        }
-        return $orderbook;
+            $data = $this->safe_value($response, 'data', array());
+            $result = array();
+            for ($i = 0; $i < count($data); $i++) {
+                $market = $data[$i];
+                $id = $this->safe_string($market, 'symbol');
+                $baseId = $this->safe_string($market, 'baseCoin');
+                $quoteId = $this->safe_string($market, 'quoteCoin');
+                $settleId = $this->safe_string($market, 'settleCoin');
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $settle = $this->safe_currency_code($settleId);
+                $state = $this->safe_string($market, 'state');
+                $result[] = array(
+                    'id' => $id,
+                    'symbol' => $base . '/' . $quote . ':' . $settle,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'settle' => $settle,
+                    'baseId' => $baseId,
+                    'quoteId' => $quoteId,
+                    'settleId' => $settleId,
+                    'type' => 'swap',
+                    'spot' => false,
+                    'margin' => false,
+                    'swap' => true,
+                    'future' => false,
+                    'option' => false,
+                    'active' => ($state === '0'),
+                    'contract' => true,
+                    'linear' => true,
+                    'inverse' => false,
+                    'taker' => $this->safe_number($market, 'takerFeeRate'),
+                    'maker' => $this->safe_number($market, 'makerFeeRate'),
+                    'contractSize' => $this->safe_number($market, 'contractSize'),
+                    'expiry' => null,
+                    'expiryDatetime' => null,
+                    'strike' => null,
+                    'optionType' => null,
+                    'precision' => array(
+                        'amount' => $this->safe_number($market, 'volUnit'),
+                        'price' => $this->safe_number($market, 'priceUnit'),
+                    ),
+                    'limits' => array(
+                        'leverage' => array(
+                            'min' => $this->safe_number($market, 'minLeverage'),
+                            'max' => $this->safe_number($market, 'maxLeverage'),
+                        ),
+                        'amount' => array(
+                            'min' => $this->safe_number($market, 'minVol'),
+                            'max' => $this->safe_number($market, 'maxVol'),
+                        ),
+                        'price' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'cost' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                    'info' => $market,
+                );
+            }
+            return $result;
+        }) ();
+    }
+
+    public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $orderbook = null;
+            if ($market['spot']) {
+                $response = Async\await($this->spotPublicGetDepth (array_merge($request, $params)));
+                //
+                //     {
+                //         "lastUpdateId" => "744267132",
+                //         "bids" => [
+                //             ["40838.50","0.387864"],
+                //             ["40837.95","0.008400"],
+                //         ],
+                //         "asks" => [
+                //             ["40838.61","6.544908"],
+                //             ["40838.88","0.498000"],
+                //         ]
+                //     }
+                //
+                $orderbook = $this->parse_order_book($response, $symbol);
+                $orderbook['nonce'] = $this->safe_integer($response, 'lastUpdateId');
+            } elseif ($market['swap']) {
+                $response = Async\await($this->contractPublicGetDepthSymbol (array_merge($request, $params)));
+                //
+                //     {
+                //         "success":true,
+                //         "code":0,
+                //         "data":{
+                //             "asks":[
+                //                 [3445.72,48379,1],
+                //                 [3445.75,34994,1],
+                //             ],
+                //             "bids":[
+                //                 [3445.55,44081,1],
+                //                 [3445.51,24857,1],
+                //             ],
+                //             "version":2827730444,
+                //             "timestamp":1634117846232
+                //         }
+                //     }
+                //
+                $data = $this->safe_value($response, 'data');
+                $timestamp = $this->safe_integer($data, 'timestamp');
+                $orderbook = $this->parse_order_book($data, $symbol, $timestamp);
+                $orderbook['nonce'] = $this->safe_integer($data, 'version');
+            }
+            return $orderbook;
+        }) ();
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        /**
-         * get the list of most recent $trades for a particular $symbol
-         * @param {string} $symbol unified $symbol of the $market to fetch $trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of $trades to fetch
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        // if ($since !== null) {
-        //     $request['startTime'] = $since; bug in api, waiting for fix
-        // }
-        $trades = null;
-        if ($market['spot']) {
-            $method = $this->safe_string($this->options, 'fetchTradesMethod', 'spotPublicGetAggTrades');
-            $method = $this->safe_string($params, 'method', $method); // AggTrades, HistoricalTrades, Trades
-            $trades = yield $this->$method (array_merge($request, $params));
-            //
-            //     /trades, /historicalTrades
-            //
-            //     array(
-            //         array(
-            //             "id" => null,
-            //             "price" => "40798.94",
-            //             "qty" => "0.000508",
-            //             "quoteQty" => "20.72586152",
-            //             "time" => "1647546934374",
-            //             "isBuyerMaker" => true,
-            //             "isBestMatch" => true
-            //         ),
-            //     )
-            //
-            //     /aggrTrades
-            //
-            //     array(
-            //         array(
-            //           "a" => null,
-            //           "f" => null,
-            //           "l" => null,
-            //           "p" => "40679",
-            //           "q" => "0.001309",
-            //           "T" => 1647551328000,
-            //           "m" => true,
-            //           "M" => true
-            //         ),
-            //     )
-            //
-        } elseif ($market['swap']) {
-            $response = yield $this->contractPublicGetDealsSymbol (array_merge($request, $params));
-            //
-            //     {
-            //         "success" => true,
-            //         "code" => 0,
-            //         "data" => array(
-            //             array(
-            //                 "p" => 31199,
-            //                 "v" => 18,
-            //                 "T" => 1,
-            //                 "O" => 3,
-            //                 "M" => 2,
-            //                 "t" => 1609831235985
-            //             ),
-            //         )
-            //     }
-            //
-            $trades = $this->safe_value($response, 'data');
-        }
-        return $this->parse_trades($trades, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * get the list of most recent $trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+             * @param {int|null} $limit the maximum amount of $trades to fetch
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            // if ($since !== null) {
+            //     $request['startTime'] = $since; bug in api, waiting for fix
+            // }
+            $trades = null;
+            if ($market['spot']) {
+                $method = $this->safe_string($this->options, 'fetchTradesMethod', 'spotPublicGetAggTrades');
+                $method = $this->safe_string($params, 'method', $method); // AggTrades, HistoricalTrades, Trades
+                $trades = Async\await($this->$method (array_merge($request, $params)));
+                //
+                //     /trades, /historicalTrades
+                //
+                //     array(
+                //         array(
+                //             "id" => null,
+                //             "price" => "40798.94",
+                //             "qty" => "0.000508",
+                //             "quoteQty" => "20.72586152",
+                //             "time" => "1647546934374",
+                //             "isBuyerMaker" => true,
+                //             "isBestMatch" => true
+                //         ),
+                //     )
+                //
+                //     /aggrTrades
+                //
+                //     array(
+                //         array(
+                //           "a" => null,
+                //           "f" => null,
+                //           "l" => null,
+                //           "p" => "40679",
+                //           "q" => "0.001309",
+                //           "T" => 1647551328000,
+                //           "m" => true,
+                //           "M" => true
+                //         ),
+                //     )
+                //
+            } elseif ($market['swap']) {
+                $response = Async\await($this->contractPublicGetDealsSymbol (array_merge($request, $params)));
+                //
+                //     {
+                //         "success" => true,
+                //         "code" => 0,
+                //         "data" => array(
+                //             array(
+                //                 "p" => 31199,
+                //                 "v" => 18,
+                //                 "T" => 1,
+                //                 "O" => 3,
+                //                 "M" => 2,
+                //                 "t" => 1609831235985
+                //             ),
+                //         )
+                //     }
+                //
+                $trades = $this->safe_value($response, 'data');
+            }
+            return $this->parse_trades($trades, $market, $since, $limit);
+        }) ();
     }
 
     public function parse_trade($trade, $market = null) {
@@ -1218,79 +1257,81 @@ class mexc3 extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
-         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
-         * @param {string} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|null} $limit the maximum amount of $candles to fetch
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {[[int]]} A list of $candles ordered as timestamp, open, high, low, close, volume
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $options = $this->safe_value($this->options, 'timeframes', array());
-        $timeframes = $this->safe_value($options, $market['type'], array());
-        $timeframeValue = $this->safe_string($timeframes, $timeframe);
-        $request = array(
-            'symbol' => $market['id'],
-            'interval' => $timeframeValue,
-        );
-        $candles = null;
-        if ($market['spot']) {
-            if ($since !== null) {
-                $request['startTime'] = $since;
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of $candles to fetch
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {[[int]]} A list of $candles ordered as timestamp, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $options = $this->safe_value($this->options, 'timeframes', array());
+            $timeframes = $this->safe_value($options, $market['type'], array());
+            $timeframeValue = $this->safe_string($timeframes, $timeframe);
+            $request = array(
+                'symbol' => $market['id'],
+                'interval' => $timeframeValue,
+            );
+            $candles = null;
+            if ($market['spot']) {
+                if ($since !== null) {
+                    $request['startTime'] = $since;
+                }
+                if ($limit !== null) {
+                    $request['limit'] = $limit;
+                }
+                $response = Async\await($this->spotPublicGetKlines (array_merge($request, $params)));
+                //
+                //     array(
+                //       array(
+                //         1640804880000,
+                //         "47482.36",
+                //         "47482.36",
+                //         "47416.57",
+                //         "47436.1",
+                //         "3.550717",
+                //         1640804940000,
+                //         "168387.3"
+                //       ),
+                //     )
+                //
+                $candles = $response;
+            } elseif ($market['swap']) {
+                if ($since !== null) {
+                    $request['start'] = intval($since / 1000);
+                }
+                $priceType = $this->safe_string($params, 'price', 'default');
+                $params = $this->omit($params, 'price');
+                $method = $this->get_supported_mapping($priceType, array(
+                    'default' => 'contractPublicGetKlineSymbol',
+                    'index' => 'contractPublicGetKlineIndexPriceSymbol',
+                    'mark' => 'contractPublicGetKlineFairPriceSymbol',
+                ));
+                $response = Async\await($this->$method (array_merge($request, $params)));
+                //
+                //     {
+                //         "success":true,
+                //         "code":0,
+                //         "data":{
+                //             "time":[1634052300,1634052360,1634052420],
+                //             "open":[3492.2,3491.3,3495.65],
+                //             "close":[3491.3,3495.65,3495.2],
+                //             "high":[3495.85,3496.55,3499.4],
+                //             "low":[3491.15,3490.9,3494.2],
+                //             "vol":[1740.0,351.0,314.0],
+                //             "amount":[60793.623,12260.4885,10983.1375],
+                //         }
+                //     }
+                //
+                $data = $this->safe_value($response, 'data');
+                $candles = $this->convert_trading_view_to_ohlcv($data, 'time', 'open', 'high', 'low', 'close', 'vol');
             }
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $response = yield $this->spotPublicGetKlines (array_merge($request, $params));
-            //
-            //     array(
-            //       array(
-            //         1640804880000,
-            //         "47482.36",
-            //         "47482.36",
-            //         "47416.57",
-            //         "47436.1",
-            //         "3.550717",
-            //         1640804940000,
-            //         "168387.3"
-            //       ),
-            //     )
-            //
-            $candles = $response;
-        } elseif ($market['swap']) {
-            if ($since !== null) {
-                $request['start'] = intval($since / 1000);
-            }
-            $priceType = $this->safe_string($params, 'price', 'default');
-            $params = $this->omit($params, 'price');
-            $method = $this->get_supported_mapping($priceType, array(
-                'default' => 'contractPublicGetKlineSymbol',
-                'index' => 'contractPublicGetKlineIndexPriceSymbol',
-                'mark' => 'contractPublicGetKlineFairPriceSymbol',
-            ));
-            $response = yield $this->$method (array_merge($request, $params));
-            //
-            //     {
-            //         "success":true,
-            //         "code":0,
-            //         "data":{
-            //             "time":[1634052300,1634052360,1634052420],
-            //             "open":[3492.2,3491.3,3495.65],
-            //             "close":[3491.3,3495.65,3495.2],
-            //             "high":[3495.85,3496.55,3499.4],
-            //             "low":[3491.15,3490.9,3494.2],
-            //             "vol":[1740.0,351.0,314.0],
-            //             "amount":[60793.623,12260.4885,10983.1375],
-            //         }
-            //     }
-            //
-            $data = $this->safe_value($response, 'data');
-            $candles = $this->convert_trading_view_to_ohlcv($data, 'time', 'open', 'high', 'low', 'close', 'vol');
-        }
-        return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
+            return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
+        }) ();
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -1305,160 +1346,164 @@ class mexc3 extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
-        /**
-         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
-         */
-        yield $this->load_markets();
-        $request = array();
-        $market = null;
-        $isSingularMarket = false;
-        if ($symbols !== null) {
-            $length = count($symbols);
-            $isSingularMarket = $length === 1;
-            $firstSymbol = $this->safe_string($symbols, 0);
-            $market = $this->market($firstSymbol);
-        }
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
-        $tickers = null;
-        if ($isSingularMarket) {
-            $request['symbol'] = $market['id'];
-        }
-        if ($marketType === 'spot') {
-            $tickers = yield $this->spotPublicGetTicker24hr (array_merge($request, $query));
-            //
-            //     array(
-            //         {
-            //             "symbol" => "BTCUSDT",
-            //             "priceChange" => "184.34",
-            //             "priceChangePercent" => "0.00400048",
-            //             "prevClosePrice" => "46079.37",
-            //             "lastPrice" => "46263.71",
-            //             "lastQty" => "",
-            //             "bidPrice" => "46260.38",
-            //             "bidQty" => "",
-            //             "askPrice" => "46260.41",
-            //             "askQty" => "",
-            //             "openPrice" => "46079.37",
-            //             "highPrice" => "47550.01",
-            //             "lowPrice" => "45555.5",
-            //             "volume" => "1732.461487",
-            //             "quoteVolume" => null,
-            //             "openTime" => 1641349500000,
-            //             "closeTime" => 1641349582808,
-            //             "count" => null
-            //         }
-            //     )
-            //
-        } elseif ($marketType === 'swap') {
-            $response = yield $this->contractPublicGetTicker (array_merge($request, $query));
-            //
-            //     {
-            //         "success":true,
-            //         "code":0,
-            //         "data":array(
-            //             array(
-            //                 "symbol":"ETH_USDT",
-            //                 "lastPrice":3581.3,
-            //                 "bid1":3581.25,
-            //                 "ask1":3581.5,
-            //                 "volume24":4045530,
-            //                 "amount24":141331823.5755,
-            //                 "holdVol":5832946,
-            //                 "lower24Price":3413.4,
-            //                 "high24Price":3588.7,
-            //                 "riseFallRate":0.0275,
-            //                 "riseFallValue":95.95,
-            //                 "indexPrice":3580.7852,
-            //                 "fairPrice":3581.08,
-            //                 "fundingRate":0.000063,
-            //                 "maxBidPrice":3938.85,
-            //                 "minAskPrice":3222.7,
-            //                 "timestamp":1634162885016
-            //             ),
-            //         )
-            //     }
-            //
-            $tickers = $this->safe_value($response, 'data', array());
-        }
-        // when it's single symbol $request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
-        if ($isSingularMarket) {
-            $tickers = array( $tickers );
-        }
-        return $this->parse_tickers($tickers, $symbols);
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            $market = null;
+            $isSingularMarket = false;
+            if ($symbols !== null) {
+                $length = count($symbols);
+                $isSingularMarket = $length === 1;
+                $firstSymbol = $this->safe_string($symbols, 0);
+                $market = $this->market($firstSymbol);
+            }
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
+            $tickers = null;
+            if ($isSingularMarket) {
+                $request['symbol'] = $market['id'];
+            }
+            if ($marketType === 'spot') {
+                $tickers = Async\await($this->spotPublicGetTicker24hr (array_merge($request, $query)));
+                //
+                //     array(
+                //         {
+                //             "symbol" => "BTCUSDT",
+                //             "priceChange" => "184.34",
+                //             "priceChangePercent" => "0.00400048",
+                //             "prevClosePrice" => "46079.37",
+                //             "lastPrice" => "46263.71",
+                //             "lastQty" => "",
+                //             "bidPrice" => "46260.38",
+                //             "bidQty" => "",
+                //             "askPrice" => "46260.41",
+                //             "askQty" => "",
+                //             "openPrice" => "46079.37",
+                //             "highPrice" => "47550.01",
+                //             "lowPrice" => "45555.5",
+                //             "volume" => "1732.461487",
+                //             "quoteVolume" => null,
+                //             "openTime" => 1641349500000,
+                //             "closeTime" => 1641349582808,
+                //             "count" => null
+                //         }
+                //     )
+                //
+            } elseif ($marketType === 'swap') {
+                $response = Async\await($this->contractPublicGetTicker (array_merge($request, $query)));
+                //
+                //     {
+                //         "success":true,
+                //         "code":0,
+                //         "data":array(
+                //             array(
+                //                 "symbol":"ETH_USDT",
+                //                 "lastPrice":3581.3,
+                //                 "bid1":3581.25,
+                //                 "ask1":3581.5,
+                //                 "volume24":4045530,
+                //                 "amount24":141331823.5755,
+                //                 "holdVol":5832946,
+                //                 "lower24Price":3413.4,
+                //                 "high24Price":3588.7,
+                //                 "riseFallRate":0.0275,
+                //                 "riseFallValue":95.95,
+                //                 "indexPrice":3580.7852,
+                //                 "fairPrice":3581.08,
+                //                 "fundingRate":0.000063,
+                //                 "maxBidPrice":3938.85,
+                //                 "minAskPrice":3222.7,
+                //                 "timestamp":1634162885016
+                //             ),
+                //         )
+                //     }
+                //
+                $tickers = $this->safe_value($response, 'data', array());
+            }
+            // when it's single symbol $request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
+            if ($isSingularMarket) {
+                $tickers = array( $tickers );
+            }
+            return $this->parse_tickers($tickers, $symbols);
+        }) ();
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
-        /**
-         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchTicker', $market, $params);
-        $ticker = null;
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        if ($marketType === 'spot') {
-            $ticker = yield $this->spotPublicGetTicker24hr (array_merge($request, $query));
-            //
-            //     {
-            //         "symbol" => "BTCUSDT",
-            //         "priceChange" => "184.34",
-            //         "priceChangePercent" => "0.00400048",
-            //         "prevClosePrice" => "46079.37",
-            //         "lastPrice" => "46263.71",
-            //         "lastQty" => "",
-            //         "bidPrice" => "46260.38",
-            //         "bidQty" => "",
-            //         "askPrice" => "46260.41",
-            //         "askQty" => "",
-            //         "openPrice" => "46079.37",
-            //         "highPrice" => "47550.01",
-            //         "lowPrice" => "45555.5",
-            //         "volume" => "1732.461487",
-            //         "quoteVolume" => null,
-            //         "openTime" => 1641349500000,
-            //         "closeTime" => 1641349582808,
-            //         "count" => null
-            //     }
-            //
-        } elseif ($marketType === 'swap') {
-            $response = yield $this->contractPublicGetTicker (array_merge($request, $query));
-            //
-            //     {
-            //         "success":true,
-            //         "code":0,
-            //         "data":{
-            //             "symbol":"ETH_USDT",
-            //             "lastPrice":3581.3,
-            //             "bid1":3581.25,
-            //             "ask1":3581.5,
-            //             "volume24":4045530,
-            //             "amount24":141331823.5755,
-            //             "holdVol":5832946,
-            //             "lower24Price":3413.4,
-            //             "high24Price":3588.7,
-            //             "riseFallRate":0.0275,
-            //             "riseFallValue":95.95,
-            //             "indexPrice":3580.7852,
-            //             "fairPrice":3581.08,
-            //             "fundingRate":0.000063,
-            //             "maxBidPrice":3938.85,
-            //             "minAskPrice":3222.7,
-            //             "timestamp":1634162885016
-            //         }
-            //     }
-            //
-            $ticker = $this->safe_value($response, 'data', array());
-        }
-        // when it's single $symbol $request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
-        return $this->parse_ticker($ticker, $symbol);
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchTicker', $market, $params);
+            $ticker = null;
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            if ($marketType === 'spot') {
+                $ticker = Async\await($this->spotPublicGetTicker24hr (array_merge($request, $query)));
+                //
+                //     {
+                //         "symbol" => "BTCUSDT",
+                //         "priceChange" => "184.34",
+                //         "priceChangePercent" => "0.00400048",
+                //         "prevClosePrice" => "46079.37",
+                //         "lastPrice" => "46263.71",
+                //         "lastQty" => "",
+                //         "bidPrice" => "46260.38",
+                //         "bidQty" => "",
+                //         "askPrice" => "46260.41",
+                //         "askQty" => "",
+                //         "openPrice" => "46079.37",
+                //         "highPrice" => "47550.01",
+                //         "lowPrice" => "45555.5",
+                //         "volume" => "1732.461487",
+                //         "quoteVolume" => null,
+                //         "openTime" => 1641349500000,
+                //         "closeTime" => 1641349582808,
+                //         "count" => null
+                //     }
+                //
+            } elseif ($marketType === 'swap') {
+                $response = Async\await($this->contractPublicGetTicker (array_merge($request, $query)));
+                //
+                //     {
+                //         "success":true,
+                //         "code":0,
+                //         "data":{
+                //             "symbol":"ETH_USDT",
+                //             "lastPrice":3581.3,
+                //             "bid1":3581.25,
+                //             "ask1":3581.5,
+                //             "volume24":4045530,
+                //             "amount24":141331823.5755,
+                //             "holdVol":5832946,
+                //             "lower24Price":3413.4,
+                //             "high24Price":3588.7,
+                //             "riseFallRate":0.0275,
+                //             "riseFallValue":95.95,
+                //             "indexPrice":3580.7852,
+                //             "fairPrice":3581.08,
+                //             "fundingRate":0.000063,
+                //             "maxBidPrice":3938.85,
+                //             "minAskPrice":3222.7,
+                //             "timestamp":1634162885016
+                //         }
+                //     }
+                //
+                $ticker = $this->safe_value($response, 'data', array());
+            }
+            // when it's single $symbol $request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
+            return $this->parse_ticker($ticker, $symbol);
+        }) ();
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -1579,424 +1624,561 @@ class mexc3 extends Exchange {
     }
 
     public function fetch_bids_asks($symbols = null, $params = array ()) {
-        /**
-         * fetches the bid and ask price and volume for multiple markets
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
-         */
-        yield $this->load_markets();
-        $market = null;
-        $isSingularMarket = false;
-        if ($symbols !== null) {
-            $length = count($symbols);
-            $isSingularMarket = $length === 1;
-            $market = $this->market($symbols[0]);
-        }
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchBidsAsks', $market, $params);
-        $tickers = null;
-        if ($marketType === 'spot') {
-            $tickers = yield $this->spotPublicGetTickerBookTicker ($query);
-            //
-            //     array(
-            //       array(
-            //         "symbol" => "AEUSDT",
-            //         "bidPrice" => "0.11001",
-            //         "bidQty" => "115.59",
-            //         "askPrice" => "0.11127",
-            //         "askQty" => "215.48"
-            //       ),
-            //     )
-            //
-        } elseif ($marketType === 'swap') {
-            throw new NotSupported($this->id . ' fetchBidsAsks() is not available for ' . $marketType . ' markets');
-        }
-        // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
-        if ($isSingularMarket) {
-            $tickers = array( $tickers );
-        }
-        return $this->parse_tickers($tickers, $symbols);
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches the bid and ask price and volume for multiple markets
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            $isSingularMarket = false;
+            if ($symbols !== null) {
+                $length = count($symbols);
+                $isSingularMarket = $length === 1;
+                $market = $this->market($symbols[0]);
+            }
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchBidsAsks', $market, $params);
+            $tickers = null;
+            if ($marketType === 'spot') {
+                $tickers = Async\await($this->spotPublicGetTickerBookTicker ($query));
+                //
+                //     array(
+                //       array(
+                //         "symbol" => "AEUSDT",
+                //         "bidPrice" => "0.11001",
+                //         "bidQty" => "115.59",
+                //         "askPrice" => "0.11127",
+                //         "askQty" => "215.48"
+                //       ),
+                //     )
+                //
+            } elseif ($marketType === 'swap') {
+                throw new NotSupported($this->id . ' fetchBidsAsks() is not available for ' . $marketType . ' markets');
+            }
+            // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
+            if ($isSingularMarket) {
+                $tickers = array( $tickers );
+            }
+            return $this->parse_tickers($tickers, $symbols);
+        }) ();
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        /**
-         * create a trade order
-         * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type 'market' or 'limit'
-         * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @param {string|null} $params->marginMode only 'isolated' is supported for spot-margin trading
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
-        if ($market['spot']) {
-            return yield $this->create_spot_order($market, $type, $side, $amount, $price, $marginMode, $query);
-        } elseif ($market['swap']) {
-            return yield $this->create_swap_order($market, $type, $side, $amount, $price, $marginMode, $query);
-        }
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * create a trade order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @param {string|null} $params->marginMode only 'isolated' is supported for spot-margin trading
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
+            if ($market['spot']) {
+                return Async\await($this->create_spot_order($market, $type, $side, $amount, $price, $marginMode, $query));
+            } elseif ($market['swap']) {
+                return Async\await($this->create_swap_order($market, $type, $side, $amount, $price, $marginMode, $query));
+            }
+        }) ();
     }
 
     public function create_spot_order($market, $type, $side, $amount, $price = null, $marginMode = null, $params = array ()) {
-        $symbol = $market['symbol'];
-        $orderSide = ($side === 'buy') ? 'BUY' : 'SELL';
-        $request = array(
-            'symbol' => $market['id'],
-            'side' => $orderSide,
-            'type' => strtoupper($type),
-        );
-        if ($orderSide === 'BUY' && $type === 'market') {
-            $quoteOrderQty = $this->safe_number($params, 'quoteOrderQty');
-            if ($quoteOrderQty !== null) {
-                $amount = $quoteOrderQty;
-            } elseif ($this->options['createMarketBuyOrderRequiresPrice']) {
-                if ($price === null) {
-                    throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
-                } else {
-                    $amount = $amount * $price;
+        return Async\async(function () use ($market, $type, $side, $amount, $price, $marginMode, $params) {
+            $symbol = $market['symbol'];
+            $orderSide = ($side === 'buy') ? 'BUY' : 'SELL';
+            $request = array(
+                'symbol' => $market['id'],
+                'side' => $orderSide,
+                'type' => strtoupper($type),
+            );
+            if ($orderSide === 'BUY' && $type === 'market') {
+                $quoteOrderQty = $this->safe_number($params, 'quoteOrderQty');
+                if ($quoteOrderQty !== null) {
+                    $amount = $quoteOrderQty;
+                } elseif ($this->options['createMarketBuyOrderRequiresPrice']) {
+                    if ($price === null) {
+                        throw new InvalidOrder($this->id . " createOrder() requires the $price argument with $market buy orders to calculate total order cost ($amount to spend), where cost = $amount * $price-> Supply a $price argument to createOrder() call if you want the cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the $amount argument (the exchange-specific behaviour)");
+                    } else {
+                        $amountString = $this->number_to_string($amount);
+                        $priceString = $this->number_to_string($price);
+                        $quoteAmount = Precise::string_mul($amountString, $priceString);
+                        $amount = $this->parse_number($quoteAmount);
+                    }
                 }
-            }
-            $request['quoteOrderQty'] = $amount;
-        } else {
-            $request['quantity'] = $this->amount_to_precision($symbol, $amount);
-        }
-        if ($price !== null) {
-            $request['price'] = $this->price_to_precision($symbol, $price);
-        }
-        $clientOrderId = $this->safe_string($params, 'clientOrderId');
-        if ($clientOrderId !== null) {
-            $request['newClientOrderId'] = $clientOrderId;
-            $params = $this->omit($params, array( 'type', 'clientOrderId' ));
-        }
-        $method = 'spotPrivatePostOrder';
-        if ($marginMode !== null) {
-            $method = 'spotPrivatePostMarginOrder';
-            if ($marginMode !== 'isolated') {
-                throw new NotSupported($this->id . ' only "isolated" $marginMode is supported for spot-margin trading');
-            }
-        }
-        $response = yield $this->$method (array_merge($request, $params));
-        //
-        // spot
-        //
-        //     {
-        //         "symbol" => "BTCUSDT",
-        //         "orderId" => "123738410679123456",
-        //         "orderListId" => -1
-        //     }
-        //
-        // margin
-        //
-        //     {
-        //         "symbol" => "BTCUSDT",
-        //         "orderId" => "762634301354414080",
-        //         "clientOrderId" => null,
-        //         "isIsolated" => true,
-        //         "transactTime" => 1661992652132
-        //     }
-        //
-        return array_merge($this->parse_order($response, $market), array(
-            'side' => $side,
-            'type' => $type,
-            'price' => $price,
-            'amount' => $amount,
-        ));
-    }
-
-    public function create_swap_order($market, $type, $side, $amount, $price = null, $marginMode = null, $params = array ()) {
-        yield $this->load_markets();
-        $symbol = $market['symbol'];
-        $unavailableContracts = $this->safe_value($this->options, 'unavailableContracts', array());
-        $isContractUnavaiable = $this->safe_value($unavailableContracts, $symbol, false);
-        if ($isContractUnavaiable) {
-            throw new NotSupported($this->id . ' createSwapOrder() does not support yet this $symbol:' . $symbol);
-        }
-        $openType = null;
-        if ($marginMode !== null) {
-            if ($marginMode === 'cross') {
-                $openType = 2;
-            } elseif ($marginMode === 'isolated') {
-                $openType = 1;
+                $request['quoteOrderQty'] = $amount;
             } else {
-                throw new ArgumentsRequired($this->id . ' createSwapOrder() $marginMode parameter should be either "cross" or "isolated"');
+                $request['quantity'] = $this->amount_to_precision($symbol, $amount);
             }
-        } else {
-            $openType = $this->safe_integer($params, 'openType', 2); // defaulting to cross margin
-        }
-        if (($type !== 'limit') && ($type !== 'market') && ($type !== 1) && ($type !== 2) && ($type !== 3) && ($type !== 4) && ($type !== 5) && ($type !== 6)) {
-            throw new InvalidOrder($this->id . ' createSwapOrder() order $type must either limit, $market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for $market orders or 6 to convert $market $price to current price');
-        }
-        $postOnly = $this->safe_value($params, 'postOnly', false);
-        if ($postOnly) {
-            $type = 2;
-        } elseif ($type === 'limit') {
-            $type = 1;
-        } elseif ($type === 'market') {
-            $type = 6;
-        }
-        $request = array(
-            'symbol' => $market['id'],
-            // 'price' => floatval($this->price_to_precision($symbol, $price)),
-            'vol' => floatval($this->amount_to_precision($symbol, $amount)),
-            // 'leverage' => int, // required for isolated margin
-            // 'side' => $side, // 1 open long, 2 close short, 3 open short, 4 close long
-            //
-            // supported order types
-            //
-            //     1 limit
-            //     2 post only maker (PO)
-            //     3 transact or cancel instantly (IOC)
-            //     4 transact completely or cancel completely (FOK)
-            //     5 $market orders
-            //     6 convert $market $price to current $price
-            //
-            'type' => $type,
-            'openType' => $openType, // 1 isolated, 2 cross
-            // 'positionId' => 1394650, // long, filling in this parameter when closing a position is recommended
-            // 'externalOid' => $clientOrderId,
-            // 'triggerPrice' => 10.0, // Required for trigger order
-            // 'triggerType' => 1, // Required for trigger order 1 => more than or equal, 2 => less than or equal
-            // 'executeCycle' => 1, // Required for trigger order 1 => 24 hours,2 => 7 days
-            // 'trend' => 1, // Required for trigger order 1 => latest $price, 2 => fair $price, 3 => index $price
-            // 'orderType' => 1, // Required for trigger order 1 => limit order,2:Post Only Maker,3 => close or cancel instantly ,4 => close or cancel completely,5 => Market order
-        );
-        $method = 'contractPrivatePostOrderSubmit';
-        $stopPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
-        $params = $this->omit($params, array( 'stopPrice', 'triggerPrice' ));
-        if ($stopPrice) {
-            $method = 'contractPrivatePostPlanorderPlace';
-            $request['triggerPrice'] = $this->price_to_precision($symbol, $stopPrice);
-            $request['triggerType'] = $this->safe_integer($params, 'triggerType', 1);
-            $request['executeCycle'] = $this->safe_integer($params, 'executeCycle', 1);
-            $request['trend'] = $this->safe_integer($params, 'trend', 1);
-            $request['orderType'] = $this->safe_integer($params, 'orderType', 1);
-        }
-        if (($type !== 5) && ($type !== 6) && ($type !== 'market')) {
-            $request['price'] = floatval($this->price_to_precision($symbol, $price));
-        }
-        if ($openType === 1) {
-            $leverage = $this->safe_integer($params, 'leverage');
-            if ($leverage === null) {
-                throw new ArgumentsRequired($this->id . ' createSwapOrder() requires a $leverage parameter for isolated margin orders');
+            if ($price !== null) {
+                $request['price'] = $this->price_to_precision($symbol, $price);
             }
-        }
-        $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
-        if ($reduceOnly) {
-            $request['side'] = ($side === 'buy') ? 2 : 4;
-        } else {
-            $request['side'] = ($side === 'buy') ? 1 : 3;
-        }
-        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'externalOid');
-        if ($clientOrderId !== null) {
-            $request['externalOid'] = $clientOrderId;
-        }
-        $params = $this->omit($params, array( 'clientOrderId', 'externalOid', 'postOnly' ));
-        $response = yield $this->$method (array_merge($request, $params));
-        //
-        // Swap
-        //     array("code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4")
-        //
-        // Trigger
-        //     array("success":true,"code":0,"data":259208506303929856)
-        //
-        $data = $this->safe_string($response, 'data');
-        return $this->parse_order($data, $market);
-    }
-
-    public function fetch_order($id, $symbol = null, $params = array ()) {
-        /**
-         * fetches information on an order made by the user
-         * @param {string} $symbol unified $symbol of the $market the order was made in
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @param {string|null} $params->marginMode only 'isolated' is supported, for spot-margin trading
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        $data = null;
-        if ($market['spot']) {
             $clientOrderId = $this->safe_string($params, 'clientOrderId');
             if ($clientOrderId !== null) {
-                $params = $this->omit($params, 'clientOrderId');
-                $request['origClientOrderId'] = $clientOrderId;
-            } else {
-                $request['orderId'] = $id;
+                $request['newClientOrderId'] = $clientOrderId;
+                $params = $this->omit($params, array( 'type', 'clientOrderId' ));
             }
-            list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOrder', $params);
-            $method = 'spotPrivateGetOrder';
+            $method = 'spotPrivatePostOrder';
             if ($marginMode !== null) {
-                $method = 'spotPrivateGetMarginOrder';
+                if ($marginMode !== 'isolated') {
+                    throw new BadRequest($this->id . ' createOrder() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
+                }
+                $method = 'spotPrivatePostMarginOrder';
             }
-            $data = yield $this->$method (array_merge($request, $query));
+            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             // spot
             //
             //     {
             //         "symbol" => "BTCUSDT",
-            //         "orderId" => "133734823834147272",
-            //         "orderListId" => "-1",
-            //         "clientOrderId" => null,
-            //         "price" => "30000",
-            //         "origQty" => "0.0002",
-            //         "executedQty" => "0",
-            //         "cummulativeQuoteQty" => "0",
-            //         "status" => "CANCELED",
-            //         "timeInForce" => null,
-            //         "type" => "LIMIT",
-            //         "side" => "BUY",
-            //         "stopPrice" => null,
-            //         "icebergQty" => null,
-            //         "time" => "1647667102000",
-            //         "updateTime" => "1647708567000",
-            //         "isWorking" => true,
-            //         "origQuoteOrderQty" => "6"
+            //         "orderId" => "123738410679123456",
+            //         "orderListId" => -1
             //     }
             //
             // margin
             //
             //     {
             //         "symbol" => "BTCUSDT",
-            //         "orderId" => "763307297891028992",
-            //         "orderListId" => "-1",
+            //         "orderId" => "762634301354414080",
             //         "clientOrderId" => null,
-            //         "price" => "18000",
-            //         "origQty" => "0.0014",
-            //         "executedQty" => "0",
-            //         "cummulativeQuoteQty" => "0",
-            //         "status" => "NEW",
-            //         "type" => "LIMIT",
-            //         "side" => "BUY",
             //         "isIsolated" => true,
-            //         "isWorking" => true,
-            //         "time" => 1662153107000,
-            //         "updateTime" => 1662153107000
+            //         "transactTime" => 1661992652132
             //     }
             //
-        } elseif ($market['swap']) {
-            $request['order_id'] = $id;
-            $response = yield $this->contractPrivateGetOrderGetOrderId (array_merge($request, $params));
+            return array_merge($this->parse_order($response, $market), array(
+                'side' => $side,
+                'type' => $type,
+                'price' => $price,
+                'amount' => $amount,
+            ));
+        }) ();
+    }
+
+    public function create_swap_order($market, $type, $side, $amount, $price = null, $marginMode = null, $params = array ()) {
+        return Async\async(function () use ($market, $type, $side, $amount, $price, $marginMode, $params) {
+            Async\await($this->load_markets());
+            $symbol = $market['symbol'];
+            $unavailableContracts = $this->safe_value($this->options, 'unavailableContracts', array());
+            $isContractUnavaiable = $this->safe_value($unavailableContracts, $symbol, false);
+            if ($isContractUnavaiable) {
+                throw new NotSupported($this->id . ' createSwapOrder() does not support yet this $symbol:' . $symbol);
+            }
+            $openType = null;
+            if ($marginMode !== null) {
+                if ($marginMode === 'cross') {
+                    $openType = 2;
+                } elseif ($marginMode === 'isolated') {
+                    $openType = 1;
+                } else {
+                    throw new ArgumentsRequired($this->id . ' createSwapOrder() $marginMode parameter should be either "cross" or "isolated"');
+                }
+            } else {
+                $openType = $this->safe_integer($params, 'openType', 2); // defaulting to cross margin
+            }
+            if (($type !== 'limit') && ($type !== 'market') && ($type !== 1) && ($type !== 2) && ($type !== 3) && ($type !== 4) && ($type !== 5) && ($type !== 6)) {
+                throw new InvalidOrder($this->id . ' createSwapOrder() order $type must either limit, $market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for $market orders or 6 to convert $market $price to current price');
+            }
+            $postOnly = $this->safe_value($params, 'postOnly', false);
+            if ($postOnly) {
+                $type = 2;
+            } elseif ($type === 'limit') {
+                $type = 1;
+            } elseif ($type === 'market') {
+                $type = 6;
+            }
+            $request = array(
+                'symbol' => $market['id'],
+                // 'price' => floatval($this->price_to_precision($symbol, $price)),
+                'vol' => floatval($this->amount_to_precision($symbol, $amount)),
+                // 'leverage' => int, // required for isolated margin
+                // 'side' => $side, // 1 open long, 2 close short, 3 open short, 4 close long
+                //
+                // supported order types
+                //
+                //     1 limit
+                //     2 post only maker (PO)
+                //     3 transact or cancel instantly (IOC)
+                //     4 transact completely or cancel completely (FOK)
+                //     5 $market orders
+                //     6 convert $market $price to current $price
+                //
+                'type' => $type,
+                'openType' => $openType, // 1 isolated, 2 cross
+                // 'positionId' => 1394650, // long, filling in this parameter when closing a position is recommended
+                // 'externalOid' => $clientOrderId,
+                // 'triggerPrice' => 10.0, // Required for trigger order
+                // 'triggerType' => 1, // Required for trigger order 1 => more than or equal, 2 => less than or equal
+                // 'executeCycle' => 1, // Required for trigger order 1 => 24 hours,2 => 7 days
+                // 'trend' => 1, // Required for trigger order 1 => latest $price, 2 => fair $price, 3 => index $price
+                // 'orderType' => 1, // Required for trigger order 1 => limit order,2:Post Only Maker,3 => close or cancel instantly ,4 => close or cancel completely,5 => Market order
+            );
+            $method = 'contractPrivatePostOrderSubmit';
+            $stopPrice = $this->safe_number_2($params, 'triggerPrice', 'stopPrice');
+            $params = $this->omit($params, array( 'stopPrice', 'triggerPrice' ));
+            if ($stopPrice) {
+                $method = 'contractPrivatePostPlanorderPlace';
+                $request['triggerPrice'] = $this->price_to_precision($symbol, $stopPrice);
+                $request['triggerType'] = $this->safe_integer($params, 'triggerType', 1);
+                $request['executeCycle'] = $this->safe_integer($params, 'executeCycle', 1);
+                $request['trend'] = $this->safe_integer($params, 'trend', 1);
+                $request['orderType'] = $this->safe_integer($params, 'orderType', 1);
+            }
+            if (($type !== 5) && ($type !== 6) && ($type !== 'market')) {
+                $request['price'] = floatval($this->price_to_precision($symbol, $price));
+            }
+            if ($openType === 1) {
+                $leverage = $this->safe_integer($params, 'leverage');
+                if ($leverage === null) {
+                    throw new ArgumentsRequired($this->id . ' createSwapOrder() requires a $leverage parameter for isolated margin orders');
+                }
+            }
+            $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
+            if ($reduceOnly) {
+                $request['side'] = ($side === 'buy') ? 2 : 4;
+            } else {
+                $request['side'] = ($side === 'buy') ? 1 : 3;
+            }
+            $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'externalOid');
+            if ($clientOrderId !== null) {
+                $request['externalOid'] = $clientOrderId;
+            }
+            $params = $this->omit($params, array( 'clientOrderId', 'externalOid', 'postOnly' ));
+            $response = Async\await($this->$method (array_merge($request, $params)));
             //
-            //     {
-            //         "success" => true,
-            //         "code" => "0",
-            //         "data" => {
-            //             "orderId" => "264995729269765120",
-            //             "symbol" => "STEPN_USDT",
-            //             "positionId" => "0",
-            //             "price" => "2.2",
-            //             "vol" => "15",
-            //             "leverage" => "20",
-            //             "side" => "1",
-            //             "category" => "1",
-            //             "orderType" => "1",
-            //             "dealAvgPrice" => "0",
-            //             "dealVol" => "0",
-            //             "orderMargin" => "2.2528",
-            //             "takerFee" => "0",
-            //             "makerFee" => "0",
-            //             "profit" => "0",
-            //             "feeCurrency" => "USDT",
-            //             "openType" => "1",
-            //             "state" => "2",
-            //             "externalOid" => "_m_0e9520c256744d64b942985189026d20",
-            //             "errorCode" => "0",
-            //             "usedMargin" => "0",
-            //             "createTime" => "1648850305236",
-            //             "updateTime" => "1648850305245",
-            //             "positionMode" => "1"
-            //         }
-            //     }
+            // Swap
+            //     array("code":200,"data":"2ff3163e8617443cb9c6fc19d42b1ca4")
             //
-            $data = $this->safe_value($response, 'data');
-        }
-        return $this->parse_order($data, $market);
+            // Trigger
+            //     array("success":true,"code":0,"data":259208506303929856)
+            //
+            $data = $this->safe_string($response, 'data');
+            return $this->parse_order($data, $market);
+        }) ();
+    }
+
+    public function fetch_order($id, $symbol = null, $params = array ()) {
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * fetches information on an order made by the user
+             * @param {string} $symbol unified $symbol of the $market the order was made in
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @param {string|null} $params->marginMode only 'isolated' is supported, for spot-margin trading
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $data = null;
+            if ($market['spot']) {
+                $clientOrderId = $this->safe_string($params, 'clientOrderId');
+                if ($clientOrderId !== null) {
+                    $params = $this->omit($params, 'clientOrderId');
+                    $request['origClientOrderId'] = $clientOrderId;
+                } else {
+                    $request['orderId'] = $id;
+                }
+                list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOrder', $params);
+                $method = 'spotPrivateGetOrder';
+                if ($marginMode !== null) {
+                    if ($marginMode !== 'isolated') {
+                        throw new BadRequest($this->id . ' fetchOrder() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
+                    }
+                    $method = 'spotPrivateGetMarginOrder';
+                }
+                $data = Async\await($this->$method (array_merge($request, $query)));
+                //
+                // spot
+                //
+                //     {
+                //         "symbol" => "BTCUSDT",
+                //         "orderId" => "133734823834147272",
+                //         "orderListId" => "-1",
+                //         "clientOrderId" => null,
+                //         "price" => "30000",
+                //         "origQty" => "0.0002",
+                //         "executedQty" => "0",
+                //         "cummulativeQuoteQty" => "0",
+                //         "status" => "CANCELED",
+                //         "timeInForce" => null,
+                //         "type" => "LIMIT",
+                //         "side" => "BUY",
+                //         "stopPrice" => null,
+                //         "icebergQty" => null,
+                //         "time" => "1647667102000",
+                //         "updateTime" => "1647708567000",
+                //         "isWorking" => true,
+                //         "origQuoteOrderQty" => "6"
+                //     }
+                //
+                // margin
+                //
+                //     {
+                //         "symbol" => "BTCUSDT",
+                //         "orderId" => "763307297891028992",
+                //         "orderListId" => "-1",
+                //         "clientOrderId" => null,
+                //         "price" => "18000",
+                //         "origQty" => "0.0014",
+                //         "executedQty" => "0",
+                //         "cummulativeQuoteQty" => "0",
+                //         "status" => "NEW",
+                //         "type" => "LIMIT",
+                //         "side" => "BUY",
+                //         "isIsolated" => true,
+                //         "isWorking" => true,
+                //         "time" => 1662153107000,
+                //         "updateTime" => 1662153107000
+                //     }
+                //
+            } elseif ($market['swap']) {
+                $request['order_id'] = $id;
+                $response = Async\await($this->contractPrivateGetOrderGetOrderId (array_merge($request, $params)));
+                //
+                //     {
+                //         "success" => true,
+                //         "code" => "0",
+                //         "data" => {
+                //             "orderId" => "264995729269765120",
+                //             "symbol" => "STEPN_USDT",
+                //             "positionId" => "0",
+                //             "price" => "2.2",
+                //             "vol" => "15",
+                //             "leverage" => "20",
+                //             "side" => "1",
+                //             "category" => "1",
+                //             "orderType" => "1",
+                //             "dealAvgPrice" => "0",
+                //             "dealVol" => "0",
+                //             "orderMargin" => "2.2528",
+                //             "takerFee" => "0",
+                //             "makerFee" => "0",
+                //             "profit" => "0",
+                //             "feeCurrency" => "USDT",
+                //             "openType" => "1",
+                //             "state" => "2",
+                //             "externalOid" => "_m_0e9520c256744d64b942985189026d20",
+                //             "errorCode" => "0",
+                //             "usedMargin" => "0",
+                //             "createTime" => "1648850305236",
+                //             "updateTime" => "1648850305245",
+                //             "positionMode" => "1"
+                //         }
+                //     }
+                //
+                $data = $this->safe_value($response, 'data');
+            }
+            return $this->parse_order($data, $market);
+        }) ();
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches information on multiple orders made by the user
-         * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        yield $this->load_markets();
-        $request = array();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
-        }
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
-        if ($marketType === 'spot') {
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument for spot market');
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple orders made by the user
+             * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch orders for
+             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @param {string|null} $params->marginMode only 'isolated' is supported, for spot-margin trading
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
             }
-            if ($since !== null) {
-                $request['startTime'] = $since;
-            }
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $response = yield $this->spotPrivateGetAllOrders (array_merge($request, $query));
-            //
-            //     array(
-            //         array(
-            //             "symbol" => "BTCUSDT",
-            //             "orderId" => "133949373632483328",
-            //             "orderListId" => "-1",
-            //             "clientOrderId" => null,
-            //             "price" => "45000",
-            //             "origQty" => "0.0002",
-            //             "executedQty" => "0",
-            //             "cummulativeQuoteQty" => "0",
-            //             "status" => "NEW",
-            //             "timeInForce" => null,
-            //             "type" => "LIMIT",
-            //             "side" => "SELL",
-            //             "stopPrice" => null,
-            //             "icebergQty" => null,
-            //             "time" => "1647718255000",
-            //             "updateTime" => "1647718255000",
-            //             "isWorking" => true,
-            //             "origQuoteOrderQty" => "9"
-            //         ),
-            //     )
-            //
-            return $this->parse_orders($response, $market, $since, $limit);
-        } else {
-            if ($since !== null) {
-                $request['start_time'] = $since;
-                $end = $this->safe_integer($params, 'end_time');
-                if ($end === null) {
-                    $request['end_time'] = $this->sum($since, $this->options['maxTimeTillEnd']);
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
+            if ($marketType === 'spot') {
+                if ($symbol === null) {
+                    throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument for spot market');
                 }
+                list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOrders', $params);
+                $method = 'spotPrivateGetAllOrders';
+                if ($marginMode !== null) {
+                    if ($marginMode !== 'isolated') {
+                        throw new BadRequest($this->id . ' fetchOrders() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
+                    }
+                    $method = 'spotPrivateGetMarginAllOrders';
+                }
+                if ($since !== null) {
+                    $request['startTime'] = $since;
+                }
+                if ($limit !== null) {
+                    $request['limit'] = $limit;
+                }
+                $response = Async\await($this->$method (array_merge($request, $query)));
+                //
+                // spot
+                //
+                //     array(
+                //         array(
+                //             "symbol" => "BTCUSDT",
+                //             "orderId" => "133949373632483328",
+                //             "orderListId" => "-1",
+                //             "clientOrderId" => null,
+                //             "price" => "45000",
+                //             "origQty" => "0.0002",
+                //             "executedQty" => "0",
+                //             "cummulativeQuoteQty" => "0",
+                //             "status" => "NEW",
+                //             "timeInForce" => null,
+                //             "type" => "LIMIT",
+                //             "side" => "SELL",
+                //             "stopPrice" => null,
+                //             "icebergQty" => null,
+                //             "time" => "1647718255000",
+                //             "updateTime" => "1647718255000",
+                //             "isWorking" => true,
+                //             "origQuoteOrderQty" => "9"
+                //         ),
+                //     )
+                //
+                // margin
+                //
+                //     array(
+                //         {
+                //             "symbol" => "BTCUSDT",
+                //             "orderId" => "763307297891028992",
+                //             "orderListId" => "-1",
+                //             "clientOrderId" => null,
+                //             "price" => "18000",
+                //             "origQty" => "0.0014",
+                //             "executedQty" => "0",
+                //             "cummulativeQuoteQty" => "0",
+                //             "status" => "NEW",
+                //             "type" => "LIMIT",
+                //             "side" => "BUY",
+                //             "isIsolated" => true,
+                //             "isWorking" => true,
+                //             "time" => 1662153107000,
+                //             "updateTime" => 1662153107000
+                //         }
+                //     )
+                //
+                return $this->parse_orders($response, $market, $since, $limit);
+            } else {
+                if ($since !== null) {
+                    $request['start_time'] = $since;
+                    $end = $this->safe_integer($params, 'end_time');
+                    if ($end === null) {
+                        $request['end_time'] = $this->sum($since, $this->options['maxTimeTillEnd']);
+                    }
+                }
+                if ($limit !== null) {
+                    $request['page_size'] = $limit;
+                }
+                $method = $this->safe_string($this->options, 'fetchOrders', 'contractPrivateGetOrderListHistoryOrders');
+                $method = $this->safe_string($query, 'method', $method);
+                $ordersOfRegular = array();
+                $ordersOfTrigger = array();
+                if ($method === 'contractPrivateGetOrderListHistoryOrders') {
+                    $response = Async\await($this->contractPrivateGetOrderListHistoryOrders (array_merge($request, $query)));
+                    //
+                    //     {
+                    //         "success" => true,
+                    //         "code" => "0",
+                    //         "data" => array(
+                    //             array(
+                    //                 "orderId" => "265230764677709315",
+                    //                 "symbol" => "STEPN_USDT",
+                    //                 "positionId" => "0",
+                    //                 "price" => "2.1",
+                    //                 "vol" => "102",
+                    //                 "leverage" => "20",
+                    //                 "side" => "1",
+                    //                 "category" => "1",
+                    //                 "orderType" => "1",
+                    //                 "dealAvgPrice" => "0",
+                    //                 "dealVol" => "0",
+                    //                 "orderMargin" => "10.96704",
+                    //                 "takerFee" => "0",
+                    //                 "makerFee" => "0",
+                    //                 "profit" => "0",
+                    //                 "feeCurrency" => "USDT",
+                    //                 "openType" => "1",
+                    //                 "state" => "2",
+                    //                 "externalOid" => "_m_7e42f8df6b324c869e4e200397e2b00f",
+                    //                 "errorCode" => "0",
+                    //                 "usedMargin" => "0",
+                    //                 "createTime" => "1648906342000",
+                    //                 "updateTime" => "1648906342000",
+                    //                 "positionMode" => "1"
+                    //             ),
+                    //          )
+                    //     }
+                    //
+                    $ordersOfRegular = $this->safe_value($response, 'data');
+                } else {
+                    // the Planorder endpoints work not only for stop-$market orders, but also for stop-$limit orders that were supposed to have a separate endpoint
+                    $response = Async\await($this->contractPrivateGetPlanorderListOrders (array_merge($request, $query)));
+                    //
+                    //     {
+                    //         "success" => true,
+                    //         "code" => "0",
+                    //         "data" => array(
+                    //             array(
+                    //                 "symbol" => "STEPN_USDT",
+                    //                 "leverage" => "20",
+                    //                 "side" => "1",
+                    //                 "vol" => "13",
+                    //                 "openType" => "1",
+                    //                 "state" => "1",
+                    //                 "orderType" => "1",
+                    //                 "errorCode" => "0",
+                    //                 "createTime" => "1648984276000",
+                    //                 "updateTime" => "1648984276000",
+                    //                 "id" => "265557643326564352",
+                    //                 "triggerType" => "1",
+                    //                 "triggerPrice" => "3",
+                    //                 "price" => "2.9", // not present in stop-$market, but in stop-$limit order
+                    //                 "executeCycle" => "87600",
+                    //                 "trend" => "1",
+                    //             ),
+                    //         )
+                    //     }
+                    //
+                    $ordersOfTrigger = $this->safe_value($response, 'data');
+                }
+                $merged = $this->array_concat($ordersOfTrigger, $ordersOfRegular);
+                return $this->parse_orders($merged, $market, $since, $limit, $params);
             }
-            if ($limit !== null) {
-                $request['page_size'] = $limit;
+        }) ();
+    }
+
+    public function fetch_orders_by_ids($ids, $symbol = null, $params = array ()) {
+        return Async\async(function () use ($ids, $symbol, $params) {
+            Async\await($this->load_markets());
+            $request = array();
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
             }
-            $method = $this->safe_string($this->options, 'fetchOrders', 'contractPrivateGetOrderListHistoryOrders');
-            $method = $this->safe_string($query, 'method', $method);
-            $ordersOfRegular = array();
-            $ordersOfTrigger = array();
-            if ($method === 'contractPrivateGetOrderListHistoryOrders') {
-                $response = yield $this->contractPrivateGetOrderListHistoryOrders (array_merge($request, $query));
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchOrdersByIds', $market, $params);
+            if ($marketType === 'spot') {
+                throw new BadRequest($this->id . ' fetchOrdersByIds() is not supported for ' . $marketType);
+            } else {
+                $request['order_ids'] = implode(',', $ids);
+                $response = Async\await($this->contractPrivateGetOrderBatchQuery (array_merge($request, $query)));
                 //
                 //     {
                 //         "success" => true,
                 //         "code" => "0",
                 //         "data" => array(
-                //             array(
+                //             {
                 //                 "orderId" => "265230764677709315",
                 //                 "symbol" => "STEPN_USDT",
                 //                 "positionId" => "0",
@@ -2021,447 +2203,377 @@ class mexc3 extends Exchange {
                 //                 "createTime" => "1648906342000",
                 //                 "updateTime" => "1648906342000",
                 //                 "positionMode" => "1"
-                //             ),
-                //          )
+                //             }
+                //         )
                 //     }
                 //
-                $ordersOfRegular = $this->safe_value($response, 'data');
+                $data = $this->safe_value($response, 'data');
+                return $this->parse_orders($data, $market);
+            }
+        }) ();
+    }
+
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all unfilled currently open orders
+             * @param {string|null} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch open orders for
+             * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @param {string|null} $params->marginMode only 'isolated' is supported, for spot-margin trading
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+            }
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
+            if ($marketType === 'spot') {
+                if ($symbol === null) {
+                    throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument for spot market');
+                }
+                $method = 'spotPrivateGetOpenOrders';
+                list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
+                if ($marginMode !== null) {
+                    if ($marginMode !== 'isolated') {
+                        throw new BadRequest($this->id . ' fetchOpenOrders() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
+                    }
+                    $method = 'spotPrivateGetMarginOpenOrders';
+                }
+                $response = Async\await($this->$method (array_merge($request, $query)));
+                //
+                // spot
+                //
+                //     array(
+                //         {
+                //             "symbol" => "BTCUSDT",
+                //             "orderId" => "133949373632483328",
+                //             "orderListId" => "-1",
+                //             "clientOrderId" => "",
+                //             "price" => "45000",
+                //             "origQty" => "0.0002",
+                //             "executedQty" => "0",
+                //             "cummulativeQuoteQty" => "0",
+                //             "status" => "NEW",
+                //             "timeInForce" => null,
+                //             "type" => "LIMIT",
+                //             "side" => "SELL",
+                //             "stopPrice" => null,
+                //             "icebergQty" => null,
+                //             "time" => "1647718255199",
+                //             "updateTime" => null,
+                //             "isWorking" => true,
+                //             "origQuoteOrderQty" => "9"
+                //         }
+                //     )
+                //
+                // margin
+                //
+                //     array(
+                //         {
+                //             "symbol" => "BTCUSDT",
+                //             "orderId" => "764547676405633024",
+                //             "orderListId" => "-1",
+                //             "clientOrderId" => null,
+                //             "price" => "18000",
+                //             "origQty" => "0.0013",
+                //             "executedQty" => "0",
+                //             "cummulativeQuoteQty" => "0",
+                //             "status" => "NEW",
+                //             "type" => "LIMIT",
+                //             "side" => "BUY",
+                //             "isIsolated" => true,
+                //             "isWorking" => true,
+                //             "time" => 1662448836000,
+                //             "updateTime" => 1662448836000
+                //         }
+                //     )
+                //
+                return $this->parse_orders($response, $market, $since, $limit);
             } else {
-                // the Planorder endpoints work not only for stop-$market orders, but also for stop-$limit orders that were supposed to have a separate endpoint
-                $response = yield $this->contractPrivateGetPlanorderListOrders (array_merge($request, $query));
+                // TO_DO => another possible way is through => open_orders/{$symbol}, but as they have same ratelimits, and less granularity, i think historical orders are more convenient, as it supports more $params (however, theoretically, open-orders endpoint might be sligthly fast)
+                return Async\await($this->fetch_orders_by_state(2, $symbol, $since, $limit, $params));
+            }
+        }) ();
+    }
+
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple closed orders made by the user
+             * @param {string|null} $symbol unified market $symbol of the market orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch orders for
+             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            return Async\await($this->fetch_orders_by_state(3, $symbol, $since, $limit, $params));
+        }) ();
+    }
+
+    public function fetch_canceled_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple canceled orders made by the user
+             * @param {string|null} $symbol unified market $symbol of the market orders were made in
+             * @param {int|null} $since timestamp in ms of the earliest order, default is null
+             * @param {int|null} $limit max number of orders to return, default is null
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            return Async\await($this->fetch_orders_by_state(4, $symbol, $since, $limit, $params));
+        }) ();
+    }
+
+    public function fetch_orders_by_state($state, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        return Async\async(function () use ($state, $symbol, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $request = array();
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+            }
+            list($marketType) = $this->handle_market_type_and_params('fetchOrdersByState', $market, $params);
+            if ($marketType === 'spot') {
+                throw new BadRequest($this->id . ' fetchOrdersByState() is not supported for ' . $marketType);
+            } else {
+                $params['states'] = $state;
+                return $this->fetch_orders($symbol, $since, $limit, $params);
+            }
+        }) ();
+    }
+
+    public function cancel_order($id, $symbol = null, $params = array ()) {
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * cancels an open $order
+             * @param {string} $id $order $id
+             * @param {string|null} $symbol unified $symbol of the $market the $order was made in
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @param {string|null} $params->marginMode only 'isolated' is supported for spot-margin trading
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+            }
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
+            list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelOrder', $params);
+            $data = null;
+            if ($marketType === 'spot') {
+                if ($symbol === null) {
+                    throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+                }
+                $request = array(
+                    'symbol' => $market['id'],
+                );
+                $clientOrderId = $this->safe_string($params, 'clientOrderId');
+                if ($clientOrderId !== null) {
+                    $params = $this->omit($query, 'clientOrderId');
+                    $request['origClientOrderId'] = $clientOrderId;
+                } else {
+                    $request['orderId'] = $id;
+                }
+                $method = 'spotPrivateDeleteOrder';
+                if ($marginMode !== null) {
+                    if ($marginMode !== 'isolated') {
+                        throw new BadRequest($this->id . ' cancelOrder() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
+                    }
+                    $method = 'spotPrivateDeleteMarginOrder';
+                }
+                $data = Async\await($this->$method (array_merge($request, $query)));
+                //
+                // spot
+                //
+                //     {
+                //         "symbol" => "BTCUSDT",
+                //         "orderId" => "133734823834447872",
+                //         "price" => "30000",
+                //         "origQty" => "0.0002",
+                //         "type" => "LIMIT",
+                //         "side" => "BUY"
+                //     }
+                //
+                // margin
+                //
+                //     array(
+                //         {
+                //             "symbol" => "BTCUSDT",
+                //             "orderId" => "762640232574226432",
+                //             "orderListId" => "-1",
+                //             "clientOrderId" => null,
+                //             "price" => "18000",
+                //             "origQty" => "0.00147",
+                //             "executedQty" => "0",
+                //             "cummulativeQuoteQty" => "0",
+                //             "status" => "NEW",
+                //             "type" => "LIMIT",
+                //             "side" => "BUY",
+                //             "isIsolated" => true,
+                //             "isWorking" => true,
+                //             "time" => 1661994066000,
+                //             "updateTime" => 1661994066000
+                //         }
+                //     )
+                //
+            } else {
+                // TODO => PlanorderCancel endpoint has bug atm. waiting for fix.
+                $method = $this->safe_string($this->options, 'cancelOrder', 'contractPrivatePostOrderCancel'); // contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
+                $method = $this->safe_string($query, 'method', $method);
+                $response = Async\await($this->$method (array( $id ))); // the $request cannot be changed or extended. This is the only way to send.
+                //
+                //     {
+                //         "success" => true,
+                //         "code" => "0",
+                //         "data" => array(
+                //             {
+                //                 "orderId" => "264995729269765120",
+                //                 "errorCode" => "0",         // if already canceled => "2041"; if doesn't exist => "2040"
+                //                 "errorMsg" => "success",    // if already canceled => "order state cannot be cancelled"; if doesn't exist => "order not exist"
+                //             }
+                //         )
+                //     }
+                //
+                $data = $this->safe_value($response, 'data');
+                $order = $this->safe_value($data, 0);
+                $errorMsg = $this->safe_value($order, 'errorMsg', '');
+                if ($errorMsg !== 'success') {
+                    throw new InvalidOrder($this->id . ' cancelOrder() the $order with $id ' . $id . ' cannot be cancelled => ' . $errorMsg);
+                }
+            }
+            return $this->parse_order($data, $market);
+        }) ();
+    }
+
+    public function cancel_orders($ids, $symbol = null, $params = array ()) {
+        return Async\async(function () use ($ids, $symbol, $params) {
+            /**
+             * cancel multiple orders
+             * @param {[string]} $ids order $ids
+             * @param {string|null} $symbol unified $market $symbol, default is null
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {array} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            Async\await($this->load_markets());
+            $market = ($symbol !== null) ? $this->market($symbol) : null;
+            list($marketType) = $this->handle_market_type_and_params('cancelOrders', $market, $params);
+            if ($marketType === 'spot') {
+                throw new BadRequest($this->id . ' cancelOrders() is not supported for ' . $marketType);
+            } else {
+                $response = Async\await($this->contractPrivatePostOrderCancel ($ids)); // the request cannot be changed or extended. The only way to send.
                 //
                 //     {
                 //         "success" => true,
                 //         "code" => "0",
                 //         "data" => array(
                 //             array(
-                //                 "symbol" => "STEPN_USDT",
-                //                 "leverage" => "20",
-                //                 "side" => "1",
-                //                 "vol" => "13",
-                //                 "openType" => "1",
-                //                 "state" => "1",
-                //                 "orderType" => "1",
-                //                 "errorCode" => "0",
-                //                 "createTime" => "1648984276000",
-                //                 "updateTime" => "1648984276000",
-                //                 "id" => "265557643326564352",
-                //                 "triggerType" => "1",
-                //                 "triggerPrice" => "3",
-                //                 "price" => "2.9", // not present in stop-$market, but in stop-$limit order
-                //                 "executeCycle" => "87600",
-                //                 "trend" => "1",
+                //                 "orderId" => "264995729269765120",
+                //                 "errorCode" => "0",         // if already canceled => "2041"
+                //                 "errorMsg" => "success",    // if already canceled => "order state cannot be cancelled"
                 //             ),
                 //         )
                 //     }
                 //
-                $ordersOfTrigger = $this->safe_value($response, 'data');
+                $data = $this->safe_value($response, 'data');
+                return $this->parse_orders($data, $market);
             }
-            $merged = $this->array_concat($ordersOfTrigger, $ordersOfRegular);
-            return $this->parse_orders($merged, $market, $since, $limit, $params);
-        }
-    }
-
-    public function fetch_orders_by_ids($ids, $symbol = null, $params = array ()) {
-        yield $this->load_markets();
-        $request = array();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
-        }
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchOrdersByIds', $market, $params);
-        if ($marketType === 'spot') {
-            throw new BadRequest($this->id . ' fetchOrdersByIds() is not supported for ' . $marketType);
-        } else {
-            $request['order_ids'] = implode(',', $ids);
-            $response = yield $this->contractPrivateGetOrderBatchQuery (array_merge($request, $query));
-            //
-            //     {
-            //         "success" => true,
-            //         "code" => "0",
-            //         "data" => array(
-            //             {
-            //                 "orderId" => "265230764677709315",
-            //                 "symbol" => "STEPN_USDT",
-            //                 "positionId" => "0",
-            //                 "price" => "2.1",
-            //                 "vol" => "102",
-            //                 "leverage" => "20",
-            //                 "side" => "1",
-            //                 "category" => "1",
-            //                 "orderType" => "1",
-            //                 "dealAvgPrice" => "0",
-            //                 "dealVol" => "0",
-            //                 "orderMargin" => "10.96704",
-            //                 "takerFee" => "0",
-            //                 "makerFee" => "0",
-            //                 "profit" => "0",
-            //                 "feeCurrency" => "USDT",
-            //                 "openType" => "1",
-            //                 "state" => "2",
-            //                 "externalOid" => "_m_7e42f8df6b324c869e4e200397e2b00f",
-            //                 "errorCode" => "0",
-            //                 "usedMargin" => "0",
-            //                 "createTime" => "1648906342000",
-            //                 "updateTime" => "1648906342000",
-            //                 "positionMode" => "1"
-            //             }
-            //         )
-            //     }
-            //
-            $data = $this->safe_value($response, 'data');
-            return $this->parse_orders($data, $market);
-        }
-    }
-
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all unfilled currently open orders
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch open orders for
-         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @param {string|null} $params->marginMode only 'isolated' is supported, for spot-margin trading
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        yield $this->load_markets();
-        $request = array();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
-        }
-        $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
-        if ($marketType === 'spot') {
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOpenOrders() requires a $symbol argument for spot market');
-            }
-            $method = 'spotPrivateGetOpenOrders';
-            list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
-            if ($marginMode !== null) {
-                $method = 'spotPrivateGetMarginOpenOrders';
-                if ($marginMode === 'cross') {
-                    throw new BadRequest($this->id . ' fetchOpenOrders() supports isolated margin mode only for spot-margin trading');
-                }
-            }
-            $response = yield $this->$method (array_merge($request, $query));
-            //
-            // spot
-            //
-            //     array(
-            //         {
-            //             "symbol" => "BTCUSDT",
-            //             "orderId" => "133949373632483328",
-            //             "orderListId" => "-1",
-            //             "clientOrderId" => "",
-            //             "price" => "45000",
-            //             "origQty" => "0.0002",
-            //             "executedQty" => "0",
-            //             "cummulativeQuoteQty" => "0",
-            //             "status" => "NEW",
-            //             "timeInForce" => null,
-            //             "type" => "LIMIT",
-            //             "side" => "SELL",
-            //             "stopPrice" => null,
-            //             "icebergQty" => null,
-            //             "time" => "1647718255199",
-            //             "updateTime" => null,
-            //             "isWorking" => true,
-            //             "origQuoteOrderQty" => "9"
-            //         }
-            //     )
-            //
-            // margin
-            //
-            //     array(
-            //         {
-            //             "symbol" => "BTCUSDT",
-            //             "orderId" => "764547676405633024",
-            //             "orderListId" => "-1",
-            //             "clientOrderId" => null,
-            //             "price" => "18000",
-            //             "origQty" => "0.0013",
-            //             "executedQty" => "0",
-            //             "cummulativeQuoteQty" => "0",
-            //             "status" => "NEW",
-            //             "type" => "LIMIT",
-            //             "side" => "BUY",
-            //             "isIsolated" => true,
-            //             "isWorking" => true,
-            //             "time" => 1662448836000,
-            //             "updateTime" => 1662448836000
-            //         }
-            //     )
-            //
-            return $this->parse_orders($response, $market, $since, $limit);
-        } else {
-            // TO_DO => another possible way is through => open_orders/{$symbol}, but as they have same ratelimits, and less granularity, i think historical orders are more convenient, as it supports more $params (however, theoretically, open-orders endpoint might be sligthly fast)
-            return yield $this->fetch_orders_by_state(2, $symbol, $since, $limit, $params);
-        }
-    }
-
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches information on multiple closed orders made by the user
-         * @param {string|null} $symbol unified market $symbol of the market orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        return yield $this->fetch_orders_by_state(3, $symbol, $since, $limit, $params);
-    }
-
-    public function fetch_canceled_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches information on multiple canceled orders made by the user
-         * @param {string|null} $symbol unified market $symbol of the market orders were made in
-         * @param {int|null} $since timestamp in ms of the earliest order, default is null
-         * @param {int|null} $limit max number of orders to return, default is null
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        return yield $this->fetch_orders_by_state(4, $symbol, $since, $limit, $params);
-    }
-
-    public function fetch_orders_by_state($state, $symbol = null, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $request = array();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
-        }
-        list($marketType) = $this->handle_market_type_and_params('fetchOrdersByState', $market, $params);
-        if ($marketType === 'spot') {
-            throw new BadRequest($this->id . ' fetchOrdersByState() is not supported for ' . $marketType);
-        } else {
-            $params['states'] = $state;
-            return $this->fetch_orders($symbol, $since, $limit, $params);
-        }
-    }
-
-    public function cancel_order($id, $symbol = null, $params = array ()) {
-        /**
-         * cancels an open $order
-         * @param {string} $id $order $id
-         * @param {string|null} $symbol unified $symbol of the $market the $order was made in
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @param {string|null} $params->marginMode only 'isolated' is supported for spot-margin trading
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
-         */
-        yield $this->load_markets();
-        $request = array();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
-        }
-        $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
-        list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelOrder', $params);
-        $data = null;
-        if ($marketType === 'spot') {
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
-            }
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            $clientOrderId = $this->safe_string($params, 'clientOrderId');
-            if ($clientOrderId !== null) {
-                $params = $this->omit($query, 'clientOrderId');
-                $request['origClientOrderId'] = $clientOrderId;
-            } else {
-                $request['orderId'] = $id;
-            }
-            $method = 'spotPrivateDeleteOrder';
-            if ($marginMode !== null) {
-                if ($marginMode !== 'isolated') {
-                    throw new BadRequest($this->id . ' cancelOrder() does not support $marginMode ' . $marginMode . 'for spot-margin trading');
-                }
-                $method = 'spotPrivateDeleteMarginOrder';
-            }
-            $data = yield $this->$method (array_merge($request, $query));
-            //
-            // spot
-            //
-            //     {
-            //         "symbol" => "BTCUSDT",
-            //         "orderId" => "133734823834447872",
-            //         "price" => "30000",
-            //         "origQty" => "0.0002",
-            //         "type" => "LIMIT",
-            //         "side" => "BUY"
-            //     }
-            //
-            // margin
-            //
-            //     array(
-            //         {
-            //             "symbol" => "BTCUSDT",
-            //             "orderId" => "762640232574226432",
-            //             "orderListId" => "-1",
-            //             "clientOrderId" => null,
-            //             "price" => "18000",
-            //             "origQty" => "0.00147",
-            //             "executedQty" => "0",
-            //             "cummulativeQuoteQty" => "0",
-            //             "status" => "NEW",
-            //             "type" => "LIMIT",
-            //             "side" => "BUY",
-            //             "isIsolated" => true,
-            //             "isWorking" => true,
-            //             "time" => 1661994066000,
-            //             "updateTime" => 1661994066000
-            //         }
-            //     )
-            //
-        } else {
-            // TODO => PlanorderCancel endpoint has bug atm. waiting for fix.
-            $method = $this->safe_string($this->options, 'cancelOrder', 'contractPrivatePostOrderCancel'); // contractPrivatePostOrderCancel, contractPrivatePostPlanorderCancel
-            $method = $this->safe_string($query, 'method', $method);
-            $response = yield $this->$method (array( $id )); // the $request cannot be changed or extended. This is the only way to send.
-            //
-            //     {
-            //         "success" => true,
-            //         "code" => "0",
-            //         "data" => array(
-            //             {
-            //                 "orderId" => "264995729269765120",
-            //                 "errorCode" => "0",         // if already canceled => "2041"; if doesn't exist => "2040"
-            //                 "errorMsg" => "success",    // if already canceled => "order state cannot be cancelled"; if doesn't exist => "order not exist"
-            //             }
-            //         )
-            //     }
-            //
-            $data = $this->safe_value($response, 'data');
-            $order = $this->safe_value($data, 0);
-            $errorMsg = $this->safe_value($order, 'errorMsg', '');
-            if ($errorMsg !== 'success') {
-                throw new InvalidOrder($this->id . ' cancelOrder() the $order with $id ' . $id . ' cannot be cancelled => ' . $errorMsg);
-            }
-        }
-        return $this->parse_order($data, $market);
-    }
-
-    public function cancel_orders($ids, $symbol = null, $params = array ()) {
-        /**
-         * cancel multiple orders
-         * @param {[string]} $ids order $ids
-         * @param {string|null} $symbol unified $market $symbol, default is null
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {array} an list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        yield $this->load_markets();
-        $market = ($symbol !== null) ? $this->market($symbol) : null;
-        list($marketType) = $this->handle_market_type_and_params('cancelOrders', $market, $params);
-        if ($marketType === 'spot') {
-            throw new BadRequest($this->id . ' cancelOrders() is not supported for ' . $marketType);
-        } else {
-            $response = yield $this->contractPrivatePostOrderCancel ($ids); // the request cannot be changed or extended. The only way to send.
-            //
-            //     {
-            //         "success" => true,
-            //         "code" => "0",
-            //         "data" => array(
-            //             array(
-            //                 "orderId" => "264995729269765120",
-            //                 "errorCode" => "0",         // if already canceled => "2041"
-            //                 "errorMsg" => "success",    // if already canceled => "order state cannot be cancelled"
-            //             ),
-            //         )
-            //     }
-            //
-            $data = $this->safe_value($response, 'data');
-            return $this->parse_orders($data, $market);
-        }
+        }) ();
     }
 
     public function cancel_all_orders($symbol = null, $params = array ()) {
-        /**
-         * cancel all open orders
-         * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @param {string|null} $params->marginMode only 'isolated' is supported for spot-margin trading
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        yield $this->load_markets();
-        $market = ($symbol !== null) ? $this->market($symbol) : null;
-        $request = array();
-        $marketType = null;
-        list($marketType, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
-        list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelAllOrders', $params);
-        if ($marketType === 'spot') {
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument on spot');
-            }
-            $request['symbol'] = $market['id'];
-            $method = 'spotPrivateDeleteOpenOrders';
-            if ($marginMode !== null) {
-                $method = 'spotPrivateDeleteMarginOpenOrders';
-                if ($marginMode === 'cross') {
-                    throw new BadRequest($this->id . ' cancelAllOrders() supports isolated margin mode only for spot-margin trading');
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * cancel all open orders
+             * @param {string|null} $symbol unified $market $symbol, only orders in the $market of this $symbol are cancelled when $symbol is not null
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @param {string|null} $params->marginMode only 'isolated' is supported for spot-margin trading
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            Async\await($this->load_markets());
+            $market = ($symbol !== null) ? $this->market($symbol) : null;
+            $request = array();
+            $marketType = null;
+            list($marketType, $params) = $this->handle_market_type_and_params('cancelAllOrders', $market, $params);
+            list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelAllOrders', $params);
+            if ($marketType === 'spot') {
+                if ($symbol === null) {
+                    throw new ArgumentsRequired($this->id . ' cancelAllOrders() requires a $symbol argument on spot');
                 }
-            }
-            $response = yield $this->$method (array_merge($request, $query));
-            //
-            // spot
-            //
-            //     array(
-            //         array(
-            //             "symbol" => "BTCUSDT",
-            //             "orderId" => "133926492139692032",
-            //             "price" => "30000",
-            //             "origQty" => "0.0002",
-            //             "type" => "LIMIT",
-            //             "side" => "BUY"
-            //         ),
-            //     )
-            //
-            // margin
-            //
-            //     array(
-            //         {
-            //             "symbol" => "BTCUSDT",
-            //             "orderId" => "762640232574226432",
-            //             "orderListId" => "-1",
-            //             "clientOrderId" => null,
-            //             "price" => "18000",
-            //             "origQty" => "0.00147",
-            //             "executedQty" => "0",
-            //             "cummulativeQuoteQty" => "0",
-            //             "status" => "NEW",
-            //             "type" => "LIMIT",
-            //             "side" => "BUY",
-            //             "isIsolated" => true,
-            //             "isWorking" => true,
-            //             "time" => 1661994066000,
-            //             "updateTime" => 1661994066000
-            //         }
-            //     )
-            //
-            return $this->parse_orders($response, $market);
-        } else {
-            if ($symbol !== null) {
                 $request['symbol'] = $market['id'];
+                $method = 'spotPrivateDeleteOpenOrders';
+                if ($marginMode !== null) {
+                    if ($marginMode !== 'isolated') {
+                        throw new BadRequest($this->id . ' cancelAllOrders() does not support $marginMode ' . $marginMode . ' for spot-margin trading');
+                    }
+                    $method = 'spotPrivateDeleteMarginOpenOrders';
+                }
+                $response = Async\await($this->$method (array_merge($request, $query)));
+                //
+                // spot
+                //
+                //     array(
+                //         array(
+                //             "symbol" => "BTCUSDT",
+                //             "orderId" => "133926492139692032",
+                //             "price" => "30000",
+                //             "origQty" => "0.0002",
+                //             "type" => "LIMIT",
+                //             "side" => "BUY"
+                //         ),
+                //     )
+                //
+                // margin
+                //
+                //     array(
+                //         {
+                //             "symbol" => "BTCUSDT",
+                //             "orderId" => "762640232574226432",
+                //             "orderListId" => "-1",
+                //             "clientOrderId" => null,
+                //             "price" => "18000",
+                //             "origQty" => "0.00147",
+                //             "executedQty" => "0",
+                //             "cummulativeQuoteQty" => "0",
+                //             "status" => "NEW",
+                //             "type" => "LIMIT",
+                //             "side" => "BUY",
+                //             "isIsolated" => true,
+                //             "isWorking" => true,
+                //             "time" => 1661994066000,
+                //             "updateTime" => 1661994066000
+                //         }
+                //     )
+                //
+                return $this->parse_orders($response, $market);
+            } else {
+                if ($symbol !== null) {
+                    $request['symbol'] = $market['id'];
+                }
+                // $method can be either => contractPrivatePostOrderCancelAll or contractPrivatePostPlanorderCancelAll
+                // the Planorder endpoints work not only for stop-$market orders but also for stop-limit orders that are supposed to have separate endpoint
+                $method = $this->safe_string($this->options, 'cancelAllOrders', 'contractPrivatePostOrderCancelAll');
+                $method = $this->safe_string($query, 'method', $method);
+                $response = Async\await($this->$method (array_merge($request, $query)));
+                //
+                //     {
+                //         "success" => true,
+                //         "code" => "0"
+                //     }
+                //
+                $data = $this->safe_value($response, 'data', array());
+                return $this->parse_orders($data, $market);
             }
-            // $method can be either => contractPrivatePostOrderCancelAll or contractPrivatePostPlanorderCancelAll
-            // the Planorder endpoints work not only for stop-$market orders but also for stop-limit orders that are supposed to have separate endpoint
-            $method = $this->safe_string($this->options, 'cancelAllOrders', 'contractPrivatePostOrderCancelAll');
-            $method = $this->safe_string($query, 'method', $method);
-            $response = yield $this->$method (array_merge($request, $query));
-            //
-            //     {
-            //         "success" => true,
-            //         "code" => "0"
-            //     }
-            //
-            $data = $this->safe_value($response, 'data', array());
-            return $this->parse_orders($data, $market);
-        }
+        }) ();
     }
 
     public function parse_order($order, $market = null) {
@@ -2538,7 +2650,7 @@ class mexc3 extends Exchange {
         //         "origQuoteOrderQty" => "6"
         //     }
         //
-        // margin => fetchOrder
+        // margin => fetchOrder, fetchOrders
         //
         //     {
         //         "symbol" => "BTCUSDT",
@@ -2702,474 +2814,496 @@ class mexc3 extends Exchange {
     }
 
     public function fetch_account_helper($type, $params) {
-        if ($type === 'spot') {
-            return yield $this->spotPrivateGetAccount ($params);
-            //
-            //     {
-            //         "makerCommission" => "20",
-            //         "takerCommission" => "20",
-            //         "buyerCommission" => "0",
-            //         "sellerCommission" => "0",
-            //         "canTrade" => true,
-            //         "canWithdraw" => true,
-            //         "canDeposit" => true,
-            //         "updateTime" => null,
-            //         "accountType" => "SPOT",
-            //         "balances" => array(
-            //             array(
-            //                 "asset" => "BTC",
-            //                 "free" => "0.002",
-            //                 "locked" => "0"
-            //             ),
-            //             array(
-            //                 "asset" => "USDT",
-            //                 "free" => "88.120131350620957006",
-            //                 "locked" => "0"
-            //             ),
-            //         ),
-            //         "permissions" => array(
-            //             "SPOT"
-            //         )
-            //     }
-            //
-        } elseif ($type === 'swap') {
-            $response = $this->contractPrivateGetAccountAssets ($params);
-            //
-            //     {
-            //         "success":true,
-            //         "code":0,
-            //         "data":array(
-            //            array(
-            //              "currency":"BSV",
-            //              "positionMargin":0,
-            //              "availableBalance":0,
-            //              "cashBalance":0,
-            //              "frozenBalance":0,
-            //              "equity":0,
-            //              "unrealized":0,
-            //              "bonus":0
-            //           ),
-            //         )
-            //     }
-            //
-            return $this->safe_value($response, 'data');
-        }
+        return Async\async(function () use ($type, $params) {
+            if ($type === 'spot') {
+                return Async\await($this->spotPrivateGetAccount ($params));
+                //
+                //     {
+                //         "makerCommission" => "20",
+                //         "takerCommission" => "20",
+                //         "buyerCommission" => "0",
+                //         "sellerCommission" => "0",
+                //         "canTrade" => true,
+                //         "canWithdraw" => true,
+                //         "canDeposit" => true,
+                //         "updateTime" => null,
+                //         "accountType" => "SPOT",
+                //         "balances" => array(
+                //             array(
+                //                 "asset" => "BTC",
+                //                 "free" => "0.002",
+                //                 "locked" => "0"
+                //             ),
+                //             array(
+                //                 "asset" => "USDT",
+                //                 "free" => "88.120131350620957006",
+                //                 "locked" => "0"
+                //             ),
+                //         ),
+                //         "permissions" => array(
+                //             "SPOT"
+                //         )
+                //     }
+                //
+            } elseif ($type === 'swap') {
+                $response = Async\await($this->contractPrivateGetAccountAssets ($params));
+                //
+                //     {
+                //         "success":true,
+                //         "code":0,
+                //         "data":array(
+                //            array(
+                //              "currency":"BSV",
+                //              "positionMargin":0,
+                //              "availableBalance":0,
+                //              "cashBalance":0,
+                //              "frozenBalance":0,
+                //              "equity":0,
+                //              "unrealized":0,
+                //              "bonus":0
+                //           ),
+                //         )
+                //     }
+                //
+                return $this->safe_value($response, 'data');
+            }
+        }) ();
     }
 
     public function fetch_accounts($params = array ()) {
-        /**
-         * fetch all the accounts associated with a profile
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$account-structure $account structures} indexed by the $account type
-         */
-        // TODO => is the below endpoints suitable for fetchAccounts?
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchAccounts', null, $params);
-        yield $this->load_markets();
-        $response = yield $this->fetch_account_helper($marketType, $query);
-        $data = $this->safe_value($response, 'balances', array());
-        $result = array();
-        for ($i = 0; $i < count($data); $i++) {
-            $account = $data[$i];
-            $currencyId = $this->safe_string_2($account, 'asset', 'currency');
-            $code = $this->safe_currency_code($currencyId);
-            $result[] = array(
-                'id' => $this->safe_string($account, 'id'),
-                'type' => $this->safe_string($account, 'type'),
-                'code' => $code,
-                'info' => $account,
-            );
-        }
-        return $result;
+        return Async\async(function () use ($params) {
+            /**
+             * fetch all the accounts associated with a profile
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$account-structure $account structures} indexed by the $account type
+             */
+            // TODO => is the below endpoints suitable for fetchAccounts?
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchAccounts', null, $params);
+            Async\await($this->load_markets());
+            $response = Async\await($this->fetch_account_helper($marketType, $query));
+            $data = $this->safe_value($response, 'balances', array());
+            $result = array();
+            for ($i = 0; $i < count($data); $i++) {
+                $account = $data[$i];
+                $currencyId = $this->safe_string_2($account, 'asset', 'currency');
+                $code = $this->safe_currency_code($currencyId);
+                $result[] = array(
+                    'id' => $this->safe_string($account, 'id'),
+                    'type' => $this->safe_string($account, 'type'),
+                    'code' => $code,
+                    'info' => $account,
+                );
+            }
+            return $result;
+        }) ();
     }
 
     public function fetch_trading_fees($params = array ()) {
-        /**
-         * fetch the trading fees for multiple markets
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
-         */
-        yield $this->load_markets();
-        $response = yield $this->fetch_account_helper('spot', $params);
-        $makerFee = $this->safe_string($response, 'makerCommission');
-        $takerFee = $this->safe_string($response, 'takerCommission');
-        $makerFee = Precise::string_div($makerFee, '1000');
-        $takerFee = Precise::string_div($takerFee, '1000');
-        $result = array();
-        for ($i = 0; $i < count($this->symbols); $i++) {
-            $symbol = $this->symbols[$i];
-            $result[$symbol] = array(
-                'symbol' => $symbol,
-                'maker' => $this->parse_number($makerFee),
-                'taker' => $this->parse_number($takerFee),
-                'percentage' => true,
-                'tierBased' => false,
-                'info' => $response,
-            );
-        }
-        return $result;
+        return Async\async(function () use ($params) {
+            /**
+             * fetch the trading fees for multiple markets
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->fetch_account_helper('spot', $params));
+            $makerFee = $this->safe_string($response, 'makerCommission');
+            $takerFee = $this->safe_string($response, 'takerCommission');
+            $makerFee = Precise::string_div($makerFee, '1000');
+            $takerFee = Precise::string_div($takerFee, '1000');
+            $result = array();
+            for ($i = 0; $i < count($this->symbols); $i++) {
+                $symbol = $this->symbols[$i];
+                $result[$symbol] = array(
+                    'symbol' => $symbol,
+                    'maker' => $this->parse_number($makerFee),
+                    'taker' => $this->parse_number($takerFee),
+                    'percentage' => true,
+                    'tierBased' => false,
+                    'info' => $response,
+                );
+            }
+            return $result;
+        }) ();
     }
 
     public function fetch_balance($params = array ()) {
-        /**
-         * $query for $balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#$balance-structure $balance structure~
-         */
-        yield $this->load_markets();
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
-        $result = array();
-        $response = null;
-        if ($marketType === 'spot') {
-            $response = yield $this->fetch_account_helper('spot', $query);
-            $balances = $this->safe_value($response, 'balances', array());
-            for ($i = 0; $i < count($balances); $i++) {
-                $entry = $balances[$i];
-                $currencyId = $this->safe_string($entry, 'asset');
-                $code = $this->safe_currency_code($currencyId);
-                $account = $this->account();
-                $account['free'] = $this->safe_string($entry, 'free');
-                $account['used'] = $this->safe_string($entry, 'locked');
-                $result[$code] = $account;
+        return Async\async(function () use ($params) {
+            /**
+             * $query for $balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#$balance-structure $balance structure~
+             */
+            Async\await($this->load_markets());
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+            $result = array();
+            $response = null;
+            if ($marketType === 'spot') {
+                $response = Async\await($this->fetch_account_helper('spot', $query));
+                $balances = $this->safe_value($response, 'balances', array());
+                for ($i = 0; $i < count($balances); $i++) {
+                    $entry = $balances[$i];
+                    $currencyId = $this->safe_string($entry, 'asset');
+                    $code = $this->safe_currency_code($currencyId);
+                    $account = $this->account();
+                    $account['free'] = $this->safe_string($entry, 'free');
+                    $account['used'] = $this->safe_string($entry, 'locked');
+                    $result[$code] = $account;
+                }
+            } elseif ($marketType === 'swap') {
+                $response = Async\await($this->contractPrivateGetAccountAssets ($query));
+                //
+                //     {
+                //         "success":true,
+                //         "code":0,
+                //         "data":array(
+                //             array("currency":"BSV","positionMargin":0,"availableBalance":0,"cashBalance":0,"frozenBalance":0,"equity":0,"unrealized":0,"bonus":0),
+                //             array("currency":"BCH","positionMargin":0,"availableBalance":0,"cashBalance":0,"frozenBalance":0,"equity":0,"unrealized":0,"bonus":0),
+                //             array("currency":"CRV","positionMargin":0,"availableBalance":0,"cashBalance":0,"frozenBalance":0,"equity":0,"unrealized":0,"bonus":0),
+                //         )
+                //     }
+                //
+                $data = $this->safe_value($response, 'data', array());
+                for ($i = 0; $i < count($data); $i++) {
+                    $balance = $data[$i];
+                    $currencyId = $this->safe_string($balance, 'currency');
+                    $code = $this->safe_currency_code($currencyId);
+                    $account = $this->account();
+                    $account['free'] = $this->safe_string($balance, 'availableBalance');
+                    $account['used'] = $this->safe_string($balance, 'frozenBalance');
+                    $result[$code] = $account;
+                }
             }
-        } elseif ($marketType === 'swap') {
-            $response = yield $this->contractPrivateGetAccountAssets ($query);
-            //
-            //     {
-            //         "success":true,
-            //         "code":0,
-            //         "data":array(
-            //             array("currency":"BSV","positionMargin":0,"availableBalance":0,"cashBalance":0,"frozenBalance":0,"equity":0,"unrealized":0,"bonus":0),
-            //             array("currency":"BCH","positionMargin":0,"availableBalance":0,"cashBalance":0,"frozenBalance":0,"equity":0,"unrealized":0,"bonus":0),
-            //             array("currency":"CRV","positionMargin":0,"availableBalance":0,"cashBalance":0,"frozenBalance":0,"equity":0,"unrealized":0,"bonus":0),
-            //         )
-            //     }
-            //
-            $data = $this->safe_value($response, 'data', array());
-            for ($i = 0; $i < count($data); $i++) {
-                $balance = $data[$i];
-                $currencyId = $this->safe_string($balance, 'currency');
-                $code = $this->safe_currency_code($currencyId);
-                $account = $this->account();
-                $account['free'] = $this->safe_string($balance, 'availableBalance');
-                $account['used'] = $this->safe_string($balance, 'frozenBalance');
-                $result[$code] = $account;
-            }
-        }
-        $result['info'] = $response;
-        return $this->safe_balance($result);
+            $result['info'] = $response;
+            return $this->safe_balance($result);
+        }) ();
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all $trades made by the user
-         * @param {string} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch $trades for
-         * @param {int|null} $limit the maximum number of $trades structures to retrieve
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        $trades = null;
-        if ($marketType === 'spot') {
-            if ($since !== null) {
-                $request['start_time'] = $since;
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all $trades made by the user
+             * @param {string} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch $trades for
+             * @param {int|null} $limit the maximum number of $trades structures to retrieve
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
             }
-            if ($limit !== null) {
-                $request['limit'] = $limit;
-            }
-            $trades = yield $this->spotPrivateGetMyTrades (array_merge($request, $query));
-            //
-            // spot
-            //
-            //     array(
-            //         {
-            //             "symbol" => "BTCUSDT",
-            //             "id" => "133948532984922113",
-            //             "orderId" => "133948532531949568",
-            //             "orderListId" => "-1",
-            //             "price" => "41995.51",
-            //             "qty" => "0.0002",
-            //             "quoteQty" => "8.399102",
-            //             "commission" => "0.016798204",
-            //             "commissionAsset" => "USDT",
-            //             "time" => "1647718055000",
-            //             "isBuyer" => true,
-            //             "isMaker" => false,
-            //             "isBestMatch" => true
-            //         }
-            //     )
-            //
-        } else {
-            if ($since !== null) {
-                $request['start_time'] = $since;
-                $end = $this->safe_integer($params, 'end_time');
-                if ($end === null) {
-                    $request['end_time'] = $this->sum($since, $this->options['maxTimeTillEnd']);
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchMyTrades', $market, $params);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $trades = null;
+            if ($marketType === 'spot') {
+                if ($since !== null) {
+                    $request['start_time'] = $since;
                 }
+                if ($limit !== null) {
+                    $request['limit'] = $limit;
+                }
+                $trades = Async\await($this->spotPrivateGetMyTrades (array_merge($request, $query)));
+                //
+                // spot
+                //
+                //     array(
+                //         {
+                //             "symbol" => "BTCUSDT",
+                //             "id" => "133948532984922113",
+                //             "orderId" => "133948532531949568",
+                //             "orderListId" => "-1",
+                //             "price" => "41995.51",
+                //             "qty" => "0.0002",
+                //             "quoteQty" => "8.399102",
+                //             "commission" => "0.016798204",
+                //             "commissionAsset" => "USDT",
+                //             "time" => "1647718055000",
+                //             "isBuyer" => true,
+                //             "isMaker" => false,
+                //             "isBestMatch" => true
+                //         }
+                //     )
+                //
+            } else {
+                if ($since !== null) {
+                    $request['start_time'] = $since;
+                    $end = $this->safe_integer($params, 'end_time');
+                    if ($end === null) {
+                        $request['end_time'] = $this->sum($since, $this->options['maxTimeTillEnd']);
+                    }
+                }
+                if ($limit !== null) {
+                    $request['page_size'] = $limit;
+                }
+                $response = Async\await($this->contractPrivateGetOrderListOrderDeals (array_merge($request, $query)));
+                //
+                //     {
+                //         "success" => true,
+                //         "code" => "0",
+                //         "data" => array(
+                //             {
+                //                 "id" => "299444585",
+                //                 "symbol" => "STEPN_USDT",
+                //                 "side" => "1",
+                //                 "vol" => "1",
+                //                 "price" => "2.45455",
+                //                 "feeCurrency" => "USDT",
+                //                 "fee" => "0.00147273",
+                //                 "timestamp" => "1648924557000",
+                //                 "profit" => "0",
+                //                 "category" => "1",
+                //                 "orderId" => "265307163526610432",
+                //                 "positionMode" => "1",
+                //                 "taker" => true
+                //             }
+                //         )
+                //     }
+                //
+                $trades = $this->safe_value($response, 'data');
+            }
+            return $this->parse_trades($trades, $market, $since, $limit);
+        }) ();
+    }
+
+    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        return Async\async(function () use ($id, $symbol, $since, $limit, $params) {
+            /**
+             * fetch all the $trades made from a single order
+             * @param {string} $id order $id
+             * @param {string|null} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch $trades for
+             * @param {int|null} $limit the maximum number of $trades to retrieve
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+            }
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchOrderTrades', $market, $params);
+            $trades = null;
+            if ($marketType === 'spot') {
+                if ($symbol === null) {
+                    throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $symbol argument');
+                }
+                $request['symbol'] = $market['id'];
+                $request['orderId'] = $id;
+                $trades = Async\await($this->spotPrivateGetMyTrades (array_merge($request, $query)));
+                //
+                // spot
+                //
+                //     array(
+                //         {
+                //             "symbol" => "BTCUSDT",
+                //             "id" => "133948532984922113",
+                //             "orderId" => "133948532531949568",
+                //             "orderListId" => "-1",
+                //             "price" => "41995.51",
+                //             "qty" => "0.0002",
+                //             "quoteQty" => "8.399102",
+                //             "commission" => "0.016798204",
+                //             "commissionAsset" => "USDT",
+                //             "time" => "1647718055000",
+                //             "isBuyer" => true,
+                //             "isMaker" => false,
+                //             "isBestMatch" => true
+                //         }
+                //     )
+                //
+            } else {
+                $request['order_id'] = $id;
+                $response = Async\await($this->contractPrivateGetOrderDealDetailsOrderId (array_merge($request, $query)));
+                //
+                //     {
+                //         "success" => true,
+                //         "code" => "0",
+                //         "data" => array(
+                //             {
+                //                 "id" => "299444585",
+                //                 "symbol" => "STEPN_USDT",
+                //                 "side" => "1",
+                //                 "vol" => "1",
+                //                 "price" => "2.45455",
+                //                 "feeCurrency" => "USDT",
+                //                 "fee" => "0.00147273",
+                //                 "timestamp" => "1648924557000",
+                //                 "profit" => "0",
+                //                 "category" => "1",
+                //                 "orderId" => "265307163526610432",
+                //                 "positionMode" => "1",
+                //                 "taker" => true
+                //             }
+                //         )
+                //     }
+                //
+                $trades = $this->safe_value($response, 'data');
+            }
+            return $this->parse_trades($trades, $market, $since, $limit, $query);
+        }) ();
+    }
+
+    public function modify_margin_helper($symbol, $amount, $addOrReduce, $params = array ()) {
+        return Async\async(function () use ($symbol, $amount, $addOrReduce, $params) {
+            $positionId = $this->safe_integer($params, 'positionId');
+            if ($positionId === null) {
+                throw new ArgumentsRequired($this->id . ' modifyMarginHelper() requires a $positionId parameter');
+            }
+            Async\await($this->load_markets());
+            $request = array(
+                'positionId' => $positionId,
+                'amount' => $amount,
+                'type' => $addOrReduce,
+            );
+            $response = Async\await($this->contractPrivatePostPositionChangeMargin (array_merge($request, $params)));
+            //
+            //     {
+            //         "success" => true,
+            //         "code" => 0
+            //     }
+            return $response;
+        }) ();
+    }
+
+    public function reduce_margin($symbol, $amount, $params = array ()) {
+        return Async\async(function () use ($symbol, $amount, $params) {
+            /**
+             * remove margin from a position
+             * @param {string} $symbol unified market $symbol
+             * @param {float} $amount the $amount of margin to remove
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure margin structure}
+             */
+            return Async\await($this->modify_margin_helper($symbol, $amount, 'SUB', $params));
+        }) ();
+    }
+
+    public function add_margin($symbol, $amount, $params = array ()) {
+        return Async\async(function () use ($symbol, $amount, $params) {
+            /**
+             * add margin
+             * @param {string} $symbol unified market $symbol
+             * @param {float} $amount amount of margin to add
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure margin structure}
+             */
+            return Async\await($this->modify_margin_helper($symbol, $amount, 'ADD', $params));
+        }) ();
+    }
+
+    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        return Async\async(function () use ($leverage, $symbol, $params) {
+            /**
+             * set the level of $leverage for a $market
+             * @param {float} $leverage the rate of $leverage
+             * @param {string|null} $symbol unified $market $symbol
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {array} response from the exchange
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'leverage' => $leverage,
+            );
+            $positionId = $this->safe_integer($params, 'positionId');
+            if ($positionId === null) {
+                $openType = $this->safe_number($params, 'openType'); // 1 or 2
+                $positionType = $this->safe_number($params, 'positionType'); // 1 or 2
+                $market = ($symbol !== null) ? $this->market($symbol) : null;
+                if (($openType === null) || ($positionType === null) || ($market === null)) {
+                    throw new ArgumentsRequired($this->id . ' setLeverage() requires a $positionId parameter or a $symbol argument with $openType and $positionType parameters, use $openType 1 or 2 for isolated or cross margin respectively, use $positionType 1 or 2 for long or short positions');
+                } else {
+                    $request['openType'] = $openType;
+                    $request['symbol'] = $market['symbol'];
+                    $request['positionType'] = $positionType;
+                }
+            } else {
+                $request['positionId'] = $positionId;
+            }
+            return Async\await($this->contractPrivatePostPositionChangeLeverage (array_merge($request, $params)));
+        }) ();
+    }
+
+    public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch the history of funding payments paid and received on this account
+             * @param {string|null} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch funding history for
+             * @param {int|null} $limit the maximum number of funding history structures to retrieve
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure funding history structure}
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            $request = array(
+                // 'symbol' => $market['id'],
+                // 'position_id' => positionId,
+                // 'page_num' => 1,
+                // 'page_size' => $limit, // default 20, max 100
+            );
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
             }
             if ($limit !== null) {
                 $request['page_size'] = $limit;
             }
-            $response = yield $this->contractPrivateGetOrderListOrderDeals (array_merge($request, $query));
+            $response = Async\await($this->contractPrivateGetPositionFundingRecords (array_merge($request, $params)));
             //
             //     {
             //         "success" => true,
-            //         "code" => "0",
-            //         "data" => array(
-            //             {
-            //                 "id" => "299444585",
-            //                 "symbol" => "STEPN_USDT",
-            //                 "side" => "1",
-            //                 "vol" => "1",
-            //                 "price" => "2.45455",
-            //                 "feeCurrency" => "USDT",
-            //                 "fee" => "0.00147273",
-            //                 "timestamp" => "1648924557000",
-            //                 "profit" => "0",
-            //                 "category" => "1",
-            //                 "orderId" => "265307163526610432",
-            //                 "positionMode" => "1",
-            //                 "taker" => true
-            //             }
-            //         )
-            //     }
-            //
-            $trades = $this->safe_value($response, 'data');
-        }
-        return $this->parse_trades($trades, $market, $since, $limit);
-    }
-
-    public function fetch_order_trades($id, $symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all the $trades made from a single order
-         * @param {string} $id order $id
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch $trades for
-         * @param {int|null} $limit the maximum number of $trades to retrieve
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
-         */
-        yield $this->load_markets();
-        $request = array();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-        }
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchOrderTrades', $market, $params);
-        $trades = null;
-        if ($marketType === 'spot') {
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOrderTrades() requires a $symbol argument');
-            }
-            $request['symbol'] = $market['id'];
-            $request['orderId'] = $id;
-            $trades = yield $this->spotPrivateGetMyTrades (array_merge($request, $query));
-            //
-            // spot
-            //
-            //     array(
-            //         {
-            //             "symbol" => "BTCUSDT",
-            //             "id" => "133948532984922113",
-            //             "orderId" => "133948532531949568",
-            //             "orderListId" => "-1",
-            //             "price" => "41995.51",
-            //             "qty" => "0.0002",
-            //             "quoteQty" => "8.399102",
-            //             "commission" => "0.016798204",
-            //             "commissionAsset" => "USDT",
-            //             "time" => "1647718055000",
-            //             "isBuyer" => true,
-            //             "isMaker" => false,
-            //             "isBestMatch" => true
+            //         "code" => 0,
+            //         "data" => {
+            //             "pageSize" => 20,
+            //             "totalCount" => 2,
+            //             "totalPage" => 1,
+            //             "currentPage" => 1,
+            //             "resultList" => array(
+            //                 array(
+            //                     "id" => 7423910,
+            //                     "symbol" => "BTC_USDT",
+            //                     "positionType" => 1,
+            //                     "positionValue" => 29.30024,
+            //                     "funding" => 0.00076180624,
+            //                     "rate" => -0.000026,
+            //                     "settleTime" => 1643299200000
+            //                 ),
+            //                 {
+            //                     "id" => 7416473,
+            //                     "symbol" => "BTC_USDT",
+            //                     "positionType" => 1,
+            //                     "positionValue" => 28.9188,
+            //                     "funding" => 0.0014748588,
+            //                     "rate" => -0.000051,
+            //                     "settleTime" => 1643270400000
+            //                 }
+            //             )
             //         }
-            //     )
-            //
-        } else {
-            $request['order_id'] = $id;
-            $response = yield $this->contractPrivateGetOrderDealDetailsOrderId (array_merge($request, $query));
-            //
-            //     {
-            //         "success" => true,
-            //         "code" => "0",
-            //         "data" => array(
-            //             {
-            //                 "id" => "299444585",
-            //                 "symbol" => "STEPN_USDT",
-            //                 "side" => "1",
-            //                 "vol" => "1",
-            //                 "price" => "2.45455",
-            //                 "feeCurrency" => "USDT",
-            //                 "fee" => "0.00147273",
-            //                 "timestamp" => "1648924557000",
-            //                 "profit" => "0",
-            //                 "category" => "1",
-            //                 "orderId" => "265307163526610432",
-            //                 "positionMode" => "1",
-            //                 "taker" => true
-            //             }
-            //         )
             //     }
             //
-            $trades = $this->safe_value($response, 'data');
-        }
-        return $this->parse_trades($trades, $market, $since, $limit, $query);
-    }
-
-    public function modify_margin_helper($symbol, $amount, $addOrReduce, $params = array ()) {
-        $positionId = $this->safe_integer($params, 'positionId');
-        if ($positionId === null) {
-            throw new ArgumentsRequired($this->id . ' modifyMarginHelper() requires a $positionId parameter');
-        }
-        yield $this->load_markets();
-        $request = array(
-            'positionId' => $positionId,
-            'amount' => $amount,
-            'type' => $addOrReduce,
-        );
-        $response = yield $this->contractPrivatePostPositionChangeMargin (array_merge($request, $params));
-        //
-        //     {
-        //         "success" => true,
-        //         "code" => 0
-        //     }
-        return $response;
-    }
-
-    public function reduce_margin($symbol, $amount, $params = array ()) {
-        /**
-         * remove margin from a position
-         * @param {string} $symbol unified market $symbol
-         * @param {float} $amount the $amount of margin to remove
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#reduce-margin-structure margin structure}
-         */
-        return yield $this->modify_margin_helper($symbol, $amount, 'SUB', $params);
-    }
-
-    public function add_margin($symbol, $amount, $params = array ()) {
-        /**
-         * add margin
-         * @param {string} $symbol unified market $symbol
-         * @param {float} $amount amount of margin to add
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure margin structure}
-         */
-        return yield $this->modify_margin_helper($symbol, $amount, 'ADD', $params);
-    }
-
-    public function set_leverage($leverage, $symbol = null, $params = array ()) {
-        /**
-         * set the level of $leverage for a $market
-         * @param {float} $leverage the rate of $leverage
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {array} response from the exchange
-         */
-        yield $this->load_markets();
-        $request = array(
-            'leverage' => $leverage,
-        );
-        $positionId = $this->safe_integer($params, 'positionId');
-        if ($positionId === null) {
-            $openType = $this->safe_number($params, 'openType'); // 1 or 2
-            $positionType = $this->safe_number($params, 'positionType'); // 1 or 2
-            $market = ($symbol !== null) ? $this->market($symbol) : null;
-            if (($openType === null) || ($positionType === null) || ($market === null)) {
-                throw new ArgumentsRequired($this->id . ' setLeverage() requires a $positionId parameter or a $symbol argument with $openType and $positionType parameters, use $openType 1 or 2 for isolated or cross margin respectively, use $positionType 1 or 2 for long or short positions');
-            } else {
-                $request['openType'] = $openType;
-                $request['symbol'] = $market['symbol'];
-                $request['positionType'] = $positionType;
+            $data = $this->safe_value($response, 'data', array());
+            $resultList = $this->safe_value($data, 'resultList', array());
+            $result = array();
+            for ($i = 0; $i < count($resultList); $i++) {
+                $entry = $resultList[$i];
+                $timestamp = $this->safe_integer($entry, 'settleTime');
+                $result[] = array(
+                    'info' => $entry,
+                    'symbol' => $symbol,
+                    'code' => null,
+                    'timestamp' => $timestamp,
+                    'datetime' => $this->iso8601($timestamp),
+                    'id' => $this->safe_number($entry, 'id'),
+                    'amount' => $this->safe_number($entry, 'funding'),
+                );
             }
-        } else {
-            $request['positionId'] = $positionId;
-        }
-        return yield $this->contractPrivatePostPositionChangeLeverage (array_merge($request, $params));
-    }
-
-    public function fetch_funding_history($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch the history of funding payments paid and received on this account
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch funding history for
-         * @param {int|null} $limit the maximum number of funding history structures to retrieve
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure funding history structure}
-         */
-        yield $this->load_markets();
-        $market = null;
-        $request = array(
-            // 'symbol' => $market['id'],
-            // 'position_id' => positionId,
-            // 'page_num' => 1,
-            // 'page_size' => $limit, // default 20, max 100
-        );
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
-        }
-        if ($limit !== null) {
-            $request['page_size'] = $limit;
-        }
-        $response = yield $this->contractPrivateGetPositionFundingRecords (array_merge($request, $params));
-        //
-        //     {
-        //         "success" => true,
-        //         "code" => 0,
-        //         "data" => {
-        //             "pageSize" => 20,
-        //             "totalCount" => 2,
-        //             "totalPage" => 1,
-        //             "currentPage" => 1,
-        //             "resultList" => array(
-        //                 array(
-        //                     "id" => 7423910,
-        //                     "symbol" => "BTC_USDT",
-        //                     "positionType" => 1,
-        //                     "positionValue" => 29.30024,
-        //                     "funding" => 0.00076180624,
-        //                     "rate" => -0.000026,
-        //                     "settleTime" => 1643299200000
-        //                 ),
-        //                 {
-        //                     "id" => 7416473,
-        //                     "symbol" => "BTC_USDT",
-        //                     "positionType" => 1,
-        //                     "positionValue" => 28.9188,
-        //                     "funding" => 0.0014748588,
-        //                     "rate" => -0.000051,
-        //                     "settleTime" => 1643270400000
-        //                 }
-        //             )
-        //         }
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        $resultList = $this->safe_value($data, 'resultList', array());
-        $result = array();
-        for ($i = 0; $i < count($resultList); $i++) {
-            $entry = $resultList[$i];
-            $timestamp = $this->safe_integer($entry, 'settleTime');
-            $result[] = array(
-                'info' => $entry,
-                'symbol' => $symbol,
-                'code' => null,
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
-                'id' => $this->safe_number($entry, 'id'),
-                'amount' => $this->safe_number($entry, 'funding'),
-            );
-        }
-        return $result;
+            return $result;
+        }) ();
     }
 
     public function parse_funding_rate($contract, $market = null) {
@@ -3212,160 +3346,166 @@ class mexc3 extends Exchange {
     }
 
     public function fetch_funding_rate($symbol, $params = array ()) {
-        /**
-         * fetch the current funding rate
-         * @param {string} $symbol unified $market $symbol
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        $response = yield $this->contractPublicGetFundingRateSymbol (array_merge($request, $params));
-        //
-        //     {
-        //         "success" => true,
-        //         "code" => 0,
-        //         "data" => {
-        //             "symbol" => "BTC_USDT",
-        //             "fundingRate" => 0.000014,
-        //             "maxFundingRate" => 0.003,
-        //             "minFundingRate" => -0.003,
-        //             "collectCycle" => 8,
-        //             "nextSettleTime" => 1643241600000,
-        //             "timestamp" => 1643240373359
-        //         }
-        //     }
-        //
-        $result = $this->safe_value($response, 'data', array());
-        return $this->parse_funding_rate($result, $market);
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the current funding rate
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure funding rate structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->contractPublicGetFundingRateSymbol (array_merge($request, $params)));
+            //
+            //     {
+            //         "success" => true,
+            //         "code" => 0,
+            //         "data" => {
+            //             "symbol" => "BTC_USDT",
+            //             "fundingRate" => 0.000014,
+            //             "maxFundingRate" => 0.003,
+            //             "minFundingRate" => -0.003,
+            //             "collectCycle" => 8,
+            //             "nextSettleTime" => 1643241600000,
+            //             "timestamp" => 1643240373359
+            //         }
+            //     }
+            //
+            $result = $this->safe_value($response, 'data', array());
+            return $this->parse_funding_rate($result, $market);
+        }) ();
     }
 
     public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches historical funding rate prices
-         * @param {string|null} $symbol unified $symbol of the $market to fetch the funding rate history for
-         * @param {int|null} $since not used by mexc, but filtered internally by ccxt
-         * @param {int|null} $limit mexc $limit is page_size default 20, maximum is 100
-         * @param {array} $params extra parameters specific to the mexc api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
-         */
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-            // 'page_size' => $limit, // optional
-            // 'page_num' => 1, // optional, current page number, default is 1
-        );
-        if ($limit !== null) {
-            $request['page_size'] = $limit;
-        }
-        $response = yield $this->contractPublicGetFundingRateHistory (array_merge($request, $params));
-        //
-        //    {
-        //        "success" => true,
-        //        "code" => 0,
-        //        "data" => {
-        //            "pageSize" => 2,
-        //            "totalCount" => 21,
-        //            "totalPage" => 11,
-        //            "currentPage" => 1,
-        //            "resultList" => array(
-        //                array(
-        //                    "symbol" => "BTC_USDT",
-        //                    "fundingRate" => 0.000266,
-        //                    "settleTime" => 1609804800000
-        //                ),
-        //                {
-        //                    "symbol" => "BTC_USDT",
-        //                    "fundingRate" => 0.00029,
-        //                    "settleTime" => 1609776000000
-        //                }
-        //            )
-        //        }
-        //    }
-        //
-        $data = $this->safe_value($response, 'data');
-        $result = $this->safe_value($data, 'resultList', array());
-        $rates = array();
-        for ($i = 0; $i < count($result); $i++) {
-            $entry = $result[$i];
-            $marketId = $this->safe_string($entry, 'symbol');
-            $symbol = $this->safe_symbol($marketId);
-            $timestamp = $this->safe_integer($entry, 'settleTime');
-            $rates[] = array(
-                'info' => $entry,
-                'symbol' => $symbol,
-                'fundingRate' => $this->safe_number($entry, 'fundingRate'),
-                'timestamp' => $timestamp,
-                'datetime' => $this->iso8601($timestamp),
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches historical funding rate prices
+             * @param {string|null} $symbol unified $symbol of the $market to fetch the funding rate history for
+             * @param {int|null} $since not used by mexc, but filtered internally by ccxt
+             * @param {int|null} $limit mexc $limit is page_size default 20, maximum is 100
+             * @param {array} $params extra parameters specific to the mexc api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+                // 'page_size' => $limit, // optional
+                // 'page_num' => 1, // optional, current page number, default is 1
             );
-        }
-        $sorted = $this->sort_by($rates, 'timestamp');
-        return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+            if ($limit !== null) {
+                $request['page_size'] = $limit;
+            }
+            $response = Async\await($this->contractPublicGetFundingRateHistory (array_merge($request, $params)));
+            //
+            //    {
+            //        "success" => true,
+            //        "code" => 0,
+            //        "data" => {
+            //            "pageSize" => 2,
+            //            "totalCount" => 21,
+            //            "totalPage" => 11,
+            //            "currentPage" => 1,
+            //            "resultList" => array(
+            //                array(
+            //                    "symbol" => "BTC_USDT",
+            //                    "fundingRate" => 0.000266,
+            //                    "settleTime" => 1609804800000
+            //                ),
+            //                {
+            //                    "symbol" => "BTC_USDT",
+            //                    "fundingRate" => 0.00029,
+            //                    "settleTime" => 1609776000000
+            //                }
+            //            )
+            //        }
+            //    }
+            //
+            $data = $this->safe_value($response, 'data');
+            $result = $this->safe_value($data, 'resultList', array());
+            $rates = array();
+            for ($i = 0; $i < count($result); $i++) {
+                $entry = $result[$i];
+                $marketId = $this->safe_string($entry, 'symbol');
+                $symbol = $this->safe_symbol($marketId);
+                $timestamp = $this->safe_integer($entry, 'settleTime');
+                $rates[] = array(
+                    'info' => $entry,
+                    'symbol' => $symbol,
+                    'fundingRate' => $this->safe_number($entry, 'fundingRate'),
+                    'timestamp' => $timestamp,
+                    'datetime' => $this->iso8601($timestamp),
+                );
+            }
+            $sorted = $this->sort_by($rates, 'timestamp');
+            return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+        }) ();
     }
 
     public function fetch_leverage_tiers($symbols = null, $params = array ()) {
-        /**
-         * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
-         * @param {[string]|null} $symbols list of unified market $symbols
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure leverage tiers structures}, indexed by market $symbols
-         */
-        yield $this->load_markets();
-        $response = yield $this->contractPublicGetDetail ($params);
-        //
-        //     {
-        //         "success":true,
-        //         "code":0,
-        //         "data":[
-        //             array(
-        //                 "symbol" => "BTC_USDT",
-        //                 "displayName" => "BTC_USDT永续",
-        //                 "displayNameEn" => "BTC_USDT SWAP",
-        //                 "positionOpenType" => 3,
-        //                 "baseCoin" => "BTC",
-        //                 "quoteCoin" => "USDT",
-        //                 "settleCoin" => "USDT",
-        //                 "contractSize" => 0.0001,
-        //                 "minLeverage" => 1,
-        //                 "maxLeverage" => 125,
-        //                 "priceScale" => 2,
-        //                 "volScale" => 0,
-        //                 "amountScale" => 4,
-        //                 "priceUnit" => 0.5,
-        //                 "volUnit" => 1,
-        //                 "minVol" => 1,
-        //                 "maxVol" => 1000000,
-        //                 "bidLimitPriceRate" => 0.1,
-        //                 "askLimitPriceRate" => 0.1,
-        //                 "takerFeeRate" => 0.0006,
-        //                 "makerFeeRate" => 0.0002,
-        //                 "maintenanceMarginRate" => 0.004,
-        //                 "initialMarginRate" => 0.008,
-        //                 "riskBaseVol" => 10000,
-        //                 "riskIncrVol" => 200000,
-        //                 "riskIncrMmr" => 0.004,
-        //                 "riskIncrImr" => 0.004,
-        //                 "riskLevelLimit" => 5,
-        //                 "priceCoefficientVariation" => 0.1,
-        //                 "indexOrigin" => ["BINANCE","GATEIO","HUOBI","MXC"],
-        //                 "state" => 0, // 0 enabled, 1 delivery, 2 completed, 3 offline, 4 pause
-        //                 "isNew" => false,
-        //                 "isHot" => true,
-        //                 "isHidden" => false
-        //             ),
-        //             ...
-        //         ]
-        //     }
-        //
-        $data = $this->safe_value($response, 'data');
-        return $this->parse_leverage_tiers($data, $symbols, 'symbol');
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes
+             * @param {[string]|null} $symbols list of unified market $symbols
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure leverage tiers structures}, indexed by market $symbols
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->contractPublicGetDetail ($params));
+            //
+            //     {
+            //         "success":true,
+            //         "code":0,
+            //         "data":[
+            //             array(
+            //                 "symbol" => "BTC_USDT",
+            //                 "displayName" => "BTC_USDT永续",
+            //                 "displayNameEn" => "BTC_USDT SWAP",
+            //                 "positionOpenType" => 3,
+            //                 "baseCoin" => "BTC",
+            //                 "quoteCoin" => "USDT",
+            //                 "settleCoin" => "USDT",
+            //                 "contractSize" => 0.0001,
+            //                 "minLeverage" => 1,
+            //                 "maxLeverage" => 125,
+            //                 "priceScale" => 2,
+            //                 "volScale" => 0,
+            //                 "amountScale" => 4,
+            //                 "priceUnit" => 0.5,
+            //                 "volUnit" => 1,
+            //                 "minVol" => 1,
+            //                 "maxVol" => 1000000,
+            //                 "bidLimitPriceRate" => 0.1,
+            //                 "askLimitPriceRate" => 0.1,
+            //                 "takerFeeRate" => 0.0006,
+            //                 "makerFeeRate" => 0.0002,
+            //                 "maintenanceMarginRate" => 0.004,
+            //                 "initialMarginRate" => 0.008,
+            //                 "riskBaseVol" => 10000,
+            //                 "riskIncrVol" => 200000,
+            //                 "riskIncrMmr" => 0.004,
+            //                 "riskIncrImr" => 0.004,
+            //                 "riskLevelLimit" => 5,
+            //                 "priceCoefficientVariation" => 0.1,
+            //                 "indexOrigin" => ["BINANCE","GATEIO","HUOBI","MXC"],
+            //                 "state" => 0, // 0 enabled, 1 delivery, 2 completed, 3 offline, 4 pause
+            //                 "isNew" => false,
+            //                 "isHot" => true,
+            //                 "isHidden" => false
+            //             ),
+            //             ...
+            //         ]
+            //     }
+            //
+            $data = $this->safe_value($response, 'data');
+            return $this->parse_leverage_tiers($data, $symbols, 'symbol');
+        }) ();
     }
 
     public function parse_market_leverage_tiers($info, $market) {
@@ -3460,103 +3600,92 @@ class mexc3 extends Exchange {
     }
 
     public function fetch_deposit_addresses_by_network($code, $params = array ()) {
-        /**
-         * fetch a dictionary of addresses for a $currency, indexed by network
-         * @param {string} $code unified $currency $code of the $currency for the deposit address
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structures} indexed by the network
-         */
-        yield $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'currency' => $currency['id'],
-        );
-        $response = yield $this->spot2PrivateGetAssetDepositAddressList (array_merge($request, $params));
-        //
-        //     {
-        //         "code":200,
-        //         "data":{
-        //             "currency":"USDC",
-        //             "chains":array(
-        //                 array("chain":"ERC-20","address":"0x55cbd73db24eafcca97369e3f2db74b2490586e6"),
-        //                 array("chain":"MATIC","address":"0x05aa3236f1970eae0f8feb17ec19435b39574d74"),
-        //                 array("chain":"TRC20","address":"TGaPfhW41EXD3sAfs1grLF6DKfugfqANNw"),
-        //                 array("chain":"SOL","address":"5FSpUKuh2gjw4mF89T2e7sEjzUA1SkRKjBChFqP43KhV"),
-        //                 array("chain":"ALGO","address":"B3XTZND2JJTSYR7R2TQVCUDT4QSSYVAIZYDPWVBX34DGAYATBU3AUV43VU")
-        //             )
-        //         }
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        $chains = $this->safe_value($data, 'chains', array());
-        $depositAddresses = array();
-        for ($i = 0; $i < count($chains); $i++) {
-            $depositAddress = $this->parse_deposit_address($chains[$i], $currency);
-            $depositAddresses[] = $depositAddress;
-        }
-        return $this->index_by($depositAddresses, 'network');
+        return Async\async(function () use ($code, $params) {
+            /**
+             * fetch a dictionary of addresses for a $currency, indexed by $network
+             * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-$address-supporting-$network
+             * @param {string} $code unified $currency $code of the $currency for the deposit $address
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structures} indexed by the $network
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'coin' => $currency['id'],
+            );
+            $response = Async\await($this->spotPrivateGetCapitalDepositAddress (array_merge($request, $params)));
+            $result = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $depositAddress = $response[$i];
+                $coin = $this->safe_string($depositAddress, 'coin');
+                $currency = $this->currency($coin);
+                $networkId = $this->safe_string($depositAddress, 'network');
+                $network = $this->safe_network($networkId);
+                $address = $this->safe_string($depositAddress, 'address', null);
+                $tag = $this->safe_string($depositAddress, 'tag', null);
+                $result[] = array(
+                    'currency' => $currency['id'],
+                    'network' => $network,
+                    'address' => $address,
+                    'tag' => $tag,
+                );
+            }
+            return $result;
+        }) ();
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
-        /**
-         * fetch the deposit address for a currency associated with this account
-         * @param {string} $code unified currency $code
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
-         */
-        $rawNetwork = $this->safe_string_upper($params, 'network');
-        $params = $this->omit($params, 'network');
-        $response = yield $this->fetch_deposit_addresses_by_network($code, $params);
-        $networks = $this->safe_value($this->options, 'networks', array());
-        $network = $this->safe_string($networks, $rawNetwork, $rawNetwork);
-        $result = null;
-        if ($network === null) {
-            $result = $this->safe_value($response, $code);
-            if ($result === null) {
-                $alias = $this->safe_string($networks, $code, $code);
-                $result = $this->safe_value($response, $alias);
-                if ($result === null) {
-                    $defaultNetwork = $this->safe_string($this->options, 'defaultNetwork', 'ERC20');
-                    $result = $this->safe_value($response, $defaultNetwork);
-                    if ($result === null) {
-                        $values = is_array($response) ? array_values($response) : array();
-                        $result = $this->safe_value($values, 0);
-                        if ($result === null) {
-                            throw new InvalidAddress($this->id . ' fetchDepositAddress() cannot find deposit address for ' . $code);
-                        }
+        return Async\async(function () use ($code, $params) {
+            /**
+             * fetch the deposit address for a currency associated with this account
+             * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-address-supporting-$network
+             * @param {string} $code unified currency $code
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
+             */
+            $rawNetwork = $this->safe_string_upper($params, 'network');
+            $params = $this->omit($params, 'network');
+            $response = Async\await($this->fetch_deposit_addresses_by_network($code, $params));
+            if ($rawNetwork !== null) {
+                for ($i = 0; $i < count($response); $i++) {
+                    $depositAddress = $response[$i];
+                    $network = $this->safe_string_upper($depositAddress, 'network');
+                    if ($rawNetwork === $network) {
+                        return $depositAddress;
                     }
                 }
             }
+            $result = $this->safe_value($response, 0);
+            if ($result === null) {
+                throw new InvalidAddress($this->id . ' fetchDepositAddress() cannot find a deposit address for ' . $code . ', consider creating one using the MEXC platform');
+            }
             return $result;
-        }
-        // TODO => add support for all aliases here
-        $result = $this->safe_value($response, $rawNetwork);
-        if ($result === null) {
-            throw new InvalidAddress($this->id . ' fetchDepositAddress() cannot find ' . $network . ' deposit address for ' . $code);
-        }
-        return $result;
+        }) ();
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all deposits made to an account
-         * @param {string|null} $code unified $currency $code
-         * @param {int|null} $since the earliest time in ms to fetch deposits for
-         * @param {int|null} $limit the maximum number of deposits structures to retrieve
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
-         */
-        yield $this->load_markets();
-        $request = array(
-            // 'currency' => $currency['id'] . network example => USDT-TRX,
-            // 'state' => 'state',
-            // 'start_time' => $since, // default 1 day
-            // 'end_time' => $this->milliseconds(),
-            // 'page_num' => 1,
-            // 'page_size' => $limit, // default 20, maximum 50
-        );
-        $currency = null;
-        if ($code !== null) {
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch all deposits made to an account
+             * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#deposit-history-supporting-network
+             * @param {string} $code unified $currency $code
+             * @param {int|null} $since the earliest time in ms to fetch deposits for
+             * @param {int|null} $limit the maximum number of deposits structures to retrieve
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             */
+            if ($code === null) {
+                throw new ArgumentsRequired($this->id . ' fetchDeposits() requires a $currency $code argument');
+            }
+            Async\await($this->load_markets());
+            $request = array(
+                // 'coin' => $currency['id'] . network example => USDT-TRX,
+                // 'status' => 'status',
+                // 'startTime' => $since, // default 90 days
+                // 'endTime' => $this->milliseconds(),
+                // 'limit' => $limit, // default 1000, maximum 1000
+            );
+            $currency = null;
             $rawNetwork = $this->safe_string($params, 'network');
             $params = $this->omit($params, 'network');
             if ($rawNetwork === null) {
@@ -3565,133 +3694,126 @@ class mexc3 extends Exchange {
             // currently mexc does not have network names unified so for certain things we might need TRX or TRC-20
             // due to that I'm applying the network parameter directly so the user can control it on its side
             $currency = $this->currency($code);
-            $request['currency'] = $currency['id'] . '-' . $rawNetwork;
-        }
-        if ($since !== null) {
-            $request['start_time'] = $since;
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $response = yield $this->spot2PrivateGetAssetDepositList (array_merge($request, $params));
-        //
-        //     {
-        //         "code":200,
-        //         "data":{
-        //             "page_size":20,
-        //             "total_page":1,
-        //             "total_size":1,
-        //             "page_num":1,
-        //             "result_list":array(
-        //                 {
-        //                     "currency":"USDC",
-        //                     "amount":150.0,
-        //                     "fee":0.0,
-        //                     "confirmations":19,
-        //                     "address":"0x55cbd73db24eafcca97369e3f2db74b2490586e6",
-        //                     "state":"SUCCESS",
-        //                     "tx_id":"0xc65a9b09e1b71def81bf8bb3ec724c0c1b2b4c82200c8c142e4ea4c1469fd789:0",
-        //                     "require_confirmations":12,
-        //                     "create_time":"2021-10-11T18:58:25.000+00:00",
-        //                     "update_time":"2021-10-11T19:01:06.000+00:00"
-        //                 }
-        //             )
-        //         }
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        $resultList = $this->safe_value($data, 'result_list', array());
-        return $this->parse_transactions($resultList, $currency, $since, $limit);
+            $request['coin'] = $currency['id'] . '-' . $rawNetwork;
+            if ($since !== null) {
+                $request['startTime'] = $since;
+            }
+            if ($limit !== null) {
+                if ($limit > 1000) {
+                    throw new ExchangeError('This exchange supports a maximum $limit of 1000');
+                }
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->spotPrivateGetCapitalDepositHisrec (array_merge($request, $params)));
+            //
+            // array(
+            //     {
+            //         amount => '10',
+            //         coin => 'USDC-TRX',
+            //         network => 'TRX',
+            //         status => '5',
+            //         address => 'TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh',
+            //         addressTag => null,
+            //         txId => '51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b',
+            //         insertTime => '1664805021000',
+            //         unlockConfirm => '200',
+            //         confirmTimes => '203'
+            //     }
+            // )
+            //
+            return $this->parse_transactions($response, $currency, $since, $limit);
+        }) ();
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all withdrawals made from an account
-         * @param {string|null} $code unified $currency $code
-         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
-         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
-         */
-        yield $this->load_markets();
-        $request = array(
-            // 'withdrawal_id' => '4b450616042a48c99dd45cacb4b092a7', // string
-            // 'currency' => $currency['id'],
-            // 'state' => 'state',
-            // 'start_time' => $since, // default 1 day
-            // 'end_time' => $this->milliseconds(),
-            // 'page_num' => 1,
-            // 'page_size' => $limit, // default 20, maximum 50
-        );
-        $currency = null;
-        if ($code !== null) {
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch all withdrawals made from an account
+             * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#withdraw-history-supporting-network
+             * @param {string} $code unified $currency $code
+             * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+             * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             */
+            if ($code === null) {
+                throw new ArgumentsRequired($this->id . ' fetchWithdrawals() requires a $currency $code argument');
+            }
+            Async\await($this->load_markets());
+            $request = array(
+                // 'coin' => $currency['id'],
+                // 'status' => 'status',
+                // 'startTime' => $since, // default 90 days
+                // 'endTime' => $this->milliseconds(),
+                // 'limit' => $limit, // default 1000, maximum 1000
+            );
             $currency = $this->currency($code);
-            $request['currency'] = $currency['id'];
-        }
-        if ($since !== null) {
-            $request['start_time'] = $since;
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $response = yield $this->spot2PrivateGetAssetWithdrawList (array_merge($request, $params));
-        //
-        //     {
-        //         "code":200,
-        //         "data":{
-        //             "page_size":20,
-        //             "total_page":1,
-        //             "total_size":1,
-        //             "page_num":1,
-        //             "result_list":array(
-        //                 {
-        //                     "id":"4b450616042a48c99dd45cacb4b092a7",
-        //                     "currency":"USDT-TRX",
-        //                     "address":"TRHKnx74Gb8UVcpDCMwzZVe4NqXfkdtPak",
-        //                     "amount":30.0,
-        //                     "fee":1.0,
-        //                     "remark":"this is my first withdrawal remark",
-        //                     "state":"WAIT",
-        //                     "create_time":"2021-10-11T20:45:08.000+00:00"
-        //                 }
-        //             )
-        //         }
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        $resultList = $this->safe_value($data, 'result_list', array());
-        return $this->parse_transactions($resultList, $currency, $since, $limit);
+            $request['coin'] = $currency['id'];
+            if ($since !== null) {
+                $request['startTime'] = $since;
+            }
+            if ($limit !== null) {
+                if ($limit > 1000) {
+                    throw new ExchangeError('This exchange supports a maximum $limit of 1000');
+                }
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->spotPrivateGetCapitalWithdrawHistory (array_merge($request, $params)));
+            //
+            // array(
+            //     {
+            //       id => 'adcd1c8322154de691b815eedcd10c42',
+            //       txId => '0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0',
+            //       coin => 'USDC-MATIC',
+            //       network => 'MATIC',
+            //       address => '0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62',
+            //       amount => '2',
+            //       transferType => '0',
+            //       status => '7',
+            //       transactionFee => '1',
+            //       confirmNo => null,
+            //       applyTime => '1664882739000',
+            //       remark => ''
+            //     }
+            // )
+            //
+            return $this->parse_transactions($response, $currency, $since, $limit);
+        }) ();
     }
 
     public function parse_transaction($transaction, $currency = null) {
         //
         // fetchDeposits
         //
-        //     {
-        //         "currency":"USDC",
-        //         "amount":150.0,
-        //         "fee":0.0,
-        //         "confirmations":19,
-        //         "address":"0x55cbd73db24eafcca97369e3f2db74b2490586e6",
-        //         "state":"SUCCESS",
-        //         "tx_id":"0xc65a9b09e1b71def81bf8bb3ec724c0c1b2b4c82200c8c142e4ea4c1469fd789:0",
-        //         "require_confirmations":12,
-        //         "create_time":"2021-10-11T18:58:25.000+00:00",
-        //         "update_time":"2021-10-11T19:01:06.000+00:00"
-        //     }
+        // {
+        //     amount => '10',
+        //     coin => 'USDC-TRX',
+        //     $network => 'TRX',
+        //     $status => '5',
+        //     $address => 'TSMcEDDvkqY9dz8RkFnrS86U59GwEZjfvh',
+        //     addressTag => null,
+        //     txId => '51a8f49e6f03f2c056e71fe3291aa65e1032880be855b65cecd0595a1b8af95b',
+        //     insertTime => '1664805021000',
+        //     unlockConfirm => '200',
+        //     confirmTimes => '203'
+        // }
         //
         // fetchWithdrawals
         //
-        //     {
-        //         "id":"4b450616042a48c99dd45cacb4b092a7",
-        //         "currency":"USDT-TRX",
-        //         "address":"TRHKnx74Gb8UVcpDCMwzZVe4NqXfkdtPak",
-        //         "amount":30.0,
-        //         "fee":1.0,
-        //         "remark":"this is my first withdrawal remark",
-        //         "state":"WAIT",
-        //         "create_time":"2021-10-11T20:45:08.000+00:00"
-        //     }
+        // {
+        //     $id => 'adcd1c8322154de691b815eedcd10c42',
+        //     txId => '0xc8c918cd69b2246db493ef6225a72ffdc664f15b08da3e25c6879b271d05e9d0',
+        //     coin => 'USDC-MATIC',
+        //     $network => 'MATIC',
+        //     $address => '0xeE6C7a415995312ED52c53a0f8f03e165e0A5D62',
+        //     amount => '2',
+        //     transferType => '0',
+        //     $status => '7',
+        //     transactionFee => '1',
+        //     confirmNo => null,
+        //     applyTime => '1664882739000',
+        //     remark => ''
+        //   }
         //
         // withdraw
         //
@@ -3699,25 +3821,18 @@ class mexc3 extends Exchange {
         //         "withdrawId":"25fb2831fb6d4fc7aa4094612a26c81d"
         //     }
         //
-        $id = $this->safe_string_2($transaction, 'id', 'withdrawId');
+        $id = $this->safe_string($transaction, 'id');
         $type = ($id === null) ? 'deposit' : 'withdrawal';
-        $timestamp = $this->parse8601($this->safe_string($transaction, 'create_time'));
-        $updated = $this->parse8601($this->safe_string($transaction, 'update_time'));
+        $timestamp = $this->safe_integer_2($transaction, 'insertTime', 'applyTime');
         $currencyId = $this->safe_string($transaction, 'currency');
-        $network = null;
-        if (($currencyId !== null) && (mb_strpos($currencyId, '-') !== false)) {
-            $parts = explode('-', $currencyId);
-            $currencyId = $this->safe_string($parts, 0);
-            $networkId = $this->safe_string($parts, 1);
-            $network = $this->safe_network($networkId);
-        }
+        $network = $this->safe_string($transaction, 'network');
         $code = $this->safe_currency_code($currencyId, $currency);
-        $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
+        $status = $this->parse_transaction_status($this->safe_string($transaction, 'status'));
         $amountString = $this->safe_string($transaction, 'amount');
         $address = $this->safe_string($transaction, 'address');
-        $txid = $this->safe_string($transaction, 'tx_id');
+        $txid = $this->safe_string($transaction, 'txId');
         $fee = null;
-        $feeCostString = $this->safe_string($transaction, 'fee');
+        $feeCostString = $this->safe_string($transaction, 'transactionFee');
         if ($feeCostString !== null) {
             $fee = array(
                 'cost' => $this->parse_number($feeCostString),
@@ -3736,16 +3851,16 @@ class mexc3 extends Exchange {
             'datetime' => $this->iso8601($timestamp),
             'network' => $network,
             'address' => $address,
-            'addressTo' => null,
+            'addressTo' => $address,
             'addressFrom' => null,
-            'tag' => null,
+            'tag' => $this->safe_string($transaction, 'memo'),
             'tagTo' => null,
             'tagFrom' => null,
             'type' => $type,
             'amount' => $this->parse_number($amountString),
             'currency' => $code,
             'status' => $status,
-            'updated' => $updated,
+            'updated' => null,
             'fee' => $fee,
         );
     }
@@ -3760,62 +3875,66 @@ class mexc3 extends Exchange {
     }
 
     public function fetch_position($symbol, $params = array ()) {
-        /**
-         * fetch data on a single open contract trade position
-         * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        $response = yield $this->fetch_positions(null, array_merge($request, $params));
-        return $this->safe_value($response, 0);
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch data on a single open contract trade position
+             * @param {string} $symbol unified $market $symbol of the $market the position is held in, default is null
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->fetch_positions(null, array_merge($request, $params)));
+            return $this->safe_value($response, 0);
+        }) ();
     }
 
     public function fetch_positions($symbols = null, $params = array ()) {
-        /**
-         * fetch all open positions
-         * @param {[string]|null} $symbols list of unified market $symbols
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
-         */
-        yield $this->load_markets();
-        $response = yield $this->contractPrivateGetPositionOpenPositions ($params);
-        //
-        //     {
-        //         "success" => true,
-        //         "code" => 0,
-        //         "data" => array(
-        //             {
-        //                 "positionId" => 1394650,
-        //                 "symbol" => "ETH_USDT",
-        //                 "positionType" => 1,
-        //                 "openType" => 1,
-        //                 "state" => 1,
-        //                 "holdVol" => 1,
-        //                 "frozenVol" => 0,
-        //                 "closeVol" => 0,
-        //                 "holdAvgPrice" => 1217.3,
-        //                 "openAvgPrice" => 1217.3,
-        //                 "closeAvgPrice" => 0,
-        //                 "liquidatePrice" => 1211.2,
-        //                 "oim" => 0.1290338,
-        //                 "im" => 0.1290338,
-        //                 "holdFee" => 0,
-        //                 "realised" => -0.0073,
-        //                 "leverage" => 100,
-        //                 "createTime" => 1609991676000,
-        //                 "updateTime" => 1609991676000,
-        //                 "autoAddIm" => false
-        //             }
-        //         )
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_positions($data, $symbols);
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetch all open positions
+             * @param {[string]|null} $symbols list of unified market $symbols
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->contractPrivateGetPositionOpenPositions ($params));
+            //
+            //     {
+            //         "success" => true,
+            //         "code" => 0,
+            //         "data" => array(
+            //             {
+            //                 "positionId" => 1394650,
+            //                 "symbol" => "ETH_USDT",
+            //                 "positionType" => 1,
+            //                 "openType" => 1,
+            //                 "state" => 1,
+            //                 "holdVol" => 1,
+            //                 "frozenVol" => 0,
+            //                 "closeVol" => 0,
+            //                 "holdAvgPrice" => 1217.3,
+            //                 "openAvgPrice" => 1217.3,
+            //                 "closeAvgPrice" => 0,
+            //                 "liquidatePrice" => 1211.2,
+            //                 "oim" => 0.1290338,
+            //                 "im" => 0.1290338,
+            //                 "holdFee" => 0,
+            //                 "realised" => -0.0073,
+            //                 "leverage" => 100,
+            //                 "createTime" => 1609991676000,
+            //                 "updateTime" => 1609991676000,
+            //                 "autoAddIm" => false
+            //             }
+            //         )
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_positions($data, $symbols);
+        }) ();
     }
 
     public function parse_position($position, $market = null) {
@@ -3882,174 +4001,180 @@ class mexc3 extends Exchange {
     }
 
     public function fetch_transfer($id, $since = null, $limit = null, $params = array ()) {
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchTransfer', null, $params);
-        yield $this->load_markets();
-        if ($marketType === 'spot') {
-            $request = array(
-                'transact_id' => $id,
-            );
-            $response = yield $this->spot2PrivateGetAssetInternalTransferInfo (array_merge($request, $query));
-            //
-            //     {
-            //         code => '200',
-            //         $data => {
-            //             currency => 'USDT',
-            //             amount => '1',
-            //             transact_id => '954877a2ef54499db9b28a7cf9ebcf41',
-            //             from => 'MAIN',
-            //             to => 'CONTRACT',
-            //             transact_state => 'SUCCESS'
-            //         }
-            //     }
-            //
-            $data = $this->safe_value($response, 'data', array());
-            return $this->parse_transfer($data);
-        } elseif ($marketType === 'swap') {
-            throw new BadRequest($this->id . ' fetchTransfer() is not supported for ' . $marketType);
-        }
+        return Async\async(function () use ($id, $since, $limit, $params) {
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchTransfer', null, $params);
+            Async\await($this->load_markets());
+            if ($marketType === 'spot') {
+                $request = array(
+                    'transact_id' => $id,
+                );
+                $response = Async\await($this->spot2PrivateGetAssetInternalTransferInfo (array_merge($request, $query)));
+                //
+                //     {
+                //         code => '200',
+                //         $data => {
+                //             currency => 'USDT',
+                //             amount => '1',
+                //             transact_id => '954877a2ef54499db9b28a7cf9ebcf41',
+                //             from => 'MAIN',
+                //             to => 'CONTRACT',
+                //             transact_state => 'SUCCESS'
+                //         }
+                //     }
+                //
+                $data = $this->safe_value($response, 'data', array());
+                return $this->parse_transfer($data);
+            } elseif ($marketType === 'swap') {
+                throw new BadRequest($this->id . ' fetchTransfer() is not supported for ' . $marketType);
+            }
+        }) ();
     }
 
     public function fetch_transfers($code = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch a history of internal transfers made on an account
-         * @param {string|null} $code unified $currency $code of the $currency transferred
-         * @param {int|null} $since the earliest time in ms to fetch transfers for
-         * @param {int|null} $limit the maximum number of  transfers structures to retrieve
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structures}
-         */
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchTransfers', null, $params);
-        yield $this->load_markets();
-        $request = array();
-        $currency = null;
-        $resultList = null;
-        if ($code !== null) {
-            $currency = $this->currency($code);
-            $request['currency'] = $currency['id'];
-        }
-        if ($marketType === 'spot') {
-            if ($since !== null) {
-                $request['start_time'] = $since;
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch a history of internal transfers made on an account
+             * @param {string|null} $code unified $currency $code of the $currency transferred
+             * @param {int|null} $since the earliest time in ms to fetch transfers for
+             * @param {int|null} $limit the maximum number of  transfers structures to retrieve
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structures}
+             */
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchTransfers', null, $params);
+            Async\await($this->load_markets());
+            $request = array();
+            $currency = null;
+            $resultList = null;
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['currency'] = $currency['id'];
             }
-            if ($limit !== null) {
-                if ($limit > 50) {
-                    throw new ExchangeError('This exchange supports a maximum $limit of 50');
+            if ($marketType === 'spot') {
+                if ($since !== null) {
+                    $request['start_time'] = $since;
                 }
-                $request['page-size'] = $limit;
+                if ($limit !== null) {
+                    if ($limit > 50) {
+                        throw new ExchangeError('This exchange supports a maximum $limit of 50');
+                    }
+                    $request['page-size'] = $limit;
+                }
+                $response = Async\await($this->spot2PrivateGetAssetInternalTransferRecord (array_merge($request, $query)));
+                //
+                //     {
+                //         $code => '200',
+                //         $data => {
+                //             total_page => '1',
+                //             total_size => '5',
+                //             result_list => [array(
+                //                     $currency => 'USDT',
+                //                     amount => '1',
+                //                     transact_id => '954877a2ef54499db9b28a7cf9ebcf41',
+                //                     from => 'MAIN',
+                //                     to => 'CONTRACT',
+                //                     transact_state => 'SUCCESS'
+                //                 ),
+                //                 ...
+                //             ]
+                //         }
+                //     }
+                //
+                $data = $this->safe_value($response, 'data', array());
+                $resultList = $this->safe_value($data, 'result_list', array());
+            } elseif ($marketType === 'swap') {
+                if ($limit !== null) {
+                    $request['page_size'] = $limit;
+                }
+                $response = Async\await($this->contractPrivateGetAccountTransferRecord (array_merge($request, $query)));
+                $data = $this->safe_value($response, 'data');
+                $resultList = $this->safe_value($data, 'resultList');
+                //
+                //     {
+                //         "success" => true,
+                //         "code" => "0",
+                //         "data" => {
+                //             "pageSize" => "20",
+                //             "totalCount" => "10",
+                //             "totalPage" => "1",
+                //             "currentPage" => "1",
+                //             "resultList" => array(
+                //                 array(
+                //                     "id" => "2980812",
+                //                     "txid" => "fa8a1e7bf05940a3b7025856dc48d025",
+                //                     "currency" => "USDT",
+                //                     "amount" => "22.90213135",
+                //                     "type" => "IN",
+                //                     "state" => "SUCCESS",
+                //                     "createTime" => "1648849076000",
+                //                     "updateTime" => "1648849076000"
+                //                 ),
+                //             )
+                //         }
+                //     }
+                //
             }
-            $response = yield $this->spot2PrivateGetAssetInternalTransferRecord (array_merge($request, $query));
-            //
-            //     {
-            //         $code => '200',
-            //         $data => {
-            //             total_page => '1',
-            //             total_size => '5',
-            //             result_list => [array(
-            //                     $currency => 'USDT',
-            //                     amount => '1',
-            //                     transact_id => '954877a2ef54499db9b28a7cf9ebcf41',
-            //                     from => 'MAIN',
-            //                     to => 'CONTRACT',
-            //                     transact_state => 'SUCCESS'
-            //                 ),
-            //                 ...
-            //             ]
-            //         }
-            //     }
-            //
-            $data = $this->safe_value($response, 'data', array());
-            $resultList = $this->safe_value($data, 'result_list', array());
-        } elseif ($marketType === 'swap') {
-            if ($limit !== null) {
-                $request['page_size'] = $limit;
-            }
-            $response = yield $this->contractPrivateGetAccountTransferRecord (array_merge($request, $query));
-            $data = $this->safe_value($response, 'data');
-            $resultList = $this->safe_value($data, 'resultList');
-            //
-            //     {
-            //         "success" => true,
-            //         "code" => "0",
-            //         "data" => {
-            //             "pageSize" => "20",
-            //             "totalCount" => "10",
-            //             "totalPage" => "1",
-            //             "currentPage" => "1",
-            //             "resultList" => array(
-            //                 array(
-            //                     "id" => "2980812",
-            //                     "txid" => "fa8a1e7bf05940a3b7025856dc48d025",
-            //                     "currency" => "USDT",
-            //                     "amount" => "22.90213135",
-            //                     "type" => "IN",
-            //                     "state" => "SUCCESS",
-            //                     "createTime" => "1648849076000",
-            //                     "updateTime" => "1648849076000"
-            //                 ),
-            //             )
-            //         }
-            //     }
-            //
-        }
-        return $this->parse_transfers($resultList, $currency, $since, $limit);
+            return $this->parse_transfers($resultList, $currency, $since, $limit);
+        }) ();
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
-        /**
-         * transfer $currency internally between wallets on the same account
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#user-universal-transfer
-         * @param {string} $code unified $currency $code
-         * @param {float} $amount amount to transfer
-         * @param {string} $fromAccount account to transfer from
-         * @param {string} $toAccount account to transfer to
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @param {string|null} $params->symbol $market $symbol required for margin account transfers eg:BTCUSDT
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
-         */
-        yield $this->load_markets();
-        $currency = $this->currency($code);
-        $accounts = array(
-            'spot' => 'SPOT',
-            'swap' => 'FUTURES',
-            'margin' => 'ISOLATED_MARGIN',
-        );
-        $fromId = $this->safe_string($accounts, $fromAccount);
-        $toId = $this->safe_string($accounts, $toAccount);
-        if ($fromId === null) {
-            $keys = is_array($accounts) ? array_keys($accounts) : array();
-            throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
-        }
-        if ($toId === null) {
-            $keys = is_array($accounts) ? array_keys($accounts) : array();
-            throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
-        }
-        $request = array(
-            'asset' => $currency['id'],
-            'amount' => $amount,
-            'fromAccountType' => $fromId,
-            'toAccountType' => $toId,
-        );
-        if (($fromId === 'ISOLATED_MARGIN') || ($toId === 'ISOLATED_MARGIN')) {
-            $symbol = $this->safe_string($params, 'symbol');
-            $params = $this->omit($params, 'symbol');
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' transfer() requires a $symbol argument for isolated margin');
+        return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
+            /**
+             * transfer $currency internally between wallets on the same account
+             * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#user-universal-transfer
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount amount to transfer
+             * @param {string} $fromAccount account to transfer from
+             * @param {string} $toAccount account to transfer to
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @param {string|null} $params->symbol $market $symbol required for margin account transfers eg:BTCUSDT
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $accounts = array(
+                'spot' => 'SPOT',
+                'swap' => 'FUTURES',
+                'margin' => 'ISOLATED_MARGIN',
+            );
+            $fromId = $this->safe_string($accounts, $fromAccount);
+            $toId = $this->safe_string($accounts, $toAccount);
+            if ($fromId === null) {
+                $keys = is_array($accounts) ? array_keys($accounts) : array();
+                throw new ExchangeError($this->id . ' $fromAccount must be one of ' . implode(', ', $keys));
             }
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
-        }
-        $response = yield $this->spotPrivatePostCapitalTransfer (array_merge($request, $params));
-        //
-        //     {
-        //         "tranId" => "ebb06123e6a64f4ab234b396c548d57e"
-        //     }
-        //
-        $transaction = $this->parse_transfer($response, $currency);
-        return array_merge($transaction, array(
-            'amount' => $amount,
-            'fromAccount' => $fromAccount,
-            'toAccount' => $toAccount,
-        ));
+            if ($toId === null) {
+                $keys = is_array($accounts) ? array_keys($accounts) : array();
+                throw new ExchangeError($this->id . ' $toAccount must be one of ' . implode(', ', $keys));
+            }
+            $request = array(
+                'asset' => $currency['id'],
+                'amount' => $amount,
+                'fromAccountType' => $fromId,
+                'toAccountType' => $toId,
+            );
+            if (($fromId === 'ISOLATED_MARGIN') || ($toId === 'ISOLATED_MARGIN')) {
+                $symbol = $this->safe_string($params, 'symbol');
+                $params = $this->omit($params, 'symbol');
+                if ($symbol === null) {
+                    throw new ArgumentsRequired($this->id . ' transfer() requires a $symbol argument for isolated margin');
+                }
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+            }
+            $response = Async\await($this->spotPrivatePostCapitalTransfer (array_merge($request, $params)));
+            //
+            //     {
+            //         "tranId" => "ebb06123e6a64f4ab234b396c548d57e"
+            //     }
+            //
+            $transaction = $this->parse_transfer($response, $currency);
+            return array_merge($transaction, array(
+                'amount' => $amount,
+                'fromAccount' => $fromAccount,
+                'toAccount' => $toAccount,
+            ));
+        }) ();
     }
 
     public function parse_transfer($transfer, $currency = null) {
@@ -4129,149 +4254,156 @@ class mexc3 extends Exchange {
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
-        /**
-         * make a withdrawal
-         * @param {string} $code unified $currency $code
-         * @param {float} $amount the $amount to withdraw
-         * @param {string} $address the $address to withdraw to
-         * @param {string|null} $tag
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
-         */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $networks = $this->safe_value($this->options, 'networks', array());
-        $network = $this->safe_string_2($params, 'network', 'chain'); // this line allows the user to specify either ERC20 or ETH
-        $network = $this->safe_string($networks, $network, $network); // handle ETH > ERC-20 alias
-        $this->check_address($address);
-        yield $this->load_markets();
-        $currency = $this->currency($code);
-        if ($tag !== null) {
-            $address .= ':' . $tag;
-        }
-        $request = array(
-            'currency' => $currency['id'],
-            'address' => $address,
-            'amount' => $amount,
-        );
-        if ($network !== null) {
-            $request['chain'] = $network;
-            $params = $this->omit($params, array( 'network', 'chain' ));
-        }
-        $response = yield $this->spot2PrivatePostAssetWithdraw (array_merge($request, $params));
-        //
-        //     {
-        //         "code":200,
-        //         "data" => {
-        //             "withdrawId":"25fb2831fb6d4fc7aa4094612a26c81d"
-        //         }
-        //     }
-        //
-        $data = $this->safe_value($response, 'data', array());
-        return $this->parse_transaction($data, $currency);
+        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
+            /**
+             * make a withdrawal
+             * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#withdraw
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount the $amount to withdraw
+             * @param {string} $address the $address to withdraw to
+             * @param {string|null} $tag
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             */
+            list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+            $networks = $this->safe_value($this->options, 'networks', array());
+            $network = $this->safe_string_upper_2($params, 'network', 'chain'); // this line allows the user to specify either ERC20 or ETH
+            $network = $this->safe_string($networks, $network, $network); // handle ETH > ERC-20 alias
+            $this->check_address($address);
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'coin' => $currency['id'],
+                'address' => $address,
+                'amount' => $amount,
+            );
+            if ($tag !== null) {
+                $request['memo'] = $tag;
+            }
+            if ($network !== null) {
+                $request['network'] = $network;
+                $params = $this->omit($params, 'network');
+            }
+            $response = Async\await($this->spotPrivatePostCapitalWithdrawApply (array_merge($request, $params)));
+            //
+            //     {
+            //       "id":"7213fea8e94b4a5593d507237e5a555b"
+            //     }
+            //
+            return $this->parse_transaction($response, $currency);
+        }) ();
     }
 
     public function set_position_mode($hedged, $symbol = null, $params = array ()) {
-        $request = array(
-            'positionMode' => $hedged ? 1 : 2, // 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
-        );
-        $response = yield $this->contractPrivatePostPositionChangePositionMode (array_merge($request, $params));
-        //
-        //     {
-        //         "success":true,
-        //         "code":0
-        //     }
-        //
-        return $response;
+        return Async\async(function () use ($hedged, $symbol, $params) {
+            $request = array(
+                'positionMode' => $hedged ? 1 : 2, // 1 Hedge, 2 One-way, before changing position mode make sure that there are no active orders, planned orders, or open positions, the risk limit level will be reset to 1
+            );
+            $response = Async\await($this->contractPrivatePostPositionChangePositionMode (array_merge($request, $params)));
+            //
+            //     {
+            //         "success":true,
+            //         "code":0
+            //     }
+            //
+            return $response;
+        }) ();
     }
 
     public function fetch_position_mode($symbol = null, $params = array ()) {
-        $response = yield $this->contractPrivateGetPositionPositionMode ($params);
-        //
-        //     {
-        //         "success":true,
-        //         "code":0,
-        //         "data":2
-        //     }
-        //
-        $positionMode = $this->safe_integer($response, 'data');
-        return array(
-            'info' => $response,
-            'hedged' => ($positionMode === 1),
-        );
+        return Async\async(function () use ($symbol, $params) {
+            $response = Async\await($this->contractPrivateGetPositionPositionMode ($params));
+            //
+            //     {
+            //         "success":true,
+            //         "code":0,
+            //         "data":2
+            //     }
+            //
+            $positionMode = $this->safe_integer($response, 'data');
+            return array(
+                'info' => $response,
+                'hedged' => ($positionMode === 1),
+            );
+        }) ();
     }
 
     public function borrow_margin($code, $amount, $symbol = null, $params = array ()) {
-        /**
-         * create a loan to borrow margin
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#loan
-         * @param {string} $code unified $currency $code of the $currency to borrow
-         * @param {float} $amount the $amount to borrow
-         * @param {string} $symbol unified $market $symbol
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
-         */
-        yield $this->load_markets();
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' borrowMargin() requires a $symbol argument for isolated margin');
-        }
-        $market = $this->market($symbol);
-        $currency = $this->currency($code);
-        $request = array(
-            'asset' => $currency['id'],
-            'amount' => $this->currency_to_precision($code, $amount),
-            'symbol' => $market['id'],
-        );
-        $response = yield $this->spotPrivatePostMarginLoan (array_merge($request, $params));
-        //
-        //     {
-        //         "tranId" => "762407666453712896"
-        //     }
-        //
-        $transaction = $this->parse_margin_loan($response, $currency);
-        return array_merge($transaction, array(
-            'amount' => $amount,
-            'symbol' => $symbol,
-        ));
+        return Async\async(function () use ($code, $amount, $symbol, $params) {
+            /**
+             * create a loan to borrow margin
+             * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#loan
+             * @param {string} $code unified $currency $code of the $currency to borrow
+             * @param {float} $amount the $amount to borrow
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
+             */
+            Async\await($this->load_markets());
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' borrowMargin() requires a $symbol argument for isolated margin');
+            }
+            $market = $this->market($symbol);
+            $currency = $this->currency($code);
+            $request = array(
+                'asset' => $currency['id'],
+                'amount' => $this->currency_to_precision($code, $amount),
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->spotPrivatePostMarginLoan (array_merge($request, $params)));
+            //
+            //     {
+            //         "tranId" => "762407666453712896"
+            //     }
+            //
+            $transaction = $this->parse_margin_loan($response, $currency);
+            return array_merge($transaction, array(
+                'amount' => $amount,
+                'symbol' => $symbol,
+            ));
+        }) ();
     }
 
     public function repay_margin($code, $amount, $symbol = null, $params = array ()) {
-        /**
-         * repay borrowed margin and interest
-         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#repayment
-         * @param {string} $code unified $currency $code of the $currency to repay
-         * @param {float} $amount the $amount to repay
-         * @param {string} $symbol unified $market $symbol
-         * @param {array} $params extra parameters specific to the mexc3 api endpoint
-         * @param {string} $params->borrowId $transaction $id '762407666453712896'
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
-         */
-        yield $this->load_markets();
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' repayMargin() requires a $symbol argument for isolated margin');
-        }
-        $id = $this->safe_string_2($params, 'id', 'borrowId');
-        if ($id === null) {
-            throw new ArgumentsRequired($this->id . ' repayMargin() requires a borrowId argument in the params');
-        }
-        $market = $this->market($symbol);
-        $currency = $this->currency($code);
-        $request = array(
-            'asset' => $currency['id'],
-            'amount' => $this->currency_to_precision($code, $amount),
-            'borrowId' => $id,
-            'symbol' => $market['id'],
-        );
-        $response = yield $this->spotPrivatePostMarginRepay (array_merge($request, $params));
-        //
-        //     {
-        //         "tranId" => "762407666453712896"
-        //     }
-        //
-        $transaction = $this->parse_margin_loan($response, $currency);
-        return array_merge($transaction, array(
-            'amount' => $amount,
-            'symbol' => $symbol,
-        ));
+        return Async\async(function () use ($code, $amount, $symbol, $params) {
+            /**
+             * repay borrowed margin and interest
+             * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#repayment
+             * @param {string} $code unified $currency $code of the $currency to repay
+             * @param {float} $amount the $amount to repay
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @param {string} $params->borrowId $transaction $id '762407666453712896'
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
+             */
+            Async\await($this->load_markets());
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' repayMargin() requires a $symbol argument for isolated margin');
+            }
+            $id = $this->safe_string_2($params, 'id', 'borrowId');
+            if ($id === null) {
+                throw new ArgumentsRequired($this->id . ' repayMargin() requires a borrowId argument in the params');
+            }
+            $market = $this->market($symbol);
+            $currency = $this->currency($code);
+            $request = array(
+                'asset' => $currency['id'],
+                'amount' => $this->currency_to_precision($code, $amount),
+                'borrowId' => $id,
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->spotPrivatePostMarginRepay (array_merge($request, $params)));
+            //
+            //     {
+            //         "tranId" => "762407666453712896"
+            //     }
+            //
+            $transaction = $this->parse_margin_loan($response, $currency);
+            return array_merge($transaction, array(
+                'amount' => $amount,
+                'symbol' => $symbol,
+            ));
+        }) ();
     }
 
     public function parse_margin_loan($info, $currency = null) {

@@ -20,7 +20,7 @@ module.exports = class ftx extends Exchange {
             // cancels do not count towards rateLimit
             // only 'order-making' requests count towards ratelimit
             'rateLimit': 28.57,
-            'certified': true,
+            'certified': false,
             'pro': true,
             'hostname': 'ftx.com', // or ftx.us
             'urls': {
@@ -33,7 +33,7 @@ module.exports = class ftx extends Exchange {
                 'doc': 'https://github.com/ftexchange/ftx',
                 'fees': 'https://ftexchange.zendesk.com/hc/en-us/articles/360024479432-Fees',
                 'referral': {
-                    'url': 'https://ftx.com/#a=ccxt',
+                    'url': 'https://ftx.com/referrals#a=1623029',
                     'discount': 0.05,
                 },
             },
@@ -76,6 +76,7 @@ module.exports = class ftx extends Exchange {
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -244,6 +245,7 @@ module.exports = class ftx extends Exchange {
                         'twap_orders/{twap_order_id}': 1,
                         'historical_balances/requests': 1,
                         'historical_balances/requests/{request_id}': 1,
+                        'fast_access_settings/list_ips': 1,
                     },
                     'post': {
                         // subaccounts
@@ -295,6 +297,9 @@ module.exports = class ftx extends Exchange {
                         'support/tickets/{ticketId}/mark_as_read': 1,
                         'twap_orders': 1,
                         'historical_balances/requests': 1,
+                        'fast_access_settings/add_ip': 1,
+                        'fast_access_settings/enable_ip/{ipAddress}': 1,
+                        'fast_access_settings/disable_ip/{ipAddress}': 1,
                     },
                     'delete': {
                         // subaccounts
@@ -314,6 +319,7 @@ module.exports = class ftx extends Exchange {
                         // staking
                         'staking/unstake_requests/{request_id}': 1,
                         'twap_orders/{twap_order_id}': 1,
+                        'fast_access_settings/delete_ip/{ipAddress}': 1,
                     },
                 },
             },
@@ -368,6 +374,7 @@ module.exports = class ftx extends Exchange {
                     'Not authorized for subaccount-specific access': PermissionDenied, // {"success":false,"error":"Not authorized for subaccount-specific access"}
                     'Not approved to trade this product': PermissionDenied, // {"success":false,"error":"Not approved to trade this product"}
                     'Internal Error': ExchangeNotAvailable, // {"success":false,"error":"Internal Error"}
+                    'Order took too long to process': ExchangeNotAvailable, // {"success":false,"error":"Order took too long to process"}
                 },
                 'broad': {
                     // {"error":"Not logged in","success":false}
@@ -1906,18 +1913,19 @@ module.exports = class ftx extends Exchange {
         const defaultMethod = this.safeString (options, 'method', 'privateDeleteOrdersOrderId');
         let method = this.safeString (params, 'method', defaultMethod);
         const type = this.safeValue (params, 'type');  // Deprecated: use params.stop instead
-        const stop = this.safeValue (params, 'stop');
+        let isTriggerOrder = undefined;
+        [ isTriggerOrder, params ] = this.isTriggerOrder (params);
         const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
         if (clientOrderId === undefined) {
             request['order_id'] = parseInt (id);
-            if (stop || (type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
+            if (isTriggerOrder || this.inArray (type, [ 'stop', 'trailingStop', 'takeProfit' ])) {
                 method = 'privateDeleteConditionalOrdersOrderId';
             }
         } else {
             request['client_order_id'] = clientOrderId;
             method = 'privateDeleteOrdersByClientIdClientOrderId';
         }
-        const query = this.omit (params, [ 'method', 'type', 'client_order_id', 'clientOrderId', 'stop' ]);
+        const query = this.omit (params, [ 'method', 'type', 'client_order_id', 'clientOrderId' ]);
         const response = await this[method] (this.extend (request, query));
         //
         //     {
@@ -1942,6 +1950,7 @@ module.exports = class ftx extends Exchange {
         await this.loadMarkets ();
         // https://docs.ccxt.com/en/latest/manual.html#user-defined-clientorderid
         const clientOrderIds = this.safeValue (params, 'clientOrderIds');
+        // FTX doesn't have endpoint for trigger orders related to cancelOrders
         if (clientOrderIds !== undefined) {
             //
             //     { success: true, result: [ 'billy', 'bob', 'gina' ] }
@@ -1976,6 +1985,13 @@ module.exports = class ftx extends Exchange {
         const marketId = this.getMarketId (symbol, 'market', params);
         if (marketId !== undefined) {
             request['market'] = marketId;
+        }
+        let isTriggerOrder = undefined;
+        [ isTriggerOrder, params ] = this.isTriggerOrder (params);
+        // if user wants to cancel only conditional orders, then set below fields. Otherwise, request will cancel all orders - conditional and regular orders
+        if (isTriggerOrder) {
+            request['conditionalOrdersOnly'] = true;
+            request['limitOrdersOnly'] = false;
         }
         const response = await this.privateDeleteOrders (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
@@ -2059,11 +2075,12 @@ module.exports = class ftx extends Exchange {
         const defaultMethod = this.safeString (options, 'method', 'privateGetOrders');
         let method = this.safeString (params, 'method', defaultMethod);
         const type = this.safeValue (params, 'type');
-        const stop = this.safeValue (params, 'stop');
-        if (stop || (type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
+        let isTriggerOrder = undefined;
+        [ isTriggerOrder, params ] = this.isTriggerOrder (params);
+        if (isTriggerOrder || this.inArray (type, [ 'trigger', 'stop', 'trailingStop', 'takeProfit' ])) {
             method = 'privateGetConditionalOrders';
         }
-        const query = this.omit (params, [ 'method', 'type', 'stop' ]);
+        const query = this.omit (params, [ 'method', 'type' ]);
         const response = await this[method] (this.extend (request, query));
         //
         //     {
@@ -2123,7 +2140,9 @@ module.exports = class ftx extends Exchange {
         const defaultMethod = this.safeString (options, 'method', 'privateGetOrdersHistory');
         let method = this.safeString (params, 'method', defaultMethod);
         const type = this.safeValue (params, 'type');
-        if ((type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
+        let isTriggerOrder = undefined;
+        [ isTriggerOrder, params ] = this.isTriggerOrder (params);
+        if (isTriggerOrder || this.inArray (type, [ 'trigger', 'stop', 'trailingStop', 'takeProfit' ])) {
             method = 'privateGetConditionalOrdersHistory';
         }
         const query = this.omit (params, [ 'method', 'type' ]);
@@ -2172,7 +2191,48 @@ module.exports = class ftx extends Exchange {
         const request = {
             'orderId': id,
         };
+        // if it's conditional order
+        const type = this.safeValue (params, 'type');
+        params = this.omit (params, 'type');
+        let isTriggerOrder = undefined;
+        [ isTriggerOrder, params ] = this.isTriggerOrder (params);
+        if (isTriggerOrder || this.inArray (type, [ 'trigger', 'stop', 'trailingStop', 'takeProfit' ])) {
+            // if it is conditional order, then it would have a reference order id to be sent to the specific endpoint, from where we will get the actual order ID and then use that ID
+            const realOrderId = await this.fetchOrderIfFromConditionalOrder (id);
+            if (realOrderId !== undefined) {
+                request['orderId'] = realOrderId;
+            } else {
+                // if order-id was not found, then there were no fills and no need to make any further request
+                return [];
+            }
+        }
         return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
+    }
+
+    async fetchOrderIfFromConditionalOrder (id) {
+        const request = {
+            'conditional_order_id': id,
+        };
+        const response = await this.privateGetConditionalOrdersConditionalOrderIdTriggers (request);
+        // Note: if endpoint retuns non-empy "result" property, then it means order had fill and returns the order reference ID, which is the real id of the regular order
+        //
+        // {
+        //     "success": true,
+        //     "result": [
+        //         {
+        //             "time": "2022-03-29T04:54:04.390665+00:00",
+        //             "orderId": 132144259673, // this is not the same conditional-order's id, instead it is the regular order id, which can be used in regular methods
+        //             "error": null,
+        //             "orderSize": 0.1234,
+        //             "filledSize": 0.1234
+        //         }
+        //     ]
+        // }
+        //
+        // Also note, the above endpoint seems to return one object in array
+        const result = this.safeValue (response, 'result');
+        const orderObject = this.safeValue (result, 0, {});
+        return this.safeString (orderObject, 'orderId');
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2443,11 +2503,10 @@ module.exports = class ftx extends Exchange {
         const symbol = this.safeSymbol (marketId, market);
         const liquidationPriceString = this.safeString (position, 'estimatedLiquidationPrice');
         const initialMarginPercentage = this.safeString (position, 'initialMarginRequirement');
-        const leverage = parseInt (Precise.stringDiv ('1', initialMarginPercentage, 0));
         // on ftx the entryPrice is actually the mark price
         const markPriceString = this.safeString (position, 'entryPrice');
         const notionalString = Precise.stringMul (contractsString, markPriceString);
-        const initialMargin = Precise.stringMul (notionalString, initialMarginPercentage);
+        const initialMargin = this.safeString (position, 'collateralUsed');
         const maintenanceMarginPercentageString = this.safeString (position, 'maintenanceMarginRequirement');
         const maintenanceMarginString = Precise.stringMul (notionalString, maintenanceMarginPercentageString);
         const unrealizedPnlString = this.safeString (position, 'unrealizedPnl');
@@ -2455,7 +2514,11 @@ module.exports = class ftx extends Exchange {
         let difference = undefined;
         let collateral = undefined;
         let marginRatio = undefined;
-        if ((entryPriceString !== undefined) && (Precise.stringGt (liquidationPriceString, '0'))) {
+        let leverage = undefined;
+        if (Precise.stringEq (liquidationPriceString, '0')) {
+            // position is fully collateralized
+            collateral = notionalString;
+        } else if (entryPriceString !== undefined) {
             // collateral = maintenanceMargin ± ((markPrice - liquidationPrice) * size)
             if (side === 'long') {
                 difference = Precise.stringSub (markPriceString, liquidationPriceString);
@@ -2464,6 +2527,7 @@ module.exports = class ftx extends Exchange {
             }
             const loss = Precise.stringMul (difference, contractsString);
             collateral = Precise.stringAdd (loss, maintenanceMarginString);
+            leverage = this.parseNumber (Precise.stringDiv (Precise.stringAdd (Precise.stringDiv (notionalString, collateral), '0.005'), '1', 2));
             marginRatio = this.parseNumber (Precise.stringDiv (maintenanceMarginString, collateral, 4));
         }
         // ftx has a weird definition of realizedPnl
@@ -3192,6 +3256,63 @@ module.exports = class ftx extends Exchange {
             'timestamp': this.parse8601 (datetime),
             'datetime': datetime,
             'info': info,
+        };
+    }
+
+    async fetchOpenInterest (symbol, params = {}) {
+        /**
+         * @method
+         * @name ftx#fetchOpenInterest
+         * @description Retrieves the open interest of a currency
+         * @see https://docs.ftx.com/#get-future-stats
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {object} params exchange specific parameters
+         * @returns {object} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['contract']) {
+            throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
+        }
+        const request = {
+            'future_name': market['id'],
+        };
+        const response = await this.publicGetFuturesFutureNameStats (this.extend (request, params));
+        //
+        //     {
+        //         "success": true,
+        //         "result": {
+        //             "volume": 207681.9947,
+        //             "nextFundingRate": -5e-6,
+        //             "nextFundingTime": "2022-09-30T22:00:00+00:00",
+        //             "openInterest": 64745.8474
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return this.parseOpenInterest (result, market);
+    }
+
+    parseOpenInterest (interest, market = undefined) {
+        //
+        //     {
+        //         "volume": 207681.9947,
+        //         "nextFundingRate": -5e-6,
+        //         "nextFundingTime": "2022-09-30T22:00:00+00:00",
+        //         "openInterest": 64745.8474
+        //     }
+        //
+        market = this.safeMarket (undefined, market);
+        const openInterest = this.safeNumber (interest, 'openInterest');
+        return {
+            'symbol': market['symbol'],
+            'openInterestAmount': openInterest,
+            'openInterestValue': undefined,
+            'baseVolume': openInterest, // deprecated
+            'quoteVolume': undefined, // deprecated
+            'timestamp': undefined,
+            'datetime': undefined,
+            'info': interest,
         };
     }
 };

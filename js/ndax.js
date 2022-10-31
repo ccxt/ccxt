@@ -63,6 +63,7 @@ module.exports = class ndax extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
+                'fetchTickers': false,
                 'fetchTime': false,
                 'fetchTrades': true,
                 'fetchTradingFee': false,

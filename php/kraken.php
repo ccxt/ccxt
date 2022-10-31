@@ -6,16 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\InsufficientFunds;
-use \ccxt\InvalidAddress;
-use \ccxt\InvalidOrder;
-use \ccxt\OrderNotFound;
-use \ccxt\CancelPending;
-use \ccxt\RateLimitExceeded;
-use \ccxt\ExchangeNotAvailable;
-use \ccxt\InvalidNonce;
 
 class kraken extends Exchange {
 
@@ -339,6 +329,7 @@ class kraken extends Exchange {
                 'EFunding:Unknown asset' => '\\ccxt\\BadSymbol', // array("error":["EFunding:Unknown asset"])
                 'EService:Market in post_only mode' => '\\ccxt\\OnMaintenance', // array(is_array(post_only mode"]) && array_key_exists("error":["EService:Market, post_only mode"]))
                 'EGeneral:Too many requests' => '\\ccxt\\DDoSProtection', // array("error":["EGeneral:Too many requests"])
+                'ETrade:User Locked' => '\\ccxt\\AccountSuspended', // array("error":["ETrade:User Locked"])
             ),
         ));
     }

@@ -76,7 +76,6 @@ module.exports = class btcalpha extends Exchange {
                 'withdraw': false,
             },
             'timeframes': {
-                '1m': '1',
                 '5m': '5',
                 '15m': '15',
                 '30m': '30',
@@ -645,9 +644,10 @@ module.exports = class btcalpha extends Exchange {
             throw new InvalidOrder (this.id + ' ' + this.json (response));
         }
         const order = this.parseOrder (response, market);
-        amount = (order['amount'] > 0) ? order['amount'] : amount;
+        const orderAmount = order['amount'].toString ();
+        amount = Precise.stringGt (orderAmount, '0') ? order['amount'] : amount;
         return this.extend (order, {
-            'amount': amount,
+            'amount': this.parseNumber (amount),
         });
     }
 

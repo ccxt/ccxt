@@ -6,11 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\BadResponse;
-use \ccxt\InvalidOrder;
 
 class ftx extends Exchange {
 
@@ -24,7 +19,7 @@ class ftx extends Exchange {
             // cancels do not count towards rateLimit
             // only 'order-making' requests count towards ratelimit
             'rateLimit' => 28.57,
-            'certified' => true,
+            'certified' => false,
             'pro' => true,
             'hostname' => 'ftx.com', // or ftx.us
             'urls' => array(
@@ -37,7 +32,7 @@ class ftx extends Exchange {
                 'doc' => 'https://github.com/ftexchange/ftx',
                 'fees' => 'https://ftexchange.zendesk.com/hc/en-us/articles/360024479432-Fees',
                 'referral' => array(
-                    'url' => 'https://ftx.com/#a=ccxt',
+                    'url' => 'https://ftx.com/referrals#a=1623029',
                     'discount' => 0.05,
                 ),
             ),
@@ -80,6 +75,7 @@ class ftx extends Exchange {
                 'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
                 'fetchOHLCV' => true,
+                'fetchOpenInterest' => true,
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
@@ -248,6 +244,7 @@ class ftx extends Exchange {
                         'twap_orders/{twap_order_id}' => 1,
                         'historical_balances/requests' => 1,
                         'historical_balances/requests/{request_id}' => 1,
+                        'fast_access_settings/list_ips' => 1,
                     ),
                     'post' => array(
                         // subaccounts
@@ -299,6 +296,9 @@ class ftx extends Exchange {
                         'support/tickets/{ticketId}/mark_as_read' => 1,
                         'twap_orders' => 1,
                         'historical_balances/requests' => 1,
+                        'fast_access_settings/add_ip' => 1,
+                        'fast_access_settings/enable_ip/{ipAddress}' => 1,
+                        'fast_access_settings/disable_ip/{ipAddress}' => 1,
                     ),
                     'delete' => array(
                         // subaccounts
@@ -318,6 +318,7 @@ class ftx extends Exchange {
                         // staking
                         'staking/unstake_requests/{request_id}' => 1,
                         'twap_orders/{twap_order_id}' => 1,
+                        'fast_access_settings/delete_ip/{ipAddress}' => 1,
                     ),
                 ),
             ),
@@ -372,6 +373,7 @@ class ftx extends Exchange {
                     'Not authorized for subaccount-specific access' => '\\ccxt\\PermissionDenied', // array("success":false,"error":"Not authorized for subaccount-specific access")
                     'Not approved to trade this product' => '\\ccxt\\PermissionDenied', // array("success":false,"error":"Not approved to trade this product")
                     'Internal Error' => '\\ccxt\\ExchangeNotAvailable', // array("success":false,"error":"Internal Error")
+                    'Order took too long to process' => '\\ccxt\\ExchangeNotAvailable', // array("success":false,"error":"Order took too long to process")
                 ),
                 'broad' => array(
                     // array("error":"Not logged in","success":false)
@@ -1884,18 +1886,19 @@ class ftx extends Exchange {
         $defaultMethod = $this->safe_string($options, 'method', 'privateDeleteOrdersOrderId');
         $method = $this->safe_string($params, 'method', $defaultMethod);
         $type = $this->safe_value($params, 'type');  // Deprecated => use $params->stop instead
-        $stop = $this->safe_value($params, 'stop');
+        $isTriggerOrder = null;
+        list($isTriggerOrder, $params) = $this->is_trigger_order($params);
         $clientOrderId = $this->safe_value_2($params, 'client_order_id', 'clientOrderId');
         if ($clientOrderId === null) {
             $request['order_id'] = intval($id);
-            if ($stop || ($type === 'stop') || ($type === 'trailingStop') || ($type === 'takeProfit')) {
+            if ($isTriggerOrder || $this->in_array($type, array( 'stop', 'trailingStop', 'takeProfit' ))) {
                 $method = 'privateDeleteConditionalOrdersOrderId';
             }
         } else {
             $request['client_order_id'] = $clientOrderId;
             $method = 'privateDeleteOrdersByClientIdClientOrderId';
         }
-        $query = $this->omit($params, array( 'method', 'type', 'client_order_id', 'clientOrderId', 'stop' ));
+        $query = $this->omit($params, array( 'method', 'type', 'client_order_id', 'clientOrderId' ));
         $response = $this->$method (array_merge($request, $query));
         //
         //     {
@@ -1918,6 +1921,7 @@ class ftx extends Exchange {
         $this->load_markets();
         // https://docs.ccxt.com/en/latest/manual.html#user-defined-clientorderid
         $clientOrderIds = $this->safe_value($params, 'clientOrderIds');
+        // FTX doesn't have endpoint for trigger orders related to cancelOrders
         if ($clientOrderIds !== null) {
             //
             //     array( success => true, result => array( 'billy', 'bob', 'gina' ) )
@@ -1950,6 +1954,13 @@ class ftx extends Exchange {
         $marketId = $this->get_market_id($symbol, 'market', $params);
         if ($marketId !== null) {
             $request['market'] = $marketId;
+        }
+        $isTriggerOrder = null;
+        list($isTriggerOrder, $params) = $this->is_trigger_order($params);
+        // if user wants to cancel only conditional orders, then set below fields. Otherwise, $request will cancel all orders - conditional and regular orders
+        if ($isTriggerOrder) {
+            $request['conditionalOrdersOnly'] = true;
+            $request['limitOrdersOnly'] = false;
         }
         $response = $this->privateDeleteOrders (array_merge($request, $params));
         $result = $this->safe_value($response, 'result', array());
@@ -2029,11 +2040,12 @@ class ftx extends Exchange {
         $defaultMethod = $this->safe_string($options, 'method', 'privateGetOrders');
         $method = $this->safe_string($params, 'method', $defaultMethod);
         $type = $this->safe_value($params, 'type');
-        $stop = $this->safe_value($params, 'stop');
-        if ($stop || ($type === 'stop') || ($type === 'trailingStop') || ($type === 'takeProfit')) {
+        $isTriggerOrder = null;
+        list($isTriggerOrder, $params) = $this->is_trigger_order($params);
+        if ($isTriggerOrder || $this->in_array($type, array( 'trigger', 'stop', 'trailingStop', 'takeProfit' ))) {
             $method = 'privateGetConditionalOrders';
         }
-        $query = $this->omit($params, array( 'method', 'type', 'stop' ));
+        $query = $this->omit($params, array( 'method', 'type' ));
         $response = $this->$method (array_merge($request, $query));
         //
         //     {
@@ -2091,7 +2103,9 @@ class ftx extends Exchange {
         $defaultMethod = $this->safe_string($options, 'method', 'privateGetOrdersHistory');
         $method = $this->safe_string($params, 'method', $defaultMethod);
         $type = $this->safe_value($params, 'type');
-        if (($type === 'stop') || ($type === 'trailingStop') || ($type === 'takeProfit')) {
+        $isTriggerOrder = null;
+        list($isTriggerOrder, $params) = $this->is_trigger_order($params);
+        if ($isTriggerOrder || $this->in_array($type, array( 'trigger', 'stop', 'trailingStop', 'takeProfit' ))) {
             $method = 'privateGetConditionalOrdersHistory';
         }
         $query = $this->omit($params, array( 'method', 'type' ));
@@ -2138,7 +2152,48 @@ class ftx extends Exchange {
         $request = array(
             'orderId' => $id,
         );
+        // if it's conditional order
+        $type = $this->safe_value($params, 'type');
+        $params = $this->omit($params, 'type');
+        $isTriggerOrder = null;
+        list($isTriggerOrder, $params) = $this->is_trigger_order($params);
+        if ($isTriggerOrder || $this->in_array($type, array( 'trigger', 'stop', 'trailingStop', 'takeProfit' ))) {
+            // if it is conditional order, then it would have a reference order $id to be sent to the specific endpoint, from where we will get the actual order ID and then use that ID
+            $realOrderId = $this->fetch_order_if_from_conditional_order($id);
+            if ($realOrderId !== null) {
+                $request['orderId'] = $realOrderId;
+            } else {
+                // if order-$id was not found, then there were no fills and no need to make any further $request
+                return array();
+            }
+        }
         return $this->fetch_my_trades($symbol, $since, $limit, array_merge($request, $params));
+    }
+
+    public function fetch_order_if_from_conditional_order($id) {
+        $request = array(
+            'conditional_order_id' => $id,
+        );
+        $response = $this->privateGetConditionalOrdersConditionalOrderIdTriggers ($request);
+        // Note => if endpoint retuns non-empy "result" property, then it means order had fill and returns the order reference ID, which is the real $id of the regular order
+        //
+        // {
+        //     "success" => true,
+        //     "result" => array(
+        //         {
+        //             "time" => "2022-03-29T04:54:04.390665+00:00",
+        //             "orderId" => 132144259673, // this is not the same conditional-order's $id, instead it is the regular order $id, which can be used in regular methods
+        //             "error" => null,
+        //             "orderSize" => 0.1234,
+        //             "filledSize" => 0.1234
+        //         }
+        //     )
+        // }
+        //
+        // Also note, the above endpoint seems to return one object in array
+        $result = $this->safe_value($response, 'result');
+        $orderObject = $this->safe_value($result, 0, array());
+        return $this->safe_string($orderObject, 'orderId');
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -2401,20 +2456,23 @@ class ftx extends Exchange {
         $symbol = $this->safe_symbol($marketId, $market);
         $liquidationPriceString = $this->safe_string($position, 'estimatedLiquidationPrice');
         $initialMarginPercentage = $this->safe_string($position, 'initialMarginRequirement');
-        $leverage = intval(Precise::string_div('1', $initialMarginPercentage, 0));
         // on ftx the entryPrice is actually the mark price
         $markPriceString = $this->safe_string($position, 'entryPrice');
         $notionalString = Precise::string_mul($contractsString, $markPriceString);
-        $initialMargin = Precise::string_mul($notionalString, $initialMarginPercentage);
+        $initialMargin = $this->safe_string($position, 'collateralUsed');
         $maintenanceMarginPercentageString = $this->safe_string($position, 'maintenanceMarginRequirement');
         $maintenanceMarginString = Precise::string_mul($notionalString, $maintenanceMarginPercentageString);
-        $unrealizedPnlString = $this->safe_string($position, 'unrealizedPnl');
+        $unrealizedPnlString = $this->safe_string($position, 'recentPnl');
         $percentage = $this->parse_number(Precise::string_mul(Precise::string_div($unrealizedPnlString, $initialMargin, 4), '100'));
         $entryPriceString = $this->safe_string($position, 'recentAverageOpenPrice');
         $difference = null;
         $collateral = null;
         $marginRatio = null;
-        if (($entryPriceString !== null) && (Precise::string_gt($liquidationPriceString, '0'))) {
+        $leverage = null;
+        if (Precise::string_eq($liquidationPriceString, '0')) {
+            // $position is fully collateralized
+            $collateral = $notionalString;
+        } elseif ($entryPriceString !== null) {
             // $collateral = maintenanceMargin ± ((markPrice - liquidationPrice) * size)
             if ($side === 'long') {
                 $difference = Precise::string_sub($markPriceString, $liquidationPriceString);
@@ -2423,6 +2481,7 @@ class ftx extends Exchange {
             }
             $loss = Precise::string_mul($difference, $contractsString);
             $collateral = Precise::string_add($loss, $maintenanceMarginString);
+            $leverage = $this->parse_number(Precise::string_div(Precise::string_add(Precise::string_div($notionalString, $collateral), '0.005'), '1', 2));
             $marginRatio = $this->parse_number(Precise::string_div($maintenanceMarginString, $collateral, 4));
         }
         // ftx has a weird definition of realizedPnl
@@ -3129,6 +3188,61 @@ class ftx extends Exchange {
             'timestamp' => $this->parse8601($datetime),
             'datetime' => $datetime,
             'info' => $info,
+        );
+    }
+
+    public function fetch_open_interest($symbol, $params = array ()) {
+        /**
+         * Retrieves the open interest of a currency
+         * @see https://docs.ftx.com/#get-future-stats
+         * @param {string} $symbol Unified CCXT $market $symbol
+         * @param {array} $params exchange specific parameters
+         * @return {array} an open interest structurearray(@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure)
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['contract']) {
+            throw new BadRequest($this->id . ' fetchOpenInterest() supports contract markets only');
+        }
+        $request = array(
+            'future_name' => $market['id'],
+        );
+        $response = $this->publicGetFuturesFutureNameStats (array_merge($request, $params));
+        //
+        //     {
+        //         "success" => true,
+        //         "result" => {
+        //             "volume" => 207681.9947,
+        //             "nextFundingRate" => -5e-6,
+        //             "nextFundingTime" => "2022-09-30T22:00:00+00:00",
+        //             "openInterest" => 64745.8474
+        //         }
+        //     }
+        //
+        $result = $this->safe_value($response, 'result', array());
+        return $this->parse_open_interest($result, $market);
+    }
+
+    public function parse_open_interest($interest, $market = null) {
+        //
+        //     {
+        //         "volume" => 207681.9947,
+        //         "nextFundingRate" => -5e-6,
+        //         "nextFundingTime" => "2022-09-30T22:00:00+00:00",
+        //         "openInterest" => 64745.8474
+        //     }
+        //
+        $market = $this->safe_market(null, $market);
+        $openInterest = $this->safe_number($interest, 'openInterest');
+        return array(
+            'symbol' => $market['symbol'],
+            'openInterestAmount' => $openInterest,
+            'openInterestValue' => null,
+            'baseVolume' => $openInterest, // deprecated
+            'quoteVolume' => null, // deprecated
+            'timestamp' => null,
+            'datetime' => null,
+            'info' => $interest,
         );
     }
 }

@@ -600,6 +600,7 @@ class woo(Exchange):
             networks = networksByCurrencyId[currencyId]
             code = self.safe_currency_code(currencyId)
             name = None
+            minPrecision = None
             resultingNetworks = {}
             for j in range(0, len(networks)):
                 network = networks[j]
@@ -607,7 +608,9 @@ class woo(Exchange):
                 networkId = self.safe_string(network, 'token')
                 splitted = networkId.split('_')
                 unifiedNetwork = splitted[0]
-                precision = self.parse_number(self.parse_precision(self.safe_string(network, 'decimals')))
+                precision = self.parse_precision(self.safe_string(network, 'decimals'))
+                if precision is not None:
+                    minPrecision = precision if (minPrecision is None) else Precise.string_min(precision, minPrecision)
                 resultingNetworks[unifiedNetwork] = {
                     'id': networkId,
                     'network': unifiedNetwork,
@@ -625,14 +628,14 @@ class woo(Exchange):
                     'deposit': None,
                     'withdraw': None,
                     'fee': None,
-                    'precision': precision,  # will be filled down below
+                    'precision': self.parse_number(precision),
                     'info': network,
                 }
             result[code] = {
                 'id': currencyId,
                 'name': name,
                 'code': code,
-                'precision': None,
+                'precision': self.parse_number(minPrecision),
                 'active': None,
                 'fee': None,
                 'networks': resultingNetworks,
@@ -646,7 +649,7 @@ class woo(Exchange):
                         'max': None,
                     },
                 },
-                'info': networks,  # will be filled down below
+                'info': networks,
             }
         return result
 
@@ -988,7 +991,7 @@ class woo(Exchange):
         timestamp = self.safe_integer(response, 'timestamp')
         return self.parse_order_book(response, symbol, timestamp, 'bids', 'asks', 'price', 'quantity')
 
-    def fetch_ohlcv(self, symbol, timeframe='1h', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for

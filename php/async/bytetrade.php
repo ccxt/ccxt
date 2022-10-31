@@ -6,11 +6,12 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadResponse;
-use \ccxt\DDoSProtection;
-use \ccxt\Precise;
+use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
+use ccxt\BadResponse;
+use ccxt\DDoSProtection;
+use ccxt\Precise;
+use React\Async;
 
 class bytetrade extends Exchange {
 
@@ -168,235 +169,239 @@ class bytetrade extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
-        /**
-         * fetches all available $currencies on an exchange
-         * @param {array} $params extra parameters specific to the bytetrade api endpoint
-         * @return {array} an associative dictionary of $currencies
-         */
-        $currencies = yield $this->publicGetCurrencies ($params);
-        $result = array();
-        for ($i = 0; $i < count($currencies); $i++) {
-            $currency = $currencies[$i];
-            $id = $this->safe_string($currency, 'code');
-            $code = null;
-            if (is_array($this->commonCurrencies) && array_key_exists($id, $this->commonCurrencies)) {
-                $code = $this->commonCurrencies[$id];
-            } else {
-                $code = $this->safe_string($currency, 'name');
-            }
-            $name = $this->safe_string($currency, 'fullname');
-            // in byte-trade.com DEX, request https://api-v2.byte-trade.com/currencies will return $currencies,
-            // the api doc is https://github.com/Bytetrade/bytetrade-official-api-docs/wiki/rest-api#get-$currencies-get-currencys-supported-in-bytetradecom
-            // we can see the coin $name is none-unique in the $result, the coin which $code is 18 is the CyberMiles ERC20, and the coin which $code is 35 is the CyberMiles main chain, but their $name is same.
-            // that is because bytetrade is a DEX, supports people create coin with the same $name, but the $id($code) of coin is unique, so we should use the $id or $name and $id as the identity of coin.
-            // For coin $name and symbol is same with CCXT, I use $name@$id as the key of commonCurrencies dict.
-            // [{
-            //     "name" => "CMT",      // $currency $name, non-unique
-            //     "code" => "18",       // $currency $id, unique
-            //     "type" => "crypto",
-            //     "fullname" => "CyberMiles",
-            //     "active" => true,
-            //     "chainType" => "ethereum",
-            //     "basePrecision" => 18,
-            //     "transferPrecision" => 10,
-            //     "externalPrecision" => 18,
-            //     "chainContractAddress" => "0xf85feea2fdd81d51177f6b8f35f0e6734ce45f5f",
-            //     "limits" => {
-            //       "deposit" => array(
-            //         "min" => "0",
-            //         "max" => "-1"
-            //       ),
-            //       "withdraw" => array(
-            //         "min" => "0",
-            //         "max" => "-1"
-            //       }
-            //     }
-            //   ),
-            //   {
-            //     "name" => "CMT",
-            //     "code" => "35",
-            //     "type" => "crypto",
-            //     "fullname" => "CyberMiles",
-            //     "active" => true,
-            //     "chainType" => "cmt",
-            //     "basePrecision" => 18,
-            //     "transferPrecision" => 10,
-            //     "externalPrecision" => 18,
-            //     "chainContractAddress" => "0x0000000000000000000000000000000000000000",
-            //     "limits" => {
-            //       "deposit" => array(
-            //         "min" => "1",
-            //         "max" => "-1"
-            //       ),
-            //       "withdraw" => {
-            //         "min" => "10",
-            //         "max" => "-1"
-            //       }
-            //     }
-            //   }
-            //   ]
-            $active = $this->safe_value($currency, 'active');
-            $limits = $this->safe_value($currency, 'limits');
-            $deposit = $this->safe_value($limits, 'deposit');
-            $maxDeposit = $this->safe_string($deposit, 'max');
-            if (Precise::string_equals($maxDeposit, '-1')) {
-                $maxDeposit = null;
-            }
-            $withdraw = $this->safe_value($limits, 'withdraw');
-            $maxWithdraw = $this->safe_string($withdraw, 'max');
-            if (Precise::string_equals($maxWithdraw, '-1')) {
-                $maxWithdraw = null;
-            }
-            $result[$code] = array(
-                'id' => $id,
-                'code' => $code,
-                'name' => $name,
-                'active' => $active,
-                'deposit' => null,
-                'withdraw' => null,
-                'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'basePrecision'))),
-                'fee' => null,
-                'limits' => array(
-                    'amount' => array( 'min' => null, 'max' => null ),
-                    'deposit' => array(
-                        'min' => $this->safe_number($deposit, 'min'),
-                        'max' => $this->parse_number($maxDeposit),
+        return Async\async(function () use ($params) {
+            /**
+             * fetches all available $currencies on an exchange
+             * @param {array} $params extra parameters specific to the bytetrade api endpoint
+             * @return {array} an associative dictionary of $currencies
+             */
+            $currencies = Async\await($this->publicGetCurrencies ($params));
+            $result = array();
+            for ($i = 0; $i < count($currencies); $i++) {
+                $currency = $currencies[$i];
+                $id = $this->safe_string($currency, 'code');
+                $code = null;
+                if (is_array($this->commonCurrencies) && array_key_exists($id, $this->commonCurrencies)) {
+                    $code = $this->commonCurrencies[$id];
+                } else {
+                    $code = $this->safe_string($currency, 'name');
+                }
+                $name = $this->safe_string($currency, 'fullname');
+                // in byte-trade.com DEX, request https://api-v2.byte-trade.com/currencies will return $currencies,
+                // the api doc is https://github.com/Bytetrade/bytetrade-official-api-docs/wiki/rest-api#get-$currencies-get-currencys-supported-in-bytetradecom
+                // we can see the coin $name is none-unique in the $result, the coin which $code is 18 is the CyberMiles ERC20, and the coin which $code is 35 is the CyberMiles main chain, but their $name is same.
+                // that is because bytetrade is a DEX, supports people create coin with the same $name, but the $id($code) of coin is unique, so we should use the $id or $name and $id as the identity of coin.
+                // For coin $name and symbol is same with CCXT, I use $name@$id as the key of commonCurrencies dict.
+                // [{
+                //     "name" => "CMT",      // $currency $name, non-unique
+                //     "code" => "18",       // $currency $id, unique
+                //     "type" => "crypto",
+                //     "fullname" => "CyberMiles",
+                //     "active" => true,
+                //     "chainType" => "ethereum",
+                //     "basePrecision" => 18,
+                //     "transferPrecision" => 10,
+                //     "externalPrecision" => 18,
+                //     "chainContractAddress" => "0xf85feea2fdd81d51177f6b8f35f0e6734ce45f5f",
+                //     "limits" => {
+                //       "deposit" => array(
+                //         "min" => "0",
+                //         "max" => "-1"
+                //       ),
+                //       "withdraw" => array(
+                //         "min" => "0",
+                //         "max" => "-1"
+                //       }
+                //     }
+                //   ),
+                //   {
+                //     "name" => "CMT",
+                //     "code" => "35",
+                //     "type" => "crypto",
+                //     "fullname" => "CyberMiles",
+                //     "active" => true,
+                //     "chainType" => "cmt",
+                //     "basePrecision" => 18,
+                //     "transferPrecision" => 10,
+                //     "externalPrecision" => 18,
+                //     "chainContractAddress" => "0x0000000000000000000000000000000000000000",
+                //     "limits" => {
+                //       "deposit" => array(
+                //         "min" => "1",
+                //         "max" => "-1"
+                //       ),
+                //       "withdraw" => {
+                //         "min" => "10",
+                //         "max" => "-1"
+                //       }
+                //     }
+                //   }
+                //   ]
+                $active = $this->safe_value($currency, 'active');
+                $limits = $this->safe_value($currency, 'limits');
+                $deposit = $this->safe_value($limits, 'deposit');
+                $maxDeposit = $this->safe_string($deposit, 'max');
+                if (Precise::string_equals($maxDeposit, '-1')) {
+                    $maxDeposit = null;
+                }
+                $withdraw = $this->safe_value($limits, 'withdraw');
+                $maxWithdraw = $this->safe_string($withdraw, 'max');
+                if (Precise::string_equals($maxWithdraw, '-1')) {
+                    $maxWithdraw = null;
+                }
+                $result[$code] = array(
+                    'id' => $id,
+                    'code' => $code,
+                    'name' => $name,
+                    'active' => $active,
+                    'deposit' => null,
+                    'withdraw' => null,
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'basePrecision'))),
+                    'fee' => null,
+                    'limits' => array(
+                        'amount' => array( 'min' => null, 'max' => null ),
+                        'deposit' => array(
+                            'min' => $this->safe_number($deposit, 'min'),
+                            'max' => $this->parse_number($maxDeposit),
+                        ),
+                        'withdraw' => array(
+                            'min' => $this->safe_number($withdraw, 'min'),
+                            'max' => $this->parse_number($maxWithdraw),
+                        ),
                     ),
-                    'withdraw' => array(
-                        'min' => $this->safe_number($withdraw, 'min'),
-                        'max' => $this->parse_number($maxWithdraw),
-                    ),
-                ),
-                'info' => $currency,
-            );
-        }
-        return $result;
+                    'info' => $currency,
+                );
+            }
+            return $result;
+        }) ();
     }
 
     public function fetch_markets($params = array ()) {
-        /**
-         * retrieves data on all $markets for bytetrade
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing $market data
-         */
-        $markets = yield $this->publicGetSymbols ($params);
-        //
-        //     array(
-        //         {
-        //             "symbol" => "122406567911",
-        //             "name" => "BTC/USDT",
-        //             "base" => "32",
-        //             "quote" => "57",
-        //             "marketStatus" => 0,
-        //             "baseName" => "BTC",
-        //             "quoteName" => "USDT",
-        //             "active" => true,
-        //             "maker" => "0.0008",
-        //             "taker" => "0.0008",
-        //             "precision" => array(
-        //                 "amount" => 6,
-        //                 "price" => 2,
-        //                 "minPrice":1
-        //             ),
-        //             "limits" => {
-        //                 "amount" => array(
-        //                     "min" => "0.000001",
-        //                     "max" => "-1"
-        //                 ),
-        //                 "price" => {
-        //                     "min" => "0.01",
-        //                     "max" => "-1"
-        //                 }
-        //             }
-        //        }
-        //    )
-        //
-        $result = array();
-        for ($i = 0; $i < count($markets); $i++) {
-            $market = $markets[$i];
-            $id = $this->safe_string($market, 'symbol');
-            $base = $this->safe_string($market, 'baseName', '');
-            $quote = $this->safe_string($market, 'quoteName', '');
-            $baseId = $this->safe_string($market, 'base');
-            $quoteId = $this->safe_string($market, 'quote');
-            $normalBase = explode('@' . $baseId, $base)[0];
-            $normalQuote = explode('@' . $quoteId, $quote)[0];
-            if ($quoteId === '126') {
-                $normalQuote = 'ZAR'; // The $id 126 coin is a special coin whose name on the chain is actually ZAR, but it is changed to ZCN after creation, so it must be changed to ZAR when placing the transaction in the chain
-            }
-            $normalSymbol = $normalBase . '/' . $normalQuote;
-            if (is_array($this->commonCurrencies) && array_key_exists($baseId, $this->commonCurrencies)) {
-                $base = $this->commonCurrencies[$baseId];
-            }
-            if (is_array($this->commonCurrencies) && array_key_exists($quoteId, $this->commonCurrencies)) {
-                $quote = $this->commonCurrencies[$quoteId];
-            }
-            $limits = $this->safe_value($market, 'limits', array());
-            $amount = $this->safe_value($limits, 'amount', array());
-            $price = $this->safe_value($limits, 'price', array());
-            $precision = $this->safe_value($market, 'precision', array());
-            $maxAmount = $this->safe_string($amount, 'max');
-            if (Precise::string_equals($maxAmount, '-1')) {
-                $maxAmount = null;
-            }
-            $maxPrice = $this->safe_string($price, 'max');
-            if (Precise::string_equals($maxPrice, '-1')) {
-                $maxPrice = null;
-            }
-            $entry = array(
-                'id' => $id,
-                'symbol' => $base . '/' . $quote,
-                'normalSymbol' => $normalSymbol,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => null,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => null,
-                'type' => 'spot',
-                'spot' => true,
-                'margin' => false,
-                'swap' => false,
-                'future' => false,
-                'option' => false,
-                'active' => $this->safe_value($market, 'active'),
-                'contract' => false,
-                'linear' => null,
-                'inverse' => null,
-                'taker' => $this->safe_number($market, 'taker'),
-                'maker' => $this->safe_number($market, 'maker'),
-                'contractSize' => null,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'strike' => null,
-                'optionType' => null,
-                'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($precision, 'amount'))),
-                    'price' => $this->parse_number($this->parse_precision($this->safe_string($precision, 'price'))),
-                ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => null,
+        return Async\async(function () use ($params) {
+            /**
+             * retrieves data on all $markets for bytetrade
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @return {[array]} an array of objects representing $market data
+             */
+            $markets = Async\await($this->publicGetSymbols ($params));
+            //
+            //     array(
+            //         {
+            //             "symbol" => "122406567911",
+            //             "name" => "BTC/USDT",
+            //             "base" => "32",
+            //             "quote" => "57",
+            //             "marketStatus" => 0,
+            //             "baseName" => "BTC",
+            //             "quoteName" => "USDT",
+            //             "active" => true,
+            //             "maker" => "0.0008",
+            //             "taker" => "0.0008",
+            //             "precision" => array(
+            //                 "amount" => 6,
+            //                 "price" => 2,
+            //                 "minPrice":1
+            //             ),
+            //             "limits" => {
+            //                 "amount" => array(
+            //                     "min" => "0.000001",
+            //                     "max" => "-1"
+            //                 ),
+            //                 "price" => {
+            //                     "min" => "0.01",
+            //                     "max" => "-1"
+            //                 }
+            //             }
+            //        }
+            //    )
+            //
+            $result = array();
+            for ($i = 0; $i < count($markets); $i++) {
+                $market = $markets[$i];
+                $id = $this->safe_string($market, 'symbol');
+                $base = $this->safe_string($market, 'baseName', '');
+                $quote = $this->safe_string($market, 'quoteName', '');
+                $baseId = $this->safe_string($market, 'base');
+                $quoteId = $this->safe_string($market, 'quote');
+                $normalBase = explode('@' . $baseId, $base)[0];
+                $normalQuote = explode('@' . $quoteId, $quote)[0];
+                if ($quoteId === '126') {
+                    $normalQuote = 'ZAR'; // The $id 126 coin is a special coin whose name on the chain is actually ZAR, but it is changed to ZCN after creation, so it must be changed to ZAR when placing the transaction in the chain
+                }
+                $normalSymbol = $normalBase . '/' . $normalQuote;
+                if (is_array($this->commonCurrencies) && array_key_exists($baseId, $this->commonCurrencies)) {
+                    $base = $this->commonCurrencies[$baseId];
+                }
+                if (is_array($this->commonCurrencies) && array_key_exists($quoteId, $this->commonCurrencies)) {
+                    $quote = $this->commonCurrencies[$quoteId];
+                }
+                $limits = $this->safe_value($market, 'limits', array());
+                $amount = $this->safe_value($limits, 'amount', array());
+                $price = $this->safe_value($limits, 'price', array());
+                $precision = $this->safe_value($market, 'precision', array());
+                $maxAmount = $this->safe_string($amount, 'max');
+                if (Precise::string_equals($maxAmount, '-1')) {
+                    $maxAmount = null;
+                }
+                $maxPrice = $this->safe_string($price, 'max');
+                if (Precise::string_equals($maxPrice, '-1')) {
+                    $maxPrice = null;
+                }
+                $entry = array(
+                    'id' => $id,
+                    'symbol' => $base . '/' . $quote,
+                    'normalSymbol' => $normalSymbol,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'settle' => null,
+                    'baseId' => $baseId,
+                    'quoteId' => $quoteId,
+                    'settleId' => null,
+                    'type' => 'spot',
+                    'spot' => true,
+                    'margin' => false,
+                    'swap' => false,
+                    'future' => false,
+                    'option' => false,
+                    'active' => $this->safe_value($market, 'active'),
+                    'contract' => false,
+                    'linear' => null,
+                    'inverse' => null,
+                    'taker' => $this->safe_number($market, 'taker'),
+                    'maker' => $this->safe_number($market, 'maker'),
+                    'contractSize' => null,
+                    'expiry' => null,
+                    'expiryDatetime' => null,
+                    'strike' => null,
+                    'optionType' => null,
+                    'precision' => array(
+                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($precision, 'amount'))),
+                        'price' => $this->parse_number($this->parse_precision($this->safe_string($precision, 'price'))),
                     ),
-                    'amount' => array(
-                        'min' => $this->safe_number($amount, 'min'),
-                        'max' => $this->parse_number($maxAmount),
+                    'limits' => array(
+                        'leverage' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'amount' => array(
+                            'min' => $this->safe_number($amount, 'min'),
+                            'max' => $this->parse_number($maxAmount),
+                        ),
+                        'price' => array(
+                            'min' => $this->safe_number($price, 'min'),
+                            'max' => $this->parse_number($maxPrice),
+                        ),
+                        'cost' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
                     ),
-                    'price' => array(
-                        'min' => $this->safe_number($price, 'min'),
-                        'max' => $this->parse_number($maxPrice),
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-                'info' => $market,
-            );
-            $result[] = $entry;
-        }
-        return $result;
+                    'info' => $market,
+                );
+                $result[] = $entry;
+            }
+            return $result;
+        }) ();
     }
 
     public function parse_balance($response) {
@@ -414,42 +419,46 @@ class bytetrade extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
-        /**
-         * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} $params extra parameters specific to the bytetrade api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
-         */
-        if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
-            throw new ArgumentsRequired($this->id . ' fetchBalance() requires $this->apiKey or userid argument');
-        }
-        yield $this->load_markets();
-        $request = array(
-            'userid' => $this->apiKey,
-        );
-        $response = yield $this->publicGetBalance (array_merge($request, $params));
-        return $this->parse_balance($response);
+        return Async\async(function () use ($params) {
+            /**
+             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} $params extra parameters specific to the bytetrade api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             */
+            if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
+                throw new ArgumentsRequired($this->id . ' fetchBalance() requires $this->apiKey or userid argument');
+            }
+            Async\await($this->load_markets());
+            $request = array(
+                'userid' => $this->apiKey,
+            );
+            $response = Async\await($this->publicGetBalance (array_merge($request, $params)));
+            return $this->parse_balance($response);
+        }) ();
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
-        /**
-         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {array} $params extra parameters specific to the bytetrade api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        if ($limit !== null) {
-            $request['limit'] = $limit; // default = maximum = 100
-        }
-        $response = yield $this->marketGetDepth (array_merge($request, $params));
-        $timestamp = $this->safe_integer($response, 'timestamp');
-        $orderbook = $this->parse_order_book($response, $market['symbol'], $timestamp);
-        return $orderbook;
+        return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {array} $params extra parameters specific to the bytetrade api endpoint
+             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit; // default = maximum = 100
+            }
+            $response = Async\await($this->marketGetDepth (array_merge($request, $params)));
+            $timestamp = $this->safe_integer($response, 'timestamp');
+            $orderbook = $this->parse_order_book($response, $market['symbol'], $timestamp);
+            return $orderbook;
+        }) ();
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -503,71 +512,77 @@ class bytetrade extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
-        /**
-         * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
-         * @param {array} $params extra parameters specific to the bytetrade api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        $response = yield $this->marketGetTickers (array_merge($request, $params));
-        //
-        //     array(
-        //         {
-        //             "symbol":"68719476706",
-        //             "name":"ETH/BTC",
-        //             "base":"2",
-        //             "quote":"32",
-        //             "timestamp":1575905991933,
-        //             "datetime":"2019-12-09T15:39:51.933Z",
-        //             "high":"0",
-        //             "low":"0",
-        //             "open":"0",
-        //             "close":"0",
-        //             "last":"0",
-        //             "change":"0",
-        //             "percentage":"0",
-        //             "baseVolume":"0",
-        //             "quoteVolume":"0"
-        //         }
-        //     )
-        //
-        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
-            $ticker = $this->safe_value($response, 0);
-            if ($ticker === null) {
-                throw new BadResponse($this->id . ' fetchTicker() returned an empty response');
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
+             * @param {array} $params extra parameters specific to the bytetrade api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->marketGetTickers (array_merge($request, $params)));
+            //
+            //     array(
+            //         {
+            //             "symbol":"68719476706",
+            //             "name":"ETH/BTC",
+            //             "base":"2",
+            //             "quote":"32",
+            //             "timestamp":1575905991933,
+            //             "datetime":"2019-12-09T15:39:51.933Z",
+            //             "high":"0",
+            //             "low":"0",
+            //             "open":"0",
+            //             "close":"0",
+            //             "last":"0",
+            //             "change":"0",
+            //             "percentage":"0",
+            //             "baseVolume":"0",
+            //             "quoteVolume":"0"
+            //         }
+            //     )
+            //
+            if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+                $ticker = $this->safe_value($response, 0);
+                if ($ticker === null) {
+                    throw new BadResponse($this->id . ' fetchTicker() returned an empty response');
+                }
+                return $this->parse_ticker($ticker, $market);
             }
-            return $this->parse_ticker($ticker, $market);
-        }
-        return $this->parse_ticker($response, $market);
+            return $this->parse_ticker($response, $market);
+        }) ();
     }
 
     public function fetch_bids_asks($symbols = null, $params = array ()) {
-        /**
-         * fetches the bid and ask price and volume for multiple markets
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
-         * @param {array} $params extra parameters specific to the bytetrade api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
-         */
-        yield $this->load_markets();
-        $response = yield $this->marketGetDepth ($params);
-        return $this->parse_tickers($response, $symbols);
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches the bid and ask price and volume for multiple markets
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
+             * @param {array} $params extra parameters specific to the bytetrade api endpoint
+             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->marketGetDepth ($params));
+            return $this->parse_tickers($response, $symbols);
+        }) ();
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
-        /**
-         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
-         * @param {array} $params extra parameters specific to the bytetrade api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
-         */
-        yield $this->load_markets();
-        $response = yield $this->marketGetTickers ($params);
-        return $this->parse_tickers($response, $symbols);
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+             * @param {array} $params extra parameters specific to the bytetrade api endpoint
+             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->marketGetTickers ($params));
+            return $this->parse_tickers($response, $symbols);
+        }) ();
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -592,36 +607,38 @@ class bytetrade extends Exchange {
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-         * @param {string} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {array} $params extra parameters specific to the bytetrade api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-            'timeframe' => $this->timeframes[$timeframe],
-        );
-        if ($since !== null) {
-            $request['since'] = $since;
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $response = yield $this->marketGetKlines (array_merge($request, $params));
-        //
-        //     [
-        //         [1591505760000,"242.7","242.76","242.69","242.76","0.1892"],
-        //         [1591505820000,"242.77","242.83","242.7","242.72","0.6378"],
-        //         [1591505880000,"242.72","242.73","242.61","242.72","0.4141"],
-        //     ]
-        //
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of candles to fetch
+             * @param {array} $params extra parameters specific to the bytetrade api endpoint
+             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+                'timeframe' => $this->timeframes[$timeframe],
+            );
+            if ($since !== null) {
+                $request['since'] = $since;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->marketGetKlines (array_merge($request, $params)));
+            //
+            //     [
+            //         [1591505760000,"242.7","242.76","242.69","242.76","0.1892"],
+            //         [1591505820000,"242.77","242.83","242.7","242.72","0.6378"],
+            //         [1591505880000,"242.72","242.73","242.61","242.72","0.4141"],
+            //     ]
+            //
+            return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        }) ();
     }
 
     public function parse_trade($trade, $market = null) {
@@ -701,83 +718,87 @@ class bytetrade extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        /**
-         * get the list of most recent trades for a particular $symbol
-         * @param {string} $symbol unified $symbol of the $market to fetch trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of trades to fetch
-         * @param {array} $params extra parameters specific to the bytetrade api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        if ($since !== null) {
-            $request['since'] = $since;
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit; // default = 100, maximum = 500
-        }
-        $response = yield $this->marketGetTrades (array_merge($request, $params));
-        return $this->parse_trades($response, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * get the list of most recent trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the $market to fetch trades for
+             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+             * @param {int|null} $limit the maximum amount of trades to fetch
+             * @param {array} $params extra parameters specific to the bytetrade api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            if ($since !== null) {
+                $request['since'] = $since;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit; // default = 100, maximum = 500
+            }
+            $response = Async\await($this->marketGetTrades (array_merge($request, $params)));
+            return $this->parse_trades($response, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_trading_fees($params = array ()) {
-        /**
-         * fetch the trading fees for multiple markets
-         * @param {array} $params extra parameters specific to the bytetrade api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
-         */
-        yield $this->load_markets();
-        $response = yield $this->publicGetSymbols ($params);
-        //
-        //     array(
-        //         {
-        //             "symbol" => "122406567911",
-        //             "name" => "BTC/USDT",
-        //             "base" => "32",
-        //             "quote" => "57",
-        //             "marketStatus" => 0,
-        //             "baseName" => "BTC",
-        //             "quoteName" => "USDT",
-        //             "active" => true,
-        //             "maker" => "0.0008",
-        //             "taker" => "0.0008",
-        //             "precision" => array(
-        //                 "amount" => 6,
-        //                 "price" => 2,
-        //                 "minPrice":1
-        //             ),
-        //             "limits" => {
-        //                 "amount" => array(
-        //                     "min" => "0.000001",
-        //                     "max" => "-1"
-        //                 ),
-        //                 "price" => {
-        //                     "min" => "0.01",
-        //                     "max" => "-1"
-        //                 }
-        //             }
-        //        }
-        //        ...
-        //    )
-        //
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $symbolInfo = $response[$i];
-            $marketId = $this->safe_string($symbolInfo, 'name');
-            $symbol = $this->safe_symbol($marketId);
-            $result[$symbol] = array(
-                'info' => $symbolInfo,
-                'symbol' => $symbol,
-                'maker' => $this->safe_number($symbolInfo, 'maker'),
-                'taker' => $this->safe_number($symbolInfo, 'taker'),
-                'percentage' => true,
-            );
-        }
-        return $result;
+        return Async\async(function () use ($params) {
+            /**
+             * fetch the trading fees for multiple markets
+             * @param {array} $params extra parameters specific to the bytetrade api endpoint
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by market symbols
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->publicGetSymbols ($params));
+            //
+            //     array(
+            //         {
+            //             "symbol" => "122406567911",
+            //             "name" => "BTC/USDT",
+            //             "base" => "32",
+            //             "quote" => "57",
+            //             "marketStatus" => 0,
+            //             "baseName" => "BTC",
+            //             "quoteName" => "USDT",
+            //             "active" => true,
+            //             "maker" => "0.0008",
+            //             "taker" => "0.0008",
+            //             "precision" => array(
+            //                 "amount" => 6,
+            //                 "price" => 2,
+            //                 "minPrice":1
+            //             ),
+            //             "limits" => {
+            //                 "amount" => array(
+            //                     "min" => "0.000001",
+            //                     "max" => "-1"
+            //                 ),
+            //                 "price" => {
+            //                     "min" => "0.01",
+            //                     "max" => "-1"
+            //                 }
+            //             }
+            //        }
+            //        ...
+            //    )
+            //
+            $result = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $symbolInfo = $response[$i];
+                $marketId = $this->safe_string($symbolInfo, 'name');
+                $symbol = $this->safe_symbol($marketId);
+                $result[$symbol] = array(
+                    'info' => $symbolInfo,
+                    'symbol' => $symbol,
+                    'maker' => $this->safe_number($symbolInfo, 'maker'),
+                    'taker' => $this->safe_number($symbolInfo, 'taker'),
+                    'percentage' => true,
+                );
+            }
+            return $result;
+        }) ();
     }
 
     public function parse_order($order, $market = null) {
@@ -835,523 +856,541 @@ class bytetrade extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        /**
-         * create a trade order
-         * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type 'market' or 'limit'
-         * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the bytetrade api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        $this->check_required_dependencies();
-        if ($this->apiKey === null) {
-            throw new ArgumentsRequired('createOrder() requires $this->apiKey or userid in params');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $sideNum = null;
-        $typeNum = null;
-        if ($side === 'sell') {
-            $sideNum = 1;
-        } else {
-            $sideNum = 2;
-        }
-        if ($type === 'limit') {
-            $typeNum = 1;
-        } else {
-            $typeNum = 2;
-            $price = 0;
-        }
-        $normalSymbol = $market['normalSymbol'];
-        $baseId = $market['baseId'];
-        $baseCurrency = $this->currency($market['base']);
-        $amountTruncated = $this->amount_to_precision($symbol, $amount);
-        $amountTruncatedPrecise = new Precise ($amountTruncated);
-        $amountTruncatedPrecise->reduce ();
-        $amountTruncatedPrecise->decimals -= $this->precision_from_string($this->number_to_string($baseCurrency['precision']));
-        $amountChain = (string) $amountTruncatedPrecise;
-        $amountChainString = $this->number_to_string($amountChain);
-        $quoteId = $market['quoteId'];
-        $quoteCurrency = $this->currency($market['quote']);
-        $priceRounded = $this->price_to_precision($symbol, $price);
-        $priceRoundedPrecise = new Precise ($priceRounded);
-        $priceRoundedPrecise->reduce ();
-        $priceRoundedPrecise->decimals -= $this->precision_from_string($this->number_to_string($quoteCurrency['precision']));
-        $priceChain = (string) $priceRoundedPrecise;
-        $priceChainString = $this->number_to_string($priceChain);
-        $now = $this->milliseconds();
-        $expiryDelta = $this->safe_integer($this->options, 'orderExpiration', 31536000000);
-        $expiration = $this->milliseconds() . $expiryDelta;
-        $datetime = $this->iso8601($now);
-        $datetime = explode('.', $datetime)[0];
-        $expirationDatetime = $this->iso8601($expiration);
-        $expirationDatetime = explode('.', $expirationDatetime)[0];
-        $defaultDappId = 'Sagittarius';
-        $dappId = $this->safe_string($params, 'dappId', $defaultDappId);
-        $defaultFee = $this->safe_string($this->options, 'fee', '300000000000000');
-        $totalFeeRate = $this->safe_string($params, 'totalFeeRate', '8');
-        $chainFeeRate = $this->safe_string($params, 'chainFeeRate', '1');
-        $fee = $this->safe_string($params, 'fee', $defaultFee);
-        $eightBytes = '18446744073709551616'; // 2 ** 64
-        $allByteStringArray = array(
-            $this->number_to_be(1, 32),
-            $this->number_to_le((int) floor($now / 1000), 4),
-            $this->number_to_le(1, 1),
-            $this->number_to_le((int) floor($expiration / 1000), 4),
-            $this->number_to_le(1, 1),
-            $this->number_to_le(32, 1),
-            $this->number_to_le(0, 8),
-            $this->number_to_le($fee, 8),  // string for 32 bit php
-            $this->number_to_le(strlen($this->apiKey), 1),
-            $this->encode($this->apiKey),
-            $this->number_to_le($sideNum, 1),
-            $this->number_to_le($typeNum, 1),
-            $this->number_to_le(strlen($normalSymbol), 1),
-            $this->encode($normalSymbol),
-            $this->number_to_le(Precise::string_div($amountChainString, $eightBytes, 0), 8),
-            $this->number_to_le(Precise::string_mod($amountChainString, $eightBytes), 8),
-            $this->number_to_le(Precise::string_div($priceChainString, $eightBytes, 0), 8),
-            $this->number_to_le(Precise::string_mod($priceChainString, $eightBytes), 8),
-            $this->number_to_le(0, 2),
-            $this->number_to_le((int) floor($now / 1000), 4),
-            $this->number_to_le((int) floor($expiration / 1000), 4),
-            $this->number_to_le(1, 1),
-            $this->number_to_le(intval($chainFeeRate), 2),
-            $this->number_to_le(1, 1),
-            $this->number_to_le(intval($totalFeeRate), 2),
-            $this->number_to_le(intval($quoteId), 4),
-            $this->number_to_le(intval($baseId), 4),
-            $this->number_to_le(0, 1),
-            $this->number_to_le(1, 1),
-            $this->number_to_le(strlen($dappId), 1),
-            $this->encode($dappId),
-            $this->number_to_le(0, 1),
-        );
-        $txByteStringArray = array(
-            $this->number_to_le((int) floor($now / 1000), 4),
-            $this->number_to_le(1, 1),
-            $this->number_to_le((int) floor($expiration / 1000), 4),
-            $this->number_to_le(1, 1),
-            $this->number_to_le(32, 1),
-            $this->number_to_le(0, 8),
-            $this->number_to_le($fee, 8),  // string for 32 bit php
-            $this->number_to_le(strlen($this->apiKey), 1),
-            $this->encode($this->apiKey),
-            $this->number_to_le($sideNum, 1),
-            $this->number_to_le($typeNum, 1),
-            $this->number_to_le(strlen($normalSymbol), 1),
-            $this->encode($normalSymbol),
-            $this->number_to_le(Precise::string_div($amountChainString, $eightBytes, 0), 8),
-            $this->number_to_le(Precise::string_mod($amountChainString, $eightBytes), 8),
-            $this->number_to_le(Precise::string_div($priceChainString, $eightBytes, 0), 8),
-            $this->number_to_le(Precise::string_mod($priceChainString, $eightBytes), 8),
-            $this->number_to_le(0, 2),
-            $this->number_to_le((int) floor($now / 1000), 4),
-            $this->number_to_le((int) floor($expiration / 1000), 4),
-            $this->number_to_le(1, 1),
-            $this->number_to_le(intval($chainFeeRate), 2),
-            $this->number_to_le(1, 1),
-            $this->number_to_le(intval($totalFeeRate), 2),
-            $this->number_to_le(intval($quoteId), 4),
-            $this->number_to_le(intval($baseId), 4),
-            $this->number_to_le(0, 1),
-            $this->number_to_le(1, 1),
-            $this->number_to_le(strlen($dappId), 1),
-            $this->encode($dappId),
-            $this->number_to_le(0, 1),
-        );
-        $txbytestring = $this->binary_concat_array($txByteStringArray);
-        $txidhash = $this->hash($txbytestring, 'sha256', 'hex');
-        $txid = mb_substr($txidhash, 0, 40 - 0);
-        $orderidByteStringArray = array(
-            $this->number_to_le(strlen($txid), 1),
-            $this->encode($txid),
-            $this->number_to_be(0, 4),
-        );
-        $orderidbytestring = $this->binary_concat_array($orderidByteStringArray);
-        $orderidhash = $this->hash($orderidbytestring, 'sha256', 'hex');
-        $orderid = mb_substr($orderidhash, 0, 40 - 0);
-        $bytestring = $this->binary_concat_array($allByteStringArray);
-        $hash = $this->hash($bytestring, 'sha256', 'hex');
-        $signature = $this->ecdsa($hash, $this->secret, 'secp256k1', null, true);
-        $recoveryParam = bin2hex($this->number_to_le($this->sum($signature['v'], 31), 1));
-        $mySignature = $recoveryParam . $signature['r'] . $signature['s'];
-        $operation = array(
-            'now' => $datetime,
-            'expiration' => $expirationDatetime,
-            'fee' => $fee,
-            'creator' => $this->apiKey,
-            'side' => $sideNum,
-            'order_type' => $typeNum,
-            'market_name' => $normalSymbol,
-            'amount' => $amountChain,
-            'price' => $priceChain,
-            'use_btt_as_fee' => false,
-            'money_id' => intval($quoteId),
-            'stock_id' => intval($baseId),
-            'custom_no_btt_fee_rate' => intval($totalFeeRate),
-            'custom_btt_fee_rate' => intval($chainFeeRate),
-        );
-        $fatty = array(
-            'timestamp' => $datetime,
-            'expiration' => $expirationDatetime,
-            'operations' => array(
-                array(
-                    32,
-                    $operation,
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * create a trade order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the bytetrade api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            $this->check_required_dependencies();
+            if ($this->apiKey === null) {
+                throw new ArgumentsRequired('createOrder() requires $this->apiKey or userid in params');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $sideNum = null;
+            $typeNum = null;
+            if ($side === 'sell') {
+                $sideNum = 1;
+            } else {
+                $sideNum = 2;
+            }
+            if ($type === 'limit') {
+                $typeNum = 1;
+            } else {
+                $typeNum = 2;
+                $price = 0;
+            }
+            $normalSymbol = $market['normalSymbol'];
+            $baseId = $market['baseId'];
+            $baseCurrency = $this->currency($market['base']);
+            $amountTruncated = $this->amount_to_precision($symbol, $amount);
+            $amountTruncatedPrecise = new Precise ($amountTruncated);
+            $amountTruncatedPrecise->reduce ();
+            $amountTruncatedPrecise->decimals -= $this->precision_from_string($this->number_to_string($baseCurrency['precision']));
+            $amountChain = (string) $amountTruncatedPrecise;
+            $amountChainString = $this->number_to_string($amountChain);
+            $quoteId = $market['quoteId'];
+            $quoteCurrency = $this->currency($market['quote']);
+            $priceRounded = $this->price_to_precision($symbol, $price);
+            $priceRoundedPrecise = new Precise ($priceRounded);
+            $priceRoundedPrecise->reduce ();
+            $priceRoundedPrecise->decimals -= $this->precision_from_string($this->number_to_string($quoteCurrency['precision']));
+            $priceChain = (string) $priceRoundedPrecise;
+            $priceChainString = $this->number_to_string($priceChain);
+            $now = $this->milliseconds();
+            $expiryDelta = $this->safe_integer($this->options, 'orderExpiration', 31536000000);
+            $expiration = $this->milliseconds() . $expiryDelta;
+            $datetime = $this->iso8601($now);
+            $datetime = explode('.', $datetime)[0];
+            $expirationDatetime = $this->iso8601($expiration);
+            $expirationDatetime = explode('.', $expirationDatetime)[0];
+            $defaultDappId = 'Sagittarius';
+            $dappId = $this->safe_string($params, 'dappId', $defaultDappId);
+            $defaultFee = $this->safe_string($this->options, 'fee', '300000000000000');
+            $totalFeeRate = $this->safe_string($params, 'totalFeeRate', '8');
+            $chainFeeRate = $this->safe_string($params, 'chainFeeRate', '1');
+            $fee = $this->safe_string($params, 'fee', $defaultFee);
+            $eightBytes = '18446744073709551616'; // 2 ** 64
+            $allByteStringArray = array(
+                $this->number_to_be(1, 32),
+                $this->number_to_le((int) floor($now / 1000), 4),
+                $this->number_to_le(1, 1),
+                $this->number_to_le((int) floor($expiration / 1000), 4),
+                $this->number_to_le(1, 1),
+                $this->number_to_le(32, 1),
+                $this->number_to_le(0, 8),
+                $this->number_to_le($fee, 8),  // string for 32 bit php
+                $this->number_to_le(strlen($this->apiKey), 1),
+                $this->encode($this->apiKey),
+                $this->number_to_le($sideNum, 1),
+                $this->number_to_le($typeNum, 1),
+                $this->number_to_le(strlen($normalSymbol), 1),
+                $this->encode($normalSymbol),
+                $this->number_to_le(Precise::string_div($amountChainString, $eightBytes, 0), 8),
+                $this->number_to_le(Precise::string_mod($amountChainString, $eightBytes), 8),
+                $this->number_to_le(Precise::string_div($priceChainString, $eightBytes, 0), 8),
+                $this->number_to_le(Precise::string_mod($priceChainString, $eightBytes), 8),
+                $this->number_to_le(0, 2),
+                $this->number_to_le((int) floor($now / 1000), 4),
+                $this->number_to_le((int) floor($expiration / 1000), 4),
+                $this->number_to_le(1, 1),
+                $this->number_to_le(intval($chainFeeRate), 2),
+                $this->number_to_le(1, 1),
+                $this->number_to_le(intval($totalFeeRate), 2),
+                $this->number_to_le(intval($quoteId), 4),
+                $this->number_to_le(intval($baseId), 4),
+                $this->number_to_le(0, 1),
+                $this->number_to_le(1, 1),
+                $this->number_to_le(strlen($dappId), 1),
+                $this->encode($dappId),
+                $this->number_to_le(0, 1),
+            );
+            $txByteStringArray = array(
+                $this->number_to_le((int) floor($now / 1000), 4),
+                $this->number_to_le(1, 1),
+                $this->number_to_le((int) floor($expiration / 1000), 4),
+                $this->number_to_le(1, 1),
+                $this->number_to_le(32, 1),
+                $this->number_to_le(0, 8),
+                $this->number_to_le($fee, 8),  // string for 32 bit php
+                $this->number_to_le(strlen($this->apiKey), 1),
+                $this->encode($this->apiKey),
+                $this->number_to_le($sideNum, 1),
+                $this->number_to_le($typeNum, 1),
+                $this->number_to_le(strlen($normalSymbol), 1),
+                $this->encode($normalSymbol),
+                $this->number_to_le(Precise::string_div($amountChainString, $eightBytes, 0), 8),
+                $this->number_to_le(Precise::string_mod($amountChainString, $eightBytes), 8),
+                $this->number_to_le(Precise::string_div($priceChainString, $eightBytes, 0), 8),
+                $this->number_to_le(Precise::string_mod($priceChainString, $eightBytes), 8),
+                $this->number_to_le(0, 2),
+                $this->number_to_le((int) floor($now / 1000), 4),
+                $this->number_to_le((int) floor($expiration / 1000), 4),
+                $this->number_to_le(1, 1),
+                $this->number_to_le(intval($chainFeeRate), 2),
+                $this->number_to_le(1, 1),
+                $this->number_to_le(intval($totalFeeRate), 2),
+                $this->number_to_le(intval($quoteId), 4),
+                $this->number_to_le(intval($baseId), 4),
+                $this->number_to_le(0, 1),
+                $this->number_to_le(1, 1),
+                $this->number_to_le(strlen($dappId), 1),
+                $this->encode($dappId),
+                $this->number_to_le(0, 1),
+            );
+            $txbytestring = $this->binary_concat_array($txByteStringArray);
+            $txidhash = $this->hash($txbytestring, 'sha256', 'hex');
+            $txid = mb_substr($txidhash, 0, 40 - 0);
+            $orderidByteStringArray = array(
+                $this->number_to_le(strlen($txid), 1),
+                $this->encode($txid),
+                $this->number_to_be(0, 4),
+            );
+            $orderidbytestring = $this->binary_concat_array($orderidByteStringArray);
+            $orderidhash = $this->hash($orderidbytestring, 'sha256', 'hex');
+            $orderid = mb_substr($orderidhash, 0, 40 - 0);
+            $bytestring = $this->binary_concat_array($allByteStringArray);
+            $hash = $this->hash($bytestring, 'sha256', 'hex');
+            $signature = $this->ecdsa($hash, $this->secret, 'secp256k1', null, true);
+            $recoveryParam = bin2hex($this->number_to_le($this->sum($signature['v'], 31), 1));
+            $mySignature = $recoveryParam . $signature['r'] . $signature['s'];
+            $operation = array(
+                'now' => $datetime,
+                'expiration' => $expirationDatetime,
+                'fee' => $fee,
+                'creator' => $this->apiKey,
+                'side' => $sideNum,
+                'order_type' => $typeNum,
+                'market_name' => $normalSymbol,
+                'amount' => $amountChain,
+                'price' => $priceChain,
+                'use_btt_as_fee' => false,
+                'money_id' => intval($quoteId),
+                'stock_id' => intval($baseId),
+                'custom_no_btt_fee_rate' => intval($totalFeeRate),
+                'custom_btt_fee_rate' => intval($chainFeeRate),
+            );
+            $fatty = array(
+                'timestamp' => $datetime,
+                'expiration' => $expirationDatetime,
+                'operations' => array(
+                    array(
+                        32,
+                        $operation,
+                    ),
                 ),
-            ),
-            'validate_type' => 0,
-            'dapp' => $dappId,
-            'signatures' => array(
-                $mySignature,
-            ),
-        );
-        $request = array(
-            'trObj' => $this->json($fatty),
-        );
-        $response = yield $this->publicPostTransactionCreateorder ($request);
-        $timestamp = $this->milliseconds();
-        $statusCode = $this->safe_string($response, 'code');
-        $status = ($statusCode === '0') ? 'open' : 'failed';
-        return array(
-            'info' => $response,
-            'id' => $orderid,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => null,
-            'status' => $status,
-            'symbol' => null,
-            'type' => null,
-            'side' => null,
-            'price' => null,
-            'amount' => null,
-            'filled' => null,
-            'remaining' => null,
-            'cost' => null,
-            'trades' => null,
-            'fee' => null,
-            'clientOrderId' => null,
-            'average' => null,
-        );
+                'validate_type' => 0,
+                'dapp' => $dappId,
+                'signatures' => array(
+                    $mySignature,
+                ),
+            );
+            $request = array(
+                'trObj' => $this->json($fatty),
+            );
+            $response = Async\await($this->publicPostTransactionCreateorder ($request));
+            $timestamp = $this->milliseconds();
+            $statusCode = $this->safe_string($response, 'code');
+            $status = ($statusCode === '0') ? 'open' : 'failed';
+            return array(
+                'info' => $response,
+                'id' => $orderid,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'lastTradeTimestamp' => null,
+                'status' => $status,
+                'symbol' => null,
+                'type' => null,
+                'side' => null,
+                'price' => null,
+                'amount' => null,
+                'filled' => null,
+                'remaining' => null,
+                'cost' => null,
+                'trades' => null,
+                'fee' => null,
+                'clientOrderId' => null,
+                'average' => null,
+            );
+        }) ();
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
-        /**
-         * fetches information on an order made by the user
-         * @param {string|null} $symbol unified $symbol of the $market the order was made in
-         * @param {array} $params extra parameters specific to the bytetrade api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
-            throw new ArgumentsRequired('fetchOrder() requires $this->apiKey or userid argument');
-        }
-        yield $this->load_markets();
-        $request = array(
-            'userid' => $this->apiKey,
-        );
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->markets[$symbol];
-            $request['symbol'] = $market['id'];
-        }
-        $request['id'] = $id;
-        $response = yield $this->publicGetOrders (array_merge($request, $params));
-        return $this->parse_order($response, $market);
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * fetches information on an order made by the user
+             * @param {string|null} $symbol unified $symbol of the $market the order was made in
+             * @param {array} $params extra parameters specific to the bytetrade api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
+                throw new ArgumentsRequired('fetchOrder() requires $this->apiKey or userid argument');
+            }
+            Async\await($this->load_markets());
+            $request = array(
+                'userid' => $this->apiKey,
+            );
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->markets[$symbol];
+                $request['symbol'] = $market['id'];
+            }
+            $request['id'] = $id;
+            $response = Async\await($this->publicGetOrders (array_merge($request, $params)));
+            return $this->parse_order($response, $market);
+        }) ();
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all unfilled currently open orders
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch open orders for
-         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
-         * @param {array} $params extra parameters specific to the bytetrade api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
-            throw new ArgumentsRequired('fetchOpenOrders() requires $this->apiKey or userid argument');
-        }
-        yield $this->load_markets();
-        $request = array(
-            'userid' => $this->apiKey,
-        );
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        if ($since !== null) {
-            $request['since'] = $since;
-        }
-        $response = yield $this->publicGetOrdersOpen (array_merge($request, $params));
-        return $this->parse_orders($response, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all unfilled currently open orders
+             * @param {string|null} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch open orders for
+             * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+             * @param {array} $params extra parameters specific to the bytetrade api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
+                throw new ArgumentsRequired('fetchOpenOrders() requires $this->apiKey or userid argument');
+            }
+            Async\await($this->load_markets());
+            $request = array(
+                'userid' => $this->apiKey,
+            );
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            if ($since !== null) {
+                $request['since'] = $since;
+            }
+            $response = Async\await($this->publicGetOrdersOpen (array_merge($request, $params)));
+            return $this->parse_orders($response, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches information on multiple closed orders made by the user
-         * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {array} $params extra parameters specific to the bytetrade api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
-            throw new ArgumentsRequired('fetchClosedOrders() requires $this->apiKey or userid argument');
-        }
-        yield $this->load_markets();
-        $market = null;
-        $request = array(
-            'userid' => $this->apiKey,
-        );
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        if ($since !== null) {
-            $request['since'] = $since;
-        }
-        $response = yield $this->publicGetOrdersClosed (array_merge($request, $params));
-        return $this->parse_orders($response, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple closed orders made by the user
+             * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch orders for
+             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {array} $params extra parameters specific to the bytetrade api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
+                throw new ArgumentsRequired('fetchClosedOrders() requires $this->apiKey or userid argument');
+            }
+            Async\await($this->load_markets());
+            $market = null;
+            $request = array(
+                'userid' => $this->apiKey,
+            );
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            if ($since !== null) {
+                $request['since'] = $since;
+            }
+            $response = Async\await($this->publicGetOrdersClosed (array_merge($request, $params)));
+            return $this->parse_orders($response, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches information on multiple orders made by the user
-         * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {array} $params extra parameters specific to the bytetrade api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
-            throw new ArgumentsRequired('fetchOrders() requires $this->apiKey or userid argument');
-        }
-        yield $this->load_markets();
-        $market = null;
-        $request = array(
-            'userid' => $this->apiKey,
-        );
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        if ($since !== null) {
-            $request['since'] = $since;
-        }
-        $response = yield $this->publicGetOrdersAll (array_merge($request, $params));
-        return $this->parse_orders($response, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple orders made by the user
+             * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch orders for
+             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {array} $params extra parameters specific to the bytetrade api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
+                throw new ArgumentsRequired('fetchOrders() requires $this->apiKey or userid argument');
+            }
+            Async\await($this->load_markets());
+            $market = null;
+            $request = array(
+                'userid' => $this->apiKey,
+            );
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            if ($since !== null) {
+                $request['since'] = $since;
+            }
+            $response = Async\await($this->publicGetOrdersAll (array_merge($request, $params)));
+            return $this->parse_orders($response, $market, $since, $limit);
+        }) ();
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        /**
-         * cancels an open order
-         * @param {string} $id order $id
-         * @param {string} $symbol unified $symbol of the $market the order was made in
-         * @param {array} $params extra parameters specific to the bytetrade api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        if ($this->apiKey === null) {
-            throw new ArgumentsRequired('cancelOrder() requires hasAlreadyAuthenticatedSuccessfully');
-        }
-        if ($symbol === null) {
-            throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $baseId = $market['baseId'];
-        $quoteId = $market['quoteId'];
-        $normalSymbol = $market['normalSymbol'];
-        $feeAmount = '300000000000000';
-        $now = $this->milliseconds();
-        $expiration = 0;
-        $datetime = $this->iso8601($now);
-        $datetime = explode('.', $datetime)[0];
-        $expirationDatetime = $this->iso8601($expiration);
-        $expirationDatetime = explode('.', $expirationDatetime)[0];
-        $defaultDappId = 'Sagittarius';
-        $dappId = $this->safe_string($params, 'dappId', $defaultDappId);
-        $byteStringArray = array(
-            $this->number_to_be(1, 32),
-            $this->number_to_le((int) floor($now / 1000), 4),
-            $this->number_to_le(1, 1),
-            $this->number_to_le($expiration, 4),
-            $this->number_to_le(1, 1),
-            $this->number_to_le(33, 1),
-            $this->number_to_le(0, 8),
-            $this->number_to_le($feeAmount, 8),  // string for 32 bit php
-            $this->number_to_le(strlen($this->apiKey), 1),
-            $this->encode($this->apiKey),
-            $this->number_to_le(strlen($normalSymbol), 1),
-            $this->encode($normalSymbol),
-            $this->base16_to_binary($id),
-            $this->number_to_le(intval($quoteId), 4),
-            $this->number_to_le(intval($baseId), 4),
-            $this->number_to_le(0, 1),
-            $this->number_to_le(1, 1),
-            $this->number_to_le(strlen($dappId), 1),
-            $this->encode($dappId),
-            $this->number_to_le(0, 1),
-        );
-        $bytestring = $this->binary_concat_array($byteStringArray);
-        $hash = $this->hash($bytestring, 'sha256', 'hex');
-        $signature = $this->ecdsa($hash, $this->secret, 'secp256k1', null, true);
-        $recoveryParam = bin2hex($this->number_to_le($this->sum($signature['v'], 31), 1));
-        $mySignature = $recoveryParam . $signature['r'] . $signature['s'];
-        $operation = array(
-            'fee' => $feeAmount,
-            'creator' => $this->apiKey,
-            'order_id' => $id,
-            'market_name' => $normalSymbol,
-            'money_id' => intval($quoteId),
-            'stock_id' => intval($baseId),
-        );
-        $fatty = array(
-            'timestamp' => $datetime,
-            'expiration' => $expirationDatetime,
-            'operations' => array(
-                array(
-                    33,
-                    $operation,
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * cancels an open order
+             * @param {string} $id order $id
+             * @param {string} $symbol unified $symbol of the $market the order was made in
+             * @param {array} $params extra parameters specific to the bytetrade api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            if ($this->apiKey === null) {
+                throw new ArgumentsRequired('cancelOrder() requires hasAlreadyAuthenticatedSuccessfully');
+            }
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $baseId = $market['baseId'];
+            $quoteId = $market['quoteId'];
+            $normalSymbol = $market['normalSymbol'];
+            $feeAmount = '300000000000000';
+            $now = $this->milliseconds();
+            $expiration = 0;
+            $datetime = $this->iso8601($now);
+            $datetime = explode('.', $datetime)[0];
+            $expirationDatetime = $this->iso8601($expiration);
+            $expirationDatetime = explode('.', $expirationDatetime)[0];
+            $defaultDappId = 'Sagittarius';
+            $dappId = $this->safe_string($params, 'dappId', $defaultDappId);
+            $byteStringArray = array(
+                $this->number_to_be(1, 32),
+                $this->number_to_le((int) floor($now / 1000), 4),
+                $this->number_to_le(1, 1),
+                $this->number_to_le($expiration, 4),
+                $this->number_to_le(1, 1),
+                $this->number_to_le(33, 1),
+                $this->number_to_le(0, 8),
+                $this->number_to_le($feeAmount, 8),  // string for 32 bit php
+                $this->number_to_le(strlen($this->apiKey), 1),
+                $this->encode($this->apiKey),
+                $this->number_to_le(strlen($normalSymbol), 1),
+                $this->encode($normalSymbol),
+                $this->base16_to_binary($id),
+                $this->number_to_le(intval($quoteId), 4),
+                $this->number_to_le(intval($baseId), 4),
+                $this->number_to_le(0, 1),
+                $this->number_to_le(1, 1),
+                $this->number_to_le(strlen($dappId), 1),
+                $this->encode($dappId),
+                $this->number_to_le(0, 1),
+            );
+            $bytestring = $this->binary_concat_array($byteStringArray);
+            $hash = $this->hash($bytestring, 'sha256', 'hex');
+            $signature = $this->ecdsa($hash, $this->secret, 'secp256k1', null, true);
+            $recoveryParam = bin2hex($this->number_to_le($this->sum($signature['v'], 31), 1));
+            $mySignature = $recoveryParam . $signature['r'] . $signature['s'];
+            $operation = array(
+                'fee' => $feeAmount,
+                'creator' => $this->apiKey,
+                'order_id' => $id,
+                'market_name' => $normalSymbol,
+                'money_id' => intval($quoteId),
+                'stock_id' => intval($baseId),
+            );
+            $fatty = array(
+                'timestamp' => $datetime,
+                'expiration' => $expirationDatetime,
+                'operations' => array(
+                    array(
+                        33,
+                        $operation,
+                    ),
                 ),
-            ),
-            'validate_type' => 0,
-            'dapp' => $dappId,
-            'signatures' => array(
-                $mySignature,
-            ),
-        );
-        $request = array(
-            'trObj' => $this->json($fatty),
-        );
-        $response = yield $this->publicPostTransactionCancelorder ($request);
-        $timestamp = $this->milliseconds();
-        $statusCode = $this->safe_string($response, 'code');
-        $status = ($statusCode === '0') ? 'canceled' : 'failed';
-        return array(
-            'info' => $response,
-            'id' => null,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => null,
-            'status' => $status,
-            'symbol' => null,
-            'type' => null,
-            'side' => null,
-            'price' => null,
-            'amount' => null,
-            'filled' => null,
-            'remaining' => null,
-            'cost' => null,
-            'trades' => null,
-            'fee' => null,
-            'clientOrderId' => null,
-            'average' => null,
-        );
+                'validate_type' => 0,
+                'dapp' => $dappId,
+                'signatures' => array(
+                    $mySignature,
+                ),
+            );
+            $request = array(
+                'trObj' => $this->json($fatty),
+            );
+            $response = Async\await($this->publicPostTransactionCancelorder ($request));
+            $timestamp = $this->milliseconds();
+            $statusCode = $this->safe_string($response, 'code');
+            $status = ($statusCode === '0') ? 'canceled' : 'failed';
+            return array(
+                'info' => $response,
+                'id' => null,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'lastTradeTimestamp' => null,
+                'status' => $status,
+                'symbol' => null,
+                'type' => null,
+                'side' => null,
+                'price' => null,
+                'amount' => null,
+                'filled' => null,
+                'remaining' => null,
+                'cost' => null,
+                'trades' => null,
+                'fee' => null,
+                'clientOrderId' => null,
+                'average' => null,
+            );
+        }) ();
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all trades made by the user
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch trades for
-         * @param {int|null} $limit the maximum number of trades structures to retrieve
-         * @param {array} $params extra parameters specific to the bytetrade api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
-         */
-        if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
-            throw new ArgumentsRequired('fetchMyTrades() requires $this->apiKey or userid argument');
-        }
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'userid' => $this->apiKey,
-        );
-        if ($symbol !== null) {
-            $request['symbol'] = $market['id'];
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        if ($since !== null) {
-            $request['since'] = $since;
-        }
-        $response = yield $this->publicGetOrdersTrades (array_merge($request, $params));
-        return $this->parse_trades($response, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all trades made by the user
+             * @param {string|null} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch trades for
+             * @param {int|null} $limit the maximum number of trades structures to retrieve
+             * @param {array} $params extra parameters specific to the bytetrade api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             */
+            if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
+                throw new ArgumentsRequired('fetchMyTrades() requires $this->apiKey or userid argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'userid' => $this->apiKey,
+            );
+            if ($symbol !== null) {
+                $request['symbol'] = $market['id'];
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            if ($since !== null) {
+                $request['since'] = $since;
+            }
+            $response = Async\await($this->publicGetOrdersTrades (array_merge($request, $params)));
+            return $this->parse_trades($response, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all deposits made to an account
-         * @param {string|null} $code unified $currency $code
-         * @param {int|null} $since the earliest time in ms to fetch deposits for
-         * @param {int|null} $limit the maximum number of deposits structures to retrieve
-         * @param {array} $params extra parameters specific to the bytetrade api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
-         */
-        yield $this->load_markets();
-        if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
-            throw new ArgumentsRequired('fetchDeposits() requires $this->apiKey or userid argument');
-        }
-        $currency = null;
-        $request = array(
-            'userid' => $this->apiKey,
-        );
-        if ($code !== null) {
-            $currency = $this->currency($code);
-            $request['currency'] = $currency['id'];
-        }
-        if ($since !== null) {
-            $request['since'] = $since;
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $response = yield $this->publicGetDeposits (array_merge($request, $params));
-        return $this->parse_transactions($response, $currency, $since, $limit);
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch all deposits made to an account
+             * @param {string|null} $code unified $currency $code
+             * @param {int|null} $since the earliest time in ms to fetch deposits for
+             * @param {int|null} $limit the maximum number of deposits structures to retrieve
+             * @param {array} $params extra parameters specific to the bytetrade api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             */
+            Async\await($this->load_markets());
+            if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
+                throw new ArgumentsRequired('fetchDeposits() requires $this->apiKey or userid argument');
+            }
+            $currency = null;
+            $request = array(
+                'userid' => $this->apiKey,
+            );
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['currency'] = $currency['id'];
+            }
+            if ($since !== null) {
+                $request['since'] = $since;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->publicGetDeposits (array_merge($request, $params)));
+            return $this->parse_transactions($response, $currency, $since, $limit);
+        }) ();
     }
 
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all withdrawals made from an account
-         * @param {string|null} $code unified $currency $code
-         * @param {int|null} $since the earliest time in ms to fetch withdrawals for
-         * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
-         * @param {array} $params extra parameters specific to the bytetrade api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
-         */
-        yield $this->load_markets();
-        if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
-            throw new ArgumentsRequired('fetchWithdrawals() requires $this->apiKey or userid argument');
-        }
-        $currency = null;
-        $request = array(
-            'userid' => $this->apiKey,
-        );
-        if ($code !== null) {
-            $currency = $this->currency($code);
-            $request['currency'] = $currency['id'];
-        }
-        if ($since !== null) {
-            $request['since'] = $since;
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $response = yield $this->publicGetWithdrawals (array_merge($request, $params));
-        return $this->parse_transactions($response, $currency, $since, $limit);
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch all withdrawals made from an account
+             * @param {string|null} $code unified $currency $code
+             * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+             * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+             * @param {array} $params extra parameters specific to the bytetrade api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             */
+            Async\await($this->load_markets());
+            if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
+                throw new ArgumentsRequired('fetchWithdrawals() requires $this->apiKey or userid argument');
+            }
+            $currency = null;
+            $request = array(
+                'userid' => $this->apiKey,
+            );
+            if ($code !== null) {
+                $currency = $this->currency($code);
+                $request['currency'] = $currency['id'];
+            }
+            if ($since !== null) {
+                $request['since'] = $since;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->publicGetWithdrawals (array_merge($request, $params)));
+            return $this->parse_transactions($response, $currency, $since, $limit);
+        }) ();
     }
 
     public function parse_transaction_status($status) {
@@ -1416,34 +1455,36 @@ class bytetrade extends Exchange {
     }
 
     public function fetch_deposit_address($code, $params = array ()) {
-        /**
-         * fetch the deposit $address for a $currency associated with this account
-         * @param {string} $code unified $currency $code
-         * @param {array} $params extra parameters specific to the bytetrade api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
-         */
-        yield $this->load_markets();
-        if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
-            throw new ArgumentsRequired('fetchDepositAddress() requires $this->apiKey or userid argument');
-        }
-        $currency = $this->currency($code);
-        $request = array(
-            'userid' => $this->apiKey,
-            'code' => $currency['id'],
-        );
-        $response = yield $this->publicGetDepositaddress ($request);
-        $firstAddress = $this->safe_value($response, 0);
-        $address = $this->safe_string($firstAddress, 'address');
-        $tag = $this->safe_string($firstAddress, 'tag');
-        $chainType = $this->safe_string_upper($firstAddress, 'chainType');
-        $this->check_address($address);
-        return array(
-            'currency' => $code,
-            'address' => $address,
-            'tag' => $tag,
-            'network' => $chainType,
-            'info' => $response,
-        );
+        return Async\async(function () use ($code, $params) {
+            /**
+             * fetch the deposit $address for a $currency associated with this account
+             * @param {string} $code unified $currency $code
+             * @param {array} $params extra parameters specific to the bytetrade api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
+             */
+            Async\await($this->load_markets());
+            if (!(is_array($params) && array_key_exists('userid', $params)) && ($this->apiKey === null)) {
+                throw new ArgumentsRequired('fetchDepositAddress() requires $this->apiKey or userid argument');
+            }
+            $currency = $this->currency($code);
+            $request = array(
+                'userid' => $this->apiKey,
+                'code' => $currency['id'],
+            );
+            $response = Async\await($this->publicGetDepositaddress ($request));
+            $firstAddress = $this->safe_value($response, 0);
+            $address = $this->safe_string($firstAddress, 'address');
+            $tag = $this->safe_string($firstAddress, 'tag');
+            $chainType = $this->safe_string_upper($firstAddress, 'chainType');
+            $this->check_address($address);
+            return array(
+                'currency' => $code,
+                'address' => $address,
+                'tag' => $tag,
+                'network' => $chainType,
+                'info' => $response,
+            );
+        }) ();
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

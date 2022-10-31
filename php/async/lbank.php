@@ -6,8 +6,8 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ArgumentsRequired;
-use \ccxt\Precise;
+use ccxt\Precise;
+use React\Async;
 
 class lbank extends Exchange {
 
@@ -131,6 +131,7 @@ class lbank extends Exchange {
             'commonCurrencies' => array(
                 'GMT' => 'GMT Token',
                 'PNT' => 'Penta',
+                'SHINJA' => 'SHINJA(1M)',
                 'VET_ERC20' => 'VEN',
             ),
             'options' => array(
@@ -141,91 +142,93 @@ class lbank extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
-        /**
-         * retrieves data on all markets for lbank
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing $market data
-         */
-        $response = yield $this->publicGetAccuracy ($params);
-        //
-        //    array(
-        //        array(
-        //            "symbol" => "btc_usdt",
-        //            "quantityAccuracy" => "4",
-        //            "minTranQua" => "0.0001",
-        //            "priceAccuracy" => "2"
-        //        ),
-        //        ...
-        //    )
-        //
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $market = $response[$i];
-            $id = $market['symbol'];
-            $parts = explode('_', $id);
-            $baseId = null;
-            $quoteId = null;
-            $numParts = count($parts);
-            // lbank will return symbols like "vet_erc20_usdt"
-            if ($numParts > 2) {
-                $baseId = $parts[0] . '_' . $parts[1];
-                $quoteId = $parts[2];
-            } else {
-                $baseId = $parts[0];
-                $quoteId = $parts[1];
+        return Async\async(function () use ($params) {
+            /**
+             * retrieves data on all markets for lbank
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @return {[array]} an array of objects representing $market data
+             */
+            $response = Async\await($this->publicGetAccuracy ($params));
+            //
+            //    array(
+            //        array(
+            //            "symbol" => "btc_usdt",
+            //            "quantityAccuracy" => "4",
+            //            "minTranQua" => "0.0001",
+            //            "priceAccuracy" => "2"
+            //        ),
+            //        ...
+            //    )
+            //
+            $result = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $market = $response[$i];
+                $id = $market['symbol'];
+                $parts = explode('_', $id);
+                $baseId = null;
+                $quoteId = null;
+                $numParts = count($parts);
+                // lbank will return symbols like "vet_erc20_usdt"
+                if ($numParts > 2) {
+                    $baseId = $parts[0] . '_' . $parts[1];
+                    $quoteId = $parts[2];
+                } else {
+                    $baseId = $parts[0];
+                    $quoteId = $parts[1];
+                }
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $result[] = array(
+                    'id' => $id,
+                    'symbol' => $base . '/' . $quote,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'settle' => null,
+                    'baseId' => $baseId,
+                    'quoteId' => $quoteId,
+                    'settleId' => null,
+                    'type' => 'spot',
+                    'spot' => true,
+                    'margin' => false,
+                    'swap' => false,
+                    'future' => false,
+                    'option' => false,
+                    'active' => true,
+                    'contract' => false,
+                    'linear' => null,
+                    'inverse' => null,
+                    'contractSize' => null,
+                    'expiry' => null,
+                    'expiryDatetime' => null,
+                    'strike' => null,
+                    'optionType' => null,
+                    'precision' => array(
+                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantityAccuracy'))),
+                        'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'priceAccuracy'))),
+                    ),
+                    'limits' => array(
+                        'leverage' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'amount' => array(
+                            'min' => $this->safe_float($market, 'minTranQua'),
+                            'max' => null,
+                        ),
+                        'price' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'cost' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                    'info' => $id,
+                );
             }
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $result[] = array(
-                'id' => $id,
-                'symbol' => $base . '/' . $quote,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => null,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => null,
-                'type' => 'spot',
-                'spot' => true,
-                'margin' => false,
-                'swap' => false,
-                'future' => false,
-                'option' => false,
-                'active' => true,
-                'contract' => false,
-                'linear' => null,
-                'inverse' => null,
-                'contractSize' => null,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'strike' => null,
-                'optionType' => null,
-                'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'quantityAccuracy'))),
-                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'priceAccuracy'))),
-                ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'amount' => array(
-                        'min' => $this->safe_float($market, 'minTranQua'),
-                        'max' => null,
-                    ),
-                    'price' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'cost' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                ),
-                'info' => $id,
-            );
-        }
-        return $result;
+            return $result;
+        }) ();
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -276,75 +279,81 @@ class lbank extends Exchange {
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
-        /**
-         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
-         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
-         * @param {array} $params extra parameters specific to the lbank api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-        );
-        $response = yield $this->publicGetTicker (array_merge($request, $params));
-        // {
-        //     "symbol":"btc_usdt",
-        //     "ticker":array(
-        //         "high":43416.06,
-        //         "vol":7031.7427,
-        //         "low":41804.26,
-        //         "change":1.33,
-        //         "turnover":300302447.81,
-        //         "latest":43220.4
-        //         ),
-        //     "timestamp":1642201617747
-        // }
-        return $this->parse_ticker($response, $market);
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+             * @param {array} $params extra parameters specific to the lbank api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->publicGetTicker (array_merge($request, $params)));
+            // {
+            //     "symbol":"btc_usdt",
+            //     "ticker":array(
+            //         "high":43416.06,
+            //         "vol":7031.7427,
+            //         "low":41804.26,
+            //         "change":1.33,
+            //         "turnover":300302447.81,
+            //         "latest":43220.4
+            //         ),
+            //     "timestamp":1642201617747
+            // }
+            return $this->parse_ticker($response, $market);
+        }) ();
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
-        /**
-         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
-         * @param {array} $params extra parameters specific to the lbank api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
-         */
-        yield $this->load_markets();
-        $symbols = $this->market_symbols($symbols);
-        $request = array(
-            'symbol' => 'all',
-        );
-        $response = yield $this->publicGetTicker (array_merge($request, $params));
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $ticker = $this->parse_ticker($response[$i]);
-            $symbol = $ticker['symbol'];
-            $result[$symbol] = $ticker;
-        }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
+             * @param {array} $params extra parameters specific to the lbank api endpoint
+             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $request = array(
+                'symbol' => 'all',
+            );
+            $response = Async\await($this->publicGetTicker (array_merge($request, $params)));
+            $result = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $ticker = $this->parse_ticker($response[$i]);
+                $symbol = $ticker['symbol'];
+                $result[$symbol] = $ticker;
+            }
+            return $this->filter_by_array($result, 'symbol', $symbols);
+        }) ();
     }
 
     public function fetch_order_book($symbol, $limit = 60, $params = array ()) {
-        /**
-         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {array} $params extra parameters specific to the lbank api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
-         */
-        yield $this->load_markets();
-        $size = 60;
-        if ($limit !== null) {
-            $size = min ($limit, $size);
-        }
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-            'size' => $size,
-        );
-        $response = yield $this->publicGetDepth (array_merge($request, $params));
-        return $this->parse_order_book($response, $market['symbol']);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {array} $params extra parameters specific to the lbank api endpoint
+             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             */
+            Async\await($this->load_markets());
+            $size = 60;
+            if ($limit !== null) {
+                $size = min ($limit, $size);
+            }
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+                'size' => $size,
+            );
+            $response = Async\await($this->publicGetDepth (array_merge($request, $params)));
+            return $this->parse_order_book($response, $market['symbol']);
+        }) ();
     }
 
     public function parse_trade($trade, $market = null) {
@@ -377,28 +386,30 @@ class lbank extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        /**
-         * get the list of most recent trades for a particular $symbol
-         * @param {string} $symbol unified $symbol of the $market to fetch trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of trades to fetch
-         * @param {array} $params extra parameters specific to the lbank api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-            'size' => 100,
-        );
-        if ($since !== null) {
-            $request['time'] = intval($since);
-        }
-        if ($limit !== null) {
-            $request['size'] = $limit;
-        }
-        $response = yield $this->publicGetTrades (array_merge($request, $params));
-        return $this->parse_trades($response, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * get the list of most recent trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the $market to fetch trades for
+             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+             * @param {int|null} $limit the maximum amount of trades to fetch
+             * @param {array} $params extra parameters specific to the lbank api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+                'size' => 100,
+            );
+            if ($since !== null) {
+                $request['time'] = intval($since);
+            }
+            if ($limit !== null) {
+                $request['size'] = $limit;
+            }
+            $response = Async\await($this->publicGetTrades (array_merge($request, $params)));
+            return $this->parse_trades($response, $market, $since, $limit);
+        }) ();
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
@@ -422,39 +433,42 @@ class lbank extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '5m', $since = null, $limit = 1000, $params = array ()) {
-        /**
-         * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
-         * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
-         * @param {string} $timeframe the length of time each candle represents
-         * @param {int|null} $since timestamp in ms of the earliest candle to fetch
-         * @param {int|null} $limit the maximum amount of candles to fetch
-         * @param {array} $params extra parameters specific to the lbank api endpoint
-         * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        if ($since === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a `$since` argument');
-        }
-        if ($limit === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a `$limit` argument');
-        }
-        $request = array(
-            'symbol' => $market['id'],
-            'type' => $this->timeframes[$timeframe],
-            'size' => $limit,
-            'time' => intval($since / 1000),
-        );
-        $response = yield $this->publicGetKline (array_merge($request, $params));
-        //
-        //     [
-        //         [1590969600,0.02451657,0.02452675,0.02443701,0.02447814,238.38210000],
-        //         [1590969660,0.02447814,0.02449883,0.02443209,0.02445973,212.40270000],
-        //         [1590969720,0.02445973,0.02452067,0.02445909,0.02446151,266.16920000],
-        //     ]
-        //
-        return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = 1000, $params = array ()) {
+        return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of candles to fetch
+             * @param {array} $params extra parameters specific to the lbank api endpoint
+             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if ($limit === null) {
+                $limit = 100; // as it's defined in lbank2
+            }
+            if ($since === null) {
+                $duration = $this->parse_timeframe($timeframe);
+                $since = $this->milliseconds() - $duration * 1000 * $limit;
+            }
+            $request = array(
+                'symbol' => $market['id'],
+                'type' => $this->timeframes[$timeframe],
+                'size' => $limit,
+                'time' => intval($since / 1000),
+            );
+            $response = Async\await($this->publicGetKline (array_merge($request, $params)));
+            //
+            //     [
+            //         [1590969600,0.02451657,0.02452675,0.02443701,0.02447814,238.38210000],
+            //         [1590969660,0.02447814,0.02449883,0.02443209,0.02445973,212.40270000],
+            //         [1590969720,0.02445973,0.02452067,0.02445909,0.02446151,266.16920000],
+            //     ]
+            //
+            return $this->parse_ohlcvs($response, $market, $timeframe, $since, $limit);
+        }) ();
     }
 
     public function parse_balance($response) {
@@ -481,36 +495,38 @@ class lbank extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
-        /**
-         * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} $params extra parameters specific to the lbank api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
-         */
-        yield $this->load_markets();
-        $response = yield $this->privatePostUserInfo ($params);
-        //
-        //     {
-        //         "result":"true",
-        //         "info":{
-        //             "freeze":array(
-        //                 "iog":"0.00000000",
-        //                 "ssc":"0.00000000",
-        //                 "eon":"0.00000000",
-        //             ),
-        //             "asset":array(
-        //                 "iog":"0.00000000",
-        //                 "ssc":"0.00000000",
-        //                 "eon":"0.00000000",
-        //             ),
-        //             "free":array(
-        //                 "iog":"0.00000000",
-        //                 "ssc":"0.00000000",
-        //                 "eon":"0.00000000",
-        //             ),
-        //         }
-        //     }
-        //
-        return $this->parse_balance($response);
+        return Async\async(function () use ($params) {
+            /**
+             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} $params extra parameters specific to the lbank api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->privatePostUserInfo ($params));
+            //
+            //     {
+            //         "result":"true",
+            //         "info":{
+            //             "freeze":array(
+            //                 "iog":"0.00000000",
+            //                 "ssc":"0.00000000",
+            //                 "eon":"0.00000000",
+            //             ),
+            //             "asset":array(
+            //                 "iog":"0.00000000",
+            //                 "ssc":"0.00000000",
+            //                 "eon":"0.00000000",
+            //             ),
+            //             "free":array(
+            //                 "iog":"0.00000000",
+            //                 "ssc":"0.00000000",
+            //                 "eon":"0.00000000",
+            //             ),
+            //         }
+            //     }
+            //
+            return $this->parse_balance($response);
+        }) ();
     }
 
     public function parse_order_status($status) {
@@ -577,158 +593,170 @@ class lbank extends Exchange {
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        /**
-         * create a trade $order
-         * @param {string} $symbol unified $symbol of the $market to create an $order in
-         * @param {string} $type 'market' or 'limit'
-         * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the lbank api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $order = array(
-            'symbol' => $market['id'],
-            'type' => $side,
-            'amount' => $amount,
-        );
-        if ($type === 'market') {
-            $order['type'] .= '_market';
-        } else {
-            $order['price'] = $price;
-        }
-        $response = yield $this->privatePostCreateOrder (array_merge($order, $params));
-        $order = $this->omit($order, 'type');
-        $order['order_id'] = $response['order_id'];
-        $order['type'] = $side;
-        $order['order_type'] = $type;
-        $order['create_time'] = $this->milliseconds();
-        $order['info'] = $response;
-        return $this->parse_order($order, $market);
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * create a trade $order
+             * @param {string} $symbol unified $symbol of the $market to create an $order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float|null} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the lbank api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $order = array(
+                'symbol' => $market['id'],
+                'type' => $side,
+                'amount' => $amount,
+            );
+            if ($type === 'market') {
+                $order['type'] .= '_market';
+            } else {
+                $order['price'] = $price;
+            }
+            $response = Async\await($this->privatePostCreateOrder (array_merge($order, $params)));
+            $order = $this->omit($order, 'type');
+            $order['order_id'] = $response['order_id'];
+            $order['type'] = $side;
+            $order['order_type'] = $type;
+            $order['create_time'] = $this->milliseconds();
+            $order['info'] = $response;
+            return $this->parse_order($order, $market);
+        }) ();
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        /**
-         * cancels an open order
-         * @param {string} $id order $id
-         * @param {string|null} $symbol unified $symbol of the $market the order was made in
-         * @param {array} $params extra parameters specific to the lbank api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-            'order_id' => $id,
-        );
-        $response = yield $this->privatePostCancelOrder (array_merge($request, $params));
-        return $response;
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * cancels an open order
+             * @param {string} $id order $id
+             * @param {string|null} $symbol unified $symbol of the $market the order was made in
+             * @param {array} $params extra parameters specific to the lbank api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+                'order_id' => $id,
+            );
+            $response = Async\await($this->privatePostCancelOrder (array_merge($request, $params)));
+            return $response;
+        }) ();
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
-        /**
-         * fetches information on an order made by the user
-         * @param {string|null} $symbol unified $symbol of the $market the order was made in
-         * @param {array} $params extra parameters specific to the lbank api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        // Id can be a list of ids delimited by a comma
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-            'order_id' => $id,
-        );
-        $response = yield $this->privatePostOrdersInfo (array_merge($request, $params));
-        $data = $this->safe_value($response, 'orders', array());
-        $orders = $this->parse_orders($data, $market);
-        $numOrders = count($orders);
-        if ($numOrders === 1) {
-            return $orders[0];
-        } else {
-            return $orders;
-        }
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * fetches information on an order made by the user
+             * @param {string|null} $symbol unified $symbol of the $market the order was made in
+             * @param {array} $params extra parameters specific to the lbank api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            // Id can be a list of ids delimited by a comma
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+                'order_id' => $id,
+            );
+            $response = Async\await($this->privatePostOrdersInfo (array_merge($request, $params)));
+            $data = $this->safe_value($response, 'orders', array());
+            $orders = $this->parse_orders($data, $market);
+            $numOrders = count($orders);
+            if ($numOrders === 1) {
+                return $orders[0];
+            } else {
+                return $orders;
+            }
+        }) ();
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches information on multiple orders made by the user
-         * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {array} $params extra parameters specific to the lbank api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        yield $this->load_markets();
-        if ($limit === null) {
-            $limit = 100;
-        }
-        $market = $this->market($symbol);
-        $request = array(
-            'symbol' => $market['id'],
-            'current_page' => 1,
-            'page_length' => $limit,
-        );
-        $response = yield $this->privatePostOrdersInfoHistory (array_merge($request, $params));
-        $data = $this->safe_value($response, 'orders', array());
-        return $this->parse_orders($data, null, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple orders made by the user
+             * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch orders for
+             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {array} $params extra parameters specific to the lbank api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            Async\await($this->load_markets());
+            if ($limit === null) {
+                $limit = 100;
+            }
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+                'current_page' => 1,
+                'page_length' => $limit,
+            );
+            $response = Async\await($this->privatePostOrdersInfoHistory (array_merge($request, $params)));
+            $data = $this->safe_value($response, 'orders', array());
+            return $this->parse_orders($data, null, $since, $limit);
+        }) ();
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetches information on multiple $closed $orders made by the user
-         * @param {string|null} $symbol unified $market $symbol of the $market $orders were made in
-         * @param {int|null} $since the earliest time in ms to fetch $orders for
-         * @param {int|null} $limit the maximum number of  orde structures to retrieve
-         * @param {array} $params extra parameters specific to the lbank api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        yield $this->load_markets();
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-        }
-        $orders = yield $this->fetch_orders($symbol, $since, $limit, $params);
-        $closed = $this->filter_by($orders, 'status', 'closed');
-        $canceled = $this->filter_by($orders, 'status', 'cancelled'); // cancelled $orders may be partially filled
-        $allOrders = $this->array_concat($closed, $canceled);
-        return $this->filter_by_symbol_since_limit($allOrders, $symbol, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple $closed $orders made by the user
+             * @param {string|null} $symbol unified $market $symbol of the $market $orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch $orders for
+             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {array} $params extra parameters specific to the lbank api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            Async\await($this->load_markets());
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
+            }
+            $orders = Async\await($this->fetch_orders($symbol, $since, $limit, $params));
+            $closed = $this->filter_by($orders, 'status', 'closed');
+            $canceled = $this->filter_by($orders, 'status', 'cancelled'); // cancelled $orders may be partially filled
+            $allOrders = $this->array_concat($closed, $canceled);
+            return $this->filter_by_symbol_since_limit($allOrders, $symbol, $since, $limit);
+        }) ();
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
-        /**
-         * make a withdrawal
-         * @param {string} $code unified $currency $code
-         * @param {float} $amount the $amount to withdraw
-         * @param {string} $address the $address to withdraw to
-         * @param {string|null} $tag
-         * @param {array} $params extra parameters specific to the lbank api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
-         */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        // mark and fee are optional $params, mark is a note and must be less than 255 characters
-        $this->check_address($address);
-        yield $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'assetCode' => $currency['id'],
-            'amount' => $amount,
-            'account' => $address,
-        );
-        if ($tag !== null) {
-            $request['memo'] = $tag;
-        }
-        $response = $this->privatePostWithdraw (array_merge($request, $params));
-        //
-        //     {
-        //         'result' => 'true',
-        //         'withdrawId' => 90082,
-        //         'fee':0.001
-        //     }
-        //
-        return $this->parse_transaction($response, $currency);
+        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
+            /**
+             * make a withdrawal
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount the $amount to withdraw
+             * @param {string} $address the $address to withdraw to
+             * @param {string|null} $tag
+             * @param {array} $params extra parameters specific to the lbank api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             */
+            list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+            // mark and fee are optional $params, mark is a note and must be less than 255 characters
+            $this->check_address($address);
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'assetCode' => $currency['id'],
+                'amount' => $amount,
+                'account' => $address,
+            );
+            if ($tag !== null) {
+                $request['memo'] = $tag;
+            }
+            $response = $this->privatePostWithdraw (array_merge($request, $params));
+            //
+            //     {
+            //         'result' => 'true',
+            //         'withdrawId' => 90082,
+            //         'fee':0.001
+            //     }
+            //
+            return $this->parse_transaction($response, $currency);
+        }) ();
     }
 
     public function parse_transaction($transaction, $currency = null) {

@@ -6,11 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\InvalidOrder;
-use \ccxt\OrderNotFound;
-use \ccxt\NotSupported;
 
 class bitfinex2 extends Exchange {
 
@@ -918,7 +913,7 @@ class bitfinex2 extends Exchange {
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'status' => $this->parse_transfer_status($status),
-            'amount' => $this->safe_number($transfer, 7),
+            'amount' => $this->safe_number($info, 7),
             'currency' => $this->safe_currency_code($currencyId, $currency),
             'fromAccount' => $fromAccount,
             'toAccount' => $toAccount,
@@ -2071,9 +2066,9 @@ class bitfinex2 extends Exchange {
             if ($currency !== null) {
                 $code = $currency['code'];
             }
-            $feeCost = $this->safe_number($data, 8);
+            $feeCost = $this->safe_string($data, 8);
             if ($feeCost !== null) {
-                $feeCost = -$feeCost;
+                $feeCost = Precise::string_neg($feeCost);
             }
             $amount = $this->safe_number($data, 5);
             $id = $this->safe_value($data, 0);
@@ -2091,17 +2086,17 @@ class bitfinex2 extends Exchange {
             $timestamp = $this->safe_integer($transaction, 5);
             $updated = $this->safe_integer($transaction, 6);
             $status = $this->parse_transaction_status($this->safe_string($transaction, 9));
-            $amount = $this->safe_number($transaction, 12);
+            $amount = $this->safe_string($transaction, 12);
             if ($amount !== null) {
-                if ($amount < 0) {
+                if (Precise::string_lt($amount, '0')) {
                     $type = 'withdrawal';
                 } else {
                     $type = 'deposit';
                 }
             }
-            $feeCost = $this->safe_number($transaction, 13);
+            $feeCost = $this->safe_string($transaction, 13);
             if ($feeCost !== null) {
-                $feeCost = -$feeCost;
+                $feeCost = Precise::string_neg($feeCost);
             }
             $addressTo = $this->safe_string($transaction, 16);
             $txid = $this->safe_string($transaction, 20);
@@ -2120,13 +2115,13 @@ class bitfinex2 extends Exchange {
             'tag' => $tag, // refix it properly for the $tag from description
             'tagTo' => $tag,
             'type' => $type,
-            'amount' => $amount,
+            'amount' => $this->parse_number($amount),
             'currency' => $code,
             'status' => $status,
             'updated' => $updated,
             'fee' => array(
                 'currency' => $code,
-                'cost' => $feeCost,
+                'cost' => $this->parse_number($feeCost),
                 'rate' => null,
             ),
         );

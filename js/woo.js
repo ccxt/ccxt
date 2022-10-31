@@ -614,6 +614,7 @@ module.exports = class woo extends Exchange {
             const networks = networksByCurrencyId[currencyId];
             const code = this.safeCurrencyCode (currencyId);
             let name = undefined;
+            let minPrecision = undefined;
             const resultingNetworks = {};
             for (let j = 0; j < networks.length; j++) {
                 const network = networks[j];
@@ -621,7 +622,10 @@ module.exports = class woo extends Exchange {
                 const networkId = this.safeString (network, 'token');
                 const splitted = networkId.split ('_');
                 const unifiedNetwork = splitted[0];
-                const precision = this.parseNumber (this.parsePrecision (this.safeString (network, 'decimals')));
+                const precision = this.parsePrecision (this.safeString (network, 'decimals'));
+                if (precision !== undefined) {
+                    minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (precision, minPrecision);
+                }
                 resultingNetworks[unifiedNetwork] = {
                     'id': networkId,
                     'network': unifiedNetwork,
@@ -639,7 +643,7 @@ module.exports = class woo extends Exchange {
                     'deposit': undefined,
                     'withdraw': undefined,
                     'fee': undefined,
-                    'precision': precision, // will be filled down below
+                    'precision': this.parseNumber (precision),
                     'info': network,
                 };
             }
@@ -647,7 +651,7 @@ module.exports = class woo extends Exchange {
                 'id': currencyId,
                 'name': name,
                 'code': code,
-                'precision': undefined,
+                'precision': this.parseNumber (minPrecision),
                 'active': undefined,
                 'fee': undefined,
                 'networks': resultingNetworks,
@@ -661,7 +665,7 @@ module.exports = class woo extends Exchange {
                         'max': undefined,
                     },
                 },
-                'info': networks, // will be filled down below
+                'info': networks,
             };
         }
         return result;
@@ -1045,7 +1049,7 @@ module.exports = class woo extends Exchange {
         return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
-    async fetchOHLCV (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchOHLCV

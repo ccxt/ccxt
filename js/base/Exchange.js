@@ -1197,38 +1197,40 @@ module.exports = class Exchange {
         const feeSide = this.safeString (market, 'feeSide', 'quote');
         let key = 'quote';
         let cost = undefined;
+        const amountString = this.numberToString (amount);
+        const priceString = this.numberToString (price);
         if (feeSide === 'quote') {
             // the fee is always in quote currency
-            cost = amount * price;
+            cost = Precise.stringMul (amountString, priceString);
         } else if (feeSide === 'base') {
             // the fee is always in base currency
-            cost = amount;
+            cost = amountString;
         } else if (feeSide === 'get') {
             // the fee is always in the currency you get
-            cost = amount;
+            cost = amountString;
             if (side === 'sell') {
-                cost *= price;
+                cost = priceString;
             } else {
                 key = 'base';
             }
         } else if (feeSide === 'give') {
             // the fee is always in the currency you give
-            cost = amount;
+            cost = amountString;
             if (side === 'buy') {
-                cost *= price;
+                cost = Precise.stringMul (cost, priceString);
             } else {
                 key = 'base';
             }
         }
-        const rate = market[takerOrMaker];
+        const rate = this.numberToString (market[takerOrMaker]);
         if (cost !== undefined) {
-            cost *= rate;
+            cost = Precise.stringMul (cost, rate);
         }
         return {
             'type': takerOrMaker,
             'currency': market[key],
-            'rate': rate,
-            'cost': cost,
+            'rate': this.parseNumber (rate),
+            'cost': this.parseNumber (cost),
         };
     }
 
@@ -2047,7 +2049,7 @@ module.exports = class Exchange {
         if (warnOnFetchFundingFee) {
             throw new NotSupported (this.id + ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning');
         }
-        return this.fetchTransactionFee (code, params);
+        return await this.fetchTransactionFee (code, params);
     }
 
     async fetchFundingFees (codes = undefined, params = {}) {
@@ -2055,14 +2057,14 @@ module.exports = class Exchange {
         if (warnOnFetchFundingFees) {
             throw new NotSupported (this.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');
         }
-        return this.fetchTransactionFees (codes, params);
+        return await this.fetchTransactionFees (codes, params);
     }
 
     async fetchTransactionFee (code, params = {}) {
         if (!this.has['fetchTransactionFees']) {
             throw new NotSupported (this.id + ' fetchTransactionFee() is not supported yet');
         }
-        return this.fetchTransactionFees ([ code ], params);
+        return await this.fetchTransactionFees ([ code ], params);
     }
 
     async fetchTransactionFees (codes = undefined, params = {}) {
@@ -2584,6 +2586,14 @@ module.exports = class Exchange {
             result[parsed['symbol']] = parsed;
         }
         return result;
+    }
+
+    isTriggerOrder (params) {
+        const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
+        if (isTrigger) {
+            params = this.omit (params, [ 'trigger', 'stop' ]);
+        }
+        return [ isTrigger, params ];
     }
 
     isPostOnly (isMarketOrder, exchangeSpecificParam, params = {}) {

@@ -6,12 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\InvalidAddress;
-use \ccxt\InvalidOrder;
-use \ccxt\OrderNotFound;
-use \ccxt\NotSupported;
 
 class mexc extends Exchange {
 
@@ -262,11 +256,10 @@ class mexc extends Exchange {
                 ),
                 'defaultType' => 'spot', // spot, swap
                 'networks' => array(
-                    'TRX' => 'TRC-20',
-                    'TRC20' => 'TRC-20',
-                    'ETH' => 'ERC-20',
-                    'ERC20' => 'ERC-20',
+                    'TRX' => 'TRC20',
+                    'ETH' => 'ERC20',
                     'BEP20' => 'BEP20(BSC)',
+                    'BSC' => 'BEP20(BSC)',
                 ),
                 'accountsByType' => array(
                     'spot' => 'MAIN',
@@ -436,7 +429,7 @@ class mexc extends Exchange {
             $code = $this->safe_currency_code($id);
             $name = $this->safe_string($currency, 'full_name');
             $currencyActive = false;
-            $currencyPrecision = null;
+            $minPrecision = null;
             $currencyFee = null;
             $currencyWithdrawMin = null;
             $currencyWithdrawMax = null;
@@ -468,6 +461,10 @@ class mexc extends Exchange {
                 if ($isWithdrawEnabled) {
                     $withdrawEnabled = true;
                 }
+                $precision = $this->parse_precision($this->safe_string($chain, 'precision'));
+                if ($precision !== null) {
+                    $minPrecision = ($minPrecision === null) ? $precision : Precise::string_min($precision, $minPrecision);
+                }
                 $networks[$network] = array(
                     'info' => $chain,
                     'id' => $networkId,
@@ -476,7 +473,7 @@ class mexc extends Exchange {
                     'deposit' => $isDepositEnabled,
                     'withdraw' => $isWithdrawEnabled,
                     'fee' => $this->safe_number($chain, 'fee'),
-                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($chain, 'precision'))),
+                    'precision' => $this->parse_number($minPrecision),
                     'limits' => array(
                         'withdraw' => array(
                             'min' => $withdrawMin,
@@ -491,7 +488,6 @@ class mexc extends Exchange {
                 $defaultNetwork = $this->safe_value_2($networks, 'NONE', $networkKeysLength - 1);
                 if ($defaultNetwork !== null) {
                     $currencyFee = $defaultNetwork['fee'];
-                    $currencyPrecision = $defaultNetwork['precision'];
                 }
             }
             $result[$code] = array(
@@ -503,7 +499,7 @@ class mexc extends Exchange {
                 'deposit' => $depositEnabled,
                 'withdraw' => $withdrawEnabled,
                 'fee' => $currencyFee,
-                'precision' => $currencyPrecision,
+                'precision' => $this->parse_number($minPrecision),
                 'limits' => array(
                     'amount' => array(
                         'min' => null,
@@ -3020,7 +3016,7 @@ class mexc extends Exchange {
          */
         list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
         $networks = $this->safe_value($this->options, 'networks', array());
-        $network = $this->safe_string_2($params, 'network', 'chain'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string_upper_2($params, 'network', 'chain'); // this line allows the user to specify either ERC20 or ETH
         $network = $this->safe_string($networks, $network, $network); // handle ETH > ERC-20 alias
         $this->check_address($address);
         $this->load_markets();

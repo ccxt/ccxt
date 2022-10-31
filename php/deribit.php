@@ -6,10 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\InvalidOrder;
 
 class deribit extends Exchange {
 
@@ -23,6 +19,7 @@ class deribit extends Exchange {
             // 20 requests per second for non-matching-engine endpoints, 1000ms / 20 = 50ms between requests
             // 5 requests per second for matching-engine endpoints, cost = (1000ms / rateLimit) / 5 = 4
             'rateLimit' => 50,
+            'pro' => true,
             'has' => array(
                 'CORS' => true,
                 'spot' => false,
@@ -1070,11 +1067,10 @@ class deribit extends Exchange {
         $now = $this->milliseconds();
         if ($since === null) {
             if ($limit === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument or a $limit argument');
-            } else {
-                $request['start_timestamp'] = $now - ($limit - 1) * $duration * 1000;
-                $request['end_timestamp'] = $now;
+                $limit = 1000; // at max, it provides 5000 bars, but we set generous default here
             }
+            $request['start_timestamp'] = $now - ($limit - 1) * $duration * 1000;
+            $request['end_timestamp'] = $now;
         } else {
             $request['start_timestamp'] = $since;
             if ($limit === null) {

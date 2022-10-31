@@ -6,10 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\OrderNotFound;
-use \ccxt\NotSupported;
 
 class bitso extends Exchange {
 
@@ -1277,7 +1273,8 @@ class bitso extends Exchange {
     public function fetch_transaction_fees($codes = null, $params = array ()) {
         /**
          * fetch transaction fees
-         * @param {[string]|null} $codes not used by bitso fetchTransactionFees
+         * @see https://bitso.com/api_info#fees
+         * @param {[string]|null} $codes list of unified currency $codes
          * @param {array} $params extra parameters specific to the bitso api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
          */
@@ -1326,28 +1323,43 @@ class bitso extends Exchange {
         //        }
         //    }
         //
+        $result = array();
         $payload = $this->safe_value($response, 'payload', array());
         $depositFees = $this->safe_value($payload, 'deposit_fees', array());
-        $deposit = array();
         for ($i = 0; $i < count($depositFees); $i++) {
             $depositFee = $depositFees[$i];
             $currencyId = $this->safe_string($depositFee, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            $deposit[$code] = $this->safe_number($depositFee, 'fee');
+            if (($codes !== null) && !$this->in_array($code, $codes)) {
+                continue;
+            }
+            $result[$code] = array(
+                'deposit' => $this->safe_number($depositFee, 'fee'),
+                'withdraw' => null,
+                'info' => array(
+                    'deposit' => $depositFee,
+                    'withdraw' => null,
+                ),
+            );
         }
-        $withdraw = array();
         $withdrawalFees = $this->safe_value($payload, 'withdrawal_fees', array());
         $currencyIds = is_array($withdrawalFees) ? array_keys($withdrawalFees) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
-            $withdraw[$code] = $this->safe_number($withdrawalFees, $currencyId);
+            if (($codes !== null) && !$this->in_array($code, $codes)) {
+                continue;
+            }
+            $result[$code] = array(
+                'deposit' => $this->safe_value($result[$code], 'deposit'),
+                'withdraw' => $this->safe_number($withdrawalFees, $currencyId),
+                'info' => array(
+                    'deposit' => $this->safe_value($result[$code]['info'], 'deposit'),
+                    'withdraw' => $this->safe_number($withdrawalFees, $currencyId),
+                ),
+            );
         }
-        return array(
-            'info' => $response,
-            'deposit' => $deposit,
-            'withdraw' => $withdraw,
-        );
+        return $result;
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {

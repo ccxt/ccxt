@@ -1,17 +1,17 @@
 'use strict';
 
-const ccxtpro = require ('./ccxt.pro');
+const ccxt = require ('../../../ccxt');
 
 let stop = false
 
 async function shutdown (milliseconds) {
-    await ccxtpro.sleep (10000)
+    await ccxt.sleep (10000)
     stop = true
 }
 
 async function watchOrderBook (exchangeId, symbol) {
 
-    const exchange = new ccxtpro[exchangeId] ()
+     const exchange = new ccxt.pro[exchangeId] ()
     await exchange.loadMarkets ()
     // exchange.verbose = true
     while (!stop) {
