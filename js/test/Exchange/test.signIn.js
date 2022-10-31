@@ -8,7 +8,7 @@ async function testSignIn(exchange) {
         await exchange[method] ();
         console.log (method + ' successful');
     } else {
-        console.log (method + '() is not supported');
+        console.log (' + method + '() method is not needed for ' + exchange.id + '. Skipped.');
     }
 }
 
