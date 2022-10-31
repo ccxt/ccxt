@@ -1505,9 +1505,9 @@ module.exports = class kucoinfutures extends kucoin {
         //
         const data = this.safeValue (response, 'data');
         const previousFundingTimestamp = this.safeInteger (data, 'timePoint');
+        // the website displays the previous funding rate as "funding rate"
         const granularity = this.safeInteger (data, 'granularity');
         const fundingTimestamp = this.sum (previousFundingTimestamp, granularity);
-        // the website displays the previous funding rate as "funding rate"
         return {
             'info': data,
             'symbol': market['symbol'],
