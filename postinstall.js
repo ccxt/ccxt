@@ -58,11 +58,8 @@ let footer = [
 ]
 
 async function getData () {
-    const collectiveData_promise = fetch ('https://opencollective.com/ccxt.json')
-    const githubData_promise = fetch ('https://api.github.com/repos/ccxt/ccxt')
-    const allPromises = await Promise.all ([collectiveData_promise, githubData_promise])
-    const collectiveData = await allPromises[0].json ()
-    const githubData = await allPromises[1].json ()
+    const [collectiveData_result, githubData_result] = await Promise.all ([fetch ('https://opencollective.com/ccxt.json'), fetch ('https://api.github.com/repos/ccxt/ccxt')])
+    const [collectiveData, githubData] = await Promise.all (collectiveData_result.json (), githubData_result.json ())
 
     return {
         contributors: collectiveData['contributorsCount'].toLocaleString (),
