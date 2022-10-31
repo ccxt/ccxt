@@ -479,7 +479,9 @@ module.exports = class bitfinex extends bitfinexRest {
          */
         await this.loadMarkets ();
         await this.authenticate ();
-        symbol = this.symbol (symbol);
+        if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
+        }
         const url = this.urls['api']['ws']['private'];
         const orders = await this.watch (url, 'os', undefined, 1);
         if (this.newUpdates) {
