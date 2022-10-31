@@ -32,12 +32,6 @@ async function testCreateOrder(exchange, symbol) {
         console.log (warningPrefix, exchange.id, 'found in ignored exchanges, skipping ' + method + ' test...');
         return;
     }
-    // as this test is in it's early stages, we'd better o make a whitelist of exchanges where this will be tested reliably. After some period, we will remove the whitelist and test all exchanges
-    const whitelistedExchanges = [ 'binance', 'ftx' ];
-    if (!whitelistedExchanges.includes (exchange.id)) {
-        console.log (warningPrefix, exchange.id, 'is not in whitelist for test, skipping ', method, ' test...');
-        return;
-    }
     // ensure it has cancel (any) method, otherwise we should refrain from automatic test.
     if (!exchange.has['cancelOrder'] && !exchange.has['cancelOrders'] && !exchange.has['cancelAllOrders']) {
         assert (false, warningPrefix + ' ' +  exchange.id + ' does not have cancelOrder|cancelOrders|canelAllOrders method, which is needed to make tests for `createOrder` method. Skipping the test...');
