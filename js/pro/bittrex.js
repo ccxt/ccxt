@@ -223,7 +223,9 @@ module.exports = class bittrex extends bittrexRest {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        symbol = this.symbol (symbol);
+        if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
+        }
         const authentication = await this.authenticate ();
         const orders = await this.subscribeToOrders (authentication, params);
         if (this.newUpdates) {
