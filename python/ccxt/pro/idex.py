@@ -143,6 +143,7 @@ class idex(Exchange, ccxt.async_support.idex):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         name = 'trades'
         subscribeObject = {
             'name': name,
@@ -224,6 +225,7 @@ class idex(Exchange, ccxt.async_support.idex):
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         name = 'candles'
         interval = self.timeframes[timeframe]
         subscribeObject = {
@@ -474,6 +476,7 @@ class idex(Exchange, ccxt.async_support.idex):
         }
         messageHash = name
         if symbol is not None:
+            symbol = self.symbol(symbol)
             marketId = self.market_id(symbol)
             subscribeObject['markets'] = [marketId]
             messageHash = name + ':' + marketId
