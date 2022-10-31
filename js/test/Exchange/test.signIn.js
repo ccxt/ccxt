@@ -2,11 +2,6 @@
 
 // ----------------------------------------------------------------------------
 
-const assert = require ('assert');
-
-// ----------------------------------------------------------------------------
-
-
 async function testSignIn(exchange) {
     const method = 'signIn';
     if (exchange.has[method]) {
