@@ -56,7 +56,7 @@ properties
     .filter ((property) => fs.existsSync (__dirname + '/Exchange/test.' + property + '.js'))
     .forEach ((property) => {
         // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-        tests[property] = require (__dirname + '/Exchange/test.' + property + '.js')
+        tests[property] = require (__dirname + '/Exchange/test.' + property + '.js');
     });
 
 const errors = require ('../base/errors.js');
@@ -66,7 +66,7 @@ Object.keys (errors)
     .filter ((error) => fs.existsSync (__dirname + '/errors/test.' + error + '.js'))
     .forEach ((error) => {
         // eslint-disable-next-line global-require, import/no-dynamic-require, no-path-concat
-        tests[error] = require (__dirname + '/errors/test.' + error + '.js')
+        tests[error] = require (__dirname + '/errors/test.' + error + '.js');
     });
 
 //-----------------------------------------------------------------------------
