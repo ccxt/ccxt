@@ -1480,6 +1480,124 @@ module.exports = class bybit extends Exchange {
         return ticker;
     }
 
+    async fetchSpotTickers (params = {}) {
+        const response = await this.publicGetSpotQuoteV1Ticker24hr (params);
+        //
+        //     {
+        //         "ret_code":0,
+        //         "ret_msg":null,
+        //         "result":[
+        //             {
+        //                 "time":1667198103209,
+        //                 "symbol":"XDCUSDT",
+        //                 "bestBidPrice":"0.03092",
+        //                 "bestAskPrice":"0.03093",
+        //                 "volume":"393311",
+        //                 "quoteVolume":"12189.678747",
+        //                 "lastPrice":"0.03092",
+        //                 "highPrice":"0.03111",
+        //                 "lowPrice":"0.0309",
+        //                 "openPrice":"0.0309"
+        //             }
+        //         ],
+        //         "ext_code": null,
+        //         "ext_info": null
+        //     }
+        //
+        const tickerList = this.safeValue (response, 'result', []);
+        return tickerList;
+    }
+
+    async fetchUnifiedMarginTickers (params = {}) {
+        const response = await this.publicGetDerivativesV3PublicTickers (params);
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "category": "linear",
+        //             "list": [
+        //                 {
+        //                     "symbol": "BTCUSDT",
+        //                     "bidPrice": "19255",
+        //                     "askPrice": "19255.5",
+        //                     "lastPrice": "19255.50",
+        //                     "lastTickDirection": "ZeroPlusTick",
+        //                     "prevPrice24h": "18634.50",
+        //                     "price24hPcnt": "0.033325",
+        //                     "highPrice24h": "19675.00",
+        //                     "lowPrice24h": "18610.00",
+        //                     "prevPrice1h": "19278.00",
+        //                     "markPrice": "19255.00",
+        //                     "indexPrice": "19260.68",
+        //                     "openInterest": "48069.549",
+        //                     "turnover24h": "4686694853.047006",
+        //                     "volume24h": "243730.252",
+        //                     "fundingRate": "0.0001",
+        //                     "nextFundingTime": "1663689600000",
+        //                     "predictedDeliveryPrice": "",
+        //                     "basisRate": "",
+        //                     "deliveryFeeRate": "",
+        //                     "deliveryTime": "0"
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": null,
+        //         "time": 1663670053454
+        //     }
+        //
+        let tickerList = this.safeValue (response, 'result', []);
+        if (!Array.isArray (tickerList)) {
+            tickerList = this.safeValue (tickerList, 'list');
+        }
+        return tickerList;
+    }
+
+    async fetchDerivativesTickers (params = {}) {
+        const response = await this.publicGetV2PublicTickers (params);
+        //
+        //     {
+        //         "ret_code": 0,
+        //         "ret_msg": "OK",
+        //         "result": [
+        //             {
+        //                 "symbol": "BTCUSD",
+        //                 "bid_price": "19244.5",
+        //                 "ask_price": "19245",
+        //                 "last_price": "19244.50",
+        //                 "last_tick_direction": "MinusTick",
+        //                 "prev_price_24h": "18780.50",
+        //                 "price_24h_pcnt": "0.024706",
+        //                 "high_price_24h": "19582.00",
+        //                 "low_price_24h": "18492.50",
+        //                 "prev_price_1h": "19217.00",
+        //                 "mark_price": "19242.60",
+        //                 "index_price": "19229.37",
+        //                 "open_interest": 4.13999123e+08,
+        //                 "countdown_hour": 0,
+        //                 "turnover_24h": "1977.97821021",
+        //                 "volume_24h": 3.7810482e+07,
+        //                 "funding_rate": "0.0001",
+        //                 "predicted_funding_rate": "",
+        //                 "next_funding_time": "2022-09-08T16:00:00Z",
+        //                 "predicted_delivery_price": "",
+        //                 "total_turnover": "",
+        //                 "total_volume": 0,
+        //                 "delivery_fee_rate": "",
+        //                 "delivery_time": "",
+        //                 "price_1h_pcnt": "",
+        //                 "open_value": ""
+        //             }
+        //         ],
+        //         "ext_code": "",
+        //         "ext_info": "",
+        //         "time_now": "1662629551.232415"
+        //     }
+        //
+        const tickerList = this.safeValue (response, 'result', []);
+        return tickerList;
+    }
+
     async fetchTickers (symbols = undefined, params = {}) {
         /**
          * @method
@@ -1509,12 +1627,11 @@ module.exports = class bybit extends Exchange {
                 isUsdcSettled = defaultSettle === 'USDC';
             }
         }
-        let method = undefined;
+        let tickerList = [];
         const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
         if (type === 'spot') {
-            method = 'publicGetSpotQuoteV1Ticker24hr';
+            tickerList = await this.fetchSpotTickers (this.extend (params, request));
         } else if (enableUnifiedMargin) {
-            method = 'publicGetDerivativesV3PublicTickers';
             if (market['option']) {
                 // bybit requires a symbol when query tockers for options markets
                 throw new NotSupported (this.id + ' fetchTickers() is not supported for option markets');
@@ -1523,16 +1640,11 @@ module.exports = class bybit extends Exchange {
             } else if (market['linear']) {
                 request['category'] = 'linear';
             }
+            tickerList = await this.fetchUnifiedMarginTickers (this.extend (params, request));
         } else if (!isUsdcSettled) {
-            // inverse perpetual // usdt linear // inverse futures
-            method = 'publicGetV2PublicTickers';
+            tickerList = await this.fetchDerivativesTickers (this.extend (params, request));
         } else {
             throw new NotSupported (this.id + ' fetchTickers() is not supported for USDC markets');
-        }
-        const response = await this[method] (this.extend (params, request));
-        let tickerList = this.safeValue (response, 'result', []);
-        if (!Array.isArray (tickerList)) {
-            tickerList = this.safeValue (tickerList, 'list');
         }
         const tickers = {};
         for (let i = 0; i < tickerList.length; i++) {
