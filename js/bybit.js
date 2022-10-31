@@ -1749,174 +1749,44 @@ module.exports = class bybit extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bybit#fetchOHLCV
-         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
-         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
-         * @param {string} timeframe the length of time each candle represents
-         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
-         * @param {int|undefined} limit the maximum amount of candles to fetch
-         * @param {object} params extra parameters specific to the bybit api endpoint
-         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
-         */
-        await this.loadMarkets ();
-        const market = this.market (symbol);
+    async fetchSpotOHLCV (params = {}) {
+        const response = await this.publicGetSpotQuoteV1Kline (params);
+        //
+        //     {
+        //         "ret_code": "0",
+        //         "ret_msg": null,
+        //         "result": [
+        //             [
+        //                 1651837620000,
+        //                 "35831.5",
+        //                 "35831.5",
+        //                 "35801.93",
+        //                 "35817.11",
+        //                 "1.23453",
+        //                 0,
+        //                 "44213.97591627",
+        //                 24,
+        //                 "0",
+        //                 "0"
+        //             ]
+        //         ],
+        //         "ext_code": null,
+        //         "ext_info": null
+        //     }
+        //
+        const ohlcvs = this.safeValue (response, 'result');
+        return ohlcvs;
+    }
+
+    async fetchUnifiedMarginOHLCV (params = {}) {
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
-        const request = {
-            'symbol': market['id'],
+        const methods = {
+            'mark': 'publicGetDerivativesV3PublicMarkPriceKline',
+            'index': 'publicGetDerivativesV3PublicIndexPriceKline',
         };
-        const duration = this.parseTimeframe (timeframe);
-        const now = this.seconds ();
-        let sinceTimestamp = undefined;
-        if (limit === undefined) {
-            limit = 200; // default is 200 when requested with `since`
-        }
-        if (since === undefined) {
-            sinceTimestamp = now - limit * duration;
-        } else {
-            sinceTimestamp = parseInt (since / 1000);
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit; // max 200, default 200
-        }
-        let method = undefined;
-        let intervalKey = 'interval';
-        let sinceKey = 'from';
-        const isUsdcSettled = market['settle'] === 'USDC';
-        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
-        if (market['spot']) {
-            method = 'publicGetSpotQuoteV1Kline';
-        } else if (enableUnifiedMargin) {
-            const methods = {
-                'mark': 'publicGetDerivativesV3PublicMarkPriceKline',
-                'index': 'publicGetDerivativesV3PublicIndexPriceKline',
-            };
-            method = this.safeValue (methods, price, 'publicGetDerivativesV3PublicKline');
-            sinceKey = 'start';
-            sinceTimestamp = sinceTimestamp * 1000;
-            // end is required parameter
-            let endTimestamp = this.safeInteger (params, 'end');
-            if (endTimestamp === undefined) {
-                endTimestamp = this.sum (sinceTimestamp, limit * duration * 1000);
-            }
-            request['end'] = endTimestamp;
-            if (market['option']) {
-                request['category'] = 'option';
-            } else if (market['inverse']) {
-                request['category'] = 'inverse';
-            } else if (market['linear']) {
-                request['category'] = 'linear';
-            }
-        } else if (market['contract'] && !isUsdcSettled) {
-            if (market['linear']) {
-                // linear swaps/futures
-                const methods = {
-                    'mark': 'publicGetPublicLinearMarkPriceKline',
-                    'index': 'publicGetPublicLinearIndexPriceKline',
-                    'premiumIndex': 'publicGetPublicLinearPremiumIndexKline',
-                };
-                method = this.safeValue (methods, price, 'publicGetPublicLinearKline');
-            } else {
-                // inverse swaps/ futures
-                const methods = {
-                    'mark': 'publicGetV2PublicMarkPriceKline',
-                    'index': 'publicGetV2PublicIndexPriceKline',
-                    'premiumIndex': 'publicGetV2PublicPremiumPriceKline',
-                };
-                method = this.safeValue (methods, price, 'publicGetV2PublicKlineList');
-            }
-        } else {
-            // usdc markets
-            if (market['option']) {
-                throw new NotSupported (this.id + ' fetchOHLCV() is not supported for USDC options markets');
-            }
-            intervalKey = 'period';
-            sinceKey = 'startTime';
-            const methods = {
-                'mark': 'publicGetPerpetualUsdcOpenapiPublicV1MarkPriceKline',
-                'index': 'publicGetPerpetualUsdcOpenapiPublicV1IndexPriceKline',
-                'premiumIndex': 'publicGetPerpetualUsdcOpenapiPublicV1PremiumPriceKline',
-            };
-            method = this.safeValue (methods, price, 'publicGetPerpetualUsdcOpenapiPublicV1KlineList');
-        }
-        // spot markets use the same interval format as ccxt
-        // so we don't need  to convert it
-        request[intervalKey] = market['spot'] ? timeframe : this.timeframes[timeframe];
-        request[sinceKey] = sinceTimestamp;
-        const response = await this[method] (this.extend (request, params));
-        //
-        // inverse perpetual BTC/USD
-        //
-        //     {
-        //         ret_code: 0,
-        //         ret_msg: 'OK',
-        //         ext_code: '',
-        //         ext_info: '',
-        //         result: [
-        //             {
-        //                 symbol: 'BTCUSD',
-        //                 interval: '1',
-        //                 open_time: 1583952540,
-        //                 open: '7760.5',
-        //                 high: '7764',
-        //                 low: '7757',
-        //                 close: '7763.5',
-        //                 volume: '1259766',
-        //                 turnover: '162.32773718999994'
-        //             },
-        //         ],
-        //         time_now: '1583953082.397330'
-        //     }
-        //
-        // linear perpetual BTC/USDT
-        //
-        //     {
-        //         "ret_code":0,
-        //         "ret_msg":"OK",
-        //         "ext_code":"",
-        //         "ext_info":"",
-        //         "result":[
-        //             {
-        //                 "id":143536,
-        //                 "symbol":"BTCUSDT",
-        //                 "period":"15",
-        //                 "start_at":1587883500,
-        //                 "volume":1.035,
-        //                 "open":7540.5,
-        //                 "high":7541,
-        //                 "low":7540.5,
-        //                 "close":7541
-        //             }
-        //         ],
-        //         "time_now":"1587884120.168077"
-        //     }
-        // spot
-        //     {
-        //    "ret_code": "0",
-        //    "ret_msg": null,
-        //     "result": [
-        //         [
-        //             1651837620000,
-        //             "35831.5",
-        //             "35831.5",
-        //             "35801.93",
-        //             "35817.11",
-        //             "1.23453",
-        //             0,
-        //             "44213.97591627",
-        //             24,
-        //             "0",
-        //             "0"
-        //         ]
-        //     ],
-        //     "ext_code": null,
-        //     "ext_info": null
-        // }
-        //
-        // Unified Margin
+        const method = this.safeValue (methods, price, 'publicGetDerivativesV3PublicKline');
+        const response = await this[method] (params);
         //
         //     {
         //         "retCode": 0,
@@ -1939,10 +1809,193 @@ module.exports = class bybit extends Exchange {
         //         }
         //     }
         //
-        const result = this.safeValue (response, 'result', {});
-        let ohlcvs = result;
-        if (enableUnifiedMargin) {
-            ohlcvs = this.safeValue (result, 'list');
+        const result = this.safeValue (response, 'result');
+        const ohlcvs = this.safeValue (result, 'list');
+        return ohlcvs;
+    }
+
+    async fetchLinearSwapOHLCV (params = {}) {
+        const price = this.safeString (params, 'price');
+        params = this.omit (params, 'price');
+        const methods = {
+            'mark': 'publicGetPublicLinearMarkPriceKline',
+            'index': 'publicGetPublicLinearIndexPriceKline',
+            'premiumIndex': 'publicGetPublicLinearPremiumIndexKline',
+        };
+        const method = this.safeValue (methods, price, 'publicGetPublicLinearKline');
+        const response = await this[method] (params);
+        //
+        //     {
+        //         "ret_code":0,
+        //         "ret_msg":"OK",
+        //         "ext_code":"",
+        //         "ext_info":"",
+        //         "result":[
+        //             {
+        //                 "id":143536,
+        //                 "symbol":"BTCUSDT",
+        //                 "period":"15",
+        //                 "start_at":1587883500,
+        //                 "volume":1.035,
+        //                 "open":7540.5,
+        //                 "high":7541,
+        //                 "low":7540.5,
+        //                 "close":7541
+        //             }
+        //         ],
+        //         "time_now":"1587884120.168077"
+        //     }
+        //
+        const ohlcvs = this.safeValue (response, 'result');
+        return ohlcvs;
+    }
+
+    async fetchInverseSwapOHLCV (params = {}) {
+        const price = this.safeString (params, 'price');
+        params = this.omit (params, 'price');
+        const methods = {
+            'mark': 'publicGetV2PublicMarkPriceKline',
+            'index': 'publicGetV2PublicIndexPriceKline',
+            'premiumIndex': 'publicGetV2PublicPremiumPriceKline',
+        };
+        const method = this.safeValue (methods, price, 'publicGetV2PublicKlineList');
+        const response = await this[method] (params);
+        //
+        //     {
+        //         ret_code: 0,
+        //         ret_msg: 'OK',
+        //         ext_code: '',
+        //         ext_info: '',
+        //         result: [
+        //             {
+        //                 symbol: 'BTCUSD',
+        //                 interval: '1',
+        //                 open_time: 1583952540,
+        //                 open: '7760.5',
+        //                 high: '7764',
+        //                 low: '7757',
+        //                 close: '7763.5',
+        //                 volume: '1259766',
+        //                 turnover: '162.32773718999994'
+        //             },
+        //         ],
+        //         time_now: '1583953082.397330'
+        //     }
+        //
+        const ohlcvs = this.safeValue (response, 'result');
+        return ohlcvs;
+    }
+
+    async fetchUSDCOHLCV (params = {}) {
+        const price = this.safeString (params, 'price');
+        params = this.omit (params, 'price');
+        const methods = {
+            'mark': 'publicGetPerpetualUsdcOpenapiPublicV1MarkPriceKline',
+            'index': 'publicGetPerpetualUsdcOpenapiPublicV1IndexPriceKline',
+            'premiumIndex': 'publicGetPerpetualUsdcOpenapiPublicV1PremiumPriceKline',
+        };
+        const method = this.safeValue (methods, price, 'publicGetPerpetualUsdcOpenapiPublicV1KlineList');
+        const response = await this[method] (params);
+        //
+        //     {
+        //         "retCode":0,
+        //         "retMsg":"",
+        //         "result":[
+        //             {
+        //                 "symbol":"BTCPERP",
+        //                 "period":"1",
+        //                 "openTime":"1635648300",
+        //                 "open":"0.000066",
+        //                 "high":"0.000066",
+        //                 "low":"0.000066",
+        //                 "close":"0.000066"
+        //             }
+        //         ]
+        //     }
+        //
+        const ohlcvs = this.safeValue (response, 'result');
+        return ohlcvs;
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const duration = this.parseTimeframe (timeframe);
+        const now = this.seconds ();
+        let sinceTimestamp = undefined;
+        if (limit === undefined) {
+            limit = 200; // default is 200 when requested with `since`
+        }
+        if (since === undefined) {
+            sinceTimestamp = now - limit * duration;
+        } else {
+            sinceTimestamp = parseInt (since / 1000);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // max 200, default 200
+        }
+        let ohlcvs = [];
+        let intervalKey = 'interval';
+        let sinceKey = 'from';
+        const isUsdcSettled = market['settle'] === 'USDC';
+        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+        if (market['spot']) {
+            // spot markets use the same interval format as ccxt
+            // so we don't need  to convert it
+            request[intervalKey] = timeframe;
+            request[sinceKey] = sinceTimestamp;
+            ohlcvs = await this.fetchSpotOHLCV (this.extend (request, params));
+        } else if (enableUnifiedMargin) {
+            sinceKey = 'start';
+            sinceTimestamp = sinceTimestamp * 1000;
+            // end is required parameter
+            let endTimestamp = this.safeInteger (params, 'end');
+            if (endTimestamp === undefined) {
+                endTimestamp = this.sum (sinceTimestamp, limit * duration * 1000);
+            }
+            request['end'] = endTimestamp;
+            if (market['option']) {
+                request['category'] = 'option';
+            } else if (market['inverse']) {
+                request['category'] = 'inverse';
+            } else if (market['linear']) {
+                request['category'] = 'linear';
+            }
+            request[sinceKey] = sinceTimestamp;
+            request[intervalKey] = this.timeframes[timeframe];
+            ohlcvs = await this.fetchUnifiedMarginOHLCV (this.extend (request, params));
+        } else if (market['contract'] && !isUsdcSettled) {
+            request[intervalKey] = this.timeframes[timeframe];
+            request[sinceKey] = sinceTimestamp;
+            if (market['linear']) {
+                ohlcvs = await this.fetchLinearSwapOHLCV (this.extend (request, params));
+            } else {
+                ohlcvs = await this.fetchInverseSwapOHLCV (this.extend (request, params));
+            }
+        } else {
+            // usdc markets
+            if (market['option']) {
+                throw new NotSupported (this.id + ' fetchOHLCV() is not supported for USDC options markets');
+            }
+            intervalKey = 'period';
+            sinceKey = 'startTime';
+            request[intervalKey] = this.timeframes[timeframe];
+            request[sinceKey] = sinceTimestamp;
+            ohlcvs = await this.fetchUSDCOHLCV (this.extend (request, params));
         }
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
