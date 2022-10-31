@@ -124,6 +124,7 @@ class cryptocom(Exchange, ccxt.async_support.cryptocom):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         if not market['spot']:
             raise NotSupported(self.id + ' watchTrades() supports spot markets only')
         messageHash = 'trade' + '.' + market['id']
@@ -185,6 +186,7 @@ class cryptocom(Exchange, ccxt.async_support.cryptocom):
         market = None
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
         defaultType = self.safe_string(self.options, 'defaultType', 'spot')
         messageHash = 'user.margin.trade' if (defaultType == 'margin') else 'user.trade'
         messageHash = (messageHash + '.' + market['id']) if (market is not None) else messageHash
@@ -244,6 +246,7 @@ class cryptocom(Exchange, ccxt.async_support.cryptocom):
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         if not market['spot']:
             raise NotSupported(self.id + ' watchOHLCV() supports spot markets only')
         interval = self.timeframes[timeframe]
@@ -296,6 +299,7 @@ class cryptocom(Exchange, ccxt.async_support.cryptocom):
         market = None
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
         defaultType = self.safe_string(self.options, 'defaultType', 'spot')
         messageHash = 'user.margin.order' if (defaultType == 'margin') else 'user.order'
         messageHash = (messageHash + '.' + market['id']) if (market is not None) else messageHash
