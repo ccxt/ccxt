@@ -71,6 +71,8 @@ class bitfinex extends \ccxt\async\bitfinex {
              * @param {array} $params extra parameters specific to the bitfinex api endpoint
              * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
+            Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
             $trades = Async\await($this->subscribe('trades', $symbol, $params));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
@@ -487,6 +489,9 @@ class bitfinex extends \ccxt\async\bitfinex {
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate());
+            if ($symbol !== null) {
+                $symbol = $this->symbol($symbol);
+            }
             $url = $this->urls['api']['ws']['private'];
             $orders = Async\await($this->watch($url, 'os', null, 1));
             if ($this->newUpdates) {
