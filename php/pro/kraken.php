@@ -259,6 +259,8 @@ class kraken extends \ccxt\async\kraken {
              * @param {array} $params extra parameters specific to the kraken api endpoint
              * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
+            Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
             $name = 'trade';
             $trades = Async\await($this->watch_public($name, $symbol, $params));
             if ($this->newUpdates) {
@@ -298,6 +300,7 @@ class kraken extends \ccxt\async\kraken {
             Async\await($this->load_markets());
             $name = 'ohlc';
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $wsName = $this->safe_value($market['info'], 'wsname');
             $messageHash = $name . ':' . $timeframe . ':' . $wsName;
             $url = $this->urls['api']['ws']['public'];
@@ -580,6 +583,7 @@ class kraken extends \ccxt\async\kraken {
             $subscriptionHash = $name;
             $messageHash = $name;
             if ($symbol !== null) {
+                $symbol = $this->symbol($symbol);
                 $messageHash .= ':' . $symbol;
             }
             $url = $this->urls['api']['ws']['private'];

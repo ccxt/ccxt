@@ -242,6 +242,8 @@ class kraken(Exchange, ccxt.async_support.kraken):
         :param dict params: extra parameters specific to the kraken api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
+        await self.load_markets()
+        symbol = self.symbol(symbol)
         name = 'trade'
         trades = await self.watch_public(name, symbol, params)
         if self.newUpdates:
@@ -272,6 +274,7 @@ class kraken(Exchange, ccxt.async_support.kraken):
         await self.load_markets()
         name = 'ohlc'
         market = self.market(symbol)
+        symbol = market['symbol']
         wsName = self.safe_value(market['info'], 'wsname')
         messageHash = name + ':' + timeframe + ':' + wsName
         url = self.urls['api']['ws']['public']
@@ -518,6 +521,7 @@ class kraken(Exchange, ccxt.async_support.kraken):
         subscriptionHash = name
         messageHash = name
         if symbol is not None:
+            symbol = self.symbol(symbol)
             messageHash += ':' + symbol
         url = self.urls['api']['ws']['private']
         requestId = self.request_id()
