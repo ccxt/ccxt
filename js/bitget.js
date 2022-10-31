@@ -93,9 +93,12 @@ module.exports = class bitget extends Exchange {
                     '30m': '30min',
                     '1h': '1h',
                     '4h': '4h',
+                    '6h': '6h',
                     '12h': '12h',
                     '1d': '1day',
-                    '1w': '7day',  // not documented on the website
+                    '3d': '3day',
+                    '1w': '1week',
+                    '1M': '1M',
                 },
                 'swap': {
                     '1m': '60',
