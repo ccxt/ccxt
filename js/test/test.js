@@ -5,7 +5,7 @@
 const [processPath, , exchangeId = null, exchangeSymbol = null] = process.argv.filter ((x) => !x.startsWith ('--'))
 const verbose = process.argv.includes ('--verbose') || false
 const debug = process.argv.includes ('--debug') || false
-const extendedOrderTest = process.argv.includes ('---testOrders')
+const extendedOrderTest = process.argv.includes ('--testCreateOrder')
 
 // ----------------------------------------------------------------------------
 
