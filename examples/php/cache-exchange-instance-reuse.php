@@ -25,5 +25,4 @@ function create_exchange($exchange_id, $config) {
 }
 
 $exchange1 = create_exchange('bittrex', ['custom_id'=>'mybittrex1']);
-$public_trades = $exchange1->fetch_trades('BTC/USDT');
-print ("last trade:" . $public_trades[0]['price']);
+print ($exchange1->fetch_trades('BTC/USDT')[0]);
