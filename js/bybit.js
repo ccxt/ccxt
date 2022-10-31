@@ -1480,7 +1480,9 @@ module.exports = class bybit extends Exchange {
         return ticker;
     }
 
-    async fetchSpotTickers (params = {}) {
+    async fetchSpotTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.publicGetSpotQuoteV1Ticker24hr (params);
         //
         //     {
@@ -1505,11 +1507,33 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         const tickerList = this.safeValue (response, 'result', []);
-        return tickerList;
+        const tickers = {};
+        for (let i = 0; i < tickerList.length; i++) {
+            const ticker = this.parseTicker (tickerList[i]);
+            const symbol = ticker['symbol'];
+            tickers[symbol] = ticker;
+        }
+        return this.filterByArray (tickers, 'symbol', symbols);
     }
 
-    async fetchUnifiedMarginTickers (params = {}) {
-        const response = await this.publicGetDerivativesV3PublicTickers (params);
+    async fetchUnifiedMarginTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const request = {};
+        let market = undefined;
+        if (symbols !== undefined) {
+            const symbol = this.safeValue (symbols, 0);
+            market = this.market (symbol);
+        }
+        if (market['option']) {
+            // bybit requires a symbol when query tockers for options markets
+            throw new NotSupported (this.id + ' fetchTickers() is not supported for option markets');
+        } else if (market['inverse']) {
+            request['category'] = 'inverse';
+        } else if (market['linear']) {
+            request['category'] = 'linear';
+        }
+        const response = await this.publicGetDerivativesV3PublicTickers (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -1550,10 +1574,18 @@ module.exports = class bybit extends Exchange {
         if (!Array.isArray (tickerList)) {
             tickerList = this.safeValue (tickerList, 'list');
         }
-        return tickerList;
+        const tickers = {};
+        for (let i = 0; i < tickerList.length; i++) {
+            const ticker = this.parseTicker (tickerList[i]);
+            const symbol = ticker['symbol'];
+            tickers[symbol] = ticker;
+        }
+        return this.filterByArray (tickers, 'symbol', symbols);
     }
 
-    async fetchDerivativesTickers (params = {}) {
+    async fetchDerivativesTickers (symbols = undefined, params = {}) {
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.publicGetV2PublicTickers (params);
         //
         //     {
@@ -1595,7 +1627,13 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         const tickerList = this.safeValue (response, 'result', []);
-        return tickerList;
+        const tickers = {};
+        for (let i = 0; i < tickerList.length; i++) {
+            const ticker = this.parseTicker (tickerList[i]);
+            const symbol = ticker['symbol'];
+            tickers[symbol] = ticker;
+        }
+        return this.filterByArray (tickers, 'symbol', symbols);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -1609,7 +1647,6 @@ module.exports = class bybit extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const request = {};
         let type = undefined;
         let market = undefined;
         let isUsdcSettled = undefined;
@@ -1627,32 +1664,16 @@ module.exports = class bybit extends Exchange {
                 isUsdcSettled = defaultSettle === 'USDC';
             }
         }
-        let tickerList = [];
         const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
         if (type === 'spot') {
-            tickerList = await this.fetchSpotTickers (this.extend (params, request));
+            return await this.fetchSpotTickers (symbols, params);
         } else if (enableUnifiedMargin) {
-            if (market['option']) {
-                // bybit requires a symbol when query tockers for options markets
-                throw new NotSupported (this.id + ' fetchTickers() is not supported for option markets');
-            } else if (market['inverse']) {
-                request['category'] = 'inverse';
-            } else if (market['linear']) {
-                request['category'] = 'linear';
-            }
-            tickerList = await this.fetchUnifiedMarginTickers (this.extend (params, request));
+            return await this.fetchUnifiedMarginTickers (symbols, params);
         } else if (!isUsdcSettled) {
-            tickerList = await this.fetchDerivativesTickers (this.extend (params, request));
+            return await this.fetchDerivativesTickers (symbols, params);
         } else {
             throw new NotSupported (this.id + ' fetchTickers() is not supported for USDC markets');
         }
-        const tickers = {};
-        for (let i = 0; i < tickerList.length; i++) {
-            const ticker = this.parseTicker (tickerList[i]);
-            const symbol = ticker['symbol'];
-            tickers[symbol] = ticker;
-        }
-        return this.filterByArray (tickers, 'symbol', symbols);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
