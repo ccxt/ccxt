@@ -131,6 +131,7 @@ module.exports = class cryptocom extends cryptocomRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         if (!market['spot']) {
             throw new NotSupported (this.id + ' watchTrades() supports spot markets only');
         }
@@ -200,6 +201,7 @@ module.exports = class cryptocom extends cryptocomRest {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            symbol = market['symbol'];
         }
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         let messageHash = (defaultType === 'margin') ? 'user.margin.trade' : 'user.trade';
@@ -268,6 +270,7 @@ module.exports = class cryptocom extends cryptocomRest {
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         if (!market['spot']) {
             throw new NotSupported (this.id + ' watchOHLCV() supports spot markets only');
         }
@@ -328,6 +331,7 @@ module.exports = class cryptocom extends cryptocomRest {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            symbol = market['symbol'];
         }
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         let messageHash = (defaultType === 'margin') ? 'user.margin.order' : 'user.order';
