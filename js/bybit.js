@@ -2361,48 +2361,16 @@ module.exports = class bybit extends Exchange {
         }, market);
     }
 
-    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bybit#fetchTrades
-         * @description get the list of most recent trades for a particular symbol
-         * @param {string} symbol unified symbol of the market to fetch trades for
-         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
-         * @param {object} params extra parameters specific to the bybit api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
-         */
+    async fetchSpotTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let method = undefined;
         const request = {
             'symbol': market['id'],
         };
-        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
-        const isUsdcSettled = market['settle'] === 'USDC';
-        if (market['type'] === 'spot') {
-            method = 'publicGetSpotQuoteV1Trades';
-        } else if (!isUsdcSettled) {
-            if (enableUnifiedMargin) {
-                method = 'publicGetDerivativesV3PublicRecentTrade';
-                if (market['inverse']) {
-                    request['category'] = 'inverse';
-                } else if (market['linear']) {
-                    request['category'] = 'linear';
-                }
-            } else {
-                // inverse perpetual // usdt linear // inverse futures
-                method = market['linear'] ? 'publicGetPublicLinearRecentTradingRecords' : 'publicGetV2PublicTradingRecords';
-            }
-        } else {
-            // usdc option/ swap
-            method = 'publicGetOptionUsdcOpenapiPublicV1QueryTradeLatest';
-            request['category'] = market['option'] ? 'OPTION' : 'PERPETUAL';
-        }
         if (limit !== undefined) {
-            request['limit'] = limit; // default 500, max 1000
+            request['limit'] = limit; // Default value is 60, max 60
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.publicGetSpotQuoteV1Trades (this.extend (request, params));
         //
         //     {
         //         ret_code: 0,
@@ -2411,38 +2379,30 @@ module.exports = class bybit extends Exchange {
         //         ext_info: '',
         //         result: [
         //             {
-        //                 id: 43785688,
-        //                 symbol: 'BTCUSD',
-        //                 price: 7786,
-        //                 qty: 67,
-        //                 side: 'Sell',
-        //                 time: '2020-03-11T19:18:30.123Z'
+        //                 "price": "50005.12",
+        //                 "time": 1620822657672,
+        //                 "qty": "0.0001",
+        //                 "isBuyerMaker": true
         //             },
         //         ],
         //         time_now: '1583954313.393362'
         //     }
         //
-        // usdc trades
-        //     {
-        //         "retCode": 0,
-        //           "retMsg": "Success.",
-        //           "result": {
-        //           "resultTotalSize": 2,
-        //             "cursor": "",
-        //             "dataList": [
-        //                  {
-        //                    "id": "3caaa0ca",
-        //                    "symbol": "BTCPERP",
-        //                    "orderPrice": "58445.00",
-        //                    "orderQty": "0.010",
-        //                    "side": "Buy",
-        //                    "time": "1638275679673"
-        //                  }
-        //              ]
-        //         }
-        //     }
-        //
-        // Unified Margin
+        const trades = this.safeValue (response, 'result', {});
+        return this.parseTrades (trades, market, since, limit);
+    }
+
+    async fetchUnifiedMarginTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit; // Limit for data size per page, max size is 1000. Default as showing 500 pieces of data per page
+        }
+        request['category'] = market['inverse'] ? 'inverse' : 'linear';
+        const response = await this.publicGetDerivativesV3PublicRecentTrade (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -2462,11 +2422,109 @@ module.exports = class bybit extends Exchange {
         //         },
         //         "time": 1657870326247
         //     }
-        let trades = this.safeValue (response, 'result', {});
-        if (!Array.isArray (trades)) {
-            trades = this.safeValue2 (trades, 'dataList', 'list', []);
-        }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const trades = this.safeValue (result, 'list', []);
         return this.parseTrades (trades, market, since, limit);
+    }
+
+    async fetchDerivativesTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit; // Limit for data size, max size is 1000. Default size is 500
+        }
+        const method = market['linear'] ? 'publicGetPublicLinearRecentTradingRecords' : 'publicGetV2PublicTradingRecords';
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "ret_code": 0,
+        //         "ret_msg": "OK",
+        //         "ext_code": "",
+        //         "ext_info": "",
+        //         "result": [
+        //             {
+        //                 "id": "18368131384",
+        //                 "symbol": "BTCUSDT",
+        //                 "price": 9499.5,
+        //                 "qty": 9500,
+        //                 "side": "Buy",
+        //                 "time": "2019-11-19T08:03:04.077Z",
+        //                 "trade_time_ms":1587638305175,
+        //                 "is_block_trade": false
+        //             }
+        //         ],
+        //         "time_now": "1567109419.049271"
+        //     }
+        //
+        const trades = this.safeValue (response, 'result', {});
+        return this.parseTrades (trades, market, since, limit);
+    }
+
+    async fetchUSDCTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 500
+        }
+        request['category'] = market['option'] ? 'OPTION' : 'PERPETUAL';
+        const response = await this.publicGetOptionUsdcOpenapiPublicV1QueryTradeLatest (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //           "retMsg": "Success.",
+        //           "result": {
+        //           "resultTotalSize": 2,
+        //             "cursor": "",
+        //             "dataList": [
+        //                  {
+        //                    "id": "3caaa0ca",
+        //                    "symbol": "BTCPERP",
+        //                    "orderPrice": "58445.00",
+        //                    "orderQty": "0.010",
+        //                    "side": "Buy",
+        //                    "time": "1638275679673"
+        //                  }
+        //              ]
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const trades = this.safeValue (result, 'dataList', []);
+        return this.parseTrades (trades, market, since, limit);
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+        const isUsdcSettled = market['settle'] === 'USDC';
+        if (market['type'] === 'spot') {
+            return this.fetchSpotTrades (symbol, since, limit, params);
+        } else if (!isUsdcSettled) {
+            if (enableUnifiedMargin) {
+                return this.fetchUnifiedMarginTrades (symbol, since, limit, params);
+            }
+            return this.fetchDerivativesTrades (symbol, since, limit, params);
+        }
+        // usdc option/ swap
+        return this.fetchUSDCTrades (symbol, since, limit, params);
     }
 
     parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
