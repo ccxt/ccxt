@@ -399,6 +399,7 @@ module.exports = class coinex extends coinexRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchTrades', market, params);
         const url = this.urls['api']['ws'][type];
@@ -427,6 +428,7 @@ module.exports = class coinex extends coinexRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrderBook', market, params);
         const url = this.urls['api']['ws'][type];
@@ -476,6 +478,7 @@ module.exports = class coinex extends coinexRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const messageHash = 'ohlcv';
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchOHLCV', market, params);

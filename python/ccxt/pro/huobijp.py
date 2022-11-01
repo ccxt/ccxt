@@ -56,6 +56,7 @@ class huobijp(Exchange, ccxt.async_support.huobijp):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         # only supports a limit of 150 at self time
         messageHash = 'market.' + market['id'] + '.detail'
         api = self.safe_string(self.options, 'api', 'api')
@@ -117,6 +118,7 @@ class huobijp(Exchange, ccxt.async_support.huobijp):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         # only supports a limit of 150 at self time
         messageHash = 'market.' + market['id'] + '.trade.detail'
         api = self.safe_string(self.options, 'api', 'api')
@@ -180,6 +182,7 @@ class huobijp(Exchange, ccxt.async_support.huobijp):
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         interval = self.timeframes[timeframe]
         messageHash = 'market.' + market['id'] + '.kline.' + interval
         api = self.safe_string(self.options, 'api', 'api')
@@ -249,6 +252,7 @@ class huobijp(Exchange, ccxt.async_support.huobijp):
             raise ExchangeError(self.id + ' watchOrderBook accepts limit = 150 only')
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         # only supports a limit of 150 at self time
         limit = 150 if (limit is None) else limit
         messageHash = 'market.' + market['id'] + '.mbp.' + str(limit)

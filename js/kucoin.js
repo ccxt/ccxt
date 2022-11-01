@@ -3206,6 +3206,9 @@ module.exports = class kucoin extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         let endpart = '';
         headers = (headers !== undefined) ? headers : {};
+        if (path === 'symbols') {
+            endpoint = '/api/v2/' + this.implodeParams (path, params);
+        }
         if (Object.keys (query).length) {
             if ((method === 'GET') || (method === 'DELETE')) {
                 endpoint += '?' + this.rawencode (query);

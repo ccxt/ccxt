@@ -138,6 +138,7 @@ class cryptocom extends \ccxt\async\cryptocom {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' watchTrades() supports spot markets only');
             }
@@ -207,6 +208,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
+                $symbol = $market['symbol'];
             }
             $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
             $messageHash = ($defaultType === 'margin') ? 'user.margin.trade' : 'user.trade';
@@ -277,6 +279,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             if (!$market['spot']) {
                 throw new NotSupported($this->id . ' watchOHLCV() supports spot markets only');
             }
@@ -337,6 +340,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
+                $symbol = $market['symbol'];
             }
             $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
             $messageHash = ($defaultType === 'margin') ? 'user.margin.order' : 'user.order';

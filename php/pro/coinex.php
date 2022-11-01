@@ -403,6 +403,7 @@ class coinex extends \ccxt\async\coinex {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchTrades', $market, $params);
             $url = $this->urls['api']['ws'][$type];
@@ -431,6 +432,7 @@ class coinex extends \ccxt\async\coinex {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchOrderBook', $market, $params);
             $url = $this->urls['api']['ws'][$type];
@@ -480,6 +482,7 @@ class coinex extends \ccxt\async\coinex {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $messageHash = 'ohlcv';
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchOHLCV', $market, $params);

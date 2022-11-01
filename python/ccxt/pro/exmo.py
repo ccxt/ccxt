@@ -203,6 +203,7 @@ class exmo(Exchange, ccxt.async_support.exmo):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         url = self.urls['api']['ws']['public']
         messageHash = 'ticker:' + symbol
         message = {
@@ -257,6 +258,7 @@ class exmo(Exchange, ccxt.async_support.exmo):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         url = self.urls['api']['ws']['public']
         messageHash = 'trades:' + symbol
         message = {
@@ -323,6 +325,7 @@ class exmo(Exchange, ccxt.async_support.exmo):
             messageHash = 'myTrades:' + type
         else:
             market = self.market(symbol)
+            symbol = market['symbol']
             messageHash = 'myTrades:' + market['symbol']
         message = {
             'method': 'subscribe',
@@ -434,6 +437,7 @@ class exmo(Exchange, ccxt.async_support.exmo):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         url = self.urls['api']['ws']['public']
         messageHash = 'orderbook:' + symbol
         params = self.omit(params, 'aggregation')

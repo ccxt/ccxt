@@ -3006,6 +3006,8 @@ class kucoin(Exchange):
         query = self.omit(params, self.extract_params(path))
         endpart = ''
         headers = headers if (headers is not None) else {}
+        if path == 'symbols':
+            endpoint = '/api/v2/' + self.implode_params(path, params)
         if query:
             if (method == 'GET') or (method == 'DELETE'):
                 endpoint += '?' + self.rawencode(query)

@@ -65,6 +65,8 @@ class bitfinex(Exchange, ccxt.async_support.bitfinex):
         :param dict params: extra parameters specific to the bitfinex api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
+        await self.load_markets()
+        symbol = self.symbol(symbol)
         trades = await self.subscribe('trades', symbol, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
@@ -435,6 +437,8 @@ class bitfinex(Exchange, ccxt.async_support.bitfinex):
         """
         await self.load_markets()
         await self.authenticate()
+        if symbol is not None:
+            symbol = self.symbol(symbol)
         url = self.urls['api']['ws']['private']
         orders = await self.watch(url, 'os', None, 1)
         if self.newUpdates:

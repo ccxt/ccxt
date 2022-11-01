@@ -58,6 +58,7 @@ module.exports = class huobijp extends huobijpRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         // only supports a limit of 150 at this time
         const messageHash = 'market.' + market['id'] + '.detail';
         const api = this.safeString (this.options, 'api', 'api');
@@ -123,6 +124,7 @@ module.exports = class huobijp extends huobijpRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         // only supports a limit of 150 at this time
         const messageHash = 'market.' + market['id'] + '.trade.detail';
         const api = this.safeString (this.options, 'api', 'api');
@@ -191,6 +193,7 @@ module.exports = class huobijp extends huobijpRest {
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const interval = this.timeframes[timeframe];
         const messageHash = 'market.' + market['id'] + '.kline.' + interval;
         const api = this.safeString (this.options, 'api', 'api');
@@ -267,6 +270,7 @@ module.exports = class huobijp extends huobijpRest {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         // only supports a limit of 150 at this time
         limit = (limit === undefined) ? 150 : limit;
         const messageHash = 'market.' + market['id'] + '.mbp.' + limit.toString ();

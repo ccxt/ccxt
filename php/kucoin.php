@@ -3139,6 +3139,9 @@ class kucoin extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $endpart = '';
         $headers = ($headers !== null) ? $headers : array();
+        if ($path === 'symbols') {
+            $endpoint = '/api/v2/' . $this->implode_params($path, $params);
+        }
         if ($query) {
             if (($method === 'GET') || ($method === 'DELETE')) {
                 $endpoint .= '?' . $this->rawencode($query);
