@@ -61,18 +61,19 @@ module.exports = class cryptocom extends cryptocomRest {
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         if (limit !== undefined) {
-            if ((limit !== 10) && (limit !== 150)) {
-                throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 10 or 150');
+            if ((limit !== 10) && (limit !== 50)) {
+                throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 10 or 50');
             }
-        } else {
-            limit = 150; // default value
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['spot']) {
             throw new NotSupported (this.id + ' watchOrderBook() supports spot markets only');
         }
-        const messageHash = 'book' + '.' + market['id'] + '.' + limit.toString ();
+        let messageHash = 'book' + '.' + market['id'];
+        if (limit !== undefined) {
+            messageHash += '.' + limit;
+        }
         const orderbook = await this.watchPublic (messageHash, params);
         return orderbook.limit (limit);
     }
