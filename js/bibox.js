@@ -1033,17 +1033,17 @@ module.exports = class bibox extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        let [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const request = {};
         let balanceList = undefined;
         if (marketType === 'spot') {
             const code = this.safeString (query, 'code');
-            query = this.omit (query, 'code');
+            const requestParams = this.omit (query, 'code');
             if (code !== undefined) {
                 const currency = this.currency (code);
                 request['asset'] = currency['id'];
             }
-            balanceList = await this.v4PrivateGetUserdataAccounts (this.extend (request, query));
+            balanceList = await this.v4PrivateGetUserdataAccounts (this.extend (request, requestParams));
             //
             //    [
             //        {
