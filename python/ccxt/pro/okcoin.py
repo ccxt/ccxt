@@ -76,6 +76,8 @@ class okcoin(Exchange, ccxt.async_support.okcoin):
         :param dict params: extra parameters specific to the okcoin api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
+        await self.load_markets()
+        symbol = self.symbol(symbol)
         trades = await self.subscribe('trade', symbol, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
@@ -90,7 +92,10 @@ class okcoin(Exchange, ccxt.async_support.okcoin):
         :param dict params: extra parameters specific to the okcoin api endpoint
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
+        await self.load_markets()
         await self.authenticate()
+        if symbol is not None:
+            symbol = self.symbol(symbol)
         orderType = self.safe_string(self.options, 'watchOrders', 'order')
         trades = await self.subscribe(orderType, symbol, params)
         if self.newUpdates:
@@ -232,6 +237,8 @@ class okcoin(Exchange, ccxt.async_support.okcoin):
         return message
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
+        symbol = self.symbol(symbol)
         interval = self.timeframes[timeframe]
         name = 'candle' + interval + 's'
         ohlcv = await self.subscribe(name, symbol, params)
