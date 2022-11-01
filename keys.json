@@ -32,7 +32,7 @@
     "coinmarketcap": { "skip": true },
     "coinmate":      { "skip": true },
     "coinone":       { "skip": true },
-    "coss":          { "skip": true },
+    "currencycom":   { "skip": true },
     "digifinex":     { "skip": true },
     "dsx":           { "skip": true, "skipWs": true },
     "equos":         { "skip": true },
