@@ -983,6 +983,8 @@ module.exports = class bibox extends Exchange {
 
     parseBalance (response) {
         //
+        // v4PrivateGetUserdataAccounts (spot)
+        //
         //    [
         //        {
         //            "s": "USDT",              // asset code
@@ -992,14 +994,28 @@ module.exports = class bibox extends Exchange {
         //        ...
         //    ]
         //
+        // v3.1PrivatePostTransferMainAssets (funding)
+        //
+        //    [
+        //        {
+        //            coin_symbol: 'ETHW',
+        //            BTCValue: '0.00036926',
+        //            CNYValue: '53.61898578',
+        //            USDValue: '7.58403021',
+        //            balance: '1.14228556',
+        //            freeze: '0.00000000'
+        //        },
+        //        ...
+        //    ]
+        //
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
-            const currencyId = this.safeString (balance, 's');
+            const currencyId = this.safeString2 (balance, 's', 'coin_symbol');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeString (balance, 'a');
-            account['used'] = this.safeString (balance, 'h');
+            account['free'] = this.safeString2 (balance, 'a', 'balance');
+            account['used'] = this.safeString2 (balance, 'h', 'freeze');
             result[code] = account;
         }
         return this.safeBalance (result);
@@ -1013,28 +1029,61 @@ module.exports = class bibox extends Exchange {
          * @see https://biboxcom.github.io/api/spot/v4/en/#get-accounts
          * @param {object} params extra parameters specific to the bibox api endpoint
          * @param {str} params.code unified currency code
+         * @param {str|undefined} params.type 'funding', or 'spot'
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const code = this.safeString (params, 'code');
-        params = this.omit (params, 'code');
+        let [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const request = {};
-        if (code !== undefined) {
-            const currency = this.currency (code);
-            request['asset'] = currency['id'];
+        let balanceList = undefined;
+        if (marketType === 'spot') {
+            const code = this.safeString (query, 'code');
+            query = this.omit (query, 'code');
+            if (code !== undefined) {
+                const currency = this.currency (code);
+                request['asset'] = currency['id'];
+            }
+            balanceList = await this.v4PrivateGetUserdataAccounts (this.extend (request, query));
+            //
+            //    [
+            //        {
+            //            "s": "USDT",              // asset code
+            //            "a": 2.6617573979,        // available amount
+            //            "h": 0                    // frozen amount
+            //        },
+            //        ...
+            //    ]
+            //
+        } else if ((marketType === 'main') || (marketType === 'wallet') || (marketType === 'funding')) {
+            const method = 'v3.1PrivatePostTransferMainAssets';
+            request['select'] = 1; // 0-Total assets of each currency, 1-Request asset details of all currencies
+            const response = await this[method] (this.extend (request, query));
+            //
+            //    {
+            //        result: {
+            //            total_btc: '0.01',
+            //            total_cny: 'xxx',
+            //            total_usd: 'xxx',
+            //            assets_list: [
+            //                {
+            //                    coin_symbol: 'ETHW',
+            //                    BTCValue: '0.00036926',
+            //                    CNYValue: '53.61898578',
+            //                    USDValue: '7.58403021',
+            //                    balance: '1.14228556',
+            //                    freeze: '0.00000000'
+            //                },
+            //                ...
+            //            ]
+            //        },
+            //        cmd: 'mainAssets',
+            //        state: '0'
+            //    }
+            //
+            const result = this.safeValue (response, 'result', {});
+            balanceList = this.safeValue (result, 'assets_list', []);
         }
-        const response = await this.v4PrivateGetUserdataAccounts (this.extend (request, params));
-        //
-        //    [
-        //        {
-        //            "s": "USDT",              // asset code
-        //            "a": 2.6617573979,        // available amount
-        //            "h": 0                    // frozen amount
-        //        },
-        //        ...
-        //    ]
-        //
-        return this.parseBalance (response);
+        return this.parseBalance (balanceList);
     }
 
     parseLedgerEntry (item, currency = undefined) {
