@@ -289,10 +289,22 @@ module.exports = class cryptocom extends Exchange {
         /**
          * @method
          * @name cryptocom#fetchMarkets
+         * @see https://exchange-docs.crypto.com/spot/index.html#public-get-instruments
+         * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-instruments
          * @description retrieves data on all markets for cryptocom
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
+        let promises = [ this.fetchSpotMarkets (params), this.fetchDerivativesMarkets (params) ];
+        promises = await Promise.all (promises);
+        const spotMarkets = promises[0];
+        const derivativeMarkets = promises[1];
+        const markets = this.arrayConcat (spotMarkets, derivativeMarkets);
+        return markets;
+    }
+
+    async fetchSpotMarkets (params = {}) {
+        const response = await this.spotPublicGetPublicGetInstruments (params);
         //
         //    {
         //        id: 11,
@@ -316,7 +328,6 @@ module.exports = class cryptocom extends Exchange {
         //        }
         //    }
         //
-        const response = await this.spotPublicGetPublicGetInstruments (params);
         const resultResponse = this.safeValue (response, 'result', {});
         const markets = this.safeValue (resultResponse, 'instruments', []);
         const result = [];
@@ -388,6 +399,11 @@ module.exports = class cryptocom extends Exchange {
                 'info': market,
             });
         }
+        return result;
+    }
+
+    async fetchDerivativesMarkets (params = {}) {
+        const result = [];
         const futuresResponse = await this.derivativesPublicGetPublicGetInstruments ();
         //
         //     {
@@ -426,6 +442,9 @@ module.exports = class cryptocom extends Exchange {
             const inst_type = this.safeString (market, 'inst_type');
             const swap = inst_type === 'PERPETUAL_SWAP';
             const future = inst_type === 'FUTURE';
+            if (inst_type === 'CCY_PAIR') {
+                continue; // Found some inconsistencies between spot and derivatives api so use spot api for currency pairs.
+            }
             const baseId = this.safeString (market, 'base_ccy');
             const quoteId = this.safeString (market, 'quote_ccy');
             const base = this.safeCurrencyCode (baseId);
