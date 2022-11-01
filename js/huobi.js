@@ -2204,7 +2204,7 @@ module.exports = class huobi extends Exchange {
         if (filledPoints !== undefined) {
             if ((feeCost === undefined) || Precise.stringEquals (feeCost, '0')) {
                 const feeDeductCurrency = this.safeString (trade, 'fee-deduct-currency');
-                if (feeDeductCurrency !== '') {
+                if (feeDeductCurrency !== undefined) {
                     feeCost = filledPoints;
                     feeCurrency = this.safeCurrencyCode (feeDeductCurrency);
                 }
