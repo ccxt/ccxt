@@ -7,9 +7,8 @@ async function testSignIn(exchange) {
     if (exchange.has[method]) {
         await exchange[method] ();
         console.log (method + ' successful');
-    } else {
-        console.log (method + '() method is not needed for ' + exchange.id + '. Skipped.');
     }
+    // we don't print "else" message, because if signIn is not supported by exchange, that doesn't need to be printed, because it is not lack/missing method, but because it is not needed
 }
 
 module.exports = testSignIn;
