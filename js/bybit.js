@@ -3984,85 +3984,18 @@ module.exports = class bybit extends Exchange {
         }
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name bybit#cancelOrder
-         * @description cancels an open order
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the bybit api endpoint
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
-        }
+    async cancelSpotOrder (id, symbol = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
             // 'order_link_id': 'string', // one of order_id, stop_order_id or order_link_id is required
-            // regular orders ---------------------------------------------
-            // 'order_id': id, // one of order_id or order_link_id is required for regular orders
-            // conditional orders ---------------------------------------------
-            // 'stop_order_id': id, // one of stop_order_id or order_link_id is required for conditional orders
-            // spot orders
             // 'orderId': id
         };
-        const orderType = this.safeStringLower (params, 'orderType');
-        const isStop = this.safeValue (params, 'stop', false);
-        const isConditional = isStop || (orderType === 'stop') || (orderType === 'conditional');
-        params = this.omit (params, [ 'orderType', 'stop' ]);
-        const isUsdcSettled = market['settle'] === 'USDC';
-        let method = undefined;
-        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
-        if (market['spot']) {
-            method = 'privateDeleteSpotV1Order';
-            if (id !== undefined) { // The user can also use argument params["order_link_id"]
-                request['orderId'] = id;
-            }
-        } else if (enableUnifiedMargin) {
-            method = 'privatePostUnifiedV3PrivateOrderCancel';
-            request['orderFilter'] = isConditional ? 'StopOrder' : 'Order';
-            if (id !== undefined) { // The user can also use argument params["orderLinkId"]
-                request['orderId'] = id;
-            }
-            if (market['option']) {
-                request['category'] = 'option';
-            } else if (market['linear']) {
-                request['category'] = 'linear';
-            } else {
-                throw new NotSupported (this.id + ' cancelOrder() does not allow inverse market orders for ' + symbol + ' markets');
-            }
-        } else if (isUsdcSettled) {
-            if (id !== undefined) { // The user can also use argument params["order_link_id"]
-                request['orderId'] = id;
-            }
-            if (market['option']) {
-                method = 'privatePostOptionUsdcOpenapiPrivateV1CancelOrder';
-            } else {
-                method = 'privatePostPerpetualUsdcOpenapiPrivateV1CancelOrder';
-                request['orderFilter'] = isConditional ? 'StopOrder' : 'Order';
-            }
-        } else if (market['linear']) {
-            // linear futures and linear swaps
-            method = isConditional ? 'privatePostPrivateLinearStopOrderCancel' : 'privatePostPrivateLinearOrderCancel';
-        } else if (market['swap']) {
-            // inverse swaps
-            method = isConditional ? 'privatePostV2PrivateStopOrderCancel' : 'privatePostV2PrivateOrderCancel';
-        } else {
-            // inverse futures
-            method = isConditional ? 'privatePostFuturesPrivateStopOrderCancel' : 'privatePostFuturesPrivateOrderCancel';
+        if (id !== undefined) { // The user can also use argument params["order_link_id"]
+            request['orderId'] = id;
         }
-        if (market['contract'] && !enableUnifiedMargin && !isUsdcSettled && (id !== undefined)) { // id === undefined check because the user can also use argument params["order_link_id"]
-            if (!isConditional) {
-                request['order_id'] = id;
-            } else {
-                request['stop_order_id'] = id;
-            }
-        }
-        const response = await this[method] (this.extend (request, params));
-        // spot order
+        const response = await this.privateDeleteSpotV1Order (this.extend (request, params));
+        //
         //    {
         //        "ret_code":0,
         //        "ret_msg":"",
@@ -4083,7 +4016,136 @@ module.exports = class bybit extends Exchange {
         //           "side":"BUY"
         //        }
         //    }
-        // linear
+        //
+        const result = this.safeValue (response, 'result', {});
+        return this.parseOrder (result, market);
+    }
+
+    async cancelUnifiedMarginOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelUnifiedMarginOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            // 'orderLinkId': 'string',
+            // 'orderId': id,
+            // conditional orders
+            // 'orderFilter': '',
+            // 'category': '',
+        };
+        const orderType = this.safeStringLower (params, 'orderType');
+        const isStop = this.safeValue (params, 'stop', false);
+        const isConditional = isStop || (orderType === 'stop') || (orderType === 'conditional');
+        params = this.omit (params, [ 'orderType', 'stop' ]);
+        request['orderFilter'] = isConditional ? 'StopOrder' : 'Order';
+        if (id !== undefined) { // The user can also use argument params["orderLinkId"]
+            request['orderId'] = id;
+        }
+        if (market['option']) {
+            request['category'] = 'option';
+        } else if (market['linear']) {
+            request['category'] = 'linear';
+        } else {
+            throw new NotSupported (this.id + ' cancelUnifiedMarginOrder() does not allow inverse market orders for ' + symbol + ' markets');
+        }
+        const response = await this.privatePostUnifiedV3PrivateOrderCancel (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "orderId": "42c86d66331e41998d12c2440ce90c1a",
+        //             "orderLinkId": "e80d558e-ed"
+        //         }
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return this.parseOrder (result, market);
+    }
+
+    async cancelUSDCOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelUSDCOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            // 'orderLinkId': 'string', // one of order_id, stop_order_id or order_link_id is required
+            // 'orderId': id,
+        };
+        const orderType = this.safeStringLower (params, 'orderType');
+        const isStop = this.safeValue (params, 'stop', false);
+        const isConditional = isStop || (orderType === 'stop') || (orderType === 'conditional');
+        params = this.omit (params, [ 'orderType', 'stop' ]);
+        let method = undefined;
+        if (id !== undefined) { // The user can also use argument params["order_link_id"]
+            request['orderId'] = id;
+        }
+        if (market['option']) {
+            method = 'privatePostOptionUsdcOpenapiPrivateV1CancelOrder';
+        } else {
+            method = 'privatePostPerpetualUsdcOpenapiPrivateV1CancelOrder';
+            request['orderFilter'] = isConditional ? 'StopOrder' : 'Order';
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "outRequestId": "",
+        //             "symbol": "BTC-13MAY22-40000-C",
+        //             "orderId": "8c65df91-91fc-461d-9b14-786379ef138c",
+        //             "orderLinkId": ""
+        //         },
+        //         "retExtMap": {}
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        return this.parseOrder (result, market);
+    }
+
+    async cancelDerivativesOrder (id, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelDerivativesOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            // 'order_link_id': 'string', // one of order_id, stop_order_id or order_link_id is required
+            // regular orders ---------------------------------------------
+            // 'order_id': id, // one of order_id or order_link_id is required for regular orders
+            // conditional orders ---------------------------------------------
+            // 'stop_order_id': id, // one of stop_order_id or order_link_id is required for conditional orders
+        };
+        const orderType = this.safeStringLower (params, 'orderType');
+        const isStop = this.safeValue (params, 'stop', false);
+        const isConditional = isStop || (orderType === 'stop') || (orderType === 'conditional');
+        params = this.omit (params, [ 'orderType', 'stop' ]);
+        let method = undefined;
+        if (market['linear']) {
+            // linear futures and linear swaps
+            method = isConditional ? 'privatePostPrivateLinearStopOrderCancel' : 'privatePostPrivateLinearOrderCancel';
+        } else if (market['swap']) {
+            // inverse swaps
+            method = isConditional ? 'privatePostV2PrivateStopOrderCancel' : 'privatePostV2PrivateOrderCancel';
+        } else {
+            // inverse futures
+            method = isConditional ? 'privatePostFuturesPrivateStopOrderCancel' : 'privatePostFuturesPrivateOrderCancel';
+        }
+        if (market['contract'] && (id !== undefined)) { // id === undefined check because the user can also use argument params["order_link_id"]
+            if (!isConditional) {
+                request['order_id'] = id;
+            } else {
+                request['stop_order_id'] = id;
+            }
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
         //    {
         //        "ret_code":0,
         //        "ret_msg":"OK",
@@ -4098,19 +4160,35 @@ module.exports = class bybit extends Exchange {
         //        "rate_limit":100
         //     }
         //
-        // Unified Margin
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "orderId": "42c86d66331e41998d12c2440ce90c1a",
-        //             "orderLinkId": "e80d558e-ed"
-        //         }
-        //     }
-        //
         const result = this.safeValue (response, 'result', {});
         return this.parseOrder (result, market);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#cancelOrder
+         * @description cancels an open order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const isUsdcSettled = market['settle'] === 'USDC';
+        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+        if (market['spot']) {
+            return this.cancelSpotOrder (id, symbol, params);
+        } else if (enableUnifiedMargin) {
+            return this.cancelUnifiedMarginOrder (id, symbol, params);
+        } else if (isUsdcSettled) {
+            return this.cancelUSDCOrder (id, symbol, params);
+        }
+        return this.cancelDerivativesOrder (id, symbol, params);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
