@@ -85,7 +85,7 @@ if (settings) {
 
 Object.assign (exchange, settings)
 
-if (settings && (settigs.skip || settings.skipWs)) {
+if (settings && (settings.skip || settings.skipWs)) {
     log.error.bright ('[Skipped]', { exchangeId, symbol })
     process.exit ()
 }
