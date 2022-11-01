@@ -484,7 +484,7 @@ module.exports = class digifinex extends Exchange {
                 type = 'swap';
                 symbol = base + '/' + quote + ':' + settle;
                 isInverse = this.safeValue (market, 'is_inverse');
-                isLinear = (isInverse === false) ? true : false;
+                isLinear = (!isInverse) ? true : false;
                 const isTrading = this.safeValue (market, 'isTrading');
                 if (isTrading) {
                     isAllowed = true;
