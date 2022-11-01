@@ -221,6 +221,13 @@ module.exports = class bitmex extends Exchange {
                 'fetchOHLCVOpenTimestamp': true,
                 'networks': {
                     // ids are in lowercase
+                    'BTC': 'btc',
+                    'ERC20': 'eth',
+                    'TRC20': 'tron',
+                    'SPL': 'sol',
+                },
+                'networksById': {
+                    // ids are in lowercase
                     'btc': 'BTC',
                     'eth': 'ERC20',
                     'tron': 'TRC20',
@@ -297,7 +304,7 @@ module.exports = class bitmex extends Exchange {
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'asset');
-                const network = this.safeNetwork (networkId);
+                const network = this.networkIdToCode (networkId);
                 const withdrawalFeeRaw = this.safeString (chain, 'withdrawalFee');
                 const withdrawalFee = this.parseNumber (Precise.stringMul (withdrawalFeeRaw, precisionString));
                 const isDepositEnabled = this.safeValue (chain, 'depositEnabled', false);
@@ -366,11 +373,6 @@ module.exports = class bitmex extends Exchange {
             };
         }
         return result;
-    }
-
-    safeNetwork (networkId) {
-        const networksById = this.safeValue (this.options, 'networks', {});
-        return this.safeString (networksById, networkId, networkId);
     }
 
     async fetchMarkets (params = {}) {
@@ -1029,10 +1031,15 @@ module.exports = class bitmex extends Exchange {
         const type = this.parseLedgerEntryType (this.safeString (item, 'transactType'));
         const currencyId = this.safeString (item, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
-        let amount = this.safeNumber (item, 'amount');
-        if (amount !== undefined) {
-            amount = amount / 100000000;
+        if (currency === undefined) {
+            currency = this.currency (code);
         }
+        const precision = this.safeString (currency, 'precision');
+        let amount = this.safeString (item, 'amount');
+        if (amount !== undefined) {
+            amount = Precise.stringMul (amount, precision);
+        }
+        amount = this.parseNumber (amount);
         let timestamp = this.parse8601 (this.safeString (item, 'transactTime'));
         if (timestamp === undefined) {
             // https://github.com/ccxt/ccxt/issues/6047
@@ -1040,18 +1047,19 @@ module.exports = class bitmex extends Exchange {
             // for unrealized pnl and other transactions without a timestamp
             timestamp = 0; // see comments above
         }
-        let feeCost = this.safeNumber (item, 'fee', 0);
+        let feeCost = this.safeString (item, 'fee');
         if (feeCost !== undefined) {
-            feeCost = feeCost / 100000000;
+            feeCost = Precise.stringMul (feeCost, precision);
         }
         const fee = {
-            'cost': feeCost,
+            'cost': this.parseNumber (feeCost),
             'currency': code,
         };
-        let after = this.safeNumber (item, 'walletBalance');
+        let after = this.safeString (item, 'walletBalance');
         if (after !== undefined) {
-            after = after / 100000000;
+            after = Precise.stringMul (after, precision);
         }
+        after = this.parseNumber (after);
         const before = this.sum (after, -amount);
         let direction = undefined;
         if (amount < 0) {
@@ -1210,10 +1218,10 @@ module.exports = class bitmex extends Exchange {
             addressTo = address;
         }
         let amountString = this.safeString (transaction, 'amount');
-        const scale = (currency['code'] === 'BTC') ? '1e8' : '1e6';
-        amountString = Precise.stringDiv (Precise.stringAbs (amountString), scale);
+        const precision = this.safeString (currency, 'precision');
+        amountString = Precise.stringMul (Precise.stringAbs (amountString), precision);
         let feeCostString = this.safeString (transaction, 'fee');
-        feeCostString = Precise.stringDiv (feeCostString, scale);
+        feeCostString = Precise.stringMul (feeCostString, precision);
         const fee = {
             'cost': this.parseNumber (feeCostString),
             'currency': currency['code'],
@@ -1697,20 +1705,28 @@ module.exports = class bitmex extends Exchange {
         //         "timestamp": "2019-03-05T12:47:02.762Z"
         //     }
         //
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const baseCurrency = this.currency (market['base']);
+        const baseCurrencyPrecision = this.safeString (baseCurrency, 'precision');
+        const quoteCurrency = this.currency (market['quote']);
+        const quoteCurrencyPrecision = this.safeString (quoteCurrency, 'precision');
         const timestamp = this.parse8601 (this.safeString (trade, 'timestamp'));
         const priceString = this.safeString2 (trade, 'avgPx', 'price');
-        const amountString = this.safeString2 (trade, 'size', 'lastQty');
         const execCost = this.safeString (trade, 'execCost');
-        const costString = Precise.stringDiv (Precise.stringAbs (execCost), '1e8');
+        const costString = Precise.stringMul (Precise.stringAbs (execCost), quoteCurrencyPrecision);
         const id = this.safeString (trade, 'trdMatchID');
         const order = this.safeString (trade, 'orderID');
         const side = this.safeStringLower (trade, 'side');
-        // price * amount doesn't work for all symbols (e.g. XBT, ETH)
         let fee = undefined;
-        const feeCostString = Precise.stringDiv (this.safeString (trade, 'execComm'), '1e8');
+        const execCommission = this.safeString (trade, 'execComm');
+        const feeCostString = Precise.stringMul (execCommission, quoteCurrencyPrecision);
         if (feeCostString !== undefined) {
             const currencyId = this.safeString (trade, 'settlCurrency');
-            const feeCurrencyCode = this.safeCurrencyCode (currencyId);
+            let feeCurrencyCode = this.safeCurrencyCode (currencyId);
+            if (feeCurrencyCode === undefined) {
+                feeCurrencyCode = market['quote'];
+            }
             const feeRateString = this.safeString (trade, 'commission');
             fee = {
                 'cost': feeCostString,
@@ -1724,14 +1740,14 @@ module.exports = class bitmex extends Exchange {
         if (feeCostString !== undefined && execType === 'Trade') {
             takerOrMaker = Precise.stringLt (feeCostString, '0') ? 'maker' : 'taker';
         }
-        const marketId = this.safeString (trade, 'symbol');
-        const symbol = this.safeSymbol (marketId, market);
+        const amountString = this.safeString2 (trade, 'size', 'lastQty');
+        const amount = Precise.stringMul (amountString, baseCurrencyPrecision);
         const type = this.safeStringLower (trade, 'ordType');
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'id': id,
             'order': order,
             'type': type,
@@ -1739,7 +1755,7 @@ module.exports = class bitmex extends Exchange {
             'side': side,
             'price': priceString,
             'cost': costString,
-            'amount': amountString,
+            'amount': amount,
             'fee': fee,
         }, market);
     }
@@ -1812,12 +1828,17 @@ module.exports = class bitmex extends Exchange {
         //
         const status = this.parseOrderStatus (this.safeString (order, 'ordStatus'));
         const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.parse8601 (this.safeString (order, 'timestamp'));
         const lastTradeTimestamp = this.parse8601 (this.safeString (order, 'transactTime'));
         const price = this.safeString (order, 'price');
-        const amount = this.safeString (order, 'orderQty');
-        const filled = this.safeString (order, 'cumQty');
+        const baseCurrency = this.currency (market['base']);
+        const basePrecision = this.safeString (baseCurrency, 'precision');
+        const amountString = this.safeString (order, 'orderQty');
+        const amount = Precise.stringMul (amountString, basePrecision);
+        const filledString = this.safeString (order, 'cumQty');
+        const filled = Precise.stringMul (filledString, basePrecision);
         const average = this.safeString (order, 'avgPx');
         const id = this.safeString (order, 'orderID');
         const type = this.safeStringLower (order, 'ordType');
@@ -2409,20 +2430,32 @@ module.exports = class bitmex extends Exchange {
         [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
-        // let currency = this.currency (code);
-        if (code !== 'BTC') {
-            throw new ExchangeError (this.id + ' supoprts BTC withdrawals only, other currencies coming soon...');
-        }
         const currency = this.currency (code);
+        const precision = this.safeString (currency, 'precision');
+        const amountString = this.numberToString (amount);
+        const amountFinal = Precise.stringMul (amountString, precision);
+        const networkCode = this.safeString (params, 'network');
+        const networkId = this.networkCodeToId (networkCode);
         const request = {
-            'currency': 'XBt', // temporarily
-            'amount': amount,
+            'currency': currency['info']['currency'], // this is specific currency-slug, like XBt, which differs from currency['id'] XBT
+            'amount': amountFinal,
             'address': address,
+            'network': networkId,
             // 'otpToken': '123456', // requires if two-factor auth (OTP) is enabled
             // 'fee': 0.001, // bitcoin network fee
         };
         const response = await this.privatePostUserRequestWithdrawal (this.extend (request, params));
         return this.parseTransaction (response, currency);
+    }
+
+    networkCodeToId (networkCode) {
+        const networks = this.safeValue (this.options, 'networks', {});
+        return this.safeStringUpper (networks, networkCode, networkCode);
+    }
+
+    networkIdToCode (networkId) {
+        const networksById = this.safeValue (this.options, 'networksById', {});
+        return this.safeString (networksById, networkId, networkId);
     }
 
     async fetchFundingRates (symbols = undefined, params = {}) {
