@@ -217,6 +217,7 @@ class exmo extends \ccxt\async\exmo {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $url = $this->urls['api']['ws']['public'];
             $messageHash = 'ticker:' . $symbol;
             $message = array(
@@ -275,6 +276,7 @@ class exmo extends \ccxt\async\exmo {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $url = $this->urls['api']['ws']['public'];
             $messageHash = 'trades:' . $symbol;
             $message = array(
@@ -347,6 +349,7 @@ class exmo extends \ccxt\async\exmo {
                 $messageHash = 'myTrades:' . $type;
             } else {
                 $market = $this->market($symbol);
+                $symbol = $market['symbol'];
                 $messageHash = 'myTrades:' . $market['symbol'];
             }
             $message = array(
@@ -467,6 +470,7 @@ class exmo extends \ccxt\async\exmo {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $url = $this->urls['api']['ws']['public'];
             $messageHash = 'orderbook:' . $symbol;
             $params = $this->omit($params, 'aggregation');

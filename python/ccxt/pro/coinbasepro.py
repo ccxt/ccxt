@@ -90,6 +90,8 @@ class coinbasepro(Exchange, ccxt.async_support.coinbasepro):
         :param dict params: extra parameters specific to the coinbasepro api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
+        await self.load_markets()
+        symbol = self.symbol(symbol)
         name = 'matches'
         trades = await self.subscribe(name, symbol, name, params)
         if self.newUpdates:
@@ -107,6 +109,8 @@ class coinbasepro(Exchange, ccxt.async_support.coinbasepro):
         """
         if symbol is None:
             raise BadSymbol(self.id + ' watchMyTrades requires a symbol')
+        await self.load_markets()
+        symbol = self.symbol(symbol)
         name = 'user'
         messageHash = 'myTrades'
         authentication = self.authenticate()
@@ -126,6 +130,8 @@ class coinbasepro(Exchange, ccxt.async_support.coinbasepro):
         """
         if symbol is None:
             raise BadSymbol(self.id + ' watchMyTrades requires a symbol')
+        await self.load_markets()
+        symbol = self.symbol(symbol)
         name = 'user'
         messageHash = 'orders'
         authentication = self.authenticate()
@@ -145,6 +151,7 @@ class coinbasepro(Exchange, ccxt.async_support.coinbasepro):
         name = 'level2'
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         messageHash = name + ':' + market['id']
         url = self.urls['api']['ws']
         subscribe = {

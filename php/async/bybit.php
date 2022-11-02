@@ -296,6 +296,7 @@ class bybit extends Exchange {
                         'contract/v3/private/copytrading/position/list' => 1,
                         'contract/v3/private/copytrading/wallet/balance' => 1,
                         'contract/v3/private/position/limit-info' => 25, // 120 per minute = 2 per second => cost = 50 / 2 = 25
+                        'contract/v3/private/order/unfilled-orders' => 1,
                         // derivative
                         'unified/v3/private/order/unfilled-orders' => 1,
                         'unified/v3/private/order/list' => 1,

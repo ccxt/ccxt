@@ -61,6 +61,7 @@ class huobijp extends \ccxt\async\huobijp {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             // only supports a limit of 150 at this time
             $messageHash = 'market.' . $market['id'] . '.detail';
             $api = $this->safe_string($this->options, 'api', 'api');
@@ -126,6 +127,7 @@ class huobijp extends \ccxt\async\huobijp {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             // only supports a $limit of 150 at this time
             $messageHash = 'market.' . $market['id'] . '.trade.detail';
             $api = $this->safe_string($this->options, 'api', 'api');
@@ -196,6 +198,7 @@ class huobijp extends \ccxt\async\huobijp {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $interval = $this->timeframes[$timeframe];
             $messageHash = 'market.' . $market['id'] . '.kline.' . $interval;
             $api = $this->safe_string($this->options, 'api', 'api');
@@ -272,6 +275,7 @@ class huobijp extends \ccxt\async\huobijp {
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             // only supports a $limit of 150 at this time
             $limit = ($limit === null) ? 150 : $limit;
             $messageHash = 'market.' . $market['id'] . '.mbp.' . (string) $limit;

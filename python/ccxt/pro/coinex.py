@@ -385,6 +385,7 @@ class coinex(Exchange, ccxt.async_support.coinex):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         type = None
         type, params = self.handle_market_type_and_params('watchTrades', market, params)
         url = self.urls['api']['ws'][type]
@@ -410,6 +411,7 @@ class coinex(Exchange, ccxt.async_support.coinex):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         type = None
         type, params = self.handle_market_type_and_params('watchOrderBook', market, params)
         url = self.urls['api']['ws'][type]
@@ -453,6 +455,7 @@ class coinex(Exchange, ccxt.async_support.coinex):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         messageHash = 'ohlcv'
         type = None
         type, params = self.handle_market_type_and_params('watchOHLCV', market, params)

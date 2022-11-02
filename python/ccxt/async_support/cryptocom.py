@@ -4,6 +4,7 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
+import asyncio
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -14,6 +15,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -292,16 +294,28 @@ class cryptocom(Exchange):
                     '40007': BadRequest,
                     '40101': AuthenticationError,
                     '50001': BadRequest,
+                    '9010001': OnMaintenance,  # {"code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details."}
                 },
             },
         })
 
     async def fetch_markets(self, params={}):
         """
+        see https://exchange-docs.crypto.com/spot/index.html#public-get-instruments
+        see https://exchange-docs.crypto.com/derivatives/index.html#public-get-instruments
         retrieves data on all markets for cryptocom
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of objects representing market data
         """
+        promises = [self.fetch_spot_markets(params), self.fetch_derivatives_markets(params)]
+        promises = await asyncio.gather(*promises)
+        spotMarkets = promises[0]
+        derivativeMarkets = promises[1]
+        markets = self.array_concat(spotMarkets, derivativeMarkets)
+        return markets
+
+    async def fetch_spot_markets(self, params={}):
+        response = await self.spotPublicGetPublicGetInstruments(params)
         #
         #    {
         #        id: 11,
@@ -325,7 +339,6 @@ class cryptocom(Exchange):
         #        }
         #    }
         #
-        response = await self.spotPublicGetPublicGetInstruments(params)
         resultResponse = self.safe_value(response, 'result', {})
         markets = self.safe_value(resultResponse, 'instruments', [])
         result = []
@@ -394,6 +407,10 @@ class cryptocom(Exchange):
                 },
                 'info': market,
             })
+        return result
+
+    async def fetch_derivatives_markets(self, params={}):
+        result = []
         futuresResponse = await self.derivativesPublicGetPublicGetInstruments()
         #
         #     {
@@ -432,6 +449,8 @@ class cryptocom(Exchange):
             inst_type = self.safe_string(market, 'inst_type')
             swap = inst_type == 'PERPETUAL_SWAP'
             future = inst_type == 'FUTURE'
+            if inst_type == 'CCY_PAIR':
+                continue  # Found some inconsistencies between spot and derivatives api so use spot api for currency pairs.
             baseId = self.safe_string(market, 'base_ccy')
             quoteId = self.safe_string(market, 'quote_ccy')
             base = self.safe_currency_code(baseId)
