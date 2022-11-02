@@ -37,11 +37,6 @@ class OrderBookSide extends Array {
             value: depth || Number.MAX_SAFE_INTEGER,
             writable: true,
         })
-        Object.defineProperty (this, 'hidden', {
-            __proto__: null, // make it invisible
-            value: new Map (),
-            writable: true,
-        })
         // sort upon initiation
         this.length = 0
         for (let i = 0; i < deltas.length; i++) {

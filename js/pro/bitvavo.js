@@ -337,7 +337,6 @@ module.exports = class bitvavo extends bitvavoRest {
     }
 
     async watchOrderBookSnapshot (client, message, subscription) {
-        const limit = this.safeInteger (subscription, 'limit');
         const params = this.safeValue (subscription, 'params');
         const marketId = this.safeString (subscription, 'marketId');
         const name = 'getBook';
