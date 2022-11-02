@@ -51,23 +51,13 @@ class OrderBookSide extends Array {
         const index = bisectLeft (this.index, index_price)
         if (size) {
             if (this.index[index] === index_price) {
-                if (index < this.length) {
-                    this[index][1] = size
-                } else {
-                    const entry = this.hidden.get (index_price)
-                    entry[1] = size
-                }
+                this[index][1] = size
             } else {
                 this.length++
                 this.index.copyWithin (index + 1, index, this.index.length)
                 this.index[index] = index_price
-                if (index < this.length) {
-                    this.copyWithin (index + 1, index, this.length)
-                    this[index] = delta
-                } else {
-                    this.hidden.set(index_price, delta)
-                    this.length--
-                }
+                this.copyWithin (index + 1, index, this.length)
+                this[index] = delta
                 // in the rare case of very large orderbooks being sent
                 if (this.length > this.index.length - 1) {
                     const existing = Array.from (this.index)
@@ -78,13 +68,9 @@ class OrderBookSide extends Array {
             }
         } else if (this.index[index] === index_price) {
             this.index.copyWithin (index, index + 1, this.index.length)
-            this.index[this.length + this.hidden.size - 1] = Number.MAX_VALUE
-            if (this.hidden.has (index_price)) {
-                this.hidden.delete (index_price)
-            } else {
-                this.copyWithin (index, index + 1, this.length)
-                this.length--
-            }
+            this.index[this.length - 1] = Number.MAX_VALUE
+            this.copyWithin (index, index + 1, this.length)
+            this.length--
         }
     }
 
@@ -99,7 +85,6 @@ class OrderBookSide extends Array {
             for (let i = this.depth; i < this.length; i++) {
                 this.index[i] = Number.MAX_VALUE
             }
-            this.hidden.clear ()
             this.length = this.depth
         }
     }
@@ -122,27 +107,16 @@ class CountedOrderBookSide extends OrderBookSide {
         const index_price = this.side ? -price : price
         const index = bisectLeft (this.index, index_price)
         if (size && count) {
-            if (this.index[index] == index_price) {
-                if (index < this.length) {
-                    const entry = this[index]
-                    entry[1] = size
-                    entry[2] = count
-                } else {
-                    const entry = this.hidden.get (index_price)
-                    entry[1] = size
-                    entry[2] = count
-                }
+            if (this.index[index] === index_price) {
+                const entry = this[index]
+                entry[1] = size
+                entry[2] = count
             } else {
                 this.length++
                 this.index.copyWithin (index + 1, index, this.index.length)
                 this.index[index] = index_price
-                if (index < this.length) {
-                    this.copyWithin (index + 1, index, this.length)
-                    this[index] = delta
-                } else {
-                    this.hidden.set(index_price, delta)
-                    this.length--
-                }
+                this.copyWithin (index + 1, index, this.length)
+                this[index] = delta
                 // in the rare case of very large orderbooks being sent
                 if (this.length > this.index.length - 1) {
                     const existing = Array.from (this.index)
@@ -151,15 +125,11 @@ class CountedOrderBookSide extends OrderBookSide {
                     this.index = new Float64Array (existing)
                 }
             }
-        } else if (this.index[index] == index_price) {
+        } else if (this.index[index] === index_price) {
             this.index.copyWithin (index, index + 1, this.index.length)
-            this.index[this.length + this.hidden.size - 1] = Number.MAX_VALUE
-            if (this.hidden.has (index_price)) {
-                this.hidden.delete (index_price)
-            } else {
-                this.copyWithin (index, index + 1, this.length)
-                this.length--
-            }
+            this.index[this.length - 1] = Number.MAX_VALUE
+            this.copyWithin (index, index + 1, this.length)
+            this.length--
         }
     }
 }
@@ -221,23 +191,15 @@ class IndexedOrderBookSide extends Array  {
                 if (index_price === old_price) {
                     const index = bisectLeft (this.index, index_price)
                     this.index[index] = index_price
-                    if (index < this.length) {
-                        this[index] = delta
-                    } else {
-                        this.hidden.set (index_price, delta)
-                    }
+                    this[index] = delta
                     return
                 } else {
                     // remove old price from index
                     const old_index = bisectLeft (this.index, old_price)
                     this.index.copyWithin (old_index, old_index + 1, this.index.length)
-                    this.index[this.length + this.hidden.size - 1] = Number.MAX_VALUE
-                    if (this.hidden.has (old_price)) {
-                        this.hidden.delete (old_price)
-                    } else {
-                        this.copyWithin (old_index, old_index + 1, this.length)
-                        this.length--
-                    }
+                    this.index[this.length - 1] = Number.MAX_VALUE
+                    this.copyWithin (old_index, old_index + 1, this.length)
+                    this.length--
                 }
             }
             // insert new price level
@@ -247,13 +209,8 @@ class IndexedOrderBookSide extends Array  {
             this.length++
             this.index.copyWithin (index + 1, index, this.index.length)
             this.index[index] = index_price
-            if (index < this.length) {
-                this.copyWithin (index + 1, index, this.length)
-                this[index] = delta
-            } else {
-                this.hidden.set (index_price, delta)
-                this.length--
-            }
+            this.copyWithin (index + 1, index, this.length)
+            this[index] = delta
             // in the rare case of very large orderbooks being sent
             if (this.length > this.index.length - 1) {
                 const existing = Array.from (this.index)
@@ -266,12 +223,8 @@ class IndexedOrderBookSide extends Array  {
             const index = bisectLeft (this.index, old_price)
             this.index.copyWithin (index, index + 1, this.index.length)
             this.index[this.length - 1] = Number.MAX_VALUE
-            if (this.hidden.has (old_price)) {
-                this.hidden.delete (old_price)
-            } else {
-                this.copyWithin (index, index + 1, this.length)
-                this.length--
-            }
+            this.copyWithin (index, index + 1, this.length)
+            this.length--
             this.hashmap.delete (id)
         }
     }
@@ -284,7 +237,6 @@ class IndexedOrderBookSide extends Array  {
                 this.hashmap.delete (this.index[i])
                 this.index[i] = Number.MAX_VALUE
             }
-            this.hidden.clear ()
             this.length = this.depth
         }
     }
