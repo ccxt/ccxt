@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.0.103';
+$version = '2.1.9';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.0.103';
+    const VERSION = '2.1.9';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -424,6 +424,8 @@ class Exchange {
         'handleTimeInForce' => 'handle_time_in_force',
         'convertTypeToAccount' => 'convert_type_to_account',
         'handleMarginModeAndParams' => 'handle_margin_mode_and_params',
+        'checkRequiredArgument' => 'check_required_argument',
+        'checkRequiredSymbol' => 'check_required_symbol',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -2852,7 +2854,7 @@ class Exchange {
             // the fee is always in the currency you get
             $cost = $amountString;
             if ($side === 'sell') {
-                $cost = $priceString;
+                $cost = Precise::string_mul($cost, $priceString);
             } else {
                 $key = 'base';
             }
@@ -2864,6 +2866,14 @@ class Exchange {
             } else {
                 $key = 'base';
             }
+        }
+        // for derivatives, the fee is in 'settle' currency
+        if (!$market['spot']) {
+            $key = $this->safe_string($market, 'settle', $key);
+        }
+        // even if `$takerOrMaker` argument was set to 'maker', for 'market' orders we should forcefully override it to 'taker'
+        if ($type === 'market') {
+            $takerOrMaker = 'taker';
         }
         $rate = $this->number_to_string($market[$takerOrMaker]);
         if ($cost !== null) {
@@ -4402,5 +4412,33 @@ class Exchange {
             $params = $this->omit ($params, array( 'marginMode', 'defaultMarginMode' ));
         }
         return array( $marginMode, $params );
+    }
+
+    public function check_required_argument($methodName, $argument, $argumentName, $options = []) {
+        /**
+         * @ignore
+         * @param {string} $argument the $argument to check
+         * @param {string} $argumentName the name of the $argument to check
+         * @param {string} $methodName the name of the method that the $argument is being checked for
+         * @param {[string]} $options a list of $options that the $argument can be
+         * @return {null}
+         */
+        if (($argument === null) || ((strlen($options) > 0) && (!($this->in_array($argument, $options))))) {
+            $messageOptions = implode(', ', $options);
+            $message = $this->id . ' ' . $methodName . '() requires a ' . $argumentName . ' argument';
+            if ($messageOptions !== '') {
+                $message .= ', one of ' . '(' . $messageOptions . ')';
+            }
+            throw new ArgumentsRequired($message);
+        }
+    }
+
+    public function check_required_symbol($methodName, $symbol) {
+        /**
+         * @ignore
+         * @param {string} $symbol unified $symbol of the market
+         * @param {string} $methodName name of the method that requires a $symbol
+         */
+        $this->checkRequiredArgument ($methodName, $symbol, 'symbol');
     }
 }

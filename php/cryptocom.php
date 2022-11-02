@@ -280,6 +280,7 @@ class cryptocom extends Exchange {
                     '40007' => '\\ccxt\\BadRequest',
                     '40101' => '\\ccxt\\AuthenticationError',
                     '50001' => '\\ccxt\\BadRequest',
+                    '9010001' => '\\ccxt\\OnMaintenance', // array("code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details.")
                 ),
             ),
         ));
@@ -287,10 +288,21 @@ class cryptocom extends Exchange {
 
     public function fetch_markets($params = array ()) {
         /**
-         * retrieves $data on all $markets for cryptocom
+         * @see https://exchange-docs.crypto.com/spot/index.html#public-get-instruments
+         * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-instruments
+         * retrieves data on all $markets for cryptocom
          * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing $market $data
+         * @return {[array]} an array of objects representing market data
          */
+        $promises = array( $this->fetch_spot_markets($params), $this->fetch_derivatives_markets($params) );
+        $spotMarkets = $promises[0];
+        $derivativeMarkets = $promises[1];
+        $markets = $this->array_concat($spotMarkets, $derivativeMarkets);
+        return $markets;
+    }
+
+    public function fetch_spot_markets($params = array ()) {
+        $response = $this->spotPublicGetPublicGetInstruments ($params);
         //
         //    {
         //        $id => 11,
@@ -314,7 +326,6 @@ class cryptocom extends Exchange {
         //        }
         //    }
         //
-        $response = $this->spotPublicGetPublicGetInstruments ($params);
         $resultResponse = $this->safe_value($response, 'result', array());
         $markets = $this->safe_value($resultResponse, 'instruments', array());
         $result = array();
@@ -386,10 +397,15 @@ class cryptocom extends Exchange {
                 'info' => $market,
             );
         }
+        return $result;
+    }
+
+    public function fetch_derivatives_markets($params = array ()) {
+        $result = array();
         $futuresResponse = $this->derivativesPublicGetPublicGetInstruments ();
         //
         //     {
-        //       $id => -1,
+        //       id => -1,
         //       method => 'public/get-instruments',
         //       code => 0,
         //       $result => {
@@ -424,6 +440,9 @@ class cryptocom extends Exchange {
             $inst_type = $this->safe_string($market, 'inst_type');
             $swap = $inst_type === 'PERPETUAL_SWAP';
             $future = $inst_type === 'FUTURE';
+            if ($inst_type === 'CCY_PAIR') {
+                continue; // Found some inconsistencies between spot and derivatives api so use spot api for currency pairs.
+            }
             $baseId = $this->safe_string($market, 'base_ccy');
             $quoteId = $this->safe_string($market, 'quote_ccy');
             $base = $this->safe_currency_code($baseId);

@@ -31,6 +31,7 @@ class upbit(Exchange, ccxt.async_support.upbit):
     async def watch_public(self, symbol, channel, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         marketId = market['id']
         url = self.urls['api']['ws']
         self.options[channel] = self.safe_value(self.options, channel, {})
@@ -69,6 +70,8 @@ class upbit(Exchange, ccxt.async_support.upbit):
         :param dict params: extra parameters specific to the upbit api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
+        await self.load_markets()
+        symbol = self.symbol(symbol)
         trades = await self.watch_public(symbol, 'trade')
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)

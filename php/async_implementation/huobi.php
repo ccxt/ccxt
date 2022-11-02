@@ -1004,6 +1004,7 @@ class huobi extends Exchange {
                 // https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
                 'PNT' => 'Penta',
                 'SBTC' => 'Super Bitcoin',
+                'SOUL' => 'Soulsaver',
                 'BIFI' => 'Bitcoin File', // conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
             ),
         ));
@@ -2221,7 +2222,7 @@ class huobi extends Exchange {
         if ($filledPoints !== null) {
             if (($feeCost === null) || Precise::string_equals($feeCost, '0')) {
                 $feeDeductCurrency = $this->safe_string($trade, 'fee-deduct-currency');
-                if ($feeDeductCurrency !== '') {
+                if ($feeDeductCurrency !== null) {
                     $feeCost = $filledPoints;
                     $feeCurrency = $this->safe_currency_code($feeDeductCurrency);
                 }

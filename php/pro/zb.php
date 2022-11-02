@@ -38,6 +38,7 @@ class zb extends \ccxt\async\zb {
         return Async\async(function () use ($name, $symbol, $method, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $messageHash = $market['baseId'] . $market['quoteId'] . '_' . $name;
             $url = $this->implode_hostname($this->urls['api']['ws']);
             $request = array(
@@ -109,6 +110,8 @@ class zb extends \ccxt\async\zb {
              * @param {array} $params extra parameters specific to the zb api endpoint
              * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
+            Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
             $trades = Async\await($this->watch_public('trades', $symbol, array($this, 'handle_trades'), $params));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
@@ -164,6 +167,7 @@ class zb extends \ccxt\async\zb {
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $name = 'quick_depth';
             $messageHash = $market['baseId'] . $market['quoteId'] . '_' . $name;
             $url = $this->implode_hostname($this->urls['api']['ws']) . '/' . $market['baseId'];

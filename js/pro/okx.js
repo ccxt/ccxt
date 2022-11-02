@@ -109,6 +109,8 @@ module.exports = class okx extends okxRest {
          * @param {object} params extra parameters specific to the okx api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const trades = await this.subscribe ('public', 'trades', symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -205,6 +207,8 @@ module.exports = class okx extends okxRest {
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const interval = this.timeframes[timeframe];
         const name = 'candle' + interval;
         const ohlcv = await this.subscribe ('public', name, symbol, params);
@@ -632,6 +636,7 @@ module.exports = class okx extends okxRest {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            symbol = market['symbol'];
             type = market['type'];
         }
         if (type === 'future') {

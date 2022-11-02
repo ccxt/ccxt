@@ -34,6 +34,7 @@ class zb(Exchange, ccxt.async_support.zb):
     async def watch_public(self, name, symbol, method, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         messageHash = market['baseId'] + market['quoteId'] + '_' + name
         url = self.implode_hostname(self.urls['api']['ws'])
         request = {
@@ -98,6 +99,8 @@ class zb(Exchange, ccxt.async_support.zb):
         :param dict params: extra parameters specific to the zb api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
+        await self.load_markets()
+        symbol = self.symbol(symbol)
         trades = await self.watch_public('trades', symbol, self.handle_trades, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
@@ -144,6 +147,7 @@ class zb(Exchange, ccxt.async_support.zb):
             limit = 5  # default
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         name = 'quick_depth'
         messageHash = market['baseId'] + market['quoteId'] + '_' + name
         url = self.implode_hostname(self.urls['api']['ws']) + '/' + market['baseId']
