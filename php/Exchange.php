@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.1.6';
+$version = '2.1.7';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.1.6';
+    const VERSION = '2.1.7';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -4414,7 +4414,7 @@ class Exchange {
         return array( $marginMode, $params );
     }
 
-    public function check_required_argument($argument, $argumentName, $methodName, $options = []) {
+    public function check_required_argument($methodName, $argument, $argumentName, $options = []) {
         /**
          * @ignore
          * @param {string} $argument the $argument to check
@@ -4433,12 +4433,12 @@ class Exchange {
         }
     }
 
-    public function check_required_symbol($symbol, $methodName) {
+    public function check_required_symbol($methodName, $symbol) {
         /**
          * @ignore
          * @param {string} $symbol unified $symbol of the market
          * @param {string} $methodName name of the method that requires a $symbol
          */
-        $this->checkRequiredArgument ($symbol, 'symbol', $methodName);
+        $this->checkRequiredArgument ($methodName, $symbol, 'symbol');
     }
 }

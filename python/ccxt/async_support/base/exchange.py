@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.1.6'
+__version__ = '2.1.7'
 
 # -----------------------------------------------------------------------------
 
@@ -1898,7 +1898,7 @@ class Exchange(BaseExchange):
             params = self.omit(params, ['marginMode', 'defaultMarginMode'])
         return [marginMode, params]
 
-    def check_required_argument(self, argument, argumentName, methodName, options=[]):
+    def check_required_argument(self, methodName, argument, argumentName, options=[]):
         """
          * @ignore
         :param str argument: the argument to check
@@ -1914,10 +1914,10 @@ class Exchange(BaseExchange):
                 message += ', one of ' + '(' + messageOptions + ')'
             raise ArgumentsRequired(message)
 
-    def check_required_symbol(self, symbol, methodName):
+    def check_required_symbol(self, methodName, symbol):
         """
          * @ignore
         :param str symbol: unified symbol of the market
         :param str methodName: name of the method that requires a symbol
         """
-        self.checkRequiredArgument(symbol, 'symbol', methodName)
+        self.checkRequiredArgument(methodName, symbol, 'symbol')

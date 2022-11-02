@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.1.6';
+$version = '2.1.7';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.1.6';
+    const VERSION = '2.1.7';
 
     public $browser;
     public $marketsLoading = null;
@@ -2297,7 +2297,7 @@ class Exchange extends \ccxt\Exchange {
         return array( $marginMode, $params );
     }
 
-    public function check_required_argument($argument, $argumentName, $methodName, $options = []) {
+    public function check_required_argument($methodName, $argument, $argumentName, $options = []) {
         /**
          * @ignore
          * @param {string} $argument the $argument to check
@@ -2316,12 +2316,12 @@ class Exchange extends \ccxt\Exchange {
         }
     }
 
-    public function check_required_symbol($symbol, $methodName) {
+    public function check_required_symbol($methodName, $symbol) {
         /**
          * @ignore
          * @param {string} $symbol unified $symbol of the market
          * @param {string} $methodName name of the method that requires a $symbol
          */
-        $this->checkRequiredArgument ($symbol, 'symbol', $methodName);
+        $this->checkRequiredArgument ($methodName, $symbol, 'symbol');
     }
 }
