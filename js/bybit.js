@@ -774,21 +774,21 @@ module.exports = class bybit extends Exchange {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
-        if (type === 'spot') {
-            // spot and swap ids are equal
-            // so they can't be loaded together
-            const spotMarkets = await this.fetchSpotMarkets (params);
-            return spotMarkets;
-        }
-        let promises = [ this.fetchSwapAndFutureMarkets (params), this.fetchUSDCMarkets (params) ];
-        promises = await Promise.all (promises);
-        const contractMarkets = promises[0];
-        const usdcMarkets = promises[1];
-        let markets = contractMarkets;
-        markets = this.arrayConcat (markets, usdcMarkets);
-        return markets;
+        // let type = undefined;
+        // [ type, params ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
+        // if (type === 'spot') {
+        // spot and swap ids are equal
+        // so they can't be loaded together
+        const spotMarkets = await this.fetchSpotMarkets (params);
+        return spotMarkets;
+        // }
+        // let promises = [ this.fetchSwapAndFutureMarkets (params), this.fetchUSDCMarkets (params) ];
+        // promises = await Promise.all (promises);
+        // const contractMarkets = promises[0];
+        // const usdcMarkets = promises[1];
+        // let markets = contractMarkets;
+        // markets = this.arrayConcat (markets, usdcMarkets);
+        // return markets;
     }
 
     async fetchSpotMarkets (params) {
@@ -1247,18 +1247,18 @@ module.exports = class bybit extends Exchange {
     parseTicker (ticker, market = undefined) {
         // spot
         //
-        //    {
-        //        "time": "1651743420061",
-        //        "symbol": "BTCUSDT",
-        //        "bestBidPrice": "39466.75",
-        //        "bestAskPrice": "39466.83",
-        //        "volume": "4396.082921",
-        //        "quoteVolume": "172664909.03216557",
-        //        "lastPrice": "39466.71",
-        //        "highPrice": "40032.79",
-        //        "lowPrice": "38602.39",
-        //        "openPrice": "39031.53"
-        //    }
+        //      {
+        //          "t": 1667407651340,
+        //          "s": "XDCUSDT",
+        //          "lp": "0",
+        //          "h": "0",
+        //          "l": "0",
+        //          "o": "0",
+        //          "bp": "0",
+        //          "ap": "0",
+        //          "v": "0",
+        //          "qv": "0"
+        //      }
         //
         // linear usdt/ inverse swap and future
         //     {
@@ -1319,19 +1319,19 @@ module.exports = class bybit extends Exchange {
         //          "theta": "-0.03262827"
         //      }
         //
-        const timestamp = this.safeInteger (ticker, 'time');
-        const marketId = this.safeString (ticker, 'symbol');
+        const timestamp = this.safeInteger (ticker, 't');
+        const marketId = this.safeString (ticker, 's');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeString2 (ticker, 'last_price', 'lastPrice');
-        const open = this.safeString2 (ticker, 'prev_price_24h', 'openPrice');
+        const last = this.safeString2 (ticker, 'last_price', 'lp');
+        const open = this.safeString2 (ticker, 'prev_price_24h', 'o');
         let percentage = this.safeString2 (ticker, 'price_24h_pcnt', 'change24h');
         percentage = Precise.stringMul (percentage, '100');
-        const quoteVolume = this.safeStringN (ticker, [ 'turnover_24h', 'turnover24h', 'quoteVolume' ]);
-        const baseVolume = this.safeStringN (ticker, [ 'volume_24h', 'volume24h', 'volume' ]);
-        const bid = this.safeStringN (ticker, [ 'bid_price', 'bid', 'bestBidPrice' ]);
-        const ask = this.safeStringN (ticker, [ 'ask_price', 'ask', 'bestAskPrice' ]);
-        const high = this.safeStringN (ticker, [ 'high_price_24h', 'high24h', 'highPrice' ]);
-        const low = this.safeStringN (ticker, [ 'low_price_24h', 'low24h', 'lowPrice' ]);
+        const quoteVolume = this.safeStringN (ticker, [ 'turnover_24h', 'turnover24h', 'qv' ]);
+        const baseVolume = this.safeStringN (ticker, [ 'volume_24h', 'volume24h', 'v' ]);
+        const bid = this.safeStringN (ticker, [ 'bid_price', 'bid', 'bp' ]);
+        const ask = this.safeStringN (ticker, [ 'ask_price', 'ask', 'ap' ]);
+        const high = this.safeStringN (ticker, [ 'high_price_24h', 'high24h', 'h' ]);
+        const low = this.safeStringN (ticker, [ 'low_price_24h', 'low24h', 'l' ]);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1469,6 +1469,8 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://bybit-exchange.github.io/docs/futuresV2/linear/#t-latestsymbolinfo
+         * @see https://bybit-exchange.github.io/docs/spot/v3/#t-spot_latestsymbolinfo
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
@@ -1481,10 +1483,10 @@ module.exports = class bybit extends Exchange {
         if (symbols !== undefined) {
             const symbol = this.safeValue (symbols, 0);
             market = this.market (symbol);
-            type = market['type'];
+            [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
             isUsdcSettled = market['settle'] === 'USDC';
         } else {
-            [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+            [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
             if (type !== 'spot') {
                 let defaultSettle = this.safeString (this.options, 'defaultSettle', 'USDT');
                 defaultSettle = this.safeString2 (params, 'settle', 'defaultSettle', isUsdcSettled);
@@ -1494,15 +1496,18 @@ module.exports = class bybit extends Exchange {
         }
         let method = undefined;
         if (type === 'spot') {
-            method = 'publicGetSpotQuoteV1Ticker24hr';
+            method = 'publicGetSpotV3PublicQuoteTicker24hr';
         } else if (!isUsdcSettled) {
-            // inverse perpetual // usdt linear // inverse futures
             method = 'publicGetV2PublicTickers';
         } else {
             throw new NotSupported (this.id + ' fetchTickers() is not supported for USDC markets');
         }
         const response = await this[method] (params);
-        const result = this.safeValue (response, 'result', []);
+        // console.log (response);
+        let result = this.safeValue (response, 'result', []);
+        if (type === 'spot') {
+            result = this.safeValue (result, 'list', []);
+        }
         const tickers = {};
         for (let i = 0; i < result.length; i++) {
             const ticker = this.parseTicker (result[i]);
