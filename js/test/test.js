@@ -131,15 +131,12 @@ function exceptionMessage (exc) {
 // ----------------------------------------------------------------------------
 
 async function test (methodName, exchange, ... args) {
+    // We don't need to print-out the skipped tests in terminal, as it doesn't add any value, because we already know the unsupported methods from exchange-capabilities
     if (exchange.has[methodName]) {
         if (testMethodAvailableForCurrentLang(methodName)) {
             console.log ('Testing', exchange.id, methodName, '(', ... args, ')');
             return await runTesterMethod(exchange, methodName, ... args);
-        } else {
-            console.log (' # Skipping Test : ',  exchange.id, '->', methodName, ' (test method not available in current language)');
         }
-    } else {
-        console.log (' # Skipping Test : ',  exchange.id, '->', methodName, ' (method not supported)');
     }
 }
 
