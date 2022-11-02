@@ -372,7 +372,7 @@ module.exports = class kucoin extends kucoinRest {
         const topic = '/market/level2:' + market['id'];
         const messageHash = topic;
         const orderbook = await this.subscribe (negotiation, topic, messageHash, this.handleOrderBookSubscription, symbol, params);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     retryFetchOrderBookSnapshot (client, message, subscription) {

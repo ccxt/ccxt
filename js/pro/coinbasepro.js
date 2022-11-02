@@ -191,7 +191,7 @@ module.exports = class coinbasepro extends coinbaseproRest {
             'limit': limit,
         };
         const orderbook = await this.watch (url, messageHash, request, messageHash, subscription);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleTrade (client, message) {

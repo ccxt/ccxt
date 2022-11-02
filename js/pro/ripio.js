@@ -183,7 +183,7 @@ module.exports = class ripio extends ripioRest {
             this.delay (delay, this.fetchOrderBookSnapshot, client, subscription);
         }
         const orderbook = await this.watch (url, messageHash, undefined, messageHash, subscription);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     async fetchOrderBookSnapshot (client, subscription) {

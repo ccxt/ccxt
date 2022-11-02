@@ -291,7 +291,7 @@ module.exports = class huobijp extends huobijpRest {
             'method': this.handleOrderBookSubscription,
         };
         const orderbook = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBookSnapshot (client, message, subscription) {
@@ -356,7 +356,7 @@ module.exports = class huobijp extends huobijpRest {
             'method': this.handleOrderBookSnapshot,
         };
         const orderbook = await this.watch (url, requestId, request, requestId, snapshotSubscription);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleDelta (bookside, delta) {

@@ -425,7 +425,7 @@ module.exports = class idex extends idexRest {
         }
         // 1. Connect to the WebSocket API endpoint and subscribe to the L2 Order Book for the target market.
         const orderbook = await this.subscribe (subscribeObject, messageHash, subscription);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBook (client, message) {

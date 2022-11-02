@@ -295,7 +295,7 @@ module.exports = class okx extends okxRest {
         //
         const depth = this.safeString (options, 'depth', 'books');
         const orderbook = await this.subscribe ('public', depth, symbol, params);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleDelta (bookside, delta) {

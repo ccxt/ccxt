@@ -66,7 +66,7 @@ module.exports = class hollaex extends hollaexRest {
         const market = this.market (symbol);
         const messageHash = 'orderbook' + ':' + market['id'];
         const orderbook = await this.watchPublic (messageHash, params);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBook (client, message) {

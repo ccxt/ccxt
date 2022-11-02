@@ -480,7 +480,7 @@ module.exports = class exmo extends exmoRest {
         };
         const request = this.deepExtend (subscribe, params);
         const orderbook = await this.watch (url, messageHash, request, messageHash);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBook (client, message) {
