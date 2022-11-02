@@ -774,21 +774,21 @@ module.exports = class bybit extends Exchange {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
-        // let type = undefined;
-        // [ type, params ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
-        // if (type === 'spot') {
-        // spot and swap ids are equal
-        // so they can't be loaded together
-        const spotMarkets = await this.fetchSpotMarkets (params);
-        return spotMarkets;
-        // }
-        // let promises = [ this.fetchSwapAndFutureMarkets (params), this.fetchUSDCMarkets (params) ];
-        // promises = await Promise.all (promises);
-        // const contractMarkets = promises[0];
-        // const usdcMarkets = promises[1];
-        // let markets = contractMarkets;
-        // markets = this.arrayConcat (markets, usdcMarkets);
-        // return markets;
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
+        if (type === 'spot') {
+            // spot and swap ids are equal
+            // so they can't be loaded together
+            const spotMarkets = await this.fetchSpotMarkets (params);
+            return spotMarkets;
+        }
+        let promises = [ this.fetchSwapAndFutureMarkets (params), this.fetchUSDCMarkets (params) ];
+        promises = await Promise.all (promises);
+        const contractMarkets = promises[0];
+        const usdcMarkets = promises[1];
+        let markets = contractMarkets;
+        markets = this.arrayConcat (markets, usdcMarkets);
+        return markets;
     }
 
     async fetchSpotMarkets (params) {
