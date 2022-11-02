@@ -175,8 +175,7 @@ async function loadExchange (exchange) {
     assert (Array.isArray (exchange.symbols), '.symbols is not an array');
     const symbolsLength = exchange.symbols.length;
     assert (symbolsLength > 0, '.symbols count <= 0 (less than or equal to zero)');
-    const marketKeys = Object.keys (exchange.markets);
-    const marketKeysLength = marketKeys.length;
+    const marketKeysLength = Object.keys (exchange.markets).length;
     assert (marketKeysLength > 0, '.markets objects keys length <= 0 (less than or equal to zero)');
     assert (symbolsLength === marketKeysLength, 'number of .symbols is not equal to the number of .markets');
 
