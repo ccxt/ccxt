@@ -658,7 +658,7 @@ class bybit(Exchange, ccxt.async_support.bybit):
                 channel = prefix + '.' + market['id']
             reqParams = [channel]
             orderbook = await self.watch_contract_public(url, messageHash, reqParams, params)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_order_book(self, client, message):
         #

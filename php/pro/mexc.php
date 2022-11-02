@@ -305,7 +305,7 @@ class mexc extends \ccxt\async\mexc {
                 $requestParams['depth'] = $limit;
                 $orderbook = Async\await($this->watch_spot_public($messageHash, $channel, $requestParams, $params));
             }
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

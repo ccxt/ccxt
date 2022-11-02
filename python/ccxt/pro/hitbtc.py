@@ -66,7 +66,7 @@ class hitbtc(Exchange, ccxt.async_support.hitbtc):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         orderbook = await self.watch_public(symbol, 'orderbook', None, params)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_order_book_snapshot(self, client, message):
         #

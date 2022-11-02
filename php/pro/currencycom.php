@@ -418,7 +418,7 @@ class currencycom extends \ccxt\async\currencycom {
             Async\await($this->load_markets());
             $symbol = $this->symbol($symbol);
             $orderbook = Async\await($this->watch_public('depthMarketData.subscribe', $symbol, $params));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

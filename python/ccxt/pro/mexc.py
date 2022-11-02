@@ -286,7 +286,7 @@ class mexc(Exchange, ccxt.async_support.mexc):
             channel = 'sub.limit.depth'
             requestParams['depth'] = limit
             orderbook = await self.watch_spot_public(messageHash, channel, requestParams, params)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_order_book(self, client, message):
         #

@@ -296,7 +296,7 @@ class huobijp extends \ccxt\async\huobijp {
                 'method' => array($this, 'handle_order_book_subscription'),
             );
             $orderbook = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 
@@ -363,7 +363,7 @@ class huobijp extends \ccxt\async\huobijp {
                 'method' => array($this, 'handle_order_book_snapshot'),
             );
             $orderbook = Async\await($this->watch($url, $requestId, $request, $requestId, $snapshotSubscription));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

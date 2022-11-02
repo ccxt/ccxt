@@ -273,7 +273,7 @@ class huobijp(Exchange, ccxt.async_support.huobijp):
             'method': self.handle_order_book_subscription,
         }
         orderbook = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_order_book_snapshot(self, client, message, subscription):
         #
@@ -335,7 +335,7 @@ class huobijp(Exchange, ccxt.async_support.huobijp):
             'method': self.handle_order_book_snapshot,
         }
         orderbook = await self.watch(url, requestId, request, requestId, snapshotSubscription)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)

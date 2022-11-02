@@ -330,7 +330,7 @@ class ndax(Exchange, ccxt.async_support.ndax):
         }
         message = self.extend(request, params)
         orderbook = await self.watch(url, messageHash, message, messageHash, subscription)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_order_book(self, client, message):
         #

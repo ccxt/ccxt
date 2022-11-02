@@ -360,7 +360,7 @@ class bitmart(Exchange, ccxt.async_support.bitmart):
         options = self.safe_value(self.options, 'watchOrderBook', {})
         depth = self.safe_string(options, 'depth', 'depth400')
         orderbook = await self.subscribe(depth, symbol, params)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)

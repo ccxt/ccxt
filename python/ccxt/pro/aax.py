@@ -235,7 +235,7 @@ class aax(Exchange, ccxt.async_support.aax):
         }
         request = self.extend(subscribe, params)
         orderbook = await self.watch(url, messageHash, request, messageHash)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)

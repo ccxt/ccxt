@@ -558,7 +558,7 @@ class bittrex(Exchange, ccxt.async_support.bittrex):
         #     8. If a message is received that is not the next in order, return to step 2 in self process
         #
         orderbook = await self.subscribe_to_order_book(negotiation, symbol, limit, params)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     async def subscribe_to_order_book(self, negotiation, symbol, limit=None, params={}):
         await self.load_markets()

@@ -335,7 +335,7 @@ class okcoin extends \ccxt\async\okcoin {
             $options = $this->safe_value($this->options, 'watchOrderBook', array());
             $depth = $this->safe_string($options, 'depth', 'depth_l2_tbt');
             $orderbook = Async\await($this->subscribe($depth, $symbol, $params));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

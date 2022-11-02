@@ -74,7 +74,7 @@ class hitbtc extends \ccxt\async\hitbtc {
              * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
              */
             $orderbook = Async\await($this->watch_public($symbol, 'orderbook', null, $params));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

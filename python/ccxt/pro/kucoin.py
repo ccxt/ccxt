@@ -350,7 +350,7 @@ class kucoin(Exchange, ccxt.async_support.kucoin):
         topic = '/market/level2:' + market['id']
         messageHash = topic
         orderbook = await self.subscribe(negotiation, topic, messageHash, self.handle_order_book_subscription, symbol, params)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def retry_fetch_order_book_snapshot(self, client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')

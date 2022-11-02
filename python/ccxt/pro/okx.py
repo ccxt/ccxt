@@ -277,7 +277,7 @@ class okx(Exchange, ccxt.async_support.okx):
         #
         depth = self.safe_string(options, 'depth', 'books')
         orderbook = await self.subscribe('public', depth, symbol, params)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_delta(self, bookside, delta):
         #

@@ -701,7 +701,7 @@ class bybit extends \ccxt\async\bybit {
                 $reqParams = array( $channel );
                 $orderbook = Async\await($this->watch_contract_public($url, $messageHash, $reqParams, $params));
             }
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

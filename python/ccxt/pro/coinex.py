@@ -441,7 +441,7 @@ class coinex(Exchange, ccxt.async_support.coinex):
         }
         request = self.deep_extend(subscribe, params)
         orderbook = await self.watch(url, messageHash, request, messageHash)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """

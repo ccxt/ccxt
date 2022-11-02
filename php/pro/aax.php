@@ -258,7 +258,7 @@ class aax extends \ccxt\async\aax {
             );
             $request = array_merge($subscribe, $params);
             $orderbook = Async\await($this->watch($url, $messageHash, $request, $messageHash));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

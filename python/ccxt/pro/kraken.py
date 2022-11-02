@@ -268,7 +268,7 @@ class kraken(Exchange, ccxt.async_support.kraken):
             else:
                 raise NotSupported(self.id + ' watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only')
         orderbook = await self.watch_public(name, symbol, self.extend(request, params))
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()

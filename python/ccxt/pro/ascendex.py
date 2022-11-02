@@ -195,7 +195,7 @@ class ascendex(Exchange, ccxt.async_support.ascendex):
             'ch': channel,
         })
         orderbook = await self.watch_public(channel, params)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     async def watch_order_book_snapshot(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -210,7 +210,7 @@ class ascendex(Exchange, ccxt.async_support.ascendex):
             'op': 'req',
         })
         orderbook = await self.watch_public(channel, params)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_order_book_snapshot(self, client, message):
         #

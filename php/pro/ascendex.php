@@ -219,7 +219,7 @@ class ascendex extends \ccxt\async\ascendex {
                 'ch' => $channel,
             ));
             $orderbook = Async\await($this->watch_public($channel, $params));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 
@@ -237,7 +237,7 @@ class ascendex extends \ccxt\async\ascendex {
                 'op' => 'req',
             ));
             $orderbook = Async\await($this->watch_public($channel, $params));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

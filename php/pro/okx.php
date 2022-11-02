@@ -303,7 +303,7 @@ class okx extends \ccxt\async\okx {
             //
             $depth = $this->safe_string($options, 'depth', 'books');
             $orderbook = Async\await($this->subscribe('public', $depth, $symbol, $params));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

@@ -74,7 +74,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             }
             $messageHash = 'book' . '.' . $market['id'];
             $orderbook = Async\await($this->watch_public($messageHash, $params));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

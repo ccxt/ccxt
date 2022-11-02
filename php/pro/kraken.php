@@ -291,7 +291,7 @@ class kraken extends \ccxt\async\kraken {
                 }
             }
             $orderbook = Async\await($this->watch_public($name, $symbol, array_merge($request, $params)));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

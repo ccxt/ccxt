@@ -67,7 +67,7 @@ class cryptocom(Exchange, ccxt.async_support.cryptocom):
             raise NotSupported(self.id + ' watchOrderBook() supports spot markets only')
         messageHash = 'book' + '.' + market['id']
         orderbook = await self.watch_public(messageHash, params)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_order_book_snapshot(self, client, message):
         # full snapshot
