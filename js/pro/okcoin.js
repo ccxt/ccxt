@@ -327,7 +327,7 @@ module.exports = class okcoin extends okcoinRest {
         const options = this.safeValue (this.options, 'watchOrderBook', {});
         const depth = this.safeString (options, 'depth', 'depth_l2_tbt');
         const orderbook = await this.subscribe (depth, symbol, params);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleDelta (bookside, delta) {

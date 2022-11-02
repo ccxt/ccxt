@@ -284,7 +284,7 @@ module.exports = class kraken extends krakenRest {
             }
         }
         const orderbook = await this.watchPublic (name, symbol, this.extend (request, params));
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {

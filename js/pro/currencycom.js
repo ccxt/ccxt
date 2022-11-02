@@ -411,7 +411,7 @@ module.exports = class currencycom extends currencycomRest {
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
         const orderbook = await this.watchPublic ('depthMarketData.subscribe', symbol, params);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {

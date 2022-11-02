@@ -68,7 +68,7 @@ module.exports = class cryptocom extends cryptocomRest {
         }
         const messageHash = 'book' + '.' + market['id'];
         const orderbook = await this.watchPublic (messageHash, params);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBookSnapshot (client, message) {

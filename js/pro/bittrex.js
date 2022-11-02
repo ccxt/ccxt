@@ -617,7 +617,7 @@ module.exports = class bittrex extends bittrexRest {
         //     8. If a message is received that is not the next in order, return to step 2 in this process
         //
         const orderbook = await this.subscribeToOrderBook (negotiation, symbol, limit, params);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     async subscribeToOrderBook (negotiation, symbol, limit = undefined, params = {}) {
