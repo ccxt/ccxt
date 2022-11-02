@@ -84,42 +84,6 @@ foreach ($config as $id => $params) {
     }
 }
 
-
-// ### common language specific methods ###
-$tester_func_names = [
-    'fetchTicker' => 'test_ticker',
-    'fetchOrderBook' => 'test_order_book',
-    'fetchTrades' => 'test_trades',
-    'fetchOrders' => 'test_orders',
-    'fetchClosedOrders' => 'test_closed_orders',
-    'fetchOpenOrders' => 'test_open_orders',
-    'fetchPositions' => 'test_positions',
-    'fetchTransactions' => 'test_transactions',
-    'fetchOHLCV' => 'test_ohlcvs',
-    'fetchAccounts' => 'test_accounts',
-    'fetchBalance' => 'test_balance',
-    'signIn' => 'test_sign_in',
-];
-
-function run_tester_method($exchange, $method_name, ...$args){
-    $tester_func_name = $GLOBALS['tester_func_names'][$method_name];
-    return yield call_user_func_array('\\'.__NAMESPACE__ .'\\'.$tester_func_name, [$exchange, ...$args]);
-}
-
-function test_method_available_for_current_lang($method_name){
-    return array_key_exists($method_name, $GLOBALS['tester_func_names']);
-}
-
-function find_value_index_in_array($arr, $value){
-    $result = array_search($value, $arr);
-    return ($result === false ? -1 : $result);
-}
-
-function exception_hint($exc) {
-    return '[' + get_class($exc) + '] ' + substr($exc->getMessage(), 0, 200);
-}
-// ### end of language specific common methods ###
-
 $exchanges['coinbasepro']->urls['api'] = $exchanges['coinbasepro']->urls['test'];
 
 function test_ticker($exchange, $symbol) {
@@ -310,52 +274,6 @@ function test_ohlcvs($exchange, $symbol) {
 
 //-----------------------------------------------------------------------------
 
-function test_accounts($exchange) {
-    $method = 'fetchAccounts';
-    if ($exchange->has[$method]) {
-        dump(green($exchange->id), 'executing ' . $method . '()');
-        $accounts = yield $exchange->{$method}();
-        foreach ($accounts as $account) {
-            test_account($exchange, $account, $method);
-        }
-        dump(green($exchange->id), 'fetched', green(count($accounts)), 'accounts');
-    } else {
-        dump(green($exchange->id), $method . '() is not supported');
-    }
-}
-
-//-----------------------------------------------------------------------------
-
-function test_balance($exchange) {
-    $method = 'fetchBalance';
-    if ($exchange->has[$method]) {
-        dump(green($exchange->id),  'executing ' . $method . '()');
-        $balance = yield $exchange->fetch_balance();
-        dump('fetched', green(count(array_keys($balance))), 'balance items');
-    } else {
-        dump($method . '() is not supported');
-    }
-}
-
-//-----------------------------------------------------------------------------
-
-function test_sign_in($exchange) {
-    $method = 'signIn';
-    if ($exchange->has[$method]) {
-        dump(green($exchange->id),  'testing ' . $method . '()');
-        yield $exchange->sign_in();
-        dump('signIn succeeded');
-    } else {
-        dump($method . '() is not supported');
-    }
-}
-
-//-----------------------------------------------------------------------------
-
-// ----------------------------------------------------------------------------
-// ### AUTO-TRANSPILER-START ###
-// ----------------------------------------------------------------------------
-
 function test_symbol($exchange, $symbol, $code) {
     $method = 'fetchTicker';
     if ($exchange->has[$method]) {
@@ -374,6 +292,22 @@ function test_symbol($exchange, $symbol, $code) {
         test_transactions($exchange, $code);
         $balance = yield $exchange->fetch_balance();
         var_dump($balance);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+function test_accounts($exchange) {
+    $method = 'fetchAccounts';
+    if ($exchange->has[$method]) {
+        dump(green($exchange->id), 'executing ' . $method . '()');
+        $accounts = yield $exchange->{$method}();
+        foreach ($accounts as $account) {
+            test_account($exchange, $account, $method);
+        }
+        dump(green($exchange->id), 'fetched', green(count($accounts)), 'accounts');
+    } else {
+        dump(green($exchange->id), $method . '() is not supported');
     }
 }
 
@@ -593,7 +527,6 @@ $main = function() use ($args, $exchanges, $proxies, $config, $common_codes) {
         }
     }
 };
-
 
 $promise = Async\coroutine($main);
 Async\await($promise);
