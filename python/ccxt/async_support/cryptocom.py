@@ -565,16 +565,21 @@ class cryptocom(Exchange):
         if marketType != 'spot':
             raise NotSupported(self.id + ' fetchTicker() only supports spot markets')
         response = await self.spotPublicGetPublicGetTicker(self.extend(request, query))
-        # {
-        #     "code":0,
-        #     "method":"public/get-ticker",
-        #     "result":{
-        #       "data": {"i":"CRO_BTC","b":0.00000890,"k":0.00001179,"a":0.00001042,"t":1591770793901,"v":14905879.59,"h":0.00,"l":0.00,"c":0.00}
-        #     }
-        # }
+        #
+        #   {
+        #       "id":"-1",
+        #       "method":"public/get-tickers",
+        #       "code":"0",
+        #       "result":{
+        #          "data":[
+        #             {"i":"BTC_USDT", "h":"20567.16", "l":"20341.39", "a":"20394.23", "v":"2236.3762", "vv":"45739074.30", "c":"-0.0036", "b":"20394.01", "k":"20394.02", "t":"1667406085934"}
+        #          ]
+        #   }
+        #
         resultResponse = self.safe_value(response, 'result', {})
         data = self.safe_value(resultResponse, 'data', {})
-        return self.parse_ticker(data, market)
+        first = self.safe_value(data, 0, {})
+        return self.parse_ticker(first, market)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         """
