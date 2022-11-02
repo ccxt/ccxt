@@ -109,7 +109,6 @@ if (settings && settings.skip) {
 
 
 // ### common language specific methods ###
-
 async function runTesterMethod(exchange, methodName, ... args) {
     return await tests[methodName](exchange, ... args);
 }
@@ -122,7 +121,7 @@ function findValueIndexInArray (arr, value) {
     return arr.indexOf (value);
 }
 
-function exceptionHint (exc) {
+function exceptionMessage (exc) {
     return '[' + exc.constructor.name + '] ' + exc.message.slice (0, 200);
 }
 // ### end of language specific common methods ###
@@ -455,7 +454,7 @@ async function tryAllProxies (exchange, proxies) {
         } catch (e) {
 
             currentProxy = (currentProxy + 1) % maxRetries;
-            console.log (exceptionHint (e));
+            console.log (exceptionMessage (e));
             if (e instanceof ccxt.DDoSProtection) {
                 continue;
             } else if (e instanceof ccxt.RequestTimeout) {
