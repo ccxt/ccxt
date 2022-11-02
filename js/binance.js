@@ -2339,13 +2339,8 @@ module.exports = class binance extends Exchange {
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
-        let market = undefined;
-        if (symbols !== undefined) {
-            const symbol = this.safeValue (symbols, 0);
-            market = this.market (symbol);
-        }
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
         let defaultMethod = undefined;
         if (type === 'future') {
             defaultMethod = 'fapiPublicGetTicker24hr';
