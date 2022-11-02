@@ -2779,7 +2779,7 @@ module.exports = class Exchange {
         return [ marginMode, params ];
     }
 
-    checkRequiredArgument (argument, argumentName, methodName, options = []) {
+    checkRequiredArgument (methodName, argument, argumentName, options = []) {
         /**
          * @ignore
          * @method
@@ -2799,13 +2799,13 @@ module.exports = class Exchange {
         }
     }
 
-    checkRequiredSymbol (symbol, methodName) {
+    checkRequiredSymbol (methodName, symbol) {
         /**
          * @ignore
          * @method
          * @param {string} symbol unified symbol of the market
          * @param {string} methodName name of the method that requires a symbol
          */
-        this.checkRequiredArgument (symbol, 'symbol', methodName);
+        this.checkRequiredArgument (methodName, symbol, 'symbol');
     }
 };
