@@ -2791,7 +2791,7 @@ module.exports = class Exchange {
         }
     }
 
-    checkRequiredSymbol (symbol, methodName) {
+    checkRequiredSymbol (methodName, symbol) {
         /**
          * @ignore
          * @method
