@@ -99,24 +99,7 @@ class OrderBookSide extends Array {
     }
 
     // replace stored orders with new values
-    limit (n = undefined) {
-        if (n < this.length) {
-            // we store some hidden stuff for when the book is temporarily limited to the user
-            for (let i = n; i < this.length; i++) {
-                this.hidden.set (this.index[i], this[i])
-            }
-            this.length = n
-        }
-        if (this.hidden.size) {
-            let end = this.length + this.hidden.size
-            if (n !== undefined) {
-                end = Math.min (end, n)
-            }
-            for (let i = this.length; i < end; i++) {
-                this.push (this.hidden.get (this.index[i]))
-                this.hidden.delete (this.index[i])
-            }
-        }
+    limit () {
         if (this.length > this.depth) {
             for (let i = this.depth; i < this.length; i++) {
                 this.index[i] = Number.MAX_VALUE
@@ -299,24 +282,7 @@ class IndexedOrderBookSide extends Array  {
     }
 
     // replace stored orders with new values
-    limit (n = undefined) {
-        if (n < this.length) {
-            // we store some hidden stuff for when the book is temporarily limited to the user
-            for (let i = n; i < this.length; i++) {
-                this.hidden.set (this.index[i], this[i])
-            }
-            this.length = n
-        }
-        if (this.hidden.size) {
-            let end = this.length + this.hidden.size
-            if (n !== undefined) {
-                end = Math.min (end, n)
-            }
-            for (let i = this.length; i < end; i++) {
-                this.push (this.hidden.get (this.index[i]))
-                this.hidden.delete (this.index[i])
-            }
-        }
+    limit () {
         if (this.length > this.depth) {
             for (let i = this.depth; i < this.length; i++) {
                 // diff
