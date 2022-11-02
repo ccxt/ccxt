@@ -115,7 +115,7 @@ async function runTesterMethod(exchange, methodName, ... args) {
 }
 
 function testMethodAvailableForCurrentLang(methodName) {
-    return tests[methodName] !== undefined;
+    return methodName in tests && tests[methodName] !== undefined;
 }
 
 function findValueIndexInArray (arr, value) {
@@ -145,23 +145,34 @@ async function test (methodName, exchange, ... args) {
 }
 
 async function testSymbol (exchange, symbol) {
-
     await test ('loadMarkets', exchange);
     await test ('fetchCurrencies', exchange);
+
+    const market = exchange.market (symbol);
+
     await test ('fetchTicker', exchange, symbol);
     await test ('fetchTickers', exchange, symbol);
     await test ('fetchOHLCV', exchange, symbol);
     await test ('fetchTrades', exchange, symbol);
+    await test ('fetchOrderBook', exchange, symbol);
+    await test ('fetchL2OrderBook', exchange, symbol);
+    await test ('fetchOrderBooks', exchange);
+    await test ('fetchBidsAsks', exchange);
+    await test ('fetchTransactionFees', exchange);
+    await test ('fetchTransactionFee', exchange, symbol);
+    await test ('fetchLeverageTiers', exchange);
+    await test ('fetchMarketLeverageTiers', exchange, symbol);
+    await test ('fetchTime', exchange);
+    await test ('fetchStatus', exchange);
+    await test ('fetchTradingLimits', exchange);
 
-    if (exchange.id === 'coinbase') {
-
-        // nothing for now
-
-    } else {
-
-        await test ('fetchOrderBook', exchange, symbol);
-        await test ('fetchL2OrderBook', exchange, symbol);
-        await test ('fetchOrderBooks', exchange);
+    if (market.contract) {
+        await test ('fetchFundingRates', exchange);
+        await test ('fetchFundingRate', exchange, symbol);
+        await test ('fetchFundingRateHistory', exchange, symbol);
+        await test ('fetchIndexOHLCV', exchange, symbol);
+        await test ('fetchMarkOHLCV', exchange, symbol);
+        await test ('fetchPremiumIndexOHLCV', exchange, symbol);
     }
 }
 
@@ -174,8 +185,8 @@ async function loadExchange (exchange) {
     assert (typeof exchange.markets === 'object', '.markets is not an object');
     assert (Array.isArray (exchange.symbols), '.symbols is not an array');
     const symbolsLength = exchange.symbols.length;
-    assert (symbolsLength > 0, '.symbols count <= 0 (less than or equal to zero)');
     const marketKeysLength = Object.keys (exchange.markets).length;
+    assert (symbolsLength > 0, '.symbols count <= 0 (less than or equal to zero)');
     assert (marketKeysLength > 0, '.markets objects keys length <= 0 (less than or equal to zero)');
     assert (symbolsLength === marketKeysLength, 'number of .symbols is not equal to the number of .markets');
 
@@ -303,66 +314,40 @@ async function testExchange (exchange) {
         'EUR/USD',
     ]);
 
+    // if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
     if (symbol === undefined) {
         for (let i = 0; i < codes.length; i++) {
-            const marketKeys = Object.keys (exchange.markets);
-            const marketsForBaseCode = [];
-            for (let i = 0; i < marketKeys.length; i++) {
-                const key = marketKeys[i];
-                const market = exchange.markets[key];
-                if (market['base'] === codes[i]) {
-                    marketsForBaseCode.push (market);
-                }
-            }
-
-            const lengthOfMarketsForBaseCode = marketsForBaseCode.length;
-            if (lengthOfMarketsForBaseCode > 0) {
-                const symbolsForBaseCode = [];
-                const keysOfMarketsOfBaseCode = Object.keys (marketsForBaseCode);
-                for (let i = 0; i < keysOfMarketsOfBaseCode.length; i++) {
-                    const key = keysOfMarketsOfBaseCode[i];
-                    const market = marketsForBaseCode[key];
-                    symbolsForBaseCode.push (market['symbol']);
-                }
-                symbol = getTestSymbol (exchange, symbolsForBaseCode);
+            const currentCode = codes[i];
+            const marketsForCurrentCode = exchange.filterBy (exchange.markets, 'base', currentCode);
+            const symbolsForCurrentCode = Object.keys (marketsForCurrentCode);
+            if (symbolsForCurrentCode.length) {
+                symbol = getTestSymbol (exchange, symbolsForCurrentCode);
                 break;
             }
         }
     }
 
+    // if there wasn't found any symbol with our hardcoded 'base' code, then just try to find symbols that are 'active'
     if (symbol === undefined) {
-        const marketKeys = Object.keys (exchange.markets);
-        const activeMarkets = [];
-        for (let i = 0; i < marketKeys.length; i++) {
-            const key = marketKeys[i];
-            const market = exchange.markets[key];
-            if (exchange.safeValue (market, 'active') !== false) {
-                activeMarkets.push (market);
-            }
-        }
-        const activeSymbols = [];
-        const keysOfActiveMarketsForCode = Object.keys (activeMarkets);
-        for (let i = 0; i < keysOfActiveMarketsForCode.length; i++) {
-            const key = keysOfActiveMarketsForCode[i];
-            const market = activeMarkets[key];
-            activeSymbols.push (market['symbol']);
-        }
-        symbol = getTestSymbol (exchange, activeSymbols)
+        const activeMarkets = exchange.filterBy (exchange.markets, 'active', true);
+        const activeSymbols = Object.keys (activeMarkets);
+        symbol = getTestSymbol (exchange, activeSymbols);
     }
 
+    // if neither above was found any symbol, then just get any random symbol
     if (symbol === undefined) {
         symbol = getTestSymbol (exchange, exchange.symbols);
     }
 
+    // if still nothing was found, then just directly set the first symbol
     if (symbol === undefined) {
         symbol = exchange.symbols[0];
     }
 
     console.log ('SYMBOL:', symbol);
-    if ((symbol.indexOf ('.d') < 0)) {
-        await testSymbol (exchange, symbol);
-    }
+    await testSymbol (exchange, symbol);
 
+    // if API key is not set, then skip the private tests
     if (!exchange.privateKey && (!exchange.apiKey || (exchange.apiKey.length < 1))) {
         return true;
     }
@@ -375,10 +360,11 @@ async function testExchange (exchange) {
     // if (exchange.urls['test'])
     //    exchange.urls['api'] = exchange.urls['test']
 
-    const balance = await test ('fetchBalance', exchange);
+    await test ('fetchBalance', exchange);
 
     await test ('fetchAccounts', exchange);
     await test ('fetchTransactionFees', exchange);
+    await test ('fetchTradingFee', exchange, symbol); // fethcTradingFee(s) might be public for some exchanges
     await test ('fetchTradingFees', exchange);
     await test ('fetchStatus', exchange);
 
@@ -388,14 +374,10 @@ async function testExchange (exchange) {
     await test ('fetchMyTrades', exchange, symbol);
     await test ('fetchLeverageTiers', exchange, symbol);
     await test ('fetchOpenInterestHistory', exchange, symbol);
-
     await test ('fetchPositions', exchange, symbol);
-
-    if ('fetchLedger' in tests) {
-        await test ('fetchLedger', exchange, code);
-    }
-
+    await test ('fetchLedger', exchange, code);
     await test ('fetchTransactions', exchange, code);
+    await test ('fetchTransfers', exchange, code);
     await test ('fetchDeposits', exchange, code);
     await test ('fetchWithdrawals', exchange, code);
     await test ('fetchBorrowRate', exchange, code);
@@ -410,6 +392,36 @@ async function testExchange (exchange) {
         await test ('InvalidOrder', exchange, symbol);
         await test ('InsufficientFunds', exchange, symbol, balance); // danger zone - won't execute with non-empty balance
     }
+
+    await test ('addMargin', exchange, symbol);
+    await test ('reduceMargin', exchange, symbol);
+    await test ('setMargin', exchange, symbol);
+    await test ('setMarginMode', exchange, symbol);
+    await test ('setPositionMode', exchange, symbol);
+    await test ('setLeverage', exchange, symbol);
+    await test ('cancelAllOrders', exchange, symbol);
+    await test ('cancelOrder', exchange, symbol);
+    await test ('cancelOrders', exchange, symbol);
+    await test ('fetchCanceledOrders', exchange, symbol);
+    await test ('fetchClosedOrder', exchange, symbol);
+    await test ('fetchOpenOrder', exchange, symbol);
+    await test ('fetchOrder', exchange, symbol);
+    await test ('fetchOrderTrades', exchange, symbol);
+    await test ('fetchPosition', exchange, symbol);
+    await test ('fetchFundingHistory', exchange, symbol);
+    await test ('fetchDeposit', exchange, code);
+    await test ('createDepositAddress', exchange, code);
+    await test ('fetchDepositAddress', exchange, code);
+    await test ('fetchDepositAddresses', exchange, code);
+    await test ('fetchDepositAddressesByNetwork', exchange, code);
+    await test ('editOrder', exchange, symbol);
+    await test ('fetchBorrowRateHistory', exchange, symbol);
+    await test ('fetchBorrowRatesPerSymbol', exchange, symbol);
+    await test ('fetchLedgerEntry', exchange, code);
+    await test ('fetchPositionsRisk', exchange, symbol);
+    await test ('fetchWithdrawal', exchange, code);
+    await test ('transfer', exchange, code);
+    await test ('withdraw', exchange, code);
 }
 
 //-----------------------------------------------------------------------------
