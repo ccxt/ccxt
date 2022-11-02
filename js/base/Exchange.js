@@ -1209,7 +1209,7 @@ module.exports = class Exchange {
             // the fee is always in the currency you get
             cost = amountString;
             if (side === 'sell') {
-                cost = priceString;
+                cost = Precise.stringMul (cost, priceString);
             } else {
                 key = 'base';
             }
@@ -1221,6 +1221,14 @@ module.exports = class Exchange {
             } else {
                 key = 'base';
             }
+        }
+        // for derivatives, the fee is in 'settle' currency
+        if (!market['spot']) {
+            key = this.safeString (market, 'settle', key);
+        }
+        // even if `takerOrMaker` argument was set to 'maker', for 'market' orders we should forcefully override it to 'taker'
+        if (type === 'market') {
+            takerOrMaker = 'taker';
         }
         const rate = this.numberToString (market[takerOrMaker]);
         if (cost !== undefined) {
