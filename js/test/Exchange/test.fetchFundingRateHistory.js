@@ -15,7 +15,7 @@ module.exports = async (exchange) => {
         'info': {}, // Or []
         'timestamp': 1638230400000,
         'datetime': '2021-11-30T00:00:00.000Z',
-        'rate': 0.0006,
+        'fundingRate': 0.0006,
     }
 
     if (exchange.has[method]) {
