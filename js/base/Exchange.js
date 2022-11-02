@@ -2287,19 +2287,28 @@ module.exports = class Exchange {
         throw new ExchangeError (this.id + ' does not have currency code ' + code);
     }
 
-    market (symbol) {
-        if (this.markets === undefined) {
-            throw new ExchangeError (this.id + ' markets not loaded');
-        }
-        if (this.markets_by_id === undefined) {
-            throw new ExchangeError (this.id + ' markets not loaded');
-        }
+    marketHelper (symbol) {
         if (typeof symbol === 'string') {
             if (symbol in this.markets) {
                 return this.markets[symbol];
             } else if (symbol in this.markets_by_id) {
                 return this.markets_by_id[symbol];
             }
+        }
+    }
+
+    market (symbol) {
+        // symbol = symbol + ':USDT';
+        if (this.markets === undefined) {
+            throw new ExchangeError (this.id + ' markets not loaded');
+        }
+        if (this.markets_by_id === undefined) {
+            throw new ExchangeError (this.id + ' markets not loaded');
+        }
+        // TEALSTREET patch for backwards compatability
+        const foundMarket = this.marketHelper (symbol) || this.marketHelper (symbol + ':USDT') || this.marketHelper (symbol + ':BTC') || this.marketHelper (symbol.split (':')[0]);
+        if (foundMarket) {
+            return foundMarket;
         }
         throw new BadSymbol (this.id + ' does not have market symbol ' + symbol);
     }

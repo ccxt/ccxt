@@ -202,6 +202,7 @@ const pro = {
     'idex':                    require ('./js/pro/idex.js'),
     'kraken':                  require ('./js/pro/kraken.js'),
     'kucoin':                  require ('./js/pro/kucoin.js'),
+    'kucoinfutures':           require ('./js/pro/kucoinfutures.js'),
     'mexc':                    require ('./js/pro/mexc.js'),
     'ndax':                    require ('./js/pro/ndax.js'),
     'okcoin':                  require ('./js/pro/okcoin.js'),
@@ -217,10 +218,12 @@ const pro = {
 
 for (const exchange in pro) {
     const ccxtExchange = exchanges[exchange]
-    const baseExchange = Object.getPrototypeOf (ccxtExchange)
-    if (baseExchange.name === 'Exchange') {
-        Object.setPrototypeOf (ccxtExchange, wsExchange)
-        Object.setPrototypeOf (ccxtExchange.prototype, wsExchange.prototype)
+    if (ccxtExchange) {
+        const baseExchange = Object.getPrototypeOf (ccxtExchange)
+        if (baseExchange.name === 'Exchange') {
+            Object.setPrototypeOf (ccxtExchange, wsExchange)
+            Object.setPrototypeOf (ccxtExchange.prototype, wsExchange.prototype)
+        }
     }
 }
 

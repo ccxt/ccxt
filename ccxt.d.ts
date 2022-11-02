@@ -448,7 +448,7 @@ declare module 'ccxt' {
         withdraw (currency: string, amount: number, address: string, tag?: string, params?: Params): Promise<WithdrawalResponse>;
         YmdHMS (timestamp: string, infix: string) : string;
     }
-    
+
     /* tslint:disable */
 
     export class aax extends Exchange {}
@@ -572,7 +572,7 @@ declare module 'ccxt' {
     export class zipmex extends ndax {}
     export class zonda extends Exchange {}
 
-    
+
     /* tslint:enable */
 
     export type ExchangeId =
@@ -696,7 +696,7 @@ declare module 'ccxt' {
         | 'zb'
         | 'zipmex'
         | 'zonda'
-        
+
 
     // Pro related exports
     class ExchangePro extends Exchange {
@@ -715,6 +715,7 @@ declare module 'ccxt' {
 
     export namespace pro {
         export const exchanges: string[];
+        // @ts-ignore
         class Exchange  extends ExchangePro {};
         class aax extends Exchange {};
         class ascendex extends Exchange {};
