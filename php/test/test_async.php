@@ -86,7 +86,6 @@ foreach ($config as $id => $params) {
 
 
 // ### common language specific methods ###
-
 $tester_func_names = [
     'fetchTicker' => 'test_ticker',
     'fetchOrderBook' => 'test_order_book',
@@ -119,7 +118,6 @@ function find_value_index_in_array($arr, $value){
 function exception_hint($exc) {
     return '[' + get_class($exc) + '] ' + substr($exc->getMessage(), 0, 200);
 }
-
 // ### end of language specific common methods ###
 
 $exchanges['coinbasepro']->urls['api'] = $exchanges['coinbasepro']->urls['test'];

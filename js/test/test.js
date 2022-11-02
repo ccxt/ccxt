@@ -286,6 +286,7 @@ async function testExchange (exchange) {
     for (let i = 0; i < codes.length; i++) {
         if (codes[i] in exchange.currencies) {
             code = codes[i];
+            break;
         }
     }
 
