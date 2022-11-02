@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.1.3';
+$version = '2.1.4';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.1.3';
+    const VERSION = '2.1.4';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -424,6 +424,8 @@ class Exchange {
         'handleTimeInForce' => 'handle_time_in_force',
         'convertTypeToAccount' => 'convert_type_to_account',
         'handleMarginModeAndParams' => 'handle_margin_mode_and_params',
+        'checkRequiredArgument' => 'check_required_argument',
+        'checkRequiredSymbol' => 'check_required_symbol',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -4402,5 +4404,33 @@ class Exchange {
             $params = $this->omit ($params, array( 'marginMode', 'defaultMarginMode' ));
         }
         return array( $marginMode, $params );
+    }
+
+    public function check_required_argument($argument, $argumentName, $methodName, $options = []) {
+        /**
+         * @ignore
+         * @param {string} $argument the $argument to check
+         * @param {string} $argumentName the name of the $argument to check
+         * @param {string} $methodName the name of the method that the $argument is being checked for
+         * @param {[string]} $options a list of $options that the $argument can be
+         * @return {null}
+         */
+        if (($argument === null) || ((strlen($options) > 0) && (!($this->in_array($argument, $options))))) {
+            $messageOptions = implode(', ', $options);
+            $message = $this->id . ' ' . $methodName . '() requires a ' . $argumentName . ' argument';
+            if ($messageOptions !== '') {
+                $message .= ', one of ' . '(' . $messageOptions . ')';
+            }
+            throw new ArgumentsRequired($message);
+        }
+    }
+
+    public function check_required_symbol($symbol, $methodName) {
+        /**
+         * @ignore
+         * @param {string} $symbol unified $symbol of the market
+         * @param {string} $methodName name of the method that requires a $symbol
+         */
+        $this->checkRequiredArgument ($symbol, 'symbol', $methodName);
     }
 }

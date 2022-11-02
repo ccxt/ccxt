@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.1.3';
+$version = '2.1.4';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.1.3';
+    const VERSION = '2.1.4';
 
     public $browser;
     public $marketsLoading = null;
@@ -2287,5 +2287,33 @@ class Exchange extends \ccxt\Exchange {
             $params = $this->omit ($params, array( 'marginMode', 'defaultMarginMode' ));
         }
         return array( $marginMode, $params );
+    }
+
+    public function check_required_argument($argument, $argumentName, $methodName, $options = []) {
+        /**
+         * @ignore
+         * @param {string} $argument the $argument to check
+         * @param {string} $argumentName the name of the $argument to check
+         * @param {string} $methodName the name of the method that the $argument is being checked for
+         * @param {[string]} $options a list of $options that the $argument can be
+         * @return {null}
+         */
+        if (($argument === null) || ((strlen($options) > 0) && (!($this->in_array($argument, $options))))) {
+            $messageOptions = implode(', ', $options);
+            $message = $this->id . ' ' . $methodName . '() requires a ' . $argumentName . ' argument';
+            if ($messageOptions !== '') {
+                $message .= ', one of ' . '(' . $messageOptions . ')';
+            }
+            throw new ArgumentsRequired($message);
+        }
+    }
+
+    public function check_required_symbol($symbol, $methodName) {
+        /**
+         * @ignore
+         * @param {string} $symbol unified $symbol of the market
+         * @param {string} $methodName name of the method that requires a $symbol
+         */
+        $this->checkRequiredArgument ($symbol, 'symbol', $methodName);
     }
 }
