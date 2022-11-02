@@ -1169,10 +1169,10 @@ module.exports = class bitstamp extends Exchange {
         //     ...
         //  }
         //
+        if (codes === undefined) {
+            codes = Object.keys (this.currencies);
+        }
         const result = {};
-        let infoObject = {};
-        let infoObjectLen = undefined;
-        let prevCode = undefined;
         let mainCurrencyId = undefined;
         const ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
@@ -1187,23 +1187,14 @@ module.exports = class bitstamp extends Exchange {
                 result[code] = {
                     'deposit': undefined,
                     'withdraw': undefined,
-                    'info': undefined,
+                    'info': {},
                 };
-                infoObjectLen = infoObject.length;
-                if (infoObjectLen > 0) {
-                    result[prevCode]['info'] = infoObject;
-                    infoObject = {};
-                }
             }
             if (currencyId === mainCurrencyId) {
-                infoObject[id] = this.safeNumber (response, id);
+                result[code]['info'][id] = this.safeNumber (response, id);
             }
             if (id.indexOf ('_withdrawal_fee') >= 0) {
                 result[code]['withdraw'] = this.safeNumber (response, id);
-            }
-            prevCode = this.safeCurrencyCode (mainCurrencyId);
-            if ((i === ids.length - 1 && infoObjectLen > 0) || this.inArray (code, codes)) {
-                result[prevCode]['info'] = infoObject;
             }
         }
         return result;
