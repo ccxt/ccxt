@@ -1587,8 +1587,14 @@ module.exports = class bitget extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
-        const method = this.getSupportedMapping (marketType, {
+        let type = undefined;
+        let market = undefined;
+        if (symbols !== undefined) {
+            const symbol = this.safeValue (symbols, 0);
+            market = this.market (symbol);
+        }
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const method = this.getSupportedMapping (type, {
             'spot': 'publicSpotGetMarketTickers',
             'swap': 'publicMixGetMarketTickers',
         });
@@ -1597,7 +1603,7 @@ module.exports = class bitget extends Exchange {
             const defaultSubType = this.safeString (this.options, 'defaultSubType');
             request['productType'] = (defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL';
         }
-        const response = await this[method] (this.extend (request, query));
+        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
