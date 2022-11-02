@@ -171,8 +171,8 @@ async function loadExchange (exchange) {
 
     const markets = await exchange.loadMarkets ();
 
-    assert (exchange.isObject (exchange.markets), '.markets is not an object');
-    assert (exchange.isArray (exchange.symbols), '.symbols is not an array');
+    assert (typeof exchange.markets === 'object', '.markets is not an object');
+    assert (Array.isArray (exchange.symbols), '.symbols is not an array');
     const symbolsLength = exchange.symbols.length;
     assert (symbolsLength > 0, '.symbols count <= 0 (less than or equal to zero)');
     const marketKeys = Object.keys (exchange.markets);
@@ -364,7 +364,7 @@ async function testExchange (exchange) {
         await testSymbol (exchange, symbol);
     }
 
-    if (!exchange.privateKey && (!exchange.apiKey || (exchange.apiKey === ''))) {
+    if (!exchange.privateKey && (!exchange.apiKey || (exchange.apiKey.length < 1))) {
         return true;
     }
 
@@ -383,7 +383,6 @@ async function testExchange (exchange) {
     await test ('fetchTradingFees', exchange);
     await test ('fetchStatus', exchange);
 
-    await test ('fetchOpenInterestHistory', exchange, symbol);
     await test ('fetchOrders', exchange, symbol);
     await test ('fetchOpenOrders', exchange, symbol);
     await test ('fetchClosedOrders', exchange, symbol);
@@ -433,7 +432,7 @@ async function tryAllProxies (exchange, proxies) {
             exchange.proxy = proxies[currentProxy];
 
             // add random origin for proxies
-            const proxiesLength = exchange.proxy;
+            const proxiesLength = exchange.proxy.length;
             if (proxiesLength > 0) {
                 exchange.origin = exchange.uuid ();
             }
