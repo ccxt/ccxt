@@ -4191,69 +4191,17 @@ module.exports = class bybit extends Exchange {
         return this.cancelDerivativesOrder (id, symbol, params);
     }
 
-    async cancelAllOrders (symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name bybit#cancelAllOrders
-         * @description cancel all open orders
-         * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
-         * @param {object} params extra parameters specific to the bybit api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
+    async cancelAllSpotOrders (symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllSpotOrders() requires a symbol argument');
+        }
         await this.loadMarkets ();
-        let market = undefined;
-        let isUsdcSettled = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            isUsdcSettled = market['settle'] === 'USDC';
-        } else {
-            let settle = this.safeString (this.options, 'defaultSettle');
-            settle = this.safeString2 (params, 'settle', 'defaultSettle', settle);
-            params = this.omit (params, [ 'settle', 'defaultSettle' ]);
-            isUsdcSettled = (settle === 'USDC');
-        }
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
-        if (!isUsdcSettled && symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument for ' + type + ' markets');
-        }
-        const request = {};
-        if (!isUsdcSettled) {
-            request['symbol'] = market['id'];
-        }
-        const orderType = this.safeStringLower (params, 'orderType');
-        const isStop = this.safeValue (params, 'stop', false);
-        const isConditional = isStop || (orderType === 'stop') || (orderType === 'conditional');
-        params = this.omit (params, [ 'stop', 'orderType' ]);
-        let method = undefined;
-        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
-        if (type === 'spot') {
-            method = 'privateDeleteSpotOrderBatchCancel';
-        } else if (enableUnifiedMargin) {
-            method = 'privatePostUnifiedV3PrivateOrderCancelAll';
-            if (market['option']) {
-                request['category'] = 'option';
-            } else if (market['linear']) {
-                request['category'] = 'linear';
-            } else {
-                throw new NotSupported (this.id + ' cancelAllOrders() does not allow inverse market orders for ' + symbol + ' markets');
-            }
-            if (isConditional) {
-                request['orderFilter'] = 'StopOrder';
-            }
-        } else if (isUsdcSettled) {
-            method = (type === 'option') ? 'privatePostOptionUsdcOpenapiPrivateV1CancelAll' : 'privatePostPerpetualUsdcOpenapiPrivateV1CancelAll';
-        } else if (type === 'future') {
-            method = isConditional ? 'privatePostFuturesPrivateStopOrderCancelAll' : 'privatePostFuturesPrivateOrderCancelAll';
-        } else if (market['linear']) {
-            // linear swap
-            method = isConditional ? 'privatePostPrivateLinearStopOrderCancelAll' : 'privatePostPrivateLinearOrderCancelAll';
-        } else {
-            // inverse swap
-            method = isConditional ? 'privatePostV2PrivateStopOrderCancelAll' : 'privatePostV2PrivateOrderCancelAll';
-        }
-        const response = await this[method] (this.extend (request, params));
-        // spot
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.privateDeleteSpotOrderBatchCancel (this.extend (request, params));
+        //
         //    {
         //        "ret_code": 0,
         //        "ret_msg": "",
@@ -4264,6 +4212,136 @@ module.exports = class bybit extends Exchange {
         //        }
         //    }
         //
+        const result = this.safeValue (response, 'result', []);
+        if (!Array.isArray (result)) {
+            return response;
+        }
+        return this.parseOrders (result, market);
+    }
+
+    async cancelAllUnifiedMarginOrders (symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllUnifiedMarginOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const orderType = this.safeStringLower (params, 'orderType');
+        const isStop = this.safeValue (params, 'stop', false);
+        const isConditional = isStop || (orderType === 'stop') || (orderType === 'conditional');
+        params = this.omit (params, [ 'stop', 'orderType' ]);
+        if (market['option']) {
+            request['category'] = 'option';
+        } else if (market['linear']) {
+            request['category'] = 'linear';
+        } else {
+            throw new NotSupported (this.id + ' cancelAllUnifiedMarginOrders() does not allow inverse market orders for ' + symbol + ' markets');
+        }
+        if (isConditional) {
+            request['orderFilter'] = 'StopOrder';
+        }
+        const response = await this.privatePostUnifiedV3PrivateOrderCancelAll (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [{
+        //                     "category": "option",
+        //                     "symbol": "BTC-24JUN22-45000-P",
+        //                     "orderId": "bd5f3b34-d64d-4b60-8188-438fbea4c552",
+        //                     "orderLinkId": "ac4e3b34-d64d-4b60-8188-438fbea4c552",
+        //                 }, {
+        //                     "category": "option",
+        //                     "symbol": "BTC-24JUN22-45000-P",
+        //                     "orderId": "4ddd727a-2af8-430e-a293-42895e594d18",
+        //                     "orderLinkId": "5cee727a-2af8-430e-a293-42895e594d18",
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {
+        //             "list": [{
+        //                 "code": 0,
+        //                 "msg": "OK"
+        //             }, {
+        //                 "code": 0,
+        //                 "msg": "OK"
+        //             }]
+        //         },
+        //         "time": 1657200736570
+        //     }
+        //
+        const result = this.safeValue (response, 'result', []);
+        const orders = this.safeValue (result, 'list');
+        if (!Array.isArray (orders)) {
+            return response;
+        }
+        return this.parseOrders (orders, market);
+    }
+
+    async cancelAllUSDCOrders (symbol = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('cancelAllUSDCOrders', market, params);
+        let method = undefined;
+        method = (type === 'option') ? 'privatePostOptionUsdcOpenapiPrivateV1CancelAll' : 'privatePostPerpetualUsdcOpenapiPrivateV1CancelAll';
+        const response = await this[method] (params);
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "retExtMap": {},
+        //         "result": [
+        //             {
+        //                 "outRequestId": "cancelAll-290119-1652176443114-0",
+        //                 "symbol": "BTC-13MAY22-40000-C",
+        //                 "orderId": "fa6cd740-56ed-477d-9385-90ccbfee49ca",
+        //                 "orderLinkId": "",
+        //                 "errorCode": 0,
+        //                 "errorDesc": ""
+        //             }
+        //         ]
+        //     }
+        //
+        const result = this.safeValue (response, 'result', []);
+        if (!Array.isArray (result)) {
+            return response;
+        }
+        return this.parseOrders (result, market);
+    }
+
+    async cancelAllDerivativesOrders (symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllDerivativesOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('cancelAllDerivativesOrders', market, params);
+        const request = {
+            'symbol': market['id'],
+        };
+        const orderType = this.safeStringLower (params, 'orderType');
+        const isStop = this.safeValue (params, 'stop', false);
+        const isConditional = isStop || (orderType === 'stop') || (orderType === 'conditional');
+        params = this.omit (params, [ 'stop', 'orderType' ]);
+        let method = undefined;
+        if (type === 'future') {
+            method = isConditional ? 'privatePostFuturesPrivateStopOrderCancelAll' : 'privatePostFuturesPrivateOrderCancelAll';
+        } else if (market['linear']) {
+            // linear swap
+            method = isConditional ? 'privatePostPrivateLinearStopOrderCancelAll' : 'privatePostPrivateLinearOrderCancelAll';
+        } else {
+            // inverse swap
+            method = isConditional ? 'privatePostV2PrivateStopOrderCancelAll' : 'privatePostV2PrivateOrderCancelAll';
+        }
+        const response = await this[method] (this.extend (request, params));
         // linear swap
         //   {
         //       "ret_code":0,
@@ -4316,42 +4394,48 @@ module.exports = class bybit extends Exchange {
         //        "rate_limit":100
         //    }
         //
-        // Unified Margin
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "list": [{
-        //                     "category": "option",
-        //                     "symbol": "BTC-24JUN22-45000-P",
-        //                     "orderId": "bd5f3b34-d64d-4b60-8188-438fbea4c552",
-        //                     "orderLinkId": "ac4e3b34-d64d-4b60-8188-438fbea4c552",
-        //                 }, {
-        //                     "category": "option",
-        //                     "symbol": "BTC-24JUN22-45000-P",
-        //                     "orderId": "4ddd727a-2af8-430e-a293-42895e594d18",
-        //                     "orderLinkId": "5cee727a-2af8-430e-a293-42895e594d18",
-        //                 }
-        //             ]
-        //         },
-        //         "retExtInfo": {
-        //             "list": [{
-        //                 "code": 0,
-        //                 "msg": "OK"
-        //             }, {
-        //                 "code": 0,
-        //                 "msg": "OK"
-        //             }]
-        //         },
-        //         "time": 1657200736570
-        //     }
-        //
         const result = this.safeValue (response, 'result', []);
         if (!Array.isArray (result)) {
             return response;
         }
         return this.parseOrders (result, market);
+    }
+
+    async cancelAllOrders (symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#cancelAllOrders
+         * @description cancel all open orders
+         * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        let isUsdcSettled = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            isUsdcSettled = market['settle'] === 'USDC';
+        } else {
+            let settle = this.safeString (this.options, 'defaultSettle');
+            settle = this.safeString2 (params, 'settle', 'defaultSettle', settle);
+            params = this.omit (params, [ 'settle', 'defaultSettle' ]);
+            isUsdcSettled = (settle === 'USDC');
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
+        if (!isUsdcSettled && symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument for ' + type + ' markets');
+        }
+        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+        if (type === 'spot') {
+            return this.cancelAllSpotOrders (symbol, params);
+        } else if (enableUnifiedMargin) {
+            return this.cancelAllUnifiedMarginOrders (symbol, params);
+        } else if (isUsdcSettled) {
+            return this.cancelAllUSDCOrders (symbol, params);
+        }
+        return this.cancelAllDerivativesOrders (symbol, params);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
