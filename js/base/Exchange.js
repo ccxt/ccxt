@@ -2770,4 +2770,34 @@ module.exports = class Exchange {
         }
         return [ marginMode, params ];
     }
+
+    checkRequiredArgument (argument, argumentName, methodName, options = []) {
+        /**
+         * @ignore
+         * @method
+         * @param {string} argument the argument to check
+         * @param {string} argumentName the name of the argument to check
+         * @param {string} methodName the name of the method that the argument is being checked for
+         * @param {[string]} options a list of options that the argument can be
+         * @returns {undefined}
+         */
+        if (argument === undefined) {
+            const messageOptions = options.join (', ');
+            let message = this.id + ' ' + methodName + '() requires a ' + argumentName + ' argument';
+            if (messageOptions !== '') {
+                message += ', one of ' + '(' + messageOptions + ')';
+            }
+            throw new ArgumentsRequired (message);
+        }
+    }
+
+    checkRequiredSymbol (symbol, methodName) {
+        /**
+         * @ignore
+         * @method
+         * @param {string} symbol unified symbol of the market
+         * @param {string} methodName name of the method that requires a symbol
+         */
+        this.checkRequiredArgument (symbol, 'symbol', methodName);
+    }
 };
