@@ -107,12 +107,40 @@ if (settings && settings.skip) {
     process.exit ();
 }
 
-//-----------------------------------------------------------------------------
+
+// ### common language specific methods ###
+
+async function runTesterMethod(exchange, methodName, ... args) {
+    return await tests[methodName](exchange, ... args);
+}
+
+function testMethodAvailableForCurrentLang(methodName) {
+    return tests[methodName] !== undefined;
+}
+
+function findValueIndexInArray (arr, value) {
+    return arr.indexOf (value);
+}
+
+function exceptionHint (exc) {
+    return '[' + exc.constructor.name + '] ' + exc.message.slice (0, 200);
+}
+// ### end of language specific common methods ###
+
+// ----------------------------------------------------------------------------
+// ### AUTO-TRANSPILER-START ###
+// ----------------------------------------------------------------------------
 
 async function test (methodName, exchange, ... args) {
-    console.log ('Testing', exchange.id, methodName, '(', ... args, ')');
     if (exchange.has[methodName]) {
-        return await (tests[methodName] (exchange, ... args));
+        if (testMethodAvailableForCurrentLang(methodName)) {
+            console.log ('Testing', exchange.id, methodName, '(', ... args, ')');
+            return await runTesterMethod(exchange, methodName, ... args);
+        } else {
+            console.log (' # Skipping Test : ',  exchange.id, '->', methodName, ' (test method not available in current language)');
+        }
+    } else {
+        console.log (' # Skipping Test : ',  exchange.id, '->', methodName, ' (method not supported)');
     }
 }
 
@@ -143,11 +171,14 @@ async function loadExchange (exchange) {
 
     const markets = await exchange.loadMarkets ();
 
-    assert (typeof exchange.markets === 'object', '.markets is not an object');
-    assert (Array.isArray (exchange.symbols), '.symbols is not an array');
-    assert (exchange.symbols.length > 0, '.symbols.length <= 0 (less than or equal to zero)');
-    assert (Object.keys (exchange.markets).length > 0, 'Object.keys (.markets).length <= 0 (less than or equal to zero)');
-    assert (exchange.symbols.length === Object.keys (exchange.markets).length, 'number of .symbols is not equal to the number of .markets');
+    assert (exchange.isObject (exchange.markets), '.markets is not an object');
+    assert (exchange.isArray (exchange.symbols), '.symbols is not an array');
+    const symbolsLength = exchange.symbols.length;
+    assert (symbolsLength > 0, '.symbols count <= 0 (less than or equal to zero)');
+    const marketKeys = Object.keys (exchange.markets);
+    const marketKeysLength = marketKeys.length;
+    assert (marketKeysLength > 0, '.markets objects keys length <= 0 (less than or equal to zero)');
+    assert (symbolsLength === marketKeysLength, 'number of .symbols is not equal to the number of .markets');
 
     const symbols = [
         'BTC/CNY',
@@ -173,17 +204,27 @@ async function loadExchange (exchange) {
         'EUR/USD',
     ];
 
-    let result = exchange.symbols.filter ((symbol) => symbols.indexOf (symbol) >= 0);
-
-    if (result.length > 0) {
-        if (exchange.symbols.length > result.length) {
-            result = result.join (', ') + ' + more...';
-        } else {
-            result = result.join (', ');
+    const resultSymbols = [];
+    const exchangeSpecificSymbols = exchange.symbols;
+    for (let i = 0; i < exchangeSpecificSymbols.length; i++) {
+        const symbol = exchangeSpecificSymbols[i];
+        if (exchange.inArray(symbol, symbols)) {
+            resultSymbols.push (symbol);
         }
     }
 
-    console.log (exchange.symbols.length, 'symbols', result);
+    let resultMsg = '';
+    const resultLength = resultSymbols.length;
+    const exchangeSymbolsLength = exchange.symbols.length;
+    if (resultLength > 0) {
+        if (exchangeSymbolsLength > resultLength) {
+            resultMsg = resultSymbols.join (', ') + ' + more...';
+        } else {
+            resultMsg = resultSymbols.join (', ');
+        }
+    }
+
+    console.log (exchangeSymbolsLength, 'symbols', resultMsg);
 }
 
 //-----------------------------------------------------------------------------
@@ -265,21 +306,49 @@ async function testExchange (exchange) {
 
     if (symbol === undefined) {
         for (let i = 0; i < codes.length; i++) {
-            const markets = Object.values (exchange.markets);
-            const activeMarkets = markets.filter ((market) => (market['base'] === codes[i]));
-            if (activeMarkets.length) {
-                const activeSymbols = activeMarkets.map (market => market['symbol']);
-                symbol = getTestSymbol (exchange, activeSymbols);
+            const marketKeys = Object.keys (exchange.markets);
+            const marketsForBaseCode = [];
+            for (let i = 0; i < marketKeys.length; i++) {
+                const key = marketKeys[i];
+                const market = exchange.markets[key];
+                if (market['base'] === codes[i]) {
+                    marketsForBaseCode.push (market);
+                }
+            }
+
+            const lengthOfMarketsForBaseCode = marketsForBaseCode.length;
+            if (lengthOfMarketsForBaseCode > 0) {
+                const symbolsForBaseCode = [];
+                const keysOfMarketsOfBaseCode = Object.keys (marketsForBaseCode);
+                for (let i = 0; i < keysOfMarketsOfBaseCode.length; i++) {
+                    const key = keysOfMarketsOfBaseCode[i];
+                    const market = marketsForBaseCode[key];
+                    symbolsForBaseCode.push (market['symbol']);
+                }
+                symbol = getTestSymbol (exchange, symbolsForBaseCode);
                 break;
             }
         }
     }
 
     if (symbol === undefined) {
-        const markets = Object.values (exchange.markets);
-        const activeMarkets = markets.filter ((market) => !exchange.safeValue (market, 'active', false));
-        const activeSymbols = activeMarkets.map (market => market['symbol']);
-        symbol = getTestSymbol (exchange, activeSymbols);
+        const marketKeys = Object.keys (exchange.markets);
+        const activeMarkets = [];
+        for (let i = 0; i < marketKeys.length; i++) {
+            const key = marketKeys[i];
+            const market = exchange.markets[key];
+            if (exchange.safeValue (market, 'active') !== false) {
+                activeMarkets.push (market);
+            }
+        }
+        const activeSymbols = [];
+        const keysOfActiveMarketsForCode = Object.keys (activeMarkets);
+        for (let i = 0; i < keysOfActiveMarketsForCode.length; i++) {
+            const key = keysOfActiveMarketsForCode[i];
+            const market = activeMarkets[key];
+            activeSymbols.push (market['symbol']);
+        }
+        symbol = getTestSymbol (exchange, activeSymbols)
     }
 
     if (symbol === undefined) {
@@ -295,7 +364,7 @@ async function testExchange (exchange) {
         await testSymbol (exchange, symbol);
     }
 
-    if (!exchange.privateKey && (!exchange.apiKey || (exchange.apiKey.length < 1))) {
+    if (!exchange.privateKey && (!exchange.apiKey || (exchange.apiKey === ''))) {
         return true;
     }
 
@@ -314,6 +383,7 @@ async function testExchange (exchange) {
     await test ('fetchTradingFees', exchange);
     await test ('fetchStatus', exchange);
 
+    await test ('fetchOpenInterestHistory', exchange, symbol);
     await test ('fetchOrders', exchange, symbol);
     await test ('fetchOpenOrders', exchange, symbol);
     await test ('fetchClosedOrders', exchange, symbol);
@@ -348,12 +418,12 @@ async function testExchange (exchange) {
 
 async function tryAllProxies (exchange, proxies) {
 
-    const index = proxies.indexOf (exchange.proxy);
+    const index = findValueIndexInArray (proxies, exchange.proxy);
     let currentProxy = (index >= 0) ? index : 0;
     const maxRetries = proxies.length;
 
     if (settings && ('proxy' in settings)) {
-        currentProxy = proxies.indexOf (settings.proxy);
+        currentProxy = findValueIndexInArray (proxies, settings.proxy);
     }
 
     for (let numRetries = 0; numRetries < maxRetries; numRetries++) {
@@ -363,7 +433,8 @@ async function tryAllProxies (exchange, proxies) {
             exchange.proxy = proxies[currentProxy];
 
             // add random origin for proxies
-            if (exchange.proxy.length > 0) {
+            const proxiesLength = exchange.proxy;
+            if (proxiesLength > 0) {
                 exchange.origin = exchange.uuid ();
             }
 
@@ -373,8 +444,8 @@ async function tryAllProxies (exchange, proxies) {
 
         } catch (e) {
 
-            currentProxy = ++currentProxy % proxies.length;
-            console.log ('[' + e.constructor.name + '] ' + e.message.slice (0, 200));
+            currentProxy = (currentProxy + 1) % maxRetries;
+            console.log (exceptionHint (e));
             if (e instanceof ccxt.DDoSProtection) {
                 continue;
             } else if (e instanceof ccxt.RequestTimeout) {
@@ -407,5 +478,9 @@ async function main () {
     }
 
 }
+
+// ----------------------------------------------------------------------------
+// ### AUTO-TRANSPILER-END ###
+// ----------------------------------------------------------------------------
 
 main ();
