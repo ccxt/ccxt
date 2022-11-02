@@ -641,21 +641,19 @@ module.exports = class gate extends Exchange {
          * @name gate#fetchMarkets
          * @description retrieves data on all markets for gate
          * @param {object} params extra parameters specific to the exchange api endpoint
-         * @param {string|undefined} params.marginMode 'cross' or 'isolated', for spot-margin
          * @returns {[object]} an array of objects representing market data
          */
         let result = [];
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchMarkets', params);
-        if (marketType === 'spot' || marketType === 'margin' || marginMode !== undefined) {
-            result = await this.fetchSpotMarkets (query);
+        if (marketType === 'spot' || marketType === 'margin') {
+            result = await this.fetchSpotMarkets (params);
         }
         if (marketType === 'swap' || marketType === 'future') {
-            result = await this.fetchContractMarkets (query); // futures and swaps
+            result = await this.fetchContractMarkets (params); // futures and swaps
         }
         if (marketType === 'option') {
-            result = await this.fetchOptionMarkets (query);
+            result = await this.fetchOptionMarkets (params);
         }
         const resultLength = result.length;
         if (resultLength === 0) {
@@ -1203,9 +1201,9 @@ module.exports = class gate extends Exchange {
          * @param {object} params Request params
          * @returns The marginMode and the updated request params with marginMode removed, marginMode value is the value that can be read by the "account" property specified in gates api docs
          */
-        let marginMode = this.safeStringLower (params, 'account');
-        [ marginMode, params ] = this.handleMarginModeAndParams ('getMarginMode', params);
-        params = this.omit (params, 'account');
+        const defaultMarginMode = this.safeStringLower2 (this.options, 'defaultMarginMode', 'marginMode', 'spot'); // 'margin' is isolated margin on gate's api
+        let marginMode = this.safeStringLower2 (params, 'marginMode', 'account', defaultMarginMode);
+        params = this.omit (params, [ 'marginMode', 'account' ]);
         if (marginMode === 'cross') {
             marginMode = 'cross_margin';
         } else if (marginMode === 'isolated') {
@@ -2024,23 +2022,18 @@ module.exports = class gate extends Exchange {
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the gate api endpoint
-         * @param {string|undefined} params.marginMode 'cross' or 'isolated', for spot-margin
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
-        const [ request, requestParams ] = this.prepareRequest (undefined, marketType, params);
-        let method = this.getSupportedMapping (marketType, {
+        const [ request, query ] = this.prepareRequest (undefined, marketType, params);
+        const method = this.getSupportedMapping (marketType, {
             'spot': 'publicSpotGetTickers',
             'margin': 'publicSpotGetTickers',
             'swap': 'publicFuturesGetSettleTickers',
             'future': 'publicDeliveryGetSettleTickers',
         });
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchTicker', requestParams);
-        if (marginMode !== undefined) {
-            method = 'publicSpotGetTickers';
-        }
         const response = await this[method] (this.extend (request, query));
         return this.parseTickers (response, symbols);
     }
@@ -2560,15 +2553,12 @@ module.exports = class gate extends Exchange {
         if (until !== undefined) {
             request['to'] = parseInt (until / 1000);
         }
-        let method = this.getSupportedMapping (type, {
+        const method = this.getSupportedMapping (type, {
             'spot': 'privateSpotGetMyTrades',
             'margin': 'privateSpotGetMyTrades',
             'swap': 'privateFuturesGetSettleMyTrades',
             'future': 'privateDeliveryGetSettleMyTrades',
         });
-        if (marginMode !== undefined) {
-            method = 'privateSpotGetMyTrades';
-        }
         const response = await this[method] (this.extend (request, params));
         //
         // spot
@@ -3144,15 +3134,12 @@ module.exports = class gate extends Exchange {
             }
             methodTail = 'PriceOrders';
         }
-        let method = this.getSupportedMapping (market['type'], {
+        const method = this.getSupportedMapping (market['type'], {
             'spot': 'privateSpotPost' + methodTail,
             'margin': 'privateSpotPost' + methodTail,
             'swap': 'privateFuturesPostSettle' + methodTail,
             'future': 'privateDeliveryPostSettle' + methodTail,
         });
-        if (marginMode !== undefined) {
-            method = 'privateSpotPost' + methodTail;
-        }
         const response = await this[method] (this.deepExtend (request, params));
         //
         // spot
@@ -3478,7 +3465,6 @@ module.exports = class gate extends Exchange {
          * @param {string} symbol Unified market symbol, *required for spot and margin*
          * @param {object} params Parameters specified by the exchange api
          * @param {bool} params.stop True if the order being fetched is a trigger order
-         * @param {string} params.marginMode 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
          * @param {string} params.type 'spot', 'swap', or 'future', if not provided this.options['defaultMarginMode'] is used
          * @param {string} params.settle 'btc' or 'usdt' - settle currency for perpetual swap and future - market settle currency is used if symbol !== undefined, default="usdt" for swap and "btc" for future
          * @returns An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
@@ -3499,19 +3485,15 @@ module.exports = class gate extends Exchange {
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
         const contract = (marketType === 'swap') || (marketType === 'future');
-        const [ request, requestParams ] = contract ? this.prepareRequest (market, marketType, params) : this.spotOrderPrepareRequest (market, stop, params);
+        const [ request, query ] = contract ? this.prepareRequest (market, marketType, params) : this.spotOrderPrepareRequest (market, stop, params);
         request['order_id'] = orderId;
         const methodMiddle = stop ? 'PriceOrders' : 'Orders';
-        let method = this.getSupportedMapping (marketType, {
+        const method = this.getSupportedMapping (marketType, {
             'spot': 'privateSpotGet' + methodMiddle + 'OrderId',
             'margin': 'privateSpotGet' + methodMiddle + 'OrderId',
             'swap': 'privateFuturesGetSettle' + methodMiddle + 'OrderId',
             'future': 'privateDeliveryGetSettle' + methodMiddle + 'OrderId',
         });
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrder', requestParams);
-        if (marginMode !== undefined) {
-            method = 'privateSpotGet' + methodMiddle + 'OrderId';
-        }
         const response = await this[method] (this.extend (request, query));
         return this.parseOrder (response, market);
     }
@@ -3527,7 +3509,6 @@ module.exports = class gate extends Exchange {
          * @param {object} params extra parameters specific to the gate api endpoint
          * @param {bool} params.stop true for fetching stop orders
          * @param {string} params.type spot, margin, swap or future, if not provided this.options['defaultType'] is used
-         * @param {string} params.marginMode 'cross' or 'isolated' - marginMode for type='margin', if not provided this.options['defaultMarginMode'] is used
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.fetchOrdersByStatus ('open', symbol, since, limit, params);
@@ -3544,7 +3525,6 @@ module.exports = class gate extends Exchange {
          * @param {object} params extra parameters specific to the gate api endpoint
          * @param {bool} params.stop true for fetching stop orders
          * @param {string} params.type spot, swap or future, if not provided this.options['defaultType'] is used
-         * @param {string} params.marginMode 'cross' or 'isolated' - marginMode for margin trading if not provided this.options['defaultMarginMode'] is used
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         return await this.fetchOrdersByStatus ('finished', symbol, since, limit, params);
@@ -3562,7 +3542,7 @@ module.exports = class gate extends Exchange {
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
         const spot = (marketType === 'spot') || (marketType === 'margin');
-        const [ request, requestParams ] = spot ? this.multiOrderSpotPrepareRequest (market, stop, params) : this.prepareRequest (market, marketType, params);
+        const [ request, query ] = spot ? this.multiOrderSpotPrepareRequest (market, stop, params) : this.prepareRequest (market, marketType, params);
         if (status === 'closed') {
             status = 'finished';
         }
@@ -3578,16 +3558,12 @@ module.exports = class gate extends Exchange {
         if (openSpotOrders) {
             methodTail = 'OpenOrders';
         }
-        let method = this.getSupportedMapping (marketType, {
+        const method = this.getSupportedMapping (marketType, {
             'spot': 'privateSpotGet' + methodTail,
             'margin': 'privateSpotGet' + methodTail,
             'swap': 'privateFuturesGetSettle' + methodTail,
             'future': 'privateDeliveryGetSettle' + methodTail,
         });
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrdersByStatus', requestParams);
-        if (marginMode !== undefined) {
-            method = 'privateSpotGet' + methodTail;
-        }
         const response = await this[method] (this.extend (request, query));
         //
         // SPOT Open Orders
@@ -3730,7 +3706,6 @@ module.exports = class gate extends Exchange {
          * @param {string} symbol Unified market symbol
          * @param {object} params Parameters specified by the exchange api
          * @param {bool} params.stop True if the order to be cancelled is a trigger order
-         * @param {string|undefined} params.marginMode 'cross' or 'isolated', for spot-margin trading
          * @returns An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -3739,19 +3714,15 @@ module.exports = class gate extends Exchange {
         params = this.omit (params, [ 'is_stop_order', 'stop' ]);
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
-        const [ request, requestParams ] = (marketType === 'spot' || marketType === 'margin') ? this.spotOrderPrepareRequest (market, stop, params) : this.prepareRequest (market, marketType, params);
+        const [ request, query ] = (marketType === 'spot' || marketType === 'margin') ? this.spotOrderPrepareRequest (market, stop, params) : this.prepareRequest (market, marketType, params);
         request['order_id'] = id;
         const pathMiddle = stop ? 'Price' : '';
-        let method = this.getSupportedMapping (marketType, {
+        const method = this.getSupportedMapping (marketType, {
             'spot': 'privateSpotDelete' + pathMiddle + 'OrdersOrderId',
             'margin': 'privateSpotDelete' + pathMiddle + 'OrdersOrderId',
             'swap': 'privateFuturesDeleteSettle' + pathMiddle + 'OrdersOrderId',
             'future': 'privateDeliveryDeleteSettle' + pathMiddle + 'OrdersOrderId',
         });
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelOrder', requestParams);
-        if (marginMode !== undefined) {
-            method = 'privateSpotDelete' + pathMiddle + 'OrdersOrderId';
-        }
         const response = await this[method] (this.extend (request, query));
         //
         // spot
@@ -3853,18 +3824,14 @@ module.exports = class gate extends Exchange {
         params = this.omit (params, 'stop');
         let marketType = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
-        const [ request, requestParams ] = (marketType === 'spot') ? this.multiOrderSpotPrepareRequest (market, stop, params) : this.prepareRequest (market, marketType, params);
+        const [ request, query ] = (marketType === 'spot') ? this.multiOrderSpotPrepareRequest (market, stop, params) : this.prepareRequest (market, marketType, params);
         const methodTail = stop ? 'PriceOrders' : 'Orders';
-        let method = this.getSupportedMapping (marketType, {
+        const method = this.getSupportedMapping (marketType, {
             'spot': 'privateSpotDelete' + methodTail,
             'margin': 'privateSpotDelete' + methodTail,
             'swap': 'privateFuturesDeleteSettle' + methodTail,
             'future': 'privateDeliveryDeleteSettle' + methodTail,
         });
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelAllOrders', requestParams);
-        if (marginMode !== undefined) {
-            method = 'privateSpotDelete' + methodTail;
-        }
         const response = await this[method] (this.extend (request, query));
         //
         //    [
