@@ -1233,7 +1233,6 @@ module.exports = class Exchange {
         const rate = this.numberToString (market[takerOrMaker]);
         if (cost !== undefined) {
             cost = Precise.stringMul (cost, rate);
-            // cost = this.costToPrecision (symbol, cost);
         }
         return {
             'type': takerOrMaker,
