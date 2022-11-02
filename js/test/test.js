@@ -146,9 +146,6 @@ async function test (methodName, exchange, ... args) {
 async function testSymbol (exchange, symbol) {
     await test ('loadMarkets', exchange);
     await test ('fetchCurrencies', exchange);
-
-    const market = exchange.market (symbol);
-
     await test ('fetchTicker', exchange, symbol);
     await test ('fetchTickers', exchange, symbol);
     await test ('fetchOHLCV', exchange, symbol);
