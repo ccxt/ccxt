@@ -347,6 +347,7 @@ class phemex extends \ccxt\async\phemex {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $name = $market['spot'] ? 'spot_market24h' : 'market24h';
             $url = $this->urls['api']['ws'];
             $requestId = $this->request_id();
@@ -374,6 +375,7 @@ class phemex extends \ccxt\async\phemex {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $url = $this->urls['api']['ws'];
             $requestId = $this->request_id();
             $name = 'trade';
@@ -406,6 +408,7 @@ class phemex extends \ccxt\async\phemex {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $url = $this->urls['api']['ws'];
             $requestId = $this->request_id();
             $name = 'orderbook';
@@ -420,7 +423,7 @@ class phemex extends \ccxt\async\phemex {
             );
             $request = $this->deep_extend($subscribe, $params);
             $orderbook = Async\await($this->watch($url, $messageHash, $request, $messageHash));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 
@@ -428,6 +431,7 @@ class phemex extends \ccxt\async\phemex {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $url = $this->urls['api']['ws'];
             $requestId = $this->request_id();
             $name = 'kline';

@@ -978,7 +978,7 @@ class bitmex extends \ccxt\async\bitmex {
                 ),
             );
             $orderbook = Async\await($this->watch($url, $messageHash, $this->deep_extend($request, $params), $messageHash));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

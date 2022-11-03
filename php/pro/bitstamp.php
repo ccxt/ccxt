@@ -79,7 +79,7 @@ class bitstamp extends \ccxt\async\bitstamp {
             );
             $message = array_merge($request, $params);
             $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

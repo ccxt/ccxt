@@ -108,6 +108,8 @@ class okx(Exchange, ccxt.async_support.okx):
         :param dict params: extra parameters specific to the okx api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
+        await self.load_markets()
+        symbol = self.symbol(symbol)
         trades = await self.subscribe('public', 'trades', symbol, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
@@ -194,6 +196,8 @@ class okx(Exchange, ccxt.async_support.okx):
         return message
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
+        symbol = self.symbol(symbol)
         interval = self.timeframes[timeframe]
         name = 'candle' + interval
         ohlcv = await self.subscribe('public', name, symbol, params)
@@ -273,7 +277,7 @@ class okx(Exchange, ccxt.async_support.okx):
         #
         depth = self.safe_string(options, 'depth', 'books')
         orderbook = await self.subscribe('public', depth, symbol, params)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_delta(self, bookside, delta):
         #
@@ -589,6 +593,7 @@ class okx(Exchange, ccxt.async_support.okx):
         market = None
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
             type = market['type']
         if type == 'future':
             type = 'futures'

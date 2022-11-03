@@ -221,7 +221,7 @@ module.exports = class ascendex extends ascendexRest {
             'ch': channel,
         });
         const orderbook = await this.watchPublic (channel, params);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     async watchOrderBookSnapshot (symbol, limit = undefined, params = {}) {
@@ -237,7 +237,7 @@ module.exports = class ascendex extends ascendexRest {
             'op': 'req',
         });
         const orderbook = await this.watchPublic (channel, params);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBookSnapshot (client, message) {

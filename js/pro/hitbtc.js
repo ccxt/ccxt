@@ -69,7 +69,7 @@ module.exports = class hitbtc extends hitbtcRest {
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         const orderbook = await this.watchPublic (symbol, 'orderbook', undefined, params);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBookSnapshot (client, message) {

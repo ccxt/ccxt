@@ -314,7 +314,7 @@ class huobi extends \ccxt\async\huobi {
                 $params['data_type'] = 'incremental';
             }
             $orderbook = Async\await($this->subscribe_public($url, $symbol, $messageHash, array($this, 'handle_order_book_subscription'), $params));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 
@@ -408,7 +408,7 @@ class huobi extends \ccxt\async\huobi {
                 'method' => array($this, 'handle_order_book_snapshot'),
             );
             $orderbook = Async\await($this->watch($url, $requestId, $request, $requestId, $snapshotSubscription));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

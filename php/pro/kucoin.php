@@ -383,7 +383,7 @@ class kucoin extends \ccxt\async\kucoin {
             $topic = '/market/level2:' . $market['id'];
             $messageHash = $topic;
             $orderbook = Async\await($this->subscribe($negotiation, $topic, $messageHash, array($this, 'handle_order_book_subscription'), $symbol, $params));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

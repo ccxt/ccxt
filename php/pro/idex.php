@@ -158,6 +158,7 @@ class idex extends \ccxt\async\idex {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $name = 'trades';
             $subscribeObject = array(
                 'name' => $name,
@@ -246,6 +247,7 @@ class idex extends \ccxt\async\idex {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $name = 'candles';
             $interval = $this->timeframes[$timeframe];
             $subscribeObject = array(
@@ -434,7 +436,7 @@ class idex extends \ccxt\async\idex {
             }
             // 1. Connect to the WebSocket API endpoint and subscribe to the L2 Order Book for the target $market->
             $orderbook = Async\await($this->subscribe($subscribeObject, $messageHash, $subscription));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 
@@ -531,6 +533,7 @@ class idex extends \ccxt\async\idex {
             );
             $messageHash = $name;
             if ($symbol !== null) {
+                $symbol = $this->symbol($symbol);
                 $marketId = $this->market_id($symbol);
                 $subscribeObject['markets'] = array( $marketId );
                 $messageHash = $name . ':' . $marketId;

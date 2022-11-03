@@ -252,6 +252,8 @@ module.exports = class kraken extends krakenRest {
          * @param {object} params extra parameters specific to the kraken api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const name = 'trade';
         const trades = await this.watchPublic (name, symbol, params);
         if (this.newUpdates) {
@@ -282,7 +284,7 @@ module.exports = class kraken extends krakenRest {
             }
         }
         const orderbook = await this.watchPublic (name, symbol, this.extend (request, params));
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -300,6 +302,7 @@ module.exports = class kraken extends krakenRest {
         await this.loadMarkets ();
         const name = 'ohlc';
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const wsName = this.safeValue (market['info'], 'wsname');
         const messageHash = name + ':' + timeframe + ':' + wsName;
         const url = this.urls['api']['ws']['public'];
@@ -574,6 +577,7 @@ module.exports = class kraken extends krakenRest {
         const subscriptionHash = name;
         let messageHash = name;
         if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
             messageHash += ':' + symbol;
         }
         const url = this.urls['api']['ws']['private'];

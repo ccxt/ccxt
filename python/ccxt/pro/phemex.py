@@ -318,6 +318,7 @@ class phemex(Exchange, ccxt.async_support.phemex):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         name = 'spot_market24h' if market['spot'] else 'market24h'
         url = self.urls['api']['ws']
         requestId = self.request_id()
@@ -342,6 +343,7 @@ class phemex(Exchange, ccxt.async_support.phemex):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         url = self.urls['api']['ws']
         requestId = self.request_id()
         name = 'trade'
@@ -370,6 +372,7 @@ class phemex(Exchange, ccxt.async_support.phemex):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         url = self.urls['api']['ws']
         requestId = self.request_id()
         name = 'orderbook'
@@ -384,11 +387,12 @@ class phemex(Exchange, ccxt.async_support.phemex):
         }
         request = self.deep_extend(subscribe, params)
         orderbook = await self.watch(url, messageHash, request, messageHash)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         url = self.urls['api']['ws']
         requestId = self.request_id()
         name = 'kline'

@@ -972,7 +972,7 @@ module.exports = class bitmex extends bitmexRest {
             ],
         };
         const orderbook = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {

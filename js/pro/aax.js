@@ -262,7 +262,7 @@ module.exports = class aax extends aaxRest {
         };
         const request = this.extend (subscribe, params);
         const orderbook = await this.watch (url, messageHash, request, messageHash);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleDelta (bookside, delta) {

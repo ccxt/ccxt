@@ -82,6 +82,8 @@ class okcoin extends \ccxt\async\okcoin {
              * @param {array} $params extra parameters specific to the okcoin api endpoint
              * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
+            Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
             $trades = Async\await($this->subscribe('trade', $symbol, $params));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
@@ -100,7 +102,11 @@ class okcoin extends \ccxt\async\okcoin {
              * @param {array} $params extra parameters specific to the okcoin api endpoint
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
+            Async\await($this->load_markets());
             Async\await($this->authenticate());
+            if ($symbol !== null) {
+                $symbol = $this->symbol($symbol);
+            }
             $orderType = $this->safe_string($this->options, 'watchOrders', 'order');
             $trades = Async\await($this->subscribe($orderType, $symbol, $params));
             if ($this->newUpdates) {
@@ -259,6 +265,8 @@ class okcoin extends \ccxt\async\okcoin {
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
             $interval = $this->timeframes[$timeframe];
             $name = 'candle' . $interval . 's';
             $ohlcv = Async\await($this->subscribe($name, $symbol, $params));
@@ -327,7 +335,7 @@ class okcoin extends \ccxt\async\okcoin {
             $options = $this->safe_value($this->options, 'watchOrderBook', array());
             $depth = $this->safe_string($options, 'depth', 'depth_l2_tbt');
             $orderbook = Async\await($this->subscribe($depth, $symbol, $params));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

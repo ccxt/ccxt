@@ -705,7 +705,7 @@ module.exports = class bybit extends bybitRest {
             const reqParams = [ channel ];
             orderbook = await this.watchContractPublic (url, messageHash, reqParams, params);
         }
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBook (client, message) {

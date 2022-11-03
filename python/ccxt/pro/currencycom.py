@@ -281,6 +281,7 @@ class currencycom(Exchange, ccxt.async_support.currencycom):
     async def watch_public(self, destination, symbol, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         messageHash = destination + ':' + symbol
         url = self.urls['api']['ws']
         requestId = str(self.request_id())
@@ -336,6 +337,7 @@ class currencycom(Exchange, ccxt.async_support.currencycom):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         destination = '/api/v1/ticker/24hr'
         messageHash = destination + ':' + symbol
         url = self.urls['api']['ws']
@@ -362,6 +364,8 @@ class currencycom(Exchange, ccxt.async_support.currencycom):
         :param dict params: extra parameters specific to the currencycom api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
+        await self.load_markets()
+        symbol = self.symbol(symbol)
         trades = await self.watch_public('trades.subscribe', symbol, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
@@ -375,10 +379,14 @@ class currencycom(Exchange, ccxt.async_support.currencycom):
         :param dict params: extra parameters specific to the currencycom api endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
+        await self.load_markets()
+        symbol = self.symbol(symbol)
         orderbook = await self.watch_public('depthMarketData.subscribe', symbol, params)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
+        symbol = self.symbol(symbol)
         destination = 'OHLCMarketData.subscribe'
         messageHash = destination + ':' + timeframe
         timeframes = self.safe_value(self.options, 'timeframes')

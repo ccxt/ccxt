@@ -344,6 +344,7 @@ module.exports = class phemex extends phemexRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const name = market['spot'] ? 'spot_market24h' : 'market24h';
         const url = this.urls['api']['ws'];
         const requestId = this.requestId ();
@@ -371,6 +372,7 @@ module.exports = class phemex extends phemexRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const url = this.urls['api']['ws'];
         const requestId = this.requestId ();
         const name = 'trade';
@@ -403,6 +405,7 @@ module.exports = class phemex extends phemexRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const url = this.urls['api']['ws'];
         const requestId = this.requestId ();
         const name = 'orderbook';
@@ -417,7 +420,7 @@ module.exports = class phemex extends phemexRest {
         };
         const request = this.deepExtend (subscribe, params);
         const orderbook = await this.watch (url, messageHash, request, messageHash);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -434,6 +437,7 @@ module.exports = class phemex extends phemexRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const url = this.urls['api']['ws'];
         const requestId = this.requestId ();
         const name = 'kline';

@@ -1013,6 +1013,7 @@ class huobi(Exchange):
                 # https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
                 'PNT': 'Penta',
                 'SBTC': 'Super Bitcoin',
+                'SOUL': 'Soulsaver',
                 'BIFI': 'Bitcoin File',  # conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
             },
         })
@@ -2142,7 +2143,7 @@ class huobi(Exchange):
         if filledPoints is not None:
             if (feeCost is None) or Precise.string_equals(feeCost, '0'):
                 feeDeductCurrency = self.safe_string(trade, 'fee-deduct-currency')
-                if feeDeductCurrency != '':
+                if feeDeductCurrency is not None:
                     feeCost = filledPoints
                     feeCurrency = self.safe_currency_code(feeDeductCurrency)
         if feeCost is not None:

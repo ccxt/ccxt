@@ -1724,6 +1724,7 @@ class okx extends Exchange {
                 $rate = $data[$i];
                 $timestamp = $this->safe_number($rate, 'fundingTime');
                 $rates[] = array(
+                    'info' => $rate,
                     'symbol' => $this->safe_symbol($this->safe_string($rate, 'instId')),
                     'fundingRate' => $this->safe_number($rate, 'realizedRate'),
                     'timestamp' => $timestamp,
@@ -4125,7 +4126,9 @@ class okx extends Exchange {
                     $market = $this->market($entry);
                     $marketIds[] = $market['id'];
                 }
-                $request['instId'] = (string) $marketIds;
+                if (strlen($marketIds) > 0) {
+                    $request['instId'] = (string) $marketIds;
+                }
             }
             $response = Async\await($this->privateGetAccountPositions (array_merge($request, $params)));
             //

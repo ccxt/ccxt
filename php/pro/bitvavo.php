@@ -265,7 +265,7 @@ class bitvavo extends \ccxt\async\bitvavo {
             );
             $message = array_merge($request, $params);
             $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 
@@ -347,7 +347,6 @@ class bitvavo extends \ccxt\async\bitvavo {
 
     public function watch_order_book_snapshot($client, $message, $subscription) {
         return Async\async(function () use ($client, $message, $subscription) {
-            $limit = $this->safe_integer($subscription, 'limit');
             $params = $this->safe_value($subscription, 'params');
             $marketId = $this->safe_string($subscription, 'marketId');
             $name = 'getBook';
@@ -358,7 +357,7 @@ class bitvavo extends \ccxt\async\bitvavo {
                 'market' => $marketId,
             );
             $orderbook = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

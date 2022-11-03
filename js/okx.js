@@ -1713,6 +1713,7 @@ module.exports = class okx extends Exchange {
             const rate = data[i];
             const timestamp = this.safeNumber (rate, 'fundingTime');
             rates.push ({
+                'info': rate,
                 'symbol': this.safeSymbol (this.safeString (rate, 'instId')),
                 'fundingRate': this.safeNumber (rate, 'realizedRate'),
                 'timestamp': timestamp,
@@ -4116,7 +4117,9 @@ module.exports = class okx extends Exchange {
                 const market = this.market (entry);
                 marketIds.push (market['id']);
             }
-            request['instId'] = marketIds.toString ();
+            if (marketIds.length > 0) {
+                request['instId'] = marketIds.toString ();
+            }
         }
         const response = await this.privateGetAccountPositions (this.extend (request, params));
         //

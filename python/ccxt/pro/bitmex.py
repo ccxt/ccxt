@@ -927,7 +927,7 @@ class bitmex(Exchange, ccxt.async_support.bitmex):
             ],
         }
         orderbook = await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()

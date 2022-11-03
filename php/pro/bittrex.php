@@ -241,6 +241,9 @@ class bittrex extends \ccxt\async\bittrex {
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
             Async\await($this->load_markets());
+            if ($symbol !== null) {
+                $symbol = $this->symbol($symbol);
+            }
             $authentication = Async\await($this->authenticate());
             $orders = Async\await($this->subscribe_to_orders($authentication, $params));
             if ($this->newUpdates) {
@@ -388,6 +391,7 @@ class bittrex extends \ccxt\async\bittrex {
         return Async\async(function () use ($negotiation, $symbol, $params) {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $name = 'ticker';
             $messageHash = $name . '_' . $market['id'];
             $subscription = array(
@@ -426,6 +430,7 @@ class bittrex extends \ccxt\async\bittrex {
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
             $negotiation = Async\await($this->negotiate());
             $ohlcv = Async\await($this->subscribe_to_ohlcv($negotiation, $symbol, $timeframe, $params));
             if ($this->newUpdates) {
@@ -499,6 +504,7 @@ class bittrex extends \ccxt\async\bittrex {
              * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
             Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
             $negotiation = Async\await($this->negotiate());
             $trades = Async\await($this->subscribe_to_trades($negotiation, $symbol, $params));
             if ($this->newUpdates) {
@@ -569,6 +575,7 @@ class bittrex extends \ccxt\async\bittrex {
              * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
              */
             Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
             $authentication = Async\await($this->authenticate());
             $trades = Async\await($this->subscribe_to_my_trades($authentication, $params));
             if ($this->newUpdates) {
@@ -633,6 +640,7 @@ class bittrex extends \ccxt\async\bittrex {
                 throw new BadRequest($this->id . ' watchOrderBook() $limit argument must be null, 1, 25 or 500, default is 25');
             }
             Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
             $negotiation = Async\await($this->negotiate());
             //
             //     1. Subscribe to the relevant socket streams
@@ -645,7 +653,7 @@ class bittrex extends \ccxt\async\bittrex {
             //     8. If a message is received that is not the next in order, return to step 2 in this process
             //
             $orderbook = Async\await($this->subscribe_to_order_book($negotiation, $symbol, $limit, $params));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

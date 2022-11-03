@@ -309,7 +309,7 @@ module.exports = class mexc extends mexcRest {
             requestParams['depth'] = limit;
             orderbook = await this.watchSpotPublic (messageHash, channel, requestParams, params);
         }
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBook (client, message) {

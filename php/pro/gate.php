@@ -119,7 +119,7 @@ class gate extends \ccxt\async\gate {
                 'limit' => $limit,
             );
             $orderbook = Async\await($this->subscribe_public($url, $method, $messageHash, $payload, $subscriptionParams));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

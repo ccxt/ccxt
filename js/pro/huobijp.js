@@ -58,6 +58,7 @@ module.exports = class huobijp extends huobijpRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         // only supports a limit of 150 at this time
         const messageHash = 'market.' + market['id'] + '.detail';
         const api = this.safeString (this.options, 'api', 'api');
@@ -123,6 +124,7 @@ module.exports = class huobijp extends huobijpRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         // only supports a limit of 150 at this time
         const messageHash = 'market.' + market['id'] + '.trade.detail';
         const api = this.safeString (this.options, 'api', 'api');
@@ -202,6 +204,7 @@ module.exports = class huobijp extends huobijpRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const interval = this.timeframes[timeframe];
         const messageHash = 'market.' + market['id'] + '.kline.' + interval;
         const api = this.safeString (this.options, 'api', 'api');
@@ -278,6 +281,7 @@ module.exports = class huobijp extends huobijpRest {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         // only supports a limit of 150 at this time
         limit = (limit === undefined) ? 150 : limit;
         const messageHash = 'market.' + market['id'] + '.mbp.' + limit.toString ();
@@ -298,7 +302,7 @@ module.exports = class huobijp extends huobijpRest {
             'method': this.handleOrderBookSubscription,
         };
         const orderbook = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBookSnapshot (client, message, subscription) {
@@ -363,7 +367,7 @@ module.exports = class huobijp extends huobijpRest {
             'method': this.handleOrderBookSnapshot,
         };
         const orderbook = await this.watch (url, requestId, request, requestId, snapshotSubscription);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleDelta (bookside, delta) {

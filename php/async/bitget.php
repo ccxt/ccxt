@@ -100,9 +100,12 @@ class bitget extends Exchange {
                     '30m' => '30min',
                     '1h' => '1h',
                     '4h' => '4h',
+                    '6h' => '6h',
                     '12h' => '12h',
                     '1d' => '1day',
-                    '1w' => '7day',  // not documented on the website
+                    '3d' => '3day',
+                    '1w' => '1week',
+                    '1M' => '1M',
                 ),
                 'swap' => array(
                     '1m' => '60',
@@ -1586,14 +1589,22 @@ class bitget extends Exchange {
     public function fetch_tickers($symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+             * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-all-tickers
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-all-$symbol-ticker
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the bitget api endpoint
              * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
             Async\await($this->load_markets());
-            list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', null, $params);
-            $method = $this->get_supported_mapping($marketType, array(
+            $type = null;
+            $market = null;
+            if ($symbols !== null) {
+                $symbol = $this->safe_value($symbols, 0);
+                $market = $this->market($symbol);
+            }
+            list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
+            $method = $this->get_supported_mapping($type, array(
                 'spot' => 'publicSpotGetMarketTickers',
                 'swap' => 'publicMixGetMarketTickers',
             ));
@@ -1602,7 +1613,7 @@ class bitget extends Exchange {
                 $defaultSubType = $this->safe_string($this->options, 'defaultSubType');
                 $request['productType'] = ($defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL';
             }
-            $response = Async\await($this->$method (array_merge($request, $query)));
+            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             // spot
             //

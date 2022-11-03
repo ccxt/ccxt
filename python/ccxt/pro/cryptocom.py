@@ -7,7 +7,6 @@ from ccxt.pro.base.exchange import Exchange
 import ccxt.async_support
 from ccxt.pro.base.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 import hashlib
-from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import NotSupported
 
@@ -56,23 +55,19 @@ class cryptocom(Exchange, ccxt.async_support.cryptocom):
     async def watch_order_book(self, symbol, limit=None, params={}):
         """
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        see https://exchange-docs.crypto.com/spot/index.html#book-instrument_name-depth
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the cryptocom api endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
-        if limit is not None:
-            if (limit != 10) and (limit != 150):
-                raise ExchangeError(self.id + ' watchOrderBook limit argument must be None, 10 or 150')
-        else:
-            limit = 150  # default value
         await self.load_markets()
         market = self.market(symbol)
         if not market['spot']:
             raise NotSupported(self.id + ' watchOrderBook() supports spot markets only')
-        messageHash = 'book' + '.' + market['id'] + '.' + str(limit)
+        messageHash = 'book' + '.' + market['id']
         orderbook = await self.watch_public(messageHash, params)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_order_book_snapshot(self, client, message):
         # full snapshot
@@ -124,6 +119,7 @@ class cryptocom(Exchange, ccxt.async_support.cryptocom):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         if not market['spot']:
             raise NotSupported(self.id + ' watchTrades() supports spot markets only')
         messageHash = 'trade' + '.' + market['id']
@@ -185,6 +181,7 @@ class cryptocom(Exchange, ccxt.async_support.cryptocom):
         market = None
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
         defaultType = self.safe_string(self.options, 'defaultType', 'spot')
         messageHash = 'user.margin.trade' if (defaultType == 'margin') else 'user.trade'
         messageHash = (messageHash + '.' + market['id']) if (market is not None) else messageHash
@@ -244,6 +241,7 @@ class cryptocom(Exchange, ccxt.async_support.cryptocom):
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         if not market['spot']:
             raise NotSupported(self.id + ' watchOHLCV() supports spot markets only')
         interval = self.timeframes[timeframe]
@@ -296,6 +294,7 @@ class cryptocom(Exchange, ccxt.async_support.cryptocom):
         market = None
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
         defaultType = self.safe_string(self.options, 'defaultType', 'spot')
         messageHash = 'user.margin.order' if (defaultType == 'margin') else 'user.order'
         messageHash = (messageHash + '.' + market['id']) if (market is not None) else messageHash

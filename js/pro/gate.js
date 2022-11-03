@@ -113,7 +113,7 @@ module.exports = class gate extends gateRest {
             'limit': limit,
         };
         const orderbook = await this.subscribePublic (url, method, messageHash, payload, subscriptionParams);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBookSubscription (client, message, subscription) {

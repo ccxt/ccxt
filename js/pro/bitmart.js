@@ -401,7 +401,7 @@ module.exports = class bitmart extends bitmartRest {
         const options = this.safeValue (this.options, 'watchOrderBook', {});
         const depth = this.safeString (options, 'depth', 'depth400');
         const orderbook = await this.subscribe (depth, symbol, params);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleDelta (bookside, delta) {

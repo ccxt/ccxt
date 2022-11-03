@@ -201,6 +201,7 @@ class ascendex extends Exchange {
                             'futures/contract' => 1,
                             'futures/collateral' => 1,
                             'futures/pricing-data' => 1,
+                            'futures/ticker' => 1,
                         ),
                     ),
                     'private' => array(
@@ -964,18 +965,30 @@ class ascendex extends Exchange {
     public function fetch_tickers($symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+             * @see https://ascendex.github.io/ascendex-pro-api/#ticker
+             * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#ticker
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the ascendex api endpoint
              * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
             Async\await($this->load_markets());
             $request = array();
+            $market = null;
             if ($symbols !== null) {
+                $symbol = $this->safe_value($symbols, 0);
+                $market = $this->market($symbol);
                 $marketIds = $this->market_ids($symbols);
                 $request['symbol'] = implode(',', $marketIds);
             }
-            $response = Async\await($this->v1PublicGetTicker (array_merge($request, $params)));
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
+            $response = null;
+            if ($type === 'spot') {
+                $response = Async\await($this->v1PublicGetTicker (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->v2PublicGetFuturesTicker (array_merge($request, $params)));
+            }
             //
             //     {
             //         "code":0,
@@ -995,6 +1008,9 @@ class ascendex extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
+            if (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
+                return $this->parse_tickers(array( $data ), $symbols);
+            }
             return $this->parse_tickers($data, $symbols);
         }) ();
     }

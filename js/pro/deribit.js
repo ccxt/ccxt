@@ -412,7 +412,7 @@ module.exports = class deribit extends deribitRest {
         };
         const request = this.deepExtend (subscribe, params);
         const orderbook = await this.watch (url, channel, request, channel);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBook (client, message) {

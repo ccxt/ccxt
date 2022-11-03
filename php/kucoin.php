@@ -2298,31 +2298,103 @@ class kucoin extends Exchange {
         return $this->parse_transactions($responseData, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
+    public function fetch_balance_helper($entry) {
+        $account = $this->account();
+        $account['used'] = $this->safe_string($entry, 'holdBalance');
+        $account['free'] = $this->safe_string($entry, 'availableBalance');
+        $account['total'] = $this->safe_string($entry, 'totalBalance');
+        return $account;
+    }
+
     public function fetch_balance($params = array ()) {
         /**
-         * query for $balance and get the amount of funds available for trading or funds locked in orders
+         * $query for $balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.kucoin.com/#list-accounts
+         * @see https://docs.kucoin.com/#$query-$isolated-margin-$account-info
          * @param {array} $params extra parameters specific to the kucoin api endpoint
+         * @param {array} $params->marginMode 'cross' or 'isolated', margin $type for fetching margin $balance
+         * @param {array} $params->type extra parameters specific to the kucoin api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#$balance-structure $balance structure~
          */
         $this->load_markets();
+        $code = $this->safe_string($params, 'code');
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
         $defaultType = $this->safe_string_2($this->options, 'fetchBalance', 'defaultType', 'spot');
         $requestedType = $this->safe_string($params, 'type', $defaultType);
         $accountsByType = $this->safe_value($this->options, 'accountsByType');
         $type = $this->safe_string($accountsByType, $requestedType, $requestedType);
         $params = $this->omit($params, 'type');
-        $request = array(
-            'type' => $type,
-        );
-        $response = $this->privateGetAccounts (array_merge($request, $params));
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchBalance', $params);
+        $method = 'privateGetAccounts';
+        $request = array();
+        $isolated = ($marginMode === 'isolated') || ($type === 'isolated');
+        if ($isolated) {
+            $method = 'privateGetIsolatedAccounts';
+            if ($currency !== null) {
+                $request['balanceCurrency'] = $currency['id'];
+            }
+        } else {
+            if ($currency !== null) {
+                $request['currency'] = $currency['id'];
+            }
+            $request['type'] = $type;
+        }
+        $response = $this->$method (array_merge($request, $query));
         //
-        //     {
-        //         "code":"200000",
-        //         "data":array(
-        //             array("balance":"0.00009788","available":"0.00009788","holds":"0","currency":"BTC","id":"5c6a4fd399a1d81c4f9cc4d0","type":"trade"),
-        //             array("balance":"3.41060034","available":"3.41060034","holds":"0","currency":"SOUL","id":"5c6a4d5d99a1d8182d37046d","type":"trade"),
-        //             array("balance":"0.01562641","available":"0.01562641","holds":"0","currency":"NEO","id":"5c6a4f1199a1d8165a99edb1","type":"trade"),
-        //         )
-        //     }
+        // Spot and Cross
+        //
+        //    {
+        //        "code" => "200000",
+        //        "data" => array(
+        //            array(
+        //                "balance" => "0.00009788",
+        //                "available" => "0.00009788",
+        //                "holds" => "0",
+        //                "currency" => "BTC",
+        //                "id" => "5c6a4fd399a1d81c4f9cc4d0",
+        //                "type" => "trade",
+        //            ),
+        //        )
+        //    }
+        //
+        // Isolated
+        //
+        //    {
+        //        $code => '200000',
+        //        $data => {
+        //            totalConversionBalance => '0',
+        //            liabilityConversionBalance => '0',
+        //            $assets => array(
+        //                {
+        //                    $symbol => 'MANA-USDT',
+        //                    status => 'CLEAR',
+        //                    debtRatio => '0',
+        //                    baseAsset => array(
+        //                        $currency => 'MANA',
+        //                        totalBalance => '0',
+        //                        holdBalance => '0',
+        //                        availableBalance => '0',
+        //                        liability => '0',
+        //                        interest => '0',
+        //                        borrowableAmount => '0'
+        //                    ),
+        //                    quoteAsset => array(
+        //                        $currency => 'USDT',
+        //                        totalBalance => '0',
+        //                        holdBalance => '0',
+        //                        availableBalance => '0',
+        //                        liability => '0',
+        //                        interest => '0',
+        //                        borrowableAmount => '0'
+        //                    }
+        //                ),
+        //                ...
+        //            )
+        //        }
+        //    }
         //
         $data = $this->safe_value($response, 'data', array());
         $result = array(
@@ -2330,20 +2402,37 @@ class kucoin extends Exchange {
             'timestamp' => null,
             'datetime' => null,
         );
-        for ($i = 0; $i < count($data); $i++) {
-            $balance = $data[$i];
-            $balanceType = $this->safe_string($balance, 'type');
-            if ($balanceType === $type) {
-                $currencyId = $this->safe_string($balance, 'currency');
-                $code = $this->safe_currency_code($currencyId);
-                $account = $this->account();
-                $account['total'] = $this->safe_string($balance, 'balance');
-                $account['free'] = $this->safe_string($balance, 'available');
-                $account['used'] = $this->safe_string($balance, 'holds');
-                $result[$code] = $account;
+        if ($isolated) {
+            $assets = $this->safe_value($data, 'assets', array());
+            for ($i = 0; $i < count($assets); $i++) {
+                $entry = $assets[$i];
+                $marketId = $this->safe_string($entry, 'symbol');
+                $symbol = $this->safe_symbol($marketId, null, '_');
+                $base = $this->safe_value($entry, 'baseAsset', array());
+                $quote = $this->safe_value($entry, 'quoteAsset', array());
+                $baseCode = $this->safe_currency_code($this->safe_string($base, 'currency'));
+                $quoteCode = $this->safe_currency_code($this->safe_string($quote, 'currency'));
+                $subResult = array();
+                $subResult[$baseCode] = $this->fetch_balance_helper($base);
+                $subResult[$quoteCode] = $this->fetch_balance_helper($quote);
+                $result[$symbol] = $this->safe_balance($subResult);
+            }
+        } else {
+            for ($i = 0; $i < count($data); $i++) {
+                $balance = $data[$i];
+                $balanceType = $this->safe_string($balance, 'type');
+                if ($balanceType === $type) {
+                    $currencyId = $this->safe_string($balance, 'currency');
+                    $code = $this->safe_currency_code($currencyId);
+                    $account = $this->account();
+                    $account['total'] = $this->safe_string($balance, 'balance');
+                    $account['free'] = $this->safe_string($balance, 'available');
+                    $account['used'] = $this->safe_string($balance, 'holds');
+                    $result[$code] = $account;
+                }
             }
         }
-        return $this->safe_balance($result);
+        return $isolated ? $result : $this->safe_balance($result);
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
@@ -3139,6 +3228,11 @@ class kucoin extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $endpart = '';
         $headers = ($headers !== null) ? $headers : array();
+        $url = $this->urls['api'][$api];
+        $isSandbox = mb_strpos($url, 'sandbox') !== false;
+        if ($path === 'symbols' && !$isSandbox) {
+            $endpoint = '/api/v2/' . $this->implode_params($path, $params);
+        }
         if ($query) {
             if (($method === 'GET') || ($method === 'DELETE')) {
                 $endpoint .= '?' . $this->rawencode($query);
@@ -3148,7 +3242,7 @@ class kucoin extends Exchange {
                 $headers['Content-Type'] = 'application/json';
             }
         }
-        $url = $this->urls['api'][$api] . $endpoint;
+        $url = $url . $endpoint;
         $isFuturePrivate = ($api === 'futuresPrivate');
         $isPrivate = ($api === 'private');
         if ($isPrivate || $isFuturePrivate) {

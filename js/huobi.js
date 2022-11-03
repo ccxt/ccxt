@@ -994,6 +994,7 @@ module.exports = class huobi extends Exchange {
                 // https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
                 'PNT': 'Penta',
                 'SBTC': 'Super Bitcoin',
+                'SOUL': 'Soulsaver',
                 'BIFI': 'Bitcoin File', // conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
             },
         });
@@ -2203,7 +2204,7 @@ module.exports = class huobi extends Exchange {
         if (filledPoints !== undefined) {
             if ((feeCost === undefined) || Precise.stringEquals (feeCost, '0')) {
                 const feeDeductCurrency = this.safeString (trade, 'fee-deduct-currency');
-                if (feeDeductCurrency !== '') {
+                if (feeDeductCurrency !== undefined) {
                     feeCost = filledPoints;
                     feeCurrency = this.safeCurrencyCode (feeDeductCurrency);
                 }

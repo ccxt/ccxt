@@ -400,7 +400,7 @@ class bitmart extends \ccxt\async\bitmart {
             $options = $this->safe_value($this->options, 'watchOrderBook', array());
             $depth = $this->safe_string($options, 'depth', 'depth400');
             $orderbook = Async\await($this->subscribe($depth, $symbol, $params));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

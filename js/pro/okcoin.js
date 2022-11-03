@@ -76,6 +76,8 @@ module.exports = class okcoin extends okcoinRest {
          * @param {object} params extra parameters specific to the okcoin api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const trades = await this.subscribe ('trade', symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -94,7 +96,11 @@ module.exports = class okcoin extends okcoinRest {
          * @param {object} params extra parameters specific to the okcoin api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
+        await this.loadMarkets ();
         await this.authenticate ();
+        if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
+        }
         const orderType = this.safeString (this.options, 'watchOrders', 'order');
         const trades = await this.subscribe (orderType, symbol, params);
         if (this.newUpdates) {
@@ -262,6 +268,8 @@ module.exports = class okcoin extends okcoinRest {
          * @param {object} params extra parameters specific to the okcoin api endpoint
          * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const interval = this.timeframes[timeframe];
         const name = 'candle' + interval + 's';
         const ohlcv = await this.subscribe (name, symbol, params);
@@ -330,7 +338,7 @@ module.exports = class okcoin extends okcoinRest {
         const options = this.safeValue (this.options, 'watchOrderBook', {});
         const depth = this.safeString (options, 'depth', 'depth_l2_tbt');
         const orderbook = await this.subscribe (depth, symbol, params);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleDelta (bookside, delta) {

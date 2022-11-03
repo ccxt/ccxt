@@ -292,7 +292,7 @@ class huobi(Exchange, ccxt.async_support.huobi):
         if not market['spot']:
             params['data_type'] = 'incremental'
         orderbook = await self.subscribe_public(url, symbol, messageHash, self.handle_order_book_subscription, params)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_order_book_snapshot(self, client, message, subscription):
         #
@@ -377,7 +377,7 @@ class huobi(Exchange, ccxt.async_support.huobi):
             'method': self.handle_order_book_snapshot,
         }
         orderbook = await self.watch(url, requestId, request, requestId, snapshotSubscription)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     async def fetch_order_book_snapshot(self, client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')

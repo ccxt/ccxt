@@ -317,7 +317,7 @@ module.exports = class huobi extends huobiRest {
             params['data_type'] = 'incremental';
         }
         const orderbook = await this.subscribePublic (url, symbol, messageHash, this.handleOrderBookSubscription, params);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBookSnapshot (client, message, subscription) {
@@ -409,7 +409,7 @@ module.exports = class huobi extends huobiRest {
             'method': this.handleOrderBookSnapshot,
         };
         const orderbook = await this.watch (url, requestId, request, requestId, snapshotSubscription);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     async fetchOrderBookSnapshot (client, message, subscription) {

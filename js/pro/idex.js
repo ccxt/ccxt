@@ -151,6 +151,7 @@ module.exports = class idex extends idexRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const name = 'trades';
         const subscribeObject = {
             'name': name,
@@ -248,6 +249,7 @@ module.exports = class idex extends idexRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const name = 'candles';
         const interval = this.timeframes[timeframe];
         const subscribeObject = {
@@ -434,7 +436,7 @@ module.exports = class idex extends idexRest {
         }
         // 1. Connect to the WebSocket API endpoint and subscribe to the L2 Order Book for the target market.
         const orderbook = await this.subscribe (subscribeObject, messageHash, subscription);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBook (client, message) {
@@ -529,6 +531,7 @@ module.exports = class idex extends idexRest {
         };
         let messageHash = name;
         if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
             const marketId = this.marketId (symbol);
             subscribeObject['markets'] = [ marketId ];
             messageHash = name + ':' + marketId;
