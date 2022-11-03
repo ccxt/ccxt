@@ -7208,41 +7208,102 @@ module.exports = class bybit extends Exchange {
         }
     }
 
-    async fetchMarketLeverageTiers (symbol, params = {}) {
-        /**
-         * @method
-         * @name bybit#fetchMarketLeverageTiers
-         * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
-         * @param {string} symbol unified market symbol
-         * @param {object} params extra parameters specific to the bybit api endpoint
-         * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}
-         */
+    async fetchUnifiedMarginMarketLeverageTiers (symbol, params = {}) {
         await this.loadMarkets ();
-        const request = {};
-        let market = undefined;
-        market = this.market (symbol);
-        if (market['spot'] || market['option']) {
-            throw new BadRequest (this.id + ' fetchMarketLeverageTiers() symbol does not support market ' + symbol);
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (market['inverse']) {
+            request['category'] = 'inverse';
+        } else if (market['linear']) {
+            request['category'] = 'linear';
         }
-        request['symbol'] = market['id'];
-        const isUsdcSettled = market['settle'] === 'USDC';
-        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+        const response = await this.publicGetDerivativesV3PublicRiskLimitList (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "category": "linear",
+        //             "list": [
+        //                 {
+        //                     "id": 1,
+        //                     "symbol": "BTCUSDT",
+        //                     "limit": "2000000",
+        //                     "maintainMargin": "0.005",
+        //                     "initialMargin": "0.01",
+        //                     "section": [
+        //                         "1",
+        //                         "3",
+        //                         "5",
+        //                         "10",
+        //                         "25",
+        //                         "50",
+        //                         "80"
+        //                     ],
+        //                     "isLowestRisk": 1,
+        //                     "maxLeverage": "100.00"
+        //                 }
+        //             ]
+        //         },
+        //         "time": 1657797260220
+        //     }
+        //
+        const result = this.safeValue (response, 'result');
+        const tiers = this.safeValue (result, 'list');
+        return this.parseMarketLeverageTiers (tiers, market);
+    }
+
+    async fetchUSDCMarketLeverageTiers (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetPerpetualUsdcOpenapiPublicV1RiskLimitList (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "",
+        //         "result": [
+        //             {
+        //                 "riskId": "10001",
+        //                 "symbol": "BTCPERP",
+        //                 "limit": "1000000",
+        //                 "startingMargin": "0.0100",
+        //                 "maintainMargin": "0.0050",
+        //                 "isLowestRisk": true,
+        //                 "section": [
+        //                     "1",
+        //                     "2",
+        //                     "3",
+        //                     "5",
+        //                     "10",
+        //                     "25",
+        //                     "50",
+        //                     "100"
+        //                 ],
+        //                 "maxLeverage": "100.00"
+        //             }
+        //         ]
+        //     }
+        //
+        const result = this.safeValue (response, 'result');
+        return this.parseMarketLeverageTiers (result, market);
+    }
+
+    async fetchDerivativesMarketLeverageTiers (symbol, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
         let method = undefined;
-        if (enableUnifiedMargin) {
-            method = 'publicGetDerivativesV3PublicRiskLimitList';
-            if (market['inverse']) {
-                request['category'] = 'inverse';
-            } else if (market['linear']) {
-                request['category'] = 'linear';
-            }
+        if (market['linear']) {
+            method = 'publicGetPublicLinearRiskLimit';
         } else {
-            if (isUsdcSettled) {
-                method = 'publicGetPerpetualUsdcOpenapiPublicV1RiskLimitList';
-            } else if (market['linear']) {
-                method = 'publicGetPublicLinearRiskLimit';
-            } else {
-                method = 'publicGetV2PublicRiskLimitList';
-            }
+            method = 'publicGetV2PublicRiskLimitList';
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -7301,42 +7362,36 @@ module.exports = class bybit extends Exchange {
         //        time_now: '1644017569.683191'
         //    }
         //
-        // publicGetDerivativesV3PublicRiskLimitList
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "category": "linear",
-        //             "list": [
-        //                 {
-        //                     "id": 1,
-        //                     "symbol": "BTCUSDT",
-        //                     "limit": "2000000",
-        //                     "maintainMargin": "0.005",
-        //                     "initialMargin": "0.01",
-        //                     "section": [
-        //                         "1",
-        //                         "3",
-        //                         "5",
-        //                         "10",
-        //                         "25",
-        //                         "50",
-        //                         "80"
-        //                     ],
-        //                     "isLowestRisk": 1,
-        //                     "maxLeverage": "100.00"
-        //                 }
-        //             ]
-        //         },
-        //         "time": 1657797260220
-        //     }
-        //
         const result = this.safeValue (response, 'result');
-        let tiers = result;
-        if (enableUnifiedMargin) {
-            tiers = this.safeValue (tiers, 'list');
+        return this.parseMarketLeverageTiers (result, market);
+    }
+
+    async fetchMarketLeverageTiers (symbol, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchMarketLeverageTiers
+         * @description retrieve information on the maximum leverage, and maintenance margin for trades of varying trade sizes for a single market
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        market = this.market (symbol);
+        if (market['spot'] || market['option']) {
+            throw new BadRequest (this.id + ' fetchMarketLeverageTiers() symbol does not support market ' + symbol);
         }
-        return this.parseMarketLeverageTiers (tiers, market);
+        request['symbol'] = market['id'];
+        const isUsdcSettled = market['settle'] === 'USDC';
+        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+        if (enableUnifiedMargin) {
+            return await this.fetchUnifiedMarginMarketLeverageTiers (symbol, params);
+        }
+        if (isUsdcSettled) {
+            return await this.fetchUSDCMarketLeverageTiers (symbol, params);
+        }
+        return await this.fetchDerivativesMarketLeverageTiers (symbol, params);
     }
 
     parseMarketLeverageTiers (info, market) {
