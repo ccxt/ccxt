@@ -3295,7 +3295,9 @@ module.exports = class kucoin extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         let endpart = '';
         headers = (headers !== undefined) ? headers : {};
-        if (path === 'symbols') {
+        let url = this.urls['api'][api];
+        const isSandbox = url.indexOf ('sandbox') >= 0;
+        if (path === 'symbols' && !isSandbox) {
             endpoint = '/api/v2/' + this.implodeParams (path, params);
         }
         if (Object.keys (query).length) {
@@ -3307,7 +3309,7 @@ module.exports = class kucoin extends Exchange {
                 headers['Content-Type'] = 'application/json';
             }
         }
-        const url = this.urls['api'][api] + endpoint;
+        url = url + endpoint;
         const isFuturePrivate = (api === 'futuresPrivate');
         const isPrivate = (api === 'private');
         if (isPrivate || isFuturePrivate) {
