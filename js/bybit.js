@@ -6401,6 +6401,87 @@ module.exports = class bybit extends Exchange {
         return response;
     }
 
+    async setUnifiedMarginLeverage (leverage, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setUnifiedMarginLeverage() requires a symbol argument');
+        }
+        if ((leverage < 1) || (leverage > 100)) {
+            throw new BadRequest (this.id + ' setUnifiedMarginLeverage() leverage should be between 1 and 100');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (market['option']) {
+            request['category'] = 'option';
+        } else if (market['linear']) {
+            request['category'] = 'linear';
+        } else {
+            throw new NotSupported (this.id + ' setUnifiedMarginLeverage() leverage didn\'t support inverse market in unified margin');
+        }
+        leverage = leverage.toString ();
+        const buyLeverage = this.safeNumber2 (params, 'buy_leverage', 'buyLeverage');
+        const sellLeverage = this.safeNumber2 (params, 'sell_leverage', 'sellLeverage');
+        if (buyLeverage === undefined || sellLeverage === undefined) {
+            request['buyLeverage'] = leverage;
+            request['sellLeverage'] = leverage;
+        }
+        return await this.privatePostUnifiedV3PrivatePositionSetLeverage (this.extend (request, params));
+    }
+
+    async setUSDCLeverage (leverage, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setUSDCLeverage() requires a symbol argument');
+        }
+        if ((leverage < 1) || (leverage > 100)) {
+            throw new BadRequest (this.id + ' setUSDCLeverage() leverage should be between 1 and 100');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        leverage = leverage.toString ();
+        request['leverage'] = leverage;
+        return await this.privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave (this.extend (request, params));
+    }
+
+    async setDerivativesLeverage (leverage, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setDerivativesLeverage() requires a symbol argument');
+        }
+        if ((leverage < 1) || (leverage > 100)) {
+            throw new BadRequest (this.id + ' setDerivativesLeverage() leverage should be between 1 and 100');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        let method = undefined;
+        const request = {
+            'symbol': market['id'],
+        };
+        if (market['future']) {
+            method = 'privatePostFuturesPrivatePositionLeverageSave';
+        } else if (market['linear']) {
+            method = 'privatePostPrivateLinearPositionSetLeverage';
+        } else {
+            // inverse swaps
+            method = 'privatePostV2PrivatePositionLeverageSave';
+        }
+        leverage = parseInt (leverage);
+        const buyLeverage = this.safeNumber2 (params, 'buy_leverage', 'buyLeverage');
+        const sellLeverage = this.safeNumber2 (params, 'sell_leverage', 'sellLeverage');
+        if (buyLeverage !== undefined && sellLeverage !== undefined) {
+            if ((buyLeverage < 1) || (buyLeverage > 100) || (sellLeverage < 1) || (sellLeverage > 100)) {
+                throw new BadRequest (this.id + ' setDerivativesLeverage() leverage should be between 1 and 100');
+            }
+        } else {
+            request['buy_leverage'] = leverage;
+            request['sell_leverage'] = leverage;
+        }
+        return await this[method] (this.extend (request, params));
+    }
+
     async setLeverage (leverage, symbol = undefined, params = {}) {
         /**
          * @method
@@ -6420,61 +6501,13 @@ module.exports = class bybit extends Exchange {
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         const isUsdcSettled = market['settle'] === 'USDC';
         const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
-        let method = undefined;
-        const request = {
-            'symbol': market['id'],
-        };
         if (enableUnifiedMargin) {
-            // only support linear and option
-            method = 'privatePostUnifiedV3PrivatePositionSetLeverage';
-            if (market['option']) {
-                request['category'] = 'option';
-            } else if (market['linear']) {
-                request['category'] = 'linear';
-            } else {
-                throw new NotSupported (this.id + ' setLeverage() leverage didn\'t support inverse market in unified margin');
-            }
-        } else {
-            if (isUsdcSettled) {
-                method = 'privatePostPerpetualUsdcOpenapiPrivateV1PositionLeverageSave';
-            } else if (market['future']) {
-                method = 'privatePostFuturesPrivatePositionLeverageSave';
-            } else if (market['linear']) {
-                method = 'privatePostPrivateLinearPositionSetLeverage';
-            } else {
-                // inverse swaps
-                method = 'privatePostV2PrivatePositionLeverageSave';
-            }
+            return await this.setUnifiedMarginLeverage (leverage, symbol, params);
         }
-        leverage = (enableUnifiedMargin || isUsdcSettled) ? leverage.toString () : parseInt (leverage);
-        const isLinearSwap = market['swap'] && market['linear'];
-        const requiresBuyAndSellLeverage = enableUnifiedMargin || (!isUsdcSettled && (isLinearSwap || market['future']));
-        if (requiresBuyAndSellLeverage) {
-            const buyLeverage = this.safeNumber2 (params, 'buy_leverage', 'buyLeverage');
-            const sellLeverage = this.safeNumber2 (params, 'sell_leverage', 'sellLeverage');
-            if (enableUnifiedMargin) {
-                if (buyLeverage === undefined || sellLeverage === undefined) {
-                    request['buyLeverage'] = leverage;
-                    request['sellLeverage'] = leverage;
-                }
-            } else {
-                if (buyLeverage !== undefined && sellLeverage !== undefined) {
-                    if ((buyLeverage < 1) || (buyLeverage > 100) || (sellLeverage < 1) || (sellLeverage > 100)) {
-                        throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 100');
-                    }
-                } else {
-                    request['buy_leverage'] = leverage;
-                    request['sell_leverage'] = leverage;
-                }
-            }
-        } else {
-            // requires leverage
-            request['leverage'] = leverage;
+        if (isUsdcSettled) {
+            return await this.setUSDCLeverage (leverage, symbol, params);
         }
-        if ((leverage < 1) || (leverage > 100)) {
-            throw new BadRequest (this.id + ' setLeverage() leverage should be between 1 and 100');
-        }
-        return await this[method] (this.extend (request, params));
+        return await this.setDerivativesLeverage (leverage, symbol, params);
     }
 
     async setPositionMode (hedged, symbol = undefined, params = {}) {
