@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.1.21';
+$version = '2.1.22';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.1.21';
+    const VERSION = '2.1.22';
 
     public $browser;
     public $marketsLoading = null;
@@ -671,13 +671,13 @@ class Exchange extends \ccxt\Exchange {
         }
         // for derivatives, the fee is in 'settle' currency
         if (!$market['spot']) {
-            $key = $this->safe_string($market, 'settle', $key);
+            $key = 'settle';
         }
         // even if `$takerOrMaker` argument was set to 'maker', for 'market' orders we should forcefully override it to 'taker'
         if ($type === 'market') {
             $takerOrMaker = 'taker';
         }
-        $rate = $this->number_to_string($market[$takerOrMaker]);
+        $rate = $this->safe_string($market, $takerOrMaker);
         if ($cost !== null) {
             $cost = Precise::string_mul($cost, $rate);
         }

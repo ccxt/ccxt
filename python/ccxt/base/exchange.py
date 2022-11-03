@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.1.21'
+__version__ = '2.1.22'
 
 # -----------------------------------------------------------------------------
 
@@ -2127,11 +2127,11 @@ class Exchange(object):
                 key = 'base'
         # for derivatives, the fee is in 'settle' currency
         if not market['spot']:
-            key = self.safe_string(market, 'settle', key)
+            key = 'settle'
         # even if `takerOrMaker` argument was set to 'maker', for 'market' orders we should forcefully override it to 'taker'
         if type == 'market':
             takerOrMaker = 'taker'
-        rate = self.number_to_string(market[takerOrMaker])
+        rate = self.safe_string(market, takerOrMaker)
         if cost is not None:
             cost = Precise.string_mul(cost, rate)
         return {

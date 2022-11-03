@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.1.21';
+$version = '2.1.22';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.1.21';
+    const VERSION = '2.1.22';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2872,13 +2872,13 @@ class Exchange {
         }
         // for derivatives, the fee is in 'settle' currency
         if (!$market['spot']) {
-            $key = $this->safe_string($market, 'settle', $key);
+            $key = 'settle';
         }
         // even if `$takerOrMaker` argument was set to 'maker', for 'market' orders we should forcefully override it to 'taker'
         if ($type === 'market') {
             $takerOrMaker = 'taker';
         }
-        $rate = $this->number_to_string($market[$takerOrMaker]);
+        $rate = $this->safe_string($market, $takerOrMaker);
         if ($cost !== null) {
             $cost = Precise::string_mul($cost, $rate);
         }
