@@ -4679,6 +4679,122 @@ module.exports = class bybit extends Exchange {
         return this.fetchDerivativesOrders (symbol, since, limit, params);
     }
 
+    async fetchSpotClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const request = {};
+        if (symbol !== undefined) {
+            request['symbol'] = market['id'];
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const orders = await this.privateGetSpotV1HistoryOrders (this.extend (request, params));
+        const result = this.safeValue (orders, 'result', []);
+        //
+        //     {
+        //         "ret_code": 0,
+        //         "ret_msg": "",
+        //         "ext_code": null,
+        //         "ext_info": null,
+        //         "result": [
+        //             {
+        //                 "accountId": "10054",
+        //                 "exchangeId": "301",
+        //                 "symbol": "ETHUSDT",
+        //                 "symbolName": "ETHUSDT",
+        //                 "orderLinkId": "1620615771764",
+        //                 "orderId": "888183901021893120",
+        //                 "price": "5000",
+        //                 "origQty": "1",
+        //                 "executedQty": "0",
+        //                 "cummulativeQuoteQty": "0",
+        //                 "avgPrice": "0",
+        //                 "status": "CANCELED",
+        //                 "timeInForce": "GTC",
+        //                 "type": "LIMIT",
+        //                 "side": "BUY",
+        //                 "stopPrice": "0.0",
+        //                 "icebergQty": "0.0",
+        //                 "time": "1620615771836",
+        //                 "updateTime": "1620617056334",
+        //                 "isWorking": true
+        //             }
+        //         ]
+        //     }
+        //
+        return this.parseOrders (result, market, since, limit);
+    }
+
+    async fetchUSDCClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchUSDCClosedOrders', market, params);
+        request['category'] = (type === 'swap') ? 'perpetual' : 'option';
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privatePostOptionUsdcOpenapiPrivateV1QueryOrderHistory (this.extend (request, params));
+        //
+        //     {
+        //         "result": {
+        //         "cursor": "cc27c6ff-a4ec-4739-96bc-6d2b266606d4%3A1640843817698%2Ccc27c6ff-a4ec-4739-96bc-6d2b266606d4%3A1640843817698",
+        //             "resultTotalSize": 1,
+        //             "dataList": [
+        //             {
+        //             "symbol": "BTC-31DEC21-18000-P",
+        //             "orderType": "Limit",
+        //             "orderLinkId": "test2021122417000221",
+        //             "orderId": "cc27c6ff-a4ec-4739-96bc-6d2b266606d4",
+        //             "cancelType": "UNKNOWN",
+        //             "stopOrderType": "UNKNOWN",
+        //             "orderStatus": "Filled",
+        //             "takeProfit": "",
+        //             "createdAt": "1640843817698",
+        //             "orderPnl": "0.0000",
+        //             "price": "1.0",
+        //             "tpTriggerBy": "",
+        //             "timeInForce": "GoodTillCancel",
+        //             "updatedAt": "1640843817698",
+        //             "basePrice": "",
+        //             "realisedPnl": "0.0000",
+        //             "side": "Sell",
+        //             "triggerPrice": "",
+        //             "cumExecFee": "0.0010",
+        //             "leavesQty": "0.000",
+        //             "cashFlow": "0.0100",
+        //             "slTriggerBy": "",
+        //             "iv": "5.2820",
+        //             "closeOnTrigger": "",
+        //             "cumExecQty": "0.010",
+        //             "reduceOnly": 0,
+        //             "qty": "0.010",
+        //             "stopLoss": "",
+        //             "triggerBy": "",
+        //             "orderIM": "0.0000"
+        //             }
+        //         ]
+        //         },
+        //         "retCode": 0,
+        //         "retMsg": "Success."
+        //     }
+        //
+        const result = this.safeValue (response, 'dataList', []);
+        return this.parseOrders (result, market, since, limit);
+    }
+
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -4704,6 +4820,9 @@ module.exports = class bybit extends Exchange {
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
+        if (type === 'spot') {
+            return await this.fetchSpotClosedOrders (symbol, since, limit, params);
+        }
         if ((type === 'swap' || type === 'future') && !isUsdcSettled) {
             if (symbol === undefined) {
                 throw new ArgumentsRequired (this.id + ' fetchClosedOrders requires a symbol argument for ' + symbol + ' markets');
@@ -4740,21 +4859,7 @@ module.exports = class bybit extends Exchange {
             }
             return await this.fetchOrders (symbol, since, limit, params);
         }
-        const request = {};
-        let method = undefined;
-        if (type === 'spot') {
-            method = 'privateGetSpotV1HistoryOrders';
-        } else {
-            // usdc
-            method = 'privatePostOptionUsdcOpenapiPrivateV1QueryOrderHistory';
-            request['category'] = (type === 'swap') ? 'perpetual' : 'option';
-        }
-        const orders = await this[method] (this.extend (request, params));
-        let result = this.safeValue (orders, 'result', []);
-        if (!Array.isArray (result)) {
-            result = this.safeValue (result, 'dataList', []);
-        }
-        return this.parseOrders (result, market, since, limit);
+        return this.fetchUSDCClosedOrders (symbol, since, limit, params);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
