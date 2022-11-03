@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.1.14'
+__version__ = '2.1.15'
 
 # -----------------------------------------------------------------------------
 
@@ -612,6 +612,8 @@ class Exchange(BaseExchange):
         return self.filter_by_symbol_since_limit(results, symbol, since, limit, tail)
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
+        if type == 'market' and takerOrMaker == 'maker':
+            raise ArgumentsRequired(self.id + ' calculateFee() - you have provided incompatible arguments - "market" type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.')
         market = self.markets[symbol]
         feeSide = self.safe_string(market, 'feeSide', 'quote')
         key = 'quote'

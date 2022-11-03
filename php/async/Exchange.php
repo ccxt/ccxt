@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.1.14';
+$version = '2.1.15';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.1.14';
+    const VERSION = '2.1.15';
 
     public $browser;
     public $marketsLoading = null;
@@ -637,6 +637,9 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+        if ($type === 'market' && $takerOrMaker === 'maker') {
+            throw new ArgumentsRequired($this->id . ' calculateFee() - you have provided incompatible arguments - "market" $type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.');
+        }
         $market = $this->markets[$symbol];
         $feeSide = $this->safe_string($market, 'feeSide', 'quote');
         $key = 'quote';
