@@ -616,8 +616,8 @@ module.exports = class bibox extends Exchange {
         // fetchMyTrades
         //
         //    {
-        //        "i": 452361213188,            // The order id assigned by the exchange
-        //        "o": 14284855094264759,
+        //        "i": 452361213188,
+        //        "o": 14284855094264759,       // The order id assigned by the exchange
         //        "s": "ADA_USDT",              // trading pair code
         //        "T": 1579458,
         //        "t": 1653676917531,           // transaction time
@@ -648,16 +648,14 @@ module.exports = class bibox extends Exchange {
         const amount = this.safeString (trade, 'q');
         let transactionId = this.safeString (trade, 'T');
         let side = 'buy';
-        let orderId = undefined;
+        const orderId = this.safeString (trade, 'o');
         market = this.safeMarket (marketId, market);
         if (marketId === 'buy' || marketId === 'sell') {
             side = marketId;
         } else if (Precise.stringLt (amount, '0')) {
             side = 'sell';
         }
-        if (Precise.stringGt (id, '9999999999')) {
-            orderId = id;
-        } else {
+        if (Precise.stringLt (id, '9999999999')) {
             transactionId = id;
         }
         return this.safeTrade ({
