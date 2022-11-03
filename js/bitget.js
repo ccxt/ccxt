@@ -883,21 +883,36 @@ module.exports = class bitget extends Exchange {
         let type = undefined;
         let swap = false;
         let spot = false;
+        let future = false;
         let contract = false;
         let pricePrecision = undefined;
         let amountPrecision = undefined;
         let linear = undefined;
         let inverse = undefined;
+        let expiry = undefined;
+        let expiryDatetime = undefined;
         if (typeId === 'SPBL') {
             type = 'spot';
             spot = true;
             pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'priceScale')));
             amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityScale')));
         } else {
-            type = 'swap';
-            swap = true;
+            const expiryString = this.safeString (parts, 2);
+            if (expiryString !== undefined) {
+                const year = '20' + expiryString.slice (0, 2);
+                const month = expiryString.slice (2, 4);
+                const day = expiryString.slice (4, 6);
+                expiryDatetime = year + '-' + month + '-' + day + 'T00:00:00Z';
+                expiry = this.parse8601 (expiryDatetime);
+                type = 'future';
+                future = true;
+                symbol = symbol + ':' + settle + '-' + expiryString;
+            } else {
+                type = 'swap';
+                swap = true;
+                symbol = symbol + ':' + settle;
+            }
             contract = true;
-            symbol = symbol + ':' + settle;
             const sumcbl = (typeId === 'SUMCBL');
             const sdmcbl = (typeId === 'SDMCBL');
             const scmcbl = (typeId === 'SCMCBL');
@@ -927,35 +942,34 @@ module.exports = class bitget extends Exchange {
             active = status === 'online';
         }
         return {
-            'info': market,
             'id': marketId,
             'symbol': symbol,
-            'quoteId': quoteId,
-            'baseId': baseId,
-            'quote': quote,
             'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
             'type': type,
             'spot': spot,
             'margin': false,
             'swap': swap,
-            'future': false,
+            'future': future,
             'option': false,
+            'active': active,
             'contract': contract,
-            'contractSize': undefined,
             'linear': linear,
             'inverse': inverse,
-            'settleId': settleId,
-            'settle': settle,
-            'expiry': undefined,
-            'expiryDatetime': undefined,
-            'optionType': undefined,
-            'strike': undefined,
-            'active': active,
-            'maker': this.safeNumber (market, 'makerFeeRate'),
             'taker': this.safeNumber (market, 'takerFeeRate'),
+            'maker': this.safeNumber (market, 'makerFeeRate'),
+            'contractSize': this.safeNumber (market, 'sizeMultiplier'),
+            'expiry': expiry,
+            'expiryDatetime': expiryDatetime,
+            'strike': undefined,
+            'optionType': undefined,
             'precision': {
-                'price': pricePrecision,
                 'amount': amountPrecision,
+                'price': pricePrecision,
             },
             'limits': {
                 'leverage': {
@@ -975,6 +989,7 @@ module.exports = class bitget extends Exchange {
                     'max': undefined,
                 },
             },
+            'info': market,
         };
     }
 
