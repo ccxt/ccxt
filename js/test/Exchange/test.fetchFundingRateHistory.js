@@ -11,7 +11,7 @@ module.exports = async (exchange) => {
     const method = 'fetchFundingRateHistory'
 
     const format = {
-        'currency': 'USDT',
+        'symbol': 'BTC/USDT',
         'info': {}, // Or []
         'timestamp': 1638230400000,
         'datetime': '2021-11-30T00:00:00.000Z',
