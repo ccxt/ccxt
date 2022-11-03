@@ -230,10 +230,30 @@ module.exports = class kraken extends krakenRest {
     }
 
     async watchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name kraken#watchTicker
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the kraken api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         return await this.watchPublic ('ticker', symbol, params);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kraken#watchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {object} params extra parameters specific to the kraken api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const name = 'trade';
         const trades = await this.watchPublic (name, symbol, params);
         if (this.newUpdates) {
@@ -243,6 +263,15 @@ module.exports = class kraken extends krakenRest {
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kraken#watchOrderBook
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {object} params extra parameters specific to the kraken api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         const name = 'book';
         const request = {};
         if (limit !== undefined) {
@@ -255,13 +284,14 @@ module.exports = class kraken extends krakenRest {
             }
         }
         const orderbook = await this.watchPublic (name, symbol, this.extend (request, params));
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const name = 'ohlc';
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const wsName = this.safeValue (market['info'], 'wsname');
         const messageHash = name + ':' + timeframe + ':' + wsName;
         const url = this.urls['api']['ws']['public'];
@@ -536,6 +566,7 @@ module.exports = class kraken extends krakenRest {
         const subscriptionHash = name;
         let messageHash = name;
         if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
             messageHash += ':' + symbol;
         }
         const url = this.urls['api']['ws']['private'];
@@ -557,6 +588,16 @@ module.exports = class kraken extends krakenRest {
     }
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kraken#watchMyTrades
+         * @description watches information on multiple trades made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the kraken api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         return await this.watchPrivate ('ownTrades', symbol, since, limit, params);
     }
 
@@ -711,6 +752,16 @@ module.exports = class kraken extends krakenRest {
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kraken#watchOrders
+         * @description watches information on multiple orders made by the user
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the kraken api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         return await this.watchPrivate ('openOrders', symbol, since, limit, params);
     }
 

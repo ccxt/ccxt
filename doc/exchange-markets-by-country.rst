@@ -1047,7 +1047,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 2
      
    * - Singapore
-     - .. image:: https://user-images.githubusercontent.com/51840849/88317935-a8a21c80-cd22-11ea-8e2b-4b9fac5975eb.jpg
+     - .. image:: https://user-images.githubusercontent.com/1294454/195989417-4253ddb0-afbe-4a1c-9dea-9dbcd121fa5d.jpg
           :target: https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j
           :alt: bitget
      
@@ -1078,17 +1078,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/3-lightgray
           :target: https://docs.digifinex.com
           :alt: API Version 3
-     
-   * - Singapore
-     - .. image:: https://user-images.githubusercontent.com/51840849/122649755-1a076c80-d138-11eb-8f2e-9a9166a03d79.jpg
-          :target: https://eqonex.com?referredByCode=zpa8kij4ouvBFup3
-          :alt: eqonex
-     
-     - eqonex
-     - `EQONEX <https://eqonex.com?referredByCode=zpa8kij4ouvBFup3>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://developer.eqonex.com
-          :alt: API Version *
      
    * - Singapore
      - .. image:: https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg
@@ -1462,17 +1451,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - `Coinbase Pro <https://pro.coinbase.com/>`__
      - .. image:: https://img.shields.io/badge/*-lightgray
           :target: https://docs.pro.coinbase.com
-          :alt: API Version *
-     
-   * - US
-     - .. image:: https://user-images.githubusercontent.com/51840849/122649755-1a076c80-d138-11eb-8f2e-9a9166a03d79.jpg
-          :target: https://eqonex.com?referredByCode=zpa8kij4ouvBFup3
-          :alt: eqonex
-     
-     - eqonex
-     - `EQONEX <https://eqonex.com?referredByCode=zpa8kij4ouvBFup3>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://developer.eqonex.com
           :alt: API Version *
      
    * - US

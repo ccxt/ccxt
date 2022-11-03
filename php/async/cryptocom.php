@@ -11,6 +11,7 @@ use ccxt\ArgumentsRequired;
 use ccxt\NotSupported;
 use ccxt\Precise;
 use React\Async;
+use React\Promise;
 
 class cryptocom extends Exchange {
 
@@ -285,6 +286,7 @@ class cryptocom extends Exchange {
                     '40007' => '\\ccxt\\BadRequest',
                     '40101' => '\\ccxt\\AuthenticationError',
                     '50001' => '\\ccxt\\BadRequest',
+                    '9010001' => '\\ccxt\\OnMaintenance', // array("code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details.")
                 ),
             ),
         ));
@@ -293,10 +295,24 @@ class cryptocom extends Exchange {
     public function fetch_markets($params = array ()) {
         return Async\async(function () use ($params) {
             /**
-             * retrieves $data on all $markets for cryptocom
+             * @see https://exchange-docs.crypto.com/spot/index.html#public-get-instruments
+             * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-instruments
+             * retrieves data on all $markets for cryptocom
              * @param {array} $params extra parameters specific to the exchange api endpoint
-             * @return {[array]} an array of objects representing $market $data
+             * @return {[array]} an array of objects representing market data
              */
+            $promises = array( $this->fetch_spot_markets($params), $this->fetch_derivatives_markets($params) );
+            $promises = Async\await(Promise\all($promises));
+            $spotMarkets = $promises[0];
+            $derivativeMarkets = $promises[1];
+            $markets = $this->array_concat($spotMarkets, $derivativeMarkets);
+            return $markets;
+        }) ();
+    }
+
+    public function fetch_spot_markets($params = array ()) {
+        return Async\async(function () use ($params) {
+            $response = Async\await($this->spotPublicGetPublicGetInstruments ($params));
             //
             //    {
             //        $id => 11,
@@ -320,7 +336,6 @@ class cryptocom extends Exchange {
             //        }
             //    }
             //
-            $response = Async\await($this->spotPublicGetPublicGetInstruments ($params));
             $resultResponse = $this->safe_value($response, 'result', array());
             $markets = $this->safe_value($resultResponse, 'instruments', array());
             $result = array();
@@ -392,10 +407,17 @@ class cryptocom extends Exchange {
                     'info' => $market,
                 );
             }
+            return $result;
+        }) ();
+    }
+
+    public function fetch_derivatives_markets($params = array ()) {
+        return Async\async(function () use ($params) {
+            $result = array();
             $futuresResponse = Async\await($this->derivativesPublicGetPublicGetInstruments ());
             //
             //     {
-            //       $id => -1,
+            //       id => -1,
             //       method => 'public/get-instruments',
             //       code => 0,
             //       $result => {
@@ -430,6 +452,9 @@ class cryptocom extends Exchange {
                 $inst_type = $this->safe_string($market, 'inst_type');
                 $swap = $inst_type === 'PERPETUAL_SWAP';
                 $future = $inst_type === 'FUTURE';
+                if ($inst_type === 'CCY_PAIR') {
+                    continue; // Found some inconsistencies between spot and derivatives api so use spot api for currency pairs.
+                }
                 $baseId = $this->safe_string($market, 'base_ccy');
                 $quoteId = $this->safe_string($market, 'quote_ccy');
                 $base = $this->safe_currency_code($baseId);
@@ -554,16 +579,21 @@ class cryptocom extends Exchange {
                 throw new NotSupported($this->id . ' fetchTicker() only supports spot markets');
             }
             $response = Async\await($this->spotPublicGetPublicGetTicker (array_merge($request, $query)));
-            // {
-            //     "code":0,
-            //     "method":"public/get-ticker",
-            //     "result":{
-            //       "data" => array("i":"CRO_BTC","b":0.00000890,"k":0.00001179,"a":0.00001042,"t":1591770793901,"v":14905879.59,"h":0.00,"l":0.00,"c":0.00)
-            //     }
-            // }
+            //
+            //   {
+            //       "id":"-1",
+            //       "method":"public/get-tickers",
+            //       "code":"0",
+            //       "result":{
+            //          "data":array(
+            //             array( "i":"BTC_USDT", "h":"20567.16", "l":"20341.39", "a":"20394.23", "v":"2236.3762", "vv":"45739074.30", "c":"-0.0036", "b":"20394.01", "k":"20394.02", "t":"1667406085934" )
+            //          )
+            //   }
+            //
             $resultResponse = $this->safe_value($response, 'result', array());
             $data = $this->safe_value($resultResponse, 'data', array());
-            return $this->parse_ticker($data, $market);
+            $first = $this->safe_value($data, 0, array());
+            return $this->parse_ticker($first, $market);
         }) ();
     }
 

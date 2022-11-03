@@ -1988,7 +1988,10 @@ class phemex extends Exchange {
                 $params = $this->omit($params, 'cost');
                 if ($this->options['createOrderByQuoteRequiresPrice']) {
                     if ($price !== null) {
-                        $cost = $amount * $price;
+                        $amountString = $this->number_to_string($amount);
+                        $priceString = $this->number_to_string($price);
+                        $quoteAmount = Precise::string_mul($amountString, $priceString);
+                        $cost = $this->parse_number($quoteAmount);
                     } elseif ($cost === null) {
                         throw new ArgumentsRequired($this->id . ' createOrder() ' . $qtyType . ' requires a $price argument or a $cost parameter');
                     }

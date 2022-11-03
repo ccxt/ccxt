@@ -52,6 +52,15 @@ module.exports = class bitopro extends bitoproRest {
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitopro#watchOrderBook
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {object} params extra parameters specific to the bitopro api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         if (limit !== undefined) {
             if ((limit !== 5) && (limit !== 10) && (limit !== 20) && (limit !== 50) && (limit !== 100) && (limit !== 500) && (limit !== 1000)) {
                 throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 5, 10, 20, 50, 100, 500 or 1000');
@@ -59,6 +68,7 @@ module.exports = class bitopro extends bitoproRest {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const messageHash = 'ORDER_BOOK' + ':' + symbol;
         let endPart = undefined;
         if (limit === undefined) {
@@ -67,7 +77,7 @@ module.exports = class bitopro extends bitoproRest {
             endPart = market['id'] + ':' + limit;
         }
         const orderbook = await this.watchPublic ('order-books', messageHash, endPart);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBook (client, message) {
@@ -108,8 +118,19 @@ module.exports = class bitopro extends bitoproRest {
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitopro#watchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {object} params extra parameters specific to the bitopro api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const messageHash = 'TRADE' + ':' + symbol;
         const trades = await this.watchPublic ('trades', messageHash, market['id'], limit);
         if (this.newUpdates) {
@@ -158,8 +179,17 @@ module.exports = class bitopro extends bitoproRest {
     }
 
     async watchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name bitopro#watchTicker
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the bitopro api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const messageHash = 'TICKER' + ':' + symbol;
         return await this.watchPublic ('tickers', messageHash, market['id']);
     }
@@ -230,6 +260,13 @@ module.exports = class bitopro extends bitoproRest {
     }
 
     async watchBalance (params = {}) {
+        /**
+         * @method
+         * @name bitopro#watchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} params extra parameters specific to the bitopro api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         this.checkRequiredCredentials ();
         await this.loadMarkets ();
         const messageHash = 'ACCOUNT_BALANCE';

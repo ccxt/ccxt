@@ -389,6 +389,7 @@ class ftx(Exchange):
                     'Not authorized for subaccount-specific access': PermissionDenied,  # {"success":false,"error":"Not authorized for subaccount-specific access"}
                     'Not approved to trade self product': PermissionDenied,  # {"success":false,"error":"Not approved to trade self product"}
                     'Internal Error': ExchangeNotAvailable,  # {"success":false,"error":"Internal Error"}
+                    'Order took too long to process': ExchangeNotAvailable,  # {"success":false,"error":"Order took too long to process"}
                 },
                 'broad': {
                     # {"error":"Not logged in","success":false}
@@ -1823,16 +1824,17 @@ class ftx(Exchange):
         defaultMethod = self.safe_string(options, 'method', 'privateDeleteOrdersOrderId')
         method = self.safe_string(params, 'method', defaultMethod)
         type = self.safe_value(params, 'type')  # Deprecated: use params.stop instead
-        stop = self.safe_value(params, 'stop')
+        isTriggerOrder = None
+        isTriggerOrder, params = self.is_trigger_order(params)
         clientOrderId = self.safe_value_2(params, 'client_order_id', 'clientOrderId')
         if clientOrderId is None:
             request['order_id'] = int(id)
-            if stop or (type == 'stop') or (type == 'trailingStop') or (type == 'takeProfit'):
+            if isTriggerOrder or self.in_array(type, ['stop', 'trailingStop', 'takeProfit']):
                 method = 'privateDeleteConditionalOrdersOrderId'
         else:
             request['client_order_id'] = clientOrderId
             method = 'privateDeleteOrdersByClientIdClientOrderId'
-        query = self.omit(params, ['method', 'type', 'client_order_id', 'clientOrderId', 'stop'])
+        query = self.omit(params, ['method', 'type', 'client_order_id', 'clientOrderId'])
         response = await getattr(self, method)(self.extend(request, query))
         #
         #     {
@@ -1854,6 +1856,7 @@ class ftx(Exchange):
         await self.load_markets()
         # https://docs.ccxt.com/en/latest/manual.html#user-defined-clientorderid
         clientOrderIds = self.safe_value(params, 'clientOrderIds')
+        # FTX doesn't have endpoint for trigger orders related to cancelOrders
         if clientOrderIds is not None:
             #
             #     {success: True, result: ['billy', 'bob', 'gina']}
@@ -1884,6 +1887,12 @@ class ftx(Exchange):
         marketId = self.get_market_id(symbol, 'market', params)
         if marketId is not None:
             request['market'] = marketId
+        isTriggerOrder = None
+        isTriggerOrder, params = self.is_trigger_order(params)
+        # if user wants to cancel only conditional orders, then set below fields. Otherwise, request will cancel all orders - conditional and regular orders
+        if isTriggerOrder:
+            request['conditionalOrdersOnly'] = True
+            request['limitOrdersOnly'] = False
         response = await self.privateDeleteOrders(self.extend(request, params))
         result = self.safe_value(response, 'result', {})
         #
@@ -1958,10 +1967,11 @@ class ftx(Exchange):
         defaultMethod = self.safe_string(options, 'method', 'privateGetOrders')
         method = self.safe_string(params, 'method', defaultMethod)
         type = self.safe_value(params, 'type')
-        stop = self.safe_value(params, 'stop')
-        if stop or (type == 'stop') or (type == 'trailingStop') or (type == 'takeProfit'):
+        isTriggerOrder = None
+        isTriggerOrder, params = self.is_trigger_order(params)
+        if isTriggerOrder or self.in_array(type, ['trigger', 'stop', 'trailingStop', 'takeProfit']):
             method = 'privateGetConditionalOrders'
-        query = self.omit(params, ['method', 'type', 'stop'])
+        query = self.omit(params, ['method', 'type'])
         response = await getattr(self, method)(self.extend(request, query))
         #
         #     {
@@ -2015,7 +2025,9 @@ class ftx(Exchange):
         defaultMethod = self.safe_string(options, 'method', 'privateGetOrdersHistory')
         method = self.safe_string(params, 'method', defaultMethod)
         type = self.safe_value(params, 'type')
-        if (type == 'stop') or (type == 'trailingStop') or (type == 'takeProfit'):
+        isTriggerOrder = None
+        isTriggerOrder, params = self.is_trigger_order(params)
+        if isTriggerOrder or self.in_array(type, ['trigger', 'stop', 'trailingStop', 'takeProfit']):
             method = 'privateGetConditionalOrdersHistory'
         query = self.omit(params, ['method', 'type'])
         response = await getattr(self, method)(self.extend(request, query))
@@ -2060,7 +2072,45 @@ class ftx(Exchange):
         request = {
             'orderId': id,
         }
+        # if it's conditional order
+        type = self.safe_value(params, 'type')
+        params = self.omit(params, 'type')
+        isTriggerOrder = None
+        isTriggerOrder, params = self.is_trigger_order(params)
+        if isTriggerOrder or self.in_array(type, ['trigger', 'stop', 'trailingStop', 'takeProfit']):
+            # if it is conditional order, then it would have a reference order id to be sent to the specific endpoint, from where we will get the actual order ID and then use that ID
+            realOrderId = await self.fetch_order_if_from_conditional_order(id)
+            if realOrderId is not None:
+                request['orderId'] = realOrderId
+            else:
+                # if order-id was not found, then there were no fills and no need to make any further request
+                return []
         return await self.fetch_my_trades(symbol, since, limit, self.extend(request, params))
+
+    async def fetch_order_if_from_conditional_order(self, id):
+        request = {
+            'conditional_order_id': id,
+        }
+        response = await self.privateGetConditionalOrdersConditionalOrderIdTriggers(request)
+        # Note: if endpoint retuns non-empy "result" property, then it means order had fill and returns the order reference ID, which is the real id of the regular order
+        #
+        # {
+        #     "success": True,
+        #     "result": [
+        #         {
+        #             "time": "2022-03-29T04:54:04.390665+00:00",
+        #             "orderId": 132144259673,  # self is not the same conditional-order's id, instead it is the regular order id, which can be used in regular methods
+        #             "error": null,
+        #             "orderSize": 0.1234,
+        #             "filledSize": 0.1234
+        #         }
+        #     ]
+        # }
+        #
+        # Also note, the above endpoint seems to return one object in array
+        result = self.safe_value(response, 'result')
+        orderObject = self.safe_value(result, 0, {})
+        return self.safe_string(orderObject, 'orderId')
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         """

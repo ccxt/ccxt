@@ -90,6 +90,7 @@ class bybit extends \ccxt\async\bybit {
             ),
             'streaming' => array(
                 'ping' => array($this, 'ping'),
+                'keepAlive' => 20000,
             ),
             'exceptions' => array(
                 'ws' => array(
@@ -145,6 +146,12 @@ class bybit extends \ccxt\async\bybit {
 
     public function watch_ticker($symbol, $params = array ()) {
         return Async\async(function () use ($symbol, $params) {
+            /**
+             * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $messageHash = 'ticker:' . $market['symbol'];
@@ -656,6 +663,13 @@ class bybit extends \ccxt\async\bybit {
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
@@ -687,7 +701,7 @@ class bybit extends \ccxt\async\bybit {
                 $reqParams = array( $channel );
                 $orderbook = Async\await($this->watch_contract_public($url, $messageHash, $reqParams, $params));
             }
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 
@@ -879,6 +893,14 @@ class bybit extends \ccxt\async\bybit {
 
     public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * watches information on multiple $trades made by the user
+             * @param {string} $symbol unified $market $symbol of the $market orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch orders for
+             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+             */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
@@ -1115,6 +1137,14 @@ class bybit extends \ccxt\async\bybit {
 
     public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * watches information on multiple $trades made by the user
+             * @param {string} $symbol unified $market $symbol of the $market orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch orders for
+             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+             */
             $method = 'watchMyTrades';
             $messageHash = 'usertrade';
             Async\await($this->load_markets());
@@ -1146,6 +1176,7 @@ class bybit extends \ccxt\async\bybit {
                     $channel = 'execution';
                 }
                 $reqParams = array( $channel );
+                $messageHash .= ':' . $channel;
                 $trades = Async\await($this->watch_contract_private($url, $messageHash, $reqParams, $params));
             }
             if ($this->newUpdates) {
@@ -1206,6 +1237,7 @@ class bybit extends \ccxt\async\bybit {
         //       }
         //   }
         //
+        $topic = $this->safe_string($message, 'topic', '');
         $data = array();
         if (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message))) {
             $data = $message;
@@ -1229,19 +1261,27 @@ class bybit extends \ccxt\async\bybit {
             $marketSymbols[$symbol] = true;
             $trades->append ($parsed);
         }
-        $channel = 'usertrade';
-        // non-$symbol specific
-        $client->resolve ($trades, $channel);
         $symbols = is_array($marketSymbols) ? array_keys($marketSymbols) : array();
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
-            $messageHash = $channel . ':' . $symbol;
+            $messageHash = 'usertrade:' . $symbol . ':' . $topic;
             $client->resolve ($trades, $messageHash);
         }
+        // non-$symbol specific
+        $messageHash = 'usertrade:' . $topic;
+        $client->resolve ($trades, $messageHash);
     }
 
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * watches information on multiple $orders made by the user
+             * @param {string|null} $symbol unified $market $symbol of the $market $orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch $orders for
+             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @return {[array]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+             */
             $method = 'watchOrders';
             $messageHash = 'order';
             Async\await($this->load_markets());
@@ -1277,6 +1317,7 @@ class bybit extends \ccxt\async\bybit {
                     $channel = $isStopOrder ? 'stop_order' : 'order';
                 }
                 $reqParams = array( $channel );
+                $messageHash .= ':' . $channel;
                 $orders = Async\await($this->watch_contract_private($url, $messageHash, $reqParams, $params));
             }
             if ($this->newUpdates) {
@@ -1323,7 +1364,7 @@ class bybit extends \ccxt\async\bybit {
         //
         // swap order
         //     {
-        //         topic => 'order',
+        //         $topic => 'order',
         //         action => '',
         //         $data => array(
         //           {
@@ -1400,6 +1441,7 @@ class bybit extends \ccxt\async\bybit {
         //         }
         //      }
         //
+        $topic = $this->safe_string($message, 'topic', '');
         $data = array();
         $isSpot = false;
         if (gettype($message) === 'array' && array_keys($message) === array_keys(array_keys($message))) {
@@ -1436,15 +1478,15 @@ class bybit extends \ccxt\async\bybit {
             $marketSymbols[$symbol] = true;
             $orders->append ($parsed);
         }
-        $channel = 'order';
-        // non-$symbol specific
-        $client->resolve ($orders, $channel);
         $symbols = is_array($marketSymbols) ? array_keys($marketSymbols) : array();
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
-            $messageHash = $channel . ':' . $symbol;
+            $messageHash = 'order:' . $symbol . ':' . $topic;
             $client->resolve ($orders, $messageHash);
         }
+        $messageHash = 'order:' . $topic;
+        // non-$symbol specific
+        $client->resolve ($orders, $messageHash);
     }
 
     public function parse_ws_order($order, $market = null) {
@@ -1533,6 +1575,11 @@ class bybit extends \ccxt\async\bybit {
 
     public function watch_balance($params = array ()) {
         return Async\async(function () use ($params) {
+            /**
+             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} $params extra parameters specific to the bybit api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             */
             $method = 'watchBalance';
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params($method, null, $params);

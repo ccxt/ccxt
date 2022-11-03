@@ -125,6 +125,14 @@ module.exports = class kucoin extends kucoinRest {
     }
 
     async watchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name kucoin#watchTicker
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the kucoin api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -269,6 +277,16 @@ module.exports = class kucoin extends kucoinRest {
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoin#watchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {object} params extra parameters specific to the kucoin api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const negotiation = await this.negotiate ();
         const market = this.market (symbol);
@@ -318,6 +336,15 @@ module.exports = class kucoin extends kucoinRest {
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoin#watchOrderBook
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {object} params extra parameters specific to the kucoin api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         //
         // https://docs.kucoin.com/#level-2-market-data
         //
@@ -345,7 +372,7 @@ module.exports = class kucoin extends kucoinRest {
         const topic = '/market/level2:' + market['id'];
         const messageHash = topic;
         const orderbook = await this.subscribe (negotiation, topic, messageHash, this.handleOrderBookSubscription, symbol, params);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     retryFetchOrderBookSnapshot (client, message, subscription) {
@@ -572,6 +599,16 @@ module.exports = class kucoin extends kucoinRest {
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoin#watchOrders
+         * @description watches information on multiple orders made by the user
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the kucoin api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const negotiation = await this.negotiate ();
         const topic = '/spotMarket/tradeOrders';
@@ -690,6 +727,16 @@ module.exports = class kucoin extends kucoinRest {
     }
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoin#watchMyTrades
+         * @description watches information on multiple trades made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the kucoin api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         await this.loadMarkets ();
         const negotiation = await this.negotiate ();
         const topic = '/spot/tradeFills';
@@ -775,6 +822,13 @@ module.exports = class kucoin extends kucoinRest {
     }
 
     async watchBalance (params = {}) {
+        /**
+         * @method
+         * @name kucoin#watchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} params extra parameters specific to the kucoin api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const negotiation = await this.negotiate ();
         const topic = '/account/balance';

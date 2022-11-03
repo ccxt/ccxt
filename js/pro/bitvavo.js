@@ -54,6 +54,14 @@ module.exports = class bitvavo extends bitvavoRest {
     }
 
     async watchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name bitvavo#watchTicker
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the bitvavo api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         return await this.watchPublic ('ticker24h', symbol, params);
     }
 
@@ -95,6 +103,18 @@ module.exports = class bitvavo extends bitvavoRest {
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitvavo#watchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {object} params extra parameters specific to the bitvavo api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const trades = await this.watchPublic ('trades', symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -133,6 +153,7 @@ module.exports = class bitvavo extends bitvavoRest {
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const name = 'candles';
         const marketId = market['id'];
         const interval = this.timeframes[timeframe];
@@ -199,8 +220,18 @@ module.exports = class bitvavo extends bitvavoRest {
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitvavo#watchOrderBook
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {object} params extra parameters specific to the bitvavo api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const name = 'book';
         const messageHash = name + '@' + market['id'];
         const url = this.urls['api']['ws'];
@@ -226,7 +257,7 @@ module.exports = class bitvavo extends bitvavoRest {
         };
         const message = this.extend (request, params);
         const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleDelta (bookside, delta) {
@@ -306,7 +337,6 @@ module.exports = class bitvavo extends bitvavoRest {
     }
 
     async watchOrderBookSnapshot (client, message, subscription) {
-        const limit = this.safeInteger (subscription, 'limit');
         const params = this.safeValue (subscription, 'params');
         const marketId = this.safeString (subscription, 'marketId');
         const name = 'getBook';
@@ -317,7 +347,7 @@ module.exports = class bitvavo extends bitvavoRest {
             'market': marketId,
         };
         const orderbook = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBookSnapshot (client, message) {
@@ -395,12 +425,23 @@ module.exports = class bitvavo extends bitvavoRest {
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitvavo#watchOrders
+         * @description watches information on multiple orders made by the user
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the bitvavo api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument');
         }
         await this.loadMarkets ();
         await this.authenticate ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const marketId = market['id'];
         const url = this.urls['api']['ws'];
         const name = 'account';
@@ -423,12 +464,23 @@ module.exports = class bitvavo extends bitvavoRest {
     }
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitvavo#watchMyTrades
+         * @description watches information on multiple trades made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the bitvavo api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' watchMyTrades requires a symbol argument');
         }
         await this.loadMarkets ();
         await this.authenticate ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const marketId = market['id'];
         const url = this.urls['api']['ws'];
         const name = 'account';

@@ -33,6 +33,7 @@ class ripio(Exchange, ccxt.async_support.ripio):
     async def watch_trades(self, symbol=None, since=None, limit=None, params={}):
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         name = 'trades'
         messageHash = name + '_' + market['id'].lower()
         url = self.urls['api']['ws'] + messageHash + '/' + self.options['uuid']
@@ -87,8 +88,15 @@ class ripio(Exchange, ccxt.async_support.ripio):
         client.resolve(tradesArray, messageHash)
 
     async def watch_ticker(self, symbol, params={}):
+        """
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the ripio api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         name = 'rate'
         messageHash = name + '_' + market['id'].lower()
         url = self.urls['api']['ws'] + messageHash + '/' + self.options['uuid']
@@ -135,8 +143,16 @@ class ripio(Exchange, ccxt.async_support.ripio):
         return message
 
     async def watch_order_book(self, symbol, limit=None, params={}):
+        """
+        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the ripio api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         name = 'orderbook'
         messageHash = name + '_' + market['id'].lower()
         url = self.urls['api']['ws'] + messageHash + '/' + self.options['uuid']
@@ -155,7 +171,7 @@ class ripio(Exchange, ccxt.async_support.ripio):
             # fetch the snapshot in a separate async call after a warmup delay
             self.delay(delay, self.fetch_order_book_snapshot, client, subscription)
         orderbook = await self.watch(url, messageHash, None, messageHash, subscription)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     async def fetch_order_book_snapshot(self, client, subscription):
         symbol = self.safe_string(subscription, 'symbol')

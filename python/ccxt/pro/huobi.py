@@ -118,6 +118,12 @@ class huobi(Exchange, ccxt.async_support.huobi):
         return str(requestId)
 
     async def watch_ticker(self, symbol, params={}):
+        """
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
@@ -158,6 +164,14 @@ class huobi(Exchange, ccxt.async_support.huobi):
         return message
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
@@ -255,6 +269,13 @@ class huobi(Exchange, ccxt.async_support.huobi):
         client.resolve(stored, ch)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
+        """
+        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         if (limit is not None) and (limit != 150):
             raise ExchangeError(self.id + ' watchOrderBook accepts limit = 150 only')
         await self.load_markets()
@@ -271,7 +292,7 @@ class huobi(Exchange, ccxt.async_support.huobi):
         if not market['spot']:
             params['data_type'] = 'incremental'
         orderbook = await self.subscribe_public(url, symbol, messageHash, self.handle_order_book_subscription, params)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_order_book_snapshot(self, client, message, subscription):
         #
@@ -356,7 +377,7 @@ class huobi(Exchange, ccxt.async_support.huobi):
             'method': self.handle_order_book_snapshot,
         }
         orderbook = await self.watch(url, requestId, request, requestId, snapshotSubscription)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     async def fetch_order_book_snapshot(self, client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
@@ -539,6 +560,14 @@ class huobi(Exchange, ccxt.async_support.huobi):
             self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
 
     async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        watches information on multiple trades made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns [dict]: a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+        """
         self.check_required_credentials()
         type = None
         marketId = '*'  # wildcard
@@ -617,6 +646,14 @@ class huobi(Exchange, ccxt.async_support.huobi):
         return [channel, messageHash]
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        watches information on multiple orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         type = None
         subType = None
@@ -1035,6 +1072,11 @@ class huobi(Exchange, ccxt.async_support.huobi):
         }, market)
 
     async def watch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         type = self.safe_string_2(self.options, 'watchBalance', 'defaultType', 'spot')
         type = self.safe_string(params, 'type', type)
         subType = self.safe_string_2(self.options, 'watchBalance', 'subType', 'linear')

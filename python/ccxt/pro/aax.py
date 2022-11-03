@@ -43,6 +43,7 @@ class aax(Exchange, ccxt.async_support.aax):
         await self.load_markets()
         name = 'candles'
         market = self.market(symbol)
+        symbol = market['symbol']
         interval = self.timeframes[timeframe]
         messageHash = market['id'] + '@' + interval + '_' + name
         url = self.urls['api']['ws']['public']
@@ -97,6 +98,12 @@ class aax(Exchange, ccxt.async_support.aax):
         client.resolve(stored, messageHash)
 
     async def watch_ticker(self, symbol, params={}):
+        """
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         name = 'tickers'
         await self.load_markets()
         market = self.market(symbol)
@@ -156,9 +163,18 @@ class aax(Exchange, ccxt.async_support.aax):
                 client.resolve(ticker, messageHash)
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         name = 'trade'
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         messageHash = market['id'] + '@' + name
         url = self.urls['api']['ws']['public']
         subscribe = {
@@ -198,6 +214,13 @@ class aax(Exchange, ccxt.async_support.aax):
         client.resolve(stored, messageHash)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
+        """
+        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         name = 'book'
         await self.load_markets()
         market = self.market(symbol)
@@ -212,7 +235,7 @@ class aax(Exchange, ccxt.async_support.aax):
         }
         request = self.extend(subscribe, params)
         orderbook = await self.watch(url, messageHash, request, messageHash)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)
@@ -332,6 +355,11 @@ class aax(Exchange, ccxt.async_support.aax):
         return await future
 
     async def watch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         await self.handshake(params)
         authentication = await self.authenticate(params)
@@ -381,7 +409,7 @@ class aax(Exchange, ccxt.async_support.aax):
         #
         data = self.safe_value(message, 'data', {})
         purseType = self.safe_string(data, 'purseType')
-        accounts = self.safe_value(self.options, 'accounts', {})
+        accounts = self.safe_value(self.options, 'accountsById', {})
         accountType = self.safe_string(accounts, purseType)
         messageHash = accountType + ':balance'
         currencyId = self.safe_string(data, 'currency')
@@ -396,6 +424,14 @@ class aax(Exchange, ccxt.async_support.aax):
         client.resolve(self.balance[accountType], messageHash)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        watches information on multiple orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the aax api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         await self.handshake(params)
         authentication = await self.authenticate(params)
@@ -417,6 +453,7 @@ class aax(Exchange, ccxt.async_support.aax):
         channel = 'user/' + userId
         messageHash = 'orders'
         if symbol is not None:
+            symbol = self.symbol(symbol)
             messageHash += ':' + symbol
         requestId = self.request_id()
         subscribe = {

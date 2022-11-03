@@ -130,6 +130,7 @@ class woo extends Exchange {
                         'get' => array(
                             'info' => 1,
                             'info/{symbol}' => 1,
+                            'system_info' => 1,
                             'market_trades' => 1,
                             'token' => 1,
                             'token_network' => 1,
@@ -184,6 +185,23 @@ class woo extends Exchange {
                     'private' => array(
                         'get' => array(
                             'client/holding' => 1,
+                        ),
+                    ),
+                ),
+                'v3' => array(
+                    'private' => array(
+                        'get' => array(
+                            'algo/order/{oid}' => 1,
+                            'algo/orders' => 1,
+                        ),
+                        'post' => array(
+                            'algo/order' => 5,
+                        ),
+                        'delete' => array(
+                            'algo/order/{oid}' => 1,
+                            'algo/orders/pending' => 1,
+                            'algo/orders/pending/{symbol}' => 1,
+                            'orders/pending' => 1,
                         ),
                     ),
                 ),
@@ -1735,12 +1753,17 @@ class woo extends Exchange {
             $url .= $path;
             $ts = (string) $this->nonce();
             $auth = $this->urlencode($params);
-            if ($method === 'POST' || $method === 'DELETE') {
+            if ($version === 'v3' && ($method === 'POST')) {
                 $body = $auth;
+                $auth = $ts . $method . '/' . $version . '/' . $path . $body;
             } else {
-                $url .= '?' . $auth;
+                if ($method === 'POST' || $method === 'DELETE') {
+                    $body = $auth;
+                } else {
+                    $url .= '?' . $auth;
+                }
+                $auth .= '|' . $ts;
             }
-            $auth .= '|' . $ts;
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             $headers = array(
                 'x-api-key' => $this->apiKey,

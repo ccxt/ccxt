@@ -329,6 +329,7 @@ class kraken extends Exchange {
                 'EFunding:Unknown asset' => '\\ccxt\\BadSymbol', // array("error":["EFunding:Unknown asset"])
                 'EService:Market in post_only mode' => '\\ccxt\\OnMaintenance', // array(is_array(post_only mode"]) && array_key_exists("error":["EService:Market, post_only mode"]))
                 'EGeneral:Too many requests' => '\\ccxt\\DDoSProtection', // array("error":["EGeneral:Too many requests"])
+                'ETrade:User Locked' => '\\ccxt\\AccountSuspended', // array("error":["ETrade:User Locked"])
             ),
         ));
     }
@@ -1623,10 +1624,10 @@ class kraken extends Exchange {
 
     public function fetch_orders_by_ids($ids, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $response = Async\await($this->privatePostQueryOrders (array_merge(array(
+        $response = $this->privatePostQueryOrders (array_merge(array(
             'trades' => true, // whether or not to include trades in output (optional, default false)
             'txid' => implode(',', $ids), // comma delimited list of transaction $ids to query info about (20 maximum)
-        ), $params)));
+        ), $params));
         $result = $this->safe_value($response, 'result', array());
         $orders = array();
         $orderIds = is_array($result) ? array_keys($result) : array();

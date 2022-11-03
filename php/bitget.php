@@ -16,6 +16,7 @@ class bitget extends Exchange {
             'countries' => array( 'SG' ),
             'version' => 'v1',
             'rateLimit' => 50, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
+            'certified' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -91,9 +92,12 @@ class bitget extends Exchange {
                     '30m' => '30min',
                     '1h' => '1h',
                     '4h' => '4h',
+                    '6h' => '6h',
                     '12h' => '12h',
                     '1d' => '1day',
-                    '1w' => '7day',  // not documented on the website
+                    '3d' => '3day',
+                    '1w' => '1week',
+                    '1M' => '1M',
                 ),
                 'swap' => array(
                     '1m' => '60',
@@ -109,7 +113,7 @@ class bitget extends Exchange {
             ),
             'hostname' => 'bitget.com',
             'urls' => array(
-                'logo' => 'https://user-images.githubusercontent.com/51840849/88317935-a8a21c80-cd22-11ea-8e2b-4b9fac5975eb.jpg',
+                'logo' => 'https://user-images.githubusercontent.com/1294454/195989417-4253ddb0-afbe-4a1c-9dea-9dbcd121fa5d.jpg',
                 'api' => array(
                     'spot' => 'https://api.{hostname}',
                     'mix' => 'https://api.{hostname}',
@@ -121,9 +125,6 @@ class bitget extends Exchange {
                     'https://bitgetlimited.github.io/apidoc/en/broker',
                 ),
                 'fees' => 'https://www.bitget.cc/zh-CN/rate?tab=1',
-                'test' => array(
-                    'rest' => 'https://testnet.bitget.com',
-                ),
                 'referral' => 'https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j',
             ),
             'api' => array(
@@ -182,6 +183,7 @@ class bitget extends Exchange {
                             'trade/fills' => 1,
                             'wallet/transfer' => 4,
                             'wallet/withdrawal' => 4,
+                            'wallet/subTransfer' => 10,
                         ),
                     ),
                     'mix' => array(
@@ -804,9 +806,9 @@ class bitget extends Exchange {
             if ($type === 'swap') {
                 $subTypes = array( 'umcbl', 'dmcbl' );
                 for ($j = 0; $j < count($subTypes); $j++) {
-                    $markets = Async\await($this->fetch_markets_by_type($type, array_merge($params, array(
+                    $markets = $this->fetch_markets_by_type($type, array_merge($params, array(
                         'productType' => $subTypes[$j],
-                    ))));
+                    )));
                     $result = $this->array_concat($result, $markets);
                 }
             } else {

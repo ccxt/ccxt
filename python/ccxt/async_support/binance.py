@@ -152,8 +152,8 @@ class binance(Exchange):
                 'test': {
                     'dapiPublic': 'https://testnet.binancefuture.com/dapi/v1',
                     'dapiPrivate': 'https://testnet.binancefuture.com/dapi/v1',
-                    'vapiPublic': 'https://testnet.binanceops.com/vapi/v1',
-                    'vapiPrivate': 'https://testnet.binanceops.com/vapi/v1',
+                    'eapiPublic': 'https://testnet.binanceops.com/eapi/v1',
+                    'eapiPrivate': 'https://testnet.binanceops.com/eapi/v1',
                     'fapiPublic': 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivate': 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivateV2': 'https://testnet.binancefuture.com/fapi/v2',
@@ -167,8 +167,8 @@ class binance(Exchange):
                     'sapiV3': 'https://api.binance.com/sapi/v3',
                     'dapiPublic': 'https://dapi.binance.com/dapi/v1',
                     'dapiPrivate': 'https://dapi.binance.com/dapi/v1',
-                    'vapiPublic': 'https://vapi.binance.com/vapi/v1',
-                    'vapiPrivate': 'https://vapi.binance.com/vapi/v1',
+                    'eapiPublic': 'https://eapi.binance.com/eapi/v1',
+                    'eapiPrivate': 'https://eapi.binance.com/eapi/v1',
                     'dapiPrivateV2': 'https://dapi.binance.com/dapi/v2',
                     'dapiData': 'https://dapi.binance.com/futures/data',
                     'fapiPublic': 'https://fapi.binance.com/fapi/v1',
@@ -358,6 +358,7 @@ class binance(Exchange):
                         'pay/transactions': 20.001,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'giftcard/verify': 0.1,
                         'giftcard/cryptography/rsa-public-key': 0.1,
+                        'giftcard/buyCode/token-limit': 0.1,
                         'algo/futures/openOrders': 0.1,
                         'algo/futures/historicalOrders': 0.1,
                         'algo/futures/subOrders': 0.1,
@@ -444,6 +445,7 @@ class binance(Exchange):
                         #
                         'giftcard/createCode': 0.1,
                         'giftcard/redeemCode': 0.1,
+                        'giftcard/buyCode': 0.1,
                         'algo/futures/newOrderVp': 20.001,
                         'algo/futures/newOrderTwap': 20.001,
                         # staking
@@ -675,47 +677,51 @@ class binance(Exchange):
                         'positionRisk': 1,
                     },
                 },
-                'vapiPublic': {
-                    'get': [
-                        'ping',
-                        'time',
-                        'optionInfo',
-                        'exchangeInfo',
-                        'index',
-                        'ticker',
-                        'mark',
-                        'depth',
-                        'klines',
-                        'trades',
-                        'historicalTrades',
-                    ],
+                'eapiPublic': {
+                    'get': {
+                        'ping': 1,
+                        'time': 1,
+                        'exchangeInfo': 1,
+                        'index': 1,
+                        'ticker': 5,
+                        'mark': 5,
+                        'depth': 1,
+                        'klines': 1,
+                        'trades': 5,
+                        'historicalTrades': 20,
+                        'exerciseHistory': 3,
+                    },
                 },
-                'vapiPrivate': {
-                    'get': [
-                        'account',
-                        'position',
-                        'order',
-                        'openOrders',
-                        'historyOrders',
-                        'userTrades',
-                    ],
-                    'post': [
-                        'transfer',
-                        'bill',
-                        'order',
-                        'batchOrders',
-                        'userDataStream',
-                        'openAccount',
-                    ],
-                    'put': [
-                        'userDataStream',
-                    ],
-                    'delete': [
-                        'order',
-                        'batchOrders',
-                        'allOpenOrders',
-                        'userDataStream',
-                    ],
+                'eapiPrivate': {
+                    'get': {
+                        'account': 3,
+                        'position': 5,
+                        'openOrders': {'cost': 1, 'noSymbol': 40},
+                        'historyOrders': 3,
+                        'userTrades': 5,
+                        'exerciseRecord': 5,
+                        'bill': 1,
+                        'marginAccount': 3,
+                        'mmp': 1,
+                    },
+                    'post': {
+                        'transfer': 1,
+                        'order': 1,
+                        'batchOrders': 5,
+                        'listenKey': 1,
+                        'mmpSet': 1,
+                        'mmpReset': 1,
+                    },
+                    'put': {
+                        'listenKey': 1,
+                    },
+                    'delete': {
+                        'order': 1,
+                        'batchOrders': 1,
+                        'allOpenOrders': 1,
+                        'allOpenOrdersByUnderlying': 1,
+                        'listenKey': 1,
+                    },
                 },
                 'public': {
                     'get': {
@@ -5459,7 +5465,7 @@ class binance(Exchange):
                     body = self.urlencode(params)
             else:
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
-        elif (api == 'private') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV3') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
+        elif (api == 'private') or (api == 'eapiPrivate') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV3') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
             self.check_required_credentials()
             query = None
             defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
@@ -5981,7 +5987,7 @@ class binance(Exchange):
 
     async def fetch_open_interest_history(self, symbol, timeframe='5m', since=None, limit=None, params={}):
         """
-        Retrieves the open intestest history of a currency
+        Retrieves the open interest history of a currency
         :param str symbol: Unified CCXT market symbol
         :param str timeframe: "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
         :param int|None since: the time(ms) of the earliest record to retrieve as a unix timestamp
@@ -6036,10 +6042,14 @@ class binance(Exchange):
         timestamp = self.safe_integer(interest, 'timestamp')
         id = self.safe_string(interest, 'symbol')
         market = self.safe_market(id, market)
+        amount = self.safe_number(interest, 'sumOpenInterest')
+        value = self.safe_number(interest, 'sumOpenInterestValue')
         return {
             'symbol': self.safe_symbol(id),
-            'baseVolume': self.safe_number(interest, 'sumOpenInterest'),
-            'quoteVolume': self.safe_number(interest, 'sumOpenInterestValue'),
+            'baseVolume': amount,  # deprecated
+            'quoteVolume': value,  # deprecated
+            'openInterestAmount': amount,
+            'openInterestValue': value,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,

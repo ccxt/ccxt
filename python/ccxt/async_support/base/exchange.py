@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.0.19'
+__version__ = '2.1.14'
 
 # -----------------------------------------------------------------------------
 
@@ -628,7 +628,7 @@ class Exchange(BaseExchange):
             # the fee is always in the currency you get
             cost = amountString
             if side == 'sell':
-                cost = priceString
+                cost = Precise.string_mul(cost, priceString)
             else:
                 key = 'base'
         elif feeSide == 'give':
@@ -638,6 +638,12 @@ class Exchange(BaseExchange):
                 cost = Precise.string_mul(cost, priceString)
             else:
                 key = 'base'
+        # for derivatives, the fee is in 'settle' currency
+        if not market['spot']:
+            key = self.safe_string(market, 'settle', key)
+        # even if `takerOrMaker` argument was set to 'maker', for 'market' orders we should forcefully override it to 'taker'
+        if type == 'market':
+            takerOrMaker = 'taker'
         rate = self.number_to_string(market[takerOrMaker])
         if cost is not None:
             cost = Precise.string_mul(cost, rate)
@@ -1725,6 +1731,12 @@ class Exchange(BaseExchange):
             result[parsed['symbol']] = parsed
         return result
 
+    def is_trigger_order(self, params):
+        isTrigger = self.safe_value_2(params, 'trigger', 'stop')
+        if isTrigger:
+            params = self.omit(params, ['trigger', 'stop'])
+        return [isTrigger, params]
+
     def is_post_only(self, isMarketOrder, exchangeSpecificParam, params={}):
         """
          * @ignore
@@ -1885,3 +1897,27 @@ class Exchange(BaseExchange):
         if marginMode is not None:
             params = self.omit(params, ['marginMode', 'defaultMarginMode'])
         return [marginMode, params]
+
+    def check_required_argument(self, methodName, argument, argumentName, options=[]):
+        """
+         * @ignore
+        :param str argument: the argument to check
+        :param str argumentName: the name of the argument to check
+        :param str methodName: the name of the method that the argument is being checked for
+        :param [str] options: a list of options that the argument can be
+        :returns None:
+        """
+        if (argument is None) or ((len(options) > 0) and (not(self.in_array(argument, options)))):
+            messageOptions = ', '.join(options)
+            message = self.id + ' ' + methodName + '() requires a ' + argumentName + ' argument'
+            if messageOptions != '':
+                message += ', one of ' + '(' + messageOptions + ')'
+            raise ArgumentsRequired(message)
+
+    def check_required_symbol(self, methodName, symbol):
+        """
+         * @ignore
+        :param str symbol: unified symbol of the market
+        :param str methodName: name of the method that requires a symbol
+        """
+        self.checkRequiredArgument(methodName, symbol, 'symbol')

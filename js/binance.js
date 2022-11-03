@@ -129,8 +129,8 @@ module.exports = class binance extends Exchange {
                 'test': {
                     'dapiPublic': 'https://testnet.binancefuture.com/dapi/v1',
                     'dapiPrivate': 'https://testnet.binancefuture.com/dapi/v1',
-                    'vapiPublic': 'https://testnet.binanceops.com/vapi/v1',
-                    'vapiPrivate': 'https://testnet.binanceops.com/vapi/v1',
+                    'eapiPublic': 'https://testnet.binanceops.com/eapi/v1',
+                    'eapiPrivate': 'https://testnet.binanceops.com/eapi/v1',
                     'fapiPublic': 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivate': 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivateV2': 'https://testnet.binancefuture.com/fapi/v2',
@@ -144,8 +144,8 @@ module.exports = class binance extends Exchange {
                     'sapiV3': 'https://api.binance.com/sapi/v3',
                     'dapiPublic': 'https://dapi.binance.com/dapi/v1',
                     'dapiPrivate': 'https://dapi.binance.com/dapi/v1',
-                    'vapiPublic': 'https://vapi.binance.com/vapi/v1',
-                    'vapiPrivate': 'https://vapi.binance.com/vapi/v1',
+                    'eapiPublic': 'https://eapi.binance.com/eapi/v1',
+                    'eapiPrivate': 'https://eapi.binance.com/eapi/v1',
                     'dapiPrivateV2': 'https://dapi.binance.com/dapi/v2',
                     'dapiData': 'https://dapi.binance.com/futures/data',
                     'fapiPublic': 'https://fapi.binance.com/fapi/v1',
@@ -335,6 +335,7 @@ module.exports = class binance extends Exchange {
                         'pay/transactions': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'giftcard/verify': 0.1,
                         'giftcard/cryptography/rsa-public-key': 0.1,
+                        'giftcard/buyCode/token-limit': 0.1,
                         'algo/futures/openOrders': 0.1,
                         'algo/futures/historicalOrders': 0.1,
                         'algo/futures/subOrders': 0.1,
@@ -421,6 +422,7 @@ module.exports = class binance extends Exchange {
                         //
                         'giftcard/createCode': 0.1,
                         'giftcard/redeemCode': 0.1,
+                        'giftcard/buyCode': 0.1,
                         'algo/futures/newOrderVp': 20.001,
                         'algo/futures/newOrderTwap': 20.001,
                         // staking
@@ -652,47 +654,51 @@ module.exports = class binance extends Exchange {
                         'positionRisk': 1,
                     },
                 },
-                'vapiPublic': {
-                    'get': [
-                        'ping',
-                        'time',
-                        'optionInfo',
-                        'exchangeInfo',
-                        'index',
-                        'ticker',
-                        'mark',
-                        'depth',
-                        'klines',
-                        'trades',
-                        'historicalTrades',
-                    ],
+                'eapiPublic': {
+                    'get': {
+                        'ping': 1,
+                        'time': 1,
+                        'exchangeInfo': 1,
+                        'index': 1,
+                        'ticker': 5,
+                        'mark': 5,
+                        'depth': 1,
+                        'klines': 1,
+                        'trades': 5,
+                        'historicalTrades': 20,
+                        'exerciseHistory': 3,
+                    },
                 },
-                'vapiPrivate': {
-                    'get': [
-                        'account',
-                        'position',
-                        'order',
-                        'openOrders',
-                        'historyOrders',
-                        'userTrades',
-                    ],
-                    'post': [
-                        'transfer',
-                        'bill',
-                        'order',
-                        'batchOrders',
-                        'userDataStream',
-                        'openAccount',
-                    ],
-                    'put': [
-                        'userDataStream',
-                    ],
-                    'delete': [
-                        'order',
-                        'batchOrders',
-                        'allOpenOrders',
-                        'userDataStream',
-                    ],
+                'eapiPrivate': {
+                    'get': {
+                        'account': 3,
+                        'position': 5,
+                        'openOrders': { 'cost': 1, 'noSymbol': 40 },
+                        'historyOrders': 3,
+                        'userTrades': 5,
+                        'exerciseRecord': 5,
+                        'bill': 1,
+                        'marginAccount': 3,
+                        'mmp': 1,
+                    },
+                    'post': {
+                        'transfer': 1,
+                        'order': 1,
+                        'batchOrders': 5,
+                        'listenKey': 1,
+                        'mmpSet': 1,
+                        'mmpReset': 1,
+                    },
+                    'put': {
+                        'listenKey': 1,
+                    },
+                    'delete': {
+                        'order': 1,
+                        'batchOrders': 1,
+                        'allOpenOrders': 1,
+                        'allOpenOrdersByUnderlying': 1,
+                        'listenKey': 1,
+                    },
                 },
                 'public': {
                     'get': {
@@ -5854,7 +5860,7 @@ module.exports = class binance extends Exchange {
             } else {
                 throw new AuthenticationError (this.id + ' userDataStream endpoint requires `apiKey` credential');
             }
-        } else if ((api === 'private') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV3') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
+        } else if ((api === 'private') || (api === 'eapiPrivate') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV3') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
             this.checkRequiredCredentials ();
             let query = undefined;
             const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
@@ -6460,7 +6466,7 @@ module.exports = class binance extends Exchange {
         /**
          * @method
          * @name binance#fetchOpenInterestHistory
-         * @description Retrieves the open intestest history of a currency
+         * @description Retrieves the open interest history of a currency
          * @param {string} symbol Unified CCXT market symbol
          * @param {string} timeframe "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
          * @param {int|undefined} since the time(ms) of the earliest record to retrieve as a unix timestamp
@@ -6523,10 +6529,14 @@ module.exports = class binance extends Exchange {
         const timestamp = this.safeInteger (interest, 'timestamp');
         const id = this.safeString (interest, 'symbol');
         market = this.safeMarket (id, market);
+        const amount = this.safeNumber (interest, 'sumOpenInterest');
+        const value = this.safeNumber (interest, 'sumOpenInterestValue');
         return {
             'symbol': this.safeSymbol (id),
-            'baseVolume': this.safeNumber (interest, 'sumOpenInterest'),
-            'quoteVolume': this.safeNumber (interest, 'sumOpenInterestValue'),
+            'baseVolume': amount,  // deprecated
+            'quoteVolume': value,  // deprecated
+            'openInterestAmount': amount,
+            'openInterestValue': value,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,

@@ -84,19 +84,44 @@ class bitmart(Exchange, ccxt.async_support.bitmart):
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
+        await self.load_markets()
+        symbol = self.symbol(symbol)
         trades = await self.subscribe('trade', symbol, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_ticker(self, symbol, params={}):
+        """
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         return await self.subscribe('ticker', symbol, params)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        watches information on multiple orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         if market['type'] != 'spot':
             raise ArgumentsRequired(self.id + ' watchOrders supports spot markets only')
         channel = 'spot/user/order'
@@ -268,6 +293,8 @@ class bitmart(Exchange, ccxt.async_support.bitmart):
         return message
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        await self.load_markets()
+        symbol = self.symbol(symbol)
         timeframes = self.safe_value(self.options, 'timeframes', {})
         interval = self.safe_string(timeframes, timeframe)
         name = 'kline' + interval
@@ -323,10 +350,17 @@ class bitmart(Exchange, ccxt.async_support.bitmart):
             client.resolve(stored, messageHash)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
+        """
+        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         options = self.safe_value(self.options, 'watchOrderBook', {})
         depth = self.safe_string(options, 'depth', 'depth400')
         orderbook = await self.subscribe(depth, symbol, params)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)

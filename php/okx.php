@@ -91,7 +91,7 @@ class okx extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => false,
-                'fetchTradingLimits' => null,
+                'fetchTradingLimits' => false,
                 'fetchTransactionFee' => false,
                 'fetchTransactionFees' => false,
                 'fetchTransactions' => false,
@@ -149,6 +149,7 @@ class okx extends Exchange {
                         'market/ticker' => 1,
                         'market/index-tickers' => 1,
                         'market/books' => 1,
+                        'market/books-lite' => 1.66,
                         'market/candles' => 0.5,
                         'market/history-candles' => 1,
                         'market/history-mark-price-candles' => 120,
@@ -627,10 +628,6 @@ class okx extends Exchange {
                     'POLYGON' => 'Polygon',
                     'OEC' => 'OEC',
                     'ALGO' => 'ALGO', // temporarily unavailable
-                ),
-                'layerTwo' => array(
-                    'Lightning' => true,
-                    'Liquid' => true,
                 ),
                 'fetchOpenInterestHistory' => array(
                     'timeframes' => array(
@@ -1186,25 +1183,16 @@ class okx extends Exchange {
                 if (($networkId !== null) && (mb_strpos($networkId, '-') !== false)) {
                     $parts = explode('-', $networkId);
                     $chainPart = $this->safe_string($parts, 1, $networkId);
-                    $network = $this->safe_network($chainPart);
-                    $mainNet = $this->safe_value($chain, 'mainNet', false);
-                    $layerTwo = $this->safe_value($this->options, 'layerTwo', array(
-                        'Liquid' => true,
-                        'Lightning' => true,
-                    ));
-                    if ($mainNet && !(is_array($layerTwo) && array_key_exists($chainPart, $layerTwo))) {
-                        // BTC lighting and liquid are both mainnet but not the same as BTC-Bitcoin
-                        $network = $code;
-                    }
+                    $networkCode = $this->safe_network($chainPart);
                     $precision = $this->parse_precision($this->safe_string($chain, 'wdTickSz'));
                     if ($maxPrecision === null) {
                         $maxPrecision = $precision;
                     } else {
                         $maxPrecision = Precise::string_min($maxPrecision, $precision);
                     }
-                    $networks[$network] = array(
+                    $networks[$networkCode] = array(
                         'id' => $networkId,
-                        'network' => $network,
+                        'network' => $networkCode,
                         'active' => $active,
                         'deposit' => $canDeposit,
                         'withdraw' => $canWithdraw,
@@ -1701,6 +1689,7 @@ class okx extends Exchange {
             $rate = $data[$i];
             $timestamp = $this->safe_number($rate, 'fundingTime');
             $rates[] = array(
+                'info' => $rate,
                 'symbol' => $this->safe_symbol($this->safe_string($rate, 'instId')),
                 'fundingRate' => $this->safe_number($rate, 'realizedRate'),
                 'timestamp' => $timestamp,
@@ -2119,6 +2108,7 @@ class okx extends Exchange {
             $brokerId = $this->safe_string($this->options, 'brokerId');
             if ($brokerId !== null) {
                 $request['clOrdId'] = $brokerId . $this->uuid16();
+                $request['tag'] = $brokerId;
             }
         } else {
             $request['clOrdId'] = $clientOrderId;
@@ -2444,6 +2434,10 @@ class okx extends Exchange {
             $clientOrderId = null; // fix empty $clientOrderId string
         }
         $stopPrice = $this->safe_number_n($order, array( 'triggerPx', 'slTriggerPx', 'tpTriggerPx' ));
+        $reduceOnly = $this->safe_string($order, 'reduceOnly');
+        if ($reduceOnly !== null) {
+            $reduceOnly = ($reduceOnly === 'true');
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -2466,6 +2460,7 @@ class okx extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
+            'reduceOnly' => $reduceOnly,
         ), $market);
     }
 
@@ -3958,8 +3953,10 @@ class okx extends Exchange {
     public function fetch_position($symbol, $params = array ()) {
         /**
          * fetch $data on a single open contract trade $position
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-positions
          * @param {string} $symbol unified $market $symbol of the $market the $position is held in, default is null
          * @param {array} $params extra parameters specific to the okx api endpoint
+         * @param {string|null} $params->instType MARGIN, SWAP, FUTURES, OPTION
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$position-structure $position structure}
          */
         $this->load_markets();
@@ -4030,27 +4027,31 @@ class okx extends Exchange {
 
     public function fetch_positions($symbols = null, $params = array ()) {
         /**
+         * @see https://www.okx.com/docs-v5/en/#rest-api-account-get-$positions
          * fetch all open $positions
-         * @param {[string]|null} $symbols list of unified market $symbols
+         * @param {[string]|null} $symbols list of unified $market $symbols
          * @param {array} $params extra parameters specific to the okx api endpoint
+         * @param {string|null} $params->instType MARGIN, SWAP, FUTURES, OPTION
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
          */
         $this->load_markets();
-        $symbols = $this->market_symbols($symbols);
-        // $defaultType = $this->safe_string_2($this->options, 'fetchPositions', 'defaultType');
-        // $type = $this->safe_string($params, 'type', $defaultType);
         $request = array(
-            // instType 'strval' No Instrument $type, MARGIN, SWAP, FUTURES, OPTION, instId will be checked against instType when both parameters are passed, and the position information of the instId will be returned.
-            // instId 'strval' No Instrument ID, e.g. BTC-USD-190927-5000-C
-            // posId 'strval' No Single position ID or multiple position IDs (no more than 20) separated with comma
+            // 'instType' => 'MARGIN', // optional string, MARGIN, SWAP, FUTURES, OPTION
+            // 'instId' => $market['id'], // optional string, e.g. 'BTC-USD-190927-5000-C'
+            // 'posId' => '307173036051017730', // optional string, Single or multiple position IDs (no more than 20) separated with commas
         );
-        list($type, $query) = $this->handle_market_type_and_params('fetchPositions', null, $params);
-        if ($type !== null) {
-            if (($type === 'swap') || ($type === 'future')) {
-                $request['instType'] = $this->convert_to_instrument_type($type);
+        if ($symbols !== null) {
+            $marketIds = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $entry = $symbols[$i];
+                $market = $this->market($entry);
+                $marketIds[] = $market['id'];
+            }
+            if (strlen($marketIds) > 0) {
+                $request['instId'] = (string) $marketIds;
             }
         }
-        $response = $this->privateGetAccountPositions (array_merge($request, $query));
+        $response = $this->privateGetAccountPositions (array_merge($request, $params));
         //
         //     {
         //         "code" => "0",
@@ -4100,11 +4101,7 @@ class okx extends Exchange {
         $positions = $this->safe_value($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($positions); $i++) {
-            $entry = $positions[$i];
-            $instrument = $this->safe_string($entry, 'instType');
-            if (($instrument === 'FUTURES') || ($instrument === 'SWAP')) {
-                $result[] = $this->parse_position($positions[$i]);
-            }
+            $result[] = $this->parse_position($positions[$i]);
         }
         return $this->filter_by_array($result, 'symbol', $symbols, false);
     }

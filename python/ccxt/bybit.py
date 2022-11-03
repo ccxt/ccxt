@@ -72,6 +72,7 @@ class bybit(Exchange):
                 'fetchMarkOHLCV': True,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
+                'fetchOpenInterest': True,
                 'fetchOpenInterestHistory': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -194,6 +195,7 @@ class bybit(Exchange):
                         'option/usdc/openapi/public/v1/delivery-price': 1,
                         'option/usdc/openapi/public/v1/query-trade-latest': 1,
                         'option/usdc/openapi/public/v1/query-historical-volatility': 1,
+                        'option/usdc/openapi/public/v1/all-tickers': 1,
                         # perpetual swap USDC
                         'perpetual/usdc/openapi/public/v1/order-book': 1,
                         'perpetual/usdc/openapi/public/v1/symbols': 1,
@@ -299,6 +301,7 @@ class bybit(Exchange):
                         'contract/v3/private/copytrading/position/list': 1,
                         'contract/v3/private/copytrading/wallet/balance': 1,
                         'contract/v3/private/position/limit-info': 25,  # 120 per minute = 2 per second => cost = 50 / 2 = 25
+                        'contract/v3/private/order/unfilled-orders': 1,
                         # derivative
                         'unified/v3/private/order/unfilled-orders': 1,
                         'unified/v3/private/order/list': 1,
@@ -594,12 +597,23 @@ class bybit(Exchange):
                     'future': 'CONTRACT',
                     'swap': 'CONTRACT',
                     'option': 'OPTION',
+                    'investment': 'INVESTMENT',
+                    'unified': 'UNIFIED',
                 },
                 'accountsById': {
                     'SPOT': 'spot',
                     'MARGIN': 'spot',
                     'CONTRACT': 'contract',
                     'OPTION': 'option',
+                    'INVESTMENT': 'investment',
+                    'UNIFIED': 'unified',
+                },
+                'networks': {
+                    'ERC20': 'ETH',
+                    'TRC20': 'TRX',
+                    'BEP20': 'BSC',
+                    'OMNI': 'OMNI',
+                    'SPL': 'SOL',
                 },
             },
             'fees': {
@@ -2540,6 +2554,8 @@ class bybit(Exchange):
         timeInForce = self.parse_time_in_force(self.safe_string_2(order, 'time_in_force', 'timeInForce'))
         stopPrice = self.safe_string_n(order, ['trigger_price', 'stop_px', 'stopPrice', 'triggerPrice'])
         postOnly = (timeInForce == 'PO')
+        if (market['spot'] and type == 'market') and (side == 'buy'):
+            amount = filled
         return self.safe_order({
             'info': order,
             'id': id,
@@ -2970,16 +2986,19 @@ class bybit(Exchange):
             # 'stop_order_id': id,  # only for conditional orders
             # 'p_r_trigger_price': 123.45,  # new trigger price also known as stop_px
         }
-        orderType = self.safe_string(params, 'orderType')
-        isStop = self.safe_value(params, 'stop', False)
-        isConditionalOrder = isStop or (orderType == 'stop' or orderType == 'conditional')
-        params = self.omit(params, ['orderType', 'stop'])
-        idKey = 'stop_order_id' if isConditionalOrder else 'order_id'
-        request[idKey] = id
         if amount is not None:
             request['p_r_qty'] = self.amount_to_precision(symbol, amount)
         if price is not None:
             request['p_r_price'] = self.price_to_precision(symbol, price)
+        isConditionalOrder = False
+        idKey = 'order_id'
+        triggerPrice = self.safe_value_n(params, ['stopPrice', 'triggerPrice'])
+        if triggerPrice is not None:
+            isConditionalOrder = True
+            idKey = 'stop_order_id'
+            request['p_r_trigger_price'] = self.price_to_precision(symbol, triggerPrice)
+            params = self.omit(params, ['stopPrice', 'triggerPrice'])
+        request[idKey] = id
         method = None
         if market['linear']:
             method = 'privatePostPrivateLinearStopOrderReplace' if isConditionalOrder else 'privatePostPrivateLinearOrderReplace'
@@ -4548,62 +4567,122 @@ class bybit(Exchange):
 
     def fetch_open_interest_history(self, symbol, timeframe='1h', since=None, limit=None, params={}):
         """
-        Gets the total amount of unsettled contracts. In other words, the total number of contracts held in open positions
+        Gets the total amount of unsettled contracts. The total number of contracts held in open positions
+        see https://bybit-exchange.github.io/docs/derivativesV3/contract/#t-dv_marketopeninterest
         :param str symbol: Unified market symbol
         :param str timeframe: "5m", 15m, 30m, 1h, 4h, 1d
-        :param int since: Not used by Bybit
-        :param int limit: The number of open interest structures to return. Max 200, default 50
+        :param int|None since: Start timestamp in milliseconds
+        :param int|None limit: The number of open interest structures to return. Max 200, default 50
         :param dict params: Exchange specific parameters
+        :param str|None params['category']: "linear" or "inverse"
         :returns: An array of open interest structures
         """
         if timeframe == '1m':
-            raise BadRequest(self.id + 'fetchOpenInterestHistory cannot use the 1m timeframe')
+            raise BadRequest(self.id + ' fetchOpenInterestHistory() cannot use the 1m timeframe')
         self.load_markets()
         market = self.market(symbol)
+        subType = 'linear' if market['linear'] else 'inverse'
+        category = self.safe_string(params, 'category', subType)
         request = {
             'symbol': market['id'],
-            'period': timeframe,
+            'interval': timeframe,
+            'category': category,
         }
+        if since is not None:
+            request['since'] = since
         if limit is not None:
             request['limit'] = limit
-        response = self.publicGetV2PublicOpenInterest(self.extend(request, params))
+        response = self.publicGetDerivativesV3PublicOpenInterest(self.extend(request, params))
         #
-        #    {
-        #        "ret_code": 0,
-        #        "ret_msg": "OK",
-        #        "ext_code": "",
-        #        "ext_info": "",
-        #        "result": [
-        #            {
-        #                "open_interest": 805604444,
-        #                "timestamp": 1645056000,
-        #                "symbol": "BTCUSD"
-        #            },
-        #            ...
-        #        ],
-        #        "time_now": "1645085118.727358"
-        #    }
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "OK",
+        #         "result": {
+        #             "symbol": "BTCUSDT",
+        #             "category": "linear",
+        #             "list": [
+        #                 {
+        #                     "openInterest": "64757.62400000",
+        #                     "timestamp": "1665784800000"
+        #                 },
+        #                 ...
+        #             ]
+        #         },
+        #         "retExtInfo": null,
+        #         "time": 1665784849646
+        #     }
         #
-        result = self.safe_value(response, 'result')
-        return self.parse_open_interests(result, market, since, limit)
+        result = self.safe_value(response, 'result', {})
+        id = self.safe_string(result, 'symbol')
+        market = self.safe_market(id, market)
+        data = self.safe_value(result, 'list', [])
+        return self.parse_open_interests(data, market, since, limit)
+
+    def fetch_open_interest(self, symbol, params={}):
+        """
+        Retrieves the open interest of a derivative trading pair
+        see https://bybit-exchange.github.io/docs/derivativesV3/contract/#t-dv_marketopeninterest
+        :param str symbol: Unified CCXT market symbol
+        :param dict params: exchange specific parameters
+        :param str|None params['interval']: 5m, 15m, 30m, 1h, 4h, 1d
+        :param str|None params['category']: "linear" or "inverse"
+        :returns dict} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure:
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        if not market['contract']:
+            raise BadRequest(self.id + ' fetchOpenInterest() supports contract markets only')
+        timeframe = self.safe_string(params, 'interval', '1h')
+        if timeframe == '1m':
+            raise BadRequest(self.id + ' fetchOpenInterest() cannot use the 1m timeframe')
+        subType = 'linear' if market['linear'] else 'inverse'
+        category = self.safe_string(params, 'category', subType)
+        request = {
+            'symbol': market['id'],
+            'interval': timeframe,
+            'category': category,
+        }
+        response = self.publicGetDerivativesV3PublicOpenInterest(self.extend(request, params))
+        #
+        #     {
+        #         "retCode": 0,
+        #         "retMsg": "OK",
+        #         "result": {
+        #             "symbol": "BTCUSDT",
+        #             "category": "linear",
+        #             "list": [
+        #                 {
+        #                     "openInterest": "64757.62400000",
+        #                     "timestamp": "1665784800000"
+        #                 },
+        #                 ...
+        #             ]
+        #         },
+        #         "retExtInfo": null,
+        #         "time": 1665784849646
+        #     }
+        #
+        result = self.safe_value(response, 'result', {})
+        id = self.safe_string(result, 'symbol')
+        market = self.safe_market(id, market)
+        data = self.safe_value(result, 'list', [])
+        return self.parse_open_interest(data[0], market)
 
     def parse_open_interest(self, interest, market=None):
         #
         #    {
-        #        "open_interest": 805604444,
-        #        "timestamp": 1645056000,
-        #        "symbol": "BTCUSD"
+        #        "openInterest": 64757.62400000,
+        #        "timestamp": 1665784800000,
         #    }
         #
-        id = self.safe_string(interest, 'symbol')
-        market = self.safe_market(id, market)
-        timestamp = self.safe_timestamp(interest, 'timestamp')
-        numContracts = self.safe_string(interest, 'open_interest')
-        contractSize = self.safe_string(market, 'contractSize')
+        timestamp = self.safe_integer(interest, 'timestamp')
+        value = self.safe_number(interest, 'openInterest')
         return {
-            'symbol': self.safe_symbol(id),
-            'baseVolume': Precise.string_mul(numContracts, contractSize),
-            'quoteVolume': None,
+            'symbol': self.safe_symbol(market['id']),
+            'baseVolume': value,  # deprecated
+            'quoteVolume': None,  # deprecated
+            'openInterestAmount': None,
+            'openInterestValue': value,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,
