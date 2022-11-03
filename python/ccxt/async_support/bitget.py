@@ -1545,13 +1545,20 @@ class bitget(Exchange):
     async def fetch_tickers(self, symbols=None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        see https://bitgetlimited.github.io/apidoc/en/spot/#get-all-tickers
+        see https://bitgetlimited.github.io/apidoc/en/mix/#get-all-symbol-ticker
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bitget api endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
-        marketType, query = self.handle_market_type_and_params('fetchTickers', None, params)
-        method = self.get_supported_mapping(marketType, {
+        type = None
+        market = None
+        if symbols is not None:
+            symbol = self.safe_value(symbols, 0)
+            market = self.market(symbol)
+        type, params = self.handle_market_type_and_params('fetchTickers', market, params)
+        method = self.get_supported_mapping(type, {
             'spot': 'publicSpotGetMarketTickers',
             'swap': 'publicMixGetMarketTickers',
         })
@@ -1559,7 +1566,7 @@ class bitget(Exchange):
         if method == 'publicMixGetMarketTickers':
             defaultSubType = self.safe_string(self.options, 'defaultSubType')
             request['productType'] = 'UMCBL' if (defaultSubType == 'linear') else 'DMCBL'
-        response = await getattr(self, method)(self.extend(request, query))
+        response = await getattr(self, method)(self.extend(request, params))
         #
         # spot
         #
