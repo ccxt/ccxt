@@ -20,6 +20,12 @@ module.exports = async (exchange, symbol) => {
 
     if (exchange.has[method]) {
 
+        const market = exchange.market (symbol);
+        if (market.spot) {
+            console.log (method + '() is not supported for spot market symbol');
+            return;
+        }
+    
         const fundingRates = await exchange[method] (symbol)
         console.log ('fetched all', fundingRates.length, 'funding rates')
 
