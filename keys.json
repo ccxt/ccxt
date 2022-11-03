@@ -27,6 +27,5 @@
     "ripio":         { "skipWs": true },
     "upbit":         { "skipWs": true },
     "zb":            { "skipWs": true },
-    "tidebit":       { "skip": true },
-    "tokocrypto":    { "skip": true }
+    "tidebit":       { "skip": true }
 }
