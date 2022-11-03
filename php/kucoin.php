@@ -3228,7 +3228,9 @@ class kucoin extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $endpart = '';
         $headers = ($headers !== null) ? $headers : array();
-        if ($path === 'symbols') {
+        $url = $this->urls['api'][$api];
+        $isSandbox = mb_strpos($url, 'sandbox') !== false;
+        if ($path === 'symbols' && !$isSandbox) {
             $endpoint = '/api/v2/' . $this->implode_params($path, $params);
         }
         if ($query) {
@@ -3240,7 +3242,7 @@ class kucoin extends Exchange {
                 $headers['Content-Type'] = 'application/json';
             }
         }
-        $url = $this->urls['api'][$api] . $endpoint;
+        $url = $url . $endpoint;
         $isFuturePrivate = ($api === 'futuresPrivate');
         $isPrivate = ($api === 'private');
         if ($isPrivate || $isFuturePrivate) {

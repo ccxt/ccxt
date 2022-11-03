@@ -3088,7 +3088,9 @@ class kucoin(Exchange):
         query = self.omit(params, self.extract_params(path))
         endpart = ''
         headers = headers if (headers is not None) else {}
-        if path == 'symbols':
+        url = self.urls['api'][api]
+        isSandbox = url.find('sandbox') >= 0
+        if path == 'symbols' and not isSandbox:
             endpoint = '/api/v2/' + self.implode_params(path, params)
         if query:
             if (method == 'GET') or (method == 'DELETE'):
@@ -3097,7 +3099,7 @@ class kucoin(Exchange):
                 body = self.json(query)
                 endpart = body
                 headers['Content-Type'] = 'application/json'
-        url = self.urls['api'][api] + endpoint
+        url = url + endpoint
         isFuturePrivate = (api == 'futuresPrivate')
         isPrivate = (api == 'private')
         if isPrivate or isFuturePrivate:
