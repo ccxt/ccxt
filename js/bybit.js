@@ -6561,6 +6561,80 @@ module.exports = class bybit extends Exchange {
         return response;
     }
 
+    async fetchUnifiedMarginOpenInterestHistory (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        request['interval'] = timeframe;
+        if (market['inverse']) {
+            request['category'] = 'inverse';
+        } else if (market['linear']) {
+            request['category'] = 'linear';
+        }
+        const response = await this.publicGetDerivativesV3PublicOpenInterest (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "symbol": "BTCUSDT",
+        //             "category": "linear",
+        //             "list": [
+        //                 {
+        //                     "openInterest": "15350.60700000",
+        //                     "timestamp": "1657641600000"
+        //                 },
+        //                 {
+        //                     "openInterest": "15605.74100000",
+        //                     "timestamp": "1657638000000"
+        //                 }
+        //             ]
+        //         },
+        //         "time": 1657797822839
+        //     }
+        //
+        const result = this.safeValue (response, 'result');
+        const openInterests = this.safeValue (result, 'list');
+        return this.parseOpenInterests (openInterests, market, since, limit);
+    }
+
+    async fetchDerivativesOpenInterestHistory (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'period': timeframe,
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetV2PublicOpenInterest (this.extend (request, params));
+        //
+        //    {
+        //        "ret_code": 0,
+        //        "ret_msg": "OK",
+        //        "ext_code": "",
+        //        "ext_info": "",
+        //        "result": [
+        //            {
+        //                "open_interest": 805604444,
+        //                "timestamp": 1645056000,
+        //                "symbol": "BTCUSD"
+        //            },
+        //            ...
+        //        ],
+        //        "time_now": "1645085118.727358"
+        //    }
+        //
+        const result = this.safeValue (response, 'result');
+        return this.parseOpenInterests (result, market, since, limit);
+    }
+
     async fetchOpenInterestHistory (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -6587,65 +6661,11 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        let method = 'publicGetV2PublicOpenInterest';
         const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
         if (enableUnifiedMargin) {
-            method = 'publicGetDerivativesV3PublicOpenInterest';
-            request['interval'] = timeframe;
-            if (market['inverse']) {
-                request['category'] = 'inverse';
-            } else if (market['linear']) {
-                request['category'] = 'linear';
-            }
-        } else {
-            request['period'] = timeframe;
+            return await this.fetchUnifiedMarginOpenInterestHistory (symbol, timeframe, since, limit, params);
         }
-        const response = await this[method] (this.extend (request, params));
-        //
-        //    {
-        //        "ret_code": 0,
-        //        "ret_msg": "OK",
-        //        "ext_code": "",
-        //        "ext_info": "",
-        //        "result": [
-        //            {
-        //                "open_interest": 805604444,
-        //                "timestamp": 1645056000,
-        //                "symbol": "BTCUSD"
-        //            },
-        //            ...
-        //        ],
-        //        "time_now": "1645085118.727358"
-        //    }
-        //
-        // Unified Margin
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "symbol": "BTCUSDT",
-        //             "category": "linear",
-        //             "list": [
-        //                 {
-        //                     "openInterest": "15350.60700000",
-        //                     "timestamp": "1657641600000"
-        //                 },
-        //                 {
-        //                     "openInterest": "15605.74100000",
-        //                     "timestamp": "1657638000000"
-        //                 }
-        //             ]
-        //         },
-        //         "time": 1657797822839
-        //     }
-        //
-        const result = this.safeValue (response, 'result');
-        let openInterests = result;
-        if (enableUnifiedMargin) {
-            openInterests = this.safeValue (result, 'list');
-        }
-        return this.parseOpenInterests (openInterests, market, since, limit);
+        return await this.fetchDerivativesOpenInterestHistory (symbol, timeframe, since, limit, params);
     }
 
     parseOpenInterest (interest, market = undefined) {
