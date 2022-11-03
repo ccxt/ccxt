@@ -2351,33 +2351,105 @@ module.exports = class kucoin extends Exchange {
         return this.parseTransactions (responseData, currency, since, limit, { 'type': 'withdrawal' });
     }
 
+    fetchBalanceHelper (entry) {
+        const account = this.account ();
+        account['used'] = this.safeString (entry, 'holdBalance');
+        account['free'] = this.safeString (entry, 'availableBalance');
+        account['total'] = this.safeString (entry, 'totalBalance');
+        return account;
+    }
+
     async fetchBalance (params = {}) {
         /**
          * @method
          * @name kucoin#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.kucoin.com/#list-accounts
+         * @see https://docs.kucoin.com/#query-isolated-margin-account-info
          * @param {object} params extra parameters specific to the kucoin api endpoint
+         * @param {object} params.marginMode 'cross' or 'isolated', margin type for fetching margin balance
+         * @param {object} params.type extra parameters specific to the kucoin api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
+        const code = this.safeString (params, 'code');
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
         const requestedType = this.safeString (params, 'type', defaultType);
         const accountsByType = this.safeValue (this.options, 'accountsByType');
         const type = this.safeString (accountsByType, requestedType, requestedType);
         params = this.omit (params, 'type');
-        const request = {
-            'type': type,
-        };
-        const response = await this.privateGetAccounts (this.extend (request, params));
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
+        let method = 'privateGetAccounts';
+        const request = {};
+        const isolated = (marginMode === 'isolated') || (type === 'isolated');
+        if (isolated) {
+            method = 'privateGetIsolatedAccounts';
+            if (currency !== undefined) {
+                request['balanceCurrency'] = currency['id'];
+            }
+        } else {
+            if (currency !== undefined) {
+                request['currency'] = currency['id'];
+            }
+            request['type'] = type;
+        }
+        const response = await this[method] (this.extend (request, query));
         //
-        //     {
-        //         "code":"200000",
-        //         "data":[
-        //             {"balance":"0.00009788","available":"0.00009788","holds":"0","currency":"BTC","id":"5c6a4fd399a1d81c4f9cc4d0","type":"trade"},
-        //             {"balance":"3.41060034","available":"3.41060034","holds":"0","currency":"SOUL","id":"5c6a4d5d99a1d8182d37046d","type":"trade"},
-        //             {"balance":"0.01562641","available":"0.01562641","holds":"0","currency":"NEO","id":"5c6a4f1199a1d8165a99edb1","type":"trade"},
-        //         ]
-        //     }
+        // Spot and Cross
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": [
+        //            {
+        //                "balance": "0.00009788",
+        //                "available": "0.00009788",
+        //                "holds": "0",
+        //                "currency": "BTC",
+        //                "id": "5c6a4fd399a1d81c4f9cc4d0",
+        //                "type": "trade",
+        //            },
+        //        ]
+        //    }
+        //
+        // Isolated
+        //
+        //    {
+        //        code: '200000',
+        //        data: {
+        //            totalConversionBalance: '0',
+        //            liabilityConversionBalance: '0',
+        //            assets: [
+        //                {
+        //                    symbol: 'MANA-USDT',
+        //                    status: 'CLEAR',
+        //                    debtRatio: '0',
+        //                    baseAsset: {
+        //                        currency: 'MANA',
+        //                        totalBalance: '0',
+        //                        holdBalance: '0',
+        //                        availableBalance: '0',
+        //                        liability: '0',
+        //                        interest: '0',
+        //                        borrowableAmount: '0'
+        //                    },
+        //                    quoteAsset: {
+        //                        currency: 'USDT',
+        //                        totalBalance: '0',
+        //                        holdBalance: '0',
+        //                        availableBalance: '0',
+        //                        liability: '0',
+        //                        interest: '0',
+        //                        borrowableAmount: '0'
+        //                    }
+        //                },
+        //                ...
+        //            ]
+        //        }
+        //    }
         //
         const data = this.safeValue (response, 'data', []);
         const result = {
@@ -2385,20 +2457,37 @@ module.exports = class kucoin extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        for (let i = 0; i < data.length; i++) {
-            const balance = data[i];
-            const balanceType = this.safeString (balance, 'type');
-            if (balanceType === type) {
-                const currencyId = this.safeString (balance, 'currency');
-                const code = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
-                account['total'] = this.safeString (balance, 'balance');
-                account['free'] = this.safeString (balance, 'available');
-                account['used'] = this.safeString (balance, 'holds');
-                result[code] = account;
+        if (isolated) {
+            const assets = this.safeValue (data, 'assets', []);
+            for (let i = 0; i < assets.length; i++) {
+                const entry = assets[i];
+                const marketId = this.safeString (entry, 'symbol');
+                const symbol = this.safeSymbol (marketId, undefined, '_');
+                const base = this.safeValue (entry, 'baseAsset', {});
+                const quote = this.safeValue (entry, 'quoteAsset', {});
+                const baseCode = this.safeCurrencyCode (this.safeString (base, 'currency'));
+                const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'currency'));
+                const subResult = {};
+                subResult[baseCode] = this.fetchBalanceHelper (base);
+                subResult[quoteCode] = this.fetchBalanceHelper (quote);
+                result[symbol] = this.safeBalance (subResult);
+            }
+        } else {
+            for (let i = 0; i < data.length; i++) {
+                const balance = data[i];
+                const balanceType = this.safeString (balance, 'type');
+                if (balanceType === type) {
+                    const currencyId = this.safeString (balance, 'currency');
+                    const code = this.safeCurrencyCode (currencyId);
+                    const account = this.account ();
+                    account['total'] = this.safeString (balance, 'balance');
+                    account['free'] = this.safeString (balance, 'available');
+                    account['used'] = this.safeString (balance, 'holds');
+                    result[code] = account;
+                }
             }
         }
-        return this.safeBalance (result);
+        return isolated ? result : this.safeBalance (result);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
