@@ -4862,114 +4862,81 @@ module.exports = class bybit extends Exchange {
         return this.fetchUSDCClosedOrders (symbol, since, limit, params);
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bybit#fetchOpenOrders
-         * @description fetch all unfilled currently open orders
-         * @param {string|undefined} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch open orders for
-         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
-         * @param {object} params extra parameters specific to the bybit api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
+    async fetchSpotOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        const request = {};
         let market = undefined;
-        let isUsdcSettled = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            isUsdcSettled = market['settle'] === 'USDC';
-        } else {
-            let settle = this.safeString (this.options, 'defaultSettle');
-            settle = this.safeString2 (params, 'settle', 'defaultSettle', settle);
-            params = this.omit (params, [ 'settle', 'defaultSettle' ]);
-            isUsdcSettled = settle === 'USDC';
+            request['symbol'] = symbol;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetSpotV1OpenOrders (this.extend (request, params));
+        //
+        //     {
+        //         "ret_code": 0,
+        //         "ret_msg": "",
+        //         "ext_code": null,
+        //         "ext_info": null,
+        //         "result": [
+        //             {
+        //                 "accountId": "10054",
+        //                 "exchangeId": "301",
+        //                 "symbol": "ETHUSDT",
+        //                 "symbolName": "ETHUSDT",
+        //                 "orderLinkId": "162080709527252",
+        //                 "orderId": "889788838461927936",
+        //                 "price": "20000",
+        //                 "origQty": "10",
+        //                 "executedQty": "0",
+        //                 "cummulativeQuoteQty": "0",
+        //                 "avgPrice": "0",
+        //                 "status": "NEW",
+        //                 "timeInForce": "GTC",
+        //                 "type": "LIMIT",
+        //                 "side": "BUY",
+        //                 "stopPrice": "0.0",
+        //                 "icebergQty": "0.0",
+        //                 "time": "1620807095287",
+        //                 "updateTime": "1620807095307",
+        //                 "isWorking": true
+        //             }
+        //         ]
+        //     }
+        //
+        const result = this.safeValue (response, 'response', []);
+        return this.parseOrders (result, market, since, limit);
+    }
+
+    async fetchUnifiedMarginOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
         }
         let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
-        const request = {};
-        let method = undefined;
-        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
-        if (enableUnifiedMargin) {
-            const isStop = this.safeValue (params, 'stop', false);
-            const isConditional = isStop || (type === 'stop') || (type === 'conditional');
-            params = this.omit (params, [ 'stop' ]);
-            method = 'privateGetUnifiedV3PrivateOrderUnfilledOrders';
-            if (market['option']) {
-                request['category'] = 'option';
-            } else if (market['linear']) {
-                request['category'] = 'linear';
-            } else {
-                throw new NotSupported (this.id + ' fetchOpenOrders() does not allow inverse market orders for ' + symbol + ' markets');
-            }
-            if (isConditional) {
-                request['orderFilter'] = 'StopOrder';
-            }
-        } else if ((type === 'swap' || type === 'future') && !isUsdcSettled) {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOpenOrders requires a symbol argument for ' + symbol + ' markets');
-            }
-            request['symbol'] = market['id'];
-            const type = this.safeStringLower (params, 'orderType');
-            const isStop = this.safeValue (params, 'stop', false);
-            const isConditional = isStop || (type === 'stop') || (type === 'conditional');
-            params = this.omit (params, [ 'stop', 'orderType' ]);
-            if (market['future']) {
-                method = isConditional ? 'privateGetFuturesPrivateStopOrder' : 'privateGetFuturesPrivateOrder';
-            } else if (market['linear']) {
-                method = isConditional ? 'privateGetPrivateLinearStopOrderSearch' : 'privateGetPrivateLinearOrderSearch';
-            } else {
-                // inverse swap
-                method = isConditional ? 'privateGetV2PrivateStopOrder' : 'privateGetV2PrivateOrder';
-            }
-        } else if (type === 'spot') {
-            method = 'privateGetSpotV1OpenOrders';
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchUnifiedMarginOpenOrders', market, params);
+        const isStop = this.safeValue (params, 'stop', false);
+        const isConditional = isStop || (type === 'stop') || (type === 'conditional');
+        params = this.omit (params, [ 'stop' ]);
+        if (market['option']) {
+            request['category'] = 'option';
+        } else if (market['linear']) {
+            request['category'] = 'linear';
         } else {
-            // usdc
-            method = 'privatePostOptionUsdcOpenapiPrivateV1QueryActiveOrders';
-            request['category'] = (type === 'swap') ? 'perpetual' : 'option';
+            throw new NotSupported (this.id + ' fetchUnifiedMarginOpenOrders() does not allow inverse market orders for ' + symbol + ' markets');
         }
-        const orders = await this[method] (this.extend (request, params));
-        let result = this.safeValue (orders, 'result', []);
-        if (!Array.isArray (result)) {
-            const dataList = this.safeValue2 (result, 'dataList', 'list');
-            if (dataList === undefined) {
-                return this.parseOrder (result, market);
-            }
-            result = dataList;
+        if (isConditional) {
+            request['orderFilter'] = 'StopOrder';
         }
-        // {
-        //     "ret_code":0,
-        //     "ret_msg":"",
-        //     "ext_code":null,
-        //     "ext_info":null,
-        //     "result":[
-        //        {
-        //           "accountId":"24478790",
-        //           "exchangeId":"301",
-        //           "symbol":"LTCUSDT",
-        //           "symbolName":"LTCUSDT",
-        //           "orderLinkId":"1652115972506",
-        //           "orderId":"1152426740986003968",
-        //           "price":"50",
-        //           "origQty":"0.2",
-        //           "executedQty":"0",
-        //           "cummulativeQuoteQty":"0",
-        //           "avgPrice":"0",
-        //           "status":"NEW",
-        //           "timeInForce":"GTC",
-        //           "type":"LIMIT",
-        //           "side":"BUY",
-        //           "stopPrice":"0.0",
-        //           "icebergQty":"0.0",
-        //           "time":"1652115973053",
-        //           "updateTime":"1652115973063",
-        //           "isWorking":true
-        //        }
-        //     ]
-        //  }
-        //
-        // Unified Margin
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetUnifiedV3PrivateOrderUnfilledOrders (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -5013,7 +4980,154 @@ module.exports = class bybit extends Exchange {
         //         "time": 1665565614320
         //     }
         //
+        const result = this.safeValue (response, 'result', {});
+        const orders = this.safeValue (result, 'list', []);
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    async fetchDerivativesOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDerivativesOpenOrders() requires a symbol argument for ' + symbol + ' markets');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {};
+        let method = undefined;
+        const type = this.safeStringLower (params, 'orderType');
+        const isStop = this.safeValue (params, 'stop', false);
+        const isConditional = isStop || (type === 'stop') || (type === 'conditional');
+        params = this.omit (params, [ 'stop', 'orderType' ]);
+        if (market['future']) {
+            method = isConditional ? 'privateGetFuturesPrivateStopOrder' : 'privateGetFuturesPrivateOrder';
+        } else if (market['linear']) {
+            method = isConditional ? 'privateGetPrivateLinearStopOrderSearch' : 'privateGetPrivateLinearOrderSearch';
+        } else {
+            // inverse swap
+            method = isConditional ? 'privateGetV2PrivateStopOrder' : 'privateGetV2PrivateOrder';
+        }
+        request['symbol'] = market['id'];
+        const orders = await this[method] (this.extend (request, params));
+        let result = this.safeValue (orders, 'result', []);
+        //
+        // {
+        //     "ret_code":0,
+        //     "ret_msg":"",
+        //     "ext_code":null,
+        //     "ext_info":null,
+        //     "result":[
+        //        {
+        //           "accountId":"24478790",
+        //           "exchangeId":"301",
+        //           "symbol":"LTCUSDT",
+        //           "symbolName":"LTCUSDT",
+        //           "orderLinkId":"1652115972506",
+        //           "orderId":"1152426740986003968",
+        //           "price":"50",
+        //           "origQty":"0.2",
+        //           "executedQty":"0",
+        //           "cummulativeQuoteQty":"0",
+        //           "avgPrice":"0",
+        //           "status":"NEW",
+        //           "timeInForce":"GTC",
+        //           "type":"LIMIT",
+        //           "side":"BUY",
+        //           "stopPrice":"0.0",
+        //           "icebergQty":"0.0",
+        //           "time":"1652115973053",
+        //           "updateTime":"1652115973063",
+        //           "isWorking":true
+        //        }
+        //     ]
+        //  }
+        //
+        if (!Array.isArray (result)) {
+            const dataList = this.safeValue2 (result, 'dataList', 'list');
+            if (dataList === undefined) {
+                return this.parseOrder (result, market);
+            }
+            result = dataList;
+        }
         return this.parseOrders (result, market, since, limit);
+    }
+
+    async fetchUSDCOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchUSDCOpenOrders', market, params);
+        request['category'] = (type === 'swap') ? 'perpetual' : 'option';
+        const response = await this.privatePostOptionUsdcOpenapiPrivateV1QueryActiveOrders (this.extend (request, params));
+        const result = this.safeValue (response, 'result', {});
+        const orders = this.safeValue (result, 'dataList', []);
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "resultTotalSize": 1,
+        //             "cursor": "id%3D1662019818569%23df31e03b-fc00-4b4c-bd1c-b97fd72b5c5c",
+        //             "dataList": [
+        //                 {
+        //                     "orderId": "df31e03b-fc00-4b4c-bd1c-b97fd72b5c5c",
+        //                     "orderLinkId": "",
+        //                     "symbol": "BTC-2SEP22-18000-C",
+        //                     "orderStatus": "New",
+        //                     "orderPrice": "500",
+        //                     "side": "Buy",
+        //                     "remainingQty": "0.1",
+        //                     "orderType": "Limit",
+        //                     "qty": "0.1",
+        //                     "iv": "0.0000",
+        //                     "cancelType": "",
+        //                     "updateTimestamp": "1662019818579"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        return this.parseOrders (orders, market, since, limit);
+    }
+
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {string|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        let market = undefined;
+        let isUsdcSettled = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            isUsdcSettled = market['settle'] === 'USDC';
+        } else {
+            let settle = this.safeString (this.options, 'defaultSettle');
+            settle = this.safeString2 (params, 'settle', 'defaultSettle', settle);
+            params = this.omit (params, [ 'settle', 'defaultSettle' ]);
+            isUsdcSettled = settle === 'USDC';
+        }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        if (type === 'spot') {
+            return await this.fetchSpotOpenOrders (symbol, since, limit, params);
+        }
+        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+        if (enableUnifiedMargin) {
+            return await this.fetchUnifiedMarginOpenOrders (symbol, since, limit, params);
+        } else if ((type === 'swap' || type === 'future') && !isUsdcSettled) {
+            return await this.fetchDerivativesOpenOrders (symbol, since, limit, params);
+        }
+        return await this.fetchUSDCOpenOrders (symbol, since, limit, params);
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
