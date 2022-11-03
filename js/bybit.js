@@ -4438,25 +4438,97 @@ module.exports = class bybit extends Exchange {
         return this.cancelAllDerivativesOrders (symbol, params);
     }
 
-    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bybit#fetchOrders
-         * @description fetches information on multiple orders made by the user
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the bybit api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
+    async fetchUnifiedMarginOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchUnifiedMarginOrders() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (market['spot']) {
-            throw new NotSupported (this.id + ' fetchOrders() does not support ' + market['type'] + ' markets, use exchange.fetchOpenOrders () and exchange.fetchClosedOrders () instead');
+        const request = {
+            'symbol': market['id'],
+            // 'category': string, Type of derivatives product: linear or option.
+            // 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
+            // 'orderId': string, Order ID
+            // 'orderLinkId': string, Unique user-set order ID
+            // 'orderStatus': string, Query list of orders in designated states. If this parameter is not passed, the orders in all states shall be enquired by default. This parameter supports multi-state inquiry. States should be separated with English commas.
+            // 'orderFilter': string, Conditional order or active order
+            // 'direction': string, prev: prev, next: next.
+            // 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
+            // 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
+        };
+        const isStop = this.safeValue (params, 'stop', false);
+        const orderType = this.safeStringLower (params, 'orderType');
+        const stopOrderId = this.safeString (params, 'stop_order_id'); // might want to filter by id
+        const isConditionalOrder = isStop || (stopOrderId !== undefined) || (orderType === 'stop' || orderType === 'conditional');
+        params = this.omit (params, [ 'orderType', 'stop', 'orderType' ]);
+        if (market['option']) {
+            request['category'] = 'option';
+        } else if (market['linear']) {
+            request['category'] = 'linear';
+        } else {
+            throw new NotSupported (this.id + ' fetchUnifiedMarginOrders() does not allow inverse market orders for ' + symbol + ' markets');
         }
+        if (isConditionalOrder) {
+            request['orderFilter'] = 'StopOrder';
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.privateGetUnifiedV3PrivateOrderList (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "Success",
+        //         "result": {
+        //         "nextPageCursor": "7d17d359-4e38-4d3a-9a31-29791ef2dfd7%3A1657711949928%2C7d17d359-4e38-4d3a-9a31-29791ef2dfd7%3A1657711949928",
+        //         "category": "linear",
+        //         "list": [
+        //             {
+        //                 "symbol": "ETHUSDT",
+        //                 "orderType": "Market",
+        //                 "orderLinkId": "",
+        //                 "orderId": "7d17d359-4e38-4d3a-9a31-29791ef2dfd7",
+        //                 "stopOrderType": "UNKNOWN",
+        //                 "orderStatus": "Filled",
+        //                 "takeProfit": "",
+        //                 "cumExecValue": "536.92500000",
+        //                 "blockTradeId": "",
+        //                 "rejectReason": "EC_NoError",
+        //                 "price": "1127.10000000",
+        //                 "createdTime": 1657711949928,
+        //                 "tpTriggerBy": "UNKNOWN",
+        //                 "timeInForce": "ImmediateOrCancel",
+        //                 "basePrice": "",
+        //                 "leavesValue": "0.00000000",
+        //                 "updatedTime": 1657711949945,
+        //                 "side": "Buy",
+        //                 "triggerPrice": "",
+        //                 "cumExecFee": "0.32215500",
+        //                 "slTriggerBy": "UNKNOWN",
+        //                 "leavesQty": "0.0000",
+        //                 "closeOnTrigger": false,
+        //                 "cumExecQty": "0.5000",
+        //                 "reduceOnly": false,
+        //                 "qty": "0.5000",
+        //                 "stopLoss": "",
+        //                 "triggerBy": "UNKNOWN",
+        //                 "orderIM": ""
+        //             }]
+        //         },
+        //         "time": 1657713451741
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const data = this.safeValue (result, 'list', []);
+        return this.parseOrders (data, market, since, limit);
+    }
+
+    async fetchDerivativesOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchDerivativesOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
             // 'order_id': 'string'
@@ -4476,22 +4548,7 @@ module.exports = class bybit extends Exchange {
         const stopOrderId = this.safeString (params, 'stop_order_id'); // might want to filter by id
         const isConditionalOrder = isStop || (stopOrderId !== undefined) || (orderType === 'stop' || orderType === 'conditional');
         params = this.omit (params, [ 'orderType', 'stop', 'orderType' ]);
-        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
-        if (enableUnifiedMargin) {
-            method = 'privateGetUnifiedV3PrivateOrderList';
-            if (market['option']) {
-                request['category'] = 'option';
-            } else if (market['linear']) {
-                request['category'] = 'linear';
-            } else {
-                throw new NotSupported (this.id + ' fetchOrders() does not allow inverse market orders for ' + symbol + ' markets');
-            }
-            if (isConditionalOrder) {
-                request['orderFilter'] = 'StopOrder';
-            }
-        } else if (market['settle'] === 'USDC') {
-            throw new NotSupported (this.id + ' fetchOrders() does not support ' + market['type'] + ' USDC markets, use exchange.fetchOpenOrders () and exchange.fetchClosedOrders () instead');
-        } else if (market['linear']) {
+        if (market['linear']) {
             method = isConditionalOrder ? 'privateGetPrivateLinearStopOrderList' : 'privateGetPrivateLinearOrderList';
         } else if (market['future']) {
             method = isConditionalOrder ? 'privateGetFuturesPrivateStopOrderList' : 'privateGetFuturesPrivateOrderList';
@@ -4589,53 +4646,37 @@ module.exports = class bybit extends Exchange {
         //         "rate_limit":"600"
         //     }
         //
-        // Unified Margin
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "Success",
-        //         "result": {
-        //         "nextPageCursor": "7d17d359-4e38-4d3a-9a31-29791ef2dfd7%3A1657711949928%2C7d17d359-4e38-4d3a-9a31-29791ef2dfd7%3A1657711949928",
-        //         "category": "linear",
-        //         "list": [
-        //             {
-        //                 "symbol": "ETHUSDT",
-        //                 "orderType": "Market",
-        //                 "orderLinkId": "",
-        //                 "orderId": "7d17d359-4e38-4d3a-9a31-29791ef2dfd7",
-        //                 "stopOrderType": "UNKNOWN",
-        //                 "orderStatus": "Filled",
-        //                 "takeProfit": "",
-        //                 "cumExecValue": "536.92500000",
-        //                 "blockTradeId": "",
-        //                 "rejectReason": "EC_NoError",
-        //                 "price": "1127.10000000",
-        //                 "createdTime": 1657711949928,
-        //                 "tpTriggerBy": "UNKNOWN",
-        //                 "timeInForce": "ImmediateOrCancel",
-        //                 "basePrice": "",
-        //                 "leavesValue": "0.00000000",
-        //                 "updatedTime": 1657711949945,
-        //                 "side": "Buy",
-        //                 "triggerPrice": "",
-        //                 "cumExecFee": "0.32215500",
-        //                 "slTriggerBy": "UNKNOWN",
-        //                 "leavesQty": "0.0000",
-        //                 "closeOnTrigger": false,
-        //                 "cumExecQty": "0.5000",
-        //                 "reduceOnly": false,
-        //                 "qty": "0.5000",
-        //                 "stopLoss": "",
-        //                 "triggerBy": "UNKNOWN",
-        //                 "orderIM": ""
-        //             }]
-        //         },
-        //         "time": 1657713451741
-        //     }
-        //
         const result = this.safeValue (response, 'result', {});
-        const data = this.safeValue2 (result, 'data', 'list', []);
+        const data = this.safeValue (result, 'data', []);
         return this.parseOrders (data, market, since, limit);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['spot']) {
+            throw new NotSupported (this.id + ' fetchOrders() does not support ' + market['type'] + ' markets, use exchange.fetchOpenOrders () and exchange.fetchClosedOrders () instead');
+        }
+        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+        if (enableUnifiedMargin) {
+            return this.fetchUnifiedMarginOrders (symbol, since, limit, params);
+        } else if (market['settle'] === 'USDC') {
+            throw new NotSupported (this.id + ' fetchOrders() does not support ' + market['type'] + ' USDC markets, use exchange.fetchOpenOrders () and exchange.fetchClosedOrders () instead');
+        }
+        return this.fetchDerivativesOrders (symbol, since, limit, params);
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
