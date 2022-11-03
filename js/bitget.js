@@ -1582,13 +1582,21 @@ module.exports = class bitget extends Exchange {
          * @method
          * @name bitget#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-all-tickers
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-all-symbol-ticker
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
-        const method = this.getSupportedMapping (marketType, {
+        let type = undefined;
+        let market = undefined;
+        if (symbols !== undefined) {
+            const symbol = this.safeValue (symbols, 0);
+            market = this.market (symbol);
+        }
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const method = this.getSupportedMapping (type, {
             'spot': 'publicSpotGetMarketTickers',
             'swap': 'publicMixGetMarketTickers',
         });
@@ -1597,7 +1605,7 @@ module.exports = class bitget extends Exchange {
             const defaultSubType = this.safeString (this.options, 'defaultSubType');
             request['productType'] = (defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL';
         }
-        const response = await this[method] (this.extend (request, query));
+        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
