@@ -6,7 +6,7 @@ const assert = require ('assert')
 
 // ----------------------------------------------------------------------------
 
-module.exports = async (exchange) => {
+module.exports = async (exchange, symbol) => {
 
     const method = 'fetchFundingRateHistory'
 
@@ -20,7 +20,7 @@ module.exports = async (exchange) => {
 
     if (exchange.has[method]) {
 
-        const fundingRates = await exchange[method] ()
+        const fundingRates = await exchange[method] (symbol)
         console.log ('fetched all', fundingRates.length, 'funding rates')
 
         for (let i = 0; i < fundingRates.length; i++) {
