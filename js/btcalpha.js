@@ -53,7 +53,8 @@ module.exports = class btcalpha extends Exchange {
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
-                'fetchOrderBook': true,
+                'fetchOrderBook': undefined, // their api doesn't work atm for orderbook
+                'fetchL2OrderBook': undefined, // same as above
                 'fetchOrders': true,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
@@ -288,7 +289,8 @@ module.exports = class btcalpha extends Exchange {
         //
         const marketId = this.safeString (trade, 'pair');
         market = this.safeMarket (marketId, market, '_');
-        const timestamp = this.safeTimestamp (trade, 'timestamp');
+        const timestampRaw = this.safeString (trade, 'timestamp');
+        const timestamp = this.parseNumber (Precise.stringMul (timestampRaw, '1000000'));
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
         const id = this.safeString (trade, 'id');
