@@ -1194,7 +1194,7 @@ module.exports = class Exchange {
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
         if (type === 'market' && takerOrMaker === 'maker') {
-            throw new ArgumentsRequired (this.id + ' calculateFee() - you have provided incompatible arguments - "market" type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee');
+            throw new ArgumentsRequired (this.id + ' calculateFee() - you have provided incompatible arguments - "market" type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee correctly.');
         }
         const market = this.markets[symbol];
         const feeSide = this.safeString (market, 'feeSide', 'quote');
