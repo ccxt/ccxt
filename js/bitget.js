@@ -809,7 +809,7 @@ module.exports = class bitget extends Exchange {
         for (let i = 0; i < types.length; i++) {
             const type = types[i];
             if (type === 'swap') {
-                const subTypes = [ 'umcbl', 'dmcbl', 'cmcbl', 'sumcbl', 'sdmcbl', 'scmcbl' ];
+                const subTypes = [ 'umcbl', 'dmcbl', 'sumcbl', 'sdmcbl' ]; // TODO: add 'cmcbl', 'scmcbl'
                 for (let j = 0; j < subTypes.length; j++) {
                     const markets = await this.fetchMarketsByType (type, this.extend (params, {
                         'productType': subTypes[j],
@@ -916,10 +916,10 @@ module.exports = class bitget extends Exchange {
             contract = true;
             const sumcbl = (typeId === 'SUMCBL');
             const sdmcbl = (typeId === 'SDMCBL');
-            const scmcbl = (typeId === 'SCMCBL');
-            linear = (typeId === 'UMCBL') || (typeId === 'CMCBL') || sumcbl || scmcbl;
+            // const scmcbl = (typeId === 'SCMCBL'); // TODO
+            linear = (typeId === 'UMCBL') || (typeId === 'CMCBL') || sumcbl; // || scmcbl;
             inverse = !linear;
-            if (sumcbl || sdmcbl || scmcbl) {
+            if (sumcbl || sdmcbl) { // || scmcbl
                 testnet = true;
             }
             const priceDecimals = this.safeInteger (market, 'pricePlace');
