@@ -891,7 +891,6 @@ module.exports = class bitget extends Exchange {
         let inverse = undefined;
         let expiry = undefined;
         let expiryDatetime = undefined;
-        let testnet = false;
         if (typeId === 'SPBL') {
             type = 'spot';
             spot = true;
@@ -920,7 +919,7 @@ module.exports = class bitget extends Exchange {
             linear = (typeId === 'UMCBL') || (typeId === 'CMCBL') || sumcbl; // || scmcbl;
             inverse = !linear;
             if (sumcbl || sdmcbl) { // || scmcbl
-                testnet = true;
+                symbol = marketId;
             }
             const priceDecimals = this.safeInteger (market, 'pricePlace');
             const amountDecimals = this.safeInteger (market, 'volumePlace');
@@ -968,7 +967,6 @@ module.exports = class bitget extends Exchange {
             'expiryDatetime': expiryDatetime,
             'strike': undefined,
             'optionType': undefined,
-            'testnet': testnet,
             'precision': {
                 'amount': amountPrecision,
                 'price': pricePrecision,
