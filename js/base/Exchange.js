@@ -1227,13 +1227,13 @@ module.exports = class Exchange {
         }
         // for derivatives, the fee is in 'settle' currency
         if (!market['spot']) {
-            key = this.safeString (market, 'settle', key);
+            key = 'settle';
         }
         // even if `takerOrMaker` argument was set to 'maker', for 'market' orders we should forcefully override it to 'taker'
         if (type === 'market') {
             takerOrMaker = 'taker';
         }
-        const rate = this.numberToString (market[takerOrMaker]);
+        const rate = this.safeString (market, takerOrMaker);
         if (cost !== undefined) {
             cost = Precise.stringMul (cost, rate);
         }
