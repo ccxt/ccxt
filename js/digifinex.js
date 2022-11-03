@@ -374,8 +374,10 @@ module.exports = class digifinex extends Exchange {
         const defaultType = this.safeString (this.options, 'defaultType');
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchMarketsV2', params);
         const method = (marginMode !== undefined) ? 'publicSpotGetMarginSymbols' : 'publicSpotGetTradesSymbols';
-        const spotMarkets = await this[method] (query);
-        const swapMarkets = await this.publicSwapGetPublicInstruments (params);
+        let promises = [ this[method] (query), this.publicSwapGetPublicInstruments (params) ];
+        promises = await Promise.all (promises);
+        const spotMarkets = promises[0];
+        const swapMarkets = promises[1];
         //
         // Spot
         //
