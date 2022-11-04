@@ -799,7 +799,7 @@ module.exports = class bitmart extends Exchange {
         //          "legal_coin_price":"0.1302699"
         //      }
         //
-        const timestamp = this.safeTimestamp (ticker, 'timestamp', this.milliseconds ());
+        const timestamp = this.safeInteger (ticker, 'timestamp', this.milliseconds ());
         const marketId = this.safeString2 (ticker, 'symbol', 'contract_symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
@@ -2831,7 +2831,7 @@ module.exports = class bitmart extends Exchange {
         //         "hourly_interest": "0.00002291",
         //         "interest_amount": "0.00045833",
         //         "create_time": 1657664329000
-        //     },
+        //     }
         //
         const marketId = this.safeString (info, 'symbol');
         market = this.safeMarket (marketId, market);
