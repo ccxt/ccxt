@@ -2031,7 +2031,7 @@ module.exports = class bybit extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const isSpotTrade = ('qty' in trade) || ('feeTokenId' in trade);
+        const isSpotTrade = ('isBuyerMaker' in trade) || ('feeTokenId' in trade);
         if (isSpotTrade) {
             return this.parseSpotTrade (trade, market);
         } else {
