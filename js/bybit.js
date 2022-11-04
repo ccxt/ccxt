@@ -1441,8 +1441,8 @@ module.exports = class bybit extends Exchange {
         percentage = Precise.stringMul (percentage, '100');
         const quoteVolume = this.safeStringN (ticker, [ 'turnover_24h', 'turnover24h', 'quoteVolume' ]);
         const baseVolume = this.safeStringN (ticker, [ 'volume_24h', 'volume24h', 'volume' ]);
-        const bid = this.safeStringN (ticker, [ 'bid_price', 'bid' ]);
-        const ask = this.safeStringN (ticker, [ 'ask_price', 'ask' ]);
+        const bid = this.safeStringN (ticker, [ 'bid_price', 'bid', 'bestBidPrice' ]);
+        const ask = this.safeStringN (ticker, [ 'ask_price', 'ask', 'bestAskPrice' ]);
         const high = this.safeStringN (ticker, [ 'high_price_24h', 'high24h', 'highPrice' ]);
         const low = this.safeStringN (ticker, [ 'low_price_24h', 'low24h', 'lowPrice' ]);
         return this.safeTicker ({
@@ -1468,7 +1468,6 @@ module.exports = class bybit extends Exchange {
             'info': ticker,
         }, market);
     }
-
 
     async fetchTicker (symbol, params = {}) {
         /**
@@ -1662,14 +1661,11 @@ module.exports = class bybit extends Exchange {
         //         "time": "1666772209124"
         //     }
         //
-        const result = this.safeValue (response, 'result', []);
-        let datalist = undefined;
-        if (Array.isArray (result)) {
-            datalist = result;
-        } else {
-            datalist = this.safeValue (result, 'list', []);
+        let result = this.safeValue (response, 'result', []);
+        if (!Array.isArray (result)) {
+            result = this.safeValue (result, 'list', []);
         }
-        return this.parseTickers (datalist, symbols, params);
+        return this.parseTickers (result, symbols, params);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -1763,7 +1759,7 @@ module.exports = class bybit extends Exchange {
             this.safeNumber (ohlcv, 'high'),
             this.safeNumber (ohlcv, 'low'),
             this.safeNumber (ohlcv, 'close'),
-            this.safeNumberN (ohlcv, [ 'volume', 'turnover' ]),
+            this.safeNumber2 (ohlcv, 'volume', 'turnover'),
         ];
     }
 
@@ -2163,8 +2159,14 @@ module.exports = class bybit extends Exchange {
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const amountString = this.safeStringN (trade, [ 'qty', 'exec_qty', 'orderQty' ]);
-        const priceString = this.safeStringN (trade, [ 'exec_price', 'price', 'orderPrice' ]);
+        let amountString = this.safeString2 (trade, 'qty', 'exec_qty');
+        if (amountString === undefined) {
+            amountString = this.safeString (trade, 'orderQty');
+        }
+        let priceString = this.safeString2 (trade, 'exec_price', 'price');
+        if (priceString === undefined) {
+            priceString = this.safeString (trade, 'orderPrice');
+        }
         const costString = this.safeString (trade, 'exec_value');
         let timestamp = this.parse8601 (this.safeString (trade, 'time'));
         if (timestamp === undefined) {
@@ -2177,9 +2179,9 @@ module.exports = class bybit extends Exchange {
                 side = isBuyer ? 'buy' : 'sell';
             }
         }
+        const isMaker = this.safeValue (trade, 'isMaker');
         let takerOrMaker = undefined;
-        const isMaker = this.safeInteger (trade, 'isMaker');
-        if (isMaker !== 0) {
+        if (isMaker !== undefined) {
             takerOrMaker = isMaker ? 'maker' : 'taker';
         } else {
             const lastLiquidityInd = this.safeString (trade, 'last_liquidity_ind');
@@ -2843,7 +2845,7 @@ module.exports = class bybit extends Exchange {
         const symbol = market['symbol'];
         let timestamp = this.parse8601 (this.safeStringN (order, [ 'created_at', 'created_time', 'create_time', 'timestamp' ]));
         if (timestamp === undefined) {
-            timestamp = this.safeNumberN (order, [ 'time', 'transactTime' ]);
+            timestamp = this.safeNumber2 (order, 'time', 'transactTime');
             if (timestamp === undefined) {
                 timestamp = this.safeIntegerProduct (order, 'createdAt', 0.001);
             }
@@ -2853,7 +2855,7 @@ module.exports = class bybit extends Exchange {
         const price = this.safeString2 (order, 'price', 'orderPrice');
         const average = this.safeString2 (order, 'average_price', 'avgPrice');
         const amount = this.safeStringN (order, [ 'qty', 'origQty', 'orderQty' ]);
-        const cost = this.safeStringN (order, [ 'cum_exec_value', 'cumExecValue' ]);
+        const cost = this.safeString2 (order, 'cum_exec_value', 'cumExecValue');
         const filled = this.safeStringN (order, [ 'cum_exec_qty', 'executedQty', 'cumExecQty' ]);
         const remaining = this.safeString2 (order, 'leaves_qty', 'leavesQty');
         let lastTradeTimestamp = this.safeTimestamp (order, 'last_exec_time');
@@ -2946,22 +2948,16 @@ module.exports = class bybit extends Exchange {
         //         "triggerPrice": "0.99", // in conditional order
         //     }
         //
-        const id = this.safeString (order, 'orderId');
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
         const timestamp = this.safeInteger (order, 'createTime');
         const type = this.safeStringLower (order, 'orderType');
         let price = this.safeString (order, 'orderPrice');
         if (price === '0' && type === 'market') {
             price = undefined;
         }
-        const average = this.safeString (order, 'avgPrice');
-        const cost = this.safeString (order, 'cummulativeQuoteQty');
         const filled = this.safeString (order, 'execQty');
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
         const side = this.safeStringLower (order, 'side');
-        const clientOrderId = this.safeString (order, 'orderLinkId');
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
         const triggerPrice = this.safeString (order, 'triggerPrice');
         const postOnly = (timeInForce === 'PO');
@@ -2972,12 +2968,12 @@ module.exports = class bybit extends Exchange {
             }
         }
         return this.safeOrder ({
-            'id': id,
-            'clientOrderId': clientOrderId,
+            'id': this.safeString (order, 'orderId'),
+            'clientOrderId': this.safeString (order, 'orderLinkId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': this.safeInteger (order, 'updateTime'),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
@@ -2986,11 +2982,11 @@ module.exports = class bybit extends Exchange {
             'triggerPrice': triggerPrice,
             'stopPrice': triggerPrice, // deprecated field
             'amount': amount,
-            'cost': cost,
-            'average': average,
+            'cost': this.safeString (order, 'cummulativeQuoteQty'),
+            'average': this.safeString (order, 'avgPrice'),
             'filled': filled,
             'remaining': undefined,
-            'status': status,
+            'status': this.parseOrderStatus (this.safeString (order, 'status')),
             'fee': undefined,
             'trades': undefined,
             'info': order,
