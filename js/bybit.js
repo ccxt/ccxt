@@ -3579,11 +3579,7 @@ module.exports = class bybit extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
-            let type = undefined;
-            [ type, params ] = this.handleMarketTypeAndParams ('cancelOrder', undefined, params);
-            if (type !== 'spot') {
-                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
-            }
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
