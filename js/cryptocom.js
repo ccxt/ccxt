@@ -516,6 +516,7 @@ module.exports = class cryptocom extends Exchange {
         /**
          * @method
          * @name cryptocom#fetchTickers
+         * @see https://exchange-docs.crypto.com/spot/index.html#public-get-ticker
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the cryptocom api endpoint
@@ -554,6 +555,7 @@ module.exports = class cryptocom extends Exchange {
         /**
          * @method
          * @name cryptocom#fetchTicker
+         * @see https://exchange-docs.crypto.com/spot/index.html#public-get-ticker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the cryptocom api endpoint
@@ -569,16 +571,31 @@ module.exports = class cryptocom extends Exchange {
             throw new NotSupported (this.id + ' fetchTicker() only supports spot markets');
         }
         const response = await this.spotPublicGetPublicGetTicker (this.extend (request, query));
-        // {
-        //     "code":0,
-        //     "method":"public/get-ticker",
-        //     "result":{
-        //       "data": {"i":"CRO_BTC","b":0.00000890,"k":0.00001179,"a":0.00001042,"t":1591770793901,"v":14905879.59,"h":0.00,"l":0.00,"c":0.00}
+        //
+        //     {
+        //         "id": -1,
+        //         "method": "public/get-tickers",
+        //         "code": 0,
+        //         "result": {
+        //             "data": [{
+        //                 "i": "SHIB_USDT",
+        //                 "h": "0.000012385",
+        //                 "l": "0.000011560",
+        //                 "a": "0.000011638",
+        //                 "v": "68778630000",
+        //                 "vv": "824341.85",
+        //                 "c": "-0.0310",
+        //                 "b": "0.000011638",
+        //                 "k": "0.000011653",
+        //                 "t": 1667525467847
+        //             }]
+        //         }
         //     }
-        // }
+        //
         const resultResponse = this.safeValue (response, 'result', {});
         const data = this.safeValue (resultResponse, 'data', {});
-        return this.parseTicker (data, market);
+        const first = this.safeValue (data, 0, {});
+        return this.parseTicker (first, market);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1776,17 +1793,20 @@ module.exports = class cryptocom extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
-        // {
-        //     "i":"CRO_BTC",
-        //     "b":0.00000890,
-        //     "k":0.00001179,
-        //     "a":0.00001042,
-        //     "t":1591770793901,
-        //     "v":14905879.59,
-        //     "h":0.00,
-        //     "l":0.00,
-        //     "c":0.00
-        // }
+        //
+        //     {
+        //          i: 'SHIB_USDT',
+        //          h: '0.000012385',
+        //          l: '0.000011560',
+        //          a: '0.000011700',
+        //          v: '68043850000',
+        //          vv: '815801.13',
+        //          c: '-0.0201',
+        //          b: '0.000011686',
+        //          k: '0.000011704',
+        //          t: '1667524890876'
+        //      }
+        //
         const timestamp = this.safeInteger (ticker, 't');
         const marketId = this.safeString (ticker, 'i');
         market = this.safeMarket (marketId, market, '_');
