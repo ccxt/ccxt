@@ -1245,20 +1245,58 @@ module.exports = class bybit extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        if ('s' in ticker) {
+            return this.parseSpotTicker (ticker, market);
+        } else {
+            return this.parseContractTicker (ticker, market);
+        }
+    }
+
+    parseSpotTicker (ticker, market = undefined) {
+        //
         // spot
         //
-        //      {
-        //          "t": 1667407651340,
-        //          "s": "XDCUSDT",
-        //          "lp": "0",
-        //          "h": "0",
-        //          "l": "0",
-        //          "o": "0",
-        //          "bp": "0",
-        //          "ap": "0",
-        //          "v": "0",
-        //          "qv": "0"
-        //      }
+        //     {
+        //         "t": "1666771860025",
+        //         "s": "AAVEUSDT",
+        //         "lp": "83.8",
+        //         "h": "86.4",
+        //         "l": "81",
+        //         "o": "82.9",
+        //         "bp": "83.5",
+        //         "ap": "83.7",
+        //         "v": "7433.527",
+        //         "qv": "619835.8676"
+        //     }
+        //
+        const marketId = this.safeString (ticker, 's');
+        const symbol = this.safeSymbol (marketId, market);
+        const timestamp = this.safeInteger (ticker, 't');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'h'),
+            'low': this.safeString (ticker, 'l'),
+            'bid': this.safeString (ticker, 'bp'),
+            'bidVolume': undefined,
+            'ask': this.safeString (ticker, 'ap'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': this.safeString (ticker, 'o'),
+            'close': this.safeString (ticker, 'lp'),
+            'last': undefined,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'v'),
+            'quoteVolume': this.safeString (ticker, 'qv'),
+            'info': ticker,
+        }, market);
+    }
+
+    parseContractTicker (ticker, market = undefined) {
         //
         // linear usdt/ inverse swap and future
         //     {
@@ -1319,19 +1357,19 @@ module.exports = class bybit extends Exchange {
         //          "theta": "-0.03262827"
         //      }
         //
-        const timestamp = this.safeInteger (ticker, 't');
-        const marketId = this.safeString (ticker, 's');
+        const timestamp = this.safeInteger (ticker, 'time', this.milliseconds ());
+        const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeString2 (ticker, 'last_price', 'lp');
-        const open = this.safeString2 (ticker, 'prev_price_24h', 'o');
+        const last = this.safeString2 (ticker, 'last_price', 'lastPrice');
+        const open = this.safeString2 (ticker, 'prev_price_24h', 'openPrice');
         let percentage = this.safeString2 (ticker, 'price_24h_pcnt', 'change24h');
         percentage = Precise.stringMul (percentage, '100');
-        const quoteVolume = this.safeStringN (ticker, [ 'turnover_24h', 'turnover24h', 'qv' ]);
-        const baseVolume = this.safeStringN (ticker, [ 'volume_24h', 'volume24h', 'v' ]);
-        const bid = this.safeStringN (ticker, [ 'bid_price', 'bid', 'bp' ]);
-        const ask = this.safeStringN (ticker, [ 'ask_price', 'ask', 'ap' ]);
-        const high = this.safeStringN (ticker, [ 'high_price_24h', 'high24h', 'h' ]);
-        const low = this.safeStringN (ticker, [ 'low_price_24h', 'low24h', 'l' ]);
+        const quoteVolume = this.safeStringN (ticker, [ 'turnover_24h', 'turnover24h', 'quoteVolume' ]);
+        const baseVolume = this.safeStringN (ticker, [ 'volume_24h', 'volume24h', 'volume' ]);
+        const bid = this.safeStringN (ticker, [ 'bid_price', 'bid', 'bestBidPrice' ]);
+        const ask = this.safeStringN (ticker, [ 'ask_price', 'ask', 'bestAskPrice' ]);
+        const high = this.safeStringN (ticker, [ 'high_price_24h', 'high24h', 'highPrice' ]);
+        const low = this.safeStringN (ticker, [ 'low_price_24h', 'low24h', 'lowPrice' ]);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1498,23 +1536,43 @@ module.exports = class bybit extends Exchange {
         if (type === 'spot') {
             method = 'publicGetSpotV3PublicQuoteTicker24hr';
         } else if (!isUsdcSettled) {
+            // inverse perpetual // usdt linear // inverse futures
             method = 'publicGetV2PublicTickers';
         } else {
             throw new NotSupported (this.id + ' fetchTickers() is not supported for USDC markets');
         }
         const response = await this[method] (params);
-        // console.log (response);
+        //
+        // spot
+        //
+        //    {
+        //         "retCode": "0",
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "t": "1666772160002",
+        //                     "s": "XDCUSDT",
+        //                     "lp": "0.03109",
+        //                     "h": "0.03116",
+        //                     "l": "0.03001",
+        //                     "o": "0.03044",
+        //                     "bp": "0.03105",
+        //                     "ap": "0.03109",
+        //                     "v": "1362796.9",
+        //                     "qv": "41423.411932"
+        //                 },
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": "1666772209124"
+        //     }
+        //
         let result = this.safeValue (response, 'result', []);
-        if (type === 'spot') {
+        if (!Array.isArray (result)) {
             result = this.safeValue (result, 'list', []);
         }
-        const tickers = {};
-        for (let i = 0; i < result.length; i++) {
-            const ticker = this.parseTicker (result[i]);
-            const symbol = ticker['symbol'];
-            tickers[symbol] = ticker;
-        }
-        return this.filterByArray (tickers, 'symbol', symbols);
+        return this.parseTickers (result, symbols, params);
     }
 
     parseOHLCV (ohlcv, market = undefined) {

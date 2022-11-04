@@ -1260,20 +1260,58 @@ class bybit extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
+        if (is_array($ticker) && array_key_exists('s', $ticker)) {
+            return $this->parse_spot_ticker($ticker, $market);
+        } else {
+            return $this->parse_contract_ticker($ticker, $market);
+        }
+    }
+
+    public function parse_spot_ticker($ticker, $market = null) {
+        //
         // spot
         //
-        //    {
-        //        "time" => "1651743420061",
-        //        "symbol" => "BTCUSDT",
-        //        "bestBidPrice" => "39466.75",
-        //        "bestAskPrice" => "39466.83",
-        //        "volume" => "4396.082921",
-        //        "quoteVolume" => "172664909.03216557",
-        //        "lastPrice" => "39466.71",
-        //        "highPrice" => "40032.79",
-        //        "lowPrice" => "38602.39",
-        //        "openPrice" => "39031.53"
-        //    }
+        //     {
+        //         "t" => "1666771860025",
+        //         "s" => "AAVEUSDT",
+        //         "lp" => "83.8",
+        //         "h" => "86.4",
+        //         "l" => "81",
+        //         "o" => "82.9",
+        //         "bp" => "83.5",
+        //         "ap" => "83.7",
+        //         "v" => "7433.527",
+        //         "qv" => "619835.8676"
+        //     }
+        //
+        $marketId = $this->safe_string($ticker, 's');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $timestamp = $this->safe_integer($ticker, 't');
+        return $this->safe_ticker(array(
+            'symbol' => $symbol,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'high' => $this->safe_string($ticker, 'h'),
+            'low' => $this->safe_string($ticker, 'l'),
+            'bid' => $this->safe_string($ticker, 'bp'),
+            'bidVolume' => null,
+            'ask' => $this->safe_string($ticker, 'ap'),
+            'askVolume' => null,
+            'vwap' => null,
+            'open' => $this->safe_string($ticker, 'o'),
+            'close' => $this->safe_string($ticker, 'lp'),
+            'last' => null,
+            'previousClose' => null,
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => $this->safe_string($ticker, 'v'),
+            'quoteVolume' => $this->safe_string($ticker, 'qv'),
+            'info' => $ticker,
+        ), $market);
+    }
+
+    public function parse_contract_ticker($ticker, $market = null) {
         //
         // linear usdt/ inverse swap and future
         //     {
@@ -1334,7 +1372,7 @@ class bybit extends Exchange {
         //          "theta" => "-0.03262827"
         //      }
         //
-        $timestamp = $this->safe_integer($ticker, 'time');
+        $timestamp = $this->safe_integer($ticker, 'time', $this->milliseconds());
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $last = $this->safe_string_2($ticker, 'last_price', 'lastPrice');
@@ -1482,10 +1520,12 @@ class bybit extends Exchange {
     public function fetch_tickers($symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
+             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+             * @see https://bybit-exchange.github.io/docs/futuresV2/linear/#t-latestsymbolinfo
+             * @see https://bybit-exchange.github.io/docs/spot/v3/#t-spot_latestsymbolinfo
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the bybit api endpoint
-             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
@@ -1495,10 +1535,10 @@ class bybit extends Exchange {
             if ($symbols !== null) {
                 $symbol = $this->safe_value($symbols, 0);
                 $market = $this->market($symbol);
-                $type = $market['type'];
+                list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
                 $isUsdcSettled = $market['settle'] === 'USDC';
             } else {
-                list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
+                list($type, $params) = $this->handle_market_type_and_params('fetchTickers', null, $params);
                 if ($type !== 'spot') {
                     $defaultSettle = $this->safe_string($this->options, 'defaultSettle', 'USDT');
                     $defaultSettle = $this->safe_string_2($params, 'settle', 'defaultSettle', $isUsdcSettled);
@@ -1508,7 +1548,7 @@ class bybit extends Exchange {
             }
             $method = null;
             if ($type === 'spot') {
-                $method = 'publicGetSpotQuoteV1Ticker24hr';
+                $method = 'publicGetSpotV3PublicQuoteTicker24hr';
             } elseif (!$isUsdcSettled) {
                 // inverse perpetual // usdt linear // inverse futures
                 $method = 'publicGetV2PublicTickers';
@@ -1516,14 +1556,37 @@ class bybit extends Exchange {
                 throw new NotSupported($this->id . ' fetchTickers() is not supported for USDC markets');
             }
             $response = Async\await($this->$method ($params));
+            //
+            // spot
+            //
+            //    {
+            //         "retCode" => "0",
+            //         "retMsg" => "OK",
+            //         "result" => array(
+            //             "list" => array(
+            //                 array(
+            //                     "t" => "1666772160002",
+            //                     "s" => "XDCUSDT",
+            //                     "lp" => "0.03109",
+            //                     "h" => "0.03116",
+            //                     "l" => "0.03001",
+            //                     "o" => "0.03044",
+            //                     "bp" => "0.03105",
+            //                     "ap" => "0.03109",
+            //                     "v" => "1362796.9",
+            //                     "qv" => "41423.411932"
+            //                 ),
+            //             )
+            //         ),
+            //         "retExtInfo" => array(),
+            //         "time" => "1666772209124"
+            //     }
+            //
             $result = $this->safe_value($response, 'result', array());
-            $tickers = array();
-            for ($i = 0; $i < count($result); $i++) {
-                $ticker = $this->parse_ticker($result[$i]);
-                $symbol = $ticker['symbol'];
-                $tickers[$symbol] = $ticker;
+            if (gettype($result) !== 'array' || array_keys($result) !== array_keys(array_keys($result))) {
+                $result = $this->safe_value($result, 'list', array());
             }
-            return $this->filter_by_array($tickers, 'symbol', $symbols);
+            return $this->parse_tickers($result, $symbols, $params);
         }) ();
     }
 

@@ -1227,20 +1227,55 @@ class bybit(Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
+        if 's' in ticker:
+            return self.parse_spot_ticker(ticker, market)
+        else:
+            return self.parse_contract_ticker(ticker, market)
+
+    def parse_spot_ticker(self, ticker, market=None):
+        #
         # spot
         #
-        #    {
-        #        "time": "1651743420061",
-        #        "symbol": "BTCUSDT",
-        #        "bestBidPrice": "39466.75",
-        #        "bestAskPrice": "39466.83",
-        #        "volume": "4396.082921",
-        #        "quoteVolume": "172664909.03216557",
-        #        "lastPrice": "39466.71",
-        #        "highPrice": "40032.79",
-        #        "lowPrice": "38602.39",
-        #        "openPrice": "39031.53"
-        #    }
+        #     {
+        #         "t": "1666771860025",
+        #         "s": "AAVEUSDT",
+        #         "lp": "83.8",
+        #         "h": "86.4",
+        #         "l": "81",
+        #         "o": "82.9",
+        #         "bp": "83.5",
+        #         "ap": "83.7",
+        #         "v": "7433.527",
+        #         "qv": "619835.8676"
+        #     }
+        #
+        marketId = self.safe_string(ticker, 's')
+        symbol = self.safe_symbol(marketId, market)
+        timestamp = self.safe_integer(ticker, 't')
+        return self.safe_ticker({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_string(ticker, 'h'),
+            'low': self.safe_string(ticker, 'l'),
+            'bid': self.safe_string(ticker, 'bp'),
+            'bidVolume': None,
+            'ask': self.safe_string(ticker, 'ap'),
+            'askVolume': None,
+            'vwap': None,
+            'open': self.safe_string(ticker, 'o'),
+            'close': self.safe_string(ticker, 'lp'),
+            'last': None,
+            'previousClose': None,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': self.safe_string(ticker, 'v'),
+            'quoteVolume': self.safe_string(ticker, 'qv'),
+            'info': ticker,
+        }, market)
+
+    def parse_contract_ticker(self, ticker, market=None):
         #
         # linear usdt/ inverse swap and future
         #     {
@@ -1301,7 +1336,7 @@ class bybit(Exchange):
         #          "theta": "-0.03262827"
         #      }
         #
-        timestamp = self.safe_integer(ticker, 'time')
+        timestamp = self.safe_integer(ticker, 'time', self.milliseconds())
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         last = self.safe_string_2(ticker, 'last_price', 'lastPrice')
@@ -1443,6 +1478,8 @@ class bybit(Exchange):
     def fetch_tickers(self, symbols=None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        see https://bybit-exchange.github.io/docs/futuresV2/linear/#t-latestsymbolinfo
+        see https://bybit-exchange.github.io/docs/spot/v3/#t-spot_latestsymbolinfo
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bybit api endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
@@ -1455,10 +1492,10 @@ class bybit(Exchange):
         if symbols is not None:
             symbol = self.safe_value(symbols, 0)
             market = self.market(symbol)
-            type = market['type']
+            type, params = self.handle_market_type_and_params('fetchTickers', market, params)
             isUsdcSettled = market['settle'] == 'USDC'
         else:
-            type, params = self.handle_market_type_and_params('fetchTickers', market, params)
+            type, params = self.handle_market_type_and_params('fetchTickers', None, params)
             if type != 'spot':
                 defaultSettle = self.safe_string(self.options, 'defaultSettle', 'USDT')
                 defaultSettle = self.safe_string_2(params, 'settle', 'defaultSettle', isUsdcSettled)
@@ -1466,20 +1503,43 @@ class bybit(Exchange):
                 isUsdcSettled = defaultSettle == 'USDC'
         method = None
         if type == 'spot':
-            method = 'publicGetSpotQuoteV1Ticker24hr'
+            method = 'publicGetSpotV3PublicQuoteTicker24hr'
         elif not isUsdcSettled:
             # inverse perpetual  # usdt linear  # inverse futures
             method = 'publicGetV2PublicTickers'
         else:
             raise NotSupported(self.id + ' fetchTickers() is not supported for USDC markets')
         response = getattr(self, method)(params)
+        #
+        # spot
+        #
+        #    {
+        #         "retCode": "0",
+        #         "retMsg": "OK",
+        #         "result": {
+        #             "list": [
+        #                 {
+        #                     "t": "1666772160002",
+        #                     "s": "XDCUSDT",
+        #                     "lp": "0.03109",
+        #                     "h": "0.03116",
+        #                     "l": "0.03001",
+        #                     "o": "0.03044",
+        #                     "bp": "0.03105",
+        #                     "ap": "0.03109",
+        #                     "v": "1362796.9",
+        #                     "qv": "41423.411932"
+        #                 },
+        #             ]
+        #         },
+        #         "retExtInfo": {},
+        #         "time": "1666772209124"
+        #     }
+        #
         result = self.safe_value(response, 'result', [])
-        tickers = {}
-        for i in range(0, len(result)):
-            ticker = self.parse_ticker(result[i])
-            symbol = ticker['symbol']
-            tickers[symbol] = ticker
-        return self.filter_by_array(tickers, 'symbol', symbols)
+        if not isinstance(result, list):
+            result = self.safe_value(result, 'list', [])
+        return self.parse_tickers(result, symbols, params)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
