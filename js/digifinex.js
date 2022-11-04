@@ -511,13 +511,13 @@ module.exports = class digifinex extends Exchange {
                 'contract': swap,
                 'linear': isLinear,
                 'inverse': isInverse,
-                'contractSize': undefined,
+                'contractSize': this.safeNumber (market, 'contract_value'),
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'amount_precision'))),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString2 (market, 'amount_precision', 'tick_size'))),
                     'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'price_precision'))),
                 },
                 'limits': {
@@ -526,7 +526,7 @@ module.exports = class digifinex extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': this.safeNumber (market, 'minimum_amount'),
+                        'min': this.safeNumber2 (market, 'minimum_amount', 'min_order_amount'),
                         'max': undefined,
                     },
                     'price': {
