@@ -109,8 +109,8 @@ module.exports = class mexc3 extends Exchange {
                 'logo': 'https://user-images.githubusercontent.com/1294454/137283979-8b2a818d-8633-461b-bfca-de89e8c446b2.jpg',
                 'api': {
                     'spot': {
-                        'public': 'https://api.mexc.com',
-                        'private': 'https://api.mexc.com',
+                        'public': 'https://api.mexc.com/api/v3',
+                        'private': 'https://api.mexc.com/api/v3',
                     },
                     'spot2': {
                         'public': 'https://www.mexc.com/open/api/v2',
