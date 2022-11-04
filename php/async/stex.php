@@ -2424,12 +2424,12 @@ class stex extends Exchange {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch transaction fees
-             * @param {[string]|null} $codes not used by stex fetchTransactionFees ()
+             * @see https://apidocs.stex.com/#tag/Public/paths/{1public}1currencies/get
+             * @param {[string]|null} $codes list of unified $currency $codes
              * @param {array} $params extra parameters specific to the stex api endpoint
              * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->publicGetCurrencies ($params));
             //
             //     {
             //         "success" => true,
@@ -2469,20 +2469,22 @@ class stex extends Exchange {
             //         )
             //     }
             //
-            $data = $this->safe_value($response, 'data', array());
-            $withdrawFees = array();
-            $depositFees = array();
-            for ($i = 0; $i < count($data); $i++) {
-                $id = $this->safe_string($data[$i], 'id');
-                $code = $this->safe_currency_code($id);
-                $withdrawFees[$code] = $this->safe_number($data[$i], 'withdrawal_fee_const');
-                $depositFees[$code] = $this->safe_number($data[$i], 'deposit_fee_const');
+            $currencyKeys = is_array($this->currencies) ? array_keys($this->currencies) : array();
+            $result = array();
+            for ($i = 0; $i < count($currencyKeys); $i++) {
+                $code = $currencyKeys[$i];
+                $currency = $this->currencies[$code];
+                if ($codes !== null && !$this->in_array($code, $codes)) {
+                    continue;
+                }
+                $info = $this->safe_value($currency, 'info');
+                $result[$code] = array(
+                    'withdraw' => $this->safe_number($currency, 'fee'),
+                    'deposit' => $this->safe_number($info, 'deposit_fee_const'),
+                    'info' => $info,
+                );
             }
-            return array(
-                'withdraw' => $withdrawFees,
-                'deposit' => $depositFees,
-                'info' => $response,
-            );
+            return $result;
         }) ();
     }
 
