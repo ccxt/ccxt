@@ -479,6 +479,7 @@ module.exports = class bybit extends Exchange {
                     '-6017': BadRequest, // Repayment amount has exceeded the total liability
                     '-6025': BadRequest, // Amount to borrow cannot be lower than the min. amount to borrow (per transaction)
                     '-6029': BadRequest, // Amount to borrow has exceeded the user's estimated max amount to borrow
+                    '5004': ExchangeError, // {"retCode":5004,"retMsg":"Server Timeout","result":null,"retExtInfo":{},"time":1667577060106}
                     '7001': BadRequest, // {"retCode":7001,"retMsg":"request params type error"}
                     '10001': BadRequest, // parameter error
                     '10002': InvalidNonce, // request expired, check your timestamp and recv_window
@@ -636,9 +637,9 @@ module.exports = class bybit extends Exchange {
                     'OMNI': 'OMNI',
                     'SPL': 'SOL',
                 },
+                'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
                     'USDT': 'TRC20',
-                    '*': 'ERC20',
                 },
             },
             'fees': {
@@ -714,8 +715,11 @@ module.exports = class bybit extends Exchange {
         const defaultNetworks = this.safeValue (this.options, 'defaultNetworks', {});
         if (code in defaultNetworks) {
             targetNetworkCode = defaultNetworks[code];
-        } else if ('*' in defaultNetworks) {
-            targetNetworkCode = defaultNetworks['*'];
+        } else {
+            const defaultNetwork = this.safeValue (this.options, 'defaultNetwork');
+            if (defaultNetwork !== undefined) {
+                targetNetworkCode = defaultNetwork;
+            }
         }
         const networks = this.safeValue (this.options, 'networks', {});
         const networkId = this.safeStringUpper (networks, targetNetworkCode, targetNetworkCode);
