@@ -2106,7 +2106,7 @@ module.exports = class bybit extends Exchange {
         const feeToken = this.safeString (trade, 'feeTokenId');
         if (feeToken !== undefined) {
             const feeCurrency = this.safeCurrencyCode (feeToken);
-            const feeCost = this.safeNumber (trade, 'execFee');
+            const feeCost = this.safeString (trade, 'execFee');
             fee = {
                 'cost': feeCost,
                 'currency': feeCurrency,
