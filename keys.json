@@ -12,7 +12,7 @@
     "bitflyer":      { "skip": true },
     "bitget":        { "skip": true },
     "bitmart":       { "skip": true, "skipWs": true },
-    "bitmex":        { "skip": true, "skipWs": true },
+    "bitmex":        { "skipWs": true },
     "bitso":         { "skip": true },
     "bitstamp1":     { "skip": true },
     "bitfinex":     { "skip": false, "skipWs": true },
