@@ -3596,17 +3596,17 @@ module.exports = class bybit extends Exchange {
             // 'orderId': id
         };
         let market = undefined;
-        if (symbol !== undefined) {
+        const symbolDefined = (market !== undefined);
+        if (symbolDefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
         }
-        const marketDefined = (market !== undefined);
-        const isSpotMarket = (marketDefined && market['spot']) || (marketDefined && (marketType === 'spot'));
+        const isSpotMarket = (symbolDefined && market['spot']) || (!symbolDefined && (marketType === 'spot'));
         const orderType = this.safeStringLower (params, 'orderType');
         const isStop = this.safeValue (params, 'stop', false);
         const isConditional = isStop || (orderType === 'stop') || (orderType === 'conditional');
         params = this.omit (params, [ 'orderType', 'stop' ]);
-        const isUsdcSettled = marketDefined && (market['settle'] === 'USDC');
+        const isUsdcSettled = symbolDefined && (market['settle'] === 'USDC');
         let method = undefined;
         if (isSpotMarket) {
             method = 'privatePostSpotV3PrivateCancelOrder';
@@ -3633,7 +3633,7 @@ module.exports = class bybit extends Exchange {
             // inverse futures
             method = isConditional ? 'privatePostFuturesPrivateStopOrderCancel' : 'privatePostFuturesPrivateOrderCancel';
         }
-        if (marketDefined && market['contract'] && !isUsdcSettled && (id !== undefined)) { // id === undefined check because the user can also use argument params["order_link_id"]
+        if (symbolDefined && market['contract'] && !isUsdcSettled && (id !== undefined)) { // id === undefined check because the user can also use argument params["order_link_id"]
             if (!isConditional) {
                 request['order_id'] = id;
             } else {
@@ -4099,7 +4099,9 @@ module.exports = class bybit extends Exchange {
                 method = isConditional ? 'privateGetV2PrivateStopOrder' : 'privateGetV2PrivateOrder';
             }
         } else if (type === 'spot') {
-            request['symbol'] = market['id'];
+            if (symbol !== undefined) {
+                request['symbol'] = market['id'];
+            }
             method = 'privateGetSpotV3PrivateOpenOrders';
         } else {
             // usdc
