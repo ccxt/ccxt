@@ -2039,8 +2039,15 @@ module.exports = class bybit extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        //
-        // spot
+        const isSpotTrade = ('qty' in trade) || ('feeTokenId' in trade);
+        if (isSpotTrade) {
+            return this.parseSpotTrade (trade, market);
+        } else {
+            return this.parseContractTrade (trade, market);
+        }
+    }
+
+    parseSpotTrade (trade, market = undefined) {
         //
         //   public:
         //     {
@@ -2052,21 +2059,71 @@ module.exports = class bybit extends Exchange {
         //
         //   private:
         //     {
+        //         "orderPrice": "82.5",
+        //         "creatTime": "1666702226326",
+        //         "orderQty": "0.016",
+        //         "isBuyer": "0",
+        //         "isMaker": "0",
         //         "symbol": "AAVEUSDT",
         //         "id": "1274785101965716992",
         //         "orderId": "1274784252359089664",
         //         "tradeId": "2270000000031365639",
-        //         "orderPrice": "82.5",
-        //         "orderQty": "0.016",
         //         "execFee": "0",
         //         "feeTokenId": "AAVE",
-        //         "creatTime": "1666702226326",
-        //         "isBuyer": "0",
-        //         "isMaker": "0",
         //         "matchOrderId": "1274785101865076224",
         //         "makerRebate": "0",
         //         "executionTime": "1666702226335"
         //     }
+        //
+        const amountString = this.safeStringN (trade, [ 'qty', 'orderQty' ]);
+        const priceString = this.safeStringN (trade, [ 'price', 'orderPrice' ]);
+        const timestamp = this.safeIntegerN (trade, [ 'time', 'creatTime' ]);
+        let takerOrMaker = undefined;
+        let side = undefined;
+        const isBuyerMaker = this.safeInteger (trade, 'isBuyerMaker');
+        if (isBuyerMaker !== undefined) {
+            // if public response
+            takerOrMaker = 'taker'; // public trades are always taker
+            side = isBuyerMaker === 1 ? 'buy' : 'sell';
+        } else {
+            // if private response
+            const isBuyer = this.safeInteger (trade, 'isBuyer');
+            const isMaker = this.safeInteger (trade, 'isMaker');
+            takerOrMaker = isMaker === 1 ? 'maker' : 'taker';
+            side = isBuyer === 1 ? 'buy' : 'sell';
+        }
+        const id = this.safeString (trade, 'id');
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        let fee = {};
+        const feeToken = this.safeString (trade, 'feeTokenId');
+        if (feeToken !== undefined) {
+            const feeCurrency = this.safeCurrencyCode (feeToken);
+            const feeCost = this.safeNumber (trade, 'execFee');
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            };
+        }
+        return this.safeTrade ({
+            'id': id,
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'order': this.safeString (trade, 'orderId'),
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
+            'fee': fee,
+        }, market);
+    }
+
+    parseContractTrade (trade, market = undefined) {
         //
         // public linear/inverse swap/future
         //
@@ -2123,35 +2180,29 @@ module.exports = class bybit extends Exchange {
         const costString = this.safeString (trade, 'exec_value');
         let timestamp = this.parse8601 (this.safeString (trade, 'time'));
         if (timestamp === undefined) {
-            timestamp = this.safeIntegerN (trade, [ 'trade_time_ms', 'time', 'creatTime' ]);
+            timestamp = this.safeInteger2 (trade, 'trade_time_ms', 'time');
         }
         let side = this.safeStringLower (trade, 'side');
         if (side === undefined) {
-            const isBuyer = this.safeInteger (trade, 'isBuyer');
+            const isBuyer = this.safeValue (trade, 'isBuyer');
             if (isBuyer !== undefined) {
                 side = isBuyer ? 'buy' : 'sell';
             }
         }
         let takerOrMaker = undefined;
-        const isBuyerMaker = this.safeInteger (trade, 'isBuyerMaker'); // only public trade includes this
-        if (isBuyerMaker !== undefined) {
-            takerOrMaker = 'taker';
-            side = (isBuyerMaker === 1) ? 'buy' : 'sell';
+        const isMaker = this.safeInteger (trade, 'isMaker');
+        if (isMaker !== 0) {
+            takerOrMaker = isMaker ? 'maker' : 'taker';
         } else {
-            const isMaker = this.safeInteger (trade, 'isMaker');
-            if (isMaker !== 0) {
-                takerOrMaker = isMaker ? 'maker' : 'taker';
-            } else {
-                const lastLiquidityInd = this.safeString (trade, 'last_liquidity_ind');
-                takerOrMaker = (lastLiquidityInd === 'AddedLiquidity') ? 'maker' : 'taker';
-            }
+            const lastLiquidityInd = this.safeString (trade, 'last_liquidity_ind');
+            takerOrMaker = (lastLiquidityInd === 'AddedLiquidity') ? 'maker' : 'taker';
         }
-        const feeCostString = this.safeStringN (trade, [ 'exec_fee', 'commission', 'execFee' ]);
+        const feeCostString = this.safeString2 (trade, 'exec_fee', 'commission');
         let fee = undefined;
         if (feeCostString !== undefined) {
             let feeCurrencyCode = undefined;
             if (market['spot']) {
-                feeCurrencyCode = this.safeString2 (trade, 'commissionAsset', 'feeTokenId');
+                feeCurrencyCode = this.safeString (trade, 'commissionAsset');
             } else {
                 feeCurrencyCode = market['inverse'] ? market['base'] : market['quote'];
             }
