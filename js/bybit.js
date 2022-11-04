@@ -3578,13 +3578,15 @@ module.exports = class bybit extends Exchange {
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', undefined, params);
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+            if (marketType !== 'spot') {
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+            }
         }
         await this.loadMarkets ();
-        const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
             // 'order_link_id': 'string', // one of order_id, stop_order_id or order_link_id is required
             // regular orders ---------------------------------------------
             // 'order_id': id, // one of order_id or order_link_id is required for regular orders
@@ -3593,13 +3595,20 @@ module.exports = class bybit extends Exchange {
             // spot orders
             // 'orderId': id
         };
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const marketDefined = (market !== undefined);
+        const isSpotMarket = (marketDefined && market['spot']) || (marketDefined && (marketType === 'spot'));
         const orderType = this.safeStringLower (params, 'orderType');
         const isStop = this.safeValue (params, 'stop', false);
         const isConditional = isStop || (orderType === 'stop') || (orderType === 'conditional');
         params = this.omit (params, [ 'orderType', 'stop' ]);
-        const isUsdcSettled = market['settle'] === 'USDC';
+        const isUsdcSettled = marketDefined && (market['settle'] === 'USDC');
         let method = undefined;
-        if (market['spot']) {
+        if (isSpotMarket) {
             method = 'privatePostSpotV3PrivateCancelOrder';
             if (id !== undefined) { // The user can also use argument params["order_link_id"]
                 request['orderId'] = id;
@@ -3624,7 +3633,7 @@ module.exports = class bybit extends Exchange {
             // inverse futures
             method = isConditional ? 'privatePostFuturesPrivateStopOrderCancel' : 'privatePostFuturesPrivateOrderCancel';
         }
-        if (market['contract'] && !isUsdcSettled && (id !== undefined)) { // id === undefined check because the user can also use argument params["order_link_id"]
+        if (marketDefined && market['contract'] && !isUsdcSettled && (id !== undefined)) { // id === undefined check because the user can also use argument params["order_link_id"]
             if (!isConditional) {
                 request['order_id'] = id;
             } else {
