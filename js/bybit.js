@@ -1347,34 +1347,26 @@ module.exports = class bybit extends Exchange {
         const marketId = this.safeString (ticker, 's');
         const symbol = this.safeSymbol (marketId, market);
         const timestamp = this.safeInteger (ticker, 't');
-        const last = this.safeString (ticker, 'lp');
-        const open = this.safeString (ticker, 'o');
-        const quoteVolume = this.safeString (ticker, 'qv');
-        const baseVolume = this.safeString (ticker, 'v');
-        const bid = this.safeString (ticker, 'bp');
-        const ask = this.safeString (ticker, 'ap');
-        const high = this.safeString (ticker, 'h');
-        const low = this.safeString (ticker, 'l');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': high,
-            'low': low,
-            'bid': bid,
+            'high': this.safeString (ticker, 'h'),
+            'low': this.safeString (ticker, 'l'),
+            'bid': this.safeString (ticker, 'bp'),
             'bidVolume': undefined,
-            'ask': ask,
+            'ask': this.safeString (ticker, 'ap'),
             'askVolume': undefined,
             'vwap': undefined,
-            'open': open,
-            'close': last,
-            'last': last,
+            'open': this.safeString (ticker, 'o'),
+            'close': this.safeString (ticker, 'lp'),
+            'last': undefined,
             'previousClose': undefined,
             'change': undefined,
             'percentage': undefined,
             'average': undefined,
-            'baseVolume': baseVolume,
-            'quoteVolume': quoteVolume,
+            'baseVolume': this.safeString (ticker, 'v'),
+            'quoteVolume': this.safeString (ticker, 'qv'),
             'info': ticker,
         }, market);
     }
@@ -2075,8 +2067,6 @@ module.exports = class bybit extends Exchange {
         //         "executionTime": "1666702226335"
         //     }
         //
-        const amountString = this.safeStringN (trade, [ 'qty', 'orderQty' ]);
-        const priceString = this.safeStringN (trade, [ 'price', 'orderPrice' ]);
         const timestamp = this.safeIntegerN (trade, [ 'time', 'creatTime' ]);
         let takerOrMaker = undefined;
         let side = undefined;
@@ -2092,10 +2082,8 @@ module.exports = class bybit extends Exchange {
             takerOrMaker = isMaker === 1 ? 'maker' : 'taker';
             side = isBuyer === 1 ? 'buy' : 'sell';
         }
-        const id = this.safeString (trade, 'id');
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
         let fee = {};
         const feeToken = this.safeString (trade, 'feeTokenId');
         if (feeToken !== undefined) {
@@ -2107,17 +2095,17 @@ module.exports = class bybit extends Exchange {
             };
         }
         return this.safeTrade ({
-            'id': id,
+            'id': this.safeString (trade, 'id'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': this.safeString (trade, 'orderId'),
             'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
-            'price': priceString,
-            'amount': amountString,
+            'price': this.safeString2 (trade, 'price', 'orderPrice'),
+            'amount': this.safeString2 (trade, 'qty', 'orderQty'),
             'cost': undefined,
             'fee': fee,
         }, market);
