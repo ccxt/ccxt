@@ -572,25 +572,15 @@ module.exports = class cryptocom extends Exchange {
         }
         const response = await this.spotPublicGetPublicGetTicker (this.extend (request, query));
         //
-        //     {
-        //         "id": -1,
-        //         "method": "public/get-tickers",
-        //         "code": 0,
-        //         "result": {
-        //             "data": [{
-        //                 "i": "SHIB_USDT",
-        //                 "h": "0.000012385",
-        //                 "l": "0.000011560",
-        //                 "a": "0.000011638",
-        //                 "v": "68778630000",
-        //                 "vv": "824341.85",
-        //                 "c": "-0.0310",
-        //                 "b": "0.000011638",
-        //                 "k": "0.000011653",
-        //                 "t": 1667525467847
-        //             }]
-        //         }
-        //     }
+        //   {
+        //       "id":"-1",
+        //       "method":"public/get-tickers",
+        //       "code":"0",
+        //       "result":{
+        //          "data":[
+        //             { "i":"BTC_USDT", "h":"20567.16", "l":"20341.39", "a":"20394.23", "v":"2236.3762", "vv":"45739074.30", "c":"-0.0036", "b":"20394.01", "k":"20394.02", "t":"1667406085934" }
+        //          ]
+        //   }
         //
         const resultResponse = this.safeValue (response, 'result', {});
         const data = this.safeValue (resultResponse, 'data', {});

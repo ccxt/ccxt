@@ -290,7 +290,7 @@ class bitfinex extends \ccxt\async\bitfinex {
                 'len' => $limit, // string, number of price points, '25', '100', default = '25'
             );
             $orderbook = Async\await($this->subscribe('book', $symbol, $this->deep_extend($request, $params)));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

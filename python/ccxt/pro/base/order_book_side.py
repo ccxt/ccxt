@@ -2,7 +2,6 @@
 
 import sys
 import bisect
-import itertools
 
 """Author: Carlo Revelli"""
 """Fast bisect bindings"""
@@ -40,8 +39,7 @@ class OrderBookSide(list):
     def store(self, price, size):
         self.storeArray([price, size])
 
-    def limit(self, n=None):
-        self._n = sys.maxsize if n is None else n
+    def limit(self):
         difference = len(self) - self._depth
         for _ in range(difference):
             self.remove_index(self.pop())
@@ -49,12 +47,6 @@ class OrderBookSide(list):
 
     def remove_index(self, order):
         pass
-
-    def __iter__(self):
-        # a call to limit only temporarily limits the order book
-        # so we hide the rest of the cached data after self._n
-        iterator = super(OrderBookSide, self).__iter__()
-        return itertools.islice(iterator, self._n)
 
     def __len__(self):
         length = super(OrderBookSide, self).__len__()

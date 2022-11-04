@@ -416,7 +416,7 @@ class deribit extends \ccxt\async\deribit {
             );
             $request = $this->deep_extend($subscribe, $params);
             $orderbook = Async\await($this->watch($url, $channel, $request, $channel));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

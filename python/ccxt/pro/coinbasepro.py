@@ -171,7 +171,7 @@ class coinbasepro(Exchange, ccxt.async_support.coinbasepro):
             'limit': limit,
         }
         orderbook = await self.watch(url, messageHash, request, messageHash, subscription)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_trade(self, client, message):
         #

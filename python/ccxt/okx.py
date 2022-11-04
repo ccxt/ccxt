@@ -1655,6 +1655,7 @@ class okx(Exchange):
             rate = data[i]
             timestamp = self.safe_number(rate, 'fundingTime')
             rates.append({
+                'info': rate,
                 'symbol': self.safe_symbol(self.safe_string(rate, 'instId')),
                 'fundingRate': self.safe_number(rate, 'realizedRate'),
                 'timestamp': timestamp,

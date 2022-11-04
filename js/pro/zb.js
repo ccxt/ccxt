@@ -180,7 +180,7 @@ module.exports = class zb extends zbRest {
             'method': this.handleOrderBook,
         };
         const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBook (client, message, subscription) {

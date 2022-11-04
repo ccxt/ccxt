@@ -73,7 +73,7 @@ class bitopro(Exchange, ccxt.async_support.bitopro):
         else:
             endPart = market['id'] + ':' + limit
         orderbook = await self.watch_public('order-books', messageHash, endPart)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_order_book(self, client, message):
         #

@@ -450,7 +450,7 @@ class exmo(Exchange, ccxt.async_support.exmo):
         }
         request = self.deep_extend(subscribe, params)
         orderbook = await self.watch(url, messageHash, request, messageHash)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_order_book(self, client, message):
         #

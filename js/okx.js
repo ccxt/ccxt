@@ -1713,6 +1713,7 @@ module.exports = class okx extends Exchange {
             const rate = data[i];
             const timestamp = this.safeNumber (rate, 'fundingTime');
             rates.push ({
+                'info': rate,
                 'symbol': this.safeSymbol (this.safeString (rate, 'instId')),
                 'fundingRate': this.safeNumber (rate, 'realizedRate'),
                 'timestamp': timestamp,
