@@ -49,7 +49,6 @@
     "kuna":          { "skip": true },
     "latoken2":      { "skip": true },
     "lbank":         { "skip": true },
-    "luno":          { "skip": true },
     "mixcoins":      { "skip": true },
     "mercado":       { "skip": true },
     "mexc":          { "skip": true },
