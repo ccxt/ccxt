@@ -71,6 +71,7 @@ module.exports = class stex extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
+                'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': true,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,

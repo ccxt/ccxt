@@ -70,7 +70,7 @@ module.exports = class bitso extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
-                'fetchTransactionFee': false,
+                'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': true,
                 'fetchTransactions': false,
                 'fetchTransfer': false,

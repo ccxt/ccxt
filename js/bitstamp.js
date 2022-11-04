@@ -68,6 +68,7 @@ module.exports = class bitstamp extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
+                'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,

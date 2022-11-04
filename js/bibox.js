@@ -53,6 +53,7 @@ module.exports = class bibox extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
+                'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': true,
                 'fetchWithdrawals': true,
                 'transfer': true,

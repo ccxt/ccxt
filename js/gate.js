@@ -109,6 +109,7 @@ module.exports = class gate extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
+                'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': true,
                 'fetchWithdrawals': true,
                 'repayMargin': true,

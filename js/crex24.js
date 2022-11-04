@@ -73,6 +73,7 @@ module.exports = class crex24 extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,

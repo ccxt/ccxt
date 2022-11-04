@@ -68,6 +68,7 @@ module.exports = class whitebit extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': true,
                 'repayMargin': false,
                 'setLeverage': true,

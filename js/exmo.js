@@ -62,6 +62,7 @@ module.exports = class exmo extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': true,
                 'fetchTransactions': true,
                 'fetchTransfer': false,

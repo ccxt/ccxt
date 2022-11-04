@@ -64,6 +64,7 @@ module.exports = class buda extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
+                'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,

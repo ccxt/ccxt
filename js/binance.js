@@ -89,7 +89,7 @@ module.exports = class binance extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTradingLimits': undefined,
-                'fetchTransactionFee': undefined,
+                'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': true,
                 'fetchTransactions': false,
                 'fetchTransfers': true,
