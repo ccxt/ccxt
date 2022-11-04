@@ -18,7 +18,6 @@
     "bitfinex":     { "skip": false, "skipWs": true },
     "bitfinex2":     { "skip": false, "skipWs": false },
     "btcex":         { "skip": true },
-    "btcalpha":      { "skip": true },
     "btcmarkets":    { "skip": true },
     "btcturk":       { "skip": true },
     "braziliex":     { "skip": true },
