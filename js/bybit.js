@@ -1753,8 +1753,12 @@ module.exports = class bybit extends Exchange {
                 this.safeNumber (ohlcv, 5),
             ];
         }
+        let timestamp = this.safeTimestamp2 (ohlcv, 'open_time', 'openTime');
+        if (timestamp === undefined) {
+            timestamp = this.safeTimestamp (ohlcv, 'start_at');
+        }
         return [
-            this.safeTimestampN (ohlcv, [ 'open_time', 'openTime', 'start_at' ]),
+            timestamp,
             this.safeNumber (ohlcv, 'open'),
             this.safeNumber (ohlcv, 'high'),
             this.safeNumber (ohlcv, 'low'),
@@ -2155,7 +2159,7 @@ module.exports = class bybit extends Exchange {
         //          "trade_time_ms": "1638276374312"
         //      }
         //
-        const id = this.safeStringN (trade, [ 'id', 'exec_id', 'tradeId' ]);
+        const id = this.safeString2 (trade, 'id', 'exec_id');
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
@@ -2382,26 +2386,14 @@ module.exports = class bybit extends Exchange {
         //         "retCode": "0",
         //         "retMsg": "OK",
         //         "result": {
-        //             "time": "1666771623077",
+        //             "time": "1620886105740",
         //             "bids": [
-        //                 [
-        //                     "84",
-        //                     "7.323"
-        //                 ],
-        //                 [
-        //                     "83.9",
-        //                     "101.711"
-        //                 ],
+        //                 [ "84", "7.323" ],
+        //                 [ "83.9", "101.711" ],
         //             ],
         //             "asks": [
-        //                 [
-        //                     "84.1",
-        //                     "5.898"
-        //                 ],
-        //                 [
-        //                     "84.2",
-        //                     "350.31"
-        //                 ],
+        //                 [ "84.1", "5.898" ],
+        //                 [ "84.2", "350.31" ],
         //             ]
         //         },
         //         "retExtInfo": {},
@@ -3139,7 +3131,7 @@ module.exports = class bybit extends Exchange {
             if (price === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder requires a price argument for a ' + type + ' order');
             }
-            request['orderPrice'] = parseFloat (this.priceToPrecision (symbol, price));
+            request['orderPrice'] = this.priceToPrecision (symbol, price);
         }
         const isPostOnly = this.isPostOnly (upperCaseType === 'MARKET', type === 'LIMIT_MAKER', params);
         if (isPostOnly) {
@@ -3156,8 +3148,7 @@ module.exports = class bybit extends Exchange {
         }
         const triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
         if (triggerPrice !== undefined) {
-            const precisionTriggerPrice = this.priceToPrecision (symbol, triggerPrice);
-            params['triggerPrice'] = precisionTriggerPrice;
+            params['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
         }
         params = this.omit (params, 'stopPrice');
         const response = await this.privatePostSpotV3PrivateOrder (this.extend (request, params));
@@ -3247,10 +3238,10 @@ module.exports = class bybit extends Exchange {
                 request['orderFilter'] = 'StopOrder';
                 request['trigger_by'] = 'LastPrice';
                 const stopPx = isStopLossOrder ? stopLossPrice : takeProfitPrice;
-                const preciseTriggerPrice = this.priceToPrecision (symbol, stopPx);
-                request['triggerPrice'] = preciseTriggerPrice;
+                const preciseStopPrice = this.priceToPrecision (symbol, stopPx);
+                request['triggerPrice'] = preciseStopPrice;
                 const delta = this.numberToString (market['precision']['price']);
-                request['basePrice'] = isStopLossOrder ? Precise.stringSub (preciseTriggerPrice, delta) : Precise.stringAdd (preciseTriggerPrice, delta);
+                request['basePrice'] = isStopLossOrder ? Precise.stringSub (preciseStopPrice, delta) : Precise.stringAdd (preciseStopPrice, delta);
             } else {
                 request['orderFilter'] = 'Order';
             }
@@ -3364,8 +3355,8 @@ module.exports = class bybit extends Exchange {
         const isTakeProfitOrder = takeProfitPrice !== undefined;
         if (isTriggerOrder) {
             request['trigger_by'] = 'LastPrice';
-            const preciseTriggerPrice = this.priceToPrecision (symbol, triggerPrice);
-            request['stop_px'] = parseFloat (preciseTriggerPrice);
+            const preciseStopPrice = this.priceToPrecision (symbol, triggerPrice);
+            request['stop_px'] = parseFloat (preciseStopPrice);
             const basePrice = this.safeValue2 (params, 'base_price', 'basePrice');
             if (basePrice === undefined) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a base_price parameter for trigger orders, your triggerPrice > max(market price, base_price) or triggerPrice < min(market price, base_price)');
@@ -3570,7 +3561,11 @@ module.exports = class bybit extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument'); // todo: spot doesnt need symbol
+            let type = undefined;
+            [ type, params ] = this.handleMarketTypeAndParams ('cancelOrder', undefined, params);
+            if (type !== 'spot') {
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+            }
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -4031,11 +4026,7 @@ module.exports = class bybit extends Exchange {
         //    }
         //
         if (!Array.isArray (result)) {
-            if (type === 'spot') {
-                result = this.safeValue (result, 'list', []);
-            } else {
-                result = this.safeValue (result, 'dataList', []);
-            }
+            result = this.safeValue2 (result, 'list', 'dataList', []);
         }
         return this.parseOrders (result, market, since, limit);
     }
@@ -5656,14 +5647,13 @@ module.exports = class bybit extends Exchange {
         //
         const timestamp = this.safeInteger (response, 'time');
         const transfer = this.safeValue (response, 'result', {});
-        const statusMsg = this.parseTransferStatus (this.safeString2 (response, 'retCode', 'retMsg'));
         return this.extend (this.parseTransfer (transfer, currency), {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'amount': this.parseNumber (amountToPrecision),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': statusMsg,
+            'status': this.parseTransferStatus (this.safeString2 (response, 'retCode', 'retMsg')),
         });
     }
 
