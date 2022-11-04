@@ -636,6 +636,10 @@ module.exports = class bybit extends Exchange {
                     'OMNI': 'OMNI',
                     'SPL': 'SOL',
                 },
+                'defaultNetworks': {
+                    'USDT': 'TRC20',
+                    '*': 'ERC20',
+                },
             },
             'fees': {
                 'trading': {
@@ -693,15 +697,29 @@ module.exports = class bybit extends Exchange {
         return this.safeStringUpper (networks, networkCode, networkCode);
     }
 
-    handleNetworkCodeAndParams (params) {
+    handleNetworkCodeAndParams (code, params) {
         const networks = this.safeValue (this.options, 'networks', {});
-        const networkCodeInParams = this.safeStringUpper2 (params, 'networkCode', 'network');
+        const networkCodeOrIdInParams = this.safeStringUpper2 (params, 'networkCode', 'network');
         let networkId = undefined;
-        if (networkCodeInParams !== undefined) {
-            networkId = this.safeStringUpper (networks, networkCodeInParams, networkCodeInParams);
+        if (networkCodeOrIdInParams !== undefined) {
             params = this.omit (params, [ 'networkCode', 'network' ]);
+            networkId = this.safeStringUpper (networks, networkCodeOrIdInParams, networkCodeOrIdInParams);
         }
+        // if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for 'request'-side only and thus we do not fill it with anything. We can only use defaults after response is received
         return [ networkId, params ];
+    }
+
+    defaultNetworkId (code) {
+        let targetNetworkCode = undefined;
+        const defaultNetworks = this.safeValue (this.options, 'defaultNetworks', {});
+        if (code in defaultNetworks) {
+            targetNetworkCode = defaultNetworks[code];
+        } else if ('*' in defaultNetworks) {
+            targetNetworkCode = defaultNetworks['*'];
+        }
+        const networks = this.safeValue (this.options, 'networks', {});
+        const networkId = this.safeStringUpper (networks, targetNetworkCode, targetNetworkCode);
+        return networkId;
     }
 
     async fetchCurrencies (params = {}) {
@@ -2879,7 +2897,7 @@ module.exports = class bybit extends Exchange {
             clientOrderId = undefined;
         }
         const timeInForce = this.parseTimeInForce (this.safeString2 (order, 'time_in_force', 'timeInForce'));
-        const triggerPrice = this.safeStringN (order, [ 'trigger_price', 'stop_px', 'stopPrice', 'triggerPrice' ]);
+        const stopPrice = this.safeStringN (order, [ 'trigger_price', 'stop_px', 'stopPrice', 'triggerPrice' ]);
         const postOnly = (timeInForce === 'PO');
         return this.safeOrder ({
             'info': order,
@@ -2894,8 +2912,8 @@ module.exports = class bybit extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
-            'triggerPrice': triggerPrice,
-            'stopPrice': triggerPrice,
+            'triggerPrice': stopPrice,
+            'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
             'average': average,
@@ -4437,68 +4455,56 @@ module.exports = class bybit extends Exchange {
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
-        const [ networkId, query ] = this.handleNetworkCodeAndParams (params);
+        const [ networkId, query ] = this.handleNetworkCodeAndParams (code, params);
+        const currency = this.currency (code);
+        const request = {
+            'coin': currency['id'],
+        };
         if (networkId !== undefined) {
-            const currency = this.currency (code);
-            const request = {
-                'coin': currency['id'],
-                'chainType': networkId,
-            };
-            const response = await this.privateGetAssetV3PrivateDepositAddressQuery (this.extend (request, query));
-            //
-            //    {
-            //         "retCode": "0",
-            //         "retMsg": "success",
-            //         "result": {
-            //             "coin": "USDT",
-            //             "chains": [
-            //                 {
-            //                     "chainType": "TRC20",
-            //                     "addressDeposit": "TC6NCAC5WSVCCiaD3kWZXyW91ZKKhLm53b",
-            //                     "tagDeposit": "",
-            //                     "chain": "TRX"
-            //                 }
-            //             ]
-            //         },
-            //         "retExtInfo": {},
-            //         "time": "1666895654316"
-            //     }
-            //
-            const result = this.safeValue (response, 'result', {});
-            const chains = this.safeValue (result, 'chains', []);
-            const addressInfo = this.safeValue (chains, 0, {});
-            return this.parseDepositAddress (addressInfo, currency);
+            request['chainType'] = networkId;
+        }
+        const response = await this.privateGetAssetV3PrivateDepositAddressQuery (this.extend (request, query));
+        //
+        //    {
+        //         "retCode": "0",
+        //         "retMsg": "success",
+        //         "result": {
+        //             "coin": "USDT",
+        //             "chains": [
+        //                 {
+        //                     "chainType": "TRC20",
+        //                     "addressDeposit": "TC6NCAC5WSVCCiaD3kWZXyW91ZKKhLm53b",
+        //                     "tagDeposit": "",
+        //                     "chain": "TRX"
+        //                 },
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": "1666895654316"
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const chains = this.safeValue (result, 'chains', []);
+        const chainsLength = chains.length;
+        if (chainsLength === 0) {
+            const errorMessage = (networkId !== undefined) ? ('network ' + networkId + ' was not found for ' + code) : ('no deposit networks were found for ' + code);
+            throw new InvalidAddress (this.id + ' fetchDepositAddress() - ' + errorMessage);
         } else {
-            const rawNetwork = this.safeStringUpper (params, 'network');
-            const networks = this.safeValue (this.options, 'networks', {});
-            const network = this.safeString (networks, rawNetwork, rawNetwork);
-            params = this.omit (params, 'network');
-            const response = await this.fetchDepositAddressesByNetwork (code, query);
-            let result = undefined;
-            if (network === undefined) {
-                result = this.safeValue (response, code);
-                if (result === undefined) {
-                    const alias = this.safeString (networks, code, code);
-                    result = this.safeValue (response, alias);
-                    if (result === undefined) {
-                        const defaultNetwork = this.safeString (this.options, 'defaultNetwork', 'ERC20');
-                        result = this.safeValue (response, defaultNetwork);
-                        if (result === undefined) {
-                            const values = Object.values (response);
-                            result = this.safeValue (values, 0);
-                            if (result === undefined) {
-                                throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find deposit address for ' + code);
-                            }
-                        }
-                    }
+            const chainsIndexedById = this.indexBy (chains, 'chain');
+            let chosenNetworkId = undefined;
+            if (networkId !== undefined) {
+                if (networkId in chainsIndexedById) {
+                    chosenNetworkId = networkId;
+                } else {
+                    throw new InvalidAddress (this.id + ' fetchDepositAddress() - no deposit networks were found for ' + code);
                 }
-                return result;
+            } else {
+                const ids = Object.keys (chainsIndexedById);
+                const defaultNetwordId = this.defaultNetworkId (code);
+                chosenNetworkId = (defaultNetwordId in chainsIndexedById) ? defaultNetwordId : ids[0];
             }
-            result = this.safeValue (response, network);
-            if (result === undefined) {
-                throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code);
-            }
-            return result;
+            const addressInfo = chainsIndexedById[chosenNetworkId];
+            return this.parseDepositAddress (addressInfo, currency);
         }
     }
 
@@ -4889,7 +4895,7 @@ module.exports = class bybit extends Exchange {
         if (tag !== undefined) {
             request['tag'] = tag;
         }
-        const [ networkId, query ] = this.handleNetworkCodeAndParams (params);
+        const [ networkId, query ] = this.handleNetworkCodeAndParams (code, params);
         if (networkId !== undefined) {
             request['chain'] = networkId;
         }
