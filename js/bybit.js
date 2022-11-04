@@ -1320,6 +1320,15 @@ module.exports = class bybit extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        if ('s' in ticker) {
+            return this.parseSpotTicker (ticker, market);
+        } else {
+            return this.parseContractTicker (ticker, market);
+        }
+    }
+
+    parseSpotTicker (ticker, market = undefined) {
+        //
         // spot
         //
         //     {
@@ -1334,6 +1343,43 @@ module.exports = class bybit extends Exchange {
         //         "v": "7433.527",
         //         "qv": "619835.8676"
         //     }
+        //
+        const marketId = this.safeString (ticker, 's');
+        const symbol = this.safeSymbol (marketId, market);
+        const timestamp = this.safeInteger (ticker, 't');
+        const last = this.safeString (ticker, 'lp');
+        const open = this.safeString (ticker, 'o');
+        const quoteVolume = this.safeString (ticker, 'qv');
+        const baseVolume = this.safeString (ticker, 'v');
+        const bid = this.safeString (ticker, 'bp');
+        const ask = this.safeString (ticker, 'ap');
+        const high = this.safeString (ticker, 'h');
+        const low = this.safeString (ticker, 'l');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': high,
+            'low': low,
+            'bid': bid,
+            'bidVolume': undefined,
+            'ask': ask,
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': open,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
+            'info': ticker,
+        }, market);
+    }
+
+    parseContractTicker (ticker, market = undefined) {
         //
         // linear usdt/ inverse swap and future
         //     {
@@ -1394,19 +1440,19 @@ module.exports = class bybit extends Exchange {
         //          "theta": "-0.03262827"
         //      }
         //
-        const timestamp = this.safeInteger2 (ticker, 'time', 't');
-        const marketId = this.safeString2 (ticker, 'symbol', 's');
+        const timestamp = this.safeInteger (ticker, 'time');
+        const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeStringN (ticker, [ 'last_price', 'lastPrice', 'lp' ]);
-        const open = this.safeStringN (ticker, [ 'prev_price_24h', 'openPrice', 'o' ]);
+        const last = this.safeStringN (ticker, [ 'last_price', 'lastPrice' ]);
+        const open = this.safeStringN (ticker, [ 'prev_price_24h', 'openPrice' ]);
         let percentage = this.safeString2 (ticker, 'price_24h_pcnt', 'change24h');
         percentage = Precise.stringMul (percentage, '100');
-        const quoteVolume = this.safeStringN (ticker, [ 'turnover_24h', 'turnover24h', 'quoteVolume', 'qv' ]);
-        const baseVolume = this.safeStringN (ticker, [ 'volume_24h', 'volume24h', 'volume', 'v' ]);
-        const bid = this.safeStringN (ticker, [ 'bid_price', 'bid', 'bp' ]);
-        const ask = this.safeStringN (ticker, [ 'ask_price', 'ask', 'ap' ]);
-        const high = this.safeStringN (ticker, [ 'high_price_24h', 'high24h', 'highPrice', 'h' ]);
-        const low = this.safeStringN (ticker, [ 'low_price_24h', 'low24h', 'lowPrice', 'l' ]);
+        const quoteVolume = this.safeStringN (ticker, [ 'turnover_24h', 'turnover24h', 'quoteVolume' ]);
+        const baseVolume = this.safeStringN (ticker, [ 'volume_24h', 'volume24h', 'volume' ]);
+        const bid = this.safeStringN (ticker, [ 'bid_price', 'bid' ]);
+        const ask = this.safeStringN (ticker, [ 'ask_price', 'ask' ]);
+        const high = this.safeStringN (ticker, [ 'high_price_24h', 'high24h', 'highPrice' ]);
+        const low = this.safeStringN (ticker, [ 'low_price_24h', 'low24h', 'lowPrice' ]);
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -1430,6 +1476,7 @@ module.exports = class bybit extends Exchange {
             'info': ticker,
         }, market);
     }
+
 
     async fetchTicker (symbol, params = {}) {
         /**
@@ -1624,21 +1671,48 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', []);
+        let datalist = undefined;
         if (Array.isArray (result)) {
-            const tickers = {};
-            for (let i = 0; i < result.length; i++) {
-                const ticker = this.parseTicker (result[i]);
-                const symbol = ticker['symbol'];
-                tickers[symbol] = ticker;
-            }
-            return this.filterByArray (tickers, 'symbol', symbols);
+            datalist = result;
         } else {
-            const datalist = this.safeValue (result, 'list', []);
-            return this.parseTickers (datalist, symbols);
+            datalist = this.safeValue (result, 'list', []);
         }
+        return this.parseTickers (datalist, symbols, params);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
+        if ('t' in ohlcv) {
+            return this.parseSpotOHLCV (ohlcv, market);
+        } else {
+            return this.parseContractOHLCV (ohlcv, market);
+        }
+    }
+
+    parseSpotOHLCV (ohlcv, market = undefined) {
+        //
+        // spot
+        //     {
+        //         "t": "1666759020000",
+        //         "s": "AAVEUSDT",
+        //         "sn": "AAVEUSDT",
+        //         "c": "83",
+        //         "h": "83.4",
+        //         "l": "82.9",
+        //         "o": "83.4",
+        //         "v": "149.368"
+        //     }
+        //
+        return [
+            this.safeInteger (ohlcv, 't'),
+            this.safeNumber (ohlcv, 'o'),
+            this.safeNumber (ohlcv, 'h'),
+            this.safeNumber (ohlcv, 'l'),
+            this.safeNumber (ohlcv, 'c'),
+            this.safeNumber (ohlcv, 'v'),
+        ];
+    }
+
+    parseContractOHLCV (ohlcv, market = undefined) {
         //
         // inverse perpetual BTC/USD
         //
@@ -1681,18 +1755,6 @@ module.exports = class bybit extends Exchange {
         //         "turnover":"1188.02"
         //     }
         //
-        // spot
-        //     {
-        //         "t": "1666759020000",
-        //         "s": "AAVEUSDT",
-        //         "sn": "AAVEUSDT",
-        //         "c": "83",
-        //         "h": "83.4",
-        //         "l": "82.9",
-        //         "o": "83.4",
-        //         "v": "149.368"
-        //     }
-        //
         if (Array.isArray (ohlcv)) {
             return [
                 this.safeNumber (ohlcv, 0),
@@ -1704,12 +1766,12 @@ module.exports = class bybit extends Exchange {
             ];
         }
         return [
-            this.safeTimestampN (ohlcv, [ 'open_time', 'openTime', 'start_at', 't' ]),
-            this.safeNumber2 (ohlcv, 'open', 'o'),
-            this.safeNumber2 (ohlcv, 'high', 'h'),
-            this.safeNumber2 (ohlcv, 'low', 'l'),
-            this.safeNumber2 (ohlcv, 'close', 'c'),
-            this.safeNumberN (ohlcv, [ 'volume', 'turnover', 'v' ]),
+            this.safeTimestampN (ohlcv, [ 'open_time', 'openTime', 'start_at' ]),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumberN (ohlcv, [ 'volume', 'turnover' ]),
         ];
     }
 
