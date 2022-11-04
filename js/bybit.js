@@ -1530,7 +1530,7 @@ module.exports = class bybit extends Exchange {
         return this.filterByArray (tickers, 'symbol', symbols);
     }
 
-    async fetchUnifiedMarginTickers (symbols = undefined, params = {}) {
+    async fetchDerivativesTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const request = {};
@@ -1597,7 +1597,7 @@ module.exports = class bybit extends Exchange {
         return this.filterByArray (tickers, 'symbol', symbols);
     }
 
-    async fetchDerivativesTickers (symbols = undefined, params = {}) {
+    async fetchV2DerivativesTickers (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const response = await this.publicGetV2PublicTickers (params);
@@ -1682,9 +1682,9 @@ module.exports = class bybit extends Exchange {
         if (type === 'spot') {
             return await this.fetchSpotTickers (symbols, params);
         } else if (enableUnifiedMargin) {
-            return await this.fetchUnifiedMarginTickers (symbols, params);
-        } else if (!isUsdcSettled) {
             return await this.fetchDerivativesTickers (symbols, params);
+        } else if (!isUsdcSettled) {
+            return await this.fetchV2DerivativesTickers (symbols, params);
         } else {
             throw new NotSupported (this.id + ' fetchTickers() is not supported for USDC markets');
         }
@@ -1834,7 +1834,7 @@ module.exports = class bybit extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    async fetchUnifiedMarginOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchDerivativesOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -1905,7 +1905,7 @@ module.exports = class bybit extends Exchange {
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
-    async fetchDerivativesOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+    async fetchV2DerivativesOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -2046,9 +2046,9 @@ module.exports = class bybit extends Exchange {
         if (market['spot']) {
             return await this.fetchSpotOHLCV (symbol, timeframe, since, limit, params);
         } else if (enableUnifiedMargin) {
-            return await this.fetchUnifiedMarginOHLCV (symbol, timeframe, since, limit, params);
-        } else if (market['contract'] && !isUsdcSettled) {
             return await this.fetchDerivativesOHLCV (symbol, timeframe, since, limit, params);
+        } else if (market['contract'] && !isUsdcSettled) {
+            return await this.fetchV2DerivativesOHLCV (symbol, timeframe, since, limit, params);
         }
         return await this.fetchUSDCOHLCV (symbol, timeframe, since, limit, params);
     }
@@ -2424,7 +2424,7 @@ module.exports = class bybit extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchUnifiedMarginTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchDerivativesTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -2460,7 +2460,7 @@ module.exports = class bybit extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchDerivativesTrades (symbol, since = undefined, limit = undefined, params = {}) {
+    async fetchV2DerivativesTrades (symbol, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -2551,9 +2551,9 @@ module.exports = class bybit extends Exchange {
             return this.fetchSpotTrades (symbol, since, limit, params);
         } else if (!isUsdcSettled) {
             if (enableUnifiedMargin) {
-                return this.fetchUnifiedMarginTrades (symbol, since, limit, params);
+                return this.fetchDerivativesTrades (symbol, since, limit, params);
             }
-            return this.fetchDerivativesTrades (symbol, since, limit, params);
+            return this.fetchV2DerivativesTrades (symbol, since, limit, params);
         }
         // usdc option/ swap
         return this.fetchUSDCTrades (symbol, since, limit, params);
@@ -2625,7 +2625,7 @@ module.exports = class bybit extends Exchange {
         return this.parseOrderBook (result, symbol, timestamp);
     }
 
-    async fetchUnifiedMarginOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchDerivativesOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -2678,7 +2678,7 @@ module.exports = class bybit extends Exchange {
         return this.parseOrderBook (result, symbol, timestamp);
     }
 
-    async fetchDerivativesOrderBook (symbol, limit = undefined, params = {}) {
+    async fetchV2DerivativesOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -2758,10 +2758,10 @@ module.exports = class bybit extends Exchange {
         if (market['spot']) {
             return this.fetchSpotOrderBook (symbol, limit, params);
         } else if (enableUnifiedMargin) {
-            return this.fetchUnifiedMarginOrderBook (symbol, limit, params);
+            return this.fetchDerivativesOrderBook (symbol, limit, params);
         } else if (!isUsdcSettled) {
             // inverse perpetual // usdt linear // inverse futures
-            return this.fetchDerivativesOrderBook (symbol, limit, params);
+            return this.fetchV2DerivativesOrderBook (symbol, limit, params);
         }
         // usdc option/ swap
         return this.fetchUSDCOrderBook (symbol, limit, params);
@@ -7312,7 +7312,7 @@ module.exports = class bybit extends Exchange {
         }
     }
 
-    async fetchUnifiedMarginMarketLeverageTiers (symbol, params = {}) {
+    async fetchDerivativesMarketLeverageTiers (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -7397,7 +7397,7 @@ module.exports = class bybit extends Exchange {
         return this.parseMarketLeverageTiers (result, market);
     }
 
-    async fetchDerivativesMarketLeverageTiers (symbol, params = {}) {
+    async fetchV2DerivativesMarketLeverageTiers (symbol, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -7490,12 +7490,12 @@ module.exports = class bybit extends Exchange {
         const isUsdcSettled = market['settle'] === 'USDC';
         const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
         if (enableUnifiedMargin) {
-            return await this.fetchUnifiedMarginMarketLeverageTiers (symbol, params);
+            return await this.fetchDerivativesMarketLeverageTiers (symbol, params);
         }
         if (isUsdcSettled) {
             return await this.fetchUSDCMarketLeverageTiers (symbol, params);
         }
-        return await this.fetchDerivativesMarketLeverageTiers (symbol, params);
+        return await this.fetchV2DerivativesMarketLeverageTiers (symbol, params);
     }
 
     parseMarketLeverageTiers (info, market) {
