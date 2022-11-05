@@ -1561,7 +1561,7 @@ class okx(Exchange):
             limit = 100  # default 100, max 100
         duration = self.parse_timeframe(timeframe)
         bar = self.timeframes[timeframe]
-        if (timezone == 'UTC') and (duration >= 21600000):
+        if (timezone == 'UTC') and (duration >= 21600):  # if utc and timeframe >= 6h
             bar += timezone.lower()
         request = {
             'instId': market['id'],
