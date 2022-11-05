@@ -1414,7 +1414,7 @@ module.exports = class binance extends Exchange {
             const networkList = this.safeValue (entry, 'networkList', []);
             const fees = {};
             let fee = undefined;
-            let maxPrecision = undefined;
+            let minPrecision = undefined;
             for (let j = 0; j < networkList.length; j++) {
                 const networkItem = networkList[j];
                 const network = this.safeString (networkItem, 'network');
@@ -1430,20 +1430,21 @@ module.exports = class binance extends Exchange {
                     fee = withdrawFee;
                 }
                 // precision:
-                const precisionValue = this.safeString (networkItem, 'withdrawIntegerMultiple');
-                // avoid zero : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
-                if (!Precise.stringEq (precisionValue, '0')) {
-                    maxPrecision = (maxPrecision === undefined) ? precisionValue : Precise.stringMin (maxPrecision, precisionValue);
+                let precisionTick = this.safeString (networkItem, 'withdrawIntegerMultiple');
+                // avoid zero values, which are mostly from fiat or leveraged tokens : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
+                // so, when there is zero instead of i.e. 0.001, then we should consider that the precision is full integer (having no decimals)
+                if (Precise.stringEq (precisionTick, '0')) {
+                    precisionTick = '1';
                 }
+                minPrecision = (minPrecision === undefined) ? precisionTick : Precise.stringMin (minPrecision, precisionTick);
             }
-            const finalPrecision = this.parseNumber (this.numberToString (this.precisionFromString (maxPrecision)));
             const trading = this.safeValue (entry, 'trading');
             const active = (isWithdrawEnabled && isDepositEnabled && trading);
             result[code] = {
                 'id': id,
                 'name': name,
                 'code': code,
-                'precision': finalPrecision,
+                'precision': this.parseNumber (minPrecision),
                 'info': entry,
                 'active': active,
                 'deposit': isDepositEnabled,
