@@ -1429,14 +1429,12 @@ module.exports = class binance extends Exchange {
                 if (isDefault || (fee === undefined)) {
                     fee = withdrawFee;
                 }
-                // precision:
-                let precisionTick = this.safeString (networkItem, 'withdrawIntegerMultiple');
+                const precisionTick = this.safeString (networkItem, 'withdrawIntegerMultiple');
                 // avoid zero values, which are mostly from fiat or leveraged tokens : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
-                // so, when there is zero instead of i.e. 0.001, then we should consider that the precision is full integer (having no decimals)
-                if (Precise.stringEq (precisionTick, '0')) {
-                    precisionTick = '1';
+                // so, when there is zero instead of i.e. 0.001, then we skip those cases, because we don't know the precision - it might be because of network is suspended or other reasons
+                if (!Precise.stringEq (precisionTick, '0')) {
+                    minPrecision = (minPrecision === undefined) ? precisionTick : Precise.stringMin (minPrecision, precisionTick);
                 }
-                minPrecision = (minPrecision === undefined) ? precisionTick : Precise.stringMin (minPrecision, precisionTick);
             }
             const trading = this.safeValue (entry, 'trading');
             const active = (isWithdrawEnabled && isDepositEnabled && trading);
