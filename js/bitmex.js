@@ -1776,7 +1776,7 @@ module.exports = class bitmex extends Exchange {
             }
         }
         const convertAmount = this.safeValue (this.options, 'convertAmount', false);
-        const orderQty = (convertAmount !== false) ? this.convertAmount (amount, market) : parseFloat (this.amountToPrecision (symbol, amount));
+        const orderQty = (convertAmount === true) ? this.convertAmount (amount, market) : parseFloat (this.amountToPrecision (symbol, amount));
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
@@ -1823,7 +1823,7 @@ module.exports = class bitmex extends Exchange {
             request['orderID'] = id;
         }
         const convertAmount = this.safeValue (this.options, 'convertAmount', false);
-        const orderQty = (convertAmount !== false) ? this.convertAmount (amount, market) : parseFloat (this.amountToPrecision (symbol, amount));
+        const orderQty = (convertAmount === true) ? this.convertAmount (amount, market) : parseFloat (this.amountToPrecision (symbol, amount));
         if (amount !== undefined) {
             request['orderQty'] = orderQty;
         }
@@ -2230,7 +2230,7 @@ module.exports = class bitmex extends Exchange {
         amount = this.numberToString (amount);
         const symbol = market['symbol'];
         const conversionMultiplier = market['info']['underlyingToPositionMultiplier'];
-        let resultValue = (conversionMultiplier !== null) ? Precise.stringMul (amount, conversionMultiplier) : undefined;
+        let resultValue = (conversionMultiplier == null) ? undefined : Precise.stringMul (amount, conversionMultiplier);
         resultValue = (resultValue !== undefined) ? parseFloat (this.amountToPrecision (symbol, resultValue)) : undefined;
         return resultValue;
     }
