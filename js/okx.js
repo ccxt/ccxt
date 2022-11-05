@@ -1608,7 +1608,7 @@ module.exports = class okx extends Exchange {
         }
         const duration = this.parseTimeframe (timeframe);
         let bar = this.timeframes[timeframe];
-        if ((timezone === 'UTC') && (duration >= 21600000)) {
+        if ((timezone === 'UTC') && (duration >= 21600)) { // if utc and timeframe >= 6h
             bar += timezone.toLowerCase ();
         }
         const request = {
