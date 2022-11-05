@@ -823,7 +823,7 @@ class bitget(Exchange):
         for i in range(0, len(types)):
             type = types[i]
             if type == 'swap':
-                subTypes = ['umcbl', 'dmcbl']
+                subTypes = ['umcbl', 'dmcbl', 'cmcbl', 'sumcbl', 'sdmcbl', 'scmcbl']
                 for j in range(0, len(subTypes)):
                     markets = await self.fetch_markets_by_type(type, self.extend(params, {
                         'productType': subTypes[j],
@@ -844,39 +844,38 @@ class bitget(Exchange):
         #
         # spot
         #
-        #     {
-        #       symbol: 'ALPHAUSDT_SPBL',
-        #       symbolName: 'ALPHAUSDT',
-        #       baseCoin: 'ALPHA',
-        #       quoteCoin: 'USDT',
-        #       minTradeAmount: '2',
-        #       maxTradeAmount: '0',
-        #       takerFeeRate: '0.001',
-        #       makerFeeRate: '0.001',
-        #       priceScale: '4',
-        #       quantityScale: '4',
-        #       status: 'online'
-        #     }
+        #    {
+        #        symbol: 'ALPHAUSDT_SPBL',
+        #        symbolName: 'ALPHAUSDT',
+        #        baseCoin: 'ALPHA',
+        #        quoteCoin: 'USDT',
+        #        minTradeAmount: '2',
+        #        maxTradeAmount: '0',
+        #        takerFeeRate: '0.001',
+        #        makerFeeRate: '0.001',
+        #        priceScale: '4',
+        #        quantityScale: '4',
+        #        status: 'online'
+        #    }
         #
         # swap
         #
-        #     {
-        #       symbol: 'BTCUSDT_UMCBL',
-        #       makerFeeRate: '0.0002',
-        #       takerFeeRate: '0.0006',
-        #       feeRateUpRatio: '0.005',
-        #       openCostUpRatio: '0.01',
-        #       quoteCoin: 'USDT',
-        #       baseCoin: 'BTC',
-        #       buyLimitPriceRatio: '0.01',
-        #       sellLimitPriceRatio: '0.01',
-        #       supportMarginCoins: ['USDT'],
-        #       minTradeNum: '0.001',
-        #       priceEndStep: '5',
-        #       volumePlace: '3',
-        #       pricePlace: '1'
-        #     }
-        #
+        #    {
+        #        symbol: 'BTCUSDT_UMCBL',
+        #        makerFeeRate: '0.0002',
+        #        takerFeeRate: '0.0006',
+        #        feeRateUpRatio: '0.005',
+        #        openCostUpRatio: '0.01',
+        #        quoteCoin: 'USDT',
+        #        baseCoin: 'BTC',
+        #        buyLimitPriceRatio: '0.01',
+        #        sellLimitPriceRatio: '0.01',
+        #        supportMarginCoins: ['USDT'],
+        #        minTradeNum: '0.001',
+        #        priceEndStep: '5',
+        #        volumePlace: '3',
+        #        pricePlace: '1'
+        #    }
         #
         marketId = self.safe_string(market, 'symbol')
         quoteId = self.safe_string(market, 'quoteCoin')
@@ -890,29 +889,44 @@ class bitget(Exchange):
         parts = marketId.split('_')
         typeId = self.safe_string(parts, 1)
         type = None
-        linear = None
-        inverse = None
         swap = False
         spot = False
+        future = False
         contract = False
         pricePrecision = None
         amountPrecision = None
+        linear = None
+        inverse = None
+        expiry = None
+        expiryDatetime = None
         if typeId == 'SPBL':
             type = 'spot'
             spot = True
             pricePrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'priceScale')))
             amountPrecision = self.parse_number(self.parse_precision(self.safe_string(market, 'quantityScale')))
         else:
-            type = 'swap'
-            swap = True
+            expiryString = self.safe_string(parts, 2)
+            if expiryString is not None:
+                year = '20' + expiryString[0:2]
+                month = expiryString[2:4]
+                day = expiryString[4:6]
+                expiryDatetime = year + '-' + month + '-' + day + 'T00:00:00Z'
+                expiry = self.parse8601(expiryDatetime)
+                type = 'future'
+                future = True
+                symbol = symbol + ':' + settle + '-' + expiryString
+            else:
+                type = 'swap'
+                swap = True
+                symbol = symbol + ':' + settle
             contract = True
-            symbol = symbol + ':' + settle
-            if typeId == 'UMCBL':
-                linear = True
-                inverse = False
-            elif typeId == 'DMCBL':
-                inverse = True
-                linear = False
+            sumcbl = (typeId == 'SUMCBL')
+            sdmcbl = (typeId == 'SDMCBL')
+            scmcbl = (typeId == 'SCMCBL')
+            linear = (typeId == 'UMCBL') or (typeId == 'CMCBL') or sumcbl or scmcbl
+            inverse = not linear
+            if sumcbl or sdmcbl or scmcbl:
+                symbol = marketId
             priceDecimals = self.safe_integer(market, 'pricePlace')
             amountDecimals = self.safe_integer(market, 'volumePlace')
             priceStep = self.safe_string(market, 'priceEndStep')
@@ -931,54 +945,55 @@ class bitget(Exchange):
         active = None
         if status is not None:
             active = status == 'online'
-        maker = self.safe_number(market, 'makerFeeRate')
-        taker = self.safe_number(market, 'takerFeeRate')
-        limits = {
-            'amount': {
-                'min': self.safe_number(market, 'minTradeNum'),
-                'max': None,
-            },
-            'price': {
-                'min': None,
-                'max': None,
-            },
-            'cost': {
-                'min': None,
-                'max': None,
-            },
-        }
         return {
-            'info': market,
             'id': marketId,
             'symbol': symbol,
-            'quoteId': quoteId,
-            'baseId': baseId,
-            'quote': quote,
             'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
             'type': type,
             'spot': spot,
-            'swap': swap,
-            'future': False,
-            'option': False,
             'margin': False,
+            'swap': swap,
+            'future': future,
+            'option': False,
+            'active': active,
             'contract': contract,
-            'contractSize': None,
             'linear': linear,
             'inverse': inverse,
-            'settleId': settleId,
-            'settle': settle,
-            'expiry': None,
-            'expiryDatetime': None,
-            'optionType': None,
+            'taker': self.safe_number(market, 'takerFeeRate'),
+            'maker': self.safe_number(market, 'makerFeeRate'),
+            'contractSize': self.safe_number(market, 'sizeMultiplier'),
+            'expiry': expiry,
+            'expiryDatetime': expiryDatetime,
             'strike': None,
-            'active': active,
-            'maker': maker,
-            'taker': taker,
+            'optionType': None,
             'precision': {
-                'price': pricePrecision,
                 'amount': amountPrecision,
+                'price': pricePrecision,
             },
-            'limits': limits,
+            'limits': {
+                'leverage': {
+                    'min': None,
+                    'max': None,
+                },
+                'amount': {
+                    'min': self.safe_number(market, 'minTradeNum'),
+                    'max': None,
+                },
+                'price': {
+                    'min': None,
+                    'max': None,
+                },
+                'cost': {
+                    'min': None,
+                    'max': None,
+                },
+            },
+            'info': market,
         }
 
     async def fetch_markets_by_type(self, type, params={}):
@@ -989,51 +1004,53 @@ class bitget(Exchange):
         response = await getattr(self, method)(params)
         #
         # spot
-        #     {
-        #       code: '00000',
-        #       msg: 'success',
-        #       requestTime: 1645840064031,
-        #       data: [
-        #         {
-        #           symbol: 'ALPHAUSDT_SPBL',
-        #           symbolName: 'ALPHAUSDT',
-        #           baseCoin: 'ALPHA',
-        #           quoteCoin: 'USDT',
-        #           minTradeAmount: '2',
-        #           maxTradeAmount: '0',
-        #           takerFeeRate: '0.001',
-        #           makerFeeRate: '0.001',
-        #           priceScale: '4',
-        #           quantityScale: '4',
-        #           status: 'online'
-        #         }
-        #       ]
-        #     }
+        #
+        #    {
+        #        code: '00000',
+        #        msg: 'success',
+        #        requestTime: 1645840064031,
+        #        data: [
+        #            {
+        #                symbol: 'ALPHAUSDT_SPBL',
+        #                symbolName: 'ALPHAUSDT',
+        #                baseCoin: 'ALPHA',
+        #                quoteCoin: 'USDT',
+        #                minTradeAmount: '2',
+        #                maxTradeAmount: '0',
+        #                takerFeeRate: '0.001',
+        #                makerFeeRate: '0.001',
+        #                priceScale: '4',
+        #                quantityScale: '4',
+        #                status: 'online'
+        #            }
+        #        ]
+        #    }
         #
         # swap
-        #     {
-        #       code: '00000',
-        #       msg: 'success',
-        #       requestTime: 1645840821493,
-        #       data: [
-        #         {
-        #           symbol: 'BTCUSDT_UMCBL',
-        #           makerFeeRate: '0.0002',
-        #           takerFeeRate: '0.0006',
-        #           feeRateUpRatio: '0.005',
-        #           openCostUpRatio: '0.01',
-        #           quoteCoin: 'USDT',
-        #           baseCoin: 'BTC',
-        #           buyLimitPriceRatio: '0.01',
-        #           sellLimitPriceRatio: '0.01',
-        #           supportMarginCoins: [Array],
-        #           minTradeNum: '0.001',
-        #           priceEndStep: '5',
-        #           volumePlace: '3',
-        #           pricePlace: '1'
-        #         }
-        #       ]
-        #     }
+        #
+        #    {
+        #        code: '00000',
+        #        msg: 'success',
+        #        requestTime: 1645840821493,
+        #        data: [
+        #            {
+        #                symbol: 'BTCUSDT_UMCBL',
+        #                makerFeeRate: '0.0002',
+        #                takerFeeRate: '0.0006',
+        #                feeRateUpRatio: '0.005',
+        #                openCostUpRatio: '0.01',
+        #                quoteCoin: 'USDT',
+        #                baseCoin: 'BTC',
+        #                buyLimitPriceRatio: '0.01',
+        #                sellLimitPriceRatio: '0.01',
+        #                supportMarginCoins: [Array],
+        #                minTradeNum: '0.001',
+        #                priceEndStep: '5',
+        #                volumePlace: '3',
+        #                pricePlace: '1'
+        #            }
+        #        ]
+        #    }
         #
         data = self.safe_value(response, 'data', [])
         return self.parse_markets(data)
