@@ -36,7 +36,7 @@ if (defined('PATH_TO_CCXT')) {
 
 define('PATH_TO_CCXT', __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR);
 define('PATH_TO_WS_CCXT', __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR . 'pro' .  DIRECTORY_SEPARATOR);
-define('PATH_TO_CCXT_ASYNC', PATH_TO_CCXT . 'async' . DIRECTORY_SEPARATOR);
+define('PATH_TO_CCXT_ASYNC', PATH_TO_CCXT . 'async_implementation' . DIRECTORY_SEPARATOR);
 
 spl_autoload_register(function ($class) {
     // used to include static dependencies
@@ -121,7 +121,7 @@ spl_autoload_register(function ($class_name) {
     }
 });
 
-// require_once __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR . 'pro.php';
+require_once __DIR__ . DIRECTORY_SEPARATOR . 'php' . DIRECTORY_SEPARATOR . 'async' . DIRECTORY_SEPARATOR . 'async.php';
 
 namespace ccxt\pro;
 

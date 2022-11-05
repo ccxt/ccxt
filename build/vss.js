@@ -33,13 +33,14 @@ function vssEverything () {
 
     vss ('./ccxt.js',                                    "const version = '{version}'", version)
     vss ('./php/Exchange.php',                           "$version = '{version}'",      version)
-    vss ('./php/async/Exchange.php',                     "VERSION = '{version}'",       version)
-    vss ('./php/async/Exchange.php',                     "$version = '{version}'",      version)
+    vss ('./php/async_implementation/Exchange.php',                     "VERSION = '{version}'",       version)
+    vss ('./php/async_implementation/Exchange.php',                     "$version = '{version}'",      version)
     vss ('./php/Exchange.php',                           "VERSION = '{version}'",       version)
     vss ('./python/ccxt/__init__.py',                    "__version__ = '{version}'",   version)
     vss ('./python/ccxt/base/exchange.py',               "__version__ = '{version}'",   version)
     vss ('./python/ccxt/async_support/__init__.py',      "__version__ = '{version}'",   version)
-    vss ('./python/ccxt/async_support/base/exchange.py', "__version__ = '{version}'",   version)
+    vss ('./python/ccxt/async_implementation/__init__.py',      "__version__ = '{version}'",   version)
+    vss ('./python/ccxt/async_implementation/base/exchange.py', "__version__ = '{version}'",   version)
     vss ('./python/ccxt/pro/__init__.py',                "__version__ = '{version}'",   version)
     vss ('./python/ccxt/pro/base/exchange.py',           "__version__ = '{version}'",   version)
 

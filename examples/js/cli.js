@@ -83,11 +83,8 @@ const httpsAgent = new Agent ({
 })
 
 try {
-    if (ccxt.pro.exchanges.includes(exchangeId)) {
-        exchange = new (ccxt.pro)[exchangeId] ({ timeout, httpsAgent, ... settings })
-    } else {
-        exchange = new (ccxt)[exchangeId] ({ timeout, httpsAgent, ... settings })
-    }
+
+    exchange = new (ccxt)[exchangeId] ({ timeout, httpsAgent, ... settings })
 
     if (isSpot) {
         exchange.options['defaultType'] = 'spot';

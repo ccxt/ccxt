@@ -1,6 +1,6 @@
 <?php
 
-namespace ccxt\async;
+namespace ccxt\async_implementation;
 
 use React\Promise\Deferred;
 use React\Promise\Promise;

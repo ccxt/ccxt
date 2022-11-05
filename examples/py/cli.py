@@ -15,7 +15,6 @@ root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 sys.path.append(root + '/python')
 
 # ------------------------------------------------------------------------------
-import ccxt.pro as ccxtpro
 import ccxt.async_support as ccxt  # noqa: E402
 
 # ------------------------------------------------------------------------------
@@ -127,10 +126,8 @@ async def main():
         config.update(keys[argv.exchange_id])
 
     exchange = None
-    if (argv.exchange_id in ccxtpro.exchanges):
-        exchange = getattr(ccxtpro, argv.exchange_id)(config)
-    else:
-        exchange = getattr(ccxt, argv.exchange_id)(config)
+    
+    exchange = getattr(ccxt, argv.exchange_id)(config)
 
     if argv.spot:
         exchange.options['defaultType'] = 'spot'

@@ -408,7 +408,11 @@ function exportEverything () {
         {
             file: './ccxt.js',
             regex:  /(?:const|var)\s+exchanges\s+\=\s+\{[^\}]+\}/,
-            replacement: "const exchanges = {\n" + ids.map (id => ("    '" + id + "':").padEnd (30) + " require ('./js/" + id + ".js'),") .join ("\n") + "\n}",
+            replacement: "const exchanges = {\n" + ids.map (id => {
+                    const prefix = ("    '" + id + "':").padEnd (30);
+                    const requirePath = (wsIds.includes(id)) ? './js/pro/' : './js/';
+                    return prefix + " require ('" + requirePath + id + ".js'),"
+                }).join ("\n") + "    \n}",
         },
         {
             file: './ccxt.js',
@@ -431,14 +435,37 @@ function exportEverything () {
             replacement: flat.map (error => ('from ccxt.base.errors' + ' import ' + error).padEnd (70) + '# noqa: F401').join ("\n") + "\n\n",
         },
         {
+            file: './python/ccxt/async_implementation/__init__.py',
+            regex: /(?:from ccxt\.async_implementation\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
+            replacement: ids.map (id => ('from ccxt.async_implementation.' + id + ' import ' + id).padEnd (80) + '# noqa: F401').join ("\n") + "\n\nexchanges",
+        },
+        {
             file: './python/ccxt/async_support/__init__.py',
             regex: /(?:from ccxt\.base\.errors import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]/,
             replacement: flat.map (error => ('from ccxt.base.errors' + ' import ' + error).padEnd (70) + '# noqa: F401').join ("\n") + "\n\n",
         },
         {
+            file: './python/ccxt/async_implementation/__init__.py',
+            regex: /(?:from ccxt\.base\.errors import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]/,
+            replacement: flat.map (error => ('from ccxt.base.errors' + ' import ' + error).padEnd (70) + '# noqa: F401').join ("\n") + "\n\n",
+        },
+        {
             file: './python/ccxt/async_support/__init__.py',
-            regex: /(?:from ccxt\.async_support\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
-            replacement: ids.map (id => ('from ccxt.async_support.' + id + ' import ' + id).padEnd (80) + '# noqa: F401').join ("\n") + "\n\nexchanges",
+            regex: /(?:from ccxt\.(async_implementation|pro)\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
+            replacement: ids.map (id => {
+                let prefix = 'from ccxt.' 
+                if (wsIds.includes(id)) {
+                    prefix += 'pro.';
+                } else {
+                    prefix += 'async_implementation.';
+                }
+                return (prefix + id + ' import ' + id).padEnd (80) + '# noqa: F401'
+        }).join ("\n") + "\n\nexchanges",
+        },
+        {
+            file: './python/ccxt/async_implementation/__init__.py',
+            regex: /exchanges \= \[[^\]]+\]/,
+            replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
         },
         {
             file: './python/ccxt/async_support/__init__.py',
@@ -446,9 +473,22 @@ function exportEverything () {
             replacement: "exchanges = [\n" + "    '" + ids.join ("',\n    '") + "'," + "\n]",
         },
         {
+            file: './python/ccxt/async_support/__init__.py',
+            regex: /pro \= \[[^\]]+\]/,
+            replacement: "pro = [\n" + "    '" + wsIds.join ("',\n    '") + "'," + "\n]",
+        },
+        {
             file: './php/Exchange.php',
             regex: /public static \$exchanges \= array\s*\([^\)]+\)/,
             replacement: "public static $exchanges = array(\n        '" + ids.join ("',\n        '") + "',\n    )",
+        },
+        {
+            file: './php/async/async.php',
+            regex: /(class\s[a-zA-Z0-9]+\sextends\s[^{}]+{}\n)+\n*/g,
+            replacement: ids.map (id => {
+                const path = (wsIds.includes(id)) ? '\\ccxt\\pro\\' : '\\ccxt\\async_implementation\\';
+                return 'class ' + id + ' extends ' + path + id + ' {}'
+            }).join ("\n") +  "\nclass Exchange extends \\ccxt\\pro\\Exchange {}\n"  + "\n\n"
         },
         {
             file: './php/pro/Exchange.php',

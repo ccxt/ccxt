@@ -2,7 +2,7 @@
 
 namespace ccxt\pro;
 
-use ccxt\async\Throttle;
+use ccxt\async_implementation\Throttle;
 use React\Async;
 use React\EventLoop\Loop;
 
@@ -21,15 +21,15 @@ trait ClientTrait {
     public $newUpdates = true;
 
     public function inflate($data) {
-        return \ccxtpro\inflate($data); // zlib_decode($data);
+        return \ccxt\pro\inflate($data); // zlib_decode($data);
     }
 
     public function inflate64($data) {
-        return \ccxtpro\inflate64($data); // zlib_decode(base64_decode($data));
+        return \ccxt\pro\inflate64($data); // zlib_decode(base64_decode($data));
     }
 
     public function gunzip($data) {
-        return \ccxtpro\gunzip($data);
+        return \ccxt\pro\gunzip($data);
     }
 
     public function order_book ($snapshot = array(), $depth = PHP_INT_MAX) {

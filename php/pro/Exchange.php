@@ -8,7 +8,7 @@ namespace ccxt\pro;
 // const ROUND_UP = 2;
 // const ROUND_DOWN = 3;
 
-class Exchange extends \ccxt\async\Exchange {
+class Exchange extends \ccxt\async_implementation\Exchange {
 
     use ClientTrait;
 

@@ -1,12 +1,13 @@
-# -*- coding: utf-8 -*-
+# # -*- coding: utf-8 -*-
 
-"""CCXT: CryptoCurrency eXchange Trading Library (Async)"""
+# """CCXT: CryptoCurrency eXchange Trading Library (Async)"""
 
-# -----------------------------------------------------------------------------
+# # -----------------------------------------------------------------------------
 
-__version__ = '2.1.32'
+__version__ = '2.0.72'
 
-# -----------------------------------------------------------------------------
+# # -----------------------------------------------------------------------------
+
 from ccxt.async_implementation.base.exchange import Exchange                   # noqa: F401
 
 from ccxt.base.decimal_to_precision import decimal_to_precision  # noqa: F401
@@ -51,38 +52,39 @@ from ccxt.base.errors import InvalidNonce                             # noqa: F4
 from ccxt.base.errors import RequestTimeout                           # noqa: F401
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 
+# # -----------------------------------------------------------------------------
 
-from ccxt.pro.aax import aax                                                    # noqa: F401
+from ccxt.async_implementation.aax import aax                                   # noqa: F401
 from ccxt.async_implementation.alpaca import alpaca                             # noqa: F401
-from ccxt.pro.ascendex import ascendex                                          # noqa: F401
-from ccxt.pro.bequant import bequant                                            # noqa: F401
+from ccxt.async_implementation.ascendex import ascendex                         # noqa: F401
+from ccxt.async_implementation.bequant import bequant                           # noqa: F401
 from ccxt.async_implementation.bibox import bibox                               # noqa: F401
 from ccxt.async_implementation.bigone import bigone                             # noqa: F401
-from ccxt.pro.binance import binance                                            # noqa: F401
-from ccxt.pro.binancecoinm import binancecoinm                                  # noqa: F401
-from ccxt.pro.binanceus import binanceus                                        # noqa: F401
-from ccxt.pro.binanceusdm import binanceusdm                                    # noqa: F401
+from ccxt.async_implementation.binance import binance                           # noqa: F401
+from ccxt.async_implementation.binancecoinm import binancecoinm                 # noqa: F401
+from ccxt.async_implementation.binanceus import binanceus                       # noqa: F401
+from ccxt.async_implementation.binanceusdm import binanceusdm                   # noqa: F401
 from ccxt.async_implementation.bit2c import bit2c                               # noqa: F401
 from ccxt.async_implementation.bitbank import bitbank                           # noqa: F401
 from ccxt.async_implementation.bitbay import bitbay                             # noqa: F401
 from ccxt.async_implementation.bitbns import bitbns                             # noqa: F401
-from ccxt.pro.bitcoincom import bitcoincom                                      # noqa: F401
-from ccxt.pro.bitfinex import bitfinex                                          # noqa: F401
-from ccxt.pro.bitfinex2 import bitfinex2                                        # noqa: F401
+from ccxt.async_implementation.bitcoincom import bitcoincom                     # noqa: F401
+from ccxt.async_implementation.bitfinex import bitfinex                         # noqa: F401
+from ccxt.async_implementation.bitfinex2 import bitfinex2                       # noqa: F401
 from ccxt.async_implementation.bitflyer import bitflyer                         # noqa: F401
 from ccxt.async_implementation.bitforex import bitforex                         # noqa: F401
 from ccxt.async_implementation.bitget import bitget                             # noqa: F401
 from ccxt.async_implementation.bithumb import bithumb                           # noqa: F401
-from ccxt.pro.bitmart import bitmart                                            # noqa: F401
-from ccxt.pro.bitmex import bitmex                                              # noqa: F401
-from ccxt.pro.bitopro import bitopro                                            # noqa: F401
+from ccxt.async_implementation.bitmart import bitmart                           # noqa: F401
+from ccxt.async_implementation.bitmex import bitmex                             # noqa: F401
+from ccxt.async_implementation.bitopro import bitopro                           # noqa: F401
 from ccxt.async_implementation.bitpanda import bitpanda                         # noqa: F401
 from ccxt.async_implementation.bitrue import bitrue                             # noqa: F401
 from ccxt.async_implementation.bitso import bitso                               # noqa: F401
-from ccxt.pro.bitstamp import bitstamp                                          # noqa: F401
+from ccxt.async_implementation.bitstamp import bitstamp                         # noqa: F401
 from ccxt.async_implementation.bitstamp1 import bitstamp1                       # noqa: F401
-from ccxt.pro.bittrex import bittrex                                            # noqa: F401
-from ccxt.pro.bitvavo import bitvavo                                            # noqa: F401
+from ccxt.async_implementation.bittrex import bittrex                           # noqa: F401
+from ccxt.async_implementation.bitvavo import bitvavo                           # noqa: F401
 from ccxt.async_implementation.bkex import bkex                                 # noqa: F401
 from ccxt.async_implementation.bl3p import bl3p                                 # noqa: F401
 from ccxt.async_implementation.blockchaincom import blockchaincom               # noqa: F401
@@ -94,44 +96,44 @@ from ccxt.async_implementation.btctradeua import btctradeua                     
 from ccxt.async_implementation.btcturk import btcturk                           # noqa: F401
 from ccxt.async_implementation.buda import buda                                 # noqa: F401
 from ccxt.async_implementation.bw import bw                                     # noqa: F401
-from ccxt.pro.bybit import bybit                                                # noqa: F401
+from ccxt.async_implementation.bybit import bybit                               # noqa: F401
 from ccxt.async_implementation.bytetrade import bytetrade                       # noqa: F401
 from ccxt.async_implementation.cex import cex                                   # noqa: F401
 from ccxt.async_implementation.coinbase import coinbase                         # noqa: F401
-from ccxt.pro.coinbaseprime import coinbaseprime                                # noqa: F401
-from ccxt.pro.coinbasepro import coinbasepro                                    # noqa: F401
+from ccxt.async_implementation.coinbaseprime import coinbaseprime               # noqa: F401
+from ccxt.async_implementation.coinbasepro import coinbasepro                   # noqa: F401
 from ccxt.async_implementation.coincheck import coincheck                       # noqa: F401
-from ccxt.pro.coinex import coinex                                              # noqa: F401
+from ccxt.async_implementation.coinex import coinex                             # noqa: F401
 from ccxt.async_implementation.coinfalcon import coinfalcon                     # noqa: F401
 from ccxt.async_implementation.coinmate import coinmate                         # noqa: F401
 from ccxt.async_implementation.coinone import coinone                           # noqa: F401
 from ccxt.async_implementation.coinspot import coinspot                         # noqa: F401
 from ccxt.async_implementation.crex24 import crex24                             # noqa: F401
-from ccxt.pro.cryptocom import cryptocom                                        # noqa: F401
-from ccxt.pro.currencycom import currencycom                                    # noqa: F401
+from ccxt.async_implementation.cryptocom import cryptocom                       # noqa: F401
+from ccxt.async_implementation.currencycom import currencycom                   # noqa: F401
 from ccxt.async_implementation.delta import delta                               # noqa: F401
-from ccxt.pro.deribit import deribit                                            # noqa: F401
+from ccxt.async_implementation.deribit import deribit                           # noqa: F401
 from ccxt.async_implementation.digifinex import digifinex                       # noqa: F401
-from ccxt.pro.exmo import exmo                                                  # noqa: F401
+from ccxt.async_implementation.exmo import exmo                                 # noqa: F401
 from ccxt.async_implementation.flowbtc import flowbtc                           # noqa: F401
 from ccxt.async_implementation.fmfwio import fmfwio                             # noqa: F401
-from ccxt.pro.ftx import ftx                                                    # noqa: F401
-from ccxt.pro.ftxus import ftxus                                                # noqa: F401
-from ccxt.pro.gate import gate                                                  # noqa: F401
-from ccxt.pro.gateio import gateio                                              # noqa: F401
+from ccxt.async_implementation.ftx import ftx                                   # noqa: F401
+from ccxt.async_implementation.ftxus import ftxus                               # noqa: F401
+from ccxt.async_implementation.gate import gate                                 # noqa: F401
+from ccxt.async_implementation.gateio import gateio                             # noqa: F401
 from ccxt.async_implementation.gemini import gemini                             # noqa: F401
-from ccxt.pro.hitbtc import hitbtc                                              # noqa: F401
+from ccxt.async_implementation.hitbtc import hitbtc                             # noqa: F401
 from ccxt.async_implementation.hitbtc3 import hitbtc3                           # noqa: F401
-from ccxt.pro.hollaex import hollaex                                            # noqa: F401
-from ccxt.pro.huobi import huobi                                                # noqa: F401
-from ccxt.pro.huobijp import huobijp                                            # noqa: F401
-from ccxt.pro.huobipro import huobipro                                          # noqa: F401
-from ccxt.pro.idex import idex                                                  # noqa: F401
+from ccxt.async_implementation.hollaex import hollaex                           # noqa: F401
+from ccxt.async_implementation.huobi import huobi                               # noqa: F401
+from ccxt.async_implementation.huobijp import huobijp                           # noqa: F401
+from ccxt.async_implementation.huobipro import huobipro                         # noqa: F401
+from ccxt.async_implementation.idex import idex                                 # noqa: F401
 from ccxt.async_implementation.independentreserve import independentreserve     # noqa: F401
 from ccxt.async_implementation.indodax import indodax                           # noqa: F401
 from ccxt.async_implementation.itbit import itbit                               # noqa: F401
-from ccxt.pro.kraken import kraken                                              # noqa: F401
-from ccxt.pro.kucoin import kucoin                                              # noqa: F401
+from ccxt.async_implementation.kraken import kraken                             # noqa: F401
+from ccxt.async_implementation.kucoin import kucoin                             # noqa: F401
 from ccxt.async_implementation.kucoinfutures import kucoinfutures               # noqa: F401
 from ccxt.async_implementation.kuna import kuna                                 # noqa: F401
 from ccxt.async_implementation.latoken import latoken                           # noqa: F401
@@ -141,36 +143,36 @@ from ccxt.async_implementation.liquid import liquid                             
 from ccxt.async_implementation.luno import luno                                 # noqa: F401
 from ccxt.async_implementation.lykke import lykke                               # noqa: F401
 from ccxt.async_implementation.mercado import mercado                           # noqa: F401
-from ccxt.pro.mexc import mexc                                                  # noqa: F401
+from ccxt.async_implementation.mexc import mexc                                 # noqa: F401
 from ccxt.async_implementation.mexc3 import mexc3                               # noqa: F401
-from ccxt.pro.ndax import ndax                                                  # noqa: F401
+from ccxt.async_implementation.ndax import ndax                                 # noqa: F401
 from ccxt.async_implementation.novadax import novadax                           # noqa: F401
 from ccxt.async_implementation.oceanex import oceanex                           # noqa: F401
-from ccxt.pro.okcoin import okcoin                                              # noqa: F401
-from ccxt.pro.okex import okex                                                  # noqa: F401
+from ccxt.async_implementation.okcoin import okcoin                             # noqa: F401
+from ccxt.async_implementation.okex import okex                                 # noqa: F401
 from ccxt.async_implementation.okex5 import okex5                               # noqa: F401
-from ccxt.pro.okx import okx                                                    # noqa: F401
+from ccxt.async_implementation.okx import okx                                   # noqa: F401
 from ccxt.async_implementation.paymium import paymium                           # noqa: F401
-from ccxt.pro.phemex import phemex                                              # noqa: F401
+from ccxt.async_implementation.phemex import phemex                             # noqa: F401
 from ccxt.async_implementation.poloniex import poloniex                         # noqa: F401
 from ccxt.async_implementation.probit import probit                             # noqa: F401
 from ccxt.async_implementation.qtrade import qtrade                             # noqa: F401
-from ccxt.pro.ripio import ripio                                                # noqa: F401
+from ccxt.async_implementation.ripio import ripio                               # noqa: F401
 from ccxt.async_implementation.stex import stex                                 # noqa: F401
 from ccxt.async_implementation.therock import therock                           # noqa: F401
 from ccxt.async_implementation.tidebit import tidebit                           # noqa: F401
 from ccxt.async_implementation.tidex import tidex                               # noqa: F401
 from ccxt.async_implementation.timex import timex                               # noqa: F401
 from ccxt.async_implementation.tokocrypto import tokocrypto                     # noqa: F401
-from ccxt.pro.upbit import upbit                                                # noqa: F401
+from ccxt.async_implementation.upbit import upbit                               # noqa: F401
 from ccxt.async_implementation.wavesexchange import wavesexchange               # noqa: F401
 from ccxt.async_implementation.wazirx import wazirx                             # noqa: F401
-from ccxt.pro.whitebit import whitebit                                          # noqa: F401
+from ccxt.async_implementation.whitebit import whitebit                         # noqa: F401
 from ccxt.async_implementation.woo import woo                                   # noqa: F401
 from ccxt.async_implementation.yobit import yobit                               # noqa: F401
 from ccxt.async_implementation.zaif import zaif                                 # noqa: F401
-from ccxt.pro.zb import zb                                                      # noqa: F401
-from ccxt.pro.zipmex import zipmex                                              # noqa: F401
+from ccxt.async_implementation.zb import zb                                     # noqa: F401
+from ccxt.async_implementation.zipmex import zipmex                             # noqa: F401
 from ccxt.async_implementation.zonda import zonda                               # noqa: F401
 
 exchanges = [
@@ -294,56 +296,6 @@ exchanges = [
     'zb',
     'zipmex',
     'zonda',
-]
-
-pro = [
-    'aax',
-    'ascendex',
-    'bequant',
-    'binance',
-    'binancecoinm',
-    'binanceus',
-    'binanceusdm',
-    'bitcoincom',
-    'bitfinex',
-    'bitfinex2',
-    'bitmart',
-    'bitmex',
-    'bitopro',
-    'bitstamp',
-    'bittrex',
-    'bitvavo',
-    'bybit',
-    'coinbaseprime',
-    'coinbasepro',
-    'coinex',
-    'cryptocom',
-    'currencycom',
-    'deribit',
-    'exmo',
-    'ftx',
-    'ftxus',
-    'gate',
-    'gateio',
-    'hitbtc',
-    'hollaex',
-    'huobi',
-    'huobijp',
-    'huobipro',
-    'idex',
-    'kraken',
-    'kucoin',
-    'mexc',
-    'ndax',
-    'okcoin',
-    'okex',
-    'okx',
-    'phemex',
-    'ripio',
-    'upbit',
-    'whitebit',
-    'zb',
-    'zipmex',
 ]
 
 base = [

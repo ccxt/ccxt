@@ -62,7 +62,7 @@ class CCXTProTranspiler extends Transpiler {
 
     createPythonClassDeclaration (className, baseClass) {
         const baseClasses = (baseClass.indexOf ('Rest') >= 0) ?
-            [ 'Exchange', 'ccxt.async_support.' + baseClass.replace('Rest', '') ] :
+            [ 'Exchange', 'ccxt.async_implementation.' + baseClass.replace ('Rest','') ] :
             [ baseClass ]
         return 'class ' + className + '(' + baseClasses.join (', ') + '):'
     }
@@ -73,7 +73,7 @@ class CCXTProTranspiler extends Transpiler {
             'Exchange': 'base.exchange',
         }
 
-        async = (async ? '.async_support' : '')
+        async = (async ? '.async_implementation' : '')
 
         if (baseClass.indexOf ('Rest') >= 0) {
             baseClass = baseClass.replace ('Rest', '')
@@ -115,7 +115,7 @@ class CCXTProTranspiler extends Transpiler {
 
     createPHPClassDeclaration (className, baseClass) {
         let lines = [
-            'class ' + className + ' extends ' + '\\ccxt\\async\\' +  baseClass.replace ('Rest', '') + ' {',
+            'class ' + className + ' extends ' + '\\ccxt\\async_implementation\\' +  baseClass.replace ('Rest', '') + ' {',
         ]
         if (baseClass.indexOf ('Rest') >= 0) {
             lines = lines.concat ([

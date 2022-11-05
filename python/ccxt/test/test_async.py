@@ -18,7 +18,7 @@ sys.path.append(root)
 
 # ------------------------------------------------------------------------------
 
-import ccxt.async_support as ccxt  # noqa: E402
+import ccxt.async_implementation as ccxt  # noqa: E402
 from test_trade import test_trade  # noqa: E402
 from test_order import test_order  # noqa: E402
 from test_ohlcv import test_ohlcv  # noqa: E402

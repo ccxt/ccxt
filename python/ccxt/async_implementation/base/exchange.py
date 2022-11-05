@@ -17,7 +17,7 @@ import yarl
 
 # -----------------------------------------------------------------------------
 
-from ccxt.async_support.base.throttler import Throttler
+from ccxt.async_implementation.base.throttler import Throttler
 
 # -----------------------------------------------------------------------------
 
