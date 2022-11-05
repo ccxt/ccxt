@@ -960,15 +960,19 @@ class ftx(Exchange):
         price = self.safe_string(params, 'price')
         until = self.safe_integer(params, 'until')
         params = self.omit(params, ['price', 'until'])
-        if since is not None:
+        duration = self.parse_timeframe(timeframe)
+        now = self.seconds()
+        if since is None:  # Issue  #12855, inconsistent results if since is not provided
+            request['end_time'] = now
+            request['start_time'] = self.sum(now, -limit * duration)
+        else:
             startTime = int(since / 1000)
             request['start_time'] = startTime
-            duration = self.parse_timeframe(timeframe)
             endTime = self.sum(startTime, limit * duration)
-            request['end_time'] = min(endTime, self.seconds())
-            if duration > 86400:
-                wholeDaysInTimeframe = int(duration / 86400)
-                request['limit'] = min(limit * wholeDaysInTimeframe, maxLimit)
+            request['end_time'] = min(endTime, now)
+        if duration > 86400:
+            wholeDaysInTimeframe = int(duration / 86400)
+            request['limit'] = min(limit * wholeDaysInTimeframe, maxLimit)
         if until is not None:
             request['end_time'] = int(until / 1000)
         method = 'publicGetMarketsMarketNameCandles'
