@@ -217,6 +217,7 @@ module.exports = class bitmex extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/4789
                 'api-expires': 5, // in seconds
                 'fetchOHLCVOpenTimestamp': true,
+                'convertAmount': false,
             },
             'commonCurrencies': {
                 'USDt': 'USDT',
@@ -1774,10 +1775,12 @@ module.exports = class bitmex extends Exchange {
                 throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + market['type'] + ' orders, reduceOnly orders are supported for swap and future markets only');
             }
         }
+        const convertAmount = this.safeValue (this.options, 'convertAmount', false);
+        const orderQty = (convertAmount !== false) ? this.convertAmount (amount, market) : parseFloat (this.amountToPrecision (symbol, amount));
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
-            'orderQty': parseFloat (this.amountToPrecision (symbol, amount)), // lot size multiplied by the number of contracts
+            'orderQty': orderQty,
             'ordType': orderType,
         };
         if (reduceOnly) {
@@ -1806,6 +1809,7 @@ module.exports = class bitmex extends Exchange {
 
     async editOrder (id, symbol, type, side, amount = undefined, price = undefined, params = {}) {
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {};
         const origClOrdID = this.safeString2 (params, 'origClOrdID', 'clientOrderId');
         if (origClOrdID !== undefined) {
@@ -1818,8 +1822,10 @@ module.exports = class bitmex extends Exchange {
         } else {
             request['orderID'] = id;
         }
+        const convertAmount = this.safeValue (this.options, 'convertAmount', false);
+        const orderQty = (convertAmount !== false) ? this.convertAmount (amount, market) : parseFloat (this.amountToPrecision (symbol, amount));
         if (amount !== undefined) {
-            request['orderQty'] = amount;
+            request['orderQty'] = orderQty;
         }
         if (price !== undefined) {
             request['price'] = price;
@@ -2191,7 +2197,7 @@ module.exports = class bitmex extends Exchange {
         };
     }
 
-    convertValue (value, market = undefined) {
+    convertValue (value, market) {
         if ((value === undefined) || (market === undefined)) {
             return value;
         }
@@ -2212,6 +2218,20 @@ module.exports = class bitmex extends Exchange {
             }
         }
         resultValue = (resultValue !== undefined) ? parseFloat (resultValue) : undefined;
+        return resultValue;
+    }
+
+    convertAmount (amount, market) {
+        // Used to simplify 'orderQty' or 'amount' for post requests
+        // Inverse markets are not supported because 'underlyingToPositionMultiplier' is set to null
+        if ((amount === undefined) || (market === undefined)) {
+            return amount;
+        }
+        amount = this.numberToString (amount);
+        const symbol = market['symbol'];
+        const conversionMultiplier = market['info']['underlyingToPositionMultiplier'];
+        let resultValue = (conversionMultiplier !== null) ? Precise.stringMul (amount, conversionMultiplier) : undefined;
+        resultValue = (resultValue !== undefined) ? parseFloat (this.amountToPrecision (symbol, resultValue)) : undefined;
         return resultValue;
     }
 
