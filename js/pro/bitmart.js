@@ -316,6 +316,17 @@ module.exports = class bitmart extends bitmartRest {
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitmart#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the bitmart api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         symbol = this.symbol (symbol);
         const timeframes = this.safeValue (this.options, 'timeframes', {});
@@ -390,7 +401,7 @@ module.exports = class bitmart extends bitmartRest {
         const options = this.safeValue (this.options, 'watchOrderBook', {});
         const depth = this.safeString (options, 'depth', 'depth400');
         const orderbook = await this.subscribe (depth, symbol, params);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleDelta (bookside, delta) {

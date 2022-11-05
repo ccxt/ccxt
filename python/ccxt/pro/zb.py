@@ -165,7 +165,7 @@ class zb(Exchange, ccxt.async_support.zb):
             'method': self.handle_order_book,
         }
         orderbook = await self.watch(url, messageHash, message, messageHash, subscription)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_order_book(self, client, message, subscription):
         #

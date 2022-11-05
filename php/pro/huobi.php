@@ -235,6 +235,15 @@ class huobi extends \ccxt\async\huobi {
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of candles to fetch
+             * @param {array} $params extra parameters specific to the huobi api endpoint
+             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
@@ -314,7 +323,7 @@ class huobi extends \ccxt\async\huobi {
                 $params['data_type'] = 'incremental';
             }
             $orderbook = Async\await($this->subscribe_public($url, $symbol, $messageHash, array($this, 'handle_order_book_subscription'), $params));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 
@@ -408,7 +417,7 @@ class huobi extends \ccxt\async\huobi {
                 'method' => array($this, 'handle_order_book_snapshot'),
             );
             $orderbook = Async\await($this->watch($url, $requestId, $request, $requestId, $snapshotSubscription));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

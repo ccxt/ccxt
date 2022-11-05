@@ -449,7 +449,8 @@ class mexc3(Exchange):
                     '2009': InvalidOrder,  # {"success":false,"code":2009,"message":"Position is not exists or closed."}
                     '2011': BadRequest,
                     '30004': InsufficientFunds,
-                    '33333': 'BadRequest',  # {"msg":"Not support transfer","code":33333}
+                    '33333': BadRequest,  # {"msg":"Not support transfer","code":33333}
+                    '44444': BadRequest,
                     '1002': InvalidOrder,
                     '30019': BadRequest,
                     '30005': InvalidOrder,

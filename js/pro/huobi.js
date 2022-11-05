@@ -227,6 +227,17 @@ module.exports = class huobi extends huobiRest {
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the huobi api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -306,7 +317,7 @@ module.exports = class huobi extends huobiRest {
             params['data_type'] = 'incremental';
         }
         const orderbook = await this.subscribePublic (url, symbol, messageHash, this.handleOrderBookSubscription, params);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBookSnapshot (client, message, subscription) {
@@ -398,7 +409,7 @@ module.exports = class huobi extends huobiRest {
             'method': this.handleOrderBookSnapshot,
         };
         const orderbook = await this.watch (url, requestId, request, requestId, snapshotSubscription);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     async fetchOrderBookSnapshot (client, message, subscription) {

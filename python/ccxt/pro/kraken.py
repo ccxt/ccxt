@@ -268,9 +268,18 @@ class kraken(Exchange, ccxt.async_support.kraken):
             else:
                 raise NotSupported(self.id + ' watchOrderBook accepts limit values of 10, 25, 100, 500 and 1000 only')
         orderbook = await self.watch_public(name, symbol, self.extend(request, params))
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the kraken api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         name = 'ohlc'
         market = self.market(symbol)
@@ -690,6 +699,7 @@ class kraken(Exchange, ccxt.async_support.kraken):
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
         """
+        see https://docs.kraken.com/websockets/#message-openOrders
         watches information on multiple orders made by the user
         :param str|None symbol: unified market symbol of the market orders were made in
         :param int|None since: the earliest time in ms to fetch orders for
@@ -825,11 +835,34 @@ class kraken(Exchange, ccxt.async_support.kraken):
     def parse_ws_order(self, order, market=None):
         #
         # createOrder
-        #
-        #     {
-        #         descr: {order: 'buy 0.02100000 ETHUSDT @ limit 330.00'},
-        #         txid: ['OEKVV2-IH52O-TPL6GZ']
-        #     }
+        #    {
+        #        avg_price: '0.00000',
+        #        cost: '0.00000',
+        #        descr: {
+        #            close: null,
+        #            leverage: null,
+        #            order: 'sell 0.01000000 ETH/USDT @ limit 1900.00000',
+        #            ordertype: 'limit',
+        #            pair: 'ETH/USDT',
+        #            price: '1900.00000',
+        #            price2: '0.00000',
+        #            type: 'sell'
+        #        },
+        #        expiretm: null,
+        #        fee: '0.00000',
+        #        limitprice: '0.00000',
+        #        misc: '',
+        #        oflags: 'fciq',
+        #        opentm: '1667522705.757622',
+        #        refid: null,
+        #        starttm: null,
+        #        status: 'open',
+        #        stopprice: '0.00000',
+        #        timeinforce: 'GTC',
+        #        userref: 0,
+        #        vol: '0.01000000',
+        #        vol_exec: '0.00000000'
+        #    }
         #
         description = self.safe_value(order, 'descr', {})
         orderDescription = self.safe_string(description, 'order')
@@ -863,7 +896,7 @@ class kraken(Exchange, ccxt.async_support.kraken):
             price = self.safe_float(description, 'price2')
         if (price is None) or (price == 0.0):
             price = self.safe_float(order, 'price', price)
-        average = self.safe_float(order, 'price')
+        average = self.safe_float_2(order, 'avg_price', 'price')
         if market is not None:
             symbol = market['symbol']
             if 'fee' in order:

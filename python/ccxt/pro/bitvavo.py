@@ -141,6 +141,15 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
         client.resolve(tradesArray, messageHash)
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the bitvavo api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
@@ -240,7 +249,7 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
         }
         message = self.extend(request, params)
         orderbook = await self.watch(url, messageHash, message, messageHash, subscription)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)
@@ -310,7 +319,6 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
             client.resolve(orderbook, messageHash)
 
     async def watch_order_book_snapshot(self, client, message, subscription):
-        limit = self.safe_integer(subscription, 'limit')
         params = self.safe_value(subscription, 'params')
         marketId = self.safe_string(subscription, 'marketId')
         name = 'getBook'
@@ -321,7 +329,7 @@ class bitvavo(Exchange, ccxt.async_support.bitvavo):
             'market': marketId,
         }
         orderbook = await self.watch(url, messageHash, self.extend(request, params), messageHash, subscription)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_order_book_snapshot(self, client, message):
         #

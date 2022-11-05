@@ -188,7 +188,7 @@ class ripio extends \ccxt\async\ripio {
                 $this->delay($delay, array($this, 'fetch_order_book_snapshot'), $client, $subscription);
             }
             $orderbook = Async\await($this->watch($url, $messageHash, null, $messageHash, $subscription));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

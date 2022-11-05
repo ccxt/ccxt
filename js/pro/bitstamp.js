@@ -76,7 +76,7 @@ module.exports = class bitstamp extends bitstampRest {
         };
         const message = this.extend (request, params);
         const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     async fetchOrderBookSnapshot (client, message, subscription) {

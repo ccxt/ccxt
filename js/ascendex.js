@@ -195,6 +195,7 @@ module.exports = class ascendex extends Exchange {
                             'futures/contract': 1,
                             'futures/collateral': 1,
                             'futures/pricing-data': 1,
+                            'futures/ticker': 1,
                         },
                     },
                     'private': {
@@ -960,17 +961,29 @@ module.exports = class ascendex extends Exchange {
          * @method
          * @name ascendex#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://ascendex.github.io/ascendex-pro-api/#ticker
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#ticker
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the ascendex api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const request = {};
+        let market = undefined;
         if (symbols !== undefined) {
+            const symbol = this.safeValue (symbols, 0);
+            market = this.market (symbol);
             const marketIds = this.marketIds (symbols);
             request['symbol'] = marketIds.join (',');
         }
-        const response = await this.v1PublicGetTicker (this.extend (request, params));
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        let response = undefined;
+        if (type === 'spot') {
+            response = await this.v1PublicGetTicker (this.extend (request, params));
+        } else {
+            response = await this.v2PublicGetFuturesTicker (this.extend (request, params));
+        }
         //
         //     {
         //         "code":0,
@@ -990,6 +1003,9 @@ module.exports = class ascendex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
+        if (!Array.isArray (data)) {
+            return this.parseTickers ([ data ], symbols);
+        }
         return this.parseTickers (data, symbols);
     }
 

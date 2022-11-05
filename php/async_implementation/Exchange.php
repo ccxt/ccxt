@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.1.9';
+$version = '2.1.32';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.1.9';
+    const VERSION = '2.1.32';
 
     public $browser;
     public $marketsLoading = null;
@@ -637,6 +637,9 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+        if ($type === 'market' && $takerOrMaker === 'maker') {
+            throw new ArgumentsRequired($this->id . ' calculateFee() - you have provided incompatible arguments - "market" $type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.');
+        }
         $market = $this->markets[$symbol];
         $feeSide = $this->safe_string($market, 'feeSide', 'quote');
         $key = 'quote';
@@ -668,13 +671,13 @@ class Exchange extends \ccxt\Exchange {
         }
         // for derivatives, the fee is in 'settle' currency
         if (!$market['spot']) {
-            $key = $this->safe_string($market, 'settle', $key);
+            $key = 'settle';
         }
         // even if `$takerOrMaker` argument was set to 'maker', for 'market' orders we should forcefully override it to 'taker'
         if ($type === 'market') {
             $takerOrMaker = 'taker';
         }
-        $rate = $this->number_to_string($market[$takerOrMaker]);
+        $rate = $this->safe_string($market, $takerOrMaker);
         if ($cost !== null) {
             $cost = Precise::string_mul($cost, $rate);
         }

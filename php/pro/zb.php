@@ -185,7 +185,7 @@ class zb extends \ccxt\async\zb {
                 'method' => array($this, 'handle_order_book'),
             );
             $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

@@ -1586,7 +1586,7 @@ class okx extends Exchange {
         }
         $duration = $this->parse_timeframe($timeframe);
         $bar = $this->timeframes[$timeframe];
-        if (($timezone === 'UTC') && ($duration >= 21600000)) {
+        if (($timezone === 'UTC') && ($duration >= 21600)) { // if utc and $timeframe >= 6h
             $bar .= strtolower($timezone);
         }
         $request = array(
@@ -1689,6 +1689,7 @@ class okx extends Exchange {
             $rate = $data[$i];
             $timestamp = $this->safe_number($rate, 'fundingTime');
             $rates[] = array(
+                'info' => $rate,
                 'symbol' => $this->safe_symbol($this->safe_string($rate, 'instId')),
                 'fundingRate' => $this->safe_number($rate, 'realizedRate'),
                 'timestamp' => $timestamp,

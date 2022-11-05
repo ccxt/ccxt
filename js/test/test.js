@@ -301,9 +301,7 @@ async function testExchange (exchange) {
 
     exchange.checkRequiredCredentials ();
 
-    if (exchange['has']['signIn']) {
-        await exchange.signIn ();
-    }
+    await test ('signIn', exchange);
 
     // move to testnet/sandbox if possible before accessing the balance
     // if (exchange.urls['test'])

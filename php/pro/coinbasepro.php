@@ -196,7 +196,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                 'limit' => $limit,
             );
             $orderbook = Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscription));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

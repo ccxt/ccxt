@@ -357,7 +357,9 @@ class lbank extends Exchange {
         $id = $this->safe_string($trade, 'tid');
         $type = null;
         $side = $this->safe_string($trade, 'type');
-        $side = str_replace('_market', '', $side);
+        // remove $type additions from i.e. buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
+        $splited = explode('_', $side);
+        $side = $splited[0];
         return array(
             'id' => $id,
             'info' => $this->safe_value($trade, 'info', $trade),

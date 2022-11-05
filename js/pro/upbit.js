@@ -95,7 +95,7 @@ module.exports = class upbit extends upbitRest {
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         const orderbook = await this.watchPublic (symbol, 'orderbook');
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleTicker (client, message) {

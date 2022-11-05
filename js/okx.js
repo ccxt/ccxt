@@ -1608,7 +1608,7 @@ module.exports = class okx extends Exchange {
         }
         const duration = this.parseTimeframe (timeframe);
         let bar = this.timeframes[timeframe];
-        if ((timezone === 'UTC') && (duration >= 21600000)) {
+        if ((timezone === 'UTC') && (duration >= 21600)) { // if utc and timeframe >= 6h
             bar += timezone.toLowerCase ();
         }
         const request = {
@@ -1713,6 +1713,7 @@ module.exports = class okx extends Exchange {
             const rate = data[i];
             const timestamp = this.safeNumber (rate, 'fundingTime');
             rates.push ({
+                'info': rate,
                 'symbol': this.safeSymbol (this.safeString (rate, 'instId')),
                 'fundingRate': this.safeNumber (rate, 'realizedRate'),
                 'timestamp': timestamp,
