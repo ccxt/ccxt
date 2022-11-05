@@ -2352,13 +2352,13 @@ module.exports = class bitget extends Exchange {
         return this.parseOrders (data, market, since, limit);
     }
 
-    async fetchOrdersByStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchOrdersUsingStatus (status, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOrdersByStatus() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchOrdersUsingStatus() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrdersByStatus', market, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrdersUsingStatus', market, params);
         const request = {
             'symbol': market['id'],
         };
@@ -2467,7 +2467,7 @@ module.exports = class bitget extends Exchange {
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        return await this.fetchOrdersByStatus ('closed', symbol, since, limit, params);
+        return await this.fetchOrdersUsingStatus ('closed', symbol, since, limit, params);
     }
 
     async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2483,7 +2483,7 @@ module.exports = class bitget extends Exchange {
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        return await this.fetchOrdersByStatus ('canceled', symbol, since, limit, params);
+        return await this.fetchOrdersUsingStatus ('canceled', symbol, since, limit, params);
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {
