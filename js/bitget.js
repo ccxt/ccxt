@@ -86,31 +86,18 @@ module.exports = class bitget extends Exchange {
                 'withdraw': false,
             },
             'timeframes': {
-                'spot': {
-                    '1m': '1min',
-                    '5m': '5min',
-                    '15m': '15min',
-                    '30m': '30min',
-                    '1h': '1h',
-                    '4h': '4h',
-                    '6h': '6h',
-                    '12h': '12h',
-                    '1d': '1day',
-                    '3d': '3day',
-                    '1w': '1week',
-                    '1M': '1M',
-                },
-                'swap': {
-                    '1m': '60',
-                    '5m': '300',
-                    '15m': '900',
-                    '30m': '1800',
-                    '1h': '3600',
-                    '4h': '14400',
-                    '12h': '43200',
-                    '1d': '86400',
-                    '1w': '604800',
-                },
+                '1m': '1m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '4h': '4h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '1d',
+                '3d': '3d',
+                '1w': '1w',
+                '1M': '1M',
             },
             'hostname': 'bitget.com',
             'urls': {
@@ -758,6 +745,33 @@ module.exports = class bitget extends Exchange {
                 'JADE': 'Jade Protocol',
             },
             'options': {
+                'timeframes': {
+                    'spot': {
+                        '1m': '1min',
+                        '5m': '5min',
+                        '15m': '15min',
+                        '30m': '30min',
+                        '1h': '1h',
+                        '4h': '4h',
+                        '6h': '6h',
+                        '12h': '12h',
+                        '1d': '1day',
+                        '3d': '3day',
+                        '1w': '1week',
+                        '1M': '1M',
+                    },
+                    'swap': {
+                        '1m': '60',
+                        '5m': '300',
+                        '15m': '900',
+                        '30m': '1800',
+                        '1h': '3600',
+                        '4h': '14400',
+                        '12h': '43200',
+                        '1d': '86400',
+                        '1w': '604800',
+                    },
+                },
                 'fetchMarkets': [
                     'spot',
                     'swap',
@@ -1972,12 +1986,12 @@ module.exports = class bitget extends Exchange {
             limit = 100;
         }
         if (market['type'] === 'spot') {
-            request['period'] = this.timeframes['spot'][timeframe];
+            request['period'] = this.options['timeframes']['spot'][timeframe];
             request['limit'] = limit;
             if (since !== undefined) {
                 request['after'] = since;
                 if (until === undefined) {
-                    const millisecondsPerTimeframe = this.timeframes['swap'][timeframe] * 1000;
+                    const millisecondsPerTimeframe = this.options['timeframes']['swap'][timeframe] * 1000;
                     request['before'] = this.sum (since, millisecondsPerTimeframe * limit);
                 }
             }
@@ -1985,7 +1999,7 @@ module.exports = class bitget extends Exchange {
                 request['before'] = until;
             }
         } else if (market['type'] === 'swap') {
-            request['granularity'] = this.timeframes['swap'][timeframe];
+            request['granularity'] = this.options['timeframes']['swap'][timeframe];
             const duration = this.parseTimeframe (timeframe);
             const now = this.milliseconds ();
             if (since === undefined) {
