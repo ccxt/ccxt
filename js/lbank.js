@@ -366,7 +366,9 @@ module.exports = class lbank extends Exchange {
         const id = this.safeString (trade, 'tid');
         const type = undefined;
         let side = this.safeString (trade, 'type');
-        side = side.replace ('_market', '');
+        // remove type additions from i.e. buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
+        const splited = side.split ('_');
+        side = splited[0];
         return {
             'id': id,
             'info': this.safeValue (trade, 'info', trade),
