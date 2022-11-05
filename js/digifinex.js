@@ -517,7 +517,7 @@ module.exports = class digifinex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber (this.parsePrecision (this.safeString2 (market, 'amount_precision', 'tick_size'))),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'amount_precision'))),
                     'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'price_precision'))),
                 },
                 'limits': {
@@ -530,7 +530,7 @@ module.exports = class digifinex extends Exchange {
                         'max': undefined,
                     },
                     'price': {
-                        'min': undefined,
+                        'min': this.safeNumber (market, 'tick_size'),
                         'max': undefined,
                     },
                     'cost': {
