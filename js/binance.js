@@ -1431,12 +1431,9 @@ module.exports = class binance extends Exchange {
                 }
                 // precision:
                 const precisionValue = this.safeString (networkItem, 'withdrawIntegerMultiple');
-                if (!Precise.stringEq (precisionValue, '0')) { // https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
-                    if (maxPrecision === undefined) {
-                        maxPrecision = precisionValue;
-                    } else {
-                        maxPrecision = Precise.stringMin (maxPrecision, precisionValue);
-                    }
+                // avoid zero : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
+                if (!Precise.stringEq (precisionValue, '0')) {
+                    maxPrecision = (maxPrecision === undefined) ? precisionValue : Precise.stringMin (maxPrecision, precisionValue);
                 }
             }
             const finalPrecision = this.parseNumber (this.numberToString (this.precisionFromString (maxPrecision)));
