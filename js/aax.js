@@ -3238,6 +3238,46 @@ module.exports = class aax extends Exchange {
         };
     }
 
+    async fetchTransactionFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#fetchTransactionFees
+         * @description fetch transaction fees
+         * @see https://www.aax.com/apidoc/index.html#get-currencies
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const currencyKeys = Object.keys (this.currencies);
+        const result = {};
+        for (let i = 0; i < currencyKeys.length; i++) {
+            const code = currencyKeys[i];
+            const currency = this.currencies[code];
+            if (codes !== undefined && !this.inArray (code, codes)) {
+                continue;
+            }
+            let info = undefined;
+            const networks = this.safeValue (currency, 'networks');
+            const lengthNetworks = networks.length;
+            if (lengthNetworks > 0) {
+                info = [];
+                for (let j = 0; j < networks.length; j++) {
+                    const network = networks[j];
+                    info.push (this.safeValue (network, 'info'));
+                }
+            } else {
+                info = this.safeValue (currency, 'info');
+            }
+            result[code] = {
+                'withdraw': this.safeNumber (currency, 'fee'),
+                'deposit': undefined,
+                'info': info,
+            };
+        }
+        return result;
+    }
+
     nonce () {
         return this.milliseconds ();
     }
