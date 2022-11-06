@@ -283,6 +283,7 @@ module.exports = class bybit extends Exchange {
                         'asset/v1/private/asset-info/query': 50,
                         'asset/v1/private/deposit/address': 100,
                         'asset/v1/private/universal/transfer/list': 50,
+                        'asset/v3/private/transfer/inter-transfer/list/query': 50,
                         'contract/v3/private/copytrading/order/list': 1,
                         'contract/v3/private/copytrading/position/list': 1,
                         'contract/v3/private/copytrading/wallet/balance': 1,
@@ -370,6 +371,7 @@ module.exports = class bybit extends Exchange {
                         'asset/v1/private/withdraw/cancel': 50,
                         'asset/v1/private/transferable-subs/save': 3000,
                         'asset/v1/private/universal/transfer': 1500,
+                        'asset/v3/private/transfer/inter-transfer': 1500,
                         // USDC endpoints
                         // option USDC
                         'option/usdc/openapi/private/v1/place-order': 2.5,
@@ -5122,46 +5124,42 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#transfer
          * @description transfer currency internally between wallets on the same account
-         * @see https://bybit-exchange.github.io/docs/account_asset/#t-createinternaltransfer
+         * @see https://bybit-exchange.github.io/docs/account_asset/v3/#t-createinternaltransfer
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} params extra parameters specific to the bybit api endpoint
-         * @param {string} params.transfer_id UUID, which is unique across the platform
+         * @param {string} params.transferId UUID, which is unique across the platform
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         await this.loadMarkets ();
-        const transferId = this.safeString (params, 'transfer_id', this.uuid ());
+        const transferId = this.safeString (params, 'transferId', this.uuid ());
         const accountTypes = this.safeValue (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountTypes, fromAccount, fromAccount);
         const toId = this.safeString (accountTypes, toAccount, toAccount);
         const currency = this.currency (code);
         const amountToPrecision = this.currencyToPrecision (code, amount);
         const request = {
-            'transfer_id': transferId,
-            'from_account_type': fromId,
-            'to_account_type': toId,
+            'transferId': transferId,
+            'fromAccountType': fromId,
+            'toAccountType': toId,
             'coin': currency['id'],
             'amount': amountToPrecision,
         };
-        const response = await this.privatePostAssetV1PrivateTransfer (this.extend (request, params));
+        const response = await this.privatePostAssetV3PrivateTransferInterTransfer (this.extend (request, params));
         //
         //     {
-        //         "ret_code": 0,
-        //         "ret_msg": "OK",
-        //         "ext_code": "",
+        //         "retCode": 0,
+        //         "retMsg": "success",
         //         "result": {
-        //             "transfer_id": "22c2bc11-ed5b-49a4-8647-c4e0f5f6f2b2"
+        //             "transferId": "2e6e011c-4c31-4f68-8c79-ec8f6c69c4f6"
         //         },
-        //         "ext_info": null,
-        //         "time_now": 1658433382570,
-        //         "rate_limit_status": 19,
-        //         "rate_limit_reset_ms": 1658433382570,
-        //         "rate_limit": 1
+        //         "retExtInfo": {},
+        //         "time": 1667721390267
         //     }
         //
-        const timestamp = this.safeInteger (response, 'time_now');
+        const timestamp = this.safeInteger (response, 'time');
         const transfer = this.safeValue (response, 'result', {});
         return this.extend (this.parseTransfer (transfer, currency), {
             'timestamp': timestamp,
@@ -5169,7 +5167,7 @@ module.exports = class bybit extends Exchange {
             'amount': this.parseNumber (amountToPrecision),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': this.parseTransferStatus (this.safeString2 (response, 'ret_code', 'ret_msg')),
+            'status': this.parseTransferStatus (this.safeString2 (response, 'retCode', 'retMsg')),
         });
     }
 
@@ -5178,7 +5176,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchTransfers
          * @description fetch a history of internal transfers made on an account
-         * @see https://bybit-exchange.github.io/docs/account_asset/#t-querytransferlist
+         * @see https://bybit-exchange.github.io/docs/account_asset/v3/#t-querytransferlist
          * @param {string|undefined} code unified currency code of the currency transferred
          * @param {int|undefined} since the earliest time in ms to fetch transfers for
          * @param {int|undefined} limit the maximum number of  transfers structures to retrieve
@@ -5193,36 +5191,32 @@ module.exports = class bybit extends Exchange {
             request['coin'] = currency['id'];
         }
         if (since !== undefined) {
-            request['start_time'] = since;
+            request['startTime'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetAssetV1PrivateTransferList (this.extend (request, params));
+        const response = await this.privateGetAssetV3PrivateTransferInterTransferListQuery (this.extend (request, params));
         //
         //     {
-        //         "ret_code": 0,
-        //         "ret_msg": "OK",
-        //         "ext_code": "",
+        //         "retCode": 0,
+        //         "retMsg": "success",
         //         "result": {
         //             "list": [
         //                 {
-        //                     "transfer_id": "3976014d-f3d2-4843-b3bb-1cd006babcde",
+        //                     "transferId": "selfTransfer_8d0a7a43-6710-45e1-bb69-33d22d07bda8",
         //                     "coin": "USDT",
-        //                     "amount": "15",
-        //                     "from_account_type": "SPOT",
-        //                     "to_account_type": "CONTRACT",
-        //                     "timestamp": "1658433935",
+        //                     "amount": "154.5455",
+        //                     "fromAccountType": "CONTRACT",
+        //                     "toAccountType": "SPOT",
+        //                     "timestamp": "1660800699000",
         //                     "status": "SUCCESS"
         //                 },
         //             ],
-        //             "cursor": "eyJtaW5JRCI6MjMwNDM0MjIsIm1heElEIjozMTI5Njg4OX0="
+        //             "nextPageCursor": "eyJtaW5JRCI6MzA4MTgyNDQsIm1heElEIjozNTQ4Nzc0MH0="
         //         },
-        //         "ext_info": null,
-        //         "time_now": 1658436371045,
-        //         "rate_limit_status": 59,
-        //         "rate_limit_reset_ms": 1658436371045,
-        //         "rate_limit": 1
+        //         "retExtInfo": {},
+        //         "time": 1667721094240
         //     }
         //
         const data = this.safeValue (response, 'result', {});
@@ -5334,6 +5328,7 @@ module.exports = class bybit extends Exchange {
             '0': 'ok',
             'OK': 'ok',
             'SUCCESS': 'ok',
+            'success': 'ok',
         };
         return this.safeString (statuses, status, status);
     }
@@ -5343,31 +5338,31 @@ module.exports = class bybit extends Exchange {
         // transfer
         //
         //     {
-        //         "transfer_id": "22c2bc11-ed5b-49a4-8647-c4e0f5f6f2b2"
+        //         "transferId": "22c2bc11-ed5b-49a4-8647-c4e0f5f6f2b2"
         //     },
         //
         // fetchTransfers
         //
         //     {
-        //         "transfer_id": "3976014d-f3d2-4843-b3bb-1cd006babcde",
+        //         "transferId": "3976014d-f3d2-4843-b3bb-1cd006babcde",
         //         "coin": "USDT",
         //         "amount": "15",
-        //         "from_account_type": "SPOT",
-        //         "to_account_type": "CONTRACT",
-        //         "timestamp": "1658433935",
+        //         "fromAccountType": "SPOT",
+        //         "toAccountType": "CONTRACT",
+        //         "timestamp": "1658986298000",
         //         "status": "SUCCESS"
         //     },
         //
         const currencyId = this.safeString (transfer, 'coin');
-        const timestamp = this.safeTimestamp (transfer, 'timestamp');
-        const fromAccountId = this.safeString (transfer, 'from_account_type');
-        const toAccountId = this.safeString (transfer, 'to_account_type');
+        const timestamp = this.safeInteger (transfer, 'timestamp');
+        const fromAccountId = this.safeString (transfer, 'fromAccountType');
+        const toAccountId = this.safeString (transfer, 'toAccountType');
         const accountIds = this.safeValue (this.options, 'accountsById', {});
         const fromAccount = this.safeString (accountIds, fromAccountId, fromAccountId);
         const toAccount = this.safeString (accountIds, toAccountId, toAccountId);
         return {
             'info': transfer,
-            'id': this.safeString (transfer, 'transfer_id'),
+            'id': this.safeString (transfer, 'transferId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'currency': this.safeCurrencyCode (currencyId, currency),
