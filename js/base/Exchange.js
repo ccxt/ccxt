@@ -2217,11 +2217,11 @@ module.exports = class Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (this.fetchOpenOrders !== undefined) {
-            throw new NotSupported (this.id + ' fetchOrder() is not supported yet, but you can use fetchOpenOrders() for this exchange instead');
+        if (this.has['fetchOpenOrders'] !== undefined) {
+            throw new NotSupported (this.id + ' fetchOrders() is not supported yet, but you can use fetchOpenOrders() for this exchange instead');
         }
-        if (this.fetchClosedOrders !== undefined) {
-            throw new NotSupported (this.id + ' fetchOrder() is not supported yet, but you can use fetchClosedOrders() instead');
+        if (this.has['fetchClosedOrders']  !== undefined) {
+            throw new NotSupported (this.id + ' fetchOrders() is not supported yet, but you can use fetchClosedOrders() instead');
         }
         throw new NotSupported (this.id + ' fetchOrders() is not supported yet');
     }
