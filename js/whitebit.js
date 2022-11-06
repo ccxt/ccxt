@@ -464,38 +464,44 @@ module.exports = class whitebit extends Exchange {
         //      }
         //
         const result = {};
-        let withdraw = {};
-        let deposit = {};
         if (codes === undefined) {
             codes = Object.keys (response);
         }
         for (let i = 0; i < codes.length; i++) {
-            const currency = codes[i];
-            const data = response[currency];
-            const code = this.safeCurrencyCode (currency);
+            const currencyId = codes[i];
+            const data = response[currencyId];
+            const code = this.safeCurrencyCode (this.safeValue (data, 'ticker'));
+            result[code] = {
+                'withdraw': {},
+                'deposit': {},
+                'info': undefined,
+            };
             const withdrawInfo = this.safeValue (data, 'withdraw', {});
             const depositInfo = this.safeValue (data, 'deposit', {});
             const providers = this.safeValue (data, 'providers', []);
             const providersLen = providers.length;
-            if (providersLen > 0) {
-                for (let j = 0; j < providers.length; j++) {
-                    const provider = providers[j];
-                    withdraw[provider] = this.safeNumber (this.safeValue (withdrawInfo, provider), 'fixed');
-                    deposit[provider] = this.safeNumber (this.safeValue (depositInfo, provider), 'fixed');
-                }
+            const multipleNetworks = (currencyId.indexOf ('(') >= 0);
+            if (multipleNetworks) {
+                console.log (multipleNetworks, currencyId);
+                const network = this.safeValue (currencyId.split ('('), 1).replace (')', '');
+                result[code]['withdraw'][network] = this.safeNumber (withdrawInfo, 'fixed');
+                result[code]['deposit'][network] = this.safeNumber (depositInfo, 'fixed');
+                console.log (result[code]);
             } else {
-                withdraw = this.safeNumber (withdrawInfo, 'fixed');
-                deposit = this.safeNumber (depositInfo, 'fixed');
+                if (providersLen > 0) {
+                    for (let j = 0; j < providers.length; j++) {
+                        const provider = providers[j];
+                        result[code]['withdraw'][provider] = this.safeNumber (this.safeValue (withdrawInfo, provider), 'fixed');
+                        result[code]['deposit'][provider] = this.safeNumber (this.safeValue (depositInfo, provider), 'fixed');
+                    }
+                } else {
+                    result[code]['withdraw'] = this.safeNumber (withdrawInfo, 'fixed');
+                    result[code]['deposit'] = this.safeNumber (depositInfo, 'fixed');
+                }
             }
-            result[code] = {
-                'withdraw': withdraw,
-                'deposit': deposit,
-                'info': data,
-            };
-            withdraw = {};
-            deposit = {};
+            result[code]['info'] = data;
         }
-        return result;
+        // return result;
     }
 
     async fetchTradingFees (params = {}) {
