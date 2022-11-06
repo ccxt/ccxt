@@ -1527,7 +1527,9 @@ module.exports = class deribit extends Exchange {
         if (market['inverse']) { // amount returned in USD
             cost = Precise.stringDiv (amount, averageString);
             amount = undefined;
-            filledString = Precise.stringDiv (filledString, averageString);
+            if (this.parseNumber (averageString) !== 0) {
+                filledString = Precise.stringDiv (filledString, averageString);
+            }
         }
         let lastTradeTimestamp = undefined;
         if (filledString !== undefined) {
