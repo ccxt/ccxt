@@ -3582,9 +3582,14 @@ module.exports = class bybit extends Exchange {
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
+        let market = undefined;
+        const symbolDefined = (market !== undefined);
+        if (symbolDefined) {
+            market = this.market (symbol);
+        }
         let marketType = undefined;
-        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', undefined, params);
-        if (symbol === undefined) {
+        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+        if (!symbolDefined) {
             if (marketType !== 'spot') {
                 throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
             }
@@ -3599,10 +3604,7 @@ module.exports = class bybit extends Exchange {
             // spot orders
             // 'orderId': id
         };
-        let market = undefined;
-        const symbolDefined = (market !== undefined);
         if (symbolDefined) {
-            market = this.market (symbol);
             request['symbol'] = market['id'];
         }
         const isSpotMarket = (symbolDefined && market['spot']) || (!symbolDefined && (marketType === 'spot'));
@@ -5614,17 +5616,17 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#transfer
          * @description transfer currency internally between wallets on the same account
-         * @see https://bybit-exchange.github.io/docs/account_asset/#t-createinternaltransfer
+         * @see https://bybit-exchange.github.io/docs/account_asset/v3/#t-createinternaltransfer
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} params extra parameters specific to the bybit api endpoint
-         * @param {string} params.transfer_id UUID, which is unique across the platform
+         * @param {string} params.transferId UUID, which is unique across the platform
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         await this.loadMarkets ();
-        const transferId = this.safeString (params, 'transfer_id', this.uuid ());
+        const transferId = this.safeString (params, 'transferId', this.uuid ());
         const accountTypes = this.safeValue (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountTypes, fromAccount, fromAccount);
         const toId = this.safeString (accountTypes, toAccount, toAccount);
@@ -5656,21 +5658,23 @@ module.exports = class bybit extends Exchange {
         //     "retCode": 0,
         //     "retMsg": "success",
         //     "result": {
-        //         "transferId": "4244af44-f3b0-4cf6-a743-b56560e987bc"
+        //         "transferId": "4244af44-f3b0-4cf6-a743-b56560e987bc" // transfer_id in v1
         //     },
         //     "retExtInfo": {},
         //     "time": 1666875857205
         // }
         //
-        const timestamp = this.safeInteger (response, 'time');
+        const timestamp = this.safeInteger2 (response, 'time', 'time_now');
         const transfer = this.safeValue (response, 'result', {});
+        const statusRaw = this.safeStringN (response, [ 'retCode', 'retMsg', 'ret_code', 'ret_msg' ]);
+        const status = this.parseTransferStatus (statusRaw);
         return this.extend (this.parseTransfer (transfer, currency), {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'amount': this.parseNumber (amountToPrecision),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': this.parseTransferStatus (this.safeString2 (response, 'retCode', 'retMsg')),
+            'status': status,
         });
     }
 
@@ -5679,7 +5683,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchTransfers
          * @description fetch a history of internal transfers made on an account
-         * @see https://bybit-exchange.github.io/docs/account_asset/#t-querytransferlist
+         * @see https://bybit-exchange.github.io/docs/account_asset/v3/#t-querytransferlist
          * @param {string|undefined} code unified currency code of the currency transferred
          * @param {int|undefined} since the earliest time in ms to fetch transfers for
          * @param {int|undefined} limit the maximum number of  transfers structures to retrieve
@@ -5850,31 +5854,31 @@ module.exports = class bybit extends Exchange {
         // transfer
         //
         //     {
-        //         "transferId": "22c2bc11-ed5b-49a4-8647-c4e0f5f6f2b2"
+        //         "transferId": "22c2bc11-ed5b-49a4-8647-c4e0f5f6f2b2" // transfer_id in v1
         //     }
         //
         // fetchTransfers
         //
         //     {
-        //         "transferId": "e9c421c4-b010-4b16-abd6-106179f27702",
+        //         "transferId": "e9c421c4-b010-4b16-abd6-106179f27702", // transfer_id in v1
         //         "coin": "USDT",
         //         "amount": "8",
-        //         "fromAccountType": "FUND",
-        //         "toAccountType": "SPOT",
+        //         "fromAccountType": "FUND", // from_account_type in v1
+        //         "toAccountType": "SPOT", // to_account_type in v1
         //         "timestamp": "1666879426000",
         //         "status": "SUCCESS"
         //      }
         //
         const currencyId = this.safeString (transfer, 'coin');
         const timestamp = this.safeTimestamp (transfer, 'timestamp');
-        const fromAccountId = this.safeString (transfer, 'fromAccountType');
-        const toAccountId = this.safeString (transfer, 'toAccountType');
+        const fromAccountId = this.safeString2 (transfer, 'fromAccountType', 'from_account_type');
+        const toAccountId = this.safeString2 (transfer, 'toAccountType', 'to_account_type');
         const accountIds = this.safeValue (this.options, 'accountsById', {});
         const fromAccount = this.safeString (accountIds, fromAccountId, fromAccountId);
         const toAccount = this.safeString (accountIds, toAccountId, toAccountId);
         return {
             'info': transfer,
-            'id': this.safeString (transfer, 'transferId'),
+            'id': this.safeString2 (transfer, 'transferId', 'transfer_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'currency': this.safeCurrencyCode (currencyId, currency),
