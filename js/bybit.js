@@ -5491,7 +5491,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchBorrowRate
          * @description fetch the rate of interest to borrow a currency for margin trading
-         * @see https://bybit-exchange.github.io/docs/spot/#t-queryinterestquota
+         * @see https://bybit-exchange.github.io/docs/spot/v3/#t-queryinterestquota
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
@@ -5736,7 +5736,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#borrowMargin
          * @description create a loan to borrow margin
-         * @see https://bybit-exchange.github.io/docs/spot/#t-borrowmarginloan
+         * @see https://bybit-exchange.github.io/docs/spot/v3/#t-borrowmarginloan
          * @param {string} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
          * @param {string|undefined} symbol not used by bybit.borrowMargin ()
@@ -5778,7 +5778,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#repayMargin
          * @description repay borrowed margin and interest
-         * @see https://bybit-exchange.github.io/docs/spot/#t-repaymarginloan
+         * @see https://bybit-exchange.github.io/docs/spot/v3/#t-repaymarginloan
          * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
          * @param {string|undefined} symbol not used by bybit.repayMargin ()
