@@ -3,7 +3,7 @@
 
 import bitoproRest from '../bitopro.js';
 import { ExchangeError } from '../base/errors.js';
-import { ArrayCache } from './base/Cache.js';
+import { ArrayCache } from ../base/ws/Cache.js';
 
 // ----------------------------------------------------------------------------
 

@@ -3,7 +3,7 @@
 
 import idexRest from '../idex.js'
 import { InvalidNonce } from '../base/errors.js';
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from ../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 

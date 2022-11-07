@@ -3,7 +3,7 @@
 
 import ascendexRest from '../ascendex.js';
 import { AuthenticationError } from '../base/errors.js';
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from ../base/ws/Cache.js';
 //  ---------------------------------------------------------------------------
 
 export default class ascendex extends ascendexRest {

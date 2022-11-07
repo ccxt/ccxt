@@ -3,7 +3,7 @@
 
 import bitfinexRest from '../bitfinex.js';
 import { ExchangeError, AuthenticationError } from '../base/errors.js';
-import { ArrayCache, ArrayCacheBySymbolById } from './base/Cache.js';
+import { ArrayCache, ArrayCacheBySymbolById } from ../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 

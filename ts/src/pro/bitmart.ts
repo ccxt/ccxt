@@ -3,7 +3,7 @@
 
 import bitmartRest from '../bitmart.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from ../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 

@@ -3,7 +3,7 @@
 
 import exmoRest from '../exmo.js';
 import { NotSupported } from '../base/errors.js';
-import { ArrayCache, ArrayCacheBySymbolById } from './base/Cache.js';
+import { ArrayCache, ArrayCacheBySymbolById } from ../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
