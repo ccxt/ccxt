@@ -135,17 +135,22 @@ const {
 
 import BN from '../static_dependencies/BN/bn.cjs'
 import { Precise } from './Precise.js'
+
+//-----------------------------------------------------------------------------
+import WsClient from './ws/WsClient.js';
+import { OrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
+
 // ----------------------------------------------------------------------------
 // 
 
 // import types
-import {Market, OrderBook, Trade, Fee, Ticker} from './types'
-export {Market, OrderBook, Trade, Fee, Ticker} from './types'
+import {Market, Trade, Fee, Ticker} from './types'
+export {Market, Trade, Fee, Ticker} from './types'
 
 
 // ----------------------------------------------------------------------------
 // move this elsewhere
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../pro/base/Cache.js'
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './ws/Cache.js'
 
 // ----------------------------------------------------------------------------
 export default class Exchange {
@@ -270,8 +275,10 @@ export default class Exchange {
 
     targetAccount = undefined
     
-    clients = undefined
+    // WS/PRO options
+    clients = {}
     newUpdates = true
+    streaming = {}
 
     deepExtend = deepExtend
     isNode = isNode
@@ -1219,17 +1226,21 @@ export default class Exchange {
     // -----------------------------------------------------------------------
     // WS/PRO methods
 
-    inflate (data) {
-        return functions.inflate (data);
-    }
+    // inflate (data) {
+    //     return functions.inflate (data);
+    // }
 
-    inflate64 (data) {
-        return functions.inflate64 (data);
-    }
+    // inflate64 (data) {
+    //     return functions.inflate64 (data);
+    // }
 
-    gunzip (data) {
-        return functions.gunzip (data);
-    }
+    // gunzip (data) {
+    //     return functions.gunzip (data);
+    // }
+
+    handleMessage (client, message) {} // stub to override
+
+    ping (client) {} // stub to override
 
     orderBook (snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
         return new OrderBook (snapshot, depth);
@@ -1243,7 +1254,7 @@ export default class Exchange {
         return new CountedOrderBook (snapshot, depth);
     }
 
-    client (url) {
+    client (url): WsClient {
         this.clients = this.clients || {};
         if (!this.clients[url]) {
             const onMessage = this.handleMessage.bind (this);
@@ -1281,7 +1292,7 @@ export default class Exchange {
         //
         // The following is a longer version of this method with comments
         //
-        const client = this.client (url);
+        const client = this.client (url) as WsClient;
         // todo: calculate the backoff using the clients cache
         const backoffDelay = 0;
         //
@@ -1351,7 +1362,7 @@ export default class Exchange {
     async close () {
         const clients = Object.values (this.clients || {});
         for (let i = 0; i < clients.length; i++) {
-            const client = clients[i];
+            const client = clients[i] as WsClient;
             delete this.clients[client.url];
             await client.close ();
         }
@@ -2238,7 +2249,7 @@ export default class Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
-        };
+        } as any;
     }
 
     parseOHLCVs (ohlcvs: object[], market: string = undefined, timeframe: string = '1m', since: number = undefined, limit: number = undefined) {

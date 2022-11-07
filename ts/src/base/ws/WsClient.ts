@@ -12,7 +12,7 @@ const WebSocketPlatform = isNode ? WebSocket : window.WebSocket;
 export default class WsClient extends Client {
     connectionStarted:number;
     protocols: any;
-    options:any;
+    options: any;
     startedConnecting: boolean;
     createConnection () {
         if (this.verbose) {
