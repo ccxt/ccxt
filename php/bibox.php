@@ -321,7 +321,7 @@ class bibox extends Exchange {
                 'APENFT(NFT)' => 'NFT',
                 'BOX' => 'DefiBox',
                 'BPT' => 'BlockPool Token',
-                'USDT' => 'BUSDT',
+                'BUSDT' => 'USDT',
                 'GMT' => 'GMT Token',
                 'KEY' => 'Bihu',
                 'MTC' => 'MTC Mesh Network', // conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
