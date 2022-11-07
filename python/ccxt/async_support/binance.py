@@ -245,8 +245,11 @@ class binance(Exchange):
                         'loan/income': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'loan/ongoing/orders': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/ltv/adjustment/history': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
-                        'loan/borrow/history': 2.6667,  # Weight(UID): 400 => cost = 0.006667 * 400 ~= 2.6667
+                        'loan/borrow/history': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/repay/history': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/loanable/data': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/collateral/data': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/repay/collateral/rate': 600,  # Weight(IP): 6000 => cost = 0.1 * 6000 = 600
                         'fiat/orders': 600.03,  # Weight(UID): 90000 => cost = 0.006667 * 90000 = 600.03
                         'fiat/payments': 0.1,
                         'futures/transfer': 1,
@@ -382,7 +385,7 @@ class binance(Exchange):
                         'account/enableFastWithdrawSwitch': 0.1,
                         # 'account/apiRestrictions/ipRestriction': 1, discontinued
                         # 'account/apiRestrictions/ipRestriction/ipList': 1, discontinued
-                        'capital/withdraw/apply': 0.1,
+                        'capital/withdraw/apply': 4.0002,  # Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
                         'margin/transfer': 1,  # Weight(IP): 600 => cost = 0.1 * 600 = 60
                         'margin/loan': 20.001,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'margin/repay': 20.001,
@@ -456,6 +459,7 @@ class binance(Exchange):
                         'loan/borrow': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'loan/repay': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'loan/adjust/ltv': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
+                        'loan/customize/margin_call': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                     },
                     'put': {
                         'userDataStream': 0.1,
@@ -703,6 +707,7 @@ class binance(Exchange):
                         'bill': 1,
                         'marginAccount': 3,
                         'mmp': 1,
+                        'countdownCancelAll': 1,
                     },
                     'post': {
                         'transfer': 1,
@@ -711,6 +716,8 @@ class binance(Exchange):
                         'listenKey': 1,
                         'mmpSet': 1,
                         'mmpReset': 1,
+                        'countdownCancelAll': 1,
+                        'countdownCancelAllHeartBeat': 10,
                     },
                     'put': {
                         'listenKey': 1,
