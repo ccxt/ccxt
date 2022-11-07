@@ -1,4 +1,4 @@
-import {RequestTimeout,NetworkError,NotSupported,BaseError} from '../../base/errors.js';
+import { RequestTimeout, NetworkError ,NotSupported, BaseError } from '../../base/errors.js';
 import { inflate, gunzip } from './functions.js';
 import Future from './Future.js';
 
@@ -32,11 +32,6 @@ export default class Client {
     onErrorCallback: any
     onCloseCallback: any
     ping: any
-    getVerboseMode: any
-    getKeepAlive: any
-    getInflate: any
-    getGunzip: any
-    getEnableRateLimit: any
     constructor (url, onMessageCallback, onErrorCallback, onCloseCallback, onConnectedCallback, config = {}) {
         const defaults = {
             url,
@@ -44,7 +39,7 @@ export default class Client {
             onErrorCallback,
             onCloseCallback,
             onConnectedCallback,
-            // verbose: false, // verbose output
+            verbose: false, // verbose output
             protocols: undefined, // ws-specific protocols
             options: undefined, // ws-specific options
             futures: {},
@@ -59,14 +54,14 @@ export default class Client {
             connectionTimeout: 10000, // in milliseconds, false to disable
             pingInterval: undefined, // stores the ping-related interval
             ping: undefined, // ping-function (if defined)
-            // keepAlive: 30000, // ping-pong keep-alive rate in milliseconds
+            keepAlive: 30000, // ping-pong keep-alive rate in milliseconds
             maxPingPongMisses: 2.0, // how many missing pongs to throw a RequestTimeout
             // timeout is not used atm
             // timeout: 30000, // throw if a request is not satisfied in 30 seconds, false to disable
             connection: undefined,
             startedConnecting: false,
-            // gunzip: false,
-            // inflate: false,
+            gunzip: false,
+            inflate: false,
         }
         Object.assign (this, deepExtend (defaults, config))
         // connection-related Future
@@ -86,7 +81,7 @@ export default class Client {
     }
 
     resolve (result, messageHash) {
-        if (this.getVerboseMode() && (messageHash === undefined)) {
+        if (this.verbose && (messageHash === undefined)) {
             this.log (new Date (), 'resolve received undefined messageHash');
         }
         if (messageHash in this.futures) {
@@ -161,9 +156,9 @@ export default class Client {
     }
 
     setPingInterval () {
-        if (this.getKeepAlive()) {
+        if (this.keepAlive) {
             const onPingInterval = this.onPingInterval.bind (this)
-            this.pingInterval = setInterval (onPingInterval, this.getKeepAlive())
+            this.pingInterval = setInterval (onPingInterval, this.keepAlive)
         }
     }
 
@@ -174,10 +169,10 @@ export default class Client {
     }
 
     onPingInterval () {
-        if (this.getKeepAlive() && this.isOpen ()) {
+        if (this.keepAlive && (this as any).isOpen ()) {
             const now = milliseconds ()
             this.lastPong = this.lastPong || now
-            if ((this.lastPong + this.getKeepAlive() as any * this.maxPingPongMisses) < now) {
+            if ((this.lastPong + this.keepAlive * this.maxPingPongMisses) < now) {
                 this.onError (new RequestTimeout ('Connection to ' + this.url + ' timed out due to a ping-pong keepalive missing on time'))
             } else {
                 if (this.ping) {
@@ -198,11 +193,11 @@ export default class Client {
     }
 
     onOpen () {
-        if (this.getVerboseMode()) {
+        if (this.verbose) {
             this.log (new Date (), 'onOpen')
         }
         this.connectionEstablished = milliseconds ()
-        this.isConnected = true;
+        this.isConnected = true
         (this as any).connected.resolve (this.url)
         // this.connection.terminate () // debugging
         this.clearConnectionTimeout ()
@@ -214,20 +209,20 @@ export default class Client {
     // respond to pings coming from the server with pongs automatically
     // however, some devs may want to track connection states in their app
     onPing () {
-        if (this.getVerboseMode()) {
+        if (this.verbose) {
             this.log (new Date (), 'onPing')
         }
     }
 
     onPong () {
         this.lastPong = milliseconds ()
-        if (this.getVerboseMode()) {
+        if (this.verbose) {
             this.log (new Date (), 'onPong')
         }
     }
 
     onError (error) {
-        if (this.getVerboseMode()) {
+        if (this.verbose) {
             this.log (new Date (), 'onError', error.message)
         }
         if (!(error instanceof BaseError)) {
@@ -240,7 +235,7 @@ export default class Client {
     }
 
     onClose (event) {
-        if (this.getVerboseMode()) {
+        if (this.verbose) {
             this.log (new Date (), 'onClose', event)
         }
         if (!this.error) {
@@ -253,13 +248,13 @@ export default class Client {
     // this method is not used at this time
     // but may be used to read protocol-level data like cookies, headers, etc
     onUpgrade (message) {
-        if (this.getVerboseMode()) {
+        if (this.verbose) {
             this.log (new Date (), 'onUpgrade')
         }
     }
 
     send (message) {
-        if (this.getVerboseMode()) {
+        if (this.verbose) {
             this.log (new Date (), 'sending', message)
         }
         message = (typeof message === 'string') ? message : JSON.stringify (message)
@@ -275,9 +270,9 @@ export default class Client {
         // MessageEvent {isTrusted: true, data: "{"e":"depthUpdate","E":1581358737706,"s":"ETHBTC",…"0.06200000"]],"a":[["0.02261300","0.00000000"]]}", origin: "wss://stream.binance.com:9443", lastEventId: "", source: null, …}
         message = message.data
         if (message.byteLength !== undefined) {
-            if (this.getGunzip()) {
+            if (this.gunzip) {
                 message = gunzip (message)
-            } else if (this.getInflate()) {
+            } else if (this.inflate) {
                 message = inflate (message)
             }
         }
@@ -288,7 +283,7 @@ export default class Client {
             if (isJsonEncodedObject (message)) {
                 message = JSON.parse (message.replace (/:(\d{15,}),/g, ':"$1",'))
             }
-            if (this.getVerboseMode()) {
+            if (this.verbose) {
                 this.log (new Date (), 'onMessage', message)
                 // unlimited depth
                 // this.log (new Date (), 'onMessage', util.inspect (message, false, null, true))
@@ -300,4 +295,4 @@ export default class Client {
         }
         this.onMessageCallback (this, message)
     }
-};
+}
