@@ -47,7 +47,7 @@
     "indodax":       { "skip": true },
     "kuna":          { "skip": true },
     "latoken2":      { "skip": true },
-    "luno":          { "skip": true },
+    "lbank":         { "skip": true },
     "mixcoins":      { "skip": true },
     "mexc":          { "skip": true },
     "mexc3":         { "skip": true },
