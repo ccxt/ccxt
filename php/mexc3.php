@@ -86,8 +86,8 @@ class mexc3 extends Exchange {
                 'fetchTradingFee' => null,
                 'fetchTradingFees' => true,
                 'fetchTradingLimits' => null,
-                'fetchTransactionFee' => null,
-                'fetchTransactionFees' => null,
+                'fetchTransactionFee' => 'emulated',
+                'fetchTransactionFees' => true,
                 'fetchTransactions' => null,
                 'fetchTransfer' => true,
                 'fetchTransfers' => true,
@@ -4292,6 +4292,105 @@ class mexc3 extends Exchange {
             'amount' => $amount,
             'symbol' => $symbol,
         ));
+    }
+
+    public function fetch_transaction_fees($codes = null, $params = array ()) {
+        /**
+         * fetch deposit and withdrawal fees
+         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+         * @param {[string]|null} $codes returns fees for all currencies if null
+         * @param {array} $params extra parameters specific to the mexc3 api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+         */
+        $this->load_markets();
+        $response = $this->spotPrivateGetCapitalConfigGetall ($params);
+        //
+        //    array(
+        //       {
+        //           coin => 'AGLD',
+        //           name => 'Adventure Gold',
+        //           networkList => array(
+        //               array(
+        //                   coin => 'AGLD',
+        //                   depositDesc => null,
+        //                   depositEnable => true,
+        //                   minConfirm => '0',
+        //                   name => 'Adventure Gold',
+        //                   network => 'ERC20',
+        //                   withdrawEnable => true,
+        //                   withdrawFee => '10.000000000000000000',
+        //                   withdrawIntegerMultiple => null,
+        //                   withdrawMax => '1200000.000000000000000000',
+        //                   withdrawMin => '20.000000000000000000',
+        //                   sameAddress => false,
+        //                   contract => '0x32353a6c91143bfd6c7d363b546e62a9a2489a20',
+        //                   withdrawTips => null,
+        //                   depositTips => null
+        //               }
+        //               ...
+        //           )
+        //       ),
+        //       ...
+        //    )
+        //
+        return $this->parse_transaction_fees($response, $codes);
+    }
+
+    public function parse_transaction_fees($response, $codes = null) {
+        $withdrawFees = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = $response[$i];
+            $currencyId = $this->safe_string($entry, 'coin');
+            $currency = $this->safe_currency($currencyId);
+            $code = $this->safe_string($currency, 'code');
+            if (($codes === null) || ($this->in_array($code, $codes))) {
+                $withdrawFees[$code] = $this->parse_transaction_fee($entry, $currency);
+            }
+        }
+        return array(
+            'withdraw' => $withdrawFees,
+            'deposit' => array(),
+            'info' => $response,
+        );
+    }
+
+    public function parse_transaction_fee($transaction, $currency = null) {
+        //
+        //    {
+        //        coin => 'AGLD',
+        //        name => 'Adventure Gold',
+        //        $networkList => array(
+        //            {
+        //                coin => 'AGLD',
+        //                depositDesc => null,
+        //                depositEnable => true,
+        //                minConfirm => '0',
+        //                name => 'Adventure Gold',
+        //                network => 'ERC20',
+        //                withdrawEnable => true,
+        //                withdrawFee => '10.000000000000000000',
+        //                withdrawIntegerMultiple => null,
+        //                withdrawMax => '1200000.000000000000000000',
+        //                withdrawMin => '20.000000000000000000',
+        //                sameAddress => false,
+        //                contract => '0x32353a6c91143bfd6c7d363b546e62a9a2489a20',
+        //                withdrawTips => null,
+        //                depositTips => null
+        //            }
+        //            ...
+        //        )
+        //    }
+        //
+        $networkList = $this->safe_value($transaction, 'networkList', array());
+        $result = array();
+        for ($j = 0; $j < count($networkList); $j++) {
+            $networkEntry = $networkList[$j];
+            $networkId = $this->safe_string($networkEntry, 'network');
+            $networkCode = $this->safe_string($this->options['networks'], $networkId, $networkId);
+            $fee = $this->safe_number($networkEntry, 'withdrawFee');
+            $result[$networkCode] = $fee;
+        }
+        return $result;
     }
 
     public function parse_margin_loan($info, $currency = null) {
