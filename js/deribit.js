@@ -1175,11 +1175,10 @@ module.exports = class deribit extends Exchange {
         const priceString = this.safeString (trade, 'price');
         // Amount for inverse perpetual and futures is in USD which in ccxt is the cost
         // For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
-        let amount = this.safeString (trade, 'amount');
+        const amount = this.safeString (trade, 'amount');
         let cost = Precise.stringMul (amount, priceString);
         if (market['inverse']) {
             cost = Precise.stringDiv (amount, priceString);
-            amount = undefined;
         }
         const liquidity = this.safeString (trade, 'liquidity');
         let takerOrMaker = undefined;
@@ -1518,17 +1517,14 @@ module.exports = class deribit extends Exchange {
         const id = this.safeString (order, 'order_id');
         const priceString = this.safeString (order, 'price');
         const averageString = this.safeString (order, 'average_price');
-        // Invesr contracts amount is in USD which in ccxt is the cost
-        // Linear contracts amount is in corresponding cryptocurrency contracts, e.g., BTC or ETH
-        let cost = undefined;
-        // Filled amount of the order. For perpetual and futures the filled_amount is in USD units, for options and linear contracts- in units or corresponding cryptocurrency contracts, e.g., BTC or ETH.
-        let filledString = this.safeString (order, 'filled_amount');
-        let amount = this.safeString (order, 'amount');
-        if (market['inverse']) { // amount returned in USD
-            cost = Precise.stringDiv (amount, averageString);
-            amount = undefined;
+        // Inverse contracts amount is in USD which in ccxt is the cost
+        // For options and Linear contracts amount is in corresponding cryptocurrency, e.g., BTC or ETH
+        const filledString = this.safeString (order, 'filled_amount');
+        const amount = this.safeString (order, 'amount');
+        let cost = Precise.stringMul (filledString, averageString);
+        if (market['inverse']) {
             if (this.parseNumber (averageString) !== 0) {
-                filledString = Precise.stringDiv (filledString, averageString);
+                cost = Precise.stringDiv (amount, averageString);
             }
         }
         let lastTradeTimestamp = undefined;
