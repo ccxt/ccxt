@@ -39,6 +39,7 @@ module.exports = class digifinex extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
                 'fetchLedger': true,
                 'fetchMarginMode': false,
@@ -2040,6 +2041,75 @@ module.exports = class digifinex extends Exchange {
             result[code] = borrowRate;
         }
         return result;
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        /**
+         * @method
+         * @name digifinex#fetchFundingRate
+         * @description fetch the current funding rate
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#currentfundingrate
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the digifinex api endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
+        }
+        const request = {
+            'instrument_id': market['id'],
+        };
+        const response = await this.publicSwapGetPublicFundingRate (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "instrument_id": "BTCUSDTPERP",
+        //             "funding_rate": "-0.00012",
+        //             "funding_time": 1662710400000,
+        //             "next_funding_rate": "0.0001049907085171607",
+        //             "next_funding_time": 1662739200000
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseFundingRate (data, market);
+    }
+
+    parseFundingRate (contract, market = undefined) {
+        //
+        //     {
+        //         "instrument_id": "BTCUSDTPERP",
+        //         "funding_rate": "-0.00012",
+        //         "funding_time": 1662710400000,
+        //         "next_funding_rate": "0.0001049907085171607",
+        //         "next_funding_time": 1662739200000
+        //     }
+        //
+        const marketId = this.safeString (contract, 'instrument_id');
+        const timestamp = this.safeInteger (contract, 'funding_time');
+        const nextTimestamp = this.safeInteger (contract, 'next_funding_time');
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol (marketId, market),
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': this.safeString (contract, 'funding_rate'),
+            'fundingTimestamp': timestamp,
+            'fundingDatetime': this.iso8601 (timestamp),
+            'nextFundingRate': this.safeString (contract, 'next_funding_rate'),
+            'nextFundingTimestamp': nextTimestamp,
+            'nextFundingDatetime': this.iso8601 (nextTimestamp),
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+        };
     }
 
     async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
