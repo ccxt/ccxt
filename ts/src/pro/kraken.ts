@@ -1,13 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
-import { krakenRest } from '../kraken.js';
+import krakenRest from '../kraken.js';
 import { BadSymbol, BadRequest, ExchangeError, NotSupported, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class kraken extends krakenBridge {
+export default class kraken extends krakenRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

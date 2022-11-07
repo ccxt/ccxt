@@ -1,12 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
-import { ascendexRest } from '../ascendex.js';
+import ascendexRest from '../ascendex.js';
 import { AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
 //  ---------------------------------------------------------------------------
 
-export default class ascendex extends ascendexBridge {
+export default class ascendex extends ascendexRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

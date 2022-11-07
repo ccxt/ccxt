@@ -1,13 +1,13 @@
 
 // ----------------------------------------------------------------------------
 
-import { huobijpRest } from '../huobijp.js';
+import huobijpRest from '../huobijp.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp } from './base/Cache.js';
 
 // ----------------------------------------------------------------------------
 
-export default class huobijp extends huobijpBridge {
+export default class huobijp extends huobijpRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

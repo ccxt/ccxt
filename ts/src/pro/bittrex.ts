@@ -1,13 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
-import { bittrexRest } from '../bittrex.js'
+import bittrexRest from '../bittrex.js';
 import { InvalidNonce, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class bittrex extends bittrexBridge {
+export default class bittrex extends bittrexRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

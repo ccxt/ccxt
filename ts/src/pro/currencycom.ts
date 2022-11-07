@@ -1,13 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
-import { currencycomRest } from '../currencycom.js'
+import currencycomRest from '../currencycom.js'
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class currencycom extends currencycomBridge {
+export default class currencycom extends currencycomRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

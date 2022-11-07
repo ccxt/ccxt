@@ -1,12 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
-import { hitbtcRest } from '../hitbtc.js';
+import hitbtcRest from '../hitbtc.js';
 import { ArrayCache, ArrayCacheByTimestamp } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class hitbtc extends hitbtcBridge {
+export default class hitbtc extends hitbtcRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

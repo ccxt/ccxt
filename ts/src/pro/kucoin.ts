@@ -1,13 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
-import { kucoinRest } from '../kucoin.js';
+import kucoinRest from '../kucoin.js';
 import { ExchangeError, InvalidNonce, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class kucoin extends kucoinBridge {
+export default class kucoin extends kucoinRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

@@ -1,13 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
-import { bitmexRest } from '../bitmex.js';
+import bitmexRest from '../bitmex.js';
 import { AuthenticationError, ExchangeError, RateLimitExceeded } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class bitmex extends bitmexBridge {
+export default class bitmex extends bitmexRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

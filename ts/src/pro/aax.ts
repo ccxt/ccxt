@@ -1,12 +1,12 @@
 
 //  ---------------------------------------------------------------------------
 
-import { aaxRest } from '../aax.js';
+import aaxRest from '../aax.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
 import { NotSupported, AuthenticationError } from '../base/errors.js';
 //  ---------------------------------------------------------------------------
 
-export default class aax extends aaxBridge {
+export default class aax extends aaxRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

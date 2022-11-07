@@ -1,13 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
-import { ftxRest } from '../ftx.js';
+import ftxRest from '../ftx.js';
 import { ExchangeError, AuthenticationError, ExchangeNotAvailable, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class ftx extends ftxBridge {
+export default class ftx extends ftxRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

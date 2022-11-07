@@ -1,14 +1,14 @@
 
 // ----------------------------------------------------------------------------
 
-import { binanceRest } from '../binance.js';
+import binanceRest from '../binance.js';
 import { Precise } from '../base/Precise.js';
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
 
 // -----------------------------------------------------------------------------
 
-export default class binance extends binanceBridge {
+export default class binance extends binanceRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

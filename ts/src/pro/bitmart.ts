@@ -1,13 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
-import { bitmartRest } from '../bitmart.js';
+import bitmartRest from '../bitmart.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class bitmart extends bitmartBridge {
+export default class bitmart extends bitmartRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

@@ -1,13 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
-import { zbRest } from '../zb.js'
+import zbRest from '../zb.js'
 import { ExchangeError } from '../base/errors.js';
 import { ArrayCache } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class zb extends zbBridge {
+export default class zb extends zbRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

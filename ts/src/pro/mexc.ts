@@ -1,13 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
-import { mexcRest } from '../mexc.js'
+import mexcRest from '../mexc.js'
 import { AuthenticationError, BadSymbol, BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class mexc extends mexcBridge {
+export default class mexc extends mexcRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

@@ -1,13 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
-import { okxRest } from '../okx.js';
+import okxRest from '../okx.js';
 import { AuthenticationError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class okx extends okxBridge {
+export default class okx extends okxRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

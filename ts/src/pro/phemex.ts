@@ -1,13 +1,13 @@
 
 //  ---------------------------------------------------------------------------
 
-import { phemexRest } from '../phemex.js'
+import phemexRest from '../phemex.js'
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class phemex extends phemexBridge {
+export default class phemex extends phemexRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

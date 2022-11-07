@@ -1,14 +1,14 @@
 
 //  ---------------------------------------------------------------------------
 
-import { bitfinex2Rest } from '../bitfinex2.js'
+import bitfinex2Rest from '../bitfinex2.js';
 import { Precise } from '../base/Precise.js';
 import { ExchangeError, AuthenticationError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
-export default class bitfinex2 extends bitfinex2Bridge {
+export default class bitfinex2 extends bitfinex2Rest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
