@@ -492,7 +492,11 @@ module.exports = class crex24 extends Exchange {
          * @returns {object} a list of [transaction fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const response = await this.publicGetCurrenciesWithdrawalFees (params);
+        const request = {};
+        if (codes !== undefined) {
+            request['filter'] = codes.join (',');
+        }
+        const response = await this.publicGetCurrenciesWithdrawalFees (this.extend (request, params));
         //
         //     [
         //         {
