@@ -1152,6 +1152,10 @@ module.exports = class bitstamp extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.privatePostBalance (params);
+        return this.parseTransactionFees (response, codes);
+    }
+
+    parseTransactionFees (response, codes = undefined) {
         //
         //  {
         //     yfi_available: '0.00000000',
