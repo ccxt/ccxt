@@ -1,5 +1,5 @@
-import { OrderBook, IndexedOrderBook, CountedOrderBook } from '../../base/OrderBook.js';
 import assert from 'assert';
+import { OrderBook, IndexedOrderBook, CountedOrderBook } from '../../../base/ws/OrderBook.js';
 
 function equals (a, b) {
     if (a.length !== b.length) {

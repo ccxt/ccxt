@@ -26,7 +26,7 @@ export default class Client {
     error: any
     inflate: any
     url: string
-    isConnected: boolean
+    isConnected: any
     onConnectedCallback: any
     onMessageCallback: any
     onErrorCallback: any
@@ -199,7 +199,7 @@ export default class Client {
             this.log (new Date (), 'onOpen')
         }
         this.connectionEstablished = milliseconds ()
-        this.isConnected = true
+        this.isConnected = true;
         (this as any).connected.resolve (this.url)
         // this.connection.terminate () // debugging
         this.clearConnectionTimeout ()

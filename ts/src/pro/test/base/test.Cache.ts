@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../../base/Cache.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../../../base/ws/Cache.js';
 
 function equals (a, b) {
     if (a.length !== b.length) {
