@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import { ascendexBridge } from './bridge/bridge.js';
+import { ascendexRest } from '../ascendex.js';
 import { AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
 //  ---------------------------------------------------------------------------

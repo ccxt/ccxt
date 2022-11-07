@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import { upbitBridge } from './bridge/bridge.js';
+import { upbitRest } from '../upbit.js';
 import { ArrayCache } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------

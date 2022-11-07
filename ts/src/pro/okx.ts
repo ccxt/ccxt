@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import { okxBridge } from './bridge/bridge.js';
+import { okxRest } from '../okx.js';
 import { AuthenticationError, InvalidNonce } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
 

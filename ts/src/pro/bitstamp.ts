@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import { bitstampBridge } from './bridge/bridge.js';
+import { bitstampRest } from '../bitstamp.js'
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from './base/Cache.js';
 

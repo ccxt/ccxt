@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import { hollaexBridge } from './bridge/bridge.js';
+import { hollaexRest } from '../hollaex.js';
 import { AuthenticationError, BadSymbol, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from './base/Cache.js';
 

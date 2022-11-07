@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import { gateBridge } from './bridge/bridge.js';
+import { gateRest } from '../gate.js'
 import {
     AuthenticationError,
     BadRequest,

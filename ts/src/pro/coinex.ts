@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import { Precise } from '../base/Precise.js';
-import { coinexBridge } from './bridge/bridge.js';
+import { coinexRest } from '../coinex.js'
 import {
     AuthenticationError,
     BadRequest,

@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import { cryptocomBridge } from './bridge/bridge.js';
+import { cryptocomRest } from '../cryptocom.js';
 import { AuthenticationError, NotSupported, ExchangeError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
 

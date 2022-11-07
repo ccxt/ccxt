@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import { bitvavoBridge } from './bridge/bridge.js';
+import { bitvavoRest } from '../bitvavo.js';
 import { AuthenticationError, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
 

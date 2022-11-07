@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import { ripioBridge } from './bridge/bridge.js';
+import { ripioRest } from '../ripio.js';
 import { ArrayCache } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------

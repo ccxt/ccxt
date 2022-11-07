@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import { phemexBridge } from './bridge/bridge.js';
+import { phemexRest } from '../phemex.js'
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
 

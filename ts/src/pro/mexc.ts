@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import { mexcBridge } from './bridge/bridge.js';
+import { mexcRest } from '../mexc.js'
 import { AuthenticationError, BadSymbol, BadRequest, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from './base/Cache.js';
 

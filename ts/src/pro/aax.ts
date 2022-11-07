@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import { aaxBridge } from './bridge/bridge.js';
+import { aaxRest } from '../aax.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
 import { NotSupported, AuthenticationError } from '../base/errors.js';
 //  ---------------------------------------------------------------------------

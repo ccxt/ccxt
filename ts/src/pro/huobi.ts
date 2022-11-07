@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import { huobiBridge } from './bridge/bridge.js';
+import { huobiRest } from '../huobi.js';
 import {
     ExchangeError,
     InvalidNonce,

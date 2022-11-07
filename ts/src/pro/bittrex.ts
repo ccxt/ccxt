@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import { bittrexBridge } from './bridge/bridge.js';
+import { bittrexRest } from '../bittrex.js'
 import { InvalidNonce, BadRequest } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
 

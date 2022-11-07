@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import { okcoinBridge } from './bridge/bridge.js';
+import { okcoinRest } from '../okcoin.js';
 import { ArgumentsRequired, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
 

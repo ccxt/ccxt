@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import { currencycomBridge } from './bridge/bridge.js';
+import { currencycomRest } from '../currencycom.js'
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByTimestamp } from './base/Cache.js';
 

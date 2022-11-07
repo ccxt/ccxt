@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import { coinbaseproBridge } from './bridge/bridge.js';
+import { coinbaseproRest } from '../coinbasepro.js'
 import { BadSymbol } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from './base/Cache.js';
 

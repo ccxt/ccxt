@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import { whitebitBridge } from './bridge/bridge.js';
+import { whitebitRest } from '../whitebit.js'
 import { Precise } from '../base/Precise.js';
 import { AuthenticationError, BadRequest, ArgumentsRequired } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from './base/Cache.js';

@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import { kucoinBridge } from './bridge/bridge.js';
+import { kucoinRest } from '../kucoin.js';
 import { ExchangeError, InvalidNonce, NetworkError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from './base/Cache.js';
 

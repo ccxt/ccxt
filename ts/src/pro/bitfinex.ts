@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import { bitfinexBridge } from './bridge/bridge.js';
+import { bitfinexRest } from '../bitfinex.js';
 import { ExchangeError, AuthenticationError } from '../base/errors.js';
 import { ArrayCache, ArrayCacheBySymbolById } from './base/Cache.js';
 

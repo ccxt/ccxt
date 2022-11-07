@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import { hitbtcBridge } from './bridge/bridge.js';
+import { hitbtcRest } from '../hitbtc.js';
 import { ArrayCache, ArrayCacheByTimestamp } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------

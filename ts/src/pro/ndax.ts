@@ -1,7 +1,7 @@
 
 //  ---------------------------------------------------------------------------
 
-import { ndaxBridge } from './bridge/bridge.js';
+import { ndaxRest } from '../ndax.js';
 import { ArrayCache } from './base/Cache.js';
 
 //  ---------------------------------------------------------------------------
