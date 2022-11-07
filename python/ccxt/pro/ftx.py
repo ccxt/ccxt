@@ -142,7 +142,7 @@ class ftx(Exchange, ccxt.async_support.ftx):
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
         orderbook = await self.watch_public(symbol, 'orderbook')
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_partial(self, client, message):
         methods = {

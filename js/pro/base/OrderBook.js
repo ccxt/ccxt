@@ -60,9 +60,9 @@ class OrderBook {
         }
     }
 
-    limit (n = undefined) {
-        this.asks.limit (n)
-        this.bids.limit (n)
+    limit () {
+        this.asks.limit ()
+        this.bids.limit ()
         return this
     }
 

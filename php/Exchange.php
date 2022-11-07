@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.0.65';
+$version = '2.1.41';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.0.65';
+    const VERSION = '2.1.41';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -411,6 +411,7 @@ class Exchange {
         'safeSymbol' => 'safe_symbol',
         'parseFundingRate' => 'parse_funding_rate',
         'parseFundingRates' => 'parse_funding_rates',
+        'isTriggerOrder' => 'is_trigger_order',
         'isPostOnly' => 'is_post_only',
         'fetchTradingFees' => 'fetch_trading_fees',
         'fetchTradingFee' => 'fetch_trading_fee',
@@ -423,6 +424,8 @@ class Exchange {
         'handleTimeInForce' => 'handle_time_in_force',
         'convertTypeToAccount' => 'convert_type_to_account',
         'handleMarginModeAndParams' => 'handle_margin_mode_and_params',
+        'checkRequiredArgument' => 'check_required_argument',
+        'checkRequiredSymbol' => 'check_required_symbol',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -2835,6 +2838,9 @@ class Exchange {
     }
 
     public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+        if ($type === 'market' && $takerOrMaker === 'maker') {
+            throw new ArgumentsRequired($this->id . ' calculateFee() - you have provided incompatible arguments - "market" $type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.');
+        }
         $market = $this->markets[$symbol];
         $feeSide = $this->safe_string($market, 'feeSide', 'quote');
         $key = 'quote';
@@ -2851,7 +2857,7 @@ class Exchange {
             // the fee is always in the currency you get
             $cost = $amountString;
             if ($side === 'sell') {
-                $cost = $priceString;
+                $cost = Precise::string_mul($cost, $priceString);
             } else {
                 $key = 'base';
             }
@@ -2864,7 +2870,15 @@ class Exchange {
                 $key = 'base';
             }
         }
-        $rate = $this->number_to_string($market[$takerOrMaker]);
+        // for derivatives, the fee is in 'settle' currency
+        if (!$market['spot']) {
+            $key = 'settle';
+        }
+        // even if `$takerOrMaker` argument was set to 'maker', for 'market' orders we should forcefully override it to 'taker'
+        if ($type === 'market') {
+            $takerOrMaker = 'taker';
+        }
+        $rate = $this->safe_string($market, $takerOrMaker);
         if ($cost !== null) {
             $cost = Precise::string_mul($cost, $rate);
         }
@@ -4208,6 +4222,14 @@ class Exchange {
         return $result;
     }
 
+    public function is_trigger_order($params) {
+        $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
+        if ($isTrigger) {
+            $params = $this->omit ($params, array( 'trigger', 'stop' ));
+        }
+        return array( $isTrigger, $params );
+    }
+
     public function is_post_only($isMarketOrder, $exchangeSpecificParam, $params = array ()) {
         /**
          * @ignore
@@ -4393,5 +4415,33 @@ class Exchange {
             $params = $this->omit ($params, array( 'marginMode', 'defaultMarginMode' ));
         }
         return array( $marginMode, $params );
+    }
+
+    public function check_required_argument($methodName, $argument, $argumentName, $options = []) {
+        /**
+         * @ignore
+         * @param {string} $argument the $argument to check
+         * @param {string} $argumentName the name of the $argument to check
+         * @param {string} $methodName the name of the method that the $argument is being checked for
+         * @param {[string]} $options a list of $options that the $argument can be
+         * @return {null}
+         */
+        if (($argument === null) || ((strlen($options) > 0) && (!($this->in_array($argument, $options))))) {
+            $messageOptions = implode(', ', $options);
+            $message = $this->id . ' ' . $methodName . '() requires a ' . $argumentName . ' argument';
+            if ($messageOptions !== '') {
+                $message .= ', one of ' . '(' . $messageOptions . ')';
+            }
+            throw new ArgumentsRequired($message);
+        }
+    }
+
+    public function check_required_symbol($methodName, $symbol) {
+        /**
+         * @ignore
+         * @param {string} $symbol unified $symbol of the market
+         * @param {string} $methodName name of the method that requires a $symbol
+         */
+        $this->checkRequiredArgument ($methodName, $symbol, 'symbol');
     }
 }

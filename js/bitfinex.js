@@ -395,7 +395,7 @@ module.exports = class bitfinex extends Exchange {
          * @name bitfinex#fetchTransactionFees
          * @description fetch transaction fees
          * @see https://docs.bitfinex.com/v1/reference/rest-auth-fees
-         * @param {[string]|undefined} codes not used by bitfinex2 fetchTransactionFees ()
+         * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the bitfinex api endpoint
          * @returns {[object]} a list of [fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
@@ -414,7 +414,7 @@ module.exports = class bitfinex extends Exchange {
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const code = this.safeCurrencyCode (id);
-            if (codes !== undefined && !this.inArray (code, codes)) {
+            if ((codes !== undefined) && !this.inArray (code, codes)) {
                 continue;
             }
             result[code] = {

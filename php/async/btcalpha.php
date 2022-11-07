@@ -49,6 +49,7 @@ class btcalpha extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
+                'fetchL2OrderBook' => null, // same as above
                 'fetchLeverage' => false,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
@@ -58,7 +59,7 @@ class btcalpha extends Exchange {
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
-                'fetchOrderBook' => true,
+                'fetchOrderBook' => null, // their api doesn't work atm for orderbook
                 'fetchOrders' => true,
                 'fetchPosition' => false,
                 'fetchPositionMode' => false,
@@ -293,7 +294,8 @@ class btcalpha extends Exchange {
         //
         $marketId = $this->safe_string($trade, 'pair');
         $market = $this->safe_market($marketId, $market, '_');
-        $timestamp = $this->safe_timestamp($trade, 'timestamp');
+        $timestampRaw = $this->safe_string($trade, 'timestamp');
+        $timestamp = $this->parse_number(Precise::string_mul($timestampRaw, '1000000'));
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string($trade, 'amount');
         $id = $this->safe_string($trade, 'id');

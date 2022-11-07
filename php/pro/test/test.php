@@ -189,7 +189,7 @@ $test = function () use ($id, $config, $verbose) {
 
     echo 'Testing ', $exchange->id, "\n";
 
-    if (@$exchange->skipWs) {
+    if (@$exchange->skip || @$exchange->skipWs) {
 
         echo $exchange->id, " [Skipped]\n";
         echo "Done.\n";

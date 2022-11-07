@@ -119,6 +119,8 @@ class bitvavo extends \ccxt\async\bitvavo {
              * @param {array} $params extra parameters specific to the bitvavo api endpoint
              * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
+            Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
             $trades = Async\await($this->watch_public('trades', $symbol, $params));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
@@ -157,8 +159,18 @@ class bitvavo extends \ccxt\async\bitvavo {
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of candles to fetch
+             * @param {array} $params extra parameters specific to the bitvavo api endpoint
+             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $name = 'candles';
             $marketId = $market['id'];
             $interval = $this->timeframes[$timeframe];
@@ -236,6 +248,7 @@ class bitvavo extends \ccxt\async\bitvavo {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $name = 'book';
             $messageHash = $name . '@' . $market['id'];
             $url = $this->urls['api']['ws'];
@@ -261,7 +274,7 @@ class bitvavo extends \ccxt\async\bitvavo {
             );
             $message = array_merge($request, $params);
             $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 
@@ -343,7 +356,6 @@ class bitvavo extends \ccxt\async\bitvavo {
 
     public function watch_order_book_snapshot($client, $message, $subscription) {
         return Async\async(function () use ($client, $message, $subscription) {
-            $limit = $this->safe_integer($subscription, 'limit');
             $params = $this->safe_value($subscription, 'params');
             $marketId = $this->safe_string($subscription, 'marketId');
             $name = 'getBook';
@@ -354,7 +366,7 @@ class bitvavo extends \ccxt\async\bitvavo {
                 'market' => $marketId,
             );
             $orderbook = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 
@@ -448,6 +460,7 @@ class bitvavo extends \ccxt\async\bitvavo {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $marketId = $market['id'];
             $url = $this->urls['api']['ws'];
             $name = 'account';
@@ -486,6 +499,7 @@ class bitvavo extends \ccxt\async\bitvavo {
             Async\await($this->load_markets());
             Async\await($this->authenticate());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $marketId = $market['id'];
             $url = $this->urls['api']['ws'];
             $name = 'account';

@@ -113,7 +113,7 @@ class okx(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': False,
-                'fetchTradingLimits': None,
+                'fetchTradingLimits': False,
                 'fetchTransactionFee': False,
                 'fetchTransactionFees': False,
                 'fetchTransactions': False,
@@ -1561,7 +1561,7 @@ class okx(Exchange):
             limit = 100  # default 100, max 100
         duration = self.parse_timeframe(timeframe)
         bar = self.timeframes[timeframe]
-        if (timezone == 'UTC') and (duration >= 21600000):
+        if (timezone == 'UTC') and (duration >= 21600):  # if utc and timeframe >= 6h
             bar += timezone.lower()
         request = {
             'instId': market['id'],
@@ -1655,6 +1655,7 @@ class okx(Exchange):
             rate = data[i]
             timestamp = self.safe_number(rate, 'fundingTime')
             rates.append({
+                'info': rate,
                 'symbol': self.safe_symbol(self.safe_string(rate, 'instId')),
                 'fundingRate': self.safe_number(rate, 'realizedRate'),
                 'timestamp': timestamp,
@@ -3879,7 +3880,8 @@ class okx(Exchange):
                 entry = symbols[i]
                 market = self.market(entry)
                 marketIds.append(market['id'])
-            request['instId'] = str(marketIds)
+            if len(marketIds) > 0:
+                request['instId'] = str(marketIds)
         response = self.privateGetAccountPositions(self.extend(request, params))
         #
         #     {

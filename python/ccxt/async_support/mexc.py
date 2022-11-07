@@ -315,6 +315,7 @@ class mexc(Exchange):
                 'MIMO': 'Mimosa',
                 'PROS': 'Pros.Finance',  # conflict with Prosper
                 'SIN': 'Sin City Token',
+                'SOUL': 'Soul Swap',
                 'STEPN': 'GMT',
             },
             'exceptions': {

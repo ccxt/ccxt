@@ -65,6 +65,7 @@ class bitopro(Exchange, ccxt.async_support.bitopro):
                 raise ExchangeError(self.id + ' watchOrderBook limit argument must be None, 5, 10, 20, 50, 100, 500 or 1000')
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         messageHash = 'ORDER_BOOK' + ':' + symbol
         endPart = None
         if limit is None:
@@ -72,7 +73,7 @@ class bitopro(Exchange, ccxt.async_support.bitopro):
         else:
             endPart = market['id'] + ':' + limit
         orderbook = await self.watch_public('order-books', messageHash, endPart)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_order_book(self, client, message):
         #
@@ -120,6 +121,7 @@ class bitopro(Exchange, ccxt.async_support.bitopro):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         messageHash = 'TRADE' + ':' + symbol
         trades = await self.watch_public('trades', messageHash, market['id'], limit)
         if self.newUpdates:
@@ -171,6 +173,7 @@ class bitopro(Exchange, ccxt.async_support.bitopro):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         messageHash = 'TICKER' + ':' + symbol
         return await self.watch_public('tickers', messageHash, market['id'])
 

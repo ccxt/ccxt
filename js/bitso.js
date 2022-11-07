@@ -1315,7 +1315,7 @@ module.exports = class bitso extends Exchange {
          * @name bitso#fetchTransactionFees
          * @description fetch transaction fees
          * @see https://bitso.com/api_info#fees
-         * @param {[string]|undefined} codes not used by bitso fetchTransactionFees
+         * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the bitso api endpoint
          * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
@@ -1371,7 +1371,7 @@ module.exports = class bitso extends Exchange {
             const depositFee = depositFees[i];
             const currencyId = this.safeString (depositFee, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            if (codes !== undefined && !this.inArray (code, codes)) {
+            if ((codes !== undefined) && !this.inArray (code, codes)) {
                 continue;
             }
             result[code] = {
@@ -1388,7 +1388,7 @@ module.exports = class bitso extends Exchange {
         for (let i = 0; i < currencyIds.length; i++) {
             const currencyId = currencyIds[i];
             const code = this.safeCurrencyCode (currencyId);
-            if (codes !== undefined && !this.inArray (code, codes)) {
+            if ((codes !== undefined) && !this.inArray (code, codes)) {
                 continue;
             }
             result[code] = {

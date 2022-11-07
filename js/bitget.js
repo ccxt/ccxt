@@ -86,28 +86,18 @@ module.exports = class bitget extends Exchange {
                 'withdraw': false,
             },
             'timeframes': {
-                'spot': {
-                    '1m': '1min',
-                    '5m': '5min',
-                    '15m': '15min',
-                    '30m': '30min',
-                    '1h': '1h',
-                    '4h': '4h',
-                    '12h': '12h',
-                    '1d': '1day',
-                    '1w': '7day',  // not documented on the website
-                },
-                'swap': {
-                    '1m': '60',
-                    '5m': '300',
-                    '15m': '900',
-                    '30m': '1800',
-                    '1h': '3600',
-                    '4h': '14400',
-                    '12h': '43200',
-                    '1d': '86400',
-                    '1w': '604800',
-                },
+                '1m': '1m',
+                '5m': '5m',
+                '15m': '15m',
+                '30m': '30m',
+                '1h': '1h',
+                '4h': '4h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '1d',
+                '3d': '3d',
+                '1w': '1w',
+                '1M': '1M',
             },
             'hostname': 'bitget.com',
             'urls': {
@@ -123,9 +113,6 @@ module.exports = class bitget extends Exchange {
                     'https://bitgetlimited.github.io/apidoc/en/broker',
                 ],
                 'fees': 'https://www.bitget.cc/zh-CN/rate?tab=1',
-                'test': {
-                    'rest': 'https://testnet.bitget.com',
-                },
                 'referral': 'https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j',
             },
             'api': {
@@ -184,6 +171,7 @@ module.exports = class bitget extends Exchange {
                             'trade/fills': 1,
                             'wallet/transfer': 4,
                             'wallet/withdrawal': 4,
+                            'wallet/subTransfer': 10,
                         },
                     },
                     'mix': {
@@ -757,6 +745,33 @@ module.exports = class bitget extends Exchange {
                 'JADE': 'Jade Protocol',
             },
             'options': {
+                'timeframes': {
+                    'spot': {
+                        '1m': '1min',
+                        '5m': '5min',
+                        '15m': '15min',
+                        '30m': '30min',
+                        '1h': '1h',
+                        '4h': '4h',
+                        '6h': '6h',
+                        '12h': '12h',
+                        '1d': '1day',
+                        '3d': '3day',
+                        '1w': '1week',
+                        '1M': '1M',
+                    },
+                    'swap': {
+                        '1m': '60',
+                        '5m': '300',
+                        '15m': '900',
+                        '30m': '1800',
+                        '1h': '3600',
+                        '4h': '14400',
+                        '12h': '43200',
+                        '1d': '86400',
+                        '1w': '604800',
+                    },
+                },
                 'fetchMarkets': [
                     'spot',
                     'swap',
@@ -808,7 +823,7 @@ module.exports = class bitget extends Exchange {
         for (let i = 0; i < types.length; i++) {
             const type = types[i];
             if (type === 'swap') {
-                const subTypes = [ 'umcbl', 'dmcbl' ];
+                const subTypes = [ 'umcbl', 'dmcbl', 'cmcbl', 'sumcbl', 'sdmcbl', 'scmcbl' ];
                 for (let j = 0; j < subTypes.length; j++) {
                     const markets = await this.fetchMarketsByType (type, this.extend (params, {
                         'productType': subTypes[j],
@@ -835,39 +850,38 @@ module.exports = class bitget extends Exchange {
         //
         // spot
         //
-        //     {
-        //       symbol: 'ALPHAUSDT_SPBL',
-        //       symbolName: 'ALPHAUSDT',
-        //       baseCoin: 'ALPHA',
-        //       quoteCoin: 'USDT',
-        //       minTradeAmount: '2',
-        //       maxTradeAmount: '0',
-        //       takerFeeRate: '0.001',
-        //       makerFeeRate: '0.001',
-        //       priceScale: '4',
-        //       quantityScale: '4',
-        //       status: 'online'
-        //     }
+        //    {
+        //        symbol: 'ALPHAUSDT_SPBL',
+        //        symbolName: 'ALPHAUSDT',
+        //        baseCoin: 'ALPHA',
+        //        quoteCoin: 'USDT',
+        //        minTradeAmount: '2',
+        //        maxTradeAmount: '0',
+        //        takerFeeRate: '0.001',
+        //        makerFeeRate: '0.001',
+        //        priceScale: '4',
+        //        quantityScale: '4',
+        //        status: 'online'
+        //    }
         //
         // swap
         //
-        //     {
-        //       symbol: 'BTCUSDT_UMCBL',
-        //       makerFeeRate: '0.0002',
-        //       takerFeeRate: '0.0006',
-        //       feeRateUpRatio: '0.005',
-        //       openCostUpRatio: '0.01',
-        //       quoteCoin: 'USDT',
-        //       baseCoin: 'BTC',
-        //       buyLimitPriceRatio: '0.01',
-        //       sellLimitPriceRatio: '0.01',
-        //       supportMarginCoins: [ 'USDT' ],
-        //       minTradeNum: '0.001',
-        //       priceEndStep: '5',
-        //       volumePlace: '3',
-        //       pricePlace: '1'
-        //     }
-        //
+        //    {
+        //        symbol: 'BTCUSDT_UMCBL',
+        //        makerFeeRate: '0.0002',
+        //        takerFeeRate: '0.0006',
+        //        feeRateUpRatio: '0.005',
+        //        openCostUpRatio: '0.01',
+        //        quoteCoin: 'USDT',
+        //        baseCoin: 'BTC',
+        //        buyLimitPriceRatio: '0.01',
+        //        sellLimitPriceRatio: '0.01',
+        //        supportMarginCoins: [ 'USDT' ],
+        //        minTradeNum: '0.001',
+        //        priceEndStep: '5',
+        //        volumePlace: '3',
+        //        pricePlace: '1'
+        //    }
         //
         const marketId = this.safeString (market, 'symbol');
         const quoteId = this.safeString (market, 'quoteCoin');
@@ -881,29 +895,45 @@ module.exports = class bitget extends Exchange {
         const parts = marketId.split ('_');
         const typeId = this.safeString (parts, 1);
         let type = undefined;
-        let linear = undefined;
-        let inverse = undefined;
         let swap = false;
         let spot = false;
+        let future = false;
         let contract = false;
         let pricePrecision = undefined;
         let amountPrecision = undefined;
+        let linear = undefined;
+        let inverse = undefined;
+        let expiry = undefined;
+        let expiryDatetime = undefined;
         if (typeId === 'SPBL') {
             type = 'spot';
             spot = true;
             pricePrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'priceScale')));
             amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (market, 'quantityScale')));
         } else {
-            type = 'swap';
-            swap = true;
+            const expiryString = this.safeString (parts, 2);
+            if (expiryString !== undefined) {
+                const year = '20' + expiryString.slice (0, 2);
+                const month = expiryString.slice (2, 4);
+                const day = expiryString.slice (4, 6);
+                expiryDatetime = year + '-' + month + '-' + day + 'T00:00:00Z';
+                expiry = this.parse8601 (expiryDatetime);
+                type = 'future';
+                future = true;
+                symbol = symbol + ':' + settle + '-' + expiryString;
+            } else {
+                type = 'swap';
+                swap = true;
+                symbol = symbol + ':' + settle;
+            }
             contract = true;
-            symbol = symbol + ':' + settle;
-            if (typeId === 'UMCBL') {
-                linear = true;
-                inverse = false;
-            } else if (typeId === 'DMCBL') {
-                inverse = true;
-                linear = false;
+            const sumcbl = (typeId === 'SUMCBL');
+            const sdmcbl = (typeId === 'SDMCBL');
+            const scmcbl = (typeId === 'SCMCBL');
+            linear = (typeId === 'UMCBL') || (typeId === 'CMCBL') || sumcbl || scmcbl;
+            inverse = !linear;
+            if (sumcbl || sdmcbl || scmcbl) {
+                symbol = marketId;
             }
             const priceDecimals = this.safeInteger (market, 'pricePlace');
             const amountDecimals = this.safeInteger (market, 'volumePlace');
@@ -925,54 +955,55 @@ module.exports = class bitget extends Exchange {
         if (status !== undefined) {
             active = status === 'online';
         }
-        const maker = this.safeNumber (market, 'makerFeeRate');
-        const taker = this.safeNumber (market, 'takerFeeRate');
-        const limits = {
-            'amount': {
-                'min': this.safeNumber (market, 'minTradeNum'),
-                'max': undefined,
-            },
-            'price': {
-                'min': undefined,
-                'max': undefined,
-            },
-            'cost': {
-                'min': undefined,
-                'max': undefined,
-            },
-        };
         return {
-            'info': market,
             'id': marketId,
             'symbol': symbol,
-            'quoteId': quoteId,
-            'baseId': baseId,
-            'quote': quote,
             'base': base,
+            'quote': quote,
+            'settle': settle,
+            'baseId': baseId,
+            'quoteId': quoteId,
+            'settleId': settleId,
             'type': type,
             'spot': spot,
-            'swap': swap,
-            'future': false,
-            'option': false,
             'margin': false,
+            'swap': swap,
+            'future': future,
+            'option': false,
+            'active': active,
             'contract': contract,
-            'contractSize': undefined,
             'linear': linear,
             'inverse': inverse,
-            'settleId': settleId,
-            'settle': settle,
-            'expiry': undefined,
-            'expiryDatetime': undefined,
-            'optionType': undefined,
+            'taker': this.safeNumber (market, 'takerFeeRate'),
+            'maker': this.safeNumber (market, 'makerFeeRate'),
+            'contractSize': this.safeNumber (market, 'sizeMultiplier'),
+            'expiry': expiry,
+            'expiryDatetime': expiryDatetime,
             'strike': undefined,
-            'active': active,
-            'maker': maker,
-            'taker': taker,
+            'optionType': undefined,
             'precision': {
-                'price': pricePrecision,
                 'amount': amountPrecision,
+                'price': pricePrecision,
             },
-            'limits': limits,
+            'limits': {
+                'leverage': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'amount': {
+                    'min': this.safeNumber (market, 'minTradeNum'),
+                    'max': undefined,
+                },
+                'price': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+                'cost': {
+                    'min': undefined,
+                    'max': undefined,
+                },
+            },
+            'info': market,
         };
     }
 
@@ -984,51 +1015,53 @@ module.exports = class bitget extends Exchange {
         const response = await this[method] (params);
         //
         // spot
-        //     {
-        //       code: '00000',
-        //       msg: 'success',
-        //       requestTime: 1645840064031,
-        //       data: [
-        //         {
-        //           symbol: 'ALPHAUSDT_SPBL',
-        //           symbolName: 'ALPHAUSDT',
-        //           baseCoin: 'ALPHA',
-        //           quoteCoin: 'USDT',
-        //           minTradeAmount: '2',
-        //           maxTradeAmount: '0',
-        //           takerFeeRate: '0.001',
-        //           makerFeeRate: '0.001',
-        //           priceScale: '4',
-        //           quantityScale: '4',
-        //           status: 'online'
-        //         }
-        //       ]
-        //     }
+        //
+        //    {
+        //        code: '00000',
+        //        msg: 'success',
+        //        requestTime: 1645840064031,
+        //        data: [
+        //            {
+        //                symbol: 'ALPHAUSDT_SPBL',
+        //                symbolName: 'ALPHAUSDT',
+        //                baseCoin: 'ALPHA',
+        //                quoteCoin: 'USDT',
+        //                minTradeAmount: '2',
+        //                maxTradeAmount: '0',
+        //                takerFeeRate: '0.001',
+        //                makerFeeRate: '0.001',
+        //                priceScale: '4',
+        //                quantityScale: '4',
+        //                status: 'online'
+        //            }
+        //        ]
+        //    }
         //
         // swap
-        //     {
-        //       code: '00000',
-        //       msg: 'success',
-        //       requestTime: 1645840821493,
-        //       data: [
-        //         {
-        //           symbol: 'BTCUSDT_UMCBL',
-        //           makerFeeRate: '0.0002',
-        //           takerFeeRate: '0.0006',
-        //           feeRateUpRatio: '0.005',
-        //           openCostUpRatio: '0.01',
-        //           quoteCoin: 'USDT',
-        //           baseCoin: 'BTC',
-        //           buyLimitPriceRatio: '0.01',
-        //           sellLimitPriceRatio: '0.01',
-        //           supportMarginCoins: [Array],
-        //           minTradeNum: '0.001',
-        //           priceEndStep: '5',
-        //           volumePlace: '3',
-        //           pricePlace: '1'
-        //         }
-        //       ]
-        //     }
+        //
+        //    {
+        //        code: '00000',
+        //        msg: 'success',
+        //        requestTime: 1645840821493,
+        //        data: [
+        //            {
+        //                symbol: 'BTCUSDT_UMCBL',
+        //                makerFeeRate: '0.0002',
+        //                takerFeeRate: '0.0006',
+        //                feeRateUpRatio: '0.005',
+        //                openCostUpRatio: '0.01',
+        //                quoteCoin: 'USDT',
+        //                baseCoin: 'BTC',
+        //                buyLimitPriceRatio: '0.01',
+        //                sellLimitPriceRatio: '0.01',
+        //                supportMarginCoins: [Array],
+        //                minTradeNum: '0.001',
+        //                priceEndStep: '5',
+        //                volumePlace: '3',
+        //                pricePlace: '1'
+        //            }
+        //        ]
+        //    }
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseMarkets (data);
@@ -1581,13 +1614,21 @@ module.exports = class bitget extends Exchange {
          * @method
          * @name bitget#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#get-all-tickers
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#get-all-symbol-ticker
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
-        const method = this.getSupportedMapping (marketType, {
+        let type = undefined;
+        let market = undefined;
+        if (symbols !== undefined) {
+            const symbol = this.safeValue (symbols, 0);
+            market = this.market (symbol);
+        }
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const method = this.getSupportedMapping (type, {
             'spot': 'publicSpotGetMarketTickers',
             'swap': 'publicMixGetMarketTickers',
         });
@@ -1596,7 +1637,7 @@ module.exports = class bitget extends Exchange {
             const defaultSubType = this.safeString (this.options, 'defaultSubType');
             request['productType'] = (defaultSubType === 'linear') ? 'UMCBL' : 'DMCBL';
         }
-        const response = await this[method] (this.extend (request, query));
+        const response = await this[method] (this.extend (request, params));
         //
         // spot
         //
@@ -1945,12 +1986,12 @@ module.exports = class bitget extends Exchange {
             limit = 100;
         }
         if (market['type'] === 'spot') {
-            request['period'] = this.timeframes['spot'][timeframe];
+            request['period'] = this.options['timeframes']['spot'][timeframe];
             request['limit'] = limit;
             if (since !== undefined) {
                 request['after'] = since;
                 if (until === undefined) {
-                    const millisecondsPerTimeframe = this.timeframes['swap'][timeframe] * 1000;
+                    const millisecondsPerTimeframe = this.options['timeframes']['swap'][timeframe] * 1000;
                     request['before'] = this.sum (since, millisecondsPerTimeframe * limit);
                 }
             }
@@ -1958,7 +1999,7 @@ module.exports = class bitget extends Exchange {
                 request['before'] = until;
             }
         } else if (market['type'] === 'swap') {
-            request['granularity'] = this.timeframes['swap'][timeframe];
+            request['granularity'] = this.options['timeframes']['swap'][timeframe];
             const duration = this.parseTimeframe (timeframe);
             const now = this.milliseconds ();
             if (since === undefined) {

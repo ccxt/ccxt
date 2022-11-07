@@ -101,6 +101,8 @@ class coinbasepro extends \ccxt\async\coinbasepro {
              * @param {array} $params extra parameters specific to the coinbasepro api endpoint
              * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
+            Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
             $name = 'matches';
             $trades = Async\await($this->subscribe($name, $symbol, $name, $params));
             if ($this->newUpdates) {
@@ -123,6 +125,8 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             if ($symbol === null) {
                 throw new BadSymbol($this->id . ' watchMyTrades requires a symbol');
             }
+            Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
             $name = 'user';
             $messageHash = 'myTrades';
             $authentication = $this->authenticate();
@@ -147,6 +151,8 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             if ($symbol === null) {
                 throw new BadSymbol($this->id . ' watchMyTrades requires a symbol');
             }
+            Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
             $name = 'user';
             $messageHash = 'orders';
             $authentication = $this->authenticate();
@@ -170,6 +176,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
             $name = 'level2';
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $messageHash = $name . ':' . $market['id'];
             $url = $this->urls['api']['ws'];
             $subscribe = array(
@@ -189,7 +196,7 @@ class coinbasepro extends \ccxt\async\coinbasepro {
                 'limit' => $limit,
             );
             $orderbook = Async\await($this->watch($url, $messageHash, $request, $messageHash, $subscription));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

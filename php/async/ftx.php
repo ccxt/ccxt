@@ -380,6 +380,7 @@ class ftx extends Exchange {
                     'Not authorized for subaccount-specific access' => '\\ccxt\\PermissionDenied', // array("success":false,"error":"Not authorized for subaccount-specific access")
                     'Not approved to trade this product' => '\\ccxt\\PermissionDenied', // array("success":false,"error":"Not approved to trade this product")
                     'Internal Error' => '\\ccxt\\ExchangeNotAvailable', // array("success":false,"error":"Internal Error")
+                    'Order took too long to process' => '\\ccxt\\ExchangeNotAvailable', // array("success":false,"error":"Order took too long to process")
                 ),
                 'broad' => array(
                     // array("error":"Not logged in","success":false)
@@ -982,16 +983,20 @@ class ftx extends Exchange {
             $price = $this->safe_string($params, 'price');
             $until = $this->safe_integer($params, 'until');
             $params = $this->omit($params, array( 'price', 'until' ));
-            if ($since !== null) {
+            $duration = $this->parse_timeframe($timeframe);
+            $now = $this->seconds();
+            if ($since === null) { // Issue #12855, inconsistent results if $since is not provided
+                $request['end_time'] = $now;
+                $request['start_time'] = $this->sum($now, -$limit * $duration);
+            } else {
                 $startTime = intval($since / 1000);
                 $request['start_time'] = $startTime;
-                $duration = $this->parse_timeframe($timeframe);
                 $endTime = $this->sum($startTime, $limit * $duration);
-                $request['end_time'] = min ($endTime, $this->seconds());
-                if ($duration > 86400) {
-                    $wholeDaysInTimeframe = intval($duration / 86400);
-                    $request['limit'] = min ($limit * $wholeDaysInTimeframe, $maxLimit);
-                }
+                $request['end_time'] = min ($endTime, $now);
+            }
+            if ($duration > 86400) {
+                $wholeDaysInTimeframe = intval($duration / 86400);
+                $request['limit'] = min ($limit * $wholeDaysInTimeframe, $maxLimit);
             }
             if ($until !== null) {
                 $request['end_time'] = intval($until / 1000);
@@ -1919,18 +1924,19 @@ class ftx extends Exchange {
             $defaultMethod = $this->safe_string($options, 'method', 'privateDeleteOrdersOrderId');
             $method = $this->safe_string($params, 'method', $defaultMethod);
             $type = $this->safe_value($params, 'type');  // Deprecated => use $params->stop instead
-            $stop = $this->safe_value($params, 'stop');
+            $isTriggerOrder = null;
+            list($isTriggerOrder, $params) = $this->is_trigger_order($params);
             $clientOrderId = $this->safe_value_2($params, 'client_order_id', 'clientOrderId');
             if ($clientOrderId === null) {
                 $request['order_id'] = intval($id);
-                if ($stop || ($type === 'stop') || ($type === 'trailingStop') || ($type === 'takeProfit')) {
+                if ($isTriggerOrder || $this->in_array($type, array( 'stop', 'trailingStop', 'takeProfit' ))) {
                     $method = 'privateDeleteConditionalOrdersOrderId';
                 }
             } else {
                 $request['client_order_id'] = $clientOrderId;
                 $method = 'privateDeleteOrdersByClientIdClientOrderId';
             }
-            $query = $this->omit($params, array( 'method', 'type', 'client_order_id', 'clientOrderId', 'stop' ));
+            $query = $this->omit($params, array( 'method', 'type', 'client_order_id', 'clientOrderId' ));
             $response = Async\await($this->$method (array_merge($request, $query)));
             //
             //     {
@@ -1955,6 +1961,7 @@ class ftx extends Exchange {
             Async\await($this->load_markets());
             // https://docs.ccxt.com/en/latest/manual.html#user-defined-clientorderid
             $clientOrderIds = $this->safe_value($params, 'clientOrderIds');
+            // FTX doesn't have endpoint for trigger orders related to cancelOrders
             if ($clientOrderIds !== null) {
                 //
                 //     array( success => true, result => array( 'billy', 'bob', 'gina' ) )
@@ -1989,6 +1996,13 @@ class ftx extends Exchange {
             $marketId = $this->get_market_id($symbol, 'market', $params);
             if ($marketId !== null) {
                 $request['market'] = $marketId;
+            }
+            $isTriggerOrder = null;
+            list($isTriggerOrder, $params) = $this->is_trigger_order($params);
+            // if user wants to cancel only conditional orders, then set below fields. Otherwise, $request will cancel all orders - conditional and regular orders
+            if ($isTriggerOrder) {
+                $request['conditionalOrdersOnly'] = true;
+                $request['limitOrdersOnly'] = false;
             }
             $response = Async\await($this->privateDeleteOrders (array_merge($request, $params)));
             $result = $this->safe_value($response, 'result', array());
@@ -2072,11 +2086,12 @@ class ftx extends Exchange {
             $defaultMethod = $this->safe_string($options, 'method', 'privateGetOrders');
             $method = $this->safe_string($params, 'method', $defaultMethod);
             $type = $this->safe_value($params, 'type');
-            $stop = $this->safe_value($params, 'stop');
-            if ($stop || ($type === 'stop') || ($type === 'trailingStop') || ($type === 'takeProfit')) {
+            $isTriggerOrder = null;
+            list($isTriggerOrder, $params) = $this->is_trigger_order($params);
+            if ($isTriggerOrder || $this->in_array($type, array( 'trigger', 'stop', 'trailingStop', 'takeProfit' ))) {
                 $method = 'privateGetConditionalOrders';
             }
-            $query = $this->omit($params, array( 'method', 'type', 'stop' ));
+            $query = $this->omit($params, array( 'method', 'type' ));
             $response = Async\await($this->$method (array_merge($request, $query)));
             //
             //     {
@@ -2136,7 +2151,9 @@ class ftx extends Exchange {
             $defaultMethod = $this->safe_string($options, 'method', 'privateGetOrdersHistory');
             $method = $this->safe_string($params, 'method', $defaultMethod);
             $type = $this->safe_value($params, 'type');
-            if (($type === 'stop') || ($type === 'trailingStop') || ($type === 'takeProfit')) {
+            $isTriggerOrder = null;
+            list($isTriggerOrder, $params) = $this->is_trigger_order($params);
+            if ($isTriggerOrder || $this->in_array($type, array( 'trigger', 'stop', 'trailingStop', 'takeProfit' ))) {
                 $method = 'privateGetConditionalOrdersHistory';
             }
             $query = $this->omit($params, array( 'method', 'type' ));
@@ -2185,7 +2202,50 @@ class ftx extends Exchange {
             $request = array(
                 'orderId' => $id,
             );
+            // if it's conditional order
+            $type = $this->safe_value($params, 'type');
+            $params = $this->omit($params, 'type');
+            $isTriggerOrder = null;
+            list($isTriggerOrder, $params) = $this->is_trigger_order($params);
+            if ($isTriggerOrder || $this->in_array($type, array( 'trigger', 'stop', 'trailingStop', 'takeProfit' ))) {
+                // if it is conditional order, then it would have a reference order $id to be sent to the specific endpoint, from where we will get the actual order ID and then use that ID
+                $realOrderId = Async\await($this->fetch_order_if_from_conditional_order($id));
+                if ($realOrderId !== null) {
+                    $request['orderId'] = $realOrderId;
+                } else {
+                    // if order-$id was not found, then there were no fills and no need to make any further $request
+                    return array();
+                }
+            }
             return Async\await($this->fetch_my_trades($symbol, $since, $limit, array_merge($request, $params)));
+        }) ();
+    }
+
+    public function fetch_order_if_from_conditional_order($id) {
+        return Async\async(function () use ($id) {
+            $request = array(
+                'conditional_order_id' => $id,
+            );
+            $response = Async\await($this->privateGetConditionalOrdersConditionalOrderIdTriggers ($request));
+            // Note => if endpoint retuns non-empy "result" property, then it means order had fill and returns the order reference ID, which is the real $id of the regular order
+            //
+            // {
+            //     "success" => true,
+            //     "result" => array(
+            //         {
+            //             "time" => "2022-03-29T04:54:04.390665+00:00",
+            //             "orderId" => 132144259673, // this is not the same conditional-order's $id, instead it is the regular order $id, which can be used in regular methods
+            //             "error" => null,
+            //             "orderSize" => 0.1234,
+            //             "filledSize" => 0.1234
+            //         }
+            //     )
+            // }
+            //
+            // Also note, the above endpoint seems to return one object in array
+            $result = $this->safe_value($response, 'result');
+            $orderObject = $this->safe_value($result, 0, array());
+            return $this->safe_string($orderObject, 'orderId');
         }) ();
     }
 
