@@ -511,6 +511,10 @@ module.exports = class crex24 extends Exchange {
         //         }
         //     ]
         //
+        return this.parseTransactionFees (response, codes);
+    }
+
+    parseTransactionFees (response, codes = undefined) {
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
@@ -519,19 +523,41 @@ module.exports = class crex24 extends Exchange {
             if (codes !== undefined && !this.inArray (code, codes)) {
                 continue;
             }
-            const networkList = this.safeValue (entry, 'fees');
-            result[code] = {
-                'withdraw': {},
-                'deposit': undefined,
-                'info': entry,
-            };
-            for (let j = 0; j < networkList.length; j++) {
-                const networkEntry = networkList[j];
-                const networkId = this.safeString (networkEntry, 'feeCurrency');
-                const networkCode = this.safeCurrencyCode (networkId);
-                const fee = this.safeNumber (networkEntry, 'amount');
-                result[code]['withdraw'][networkCode] = fee;
-            }
+            result[code] = this.parseTransactionFee (entry);
+        }
+        return result;
+    }
+
+    parseTransactionFee (transaction) {
+        //
+        //     [
+        //         {
+        //             currency: '1INCH',
+        //             fees: [
+        //                 { feeCurrency: 'BTC', amount: 0.00032 },
+        //                 { feeCurrency: 'ETH', amount: 0.0054 },
+        //                 { feeCurrency: 'DOGE', amount: 63.06669 },
+        //                 { feeCurrency: 'LTC', amount: 0.0912 },
+        //                 { feeCurrency: 'BCH', amount: 0.02364 },
+        //                 { feeCurrency: 'USDT', amount: 12.717 },
+        //                 { feeCurrency: 'USDC', amount: 12.7367 },
+        //                 { feeCurrency: 'TRX', amount: 205.99108 },
+        //                 { feeCurrency: 'EOS', amount: 3.30141 }
+        //             ]
+        //         }
+        //     ]
+        //
+        const result = {
+            'withdraw': {},
+            'deposit': {},
+            'info': transaction,
+        };
+        const networkList = this.safeValue (transaction, 'fees');
+        for (let j = 0; j < networkList.length; j++) {
+            const networkEntry = networkList[j];
+            const networkId = this.safeString (networkEntry, 'feeCurrency');
+            const fee = this.safeNumber (networkEntry, 'amount');
+            result['withdraw'][networkId] = fee;
         }
         return result;
     }
