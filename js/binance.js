@@ -684,6 +684,7 @@ module.exports = class binance extends Exchange {
                         'bill': 1,
                         'marginAccount': 3,
                         'mmp': 1,
+                        'countdownCancelAll': 1,
                     },
                     'post': {
                         'transfer': 1,
@@ -692,6 +693,8 @@ module.exports = class binance extends Exchange {
                         'listenKey': 1,
                         'mmpSet': 1,
                         'mmpReset': 1,
+                        'countdownCancelAll': 1,
+                        'countdownCancelAllHeartBeat': 10,
                     },
                     'put': {
                         'listenKey': 1,
