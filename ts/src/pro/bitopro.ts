@@ -47,7 +47,7 @@ export default class bitopro extends bitoproRest {
 
     async watchPublic (path, messageHash, marketId) {
         const url = this.urls['ws']['public'] + '/' + path + '/' + marketId;
-        return await this.ws.watch (url, messageHash, undefined, messageHash);
+        return await this.watch (url, messageHash, undefined, messageHash);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -107,7 +107,7 @@ export default class bitopro extends bitoproRest {
         const messageHash = event + ':' + symbol;
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
-            orderbook = this.ws.orderBook ({});
+            orderbook = this.orderBook ({});
         }
         const timestamp = this.safeInteger (message, 'timestamp');
         const snapshot = this.parseOrderBook (message, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
@@ -130,7 +130,7 @@ export default class bitopro extends bitoproRest {
         const market = this.market (symbol);
         const messageHash = 'TRADE' + ':' + symbol;
         const trades = await this.watchPublic ('trades', messageHash, market['id']);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -224,7 +224,7 @@ export default class bitopro extends bitoproRest {
     }
 
     authenticate (url) {
-        if ((this.ws.clients !== undefined) && (url in this.ws.clients)) {
+        if ((this.clients !== undefined) && (url in this.clients)) {
             return;
         }
         this.checkRequiredCredentials ();
@@ -252,7 +252,7 @@ export default class bitopro extends bitoproRest {
         };
         this.options['ws']['options']['headers'] = headers;
         // instantiate client
-        this.ws.client (url);
+        this.client (url);
         this.options['ws']['options']['headers'] = originalHeaders;
     }
 
@@ -269,7 +269,7 @@ export default class bitopro extends bitoproRest {
         const messageHash = 'ACCOUNT_BALANCE';
         const url = this.urls['ws']['private'] + '/' + 'account-balance';
         this.authenticate (url);
-        return await this.ws.watch (url, messageHash, undefined, messageHash);
+        return await this.watch (url, messageHash, undefined, messageHash);
     }
 
     handleBalance (client, message) {

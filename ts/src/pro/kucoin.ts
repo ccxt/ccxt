@@ -42,7 +42,7 @@ export default class kucoin extends kucoinRest {
     }
 
     async negotiate (params = {}) {
-        const client = this.ws.client ('ws');
+        const client = this.client ('ws');
         const messageHash = 'negotiate';
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
@@ -120,7 +120,7 @@ export default class kucoin extends kucoinRest {
         };
         const request = this.extend (subscribe, params);
         const subscriptionHash = topic;
-        return await this.ws.watch (url, messageHash, request, subscriptionHash, subscription);
+        return await this.watch (url, messageHash, request, subscriptionHash, subscription);
     }
 
     async watchTicker (symbol, params = {}) {
@@ -226,7 +226,7 @@ export default class kucoin extends kucoinRest {
         const topic = '/market/candles:' + market['id'] + '_' + period;
         const messageHash = topic;
         const ohlcv = await this.subscribe (negotiation, topic, messageHash, undefined, symbol, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -293,7 +293,7 @@ export default class kucoin extends kucoinRest {
         const topic = '/market/match:' + market['id'];
         const messageHash = topic;
         const trades = await this.subscribe (negotiation, topic, messageHash, undefined, symbol, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -559,7 +559,7 @@ export default class kucoin extends kucoinRest {
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
-        this.orderbooks[symbol] = this.ws.orderBook ({}, limit);
+        this.orderbooks[symbol] = this.orderBook ({}, limit);
         // moved snapshot initialization to handleOrderBook to fix
         // https://github.com/ccxt/ccxt/issues/6820
         // the general idea is to fetch the snapshot after the first delta
@@ -621,7 +621,7 @@ export default class kucoin extends kucoinRest {
             messageHash = messageHash + ':' + market['symbol'];
         }
         const orders = await this.subscribe (negotiation, topic, messageHash, undefined, undefined, this.extend (request, params));
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
@@ -749,7 +749,7 @@ export default class kucoin extends kucoinRest {
             messageHash = messageHash + ':' + market['symbol'];
         }
         const trades = await this.subscribe (negotiation, topic, messageHash, undefined, undefined, this.extend (request, params));
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit);

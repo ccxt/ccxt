@@ -100,7 +100,7 @@ export default class hollaex extends hollaexRest {
         const snapshot = this.parseOrderBook (data, symbol, timestampMs);
         let orderbook = undefined;
         if (!(symbol in this.orderbooks)) {
-            orderbook = this.ws.orderBook (snapshot);
+            orderbook = this.orderBook (snapshot);
             this.orderbooks[symbol] = orderbook;
         } else {
             orderbook = this.orderbooks[symbol];
@@ -126,7 +126,7 @@ export default class hollaex extends hollaexRest {
         symbol = market['symbol'];
         const messageHash = 'trade' + ':' + market['id'];
         const trades = await this.watchPublic (messageHash, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -188,7 +188,7 @@ export default class hollaex extends hollaexRest {
             messageHash += ':' + market['id'];
         }
         const trades = await this.watchPrivate (messageHash, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
@@ -270,7 +270,7 @@ export default class hollaex extends hollaexRest {
             messageHash += ':' + market['id'];
         }
         const orders = await this.watchPrivate (messageHash, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
@@ -426,7 +426,7 @@ export default class hollaex extends hollaexRest {
             'args': [ messageHash ],
         };
         const message = this.extend (request, params);
-        return await this.ws.watch (url, messageHash, message, messageHash);
+        return await this.watch (url, messageHash, message, messageHash);
     }
 
     async watchPrivate (messageHash, params = {}) {
@@ -454,7 +454,7 @@ export default class hollaex extends hollaexRest {
             'args': [ messageHash ],
         };
         const message = this.extend (request, params);
-        return await this.ws.watch (signedUrl, messageHash, message, messageHash);
+        return await this.watch (signedUrl, messageHash, message, messageHash);
     }
 
     handleErrorMessage (client, message) {
@@ -596,11 +596,11 @@ export default class hollaex extends hollaexRest {
 
     onError (client, error) {
         this.options['ws-expires'] = undefined;
-        this.ws.onError (client, error);
+        this.onError (client, error);
     }
 
     onClose (client, error) {
         this.options['ws-expires'] = undefined;
-        this.ws.onClose (client, error);
+        this.onClose (client, error);
     }
 }

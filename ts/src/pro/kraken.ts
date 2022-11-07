@@ -226,7 +226,7 @@ export default class kraken extends krakenRest {
             },
         };
         const request = this.deepExtend (subscribe, params);
-        return await this.ws.watch (url, messageHash, request, messageHash);
+        return await this.watch (url, messageHash, request, messageHash);
     }
 
     async watchTicker (symbol, params = {}) {
@@ -254,7 +254,7 @@ export default class kraken extends krakenRest {
          */
         const name = 'trade';
         const trades = await this.watchPublic (name, symbol, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -305,8 +305,8 @@ export default class kraken extends krakenRest {
             },
         };
         const request = this.deepExtend (subscribe, params);
-        const ohlcv = await this.ws.watch (url, messageHash, request, messageHash);
-        if (this.ws.newUpdates) {
+        const ohlcv = await this.watch (url, messageHash, request, messageHash);
+        if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -340,7 +340,7 @@ export default class kraken extends krakenRest {
         await this.loadMarkets ();
         const event = 'heartbeat';
         const url = this.urls['api']['ws']['public'];
-        return await this.ws.watch (url, event);
+        return await this.watch (url, event);
     }
 
     handleHeartbeat (client, message) {
@@ -406,7 +406,7 @@ export default class kraken extends krakenRest {
         // if this is a snapshot
         if ('as' in message[1]) {
             // todo get depth from marketsByWsName
-            this.orderbooks[symbol] = this.ws.orderBook ({}, depth);
+            this.orderbooks[symbol] = this.orderBook ({}, depth);
             const orderbook = this.orderbooks[symbol];
             const sides = {
                 'as': 'asks',
@@ -540,7 +540,7 @@ export default class kraken extends krakenRest {
 
     async authenticate (params = {}) {
         const url = this.urls['api']['ws']['private'];
-        const client = this.ws.client (url);
+        const client = this.client (url);
         const authenticated = 'authenticated';
         let subscription = this.safeValue (client.subscriptions, authenticated);
         if (subscription === undefined) {
@@ -579,8 +579,8 @@ export default class kraken extends krakenRest {
             },
         };
         const request = this.deepExtend (subscribe, params);
-        const result = await this.ws.watch (url, messageHash, request, subscriptionHash);
-        if (this.ws.newUpdates) {
+        const result = await this.watch (url, messageHash, request, subscriptionHash);
+        if (this.newUpdates) {
             limit = result.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (result, symbol, since, limit, true);

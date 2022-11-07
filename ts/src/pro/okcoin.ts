@@ -61,7 +61,7 @@ export default class okcoin extends okcoinRest {
             'op': 'subscribe',
             'args': [ messageHash ],
         };
-        return await this.ws.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -76,7 +76,7 @@ export default class okcoin extends okcoinRest {
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         const trades = await this.subscribe ('trade', symbol, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -96,7 +96,7 @@ export default class okcoin extends okcoinRest {
         await this.authenticate ();
         const orderType = this.safeString (this.options, 'watchOrders', 'order');
         const trades = await this.subscribe (orderType, symbol, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -253,7 +253,7 @@ export default class okcoin extends okcoinRest {
         const interval = this.timeframes[timeframe];
         const name = 'candle' + interval + 's';
         const ohlcv = await this.subscribe (name, symbol, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -423,7 +423,7 @@ export default class okcoin extends okcoinRest {
                 const options = this.safeValue (this.options, 'watchOrderBook', {});
                 // default limit is 400 bidasks
                 const limit = this.safeInteger (options, 'limit', 400);
-                const orderbook = this.ws.orderBook ({}, limit);
+                const orderbook = this.orderBook ({}, limit);
                 this.orderbooks[symbol] = orderbook;
                 this.handleOrderBookMessage (client, update, orderbook);
                 const messageHash = table + ':' + marketId;
@@ -450,7 +450,7 @@ export default class okcoin extends okcoinRest {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
         const messageHash = 'login';
-        const client = this.ws.client (url);
+        const client = this.client (url);
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
             future = client.future ('authenticated');
@@ -468,7 +468,7 @@ export default class okcoin extends okcoinRest {
                     signature,
                 ],
             };
-            this.spawn (this.ws.watch, url, messageHash, request, messageHash, future);
+            this.spawn (this.watch, url, messageHash, request, messageHash, future);
         }
         return await future;
     }
@@ -545,7 +545,7 @@ export default class okcoin extends okcoinRest {
             'args': [ subscriptionHash ],
         };
         const query = this.omit (params, [ 'currency', 'code', 'instrument_id', 'symbol', 'type' ]);
-        return await this.ws.watch (url, messageHash, this.deepExtend (request, query), subscriptionHash);
+        return await this.watch (url, messageHash, this.deepExtend (request, query), subscriptionHash);
     }
 
     handleBalance (client, message) {

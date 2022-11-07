@@ -354,7 +354,7 @@ export default class phemex extends phemexRest {
             'params': [],
         };
         const request = this.deepExtend (subscribe, params);
-        return await this.ws.watch (url, messageHash, request, subscriptionHash);
+        return await this.watch (url, messageHash, request, subscriptionHash);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -383,8 +383,8 @@ export default class phemex extends phemexRest {
             ],
         };
         const request = this.deepExtend (subscribe, params);
-        const trades = await this.ws.watch (url, messageHash, request, messageHash);
-        if (this.ws.newUpdates) {
+        const trades = await this.watch (url, messageHash, request, messageHash);
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -415,7 +415,7 @@ export default class phemex extends phemexRest {
             ],
         };
         const request = this.deepExtend (subscribe, params);
-        const orderbook = await this.ws.watch (url, messageHash, request, messageHash);
+        const orderbook = await this.watch (url, messageHash, request, messageHash);
         return orderbook.limit (limit);
     }
 
@@ -436,8 +436,8 @@ export default class phemex extends phemexRest {
             ],
         };
         const request = this.deepExtend (subscribe, params);
-        const ohlcv = await this.ws.watch (url, messageHash, request, messageHash);
-        if (this.ws.newUpdates) {
+        const ohlcv = await this.watch (url, messageHash, request, messageHash);
+        if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -489,7 +489,7 @@ export default class phemex extends phemexRest {
             const book = this.safeValue (message, 'book', {});
             const snapshot = this.customParseOrderBook (book, symbol, timestamp, 'bids', 'asks', 0, 1, market);
             snapshot['nonce'] = nonce;
-            const orderbook = this.ws.orderBook (snapshot, depth);
+            const orderbook = this.orderBook (snapshot, depth);
             this.orderbooks[symbol] = orderbook;
             client.resolve (orderbook, messageHash);
         } else {
@@ -534,7 +534,7 @@ export default class phemex extends phemexRest {
             messageHash = messageHash + ':' + type;
         }
         const trades = await this.subscribePrivate (type, messageHash, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
@@ -632,7 +632,7 @@ export default class phemex extends phemexRest {
             messageHash = messageHash + ':' + type;
         }
         const orders = await this.subscribePrivate (type, messageHash, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
@@ -1070,13 +1070,13 @@ export default class phemex extends phemexRest {
             'id': requestId,
             'messageHash': messageHash,
         };
-        return await this.ws.watch (url, messageHash, request, channel, subscription);
+        return await this.watch (url, messageHash, request, channel, subscription);
     }
 
     async authenticate (params = {}) {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws'];
-        const client = this.ws.client (url);
+        const client = this.client (url);
         const time = this.seconds ();
         const messageHash = 'authenticated';
         const future = client.future (messageHash);
@@ -1095,7 +1095,7 @@ export default class phemex extends phemexRest {
                 'id': time,
                 'method': this.handleAuthenticate,
             };
-            this.spawn (this.ws.watch, url, messageHash, request, messageHash, subscription);
+            this.spawn (this.watch, url, messageHash, request, messageHash, subscription);
         }
         return await future;
     }

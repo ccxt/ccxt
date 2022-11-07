@@ -47,7 +47,7 @@ export default class upbit extends upbitRest {
             },
         ];
         const messageHash = channel + ':' + marketId;
-        return await this.ws.watch (url, messageHash, request, messageHash);
+        return await this.watch (url, messageHash, request, messageHash);
     }
 
     async watchTicker (symbol, params = {}) {
@@ -74,7 +74,7 @@ export default class upbit extends upbitRest {
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         const trades = await this.watchPublic (symbol, 'trade');
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -165,7 +165,7 @@ export default class upbit extends upbitRest {
         const options = this.safeValue (this.options, 'watchOrderBook', {});
         const limit = this.safeInteger (options, 'limit', 15);
         if (type === 'SNAPSHOT') {
-            this.orderbooks[symbol] = this.ws.orderBook ({}, limit);
+            this.orderbooks[symbol] = this.orderBook ({}, limit);
         }
         const orderBook = this.orderbooks[symbol];
         // upbit always returns a snapshot of 15 topmost entries

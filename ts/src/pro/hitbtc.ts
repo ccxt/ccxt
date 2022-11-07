@@ -54,7 +54,7 @@ export default class hitbtc extends hitbtcRest {
             'id': requestId,
         };
         const request = this.deepExtend (subscribe, params);
-        return await this.ws.watch (url, messageHash, request, messageHash);
+        return await this.watch (url, messageHash, request, messageHash);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -103,7 +103,7 @@ export default class hitbtc extends hitbtcRest {
             delete this.orderbooks[symbol];
         }
         const snapshot = this.parseOrderBook (params, symbol, timestamp, 'bid', 'ask', 'price', 'size');
-        const orderbook = this.ws.orderBook (snapshot);
+        const orderbook = this.orderBook (snapshot);
         orderbook['nonce'] = nonce;
         this.orderbooks[symbol] = orderbook;
         const messageHash = 'orderbook:' + marketId;
@@ -219,7 +219,7 @@ export default class hitbtc extends hitbtcRest {
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         const trades = await this.watchPublic (symbol, 'trades', undefined, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -289,7 +289,7 @@ export default class hitbtc extends hitbtcRest {
         };
         const requestParams = this.deepExtend (request, params);
         const ohlcv = await this.watchPublic (symbol, 'ohlcv', period, requestParams);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);

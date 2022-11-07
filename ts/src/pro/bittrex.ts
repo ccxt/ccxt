@@ -94,7 +94,7 @@ export default class bittrex extends bittrexRest {
             'negotiation': negotiation,
         }, subscription);
         const url = this.getSignalRUrl (negotiation);
-        return await this.ws.watch (url, messageHash, request, messageHash, subscription);
+        return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
     async authenticate (params = {}) {
@@ -105,7 +105,7 @@ export default class bittrex extends bittrexRest {
 
     async sendRequestToAuthenticate (negotiation, expired = false, params = {}) {
         const url = this.getSignalRUrl (negotiation);
-        const client = this.ws.client (url);
+        const client = this.client (url);
         const messageHash = 'authenticate';
         let future = this.safeValue (client.subscriptions, messageHash);
         if ((future === undefined) || expired) {
@@ -119,7 +119,7 @@ export default class bittrex extends bittrexRest {
                 'negotiation': negotiation,
                 'method': this.handleAuthenticate,
             };
-            this.spawn (this.ws.watch, url, messageHash, request, requestId, subscription);
+            this.spawn (this.watch, url, messageHash, request, requestId, subscription);
         }
         return await future;
     }
@@ -171,7 +171,7 @@ export default class bittrex extends bittrexRest {
     }
 
     async negotiate (params = {}) {
-        const client = this.ws.client (this.urls['api']['ws']);
+        const client = this.client (this.urls['api']['ws']);
         const messageHash = 'negotiate';
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
@@ -224,7 +224,7 @@ export default class bittrex extends bittrexRest {
         await this.loadMarkets ();
         const authentication = await this.authenticate ();
         const orders = await this.subscribeToOrders (authentication, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
@@ -330,7 +330,7 @@ export default class bittrex extends bittrexRest {
             'params': params,
             'negotiation': negotiation,
         };
-        return await this.ws.watch (url, messageHash, request, messageHash, subscription);
+        return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
     handleHeartbeat (client, message) {
@@ -397,7 +397,7 @@ export default class bittrex extends bittrexRest {
         await this.loadMarkets ();
         const negotiation = await this.negotiate ();
         const ohlcv = await this.subscribeToOHLCV (negotiation, symbol, timeframe, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -468,7 +468,7 @@ export default class bittrex extends bittrexRest {
         await this.loadMarkets ();
         const negotiation = await this.negotiate ();
         const trades = await this.subscribeToTrades (negotiation, symbol, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -536,7 +536,7 @@ export default class bittrex extends bittrexRest {
         await this.loadMarkets ();
         const authentication = await this.authenticate ();
         const trades = await this.subscribeToMyTrades (authentication, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
@@ -685,7 +685,7 @@ export default class bittrex extends bittrexRest {
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
-        this.orderbooks[symbol] = this.ws.orderBook ({}, limit);
+        this.orderbooks[symbol] = this.orderBook ({}, limit);
         this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }
 
@@ -731,7 +731,7 @@ export default class bittrex extends bittrexRest {
         const limit = this.safeInteger (message, 'depth');
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
-            orderbook = this.ws.orderBook ({}, limit);
+            orderbook = this.orderBook ({}, limit);
         }
         if (orderbook['nonce'] !== undefined) {
             this.handleOrderBookMessage (client, message, orderbook);
@@ -879,7 +879,7 @@ export default class bittrex extends bittrexRest {
                 } else {
                     const A = this.safeValue (M[i], 'A', []);
                     for (let k = 0; k < A.length; k++) {
-                        const inflated = this.ws.inflate64 (A[k]);
+                        const inflated = this.inflate64 (A[k]);
                         const update = JSON.parse (inflated);
                         method.call (this, client, update);
                     }

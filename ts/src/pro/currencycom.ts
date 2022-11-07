@@ -309,7 +309,7 @@ export default class currencycom extends currencycomRest {
             'messageHash': messageHash,
             'symbol': symbol,
         });
-        return await this.ws.watch (url, messageHash, request, messageHash, subscription);
+        return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
     async watchPrivate (destination, params = {}) {
@@ -331,7 +331,7 @@ export default class currencycom extends currencycomRest {
         const subscription = this.extend (request, {
             'messageHash': messageHash,
         });
-        return await this.ws.watch (url, messageHash, request, messageHash, subscription);
+        return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
     async watchBalance (params = {}) {
@@ -372,7 +372,7 @@ export default class currencycom extends currencycomRest {
             'messageHash': messageHash,
             'symbol': symbol,
         });
-        return await this.ws.watch (url, messageHash, request, messageHash, subscription);
+        return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -387,7 +387,7 @@ export default class currencycom extends currencycomRest {
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         const trades = await this.watchPublic ('trades.subscribe', symbol, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -420,7 +420,7 @@ export default class currencycom extends currencycomRest {
             },
         };
         const ohlcv = await this.watchPublic (messageHash, symbol, this.extend (request, params));
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -456,7 +456,7 @@ export default class currencycom extends currencycomRest {
         const timestamp = this.safeInteger (data, 'ts');
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
-            orderbook = this.ws.orderBook ();
+            orderbook = this.orderBook ();
         }
         orderbook.reset ({
             'timestamp': timestamp,

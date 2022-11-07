@@ -73,7 +73,7 @@ export default class huobijp extends huobijpRest {
             'symbol': symbol,
             'params': params,
         };
-        return await this.ws.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 
     handleTicker (client, message) {
@@ -138,8 +138,8 @@ export default class huobijp extends huobijpRest {
             'symbol': symbol,
             'params': params,
         };
-        const trades = await this.ws.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
-        if (this.ws.newUpdates) {
+        const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -207,8 +207,8 @@ export default class huobijp extends huobijpRest {
             'timeframe': timeframe,
             'params': params,
         };
-        const ohlcv = await this.ws.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
-        if (this.ws.newUpdates) {
+        const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -285,7 +285,7 @@ export default class huobijp extends huobijpRest {
             'params': params,
             'method': this.handleOrderBookSubscription,
         };
-        const orderbook = await this.ws.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        const orderbook = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
         return orderbook.limit (limit);
     }
 
@@ -350,7 +350,7 @@ export default class huobijp extends huobijpRest {
             'params': params,
             'method': this.handleOrderBookSnapshot,
         };
-        const orderbook = await this.ws.watch (url, requestId, request, requestId, snapshotSubscription);
+        const orderbook = await this.watch (url, requestId, request, requestId, snapshotSubscription);
         return orderbook.limit (limit);
     }
 
@@ -446,7 +446,7 @@ export default class huobijp extends huobijpRest {
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
-        this.orderbooks[symbol] = this.ws.orderBook ({}, limit);
+        this.orderbooks[symbol] = this.orderBook ({}, limit);
         // watch the snapshot in a separate async call
         this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
     }

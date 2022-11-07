@@ -39,8 +39,8 @@ export default class ripio extends ripioRest {
             'messageHash': messageHash,
             'method': this.handleTrade,
         };
-        const trades = await this.ws.watch (url, messageHash, undefined, messageHash, subscription);
-        if (this.ws.newUpdates) {
+        const trades = await this.watch (url, messageHash, undefined, messageHash, subscription);
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -108,7 +108,7 @@ export default class ripio extends ripioRest {
             'messageHash': messageHash,
             'method': this.handleTicker,
         };
-        return await this.ws.watch (url, messageHash, undefined, messageHash, subscription);
+        return await this.watch (url, messageHash, undefined, messageHash, subscription);
     }
 
     handleTicker (client, message, subscription) {
@@ -163,7 +163,7 @@ export default class ripio extends ripioRest {
         const name = 'orderbook';
         const messageHash = name + '_' + market['id'].toLowerCase ();
         const url = this.urls['api']['ws'] + messageHash + '/' + this.options['uuid'];
-        const client = this.ws.client (url);
+        const client = this.client (url);
         const subscription = {
             'name': name,
             'symbol': symbol,
@@ -171,14 +171,14 @@ export default class ripio extends ripioRest {
             'method': this.handleOrderBook,
         };
         if (!(messageHash in client.subscriptions)) {
-            this.orderbooks[symbol] = this.ws.orderBook ({});
+            this.orderbooks[symbol] = this.orderBook ({});
             client.subscriptions[messageHash] = subscription;
             const options = this.safeValue (this.options, 'fetchOrderBookSnapshot', {});
             const delay = this.safeInteger (options, 'delay', this.rateLimit);
             // fetch the snapshot in a separate async call after a warmup delay
             this.delay (delay, this.fetchOrderBookSnapshot, client, subscription);
         }
-        const orderbook = await this.ws.watch (url, messageHash, undefined, messageHash, subscription);
+        const orderbook = await this.watch (url, messageHash, undefined, messageHash, subscription);
         return orderbook.limit (limit);
     }
 

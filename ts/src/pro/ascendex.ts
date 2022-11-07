@@ -53,7 +53,7 @@ export default class ascendex extends ascendexRest {
             'op': 'sub',
         };
         const message = this.extend (request, params);
-        return await this.ws.watch (url, messageHash, message, messageHash);
+        return await this.watch (url, messageHash, message, messageHash);
     }
 
     async watchPrivate (channel, messageHash, params = {}) {
@@ -69,7 +69,7 @@ export default class ascendex extends ascendexRest {
         };
         const message = this.extend (request, params);
         await this.authenticate (url, params);
-        return await this.ws.watch (url, messageHash, message, channel);
+        return await this.watch (url, messageHash, message, channel);
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -84,7 +84,7 @@ export default class ascendex extends ascendexRest {
             'ch': channel,
         };
         const ohlcv = await this.watchPublic (channel, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -145,7 +145,7 @@ export default class ascendex extends ascendexRest {
             'ch': channel,
         });
         const trades = await this.watchPublic (channel, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -282,7 +282,7 @@ export default class ascendex extends ascendexRest {
         const messageHash = channel + ':' + marketId;
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
-            orderbook = this.ws.orderBook ({});
+            orderbook = this.orderBook ({});
         }
         if (orderbook['nonce'] === undefined) {
             orderbook.cache.push (message);
@@ -497,7 +497,7 @@ export default class ascendex extends ascendexRest {
             messageHash = messageHash + ':' + symbol;
         }
         const orders = await this.watchPrivate (channel, messageHash, query);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
@@ -907,7 +907,7 @@ export default class ascendex extends ascendexRest {
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
-        this.orderbooks[symbol] = this.ws.orderBook ({});
+        this.orderbooks[symbol] = this.orderBook ({});
         this.spawn (this.watchOrderBookSnapshot, symbol);
     }
 
@@ -925,7 +925,7 @@ export default class ascendex extends ascendexRest {
     async authenticate (url, params = {}) {
         this.checkRequiredCredentials ();
         const messageHash = 'authenticated';
-        const client = this.ws.client (url);
+        const client = this.client (url);
         let future = this.safeValue (client.futures, messageHash);
         if (future === undefined) {
             future = client.future ('authenticated');
@@ -945,7 +945,7 @@ export default class ascendex extends ascendexRest {
                 'key': this.apiKey,
                 'sig': signature,
             };
-            this.spawn (this.ws.watch, url, messageHash, this.extend (request, params));
+            this.spawn (this.watch, url, messageHash, this.extend (request, params));
         }
         return await future;
     }

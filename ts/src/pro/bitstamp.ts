@@ -73,7 +73,7 @@ export default class bitstamp extends bitstampRest {
             'params': params,
         };
         const message = this.extend (request, params);
-        const orderbook = await this.ws.watch (url, messageHash, message, messageHash, subscription);
+        const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
         return orderbook.limit (limit);
     }
 
@@ -226,8 +226,8 @@ export default class bitstamp extends bitstampRest {
             'params': params,
         };
         const message = this.extend (request, params);
-        const trades = await this.ws.watch (url, messageHash, message, messageHash, subscription);
-        if (this.ws.newUpdates) {
+        const trades = await this.watch (url, messageHash, message, messageHash, subscription);
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -349,7 +349,7 @@ export default class bitstamp extends bitstampRest {
             'params': params,
         };
         const orders = await this.subscribePrivate (subscription, messageHash, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
@@ -442,13 +442,13 @@ export default class bitstamp extends bitstampRest {
         }
         if (type === 'order_book') {
             const limit = this.safeInteger (subscription, 'limit', 100);
-            this.orderbooks[symbol] = this.ws.orderBook ({}, limit);
+            this.orderbooks[symbol] = this.orderBook ({}, limit);
         } else if (type === 'detail_order_book') {
             const limit = this.safeInteger (subscription, 'limit', 100);
-            this.orderbooks[symbol] = this.ws.indexedOrderBook ({}, limit);
+            this.orderbooks[symbol] = this.indexedOrderBook ({}, limit);
         } else if (type === 'diff_order_book') {
             const limit = this.safeInteger (subscription, 'limit');
-            this.orderbooks[symbol] = this.ws.orderBook ({}, limit);
+            this.orderbooks[symbol] = this.orderBook ({}, limit);
             // fetch the snapshot in a separate async call
             this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
         }
@@ -629,6 +629,6 @@ export default class bitstamp extends bitstampRest {
             },
         };
         subscription['messageHash'] = messageHash;
-        return await this.ws.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 }

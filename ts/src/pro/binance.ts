@@ -158,7 +158,7 @@ export default class binance extends binanceRest {
         };
         const message = this.extend (request, query);
         // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
-        const orderbook = await this.ws.watch (url, messageHash, message, messageHash, subscription);
+        const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
         return orderbook.limit (limit);
     }
 
@@ -333,7 +333,7 @@ export default class binance extends binanceRest {
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
-        this.orderbooks[symbol] = this.ws.orderBook ({}, limit);
+        this.orderbooks[symbol] = this.orderBook ({}, limit);
         // fetch the snapshot in a separate async call
         this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
     }
@@ -387,8 +387,8 @@ export default class binance extends binanceRest {
         const subscribe = {
             'id': requestId,
         };
-        const trades = await this.ws.watch (url, messageHash, this.extend (request, query), messageHash, subscribe);
-        if (this.ws.newUpdates) {
+        const trades = await this.watch (url, messageHash, this.extend (request, query), messageHash, subscribe);
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -600,8 +600,8 @@ export default class binance extends binanceRest {
         const subscribe = {
             'id': requestId,
         };
-        const ohlcv = await this.ws.watch (url, messageHash, this.extend (request, query), messageHash, subscribe);
-        if (this.ws.newUpdates) {
+        const ohlcv = await this.watch (url, messageHash, this.extend (request, query), messageHash, subscribe);
+        if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -693,7 +693,7 @@ export default class binance extends binanceRest {
         const subscribe = {
             'id': requestId,
         };
-        return await this.ws.watch (url, messageHash, this.extend (request, query), messageHash, subscribe);
+        return await this.watch (url, messageHash, this.extend (request, query), messageHash, subscribe);
     }
 
     handleTicker (client, message) {
@@ -825,7 +825,7 @@ export default class binance extends binanceRest {
             await this[method] (this.extend (request, sendParams));
         } catch (error) {
             const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
-            const client = this.ws.client (url);
+            const client = this.client (url);
             const messageHashes = Object.keys (client.futures);
             for (let i = 0; i < messageHashes.length; i++) {
                 const messageHash = messageHashes[i];
@@ -842,7 +842,7 @@ export default class binance extends binanceRest {
             'lastAuthenticatedTime': time,
         });
         // whether or not to schedule another listenKey keepAlive request
-        const clients = Object.values (this.ws.clients);
+        const clients = Object.values (this.clients);
         const listenKeyRefreshRate = this.safeInteger (this.options, 'listenKeyRefreshRate', 1200000);
         for (let i = 0; i < clients.length; i++) {
             const client = clients[i];
@@ -895,7 +895,7 @@ export default class binance extends binanceRest {
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
         const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
-        const client = this.ws.client (url);
+        const client = this.client (url);
         this.setBalanceCache (client, type);
         const options = this.safeValue (this.options, 'watchBalance');
         const fetchBalanceSnapshot = this.safeValue (options, 'fetchBalanceSnapshot', false);
@@ -905,7 +905,7 @@ export default class binance extends binanceRest {
         }
         const messageHash = type + ':balance';
         const message = undefined;
-        return await this.ws.watch (url, messageHash, message, type);
+        return await this.watch (url, messageHash, message, type);
     }
 
     handleBalance (client, message) {
@@ -1030,11 +1030,11 @@ export default class binance extends binanceRest {
         if (symbol !== undefined) {
             messageHash += ':' + symbol;
         }
-        const client = this.ws.client (url);
+        const client = this.client (url);
         this.setBalanceCache (client, type);
         const message = undefined;
-        const orders = await this.ws.watch (url, messageHash, message, type);
-        if (this.ws.newUpdates) {
+        const orders = await this.watch (url, messageHash, message, type);
+        if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
@@ -1311,11 +1311,11 @@ export default class binance extends binanceRest {
         if (symbol !== undefined) {
             messageHash += ':' + symbol;
         }
-        const client = this.ws.client (url);
+        const client = this.client (url);
         this.setBalanceCache (client, type);
         const message = undefined;
-        const trades = await this.ws.watch (url, messageHash, message, type);
-        if (this.ws.newUpdates) {
+        const trades = await this.watch (url, messageHash, message, type);
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);

@@ -69,7 +69,7 @@ export default class bitmex extends bitmexRest {
                 messageHash,
             ],
         };
-        return await this.ws.watch (url, messageHash, this.extend (request, params), messageHash);
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
     handleTicker (client, message) {
@@ -334,7 +334,7 @@ export default class bitmex extends bitmexRest {
                 messageHash,
             ],
         };
-        return await this.ws.watch (url, messageHash, this.extend (request, params), messageHash);
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash);
     }
 
     handleBalance (client, message) {
@@ -548,8 +548,8 @@ export default class bitmex extends bitmexRest {
                 messageHash,
             ],
         };
-        const trades = await this.ws.watch (url, messageHash, this.extend (request, params), messageHash);
-        if (this.ws.newUpdates) {
+        const trades = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -557,7 +557,7 @@ export default class bitmex extends bitmexRest {
 
     async authenticate (params = {}) {
         const url = this.urls['api']['ws'];
-        const client = this.ws.client (url);
+        const client = this.client (url);
         const future = client.future ('authenticated');
         const action = 'authKeyExpires';
         const authenticated = this.safeValue (client.subscriptions, action);
@@ -575,7 +575,7 @@ export default class bitmex extends bitmexRest {
                         signature,
                     ],
                 };
-                this.spawn (this.ws.watch, url, action, request, action);
+                this.spawn (this.watch, url, action, request, action);
             } catch (e) {
                 client.reject (e, 'authenticated');
                 if (action in client.subscriptions) {
@@ -629,8 +629,8 @@ export default class bitmex extends bitmexRest {
                 subscriptionHash,
             ],
         };
-        const orders = await this.ws.watch (url, messageHash, request, subscriptionHash);
-        if (this.ws.newUpdates) {
+        const orders = await this.watch (url, messageHash, request, subscriptionHash);
+        if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
@@ -845,8 +845,8 @@ export default class bitmex extends bitmexRest {
                 subscriptionHash,
             ],
         };
-        const trades = await this.ws.watch (url, messageHash, request, subscriptionHash);
-        if (this.ws.newUpdates) {
+        const trades = await this.watch (url, messageHash, request, subscriptionHash);
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
@@ -967,7 +967,7 @@ export default class bitmex extends bitmexRest {
                 messageHash,
             ],
         };
-        const orderbook = await this.ws.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        const orderbook = await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
         return orderbook.limit (limit);
     }
 
@@ -983,8 +983,8 @@ export default class bitmex extends bitmexRest {
                 messageHash,
             ],
         };
-        const ohlcv = await this.ws.watch (url, messageHash, this.extend (request, params), messageHash);
-        if (this.ws.newUpdates) {
+        const ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash);
+        if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -1097,7 +1097,7 @@ export default class bitmex extends bitmexRest {
         await this.loadMarkets ();
         const event = 'heartbeat';
         const url = this.urls['api']['ws'];
-        return await this.ws.watch (url, event);
+        return await this.watch (url, event);
     }
 
     handleOrderBook (client, message) {
@@ -1149,11 +1149,11 @@ export default class bitmex extends bitmexRest {
             const market = this.safeMarket (marketId);
             const symbol = market['symbol'];
             if (table === 'orderBookL2') {
-                this.orderbooks[symbol] = this.ws.indexedOrderBook ();
+                this.orderbooks[symbol] = this.indexedOrderBook ();
             } else if (table === 'orderBookL2_25') {
-                this.orderbooks[symbol] = this.ws.indexedOrderBook ({}, 25);
+                this.orderbooks[symbol] = this.indexedOrderBook ({}, 25);
             } else if (table === 'orderBook10') {
-                this.orderbooks[symbol] = this.ws.indexedOrderBook ({}, 10);
+                this.orderbooks[symbol] = this.indexedOrderBook ({}, 10);
             }
             const orderbook = this.orderbooks[symbol];
             for (let i = 0; i < data.length; i++) {

@@ -65,7 +65,7 @@ export default class bitmart extends bitmartRest {
             'op': 'subscribe',
             'args': [ messageHash ],
         };
-        return await this.ws.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
     async subscribePrivate (channel, symbol, params = {}) {
@@ -78,7 +78,7 @@ export default class bitmart extends bitmartRest {
             'op': 'subscribe',
             'args': [ messageHash ],
         };
-        return await this.ws.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -93,7 +93,7 @@ export default class bitmart extends bitmartRest {
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         const trades = await this.subscribe ('trade', symbol, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -132,7 +132,7 @@ export default class bitmart extends bitmartRest {
         }
         const channel = 'spot/user/order';
         const orders = await this.subscribePrivate (channel, symbol, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
@@ -316,7 +316,7 @@ export default class bitmart extends bitmartRest {
         const interval = this.safeString (timeframes, timeframe);
         const name = 'kline' + interval;
         const ohlcv = await this.subscribe (name, symbol, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -471,7 +471,7 @@ export default class bitmart extends bitmartRest {
             const symbol = this.safeSymbol (marketId);
             let orderbook = this.safeValue (this.orderbooks, symbol);
             if (orderbook === undefined) {
-                orderbook = this.ws.orderBook ({}, limit);
+                orderbook = this.orderBook ({}, limit);
                 this.orderbooks[symbol] = orderbook;
             }
             orderbook.reset ({});
@@ -486,7 +486,7 @@ export default class bitmart extends bitmartRest {
         this.checkRequiredCredentials ();
         const url = this.implodeHostname (this.urls['api']['ws']['private']);
         const messageHash = 'login';
-        const client = this.ws.client (url);
+        const client = this.client (url);
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
             future = client.future ('authenticated');
@@ -503,7 +503,7 @@ export default class bitmart extends bitmartRest {
                     signature,
                 ],
             };
-            this.spawn (this.ws.watch, url, messageHash, request, messageHash, future);
+            this.spawn (this.watch, url, messageHash, request, messageHash, future);
         }
         return await future;
     }

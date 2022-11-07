@@ -47,7 +47,7 @@ export default class idex extends idexRest {
                 subscribeObject,
             ],
         };
-        return await this.ws.watch (url, messageHash, request, messageHash, subscription);
+        return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
     async subscribePrivate (subscribeObject, messageHash) {
@@ -60,7 +60,7 @@ export default class idex extends idexRest {
                 subscribeObject,
             ],
         };
-        return await this.ws.watch (url, messageHash, request, messageHash);
+        return await this.watch (url, messageHash, request, messageHash);
     }
 
     async watchTicker (symbol, params = {}) {
@@ -157,7 +157,7 @@ export default class idex extends idexRest {
         };
         const messageHash = name + ':' + market['id'];
         const trades = await this.subscribe (subscribeObject, messageHash);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -245,7 +245,7 @@ export default class idex extends idexRest {
         };
         const messageHash = name + ':' + market['id'];
         const ohlcv = await this.subscribe (subscribeObject, messageHash);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -317,7 +317,7 @@ export default class idex extends idexRest {
                     if (!(marketId in orderBookSubscriptions)) {
                         const symbol = this.safeSymbol (marketId);
                         if (!(symbol in this.orderbooks)) {
-                            const orderbook = this.ws.countedOrderBook ({});
+                            const orderbook = this.countedOrderBook ({});
                             (orderbook as any).cache = [];
                             this.orderbooks[symbol] = orderbook;
                         }
@@ -522,7 +522,7 @@ export default class idex extends idexRest {
             messageHash = name + ':' + marketId;
         }
         const orders = await this.subscribePrivate (subscribeObject, messageHash);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
@@ -648,7 +648,7 @@ export default class idex extends idexRest {
             messageHash = name + ':' + code;
         }
         const transactions = await this.subscribePrivate (subscribeObject, messageHash);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = transactions.getLimit (code, limit);
         }
         return this.filterBySinceLimit (transactions, since, limit, 'timestamp', true);

@@ -46,7 +46,7 @@ export default class zb extends zbRest {
             'messageHash': messageHash,
             'method': method,
         };
-        return await this.ws.watch (url, messageHash, message, messageHash, subscription);
+        return await this.watch (url, messageHash, message, messageHash, subscription);
     }
 
     async watchTicker (symbol, params = {}) {
@@ -104,7 +104,7 @@ export default class zb extends zbRest {
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         const trades = await this.watchPublic ('trades', symbol, this.handleTrades, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -174,7 +174,7 @@ export default class zb extends zbRest {
             'messageHash': messageHash,
             'method': this.handleOrderBook,
         };
-        const orderbook = await this.ws.watch (url, messageHash, message, messageHash, subscription);
+        const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
         return orderbook.limit (limit);
     }
 
@@ -214,7 +214,7 @@ export default class zb extends zbRest {
         const symbol = this.safeString (subscription, 'symbol');
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
-            orderbook = this.ws.orderBook ({}, limit);
+            orderbook = this.orderBook ({}, limit);
             this.orderbooks[symbol] = orderbook;
         }
         const timestamp = this.safeInteger (message, 'lastTime');

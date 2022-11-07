@@ -27,8 +27,8 @@ class WebSocketServer {
         }
 
         this.server = http.createServer ()
-        this.wss = new WebSocket.Server ({ "noServer": true })
-        this.wss.on ('connection', this.onConnection.bind (this))
+        thiss = new WebSocket.Server ({ "noServer": true })
+        thiss.on ('connection', this.onConnection.bind (this))
         this.server.on ('upgrade', this.onUpgrade.bind (this))
 
         console.log (new Date (), 'listening port', this.port)
@@ -94,13 +94,13 @@ class WebSocketServer {
         if (Number.isInteger (this.handshakeDelay)) {
             console.log (new Date (), 'handshake delay', this.handshakeDelay)
             setTimeout (() => {
-                this.wss.handleUpgrade (request, socket, head, ((ws) => {
-                    this.wss.emit ('connection', ws, request)
+                thiss.handleUpgrade (request, socket, head, ((ws) => {
+                    thiss.emit ('connection', ws, request)
                 }))
             }, this.handshakeDelay)
         } else {
-            this.wss.handleUpgrade (request, socket, head, ((ws) => {
-                this.wss.emit ('connection', ws, request)
+            thiss.handleUpgrade (request, socket, head, ((ws) => {
+                thiss.emit ('connection', ws, request)
             }))
         }
     }

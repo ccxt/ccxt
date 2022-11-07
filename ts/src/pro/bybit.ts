@@ -504,7 +504,7 @@ export default class bybit extends bybitRest {
             const reqParams = [ channel ];
             ohlcv = await this.watchContractPublic (url, messageHash, reqParams, params);
         }
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -787,7 +787,7 @@ export default class bybit extends bybitRest {
             const snapshot = this.parseOrderBook (data, symbol, timestamp, 'b', 'a');
             let orderbook = undefined;
             if (!(symbol in this.orderbooks)) {
-                orderbook = this.ws.orderBook (snapshot);
+                orderbook = this.orderBook (snapshot);
                 this.orderbooks[symbol] = orderbook;
             } else {
                 orderbook = this.orderbooks[symbol];
@@ -814,7 +814,7 @@ export default class bybit extends bybitRest {
                 snapshot['nonce'] = nonce;
                 let orderbook = undefined;
                 if (!(symbol in this.orderbooks)) {
-                    orderbook = this.ws.orderBook (snapshot);
+                    orderbook = this.orderBook (snapshot);
                     this.orderbooks[symbol] = orderbook;
                 } else {
                     orderbook = this.orderbooks[symbol];
@@ -915,7 +915,7 @@ export default class bybit extends bybitRest {
             const reqParams = [ channel ];
             trades = await this.watchContractPublic (url, messageHash, reqParams, params);
         }
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -1170,7 +1170,7 @@ export default class bybit extends bybitRest {
             messageHash += ':' + channel;
             trades = await this.watchContractPrivate (url, messageHash, reqParams, params);
         }
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -1311,7 +1311,7 @@ export default class bybit extends bybitRest {
             messageHash += ':' + channel;
             orders = await this.watchContractPrivate (url, messageHash, reqParams, params);
         }
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
@@ -1668,7 +1668,7 @@ export default class bybit extends bybitRest {
             'args': reqParams,
         };
         const message = this.extend (request, params);
-        return await this.ws.watch (url, messageHash, message, messageHash);
+        return await this.watch (url, messageHash, message, messageHash);
     }
 
     async watchSpotPublic (url, channel, messageHash, reqParams = {}, params = {}) {
@@ -1681,7 +1681,7 @@ export default class bybit extends bybitRest {
             'params': reqParams,
         };
         const message = this.extend (request, params);
-        return await this.ws.watch (url, messageHash, message, messageHash);
+        return await this.watch (url, messageHash, message, messageHash);
     }
 
     async watchSpotPrivate (url, messageHash, params = {}) {
@@ -1699,7 +1699,7 @@ export default class bybit extends bybitRest {
                 this.apiKey, expires, signature,
             ],
         };
-        return await this.ws.watch (url, messageHash, request, channel);
+        return await this.watch (url, messageHash, request, channel);
     }
 
     async watchContractPrivate (url, messageHash, reqParams, params = {}) {
@@ -1710,7 +1710,7 @@ export default class bybit extends bybitRest {
     async authenticateContract (url, params = {}) {
         this.checkRequiredCredentials ();
         const messageHash = 'login';
-        const client = this.ws.client (url);
+        const client = this.client (url);
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
             future = client.future ('authenticated');
@@ -1724,7 +1724,7 @@ export default class bybit extends bybitRest {
                     this.apiKey, expires, signature,
                 ],
             };
-            this.spawn (this.ws.watch, url, messageHash, request, messageHash, future);
+            this.spawn (this.watch, url, messageHash, request, messageHash, future);
         }
         return await future;
     }

@@ -184,7 +184,7 @@ export default class huobi extends huobiRest {
         const messageHash = 'market.' + market['id'] + '.trade.detail';
         const url = this.getUrlByMarketType (market['type'], market['linear']);
         const trades = await this.subscribePublic (url, symbol, messageHash, undefined, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -240,7 +240,7 @@ export default class huobi extends huobiRest {
         const messageHash = 'market.' + market['id'] + '.kline.' + interval;
         const url = this.getUrlByMarketType (market['type'], market['linear']);
         const ohlcv = await this.subscribePublic (url, symbol, messageHash, undefined, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -403,7 +403,7 @@ export default class huobi extends huobiRest {
             'numAttempts': attempts,
             'method': this.handleOrderBookSnapshot,
         };
-        const orderbook = await this.ws.watch (url, requestId, request, requestId, snapshotSubscription);
+        const orderbook = await this.watch (url, requestId, request, requestId, snapshotSubscription);
         return orderbook.limit (limit);
     }
 
@@ -580,7 +580,7 @@ export default class huobi extends huobiRest {
             const size = this.safeString (parts, 3);
             const sizeParts = size.split ('_');
             const limit = this.safeNumber (sizeParts, 1);
-            orderbook = this.ws.orderBook ({}, limit);
+            orderbook = this.orderBook ({}, limit);
         }
         if (orderbook['nonce'] === undefined) {
             orderbook.cache.push (message);
@@ -596,7 +596,7 @@ export default class huobi extends huobiRest {
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
-        this.orderbooks[symbol] = this.ws.orderBook ({}, limit);
+        this.orderbooks[symbol] = this.orderBook ({}, limit);
         if (this.markets[symbol]['spot'] === true) {
             this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
         } else {
@@ -655,7 +655,7 @@ export default class huobi extends huobiRest {
             messageHash = orderMessageHash + ':' + 'trade';
         }
         trades = await this.subscribePrivate (channel, messageHash, type, subType, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
@@ -742,7 +742,7 @@ export default class huobi extends huobiRest {
             messageHash = this.safeString (channelAndMessageHash, 1);
         }
         const orders = await this.subscribePrivate (channel, messageHash, type, subType, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (orders, since, limit);
@@ -2018,7 +2018,7 @@ export default class huobi extends huobiRest {
         if (method !== undefined) {
             subscription['method'] = method;
         }
-        return await this.ws.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 
     async subscribePrivate (channel, messageHash, type, subtype, params = {}, subscriptionParams = {}) {
@@ -2054,7 +2054,7 @@ export default class huobi extends huobiRest {
             this.options['ws']['gunzip'] = false;
         }
         await this.authenticate (authParams);
-        return await this.ws.watch (url, messageHash, this.extend (request, params), channel, extendedSubsription);
+        return await this.watch (url, messageHash, this.extend (request, params), channel, extendedSubsription);
     }
 
     async authenticate (params = {}) {
@@ -2067,7 +2067,7 @@ export default class huobi extends huobiRest {
         this.checkRequiredCredentials ();
         const messageHash = 'auth';
         const relativePath = url.replace ('wss://' + hostname, '');
-        const client = this.ws.client (url);
+        const client = this.client (url);
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
             future = client.future (messageHash);
@@ -2118,7 +2118,7 @@ export default class huobi extends huobiRest {
                     'Signature': signature,
                 };
             }
-            await this.ws.watch (url, messageHash, request, messageHash, future);
+            await this.watch (url, messageHash, request, messageHash, future);
         }
         return await future;
     }

@@ -94,7 +94,7 @@ export default class okx extends okxRest {
                 this.deepExtend (firstArgument, params),
             ],
         };
-        return await this.ws.watch (url, messageHash, request, messageHash);
+        return await this.watch (url, messageHash, request, messageHash);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -109,7 +109,7 @@ export default class okx extends okxRest {
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         const trades = await this.subscribe ('public', 'trades', symbol, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -207,7 +207,7 @@ export default class okx extends okxRest {
         const interval = this.timeframes[timeframe];
         const name = 'candle' + interval;
         const ohlcv = await this.subscribe ('public', name, symbol, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -470,7 +470,7 @@ export default class okx extends okxRest {
         if (action === 'snapshot') {
             for (let i = 0; i < data.length; i++) {
                 const update = data[i];
-                const orderbook = this.ws.orderBook ({}, limit);
+                const orderbook = this.orderBook ({}, limit);
                 this.orderbooks[symbol] = orderbook;
                 this.handleOrderBookMessage (client, update, orderbook, messageHash);
                 client.resolve (orderbook, messageHash);
@@ -487,7 +487,7 @@ export default class okx extends okxRest {
         } else if ((channel === 'books5') || (channel === 'bbo-tbt')) {
             let orderbook = this.safeValue (this.orderbooks, symbol);
             if (orderbook === undefined) {
-                orderbook = this.ws.orderBook ({}, limit);
+                orderbook = this.orderBook ({}, limit);
             }
             this.orderbooks[symbol] = orderbook;
             for (let i = 0; i < data.length; i++) {
@@ -505,7 +505,7 @@ export default class okx extends okxRest {
         this.checkRequiredCredentials ();
         const url = this.urls['api']['ws']['private'];
         const messageHash = 'login';
-        const client = this.ws.client (url);
+        const client = this.client (url);
         let future = this.safeValue (client.subscriptions, messageHash);
         if (future === undefined) {
             future = client.future ('authenticated');
@@ -525,7 +525,7 @@ export default class okx extends okxRest {
                     },
                 ],
             };
-            this.spawn (this.ws.watch, url, messageHash, request, messageHash, future);
+            this.spawn (this.watch, url, messageHash, request, messageHash, future);
         }
         return await future;
     }
@@ -641,7 +641,7 @@ export default class okx extends okxRest {
             'instType': uppercaseType,
         };
         const orders = await this.subscribe ('private', 'orders', symbol, this.extend (request, params));
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);

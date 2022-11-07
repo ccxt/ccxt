@@ -56,7 +56,7 @@ export default class ftx extends ftxRest {
             'market': marketId,
         };
         const messageHash = channel + ':' + marketId;
-        return await this.ws.watch (url, messageHash, request, messageHash);
+        return await this.watch (url, messageHash, request, messageHash);
     }
 
     async watchPrivate (channel, symbol = undefined, params = {}) {
@@ -72,12 +72,12 @@ export default class ftx extends ftxRest {
             'op': 'subscribe',
             'channel': channel,
         };
-        return await this.ws.watch (url, messageHash, request, channel);
+        return await this.watch (url, messageHash, request, channel);
     }
 
     authenticate (params = {}) {
         const url = this.implodeParams (this.urls['api']['ws'], { 'hostname': this.hostname });
-        const client = this.ws.client (url);
+        const client = this.client (url);
         const authenticate = 'authenticate';
         const method = 'login';
         if (!(authenticate in client.subscriptions)) {
@@ -102,7 +102,7 @@ export default class ftx extends ftxRest {
                 'op': method,
             };
             // ftx does not reply to this message
-            const future = this.ws.watch (url, method, message);
+            const future = this.watch (url, method, message);
             future.resolve (true);
         }
         return client.future (method);
@@ -134,7 +134,7 @@ export default class ftx extends ftxRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const trades = await this.watchPublic (market['symbol'], 'trades');
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (market['symbol'], limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -265,7 +265,7 @@ export default class ftx extends ftxRest {
         const symbol = this.safeSymbol (marketId);
         const orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
-            this.orderbooks[symbol] = this.ws.orderBook ({}, 100);
+            this.orderbooks[symbol] = this.orderBook ({}, 100);
         } else {
             orderbook.reset ({});
         }
@@ -467,7 +467,7 @@ export default class ftx extends ftxRest {
             symbol = market['symbol'];
         }
         const orders = await this.watchPrivate ('orders', symbol);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
@@ -558,7 +558,7 @@ export default class ftx extends ftxRest {
             symbol = market['symbol'];
         }
         const trades = await this.watchPrivate ('fills', symbol);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);

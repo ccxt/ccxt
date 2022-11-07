@@ -127,7 +127,7 @@ export default class gate extends gateRest {
         if (symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
-        this.orderbooks[symbol] = this.ws.orderBook ({}, limit);
+        this.orderbooks[symbol] = this.orderBook ({}, limit);
         const options = this.safeValue (this.options, 'handleOrderBookSubscription', {});
         const fetchOrderBookSnapshot = this.safeValue (options, 'fetchOrderBookSnapshot', false);
         if (fetchOrderBookSnapshot) {
@@ -232,7 +232,7 @@ export default class gate extends gateRest {
         const symbol = this.safeSymbol (marketId);
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
-            orderbook = this.ws.orderBook ({});
+            orderbook = this.orderBook ({});
             this.orderbooks[symbol] = orderbook;
         }
         const messageHash = channel + ':' + symbol;
@@ -429,7 +429,7 @@ export default class gate extends gateRest {
         const url = this.getUrlByMarketType (type, market['inverse']);
         const payload = [ marketId ];
         const trades = await this.subscribePublic (url, method, messageHash, payload);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -494,7 +494,7 @@ export default class gate extends gateRest {
         const url = this.getUrlByMarketType (type, market['inverse']);
         const payload = [ interval, marketId ];
         const ohlcv = await this.subscribePublic (url, method, messageHash, payload);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -555,7 +555,7 @@ export default class gate extends gateRest {
 
     async authenticate (params = {}) {
         const url = this.urls['api']['ws'];
-        const client = this.ws.client (url);
+        const client = this.client (url);
         const future = client.future ('authenticated');
         const method = 'server.sign';
         const authenticate = this.safeValue (client.subscriptions, method);
@@ -572,7 +572,7 @@ export default class gate extends gateRest {
                 'id': requestId,
                 'method': this.handleAuthenticationMessage,
             };
-            this.spawn (this.ws.watch, url, requestId, authenticateMessage, method, subscribe);
+            this.spawn (this.watch, url, requestId, authenticateMessage, method, subscribe);
         }
         return await future;
     }
@@ -618,7 +618,7 @@ export default class gate extends gateRest {
         // uid required for non spot markets
         const requiresUid = (type !== 'spot');
         const trades = await this.subscribePrivate (url, method, messageHash, payload, requiresUid);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
@@ -832,7 +832,7 @@ export default class gate extends gateRest {
         // uid required for non spot markets
         const requiresUid = (type !== 'spot');
         const orders = await this.subscribePrivate (url, method, messageHash, payload, requiresUid);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
@@ -1182,7 +1182,7 @@ export default class gate extends gateRest {
             'messageHash': messageHash,
         };
         subscription = this.extend (subscription, subscriptionParams);
-        return await this.ws.watch (url, messageHash, request, messageHash, subscription);
+        return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 
     async subscribePrivate (url, channel, messageHash, payload = undefined, requiresUid = false) {
@@ -1223,6 +1223,6 @@ export default class gate extends gateRest {
             'id': requestId,
             'messageHash': messageHash,
         };
-        return await this.ws.watch (url, messageHash, request, messageHash, subscription);
+        return await this.watch (url, messageHash, request, messageHash, subscription);
     }
 }

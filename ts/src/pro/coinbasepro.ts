@@ -68,7 +68,7 @@ export default class coinbasepro extends coinbaseproRest {
             ],
         };
         const request = this.extend (subscribe, params);
-        return await this.ws.watch (url, messageHash, request, messageHash);
+        return await this.watch (url, messageHash, request, messageHash);
     }
 
     async watchTicker (symbol, params = {}) {
@@ -97,7 +97,7 @@ export default class coinbasepro extends coinbaseproRest {
          */
         const name = 'matches';
         const trades = await this.subscribe (name, symbol, name, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -121,7 +121,7 @@ export default class coinbasepro extends coinbaseproRest {
         const messageHash = 'myTrades';
         const authentication = this.authenticate ();
         const trades = await this.subscribe (name, symbol, messageHash, this.extend (params, authentication));
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -145,7 +145,7 @@ export default class coinbasepro extends coinbaseproRest {
         const messageHash = 'orders';
         const authentication = this.authenticate ();
         const orders = await this.subscribe (name, symbol, messageHash, this.extend (params, authentication));
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
@@ -182,7 +182,7 @@ export default class coinbasepro extends coinbaseproRest {
             'marketId': market['id'],
             'limit': limit,
         };
-        const orderbook = await this.ws.watch (url, messageHash, request, messageHash, subscription);
+        const orderbook = await this.watch (url, messageHash, request, messageHash, subscription);
         return orderbook.limit (limit);
     }
 
@@ -672,7 +672,7 @@ export default class coinbasepro extends coinbaseproRest {
         const subscription = this.safeValue (client.subscriptions, messageHash, {});
         const limit = this.safeInteger (subscription, 'limit');
         if (type === 'snapshot') {
-            this.orderbooks[symbol] = this.ws.orderBook ({}, limit);
+            this.orderbooks[symbol] = this.orderBook ({}, limit);
             const orderbook = this.orderbooks[symbol];
             this.handleDeltas (orderbook['asks'], this.safeValue (message, 'asks', []));
             this.handleDeltas (orderbook['bids'], this.safeValue (message, 'bids', []));

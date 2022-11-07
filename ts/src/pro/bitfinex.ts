@@ -50,7 +50,7 @@ export default class bitfinex extends bitfinexRest {
             'symbol': marketId,
             'messageHash': messageHash,
         };
-        return await this.ws.watch (url, messageHash, this.deepExtend (request, params), messageHash);
+        return await this.watch (url, messageHash, this.deepExtend (request, params), messageHash);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -65,7 +65,7 @@ export default class bitfinex extends bitfinexRest {
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         const trades = await this.subscribe ('trades', symbol, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -320,10 +320,10 @@ export default class bitfinex extends bitfinexRest {
             const limit = this.safeInteger (subscription, 'len');
             if (isRaw) {
                 // raw order books
-                this.orderbooks[symbol] = this.ws.indexedOrderBook ({}, limit);
+                this.orderbooks[symbol] = this.indexedOrderBook ({}, limit);
             } else {
                 // P0, P1, P2, P3, P4
-                this.orderbooks[symbol] = this.ws.countedOrderBook ({}, limit);
+                this.orderbooks[symbol] = this.countedOrderBook ({}, limit);
             }
             const orderbook = this.orderbooks[symbol];
             if (isRaw) {
@@ -415,7 +415,7 @@ export default class bitfinex extends bitfinexRest {
 
     async authenticate (params = {}) {
         const url = this.urls['api']['ws']['private'];
-        const client = this.ws.client (url);
+        const client = this.client (url);
         const future = client.future ('authenticated');
         const method = 'auth';
         const authenticated = this.safeValue (client.subscriptions, method);
@@ -434,7 +434,7 @@ export default class bitfinex extends bitfinexRest {
                     'wallet',
                 ],
             };
-            this.spawn (this.ws.watch, url, method, request, 1);
+            this.spawn (this.watch, url, method, request, 1);
         }
         return await future;
     }
@@ -460,7 +460,7 @@ export default class bitfinex extends bitfinexRest {
         await this.loadMarkets ();
         const url = this.urls['api']['ws']['private'];
         await this.authenticate ();
-        return await this.ws.watch (url, id, undefined, 1);
+        return await this.watch (url, id, undefined, 1);
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -477,8 +477,8 @@ export default class bitfinex extends bitfinexRest {
         await this.loadMarkets ();
         await this.authenticate ();
         const url = this.urls['api']['ws']['private'];
-        const orders = await this.ws.watch (url, 'os', undefined, 1);
-        if (this.ws.newUpdates) {
+        const orders = await this.watch (url, 'os', undefined, 1);
+        if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);

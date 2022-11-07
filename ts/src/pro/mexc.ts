@@ -144,7 +144,7 @@ export default class mexc extends mexcRest {
         } else {
             ohlcv = await this.watchSwapPublic (messageHash, channel, requestParams, params);
         }
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -362,7 +362,7 @@ export default class mexc extends mexcRest {
         snapshot['nonce'] = nonce;
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
-            orderbook = this.ws.orderBook (snapshot);
+            orderbook = this.orderBook (snapshot);
             this.orderbooks[symbol] = orderbook;
         } else {
             // spot channels always return entire snapshots
@@ -463,7 +463,7 @@ export default class mexc extends mexcRest {
         } else {
             trades = await this.watchSwapPublic (messageHash, channel, requestParams, params);
         }
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -554,7 +554,7 @@ export default class mexc extends mexcRest {
         } else {
             trades = await this.watchSwapPrivate (messageHash, params);
         }
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
@@ -718,7 +718,7 @@ export default class mexc extends mexcRest {
         } else {
             orders = await this.watchSwapPrivate (messageHash, params);
         }
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
@@ -1040,7 +1040,7 @@ export default class mexc extends mexcRest {
             'param': requestParams,
         };
         const message = this.extend (request, params);
-        return await this.ws.watch (url, messageHash, message, messageHash);
+        return await this.watch (url, messageHash, message, messageHash);
     }
 
     async watchSpotPublic (messageHash, channel, requestParams, params = {}) {
@@ -1050,7 +1050,7 @@ export default class mexc extends mexcRest {
         };
         const extendedRequest = this.extend (request, requestParams);
         const message = this.extend (extendedRequest, params);
-        return await this.ws.watch (url, messageHash, message, messageHash);
+        return await this.watch (url, messageHash, message, messageHash);
     }
 
     async watchSpotPrivate (messageHash, params = {}) {
@@ -1069,7 +1069,7 @@ export default class mexc extends mexcRest {
         const hash = this.hash (this.encode (encodedParams), 'md5');
         request['sign'] = hash;
         const extendedRequest = this.extend (request, params);
-        return await this.ws.watch (url, messageHash, extendedRequest, channel);
+        return await this.watch (url, messageHash, extendedRequest, channel);
     }
 
     async watchSwapPrivate (messageHash, params = {}) {
@@ -1089,7 +1089,7 @@ export default class mexc extends mexcRest {
         };
         const extendedRequest = this.extend (request, params);
         const message = this.extend (extendedRequest, params);
-        return await this.ws.watch (url, messageHash, message, channel);
+        return await this.watch (url, messageHash, message, channel);
     }
 
     handleErrorMessage (client, message) {

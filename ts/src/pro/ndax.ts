@@ -66,7 +66,7 @@ export default class ndax extends ndaxRest {
             'o': this.json (payload), // JSON-formatted string containing the data being sent with the message
         };
         const message = this.extend (request, params);
-        return await this.ws.watch (url, messageHash, message, messageHash);
+        return await this.watch (url, messageHash, message, messageHash);
     }
 
     handleTicker (client, message) {
@@ -136,8 +136,8 @@ export default class ndax extends ndaxRest {
             'o': this.json (payload), // JSON-formatted string containing the data being sent with the message
         };
         const message = this.extend (request, params);
-        const trades = await this.ws.watch (url, messageHash, message, messageHash);
-        if (this.ws.newUpdates) {
+        const trades = await this.watch (url, messageHash, message, messageHash);
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -210,8 +210,8 @@ export default class ndax extends ndaxRest {
             'o': this.json (payload), // JSON-formatted string containing the data being sent with the message
         };
         const message = this.extend (request, params);
-        const ohlcv = await this.ws.watch (url, messageHash, message, messageHash);
-        if (this.ws.newUpdates) {
+        const ohlcv = await this.watch (url, messageHash, message, messageHash);
+        if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -351,7 +351,7 @@ export default class ndax extends ndaxRest {
             'params': params,
         };
         const message = this.extend (request, params);
-        const orderbook = await this.ws.watch (url, messageHash, message, messageHash, subscription);
+        const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
         return orderbook.limit (limit);
     }
 
@@ -460,7 +460,7 @@ export default class ndax extends ndaxRest {
         const symbol = this.safeString (subscription, 'symbol');
         const snapshot = this.parseOrderBook (payload, symbol);
         const limit = this.safeInteger (subscription, 'limit');
-        const orderbook = this.ws.orderBook (snapshot, limit);
+        const orderbook = this.orderBook (snapshot, limit);
         this.orderbooks[symbol] = orderbook;
         const messageHash = this.safeString (subscription, 'messageHash');
         client.resolve (orderbook, messageHash);

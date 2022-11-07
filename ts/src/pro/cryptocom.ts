@@ -110,7 +110,7 @@ export default class cryptocom extends cryptocomRest {
         let orderbook = this.safeValue (this.orderbooks, symbol);
         if (orderbook === undefined) {
             const limit = this.safeInteger (message, 'depth');
-            orderbook = this.ws.orderBook ({}, limit);
+            orderbook = this.orderBook ({}, limit);
         }
         orderbook.reset (snapshot);
         this.orderbooks[symbol] = orderbook;
@@ -135,7 +135,7 @@ export default class cryptocom extends cryptocomRest {
         }
         const messageHash = 'trade' + '.' + market['id'];
         const trades = await this.watchPublic (messageHash, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
@@ -204,7 +204,7 @@ export default class cryptocom extends cryptocomRest {
         let messageHash = (defaultType === 'margin') ? 'user.margin.trade' : 'user.trade';
         messageHash = (market !== undefined) ? (messageHash + '.' + market['id']) : messageHash;
         const trades = await this.watchPrivate (messageHash, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
@@ -273,7 +273,7 @@ export default class cryptocom extends cryptocomRest {
         const interval = this.timeframes[timeframe];
         const messageHash = 'candlestick' + '.' + interval + '.' + market['id'];
         const ohlcv = await this.watchPublic (messageHash, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = ohlcv.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
@@ -332,7 +332,7 @@ export default class cryptocom extends cryptocomRest {
         let messageHash = (defaultType === 'margin') ? 'user.margin.order' : 'user.order';
         messageHash = (market !== undefined) ? (messageHash + '.' + market['id']) : messageHash;
         const orders = await this.watchPrivate (messageHash, params);
-        if (this.ws.newUpdates) {
+        if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
@@ -447,7 +447,7 @@ export default class cryptocom extends cryptocomRest {
             'nonce': id,
         };
         const message = this.extend (request, params);
-        return await this.ws.watch (url, messageHash, message, messageHash);
+        return await this.watch (url, messageHash, message, messageHash);
     }
 
     async watchPrivate (messageHash, params = {}) {
@@ -462,7 +462,7 @@ export default class cryptocom extends cryptocomRest {
             'nonce': id,
         };
         const message = this.extend (request, params);
-        return await this.ws.watch (url, messageHash, message, messageHash);
+        return await this.watch (url, messageHash, message, messageHash);
     }
 
     handleErrorMessage (client, message) {
@@ -561,7 +561,7 @@ export default class cryptocom extends cryptocomRest {
     async authenticate (params = {}) {
         const url = this.urls['api']['ws']['private'];
         this.checkRequiredCredentials ();
-        const client = this.ws.client (url);
+        const client = this.client (url);
         const future = client.future ('authenticated');
         const messageHash = 'public/auth';
         const authenticated = this.safeValue (client.subscriptions, messageHash);
@@ -576,7 +576,7 @@ export default class cryptocom extends cryptocomRest {
                 'api_key': this.apiKey,
                 'sig': signature,
             };
-            this.spawn (this.ws.watch, url, messageHash, this.extend (request, params), messageHash);
+            this.spawn (this.watch, url, messageHash, this.extend (request, params), messageHash);
         }
         return await future;
     }
