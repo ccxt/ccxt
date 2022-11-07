@@ -97,7 +97,7 @@ module.exports = class aax extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTradingLimits': undefined,
-                'fetchTransactionFee': undefined,
+                'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': true,
                 'fetchTransactions': undefined,
                 'fetchTransfer': false,
@@ -3249,33 +3249,64 @@ module.exports = class aax extends Exchange {
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const currencyKeys = Object.keys (this.currencies);
+        const codesLength = codes.length;
+        const request = {};
+        if (codesLength === 1) {
+            request['currency'] = this.safeValue (codes, 0);
+        }
+        const response = await this.publicGetCurrencies (this.extend (request, params));
+        return this.parseTransactionFees (response, codes);
+    }
+
+    parseTransactionFees (response, codes = undefined) {
+        const data = this.safeValue (response, 'data');
         const result = {};
-        for (let i = 0; i < currencyKeys.length; i++) {
-            const code = currencyKeys[i];
-            const currency = this.currencies[code];
-            if (codes !== undefined && !this.inArray (code, codes)) {
-                continue;
-            }
-            let info = undefined;
-            const networks = this.safeValue (currency, 'networks');
-            const lengthNetworks = networks.length;
-            if (lengthNetworks > 0) {
-                info = [];
-                for (let j = 0; j < networks.length; j++) {
-                    const network = networks[j];
-                    info.push (this.safeValue (network, 'info'));
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const currencyId = this.safeString (entry, 'currency');
+            const currency = this.safeCurrency (currencyId);
+            const code = this.safeString (currency, 'code');
+            if (!this.inArray (code, Object.keys (result))) {
+                result[code] = {
+                    'withdraw': {},
+                    'deposit': undefined,
+                    'info': entry
                 }
-            } else {
-                info = this.safeValue (currency, 'info');
             }
-            result[code] = {
-                'withdraw': this.safeNumber (currency, 'fee'),
-                'deposit': undefined,
-                'info': info,
-            };
+            if ((codes === undefined) || (this.inArray (code, codes))) {
+                result[code] = this.parseTransactionFee (entry);
+            }
         }
         return result;
+        }
+    }
+
+    parseTransactionFee (transaction, currency = undefined) {
+        //
+        //  {
+        //       "chain": "ERC20BAT",
+        //       "displayName": "Basic Attention Token",
+        //       "withdrawFee": "9.82864325",
+        //       "withdrawMin": "64",
+        //       "otcFee": "0",
+        //       "enableOTC": false,
+        //       "visible": true,
+        //       "enableTransfer": true,
+        //       "transferMin": "42",
+        //       "depositMin": "5",
+        //       "enableWithdraw": true,
+        //       "enableDeposit": true,
+        //       "isLighting": false,
+        //       "addrWithMemo": false,
+        //       "addrSupportFIO": true,
+        //       "withdrawPrecision": "0.00000001",
+        //       "currency": "BAT",
+        //       "network": "ERC20",
+        //       "minConfirm": "12"
+        //  }
+        //
+        const network = this.safeString (transaction, 'network');
+        
     }
 
     nonce () {
