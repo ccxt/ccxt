@@ -44,6 +44,7 @@ module.exports = class btcalpha extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchL2OrderBook': undefined, // same as above
                 'fetchLeverage': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
@@ -54,7 +55,6 @@ module.exports = class btcalpha extends Exchange {
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': undefined, // their api doesn't work atm for orderbook
-                'fetchL2OrderBook': undefined, // same as above
                 'fetchOrders': true,
                 'fetchPosition': false,
                 'fetchPositionMode': false,
