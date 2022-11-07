@@ -85,31 +85,18 @@ class bitget extends Exchange {
                 'withdraw' => false,
             ),
             'timeframes' => array(
-                'spot' => array(
-                    '1m' => '1min',
-                    '5m' => '5min',
-                    '15m' => '15min',
-                    '30m' => '30min',
-                    '1h' => '1h',
-                    '4h' => '4h',
-                    '6h' => '6h',
-                    '12h' => '12h',
-                    '1d' => '1day',
-                    '3d' => '3day',
-                    '1w' => '1week',
-                    '1M' => '1M',
-                ),
-                'swap' => array(
-                    '1m' => '60',
-                    '5m' => '300',
-                    '15m' => '900',
-                    '30m' => '1800',
-                    '1h' => '3600',
-                    '4h' => '14400',
-                    '12h' => '43200',
-                    '1d' => '86400',
-                    '1w' => '604800',
-                ),
+                '1m' => '1m',
+                '5m' => '5m',
+                '15m' => '15m',
+                '30m' => '30m',
+                '1h' => '1h',
+                '4h' => '4h',
+                '6h' => '6h',
+                '12h' => '12h',
+                '1d' => '1d',
+                '3d' => '3d',
+                '1w' => '1w',
+                '1M' => '1M',
             ),
             'hostname' => 'bitget.com',
             'urls' => array(
@@ -757,6 +744,33 @@ class bitget extends Exchange {
                 'JADE' => 'Jade Protocol',
             ),
             'options' => array(
+                'timeframes' => array(
+                    'spot' => array(
+                        '1m' => '1min',
+                        '5m' => '5min',
+                        '15m' => '15min',
+                        '30m' => '30min',
+                        '1h' => '1h',
+                        '4h' => '4h',
+                        '6h' => '6h',
+                        '12h' => '12h',
+                        '1d' => '1day',
+                        '3d' => '3day',
+                        '1w' => '1week',
+                        '1M' => '1M',
+                    ),
+                    'swap' => array(
+                        '1m' => '60',
+                        '5m' => '300',
+                        '15m' => '900',
+                        '30m' => '1800',
+                        '1h' => '3600',
+                        '4h' => '14400',
+                        '12h' => '43200',
+                        '1d' => '86400',
+                        '1w' => '604800',
+                    ),
+                ),
                 'fetchMarkets' => array(
                     'spot',
                     'swap',
@@ -804,7 +818,7 @@ class bitget extends Exchange {
         for ($i = 0; $i < count($types); $i++) {
             $type = $types[$i];
             if ($type === 'swap') {
-                $subTypes = array( 'umcbl', 'dmcbl' );
+                $subTypes = array( 'umcbl', 'dmcbl', 'cmcbl', 'sumcbl', 'sdmcbl', 'scmcbl' );
                 for ($j = 0; $j < count($subTypes); $j++) {
                     $markets = $this->fetch_markets_by_type($type, array_merge($params, array(
                         'productType' => $subTypes[$j],
@@ -831,39 +845,38 @@ class bitget extends Exchange {
         //
         // $spot
         //
-        //     {
-        //       $symbol => 'ALPHAUSDT_SPBL',
-        //       symbolName => 'ALPHAUSDT',
-        //       baseCoin => 'ALPHA',
-        //       quoteCoin => 'USDT',
-        //       minTradeAmount => '2',
-        //       maxTradeAmount => '0',
-        //       takerFeeRate => '0.001',
-        //       makerFeeRate => '0.001',
-        //       priceScale => '4',
-        //       quantityScale => '4',
-        //       $status => 'online'
-        //     }
+        //    {
+        //        $symbol => 'ALPHAUSDT_SPBL',
+        //        symbolName => 'ALPHAUSDT',
+        //        baseCoin => 'ALPHA',
+        //        quoteCoin => 'USDT',
+        //        minTradeAmount => '2',
+        //        maxTradeAmount => '0',
+        //        takerFeeRate => '0.001',
+        //        makerFeeRate => '0.001',
+        //        priceScale => '4',
+        //        quantityScale => '4',
+        //        $status => 'online'
+        //    }
         //
         // $swap
         //
-        //     {
-        //       $symbol => 'BTCUSDT_UMCBL',
-        //       makerFeeRate => '0.0002',
-        //       takerFeeRate => '0.0006',
-        //       feeRateUpRatio => '0.005',
-        //       openCostUpRatio => '0.01',
-        //       quoteCoin => 'USDT',
-        //       baseCoin => 'BTC',
-        //       buyLimitPriceRatio => '0.01',
-        //       sellLimitPriceRatio => '0.01',
-        //       $supportMarginCoins => array( 'USDT' ),
-        //       minTradeNum => '0.001',
-        //       priceEndStep => '5',
-        //       volumePlace => '3',
-        //       pricePlace => '1'
-        //     }
-        //
+        //    {
+        //        $symbol => 'BTCUSDT_UMCBL',
+        //        makerFeeRate => '0.0002',
+        //        takerFeeRate => '0.0006',
+        //        feeRateUpRatio => '0.005',
+        //        openCostUpRatio => '0.01',
+        //        quoteCoin => 'USDT',
+        //        baseCoin => 'BTC',
+        //        buyLimitPriceRatio => '0.01',
+        //        sellLimitPriceRatio => '0.01',
+        //        $supportMarginCoins => array( 'USDT' ),
+        //        minTradeNum => '0.001',
+        //        priceEndStep => '5',
+        //        volumePlace => '3',
+        //        pricePlace => '1'
+        //    }
         //
         $marketId = $this->safe_string($market, 'symbol');
         $quoteId = $this->safe_string($market, 'quoteCoin');
@@ -877,29 +890,45 @@ class bitget extends Exchange {
         $parts = explode('_', $marketId);
         $typeId = $this->safe_string($parts, 1);
         $type = null;
-        $linear = null;
-        $inverse = null;
         $swap = false;
         $spot = false;
+        $future = false;
         $contract = false;
         $pricePrecision = null;
         $amountPrecision = null;
+        $linear = null;
+        $inverse = null;
+        $expiry = null;
+        $expiryDatetime = null;
         if ($typeId === 'SPBL') {
             $type = 'spot';
             $spot = true;
             $pricePrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'priceScale')));
             $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($market, 'quantityScale')));
         } else {
-            $type = 'swap';
-            $swap = true;
+            $expiryString = $this->safe_string($parts, 2);
+            if ($expiryString !== null) {
+                $year = '20' . mb_substr($expiryString, 0, 2 - 0);
+                $month = mb_substr($expiryString, 2, 4 - 2);
+                $day = mb_substr($expiryString, 4, 6 - 4);
+                $expiryDatetime = $year . '-' . $month . '-' . $day . 'T00:00:00Z';
+                $expiry = $this->parse8601($expiryDatetime);
+                $type = 'future';
+                $future = true;
+                $symbol = $symbol . ':' . $settle . '-' . $expiryString;
+            } else {
+                $type = 'swap';
+                $swap = true;
+                $symbol = $symbol . ':' . $settle;
+            }
             $contract = true;
-            $symbol = $symbol . ':' . $settle;
-            if ($typeId === 'UMCBL') {
-                $linear = true;
-                $inverse = false;
-            } elseif ($typeId === 'DMCBL') {
-                $inverse = true;
-                $linear = false;
+            $sumcbl = ($typeId === 'SUMCBL');
+            $sdmcbl = ($typeId === 'SDMCBL');
+            $scmcbl = ($typeId === 'SCMCBL');
+            $linear = ($typeId === 'UMCBL') || ($typeId === 'CMCBL') || $sumcbl || $scmcbl;
+            $inverse = !$linear;
+            if ($sumcbl || $sdmcbl || $scmcbl) {
+                $symbol = $marketId;
             }
             $priceDecimals = $this->safe_integer($market, 'pricePlace');
             $amountDecimals = $this->safe_integer($market, 'volumePlace');
@@ -921,54 +950,55 @@ class bitget extends Exchange {
         if ($status !== null) {
             $active = $status === 'online';
         }
-        $maker = $this->safe_number($market, 'makerFeeRate');
-        $taker = $this->safe_number($market, 'takerFeeRate');
-        $limits = array(
-            'amount' => array(
-                'min' => $this->safe_number($market, 'minTradeNum'),
-                'max' => null,
-            ),
-            'price' => array(
-                'min' => null,
-                'max' => null,
-            ),
-            'cost' => array(
-                'min' => null,
-                'max' => null,
-            ),
-        );
         return array(
-            'info' => $market,
             'id' => $marketId,
             'symbol' => $symbol,
-            'quoteId' => $quoteId,
-            'baseId' => $baseId,
-            'quote' => $quote,
             'base' => $base,
+            'quote' => $quote,
+            'settle' => $settle,
+            'baseId' => $baseId,
+            'quoteId' => $quoteId,
+            'settleId' => $settleId,
             'type' => $type,
             'spot' => $spot,
-            'swap' => $swap,
-            'future' => false,
-            'option' => false,
             'margin' => false,
+            'swap' => $swap,
+            'future' => $future,
+            'option' => false,
+            'active' => $active,
             'contract' => $contract,
-            'contractSize' => null,
             'linear' => $linear,
             'inverse' => $inverse,
-            'settleId' => $settleId,
-            'settle' => $settle,
-            'expiry' => null,
-            'expiryDatetime' => null,
-            'optionType' => null,
+            'taker' => $this->safe_number($market, 'takerFeeRate'),
+            'maker' => $this->safe_number($market, 'makerFeeRate'),
+            'contractSize' => $this->safe_number($market, 'sizeMultiplier'),
+            'expiry' => $expiry,
+            'expiryDatetime' => $expiryDatetime,
             'strike' => null,
-            'active' => $active,
-            'maker' => $maker,
-            'taker' => $taker,
+            'optionType' => null,
             'precision' => array(
-                'price' => $pricePrecision,
                 'amount' => $amountPrecision,
+                'price' => $pricePrecision,
             ),
-            'limits' => $limits,
+            'limits' => array(
+                'leverage' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'amount' => array(
+                    'min' => $this->safe_number($market, 'minTradeNum'),
+                    'max' => null,
+                ),
+                'price' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+                'cost' => array(
+                    'min' => null,
+                    'max' => null,
+                ),
+            ),
+            'info' => $market,
         );
     }
 
@@ -980,51 +1010,53 @@ class bitget extends Exchange {
         $response = $this->$method ($params);
         //
         // spot
-        //     {
-        //       code => '00000',
-        //       msg => 'success',
-        //       requestTime => 1645840064031,
-        //       $data => array(
-        //         {
-        //           symbol => 'ALPHAUSDT_SPBL',
-        //           symbolName => 'ALPHAUSDT',
-        //           baseCoin => 'ALPHA',
-        //           quoteCoin => 'USDT',
-        //           minTradeAmount => '2',
-        //           maxTradeAmount => '0',
-        //           takerFeeRate => '0.001',
-        //           makerFeeRate => '0.001',
-        //           priceScale => '4',
-        //           quantityScale => '4',
-        //           status => 'online'
-        //         }
-        //       )
-        //     }
+        //
+        //    {
+        //        code => '00000',
+        //        msg => 'success',
+        //        requestTime => 1645840064031,
+        //        $data => array(
+        //            {
+        //                symbol => 'ALPHAUSDT_SPBL',
+        //                symbolName => 'ALPHAUSDT',
+        //                baseCoin => 'ALPHA',
+        //                quoteCoin => 'USDT',
+        //                minTradeAmount => '2',
+        //                maxTradeAmount => '0',
+        //                takerFeeRate => '0.001',
+        //                makerFeeRate => '0.001',
+        //                priceScale => '4',
+        //                quantityScale => '4',
+        //                status => 'online'
+        //            }
+        //        )
+        //    }
         //
         // swap
-        //     {
-        //       code => '00000',
-        //       msg => 'success',
-        //       requestTime => 1645840821493,
-        //       $data => [
-        //         {
-        //           symbol => 'BTCUSDT_UMCBL',
-        //           makerFeeRate => '0.0002',
-        //           takerFeeRate => '0.0006',
-        //           feeRateUpRatio => '0.005',
-        //           openCostUpRatio => '0.01',
-        //           quoteCoin => 'USDT',
-        //           baseCoin => 'BTC',
-        //           buyLimitPriceRatio => '0.01',
-        //           sellLimitPriceRatio => '0.01',
-        //           supportMarginCoins => [Array],
-        //           minTradeNum => '0.001',
-        //           priceEndStep => '5',
-        //           volumePlace => '3',
-        //           pricePlace => '1'
-        //         }
-        //       ]
-        //     }
+        //
+        //    {
+        //        code => '00000',
+        //        msg => 'success',
+        //        requestTime => 1645840821493,
+        //        $data => [
+        //            {
+        //                symbol => 'BTCUSDT_UMCBL',
+        //                makerFeeRate => '0.0002',
+        //                takerFeeRate => '0.0006',
+        //                feeRateUpRatio => '0.005',
+        //                openCostUpRatio => '0.01',
+        //                quoteCoin => 'USDT',
+        //                baseCoin => 'BTC',
+        //                buyLimitPriceRatio => '0.01',
+        //                sellLimitPriceRatio => '0.01',
+        //                supportMarginCoins => [Array],
+        //                minTradeNum => '0.001',
+        //                priceEndStep => '5',
+        //                volumePlace => '3',
+        //                pricePlace => '1'
+        //            }
+        //        ]
+        //    }
         //
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_markets($data);
@@ -1925,12 +1957,12 @@ class bitget extends Exchange {
             $limit = 100;
         }
         if ($market['type'] === 'spot') {
-            $request['period'] = $this->timeframes['spot'][$timeframe];
+            $request['period'] = $this->options['timeframes']['spot'][$timeframe];
             $request['limit'] = $limit;
             if ($since !== null) {
                 $request['after'] = $since;
                 if ($until === null) {
-                    $millisecondsPerTimeframe = $this->timeframes['swap'][$timeframe] * 1000;
+                    $millisecondsPerTimeframe = $this->options['timeframes']['swap'][$timeframe] * 1000;
                     $request['before'] = $this->sum($since, $millisecondsPerTimeframe * $limit);
                 }
             }
@@ -1938,7 +1970,7 @@ class bitget extends Exchange {
                 $request['before'] = $until;
             }
         } elseif ($market['type'] === 'swap') {
-            $request['granularity'] = $this->timeframes['swap'][$timeframe];
+            $request['granularity'] = $this->options['timeframes']['swap'][$timeframe];
             $duration = $this->parse_timeframe($timeframe);
             $now = $this->milliseconds();
             if ($since === null) {

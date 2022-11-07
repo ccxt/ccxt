@@ -112,6 +112,7 @@ module.exports = class bitmart extends Exchange {
                         'spot/v1/symbols': 7.5,
                         'spot/v1/symbols/details': 5,
                         'spot/v1/ticker': 5,
+                        'spot/v2/ticker': 5,
                         'spot/v1/steps': 30,
                         'spot/v1/symbols/kline': 5,
                         'spot/v1/symbols/book': 5,
@@ -766,21 +767,21 @@ module.exports = class bitmart extends Exchange {
         // spot
         //
         //      {
-        //          "symbol":"DOGE_USDT",
-        //          "last_price":"0.128300",
-        //          "quote_volume_24h":"2296619.060420",
-        //          "base_volume_24h":"17508866.000000000000000000000000000000",
-        //          "high_24h":"0.133900",
-        //          "low_24h":"0.127799",
-        //          "open_24h":"0.133100",
-        //          "close_24h":"0.128300",
-        //          "best_ask":"0.128530",
-        //          "best_ask_size":"15170",
-        //          "best_bid":"0.128200",
-        //          "best_bid_size":"21232",
-        //          "fluctuation":"-0.0361",
-        //          "s_t": 1610936002, // ws only
-        //          "url":"https://www.bitmart.com/trade?symbol=DOGE_USDT"
+        //          "symbol": "SOLAR_USDT",
+        //          "last_price": "0.020342",
+        //          "quote_volume_24h": "56817.811802",
+        //          "base_volume_24h": "2172060",
+        //          "high_24h": "0.256000",
+        //          "low_24h": "0.016980",
+        //          "open_24h": "0.022309",
+        //          "close_24h": "0.020342",
+        //          "best_ask": "0.020389",
+        //          "best_ask_size": "339.000000000000000000000000000000",
+        //          "best_bid": "0.020342",
+        //          "best_bid_size": "3369.000000000000000000000000000000",
+        //          "fluctuation": "-0.0882",
+        //          "url": "https://www.bitmart.com/trade?symbol=SOLAR_USDT",
+        //          "timestamp": 1667403439367
         //      }
         //
         // swap
@@ -798,7 +799,7 @@ module.exports = class bitmart extends Exchange {
         //          "legal_coin_price":"0.1302699"
         //      }
         //
-        const timestamp = this.safeTimestamp2 (ticker, 'timestamp', 's_t', this.milliseconds ());
+        const timestamp = this.safeInteger (ticker, 'timestamp', this.milliseconds ());
         const marketId = this.safeString2 (ticker, 'symbol', 'contract_symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
@@ -935,18 +936,25 @@ module.exports = class bitmart extends Exchange {
          * @method
          * @name bitmart#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://developer-pro.bitmart.com/en/spot/#get-ticker-of-all-pairs-v2
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the bitmart api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
-        const method = this.getSupportedMapping (marketType, {
-            'spot': 'publicGetSpotV1Ticker',
+        let type = undefined;
+        let market = undefined;
+        if (symbols !== undefined) {
+            const symbol = this.safeValue (symbols, 0);
+            market = this.market (symbol);
+        }
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const method = this.getSupportedMapping (type, {
+            'spot': 'publicGetSpotV2Ticker',
             'swap': 'publicGetContractV1Tickers',
         });
-        const response = await this[method] (query);
+        const response = await this[method] (params);
         const data = this.safeValue (response, 'data', {});
         const tickers = this.safeValue (data, 'tickers', []);
         const result = {};
@@ -2823,7 +2831,7 @@ module.exports = class bitmart extends Exchange {
         //         "hourly_interest": "0.00002291",
         //         "interest_amount": "0.00045833",
         //         "create_time": 1657664329000
-        //     },
+        //     }
         //
         const marketId = this.safeString (info, 'symbol');
         market = this.safeMarket (marketId, market);

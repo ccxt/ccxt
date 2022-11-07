@@ -128,6 +128,7 @@ class bitmart(Exchange):
                         'spot/v1/symbols': 7.5,
                         'spot/v1/symbols/details': 5,
                         'spot/v1/ticker': 5,
+                        'spot/v2/ticker': 5,
                         'spot/v1/steps': 30,
                         'spot/v1/symbols/kline': 5,
                         'spot/v1/symbols/book': 5,
@@ -758,21 +759,21 @@ class bitmart(Exchange):
         # spot
         #
         #      {
-        #          "symbol":"DOGE_USDT",
-        #          "last_price":"0.128300",
-        #          "quote_volume_24h":"2296619.060420",
-        #          "base_volume_24h":"17508866.000000000000000000000000000000",
-        #          "high_24h":"0.133900",
-        #          "low_24h":"0.127799",
-        #          "open_24h":"0.133100",
-        #          "close_24h":"0.128300",
-        #          "best_ask":"0.128530",
-        #          "best_ask_size":"15170",
-        #          "best_bid":"0.128200",
-        #          "best_bid_size":"21232",
-        #          "fluctuation":"-0.0361",
-        #          "s_t": 1610936002,  # ws only
-        #          "url":"https://www.bitmart.com/trade?symbol=DOGE_USDT"
+        #          "symbol": "SOLAR_USDT",
+        #          "last_price": "0.020342",
+        #          "quote_volume_24h": "56817.811802",
+        #          "base_volume_24h": "2172060",
+        #          "high_24h": "0.256000",
+        #          "low_24h": "0.016980",
+        #          "open_24h": "0.022309",
+        #          "close_24h": "0.020342",
+        #          "best_ask": "0.020389",
+        #          "best_ask_size": "339.000000000000000000000000000000",
+        #          "best_bid": "0.020342",
+        #          "best_bid_size": "3369.000000000000000000000000000000",
+        #          "fluctuation": "-0.0882",
+        #          "url": "https://www.bitmart.com/trade?symbol=SOLAR_USDT",
+        #          "timestamp": 1667403439367
         #      }
         #
         # swap
@@ -790,7 +791,7 @@ class bitmart(Exchange):
         #          "legal_coin_price":"0.1302699"
         #      }
         #
-        timestamp = self.safe_timestamp_2(ticker, 'timestamp', 's_t', self.milliseconds())
+        timestamp = self.safe_integer(ticker, 'timestamp', self.milliseconds())
         marketId = self.safe_string_2(ticker, 'symbol', 'contract_symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
@@ -917,18 +918,24 @@ class bitmart(Exchange):
     async def fetch_tickers(self, symbols=None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        see https://developer-pro.bitmart.com/en/spot/#get-ticker-of-all-pairs-v2
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bitmart api endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        marketType, query = self.handle_market_type_and_params('fetchTickers', None, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'publicGetSpotV1Ticker',
+        type = None
+        market = None
+        if symbols is not None:
+            symbol = self.safe_value(symbols, 0)
+            market = self.market(symbol)
+        type, params = self.handle_market_type_and_params('fetchTickers', market, params)
+        method = self.get_supported_mapping(type, {
+            'spot': 'publicGetSpotV2Ticker',
             'swap': 'publicGetContractV1Tickers',
         })
-        response = await getattr(self, method)(query)
+        response = await getattr(self, method)(params)
         data = self.safe_value(response, 'data', {})
         tickers = self.safe_value(data, 'tickers', [])
         result = {}
@@ -2637,7 +2644,7 @@ class bitmart(Exchange):
         #         "hourly_interest": "0.00002291",
         #         "interest_amount": "0.00045833",
         #         "create_time": 1657664329000
-        #     },
+        #     }
         #
         marketId = self.safe_string(info, 'symbol')
         market = self.safe_market(marketId, market)

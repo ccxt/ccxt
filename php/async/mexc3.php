@@ -446,7 +446,8 @@ class mexc3 extends Exchange {
                     '2009' => '\\ccxt\\InvalidOrder', // array("success":false,"code":2009,"message":"Position is not exists or closed.")
                     '2011' => '\\ccxt\\BadRequest',
                     '30004' => '\\ccxt\\InsufficientFunds',
-                    '33333' => 'BadRequest', // array("msg":"Not support transfer","code":33333)
+                    '33333' => '\\ccxt\\BadRequest', // array("msg":"Not support transfer","code":33333)
+                    '44444' => '\\ccxt\\BadRequest',
                     '1002' => '\\ccxt\\InvalidOrder',
                     '30019' => '\\ccxt\\BadRequest',
                     '30005' => '\\ccxt\\InvalidOrder',

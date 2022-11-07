@@ -692,7 +692,7 @@ class huobi(Exchange, ccxt.async_support.huobi):
         orders = await self.subscribe_private(channel, messageHash, type, subType, params)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_since_limit(orders, since, limit)
+        return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
     def handle_order(self, client, message):
         #
