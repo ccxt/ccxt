@@ -3,7 +3,7 @@
 
 import mexcRest from '../mexc.js'
 import { AuthenticationError, BadSymbol, BadRequest, NotSupported } from '../base/errors.js';
-import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from ../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 

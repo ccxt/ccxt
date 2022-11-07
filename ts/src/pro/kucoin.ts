@@ -3,7 +3,7 @@
 
 import kucoinRest from '../kucoin.js';
 import { ExchangeError, InvalidNonce, NetworkError } from '../base/errors.js';
-import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from ../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 

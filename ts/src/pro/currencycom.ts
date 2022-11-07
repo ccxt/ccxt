@@ -1,9 +1,9 @@
 
 //  ---------------------------------------------------------------------------
 
-import currencycomRest from '../currencycom.js'
+import currencycomRest from '../currencycom.js';
 import { Precise } from '../base/Precise.js';
-import { ArrayCache, ArrayCacheByTimestamp } from ../base/ws/Cache.js';
+import { ArrayCache, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 

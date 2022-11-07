@@ -3,7 +3,7 @@
 
 import zbRest from '../zb.js'
 import { ExchangeError } from '../base/errors.js';
-import { ArrayCache } from ../base/ws/Cache.js';
+import { ArrayCache } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
 
