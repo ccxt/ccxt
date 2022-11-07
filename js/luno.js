@@ -47,8 +47,8 @@ module.exports = class luno extends Exchange {
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
-                'fetchOHLCV': false, // overload of base fetchOHLCV, as it doesn't work in this exchange
                 'fetchMyTrades': true,
+                'fetchOHLCV': false, // overload of base fetchOHLCV, as it doesn't work in this exchange
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
