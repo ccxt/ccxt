@@ -1542,10 +1542,10 @@ module.exports = class bybit extends Exchange {
         if (market['option']) {
             // bybit requires a symbol when query tockers for options markets
             throw new NotSupported (this.id + ' fetchTickers() is not supported for option markets');
-        } else if (market['inverse']) {
-            request['category'] = 'inverse';
         } else if (market['linear']) {
             request['category'] = 'linear';
+        } else if (market['inverse']) {
+            request['category'] = 'inverse';
         }
         const response = await this.publicGetDerivativesV3PublicTickers (this.extend (request, params));
         //
@@ -1806,7 +1806,7 @@ module.exports = class bybit extends Exchange {
         }
         request['interval'] = timeframe;
         request['from'] = sinceTimestamp;
-        const response = await this.publicGetSpotQuoteV1Kline (params);
+        const response = await this.publicGetSpotQuoteV1Kline (this.extend (request, params));
         //
         //     {
         //         "ret_code": "0",
@@ -1863,10 +1863,10 @@ module.exports = class bybit extends Exchange {
         request['end'] = endTimestamp;
         if (market['option']) {
             request['category'] = 'option';
-        } else if (market['inverse']) {
-            request['category'] = 'inverse';
         } else if (market['linear']) {
             request['category'] = 'linear';
+        } else if (market['inverse']) {
+            request['category'] = 'inverse';
         }
         request['start'] = sinceTimestamp;
         request['interval'] = this.timeframes[timeframe];
@@ -1877,7 +1877,7 @@ module.exports = class bybit extends Exchange {
             'index': 'publicGetDerivativesV3PublicIndexPriceKline',
         };
         const method = this.safeValue (methods, price, 'publicGetDerivativesV3PublicKline');
-        const response = await this[method] (params);
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "retCode": 0,
@@ -1928,23 +1928,25 @@ module.exports = class bybit extends Exchange {
         request['interval'] = this.timeframes[timeframe];
         request['from'] = sinceTimestamp;
         let methods = {};
+        let method = undefined;
+        const price = this.safeString (params, 'price');
+        params = this.omit (params, 'price');
         if (market['linear']) {
             methods = {
                 'mark': 'publicGetPublicLinearMarkPriceKline',
                 'index': 'publicGetPublicLinearIndexPriceKline',
                 'premiumIndex': 'publicGetPublicLinearPremiumIndexKline',
             };
+            method = this.safeValue (methods, price, 'publicGetPublicLinearKline');
         } else {
             methods = {
                 'mark': 'publicGetV2PublicMarkPriceKline',
                 'index': 'publicGetV2PublicIndexPriceKline',
                 'premiumIndex': 'publicGetV2PublicPremiumPriceKline',
             };
+            method = this.safeValue (methods, price, 'publicGetV2PublicKlineList');
         }
-        const price = this.safeString (params, 'price');
-        params = this.omit (params, 'price');
-        const method = this.safeValue (methods, price, 'publicGetPublicLinearKline');
-        const response = await this[method] (params);
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "ret_code":0,
@@ -2005,7 +2007,7 @@ module.exports = class bybit extends Exchange {
             'premiumIndex': 'publicGetPerpetualUsdcOpenapiPublicV1PremiumPriceKline',
         };
         const method = this.safeValue (methods, price, 'publicGetPerpetualUsdcOpenapiPublicV1KlineList');
-        const response = await this[method] (params);
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "retCode":0,
@@ -2636,10 +2638,10 @@ module.exports = class bybit extends Exchange {
         }
         if (market['option']) {
             request['category'] = 'option';
-        } else if (market['inverse']) {
-            request['category'] = 'inverse';
         } else if (market['linear']) {
             request['category'] = 'linear';
+        } else if (market['inverse']) {
+            request['category'] = 'inverse';
         }
         const response = await this.publicGetDerivativesV3PublicOrderBookL2 (this.extend (request, params));
         //
@@ -6600,48 +6602,6 @@ module.exports = class bybit extends Exchange {
         return response;
     }
 
-    async fetchUnifiedMarginOpenInterestHistory (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit;
-        }
-        request['interval'] = timeframe;
-        if (market['inverse']) {
-            request['category'] = 'inverse';
-        } else if (market['linear']) {
-            request['category'] = 'linear';
-        }
-        const response = await this.publicGetDerivativesV3PublicOpenInterest (this.extend (request, params));
-        //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "symbol": "BTCUSDT",
-        //             "category": "linear",
-        //             "list": [
-        //                 {
-        //                     "openInterest": "15350.60700000",
-        //                     "timestamp": "1657641600000"
-        //                 },
-        //                 {
-        //                     "openInterest": "15605.74100000",
-        //                     "timestamp": "1657638000000"
-        //                 }
-        //             ]
-        //         },
-        //         "time": 1657797822839
-        //     }
-        //
-        const result = this.safeValue (response, 'result');
-        const openInterests = this.safeValue (result, 'list');
-        return this.parseOpenInterests (openInterests, market, since, limit);
-    }
-
     async fetchDerivativesOpenInterestHistory (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = this.market (symbol);
@@ -6765,10 +6725,6 @@ module.exports = class bybit extends Exchange {
         };
         if (limit !== undefined) {
             request['limit'] = limit;
-        }
-        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
-        if (enableUnifiedMargin) {
-            return await this.fetchUnifiedMarginOpenInterestHistory (symbol, timeframe, since, limit, params);
         }
         return await this.fetchDerivativesOpenInterestHistory (symbol, timeframe, since, limit, params);
     }
@@ -7318,10 +7274,10 @@ module.exports = class bybit extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        if (market['inverse']) {
-            request['category'] = 'inverse';
-        } else if (market['linear']) {
+        if (market['linear']) {
             request['category'] = 'linear';
+        } else if (market['inverse']) {
+            request['category'] = 'inverse';
         }
         const response = await this.publicGetDerivativesV3PublicRiskLimitList (this.extend (request, params));
         //
