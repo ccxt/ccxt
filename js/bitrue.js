@@ -239,7 +239,7 @@ module.exports = class bitrue extends Exchange {
                 'networks': {
                     'ERC20': 'ETH',
                     'TRC20': 'TRX',
-                    'TRON': 'TRX,'
+                    'TRON': 'TRX',
                 },
             },
             'commonCurrencies': {
