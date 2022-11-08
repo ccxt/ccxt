@@ -4,8 +4,8 @@ import json
 from asyncio import sleep, ensure_future
 from aiohttp import WSMsgType
 from .functions import milliseconds, iso8601, is_json_encoded_object
-from ccxt.pro.base.client import Client
-from ccxt.pro.base.functions import gunzip, inflate
+from ccxt.async_support.base.ws.client import Client
+from ccxt.async_support.base.ws.functions import gunzip, inflate
 from ccxt import NetworkError, RequestTimeout
 
 
@@ -19,7 +19,7 @@ class AiohttpClient(Client):
 
     # helper method for binary and text messages
     def handle_text_or_binary_message(self, data):
-        if self.get_verbose_mode():
+        if self.verbose:
             self.log(iso8601(milliseconds()), 'message', data)
         if isinstance(data, bytes):
             data = data.decode()
@@ -32,9 +32,9 @@ class AiohttpClient(Client):
             self.handle_text_or_binary_message(message.data)
         elif message.type == WSMsgType.BINARY:
             data = message.data
-            if self.get_gunzip():
+            if self.gunzip:
                 data = gunzip(data)
-            elif self.get_inflate():
+            elif self.inflate:
                 data = inflate(data)
             self.handle_text_or_binary_message(data)
         # autoping is responsible for automatically replying with pong
@@ -42,24 +42,24 @@ class AiohttpClient(Client):
         # with aiohttp's websockets and respond with pong manually
         # otherwise aiohttp's websockets client won't trigger WSMsgType.PONG
         elif message.type == WSMsgType.PING:
-            if self.get_verbose_mode():
+            if self.verbose:
                 self.log(iso8601(milliseconds()), 'ping', message)
             ensure_future(self.connection.pong(), loop=self.asyncio_loop)
         elif message.type == WSMsgType.PONG:
             self.lastPong = milliseconds()
-            if self.get_verbose_mode():
+            if self.verbose:
                 self.log(iso8601(milliseconds()), 'pong', message)
             pass
         elif message.type == WSMsgType.CLOSE:
-            if self.get_verbose_mode():
+            if self.verbose:
                 self.log(iso8601(milliseconds()), 'close', self.closed(), message)
             self.on_close(message.data)
         elif message.type == WSMsgType.CLOSED:
-            if self.get_verbose_mode():
+            if self.verbose:
                 self.log(iso8601(milliseconds()), 'closed', self.closed(), message)
             self.on_close(1000)
         elif message.type == WSMsgType.ERROR:
-            if self.get_verbose_mode():
+            if self.verbose:
                 self.log(iso8601(milliseconds()), 'error', message)
             error = NetworkError(str(message))
             self.on_error(error)
@@ -74,12 +74,12 @@ class AiohttpClient(Client):
         return session.ws_connect(self.url, autoping=False, autoclose=False).__aenter__()
 
     def send(self, message):
-        if self.get_verbose_mode():
+        if self.verbose:
             self.log(iso8601(milliseconds()), 'sending', message)
         return self.connection.send_str(message if isinstance(message, str) else json.dumps(message, separators=(',', ':')))
 
     async def close(self, code=1000):
-        if self.get_verbose_mode():
+        if self.verbose:
             self.log(iso8601(milliseconds()), 'closing', code)
         if not self.closed():
             await self.connection.close()
@@ -91,12 +91,12 @@ class AiohttpClient(Client):
             self.receive_looper.cancel()
 
     async def ping_loop(self):
-        if self.get_verbose_mode():
+        if self.verbose:
             self.log(iso8601(milliseconds()), 'ping loop')
-        while self.get_keep_alive() and not self.closed():
+        while self.keepAlive and not self.closed():
             now = milliseconds()
             self.lastPong = now if self.lastPong is None else self.lastPong
-            if (self.lastPong + self.get_keep_alive() * self.get_max_ping_pong_misses()) < now:
+            if (self.lastPong + self.keepAlive * self.maxPingPongMisses) < now:
                 self.on_error(RequestTimeout('Connection to ' + self.url + ' timed out due to a ping-pong keepalive missing on time'))
             # the following ping-clause is not necessary with aiohttp's built-in ws
             # since it has a heartbeat option (see create_connection above)
@@ -107,4 +107,4 @@ class AiohttpClient(Client):
                     await self.send(self.ping(self))
                 else:
                     await self.connection.ping()
-            await sleep(self.get_keep_alive() / 1000)
+            await sleep(self.keepAlive / 1000)

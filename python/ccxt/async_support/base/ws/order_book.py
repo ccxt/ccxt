@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ccxt.pro.base import order_book_side
+from ccxt.async_support.base.ws import order_book_side
 from ccxt import Exchange
 import sys
 

@@ -25,6 +25,7 @@ from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import RequestTimeout
+
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import NullResponse
@@ -60,6 +61,7 @@ class Exchange(BaseExchange):
     }
     ping = None
     newUpdates = True
+    clients = {}
 
     def __init__(self, config={}):
         if 'asyncio_loop' in config:
