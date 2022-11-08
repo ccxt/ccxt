@@ -28,9 +28,9 @@ with open(package_json, encoding='utf-8') as f:
     package = json.load(f)
 
 project_urls = {
-    'Homepage': 'https://ccxt.trade',
-    'Documentation': 'https://ccxt.readthedocs.io/en/latest/manual.html',
-    'Discord': 'https://discord.gg/dhzSKYU',
+    'Homepage': 'https://ccxt.com',
+    'Documentation': 'https://docs.ccxt.com/en/latest/manual.html',
+    'Discord': 'https://discord.gg/ccxt',
     'Twitter': 'https://twitter.com/ccxt_official',
     'Funding': 'https://opencollective.com/ccxt',
 }
@@ -79,7 +79,7 @@ setup(
     packages=find_packages(exclude=['ccxt.async_support*'] if is_python_2 else []),
 
     install_requires=[
-        'setuptools>=38.5.1',
+        'setuptools>=60.9.0',
         'certifi>=2018.1.18',
         'requests>=2.18.4',
         'cryptography>=2.6.1'
@@ -87,15 +87,16 @@ setup(
 
     extras_require={
         ':python_version>="3.5.2"': [
-            'aiohttp>=3.7.4,<3.8',
-            'aiodns>=1.1.1,<2.1',
-            'yarl==1.6.3',
+            'aiohttp>=3.8',
+            'aiodns>=1.1.1',
+            'yarl>=1.7.2',
         ],
         'qa': [
             'flake8==3.7.9',
         ],
         'doc': [
             'Sphinx==4.0',
+            'mistune==0.8.4',  # needed for m2r2
             'm2r2==0.2.7',
             'sphinx-rtd-theme==0.5.2',
             'readthedocs-sphinx-search==0.1.0',

@@ -4,11 +4,11 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import math
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import OrderNotFound
-from ccxt.base.precise import Precise
+from ccxt.base.errors import NotSupported
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class kuna(Exchange):
@@ -21,33 +21,209 @@ class kuna(Exchange):
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
-                'CORS': False,
+                'CORS': None,
+                'spot': True,
+                'margin': None,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'cancelOrder': True,
                 'createOrder': True,
                 'fetchBalance': True,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchL3OrderBook': True,
+                'fetchLeverage': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': 'emulated',
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchPositionMode': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'withdraw': False,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setPositionMode': False,
+                'withdraw': None,
             },
             'timeframes': None,
             'urls': {
                 'extension': '.json',
                 'referral': 'https://kuna.io?r=kunaid-gvfihe8az7o4',
                 'logo': 'https://user-images.githubusercontent.com/51840849/87153927-f0578b80-c2c0-11ea-84b6-74612568e9e1.jpg',
-                'api': 'https://kuna.io',
+                'api': {
+                    'xreserve': 'https://api.xreserve.fund',
+                    'v3': 'https://api.kuna.io',
+                    'public': 'https://kuna.io',  # v2
+                    'private': 'https://kuna.io',  # v2
+                },
                 'www': 'https://kuna.io',
                 'doc': 'https://kuna.io/documents/api',
                 'fees': 'https://kuna.io/documents/api',
             },
             'api': {
+                'xreserve': {
+                    'get': {
+                        'nonce': 1,
+                        'fee': 1,
+                        'delegated-transactions': 1,
+                    },
+                    'post': {
+                        'delegate-transfer': 1,
+                    },
+                },
+                'v3': {
+                    'public': {
+                        'get': {
+                            'timestamp': 1,
+                            'currencies': 1,
+                            'markets': 1,
+                            'tickers': 1,
+                            'k': 1,
+                            'trades_history': 1,
+                            'fees': 1,
+                            'exchange-rates': 1,
+                            'exchange-rates/currency': 1,
+                            'book/market': 1,
+                            'kuna_codes/code/check': 1,
+                            'landing_page_statistic': 1,
+                            'translations/locale': 1,
+                            'trades/market/hist': 1,
+                        },
+                        'post': {
+                            'http_test': 1,
+                            'deposit_channels': 1,
+                            'withdraw_channels': 1,
+                            'subscription_plans': 1,
+                            'send_to': 1,
+                            'confirm_token': 1,
+                            'kunaid': 1,
+                            'withdraw/prerequest': 1,
+                            'deposit/prerequest': 1,
+                            'deposit/exchange-rates': 1,
+                        },
+                    },
+                    'sign': {
+                        'get': {
+                            'reset_password/token': 1,
+                        },
+                        'post': {
+                            'signup/google': 1,
+                            'signup/resend_confirmation': 1,
+                            'signup': 1,
+                            'signin': 1,
+                            'signin/two_factor': 1,
+                            'signin/resend_confirm_device': 1,
+                            'signin/confirm_device': 1,
+                            'reset_password': 1,
+                            'cool-signin': 1,
+                        },
+                        'put': {
+                            'reset_password/token': 1,
+                            'signup/code/confirm': 1,
+                        },
+                    },
+                    'private': {
+                        'post': {
+                            'auth/w/order/submit': 1,
+                            'auth/r/orders': 1,
+                            'auth/r/orders/market': 1,
+                            'auth/r/orders/markets': 1,
+                            'auth/api_tokens/delete': 1,
+                            'auth/api_tokens/create': 1,
+                            'auth/api_tokens': 1,
+                            'auth/signin_history/uniq': 1,
+                            'auth/signin_history': 1,
+                            'auth/disable_withdraw_confirmation': 1,
+                            'auth/change_password': 1,
+                            'auth/deposit_address': 1,
+                            'auth/announcements/accept': 1,
+                            'auth/announcements/unaccepted': 1,
+                            'auth/otp/deactivate': 1,
+                            'auth/otp/activate': 1,
+                            'auth/otp/secret': 1,
+                            'auth/r/order/market/:order_id/trades': 1,
+                            'auth/r/orders/market/hist': 1,
+                            'auth/r/orders/hist': 1,
+                            'auth/r/orders/hist/markets': 1,
+                            'auth/r/orders/details': 1,
+                            'auth/assets-history': 1,
+                            'auth/assets-history/withdraws': 1,
+                            'auth/assets-history/deposits': 1,
+                            'auth/r/wallets': 1,
+                            'auth/markets/favorites': 1,
+                            'auth/markets/favorites/list': 1,
+                            'auth/me/update': 1,
+                            'auth/me': 1,
+                            'auth/fund_sources': 1,
+                            'auth/fund_sources/list': 1,
+                            'auth/withdraw/resend_confirmation': 1,
+                            'auth/withdraw': 1,
+                            'auth/withdraw/details': 1,
+                            'auth/withdraw/info': 1,
+                            'auth/payment_addresses': 1,
+                            'auth/deposit/prerequest': 1,
+                            'auth/deposit/exchange-rates': 1,
+                            'auth/deposit': 1,
+                            'auth/deposit/details': 1,
+                            'auth/deposit/info': 1,
+                            'auth/kuna_codes/count': 1,
+                            'auth/kuna_codes/details': 1,
+                            'auth/kuna_codes/edit': 1,
+                            'auth/kuna_codes/send-pdf': 1,
+                            'auth/kuna_codes': 1,
+                            'auth/kuna_codes/redeemed-by-me': 1,
+                            'auth/kuna_codes/issued-by-me': 1,
+                            'auth/payment_requests/invoice': 1,
+                            'auth/payment_requests/type': 1,
+                            'auth/referral_program/weekly_earnings': 1,
+                            'auth/referral_program/stats': 1,
+                            'auth/merchant/payout_services': 1,
+                            'auth/merchant/withdraw': 1,
+                            'auth/merchant/payment_services': 1,
+                            'auth/merchant/deposit': 1,
+                            'auth/verification/auth_token': 1,
+                            'auth/kunaid_purchase/create': 1,
+                            'auth/devices/list': 1,
+                            'auth/sessions/list': 1,
+                            'auth/subscriptions/reactivate': 1,
+                            'auth/subscriptions/cancel': 1,
+                            'auth/subscriptions/prolong': 1,
+                            'auth/subscriptions/create': 1,
+                            'auth/subscriptions/list': 1,
+                            'auth/kuna_ids/list': 1,
+                            'order/cancel/multi': 1,
+                            'order/cancel': 1,
+                        },
+                        'put': {
+                            'auth/fund_sources/id': 1,
+                            'auth/kuna_codes/redeem': 1,
+                        },
+                        'delete': {
+                            'auth/markets/favorites': 1,
+                            'auth/fund_sources': 1,
+                            'auth/devices': 1,
+                            'auth/devices/list': 1,
+                            'auth/sessions/list': 1,
+                            'auth/sessions': 1,
+                        },
+                    },
+                },
                 'public': {
                     'get': [
                         'depth',  # Get depth or specified market Both asks and bids are sorted from highest price to lowest.
@@ -88,8 +264,8 @@ class kuna(Exchange):
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'taker': 0.25 / 100,
-                    'maker': 0.25 / 100,
+                    'taker': self.parse_number('0.0025'),
+                    'maker': self.parse_number('0.0025'),
                 },
                 'funding': {
                     'withdraw': {
@@ -113,6 +289,7 @@ class kuna(Exchange):
             'commonCurrencies': {
                 'PLA': 'Plair',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 '2002': InsufficientFunds,
                 '2003': OrderNotFound,
@@ -120,6 +297,11 @@ class kuna(Exchange):
         })
 
     def fetch_time(self, params={}):
+        """
+        fetches the current integer timestamp in milliseconds from the exchange server
+        :param dict params: extra parameters specific to the kuna api endpoint
+        :returns int: the current integer timestamp in milliseconds from the exchange server
+        """
         response = self.publicGetTimestamp(params)
         #
         #     1594911427
@@ -127,57 +309,104 @@ class kuna(Exchange):
         return response * 1000
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for kuna
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         quotes = ['btc', 'rub', 'uah', 'usd', 'usdt', 'usdc']
-        pricePrecisions = {
-            'UAH': 0,
-        }
         markets = []
         response = self.publicGetTickers(params)
+        #
+        #    {
+        #        shibuah: {
+        #            at: '1644463685',
+        #            ticker: {
+        #                buy: '0.000911',
+        #                sell: '0.00092',
+        #                low: '0.000872',
+        #                high: '0.000963',
+        #                last: '0.000911',
+        #                vol: '1539278096.0',
+        #                price: '1434244.211249'
+        #            }
+        #        }
+        #    }
+        #
         ids = list(response.keys())
         for i in range(0, len(ids)):
             id = ids[i]
             for j in range(0, len(quotes)):
                 quoteId = quotes[j]
-                index = id.find(quoteId)
-                slice = id[index:]
+                # usd gets matched before usdt in usdtusd USDT/USD
+                # https://github.com/ccxt/ccxt/issues/9868
+                slicedId = id[1:]
+                index = slicedId.find(quoteId)
+                slice = slicedId[index:]
                 if (index > 0) and (slice == quoteId):
-                    baseId = id.replace(quoteId, '')
+                    # usd gets matched before usdt in usdtusd USDT/USD
+                    # https://github.com/ccxt/ccxt/issues/9868
+                    baseId = id[0] + slicedId.replace(quoteId, '')
                     base = self.safe_currency_code(baseId)
                     quote = self.safe_currency_code(quoteId)
-                    symbol = base + '/' + quote
-                    precision = {
-                        'amount': 6,
-                        'price': self.safe_integer(pricePrecisions, quote, 6),
-                    }
                     markets.append({
                         'id': id,
-                        'symbol': symbol,
+                        'symbol': base + '/' + quote,
                         'base': base,
                         'quote': quote,
+                        'settle': None,
                         'baseId': baseId,
                         'quoteId': quoteId,
-                        'precision': precision,
+                        'settleId': None,
+                        'type': 'spot',
+                        'spot': True,
+                        'margin': False,
+                        'swap': False,
+                        'future': False,
+                        'option': False,
+                        'active': None,
+                        'contract': False,
+                        'linear': None,
+                        'inverse': None,
+                        'contractSize': None,
+                        'expiry': None,
+                        'expiryDatetime': None,
+                        'strike': None,
+                        'optionType': None,
+                        'precision': {
+                            'amount': None,
+                            'price': None,
+                        },
                         'limits': {
+                            'leverage': {
+                                'min': None,
+                                'max': None,
+                            },
                             'amount': {
-                                'min': math.pow(10, -precision['amount']),
-                                'max': math.pow(10, precision['amount']),
+                                'min': None,
+                                'max': None,
                             },
                             'price': {
-                                'min': math.pow(10, -precision['price']),
-                                'max': math.pow(10, precision['price']),
+                                'min': None,
+                                'max': None,
                             },
                             'cost': {
                                 'min': None,
                                 'max': None,
                             },
                         },
-                        'active': None,
                         'info': None,
                     })
-                    break
         return markets
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the kuna api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -187,62 +416,62 @@ class kuna(Exchange):
             request['limit'] = limit  # default = 300
         orderbook = self.publicGetDepth(self.extend(request, params))
         timestamp = self.safe_timestamp(orderbook, 'timestamp')
-        return self.parse_order_book(orderbook, symbol, timestamp)
+        return self.parse_order_book(orderbook, market['symbol'], timestamp)
 
     def parse_ticker(self, ticker, market=None):
         timestamp = self.safe_timestamp(ticker, 'at')
         ticker = ticker['ticker']
-        symbol = None
-        if market:
-            symbol = market['symbol']
-        last = self.safe_number(ticker, 'last')
-        return {
+        symbol = self.safe_symbol(None, market)
+        last = self.safe_string(ticker, 'last')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'buy'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'buy'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'sell'),
+            'ask': self.safe_string(ticker, 'sell'),
             'askVolume': None,
             'vwap': None,
-            'open': self.safe_number(ticker, 'open'),
+            'open': self.safe_string(ticker, 'open'),
             'close': last,
             'last': last,
             'previousClose': None,
             'change': None,
             'percentage': None,
             'average': None,
-            'baseVolume': self.safe_number(ticker, 'vol'),
+            'baseVolume': self.safe_string(ticker, 'vol'),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the kuna api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = self.publicGetTickers(params)
         ids = list(response.keys())
         result = {}
         for i in range(0, len(ids)):
             id = ids[i]
-            market = None
-            symbol = id
-            if id in self.markets_by_id:
-                market = self.markets_by_id[id]
-                symbol = market['symbol']
-            else:
-                base = id[0:3]
-                quote = id[3:6]
-                base = base.upper()
-                quote = quote.upper()
-                base = self.safe_currency_code(base)
-                quote = self.safe_currency_code(quote)
-                symbol = base + '/' + quote
+            market = self.safe_market(id)
+            symbol = market['symbol']
             result[symbol] = self.parse_ticker(response[id], market)
         return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the kuna api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -252,18 +481,75 @@ class kuna(Exchange):
         return self.parse_ticker(response, market)
 
     def fetch_l3_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches level 3 information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified market symbol
+        :param int|None limit: max number of orders to return, default is None
+        :param dict params: extra parameters specific to the kuna api endpoint
+        :returns dict: an `order book structure <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>`
+        """
         return self.fetch_order_book(symbol, limit, params)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the kuna api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
             'market': market['id'],
         }
         response = self.publicGetTrades(self.extend(request, params))
+        #
+        #      [
+        #          {
+        #              "id":11353466,
+        #              "price":"3000.16",
+        #              "volume":"0.000397",
+        #              "funds":"1.19106352",
+        #              "market":"ethusdt",
+        #              "created_at":"2022-04-12T18:32:36Z",
+        #              "side":null,
+        #              "trend":"sell"
+        #          },
+        #      ]
+        #
         return self.parse_trades(response, market, since, limit)
 
     def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades(public)
+        #
+        #      {
+        #          "id":11353466,
+        #          "price":"3000.16",
+        #          "volume":"0.000397",
+        #          "funds":"1.19106352",
+        #          "market":"ethusdt",
+        #          "created_at":"2022-04-12T18:32:36Z",
+        #          "side":null,
+        #          "trend":"sell"
+        #      }
+        #
+        # fetchMyTrades(private)
+        #
+        #      {
+        #          "id":11353719,
+        #          "price":"0.13566",
+        #          "volume":"99.0",
+        #          "funds":"13.43034",
+        #          "market":"dogeusdt",
+        #          "created_at":"2022-04-12T18:58:44Z",
+        #          "side":"ask",
+        #          "order_id":1665670371,
+        #          "trend":"buy"
+        #      }
+        #
         timestamp = self.parse8601(self.safe_string(trade, 'created_at'))
         symbol = None
         if market:
@@ -277,14 +563,10 @@ class kuna(Exchange):
             side = self.safe_string(sideMap, side, side)
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'volume')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.safe_number(trade, 'funds')
-        if cost is None:
-            cost = self.parse_number(Precise.string_mul(priceString, amountString))
+        costString = self.safe_number(trade, 'funds')
         orderId = self.safe_string(trade, 'order_id')
         id = self.safe_string(trade, 'id')
-        return {
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -294,13 +576,22 @@ class kuna(Exchange):
             'side': side,
             'order': orderId,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'fee': None,
-        }
+        }, market)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the kuna api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         self.load_markets()
         trades = self.fetch_trades(symbol, since, limit, params)
         ohlcvc = self.build_ohlcvc(trades, timeframe, since, limit)
@@ -317,10 +608,8 @@ class kuna(Exchange):
             ])
         return result
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.privateGetMembersMe(params)
-        balances = self.safe_value(response, 'accounts')
+    def parse_balance(self, response):
+        balances = self.safe_value(response, 'accounts', [])
         result = {'info': balances}
         for i in range(0, len(balances)):
             balance = balances[i]
@@ -330,12 +619,33 @@ class kuna(Exchange):
             account['free'] = self.safe_string(balance, 'balance')
             account['used'] = self.safe_string(balance, 'locked')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the kuna api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
+        self.load_markets()
+        response = self.privateGetMembersMe(params)
+        return self.parse_balance(response)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the kuna api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
+        market = self.market(symbol)
         request = {
-            'market': self.market_id(symbol),
+            'market': market['id'],
             'side': side,
             'volume': str(amount),
             'ord_type': type,
@@ -343,11 +653,16 @@ class kuna(Exchange):
         if type == 'limit':
             request['price'] = str(price)
         response = self.privatePostOrders(self.extend(request, params))
-        marketId = self.safe_value(response, 'market')
-        market = self.safe_value(self.markets_by_id, marketId)
         return self.parse_order(response, market)
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: not used by kuna cancelOrder()
+        :param dict params: extra parameters specific to the kuna api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             'id': id,
@@ -387,19 +702,25 @@ class kuna(Exchange):
             'timeInForce': None,
             'postOnly': None,
             'side': side,
-            'price': self.safe_number(order, 'price'),
+            'price': self.safe_string(order, 'price'),
             'stopPrice': None,
-            'amount': self.safe_number(order, 'volume'),
-            'filled': self.safe_number(order, 'executed_volume'),
-            'remaining': self.safe_number(order, 'remaining_volume'),
+            'amount': self.safe_string(order, 'volume'),
+            'filled': self.safe_string(order, 'executed_volume'),
+            'remaining': self.safe_string(order, 'remaining_volume'),
             'trades': None,
             'fee': None,
             'info': order,
             'cost': None,
             'average': None,
-        })
+        }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by kuna fetchOrder
+        :param dict params: extra parameters specific to the kuna api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             'id': int(id),
@@ -408,6 +729,14 @@ class kuna(Exchange):
         return self.parse_order(response)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the kuna api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         self.load_markets()
@@ -422,6 +751,14 @@ class kuna(Exchange):
         return self.parse_orders(response, market, since, limit)
 
     def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the kuna api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
@@ -430,6 +767,21 @@ class kuna(Exchange):
             'market': market['id'],
         }
         response = self.privateGetTradesMy(self.extend(request, params))
+        #
+        #      [
+        #          {
+        #              "id":11353719,
+        #              "price":"0.13566",
+        #              "volume":"99.0",
+        #              "funds":"13.43034",
+        #              "market":"dogeusdt",
+        #              "created_at":"2022-04-12T18:58:44Z",
+        #              "side":"ask",
+        #              "order_id":1665670371,
+        #              "trend":"buy"
+        #          },
+        #      ]
+        #
         return self.parse_trades(response, market, since, limit)
 
     def nonce(self):
@@ -450,29 +802,43 @@ class kuna(Exchange):
         return self.urlencode(self.keysort(params))
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        request = '/api/' + self.version + '/' + self.implode_params(path, params)
-        if 'extension' in self.urls:
-            request += self.urls['extension']
-        query = self.omit(params, self.extract_params(path))
-        url = self.urls['api'] + request
-        if api == 'public':
-            if query:
-                url += '?' + self.urlencode(query)
+        url = None
+        if isinstance(api, list):
+            version, access = api
+            url = self.urls['api'][version] + '/' + version + '/' + self.implode_params(path, params)
+            if access == 'public':
+                if method == 'GET':
+                    if params:
+                        url += '?' + self.urlencode(params)
+                elif (method == 'POST') or (method == 'PUT'):
+                    headers = {'Content-Type': 'application/json'}
+                    body = self.json(params)
+            elif access == 'private':
+                raise NotSupported(self.id + ' private v3 API is not supported yet')
         else:
-            self.check_required_credentials()
-            nonce = str(self.nonce())
-            query = self.encode_params(self.extend({
-                'access_key': self.apiKey,
-                'tonce': nonce,
-            }, params))
-            auth = method + '|' + request + '|' + query
-            signed = self.hmac(self.encode(auth), self.encode(self.secret))
-            suffix = query + '&signature=' + signed
-            if method == 'GET':
-                url += '?' + suffix
+            request = '/api/' + self.version + '/' + self.implode_params(path, params)
+            if 'extension' in self.urls:
+                request += self.urls['extension']
+            query = self.omit(params, self.extract_params(path))
+            url = self.urls['api'][api] + request
+            if api == 'public':
+                if query:
+                    url += '?' + self.urlencode(query)
             else:
-                body = suffix
-                headers = {'Content-Type': 'application/x-www-form-urlencoded'}
+                self.check_required_credentials()
+                nonce = str(self.nonce())
+                query = self.encode_params(self.extend({
+                    'access_key': self.apiKey,
+                    'tonce': nonce,
+                }, params))
+                auth = method + '|' + request + '|' + query
+                signed = self.hmac(self.encode(auth), self.encode(self.secret))
+                suffix = query + '&signature=' + signed
+                if method == 'GET':
+                    url += '?' + suffix
+                else:
+                    body = suffix
+                    headers = {'Content-Type': 'application/x-www-form-urlencoded'}
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

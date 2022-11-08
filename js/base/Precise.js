@@ -1,22 +1,13 @@
+/* eslint-disable */
 'use strict'
 
 const zero = BigInt (0)
 const minusOne = BigInt (-1)
+const base = BigInt (10)
 
 class Precise {
-    constructor (number, decimals = 0) {
-        const isBigInt = typeof number === 'bigint'
-        const isString = typeof number === 'string'
-        if (!(isBigInt || isString)) {
-            throw new Error ('Precise initiated with something other than a string or BN')
-        }
-        if (isBigInt) {
-            this.integer = number
-            this.decimals = decimals
-        } else {
-            if (decimals) {
-                throw new Error ('Cannot set decimals when initializing with a string')
-            }
+    constructor (number, decimals = undefined) {
+        if (decimals === undefined) {
             let modifier = 0
             number = number.toLowerCase ()
             if (number.indexOf ('e') > -1) {
@@ -28,9 +19,10 @@ class Precise {
             const integerString = number.replace ('.', '')
             this.integer = BigInt (integerString)
             this.decimals = this.decimals - modifier
+        } else {
+            this.integer = number
+            this.decimals = decimals
         }
-        this.base = 10
-        this.reduce ()
     }
 
     mul (other) {
@@ -45,10 +37,10 @@ class Precise {
         if (distance === 0) {
             numerator = this.integer
         } else if (distance < 0) {
-            const exponent = BigInt (this.base) ** BigInt (-distance)
+            const exponent = base ** BigInt (-distance)
             numerator = this.integer / exponent
         } else {
-            const exponent = BigInt (this.base) ** BigInt (distance)
+            const exponent = base ** BigInt (distance)
             numerator = this.integer * exponent
         }
         const result = numerator / other.integer
@@ -63,10 +55,19 @@ class Precise {
             const [ smaller, bigger ] =
                 (this.decimals > other.decimals) ? [ other, this ] : [ this, other ]
             const exponent = bigger.decimals - smaller.decimals
-            const normalised = smaller.integer * (BigInt (this.base) ** BigInt (exponent))
+            const normalised = smaller.integer * (base ** BigInt (exponent))
             const result = normalised + bigger.integer
             return new Precise (result, bigger.decimals)
         }
+    }
+
+    mod (other) {
+        const rationizerNumerator = Math.max (-this.decimals + other.decimals, 0)
+        const numerator = this.integer * (base ** BigInt (rationizerNumerator))
+        const rationizerDenominator = Math.max (-other.decimals + this.decimals, 0)
+        const denominator = other.integer * (base ** BigInt (rationizerDenominator))
+        const result = numerator % denominator
+        return new Precise (result, rationizerDenominator + other.decimals)
     }
 
     sub (other) {
@@ -82,22 +83,63 @@ class Precise {
         return new Precise (-this.integer, this.decimals)
     }
 
+    min (other) {
+        return this.lt (other) ? this : other
+    }
+
+    max (other) {
+        return this.gt (other) ? this : other
+    }
+
+    gt (other) {
+        const sum = this.sub (other)
+        return sum.integer > 0
+    }
+
+    ge (other) {
+        const sum = this.sub (other)
+        return sum.integer >= 0
+    }
+
+    lt (other) {
+        return other.gt (this)
+    }
+
+    le (other) {
+        return other.ge (this)
+    }
+
     reduce () {
-        if (this.integer === zero) {
-            this.decimals = 0
+        const string = this.integer.toString ()
+        const start = string.length - 1
+        if (start === 0) {
+            if (string === '0') {
+                this.decimals = 0
+            }
             return this
         }
-        const base = BigInt (this.base)
-        let mod = this.integer % base
-        while (mod === zero) {
-            this.integer = this.integer / base
-            mod = this.integer % base
-            this.decimals--
+        let i
+        for (i = start; i >= 0; i--) {
+            if (string.charAt (i) !== '0') {
+                break
+            }
         }
-        return this
+        const difference = start - i
+        if (difference === 0) {
+            return this
+        }
+        this.decimals -= difference
+        this.integer = BigInt (string.slice (0, i + 1))
+    }
+
+    equals (other) {
+        this.reduce ()
+        other.reduce ()
+        return (this.decimals === other.decimals) && (this.integer === other.integer)
     }
 
     toString () {
+        this.reduce ()
         let sign
         let abs
         if (this.integer < 0) {
@@ -135,7 +177,11 @@ class Precise {
         if ((string1 === undefined) || (string2 === undefined)) {
             return undefined
         }
-        return (new Precise (string1)).div (new Precise (string2), precision).toString ()
+        const string2Precise = new Precise (string2)
+        if (string2Precise.integer === zero) {
+            return undefined
+        }
+        return (new Precise (string1)).div (string2Precise, precision).toString ()
     }
 
     static stringAdd (string1, string2) {
@@ -169,6 +215,69 @@ class Precise {
             return undefined
         }
         return (new Precise (string)).neg ().toString ()
+    }
+
+    static stringMod (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).mod (new Precise (string2)).toString ()
+    }
+
+    static stringEquals (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).equals (new Precise (string2))
+    }
+
+    static stringEq (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).equals (new Precise (string2))
+    }
+
+    static stringMin (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).min (new Precise (string2)).toString ()
+    }
+
+    static stringMax (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).max (new Precise (string2)).toString ()
+    }
+
+    static stringGt (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).gt (new Precise (string2))
+    }
+
+    static stringGe (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).ge (new Precise (string2))
+    }
+
+    static stringLt (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).lt (new Precise (string2))
+    }
+
+    static stringLe (string1, string2) {
+        if ((string1 === undefined) || (string2 === undefined)) {
+            return undefined
+        }
+        return (new Precise (string1)).le (new Precise (string2))
     }
 }
 

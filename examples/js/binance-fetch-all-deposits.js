@@ -7,7 +7,6 @@ const ccxt = require ('../../ccxt.js')
     const exchange = new ccxt.binance ({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
-        'enableRateLimit': true,
     })
 
     await exchange.loadMarkets ()

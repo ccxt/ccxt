@@ -32,37 +32,50 @@ class bitfinex(Exchange):
             'name': 'Bitfinex',
             'countries': ['VG'],
             'version': 'v1',
-            'rateLimit': 1500,
+            # cheapest is 90 requests a minute = 1.5 requests per second on average =>( 1000ms / 1.5) = 666.666 ms between requests on average
+            'rateLimit': 666.666,
             'pro': True,
             # new metainfo interface
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': None,  # has but unimplemented
+                'swap': None,  # has but unimplemented
+                'future': None,
+                'option': None,
                 'cancelAllOrders': True,
                 'cancelOrder': True,
-                'CORS': False,
                 'createDepositAddress': True,
                 'createOrder': True,
-                'deposit': True,
                 'editOrder': True,
                 'fetchBalance': True,
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
-                'fetchDeposits': False,
-                'fetchFundingFees': True,
+                'fetchDeposits': None,
+                'fetchIndexOHLCV': False,
+                'fetchLeverageTiers': False,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
+                'fetchPositionMode': False,
+                'fetchPositions': True,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
+                'fetchTime': False,
                 'fetchTrades': True,
-                'fetchTradingFee': True,
+                'fetchTradingFee': False,
                 'fetchTradingFees': True,
+                'fetchTransactionFees': True,
                 'fetchTransactions': True,
-                'fetchWithdrawals': False,
-                'withdraw': True,
+                'fetchWithdrawals': None,
                 'transfer': True,
+                'withdraw': True,
             },
             'timeframes': {
                 '1m': '1m',
@@ -97,81 +110,82 @@ class bitfinex(Exchange):
                 # v2 symbol ids require a 't' prefix
                 # just the public part of it(use bitfinex2 for everything else)
                 'v2': {
-                    'get': [
-                        'platform/status',
-                        'tickers',
-                        'ticker/{symbol}',
-                        'trades/{symbol}/hist',
-                        'book/{symbol}/{precision}',
-                        'book/{symbol}/P0',
-                        'book/{symbol}/P1',
-                        'book/{symbol}/P2',
-                        'book/{symbol}/P3',
-                        'book/{symbol}/R0',
-                        'stats1/{key}:{size}:{symbol}:{side}/{section}',
-                        'stats1/{key}:{size}:{symbol}/{section}',
-                        'stats1/{key}:{size}:{symbol}:long/last',
-                        'stats1/{key}:{size}:{symbol}:long/hist',
-                        'stats1/{key}:{size}:{symbol}:short/last',
-                        'stats1/{key}:{size}:{symbol}:short/hist',
-                        'candles/trade:{timeframe}:{symbol}/{section}',
-                        'candles/trade:{timeframe}:{symbol}/last',
-                        'candles/trade:{timeframe}:{symbol}/hist',
-                    ],
+                    'get': {
+                        'platform/status': 3,  # 30 requests per minute
+                        'tickers': 1,  # 90 requests a minute
+                        'ticker/{symbol}': 1,
+                        'tickers/hist': 1,
+                        'trades/{symbol}/hist': 1,
+                        'book/{symbol}/{precision}': 0.375,  # 240 requests per minute = 4 requests per second(1000ms / rateLimit) / 4  = 0.37500375
+                        'book/{symbol}/P0': 0.375,
+                        'book/{symbol}/P1': 0.375,
+                        'book/{symbol}/P2': 0.375,
+                        'book/{symbol}/P3': 0.375,
+                        'book/{symbol}/R0': 0.375,
+                        'stats1/{key}:{size}:{symbol}:{side}/{section}': 1,  # 90 requests a minute
+                        'stats1/{key}:{size}:{symbol}/{section}': 1,
+                        'stats1/{key}:{size}:{symbol}:long/last': 1,
+                        'stats1/{key}:{size}:{symbol}:long/hist': 1,
+                        'stats1/{key}:{size}:{symbol}:short/last': 1,
+                        'stats1/{key}:{size}:{symbol}:short/hist': 1,
+                        'candles/trade:{timeframe}:{symbol}/{section}': 1,  # 90 requests a minute
+                        'candles/trade:{timeframe}:{symbol}/last': 1,
+                        'candles/trade:{timeframe}:{symbol}/hist': 1,
+                    },
                 },
                 'public': {
-                    'get': [
-                        'book/{symbol}',
-                        # 'candles/{symbol}',
-                        'lendbook/{currency}',
-                        'lends/{currency}',
-                        'pubticker/{symbol}',
-                        'stats/{symbol}',
-                        'symbols',
-                        'symbols_details',
-                        'tickers',
-                        'trades/{symbol}',
-                    ],
+                    'get': {
+                        'book/{symbol}': 1,  # 90 requests a minute
+                        # 'candles/{symbol}':0,
+                        'lendbook/{currency}': 6,  # 15 requests a minute
+                        'lends/{currency}': 3,  # 30 requests a minute
+                        'pubticker/{symbol}': 3,  # 30 requests a minute = 0.5 requests per second =>(1000ms / rateLimit) / 0.5 = 3.00003
+                        'stats/{symbol}': 6,  # 15 requests a minute = 0.25 requests per second =>(1000ms / rateLimit ) /0.25 = 6.00006(endpoint returns red html... or 'unknown symbol')
+                        'symbols': 18,  # 5 requests a minute = 0.08333 requests per second =>(1000ms / rateLimit) / 0.08333 = 18.0009
+                        'symbols_details': 18,  # 5 requests a minute
+                        'tickers': 1,  # endpoint not mentioned in v1 docs... but still responds
+                        'trades/{symbol}': 3,  # 60 requests a minute = 1 request per second =>(1000ms / rateLimit) / 1 = 1.5 ... but only works if set to 3
+                    },
                 },
                 'private': {
-                    'post': [
-                        'account_fees',
-                        'account_infos',
-                        'balances',
-                        'basket_manage',
-                        'credits',
-                        'deposit/new',
-                        'funding/close',
-                        'history',
-                        'history/movements',
-                        'key_info',
-                        'margin_infos',
-                        'mytrades',
-                        'mytrades_funding',
-                        'offer/cancel',
-                        'offer/new',
-                        'offer/status',
-                        'offers',
-                        'offers/hist',
-                        'order/cancel',
-                        'order/cancel/all',
-                        'order/cancel/multi',
-                        'order/cancel/replace',
-                        'order/new',
-                        'order/new/multi',
-                        'order/status',
-                        'orders',
-                        'orders/hist',
-                        'position/claim',
-                        'position/close',
-                        'positions',
-                        'summary',
-                        'taken_funds',
-                        'total_taken_funds',
-                        'transfer',
-                        'unused_taken_funds',
-                        'withdraw',
-                    ],
+                    'post': {
+                        'account_fees': 18,
+                        'account_infos': 6,
+                        'balances': 9.036,  # 10 requests a minute = 0.166 requests per second =>(1000ms / rateLimit) / 0.166 = 9.036
+                        'basket_manage': 6,
+                        'credits': 6,
+                        'deposit/new': 18,
+                        'funding/close': 6,
+                        'history': 6,  # 15 requests a minute
+                        'history/movements': 6,
+                        'key_info': 6,
+                        'margin_infos': 3,  # 30 requests a minute
+                        'mytrades': 3,
+                        'mytrades_funding': 6,
+                        'offer/cancel': 6,
+                        'offer/new': 6,
+                        'offer/status': 6,
+                        'offers': 6,
+                        'offers/hist': 90.03,  # one request per minute
+                        'order/cancel': 0.2,
+                        'order/cancel/all': 0.2,
+                        'order/cancel/multi': 0.2,
+                        'order/cancel/replace': 0.2,
+                        'order/new': 0.2,  # 450 requests a minute = 7.5 request a second =>(1000ms / rateLimit) / 7.5 = 0.2000002
+                        'order/new/multi': 0.2,
+                        'order/status': 0.2,
+                        'orders': 0.2,
+                        'orders/hist': 90.03,  # one request per minute = 0.1666 =>(1000ms /  rateLimit) / 0.01666 = 90.03
+                        'position/claim': 18,
+                        'position/close': 18,
+                        'positions': 18,
+                        'summary': 18,
+                        'taken_funds': 6,
+                        'total_taken_funds': 6,
+                        'transfer': 18,
+                        'unused_taken_funds': 6,
+                        'withdraw': 18,
+                    },
                 },
             },
             'fees': {
@@ -179,34 +193,34 @@ class bitfinex(Exchange):
                     'feeSide': 'get',
                     'tierBased': True,
                     'percentage': True,
-                    'maker': 0.1 / 100,
-                    'taker': 0.2 / 100,
+                    'maker': self.parse_number('0.001'),
+                    'taker': self.parse_number('0.002'),
                     'tiers': {
                         'taker': [
-                            [0, 0.2 / 100],
-                            [500000, 0.2 / 100],
-                            [1000000, 0.2 / 100],
-                            [2500000, 0.2 / 100],
-                            [5000000, 0.2 / 100],
-                            [7500000, 0.2 / 100],
-                            [10000000, 0.18 / 100],
-                            [15000000, 0.16 / 100],
-                            [20000000, 0.14 / 100],
-                            [25000000, 0.12 / 100],
-                            [30000000, 0.1 / 100],
+                            [self.parse_number('0'), self.parse_number('0.002')],
+                            [self.parse_number('500000'), self.parse_number('0.002')],
+                            [self.parse_number('1000000'), self.parse_number('0.002')],
+                            [self.parse_number('2500000'), self.parse_number('0.002')],
+                            [self.parse_number('5000000'), self.parse_number('0.002')],
+                            [self.parse_number('7500000'), self.parse_number('0.002')],
+                            [self.parse_number('10000000'), self.parse_number('0.0018')],
+                            [self.parse_number('15000000'), self.parse_number('0.0016')],
+                            [self.parse_number('20000000'), self.parse_number('0.0014')],
+                            [self.parse_number('25000000'), self.parse_number('0.0012')],
+                            [self.parse_number('30000000'), self.parse_number('0.001')],
                         ],
                         'maker': [
-                            [0, 0.1 / 100],
-                            [500000, 0.08 / 100],
-                            [1000000, 0.06 / 100],
-                            [2500000, 0.04 / 100],
-                            [5000000, 0.02 / 100],
-                            [7500000, 0],
-                            [10000000, 0],
-                            [15000000, 0],
-                            [20000000, 0],
-                            [25000000, 0],
-                            [30000000, 0],
+                            [self.parse_number('0'), self.parse_number('0.001')],
+                            [self.parse_number('500000'), self.parse_number('0.0008')],
+                            [self.parse_number('1000000'), self.parse_number('0.0006')],
+                            [self.parse_number('2500000'), self.parse_number('0.0004')],
+                            [self.parse_number('5000000'), self.parse_number('0.0002')],
+                            [self.parse_number('7500000'), self.parse_number('0')],
+                            [self.parse_number('10000000'), self.parse_number('0')],
+                            [self.parse_number('15000000'), self.parse_number('0')],
+                            [self.parse_number('20000000'), self.parse_number('0')],
+                            [self.parse_number('25000000'), self.parse_number('0')],
+                            [self.parse_number('30000000'), self.parse_number('0')],
                         ],
                     },
                 },
@@ -216,90 +230,8 @@ class bitfinex(Exchange):
                     # Actually deposit fees are free for larger deposits(> $1000 USD equivalent)
                     # these values below are deprecated, we should not hardcode fees and limits anymore
                     # to be reimplemented with bitfinex funding fees from their API or web endpoints
-                    'deposit': {
-                        'BTC': 0.0004,
-                        'IOTA': 0.5,
-                        'ETH': 0.0027,
-                        'BCH': 0.0001,
-                        'LTC': 0.001,
-                        'EOS': 0.24279,
-                        'XMR': 0.04,
-                        'SAN': 0.99269,
-                        'DASH': 0.01,
-                        'ETC': 0.01,
-                        'XRP': 0.02,
-                        'YYW': 16.915,
-                        'NEO': 0,
-                        'ZEC': 0.001,
-                        'BTG': 0,
-                        'OMG': 0.14026,
-                        'DATA': 20.773,
-                        'QASH': 1.9858,
-                        'ETP': 0.01,
-                        'QTUM': 0.01,
-                        'EDO': 0.95001,
-                        'AVT': 1.3045,
-                        'USDT': 0,
-                        'TRX': 28.184,
-                        'ZRX': 1.9947,
-                        'RCN': 10.793,
-                        'TNB': 31.915,
-                        'SNT': 14.976,
-                        'RLC': 1.414,
-                        'GNT': 5.8952,
-                        'SPK': 10.893,
-                        'REP': 0.041168,
-                        'BAT': 6.1546,
-                        'ELF': 1.8753,
-                        'FUN': 32.336,
-                        'SNG': 18.622,
-                        'AID': 8.08,
-                        'MNA': 16.617,
-                        'NEC': 1.6504,
-                        'XTZ': 0.2,
-                    },
-                    'withdraw': {
-                        'BTC': 0.0004,
-                        'IOTA': 0.5,
-                        'ETH': 0.0027,
-                        'BCH': 0.0001,
-                        'LTC': 0.001,
-                        'EOS': 0.24279,
-                        'XMR': 0.04,
-                        'SAN': 0.99269,
-                        'DASH': 0.01,
-                        'ETC': 0.01,
-                        'XRP': 0.02,
-                        'YYW': 16.915,
-                        'NEO': 0,
-                        'ZEC': 0.001,
-                        'BTG': 0,
-                        'OMG': 0.14026,
-                        'DATA': 20.773,
-                        'QASH': 1.9858,
-                        'ETP': 0.01,
-                        'QTUM': 0.01,
-                        'EDO': 0.95001,
-                        'AVT': 1.3045,
-                        'USDT': 20,
-                        'TRX': 28.184,
-                        'ZRX': 1.9947,
-                        'RCN': 10.793,
-                        'TNB': 31.915,
-                        'SNT': 14.976,
-                        'RLC': 1.414,
-                        'GNT': 5.8952,
-                        'SPK': 10.893,
-                        'REP': 0.041168,
-                        'BAT': 6.1546,
-                        'ELF': 1.8753,
-                        'FUN': 32.336,
-                        'SNG': 18.622,
-                        'AID': 8.08,
-                        'MNA': 16.617,
-                        'NEC': 1.6504,
-                        'XTZ': 0.2,
-                    },
+                    'deposit': {},
+                    'withdraw': {},
                 },
             },
             # todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
@@ -307,7 +239,7 @@ class bitfinex(Exchange):
                 'ALG': 'ALGO',  # https://github.com/ccxt/ccxt/issues/6034
                 'AMP': 'AMPL',
                 'ATO': 'ATOM',  # https://github.com/ccxt/ccxt/issues/5118
-                'BCHABC': 'BCHA',
+                'BCHABC': 'XEC',
                 'BCHN': 'BCH',
                 'DAT': 'DATA',
                 'DOG': 'MDOGE',
@@ -318,8 +250,11 @@ class bitfinex(Exchange):
                 'EDO': 'PNT',
                 'EUS': 'EURS',
                 'EUT': 'EURT',
+                'IDX': 'ID',
                 'IOT': 'IOTA',
                 'IQX': 'IQ',
+                'LUNA': 'LUNC',
+                'LUNA2': 'LUNA',
                 'MNA': 'MANA',
                 'ORS': 'ORS Group',  # conflict with Origin Sport  #3230
                 'PAS': 'PASS',
@@ -328,7 +263,9 @@ class bitfinex(Exchange):
                 'RBT': 'RBTC',
                 'SNG': 'SNGLS',
                 'STJ': 'STORJ',
+                'TERRAUST': 'USTC',
                 'TSD': 'TUSD',
+                'YGG': 'YEED',  # conflict with Yield Guild Games
                 'YYW': 'YOYOW',
                 'UDC': 'USDC',
                 'UST': 'USDT',
@@ -451,66 +388,136 @@ class bitfinex(Exchange):
                     'limit': 'exchange limit',
                     'market': 'exchange market',
                 },
+                'fiat': {
+                    'USD': 'USD',
+                    'EUR': 'EUR',
+                    'JPY': 'JPY',
+                    'GBP': 'GBP',
+                    'CNH': 'CNH',
+                },
                 'accountsByType': {
                     'spot': 'exchange',
                     'margin': 'trading',
                     'funding': 'deposit',
-                    'exchange': 'exchange',
-                    'trading': 'trading',
-                    'deposit': 'deposit',
-                    'derivatives': 'trading',
+                    'swap': 'trading',
                 },
             },
         })
 
-    async def fetch_funding_fees(self, params={}):
+    async def fetch_transaction_fees(self, codes=None, params={}):
+        """
+        fetch transaction fees
+        see https://docs.bitfinex.com/v1/reference/rest-auth-fees
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns [dict]: a list of `fees structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         await self.load_markets()
+        result = {}
         response = await self.privatePostAccountFees(params)
-        fees = response['withdraw']
-        withdraw = {}
+        #
+        # {
+        #     'withdraw': {
+        #         'BTC': '0.0004',
+        #     }
+        # }
+        #
+        fees = self.safe_value(response, 'withdraw')
         ids = list(fees.keys())
         for i in range(0, len(ids)):
             id = ids[i]
             code = self.safe_currency_code(id)
-            withdraw[code] = self.safe_number(fees, id)
-        return {
-            'info': response,
-            'withdraw': withdraw,
-            'deposit': withdraw,  # only for deposits of less than $1000
-        }
+            if (codes is not None) and not self.in_array(code, codes):
+                continue
+            result[code] = {
+                'withdraw': self.safe_number(fees, id),
+                'deposit': {},
+                'info': self.safe_number(fees, id),
+            }
+        return result
 
     async def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
         await self.load_markets()
         response = await self.privatePostSummary(params)
         #
         #     {
-        #         time: '2019-02-20T15:50:19.152000Z',
-        #         trade_vol_30d: [
-        #             {
-        #                 curr: 'Total(USD)',
-        #                 vol: 0,
-        #                 vol_maker: 0,
-        #                 vol_BFX: 0,
-        #                 vol_BFX_maker: 0,
-        #                 vol_ETHFX: 0,
-        #                 vol_ETHFX_maker: 0
-        #             }
-        #         ],
-        #         fees_funding_30d: {},
-        #         fees_funding_total_30d: 0,
-        #         fees_trading_30d: {},
-        #         fees_trading_total_30d: 0,
-        #         maker_fee: 0.001,
-        #         taker_fee: 0.002
+        #          time: '2022-02-23T16:05:47.659000Z',
+        #          status: {resid_hint: null, login_last: '2022-02-23T16:05:48Z'},
+        #          is_locked: False,
+        #          leo_lev: '0',
+        #          leo_amount_avg: '0.0',
+        #          trade_vol_30d: [
+        #          {
+        #              curr: 'Total(USD)',
+        #              vol: '0.0',
+        #              vol_safe: '0.0',
+        #              vol_maker: '0.0',
+        #              vol_BFX: '0.0',
+        #              vol_BFX_safe: '0.0',
+        #              vol_BFX_maker: '0.0'
+        #          }
+        #          ],
+        #          fees_funding_30d: {},
+        #          fees_funding_total_30d: '0',
+        #          fees_trading_30d: {},
+        #          fees_trading_total_30d: '0',
+        #          rebates_trading_30d: {},
+        #          rebates_trading_total_30d: '0',
+        #          maker_fee: '0.001',
+        #          taker_fee: '0.002',
+        #          maker_fee_2crypto: '0.001',
+        #          maker_fee_2stablecoin: '0.001',
+        #          maker_fee_2fiat: '0.001',
+        #          maker_fee_2deriv: '0.0002',
+        #          taker_fee_2crypto: '0.002',
+        #          taker_fee_2stablecoin: '0.002',
+        #          taker_fee_2fiat: '0.002',
+        #          taker_fee_2deriv: '0.00065',
+        #          deriv_maker_rebate: '0.0002',
+        #          deriv_taker_fee: '0.00065',
+        #          trade_last: null
         #     }
         #
-        return {
-            'info': response,
-            'maker': self.safe_number(response, 'maker_fee'),
-            'taker': self.safe_number(response, 'taker_fee'),
-        }
+        result = {}
+        fiat = self.safe_value(self.options, 'fiat', {})
+        makerFee = self.safe_number(response, 'maker_fee')
+        takerFee = self.safe_number(response, 'taker_fee')
+        makerFee2Fiat = self.safe_number(response, 'maker_fee_2fiat')
+        takerFee2Fiat = self.safe_number(response, 'taker_fee_2fiat')
+        makerFee2Deriv = self.safe_number(response, 'maker_fee_2deriv')
+        takerFee2Deriv = self.safe_number(response, 'taker_fee_2deriv')
+        for i in range(0, len(self.symbols)):
+            symbol = self.symbols[i]
+            market = self.market(symbol)
+            fee = {
+                'info': response,
+                'symbol': symbol,
+                'percentage': True,
+                'tierBased': True,
+            }
+            if market['quote'] in fiat:
+                fee['maker'] = makerFee2Fiat
+                fee['taker'] = takerFee2Fiat
+            elif market['contract']:
+                fee['maker'] = makerFee2Deriv
+                fee['taker'] = takerFee2Deriv
+            else:
+                fee['maker'] = makerFee
+                fee['taker'] = takerFee
+            result[symbol] = fee
+        return result
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for bitfinex
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         ids = await self.publicGetSymbols()
         #
         #     ["btcusd", "ltcusd", "ltcbtc"]
@@ -548,43 +555,55 @@ class bitfinex(Exchange):
                 quoteId = id[3:6]
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            precision = {
-                'price': self.safe_integer(market, 'price_precision'),
-                # https://docs.bitfinex.com/docs/introduction#amount-precision
-                # The amount field allows up to 8 decimals.
-                # Anything exceeding self will be rounded to the 8th decimal.
-                'amount': 8,
-            }
-            minAmountString = self.safe_string(market, 'minimum_order_size')
-            maxAmountString = self.safe_string(market, 'maximum_order_size')
-            limits = {
-                'amount': {
-                    'min': self.parse_number(minAmountString),
-                    'max': self.parse_number(maxAmountString),
-                },
-                'price': {
-                    'min': self.parse_number('1e-8'),
-                    'max': None,
-                },
-            }
-            limits['cost'] = {
-                'min': None,
-                'max': None,
-            }
-            margin = self.safe_value(market, 'margin')
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': True,
+                'settleId': None,
                 'type': 'spot',
-                'margin': margin,
-                'precision': precision,
-                'limits': limits,
+                'spot': True,
+                'margin': self.safe_value(market, 'margin'),
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': True,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    # https://docs.bitfinex.com/docs/introduction#amount-precision
+                    # The amount field allows up to 8 decimals.
+                    # Anything exceeding self will be rounded to the 8th decimal.
+                    'amount': int('8'),
+                    'price': self.safe_integer(market, 'price_precision'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': self.safe_number(market, 'minimum_order_size'),
+                        'max': self.safe_number(market, 'maximum_order_size'),
+                    },
+                    'price': {
+                        'min': self.parse_number('1e-8'),
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
                 'info': market,
             })
         return result
@@ -604,13 +623,18 @@ class bitfinex(Exchange):
         return self.decimal_to_precision(price, TRUNCATE, 8, DECIMAL_PLACES)
 
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         requestedType = self.safe_string(params, 'type', 'exchange')
-        accountType = self.safe_string(accountsByType, requestedType)
+        accountType = self.safe_string(accountsByType, requestedType, requestedType)
         if accountType is None:
             keys = list(accountsByType.keys())
-            raise ExchangeError(self.id + ' fetchBalance type parameter must be one of ' + ', '.join(keys))
+            raise ExchangeError(self.id + ' fetchBalance() type parameter must be one of ' + ', '.join(keys))
         query = self.omit(params, 'type')
         response = await self.privatePostBalances(query)
         #    [{type: 'deposit',
@@ -647,24 +671,27 @@ class bitfinex(Exchange):
                     account['free'] = self.safe_string(balance, 'available')
                     account['total'] = self.safe_string(balance, 'amount')
                     result[code] = account
-        return self.parse_balance(result, False)
+        return self.safe_balance(result)
 
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        transfer currency internally between wallets on the same account
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
         # transferring between derivatives wallet and regular wallet is not documented in their API
         # however we support it in CCXT(from just looking at web inspector)
         await self.load_markets()
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
-        fromId = self.safe_string(accountsByType, fromAccount)
-        if fromId is None:
-            keys = list(accountsByType.keys())
-            raise ExchangeError(self.id + ' transfer fromAccount must be one of ' + ', '.join(keys))
-        toId = self.safe_string(accountsByType, toAccount)
-        if toId is None:
-            keys = list(accountsByType.keys())
-            raise ExchangeError(self.id + ' transfer toAccount must be one of ' + ', '.join(keys))
-        currencyId = self.currency_id(code)
-        fromCurrencyId = self.convert_derivatives_id(currencyId, fromAccount)
-        toCurrencyId = self.convert_derivatives_id(currencyId, toAccount)
+        fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
+        toId = self.safe_string(accountsByType, toAccount, toAccount)
+        currency = self.currency(code)
+        fromCurrencyId = self.convert_derivatives_id(currency['id'], fromAccount)
+        toCurrencyId = self.convert_derivatives_id(currency['id'], toAccount)
         requestedAmount = self.currency_to_precision(code, amount)
         request = {
             'amount': requestedAmount,
@@ -674,31 +701,49 @@ class bitfinex(Exchange):
             'walletto': toId,
         }
         response = await self.privatePostTransfer(self.extend(request, params))
-        # [
-        #   {
-        #     status: 'success',
-        #     message: '0.0001 Bitcoin transfered from Margin to Exchange'
-        #   }
-        # ]
+        #
+        #     [
+        #         {
+        #             status: 'success',
+        #             message: '0.0001 Bitcoin transfered from Margin to Exchange'
+        #         }
+        #     ]
+        #
         result = self.safe_value(response, 0)
-        status = self.safe_string(result, 'status')
         message = self.safe_string(result, 'message')
         if message is None:
             raise ExchangeError(self.id + ' transfer failed')
-        # [{"status":"error","message":"Momentary balance check. Please wait few seconds and try the transfer again."}]
-        if status == 'error':
-            self.throw_exactly_matched_exception(self.exceptions['exact'], message, self.id + ' ' + message)
-            raise ExchangeError(self.id + ' ' + message)
-        return {
-            'info': response,
-            'status': status,
-            'amount': requestedAmount,
-            'code': code,
+        return self.extend(self.parse_transfer(result, currency), {
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'timestamp': None,
-            'datetime': None,
+            'amount': self.parse_number(requestedAmount),
+        })
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #     {
+        #         status: 'success',
+        #         message: '0.0001 Bitcoin transfered from Margin to Exchange'
+        #     }
+        #
+        timestamp = self.milliseconds()
+        return {
+            'info': transfer,
+            'id': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'currency': self.safe_currency_code(None, currency),
+            'amount': None,
+            'fromAccount': None,
+            'toAccount': None,
+            'status': self.parse_transfer_status(self.safe_string(transfer, 'status')),
         }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            'SUCCESS': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
 
     def convert_derivatives_id(self, currencyId, type):
         start = len(currencyId) - 2
@@ -710,18 +755,33 @@ class bitfinex(Exchange):
         return currencyId
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
         }
         if limit is not None:
             request['limit_bids'] = limit
             request['limit_asks'] = limit
         response = await self.publicGetBookSymbol(self.extend(request, params))
-        return self.parse_order_book(response, symbol, None, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(response, market['symbol'], None, 'bids', 'asks', 'price', 'amount')
 
     async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = await self.publicGetTickers(params)
         result = {}
         for i in range(0, len(response)):
@@ -731,6 +791,12 @@ class bitfinex(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -740,10 +806,7 @@ class bitfinex(Exchange):
         return self.parse_ticker(ticker, market)
 
     def parse_ticker(self, ticker, market=None):
-        timestamp = self.safe_number(ticker, 'timestamp')
-        if timestamp is not None:
-            timestamp *= 1000
-        timestamp = int(timestamp)
+        timestamp = self.safe_timestamp(ticker, 'timestamp')
         symbol = None
         if market is not None:
             symbol = market['symbol']
@@ -759,16 +822,16 @@ class bitfinex(Exchange):
                     base = self.safe_currency_code(baseId)
                     quote = self.safe_currency_code(quoteId)
                     symbol = base + '/' + quote
-        last = self.safe_number(ticker, 'last_price')
-        return {
+        last = self.safe_string(ticker, 'last_price')
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(ticker, 'high'),
-            'low': self.safe_number(ticker, 'low'),
-            'bid': self.safe_number(ticker, 'bid'),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'bid'),
             'bidVolume': None,
-            'ask': self.safe_number(ticker, 'ask'),
+            'ask': self.safe_string(ticker, 'ask'),
             'askVolume': None,
             'vwap': None,
             'open': None,
@@ -777,35 +840,74 @@ class bitfinex(Exchange):
             'previousClose': None,
             'change': None,
             'percentage': None,
-            'average': self.safe_number(ticker, 'mid'),
-            'baseVolume': self.safe_number(ticker, 'volume'),
+            'average': self.safe_string(ticker, 'mid'),
+            'baseVolume': self.safe_string(ticker, 'volume'),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market)
 
-    def parse_trade(self, trade, market):
+    def parse_trade(self, trade, market=None):
+        #
+        # fetchTrades(public) v1
+        #
+        #     {
+        #          "timestamp":1637258380,
+        #          "tid":894452833,
+        #          "price":"0.99941",
+        #          "amount":"261.38",
+        #          "exchange":"bitfinex",
+        #          "type":"sell"
+        #     }
+        #
+        #     {   "timestamp":1637258238,
+        #          "tid":894452800,
+        #          "price":"0.99958",
+        #          "amount":"261.90514",
+        #          "exchange":"bitfinex",
+        #          "type":"buy"
+        #     }
+        #
+        # fetchMyTrades(private) v1
+        #
+        #     {
+        #          "price":"0.99941",
+        #          "amount":"261.38",
+        #          "timestamp":"1637258380.0",
+        #          "type":"Sell",
+        #          "fee_currency":"UST",
+        #          "fee_amount":"-0.52245157",
+        #          "tid":894452833,
+        #          "order_id":78819731373
+        #     }
+        #
+        #     {
+        #         "price":"0.99958",
+        #         "amount":"261.90514",
+        #         "timestamp":"1637258238.0",
+        #         "type":"Buy",
+        #         "fee_currency":"UDC",
+        #         "fee_amount":"-0.52381028",
+        #         "tid":894452800,
+        #         "order_id":78819504838
+        #     }
+        #
         id = self.safe_string(trade, 'tid')
-        timestamp = self.safe_number(trade, 'timestamp')
-        if timestamp is not None:
-            timestamp = int(timestamp) * 1000
+        timestamp = self.safe_timestamp(trade, 'timestamp')
         type = None
         side = self.safe_string_lower(trade, 'type')
         orderId = self.safe_string(trade, 'order_id')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         fee = None
         if 'fee_amount' in trade:
-            feeCost = -self.safe_number(trade, 'fee_amount')
+            feeCostString = Precise.string_neg(self.safe_string(trade, 'fee_amount'))
             feeCurrencyId = self.safe_string(trade, 'fee_currency')
             feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
             }
-        return {
+        return self.safe_trade({
             'id': id,
             'info': trade,
             'timestamp': timestamp,
@@ -815,13 +917,21 @@ class bitfinex(Exchange):
             'order': orderId,
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=50, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -834,6 +944,14 @@ class bitfinex(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all trades made by the user
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch trades for
+        :param int|None limit: the maximum number of trades structures to retrieve
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a `symbol` argument')
         await self.load_markets()
@@ -849,9 +967,22 @@ class bitfinex(Exchange):
         return self.parse_trades(response, market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
+        market = self.market(symbol)
+        postOnly = self.safe_value(params, 'postOnly', False)
+        params = self.omit(params, ['postOnly'])
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
             'side': side,
             'amount': self.amount_to_precision(symbol, amount),
             'type': self.safe_string(self.options['orderTypes'], type, type),
@@ -863,8 +994,10 @@ class bitfinex(Exchange):
             request['price'] = str(self.nonce())
         else:
             request['price'] = self.price_to_precision(symbol, price)
+        if postOnly:
+            request['is_postonly'] = True
         response = await self.privatePostOrderNew(self.extend(request, params))
-        return self.parse_order(response)
+        return self.parse_order(response, market)
 
     async def edit_order(self, id, symbol, type, side, amount=None, price=None, params={}):
         await self.load_markets()
@@ -885,6 +1018,13 @@ class bitfinex(Exchange):
         return self.parse_order(response)
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: not used by bitfinex cancelOrder()
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {
             'order_id': int(id),
@@ -892,6 +1032,12 @@ class bitfinex(Exchange):
         return await self.privatePostOrderCancel(self.extend(request, params))
 
     async def cancel_all_orders(self, symbol=None, params={}):
+        """
+        cancel all open orders
+        :param str|None symbol: unified market symbol, only orders in the market of self symbol are cancelled when symbol is not None
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns dict: response from exchange
+        """
         return await self.privatePostOrderCancelAll(params)
 
     def parse_order(self, order, market=None):
@@ -950,19 +1096,27 @@ class bitfinex(Exchange):
             'timeInForce': None,
             'postOnly': None,
             'side': side,
-            'price': self.safe_number(order, 'price'),
+            'price': self.safe_string(order, 'price'),
             'stopPrice': None,
-            'average': self.safe_number(order, 'avg_execution_price'),
-            'amount': self.safe_number(order, 'original_amount'),
-            'remaining': self.safe_number(order, 'remaining_amount'),
-            'filled': self.safe_number(order, 'executed_amount'),
+            'average': self.safe_string(order, 'avg_execution_price'),
+            'amount': self.safe_string(order, 'original_amount'),
+            'remaining': self.safe_string(order, 'remaining_amount'),
+            'filled': self.safe_string(order, 'executed_amount'),
             'status': status,
             'fee': None,
             'cost': None,
             'trades': None,
-        })
+        }, market)
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         if symbol is not None:
             if not (symbol in self.markets):
@@ -974,7 +1128,16 @@ class bitfinex(Exchange):
         return orders
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
+        symbol = self.symbol(symbol)
         request = {}
         if limit is not None:
             request['limit'] = limit
@@ -986,6 +1149,12 @@ class bitfinex(Exchange):
         return orders
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by bitfinex fetchOrder
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {
             'order_id': int(id),
@@ -1014,6 +1183,15 @@ class bitfinex(Exchange):
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         if limit is None:
             limit = 100
@@ -1044,14 +1222,25 @@ class bitfinex(Exchange):
         raise NotSupported(self.id + ' ' + code + ' not supported for withdrawal')
 
     async def create_deposit_address(self, code, params={}):
+        """
+        create a currency deposit address
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         await self.load_markets()
         request = {
             'renew': 1,
         }
-        response = await self.fetch_deposit_address(code, self.extend(request, params))
-        return response
+        return await self.fetch_deposit_address(code, self.extend(request, params))
 
     async def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         await self.load_markets()
         # todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
         name = self.get_currency_name(code)
@@ -1071,10 +1260,19 @@ class bitfinex(Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': None,
             'info': response,
         }
 
     async def fetch_transactions(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch history of deposits and withdrawals
+        :param str|None code: unified currency code for the currency of the transactions, default is None
+        :param int|None since: timestamp in ms of the earliest transaction, default is None
+        :param int|None limit: max number of transactions to return, default is None
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns dict: a list of `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         await self.load_markets()
         currencyId = self.safe_string(params, 'currency')
         query = self.omit(params, 'currency')
@@ -1092,18 +1290,18 @@ class bitfinex(Exchange):
         #
         #     [
         #         {
-        #             "id":581183,
-        #             "txid": 123456,
-        #             "currency":"BTC",
-        #             "method":"BITCOIN",
-        #             "type":"WITHDRAWAL",
-        #             "amount":".01",
-        #             "description":"3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ, offchain transfer ",
-        #             "address":"3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ",
-        #             "status":"COMPLETED",
-        #             "timestamp":"1443833327.0",
-        #             "timestamp_created": "1443833327.1",
-        #             "fee": 0.1,
+        #             "id": 581183,
+        #             "txid":  123456,
+        #             "currency": "BTC",
+        #             "method": "BITCOIN",
+        #             "type": "WITHDRAWAL",
+        #             "amount": ".01",
+        #             "description": "3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ, offchain transfer ",
+        #             "address": "3QXYWgRGX2BPYBpUDBssGbeWEa5zq6snBZ",
+        #             "status": "COMPLETED",
+        #             "timestamp": "1443833327.0",
+        #             "timestamp_created":  "1443833327.1",
+        #             "fee":  0.1,
         #         }
         #     ]
         #
@@ -1145,27 +1343,37 @@ class bitfinex(Exchange):
         #         "timestamp_created": "1561716066.0"
         #     }
         #
-        timestamp = self.safe_number(transaction, 'timestamp_created')
-        if timestamp is not None:
-            timestamp = int(timestamp * 1000)
-        updated = self.safe_number(transaction, 'timestamp')
-        if updated is not None:
-            updated = int(updated * 1000)
+        # withdraw
+        #
+        #     {
+        #         "status": "success",
+        #         "message": "Your withdrawal request has been successfully submitted.",
+        #         "withdrawal_id": 586829
+        #     }
+        #
+        timestamp = self.safe_timestamp(transaction, 'timestamp_created')
+        updated = self.safe_timestamp(transaction, 'timestamp')
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
         type = self.safe_string_lower(transaction, 'type')  # DEPOSIT or WITHDRAWAL
         status = self.parse_transaction_status(self.safe_string(transaction, 'status'))
-        feeCost = self.safe_number(transaction, 'fee')
+        feeCost = self.safe_string(transaction, 'fee')
         if feeCost is not None:
-            feeCost = abs(feeCost)
+            feeCost = Precise.string_abs(feeCost)
+        tag = self.safe_string(transaction, 'description')
         return {
             'info': transaction,
-            'id': self.safe_string(transaction, 'id'),
+            'id': self.safe_string_2(transaction, 'id', 'withdrawal_id'),
             'txid': self.safe_string(transaction, 'txid'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'address': self.safe_string(transaction, 'address'),  # todo: self is actually the tag for XRP transfers(the address is missing)
-            'tag': None,  # refix it properly for the tag from description
+            'addressTo': None,
+            'addressFrom': None,
+            'tag': tag,
+            'tagTo': None,
+            'tagFrom': None,
             'type': type,
             'amount': self.safe_number(transaction, 'amount'),
             'currency': code,
@@ -1173,7 +1381,7 @@ class bitfinex(Exchange):
             'updated': updated,
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': self.parse_number(feeCost),
                 'rate': None,
             },
         }
@@ -1188,10 +1396,21 @@ class bitfinex(Exchange):
         return self.safe_string(statuses, status, status)
 
     async def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         await self.load_markets()
         # todo rewrite for https://api-pub.bitfinex.com//v2/conf/pub:map:tx:method
         name = self.get_currency_name(code)
+        currency = self.currency(code)
         request = {
             'withdraw_type': name,
             'walletselected': 'exchange',
@@ -1201,8 +1420,17 @@ class bitfinex(Exchange):
         if tag is not None:
             request['payment_id'] = tag
         responses = await self.privatePostWithdraw(self.extend(request, params))
-        response = responses[0]
-        id = self.safe_string(response, 'withdrawal_id')
+        #
+        #     [
+        #         {
+        #             "status":"success",
+        #             "message":"Your withdrawal request has been successfully submitted.",
+        #             "withdrawal_id":586829
+        #         }
+        #     ]
+        #
+        response = self.safe_value(responses, 0, {})
+        id = self.safe_number(response, 'withdrawal_id')
         message = self.safe_string(response, 'message')
         errorMessage = self.find_broadly_matched_key(self.exceptions['broad'], message)
         if id == 0:
@@ -1210,12 +1438,15 @@ class bitfinex(Exchange):
                 ExceptionClass = self.exceptions['broad'][errorMessage]
                 raise ExceptionClass(self.id + ' ' + message)
             raise ExchangeError(self.id + ' withdraw returned an id of zero: ' + self.json(response))
-        return {
-            'info': response,
-            'id': id,
-        }
+        return self.parse_transaction(response, currency)
 
     async def fetch_positions(self, symbols=None, params={}):
+        """
+        fetch all open positions
+        :param [str]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
         await self.load_markets()
         response = await self.privatePostPositions(params)
         #
@@ -1273,10 +1504,21 @@ class bitfinex(Exchange):
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:
             return
+        throwError = False
         if code >= 400:
-            if body[0] == '{':
-                feedback = self.id + ' ' + body
-                message = self.safe_string_2(response, 'message', 'error')
-                self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
-                self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
-                raise ExchangeError(feedback)  # unknown message
+            firstChar = self.safe_string(body, 0)
+            if firstChar == '{':
+                throwError = True
+        else:
+            # json response with error, i.e:
+            # [{"status":"error","message":"Momentary balance check. Please wait few seconds and try the transfer again."}]
+            responseObject = self.safe_value(response, 0, {})
+            status = self.safe_string(responseObject, 'status', '')
+            if status == 'error':
+                throwError = True
+        if throwError:
+            feedback = self.id + ' ' + body
+            message = self.safe_string_2(response, 'message', 'error')
+            self.throw_exactly_matched_exception(self.exceptions['exact'], message, feedback)
+            self.throw_broadly_matched_exception(self.exceptions['broad'], message, feedback)
+            raise ExchangeError(feedback)  # unknown message

@@ -6,44 +6,58 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\OrderNotFound;
-use \ccxt\NotSupported;
-use \ccxt\DDoSProtection;
-use \ccxt\Precise;
+use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
+use ccxt\OrderNotFound;
+use ccxt\NotSupported;
+use ccxt\DDoSProtection;
+use ccxt\Precise;
+use React\Async;
 
 class liquid extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'liquid',
             'name' => 'Liquid',
             'countries' => array( 'JP', 'CN', 'TW' ),
             'version' => '2',
             'rateLimit' => 1000,
             'has' => array(
+                'CORS' => null,
+                'spot' => true,
+                'margin' => null, // has but not fully implemented
+                'swap' => null, // has but not fully implemented
+                'future' => false,
+                'option' => false,
                 'cancelOrder' => true,
-                'CORS' => false,
                 'createOrder' => true,
                 'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
+                'fetchMarginMode' => false,
                 'fetchMarkets' => true,
                 'fetchMyTrades' => true,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPositionMode' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => true,
+                'fetchTradingFees' => true,
+                'fetchWithdrawals' => true,
+                'transfer' => false,
                 'withdraw' => true,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg',
-                'api' => 'https://api.liquid.com',
+                'api' => array(
+                    'rest' => 'https://api.liquid.com',
+                ),
                 'www' => 'https://www.liquid.com',
                 'doc' => array(
                     'https://developers.liquid.com',
@@ -60,7 +74,7 @@ class liquid extends Exchange {
                         'products/{id}/price_levels',
                         'executions',
                         'ir_ladders/{currency}',
-                        'fees', // add fetchFees, fetchTradingFees, fetchFundingFees
+                        'fees', // add fetchFees, fetchTradingFees, fetchTransactionFees
                     ),
                 ),
                 'private' => array(
@@ -71,7 +85,9 @@ class liquid extends Exchange {
                         'accounts/{id}',
                         'accounts/{currency}/reserved_balance_details',
                         'crypto_accounts', // add fetchAccounts
-                        'crypto_withdrawals', // add fetchWithdrawals
+                        'crypto_withdrawal',
+                        'crypto_withdrawals',
+                        'crypto_withdrawals/crypto_networks',
                         'executions/me',
                         'fiat_accounts', // add fetchAccounts
                         'fund_infos', // add fetchDeposits
@@ -86,6 +102,11 @@ class liquid extends Exchange {
                         'trading_accounts/{id}',
                         'transactions',
                         'withdrawals', // add fetchWithdrawals
+                        'user/fee_tier',
+                        'user/fees',
+                        'trading_accounts/{id}',
+                        'bank_accounts',
+                        'accounts/{currency}/reserved_balance_details',
                     ),
                     'post' => array(
                         'crypto_withdrawals',
@@ -94,6 +115,7 @@ class liquid extends Exchange {
                         'loan_bids',
                         'orders',
                         'withdrawals',
+                        'fees/estimate',
                     ),
                     'put' => array(
                         'crypto_withdrawal/{id}/cancel',
@@ -186,296 +208,323 @@ class liquid extends Exchange {
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
-                'API rate limit exceeded. Please retry after 300s' => '\\ccxt\\DDoSProtection',
-                'API Authentication failed' => '\\ccxt\\AuthenticationError',
-                'Nonce is too small' => '\\ccxt\\InvalidNonce',
-                'Order not found' => '\\ccxt\\OrderNotFound',
-                'Can not update partially filled order' => '\\ccxt\\InvalidOrder',
-                'Can not update non-live order' => '\\ccxt\\OrderNotFound',
-                'not_enough_free_balance' => '\\ccxt\\InsufficientFunds',
-                'must_be_positive' => '\\ccxt\\InvalidOrder',
-                'less_than_order_size' => '\\ccxt\\InvalidOrder',
-                'price_too_high' => '\\ccxt\\InvalidOrder',
-                'price_too_small' => '\\ccxt\\InvalidOrder', // array("errors":array("order":["price_too_small"]))
-                'product_disabled' => '\\ccxt\\BadSymbol', // array("errors":array("order":["product_disabled"]))
+                'exact' => array(
+                    'API rate limit exceeded. Please retry after 300s' => '\\ccxt\\DDoSProtection',
+                    'API Authentication failed' => '\\ccxt\\AuthenticationError',
+                    'Nonce is too small' => '\\ccxt\\InvalidNonce',
+                    'Order not found' => '\\ccxt\\OrderNotFound',
+                    'Can not update partially filled order' => '\\ccxt\\InvalidOrder',
+                    'Can not update non-live order' => '\\ccxt\\OrderNotFound',
+                    'not_enough_free_balance' => '\\ccxt\\InsufficientFunds',
+                    'must_be_positive' => '\\ccxt\\InvalidOrder',
+                    'less_than_order_size' => '\\ccxt\\InvalidOrder',
+                    'price_too_high' => '\\ccxt\\InvalidOrder',
+                    'price_too_small' => '\\ccxt\\InvalidOrder', // array("errors":array("order":["price_too_small"]))
+                    'product_disabled' => '\\ccxt\\BadSymbol', // array("errors":array("order":["product_disabled"]))
+                ),
+                'broad' => array(
+                    'is not in your IP whitelist' => '\\ccxt\\AuthenticationError', // array("message":"95.145.188.43 is not in your IP whitelist")
+                ),
             ),
             'commonCurrencies' => array(
-                'WIN' => 'WCOIN',
+                'BIFI' => 'BIFIF',
                 'HOT' => 'HOT Token',
                 'MIOTA' => 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
+                'P-BTC' => 'BTC',
+                'TON' => 'Tokamak Network',
             ),
             'options' => array(
                 'cancelOrderException' => true,
+                'networks' => array(
+                    'ETH' => 'ERC20',
+                    'TRX' => 'TRC20',
+                    'XLM' => 'Stellar',
+                    'ALGO' => 'Algorand',
+                ),
+                'swap' => array(
+                    'fetchMarkets' => array(
+                        'settlementCurrencies' => array( 'BTC', 'ETH', 'XRP', 'QASH', 'USD', 'JPY', 'EUR', 'SGD', 'AUD' ),
+                    ),
+                ),
             ),
         ));
     }
 
     public function fetch_currencies($params = array ()) {
-        $response = yield $this->publicGetCurrencies ($params);
-        //
-        //     array(
-        //         array(
-        //             currency_type => 'fiat',
-        //             $currency => 'USD',
-        //             symbol => '$',
-        //             assets_precision => 2,
-        //             quoting_precision => 5,
-        //             minimum_withdrawal => '15.0',
-        //             withdrawal_fee => 5,
-        //             minimum_fee => null,
-        //             minimum_order_quantity => null,
-        //             display_precision => 2,
-        //             depositable => true,
-        //             withdrawable => true,
-        //             discount_fee => 0.5,
-        //         ),
-        //     )
-        //
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $currency = $response[$i];
-            $id = $this->safe_string($currency, 'currency');
-            $code = $this->safe_currency_code($id);
-            $active = $currency['depositable'] && $currency['withdrawable'];
-            $amountPrecision = $this->safe_integer($currency, 'assets_precision');
-            $result[$code] = array(
-                'id' => $id,
-                'code' => $code,
-                'info' => $currency,
-                'name' => $code,
-                'active' => $active,
-                'fee' => $this->safe_number($currency, 'withdrawal_fee'),
-                'precision' => $amountPrecision,
-                'limits' => array(
-                    'amount' => array(
-                        'min' => pow(10, -$amountPrecision),
-                        'max' => pow(10, $amountPrecision),
+        return Async\async(function () use ($params) {
+            /**
+             * fetches all available currencies on an exchange
+             * @param {array} $params extra parameters specific to the liquid api endpoint
+             * @return {array} an associative dictionary of currencies
+             */
+            $response = Async\await($this->publicGetCurrencies ($params));
+            //
+            //     array(
+            //         array(
+            //             currency_type => 'fiat',
+            //             $currency => 'USD',
+            //             symbol => '$',
+            //             assets_precision => 2,
+            //             quoting_precision => 5,
+            //             minimum_withdrawal => '15.0',
+            //             withdrawal_fee => 5,
+            //             minimum_fee => null,
+            //             minimum_order_quantity => null,
+            //             display_precision => 2,
+            //             $depositable => true,
+            //             $withdrawable => true,
+            //             discount_fee => 0.5,
+            //             credit_card_fundable => false,
+            //             lendable => false,
+            //             position_fundable => true,
+            //             has_memo => false,
+            //             stable_currency => null,
+            //             root_currency => 'USD',
+            //             minimum_loan_bid_quantity => '0.0',
+            //             maximum_order_taker_quantity => null,
+            //             $name => 'United States Dollar'
+            //         ),
+            //     )
+            //
+            $result = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $currency = $response[$i];
+                $id = $this->safe_string($currency, 'currency');
+                $code = $this->safe_currency_code($id);
+                $name = $this->safe_string($currency, 'name');
+                $depositable = $this->safe_value($currency, 'depositable');
+                $withdrawable = $this->safe_value($currency, 'withdrawable');
+                $active = $depositable && $withdrawable;
+                $amountPrecision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'assets_precision')));
+                $result[$code] = array(
+                    'id' => $id,
+                    'code' => $code,
+                    'info' => $currency,
+                    'name' => $name,
+                    'active' => $active,
+                    'deposit' => $depositable,
+                    'withdraw' => $withdrawable,
+                    'fee' => $this->safe_number($currency, 'withdrawal_fee'),
+                    'precision' => $amountPrecision,
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => $amountPrecision,
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => $this->safe_number($currency, 'minimum_withdrawal'),
+                            'max' => null,
+                        ),
                     ),
-                    'withdraw' => array(
-                        'min' => $this->safe_number($currency, 'minimum_withdrawal'),
-                        'max' => null,
-                    ),
-                ),
-            );
-        }
-        return $result;
+                );
+            }
+            return $result;
+        }) ();
     }
 
     public function fetch_markets($params = array ()) {
-        $spot = yield $this->publicGetProducts ($params);
-        //
-        //     array(
-        //         array(
-        //             "$id":"637",
-        //             "product_type":"CurrencyPair",
-        //             "code":"CASH",
-        //             "name":null,
-        //             "market_ask":"0.00000797",
-        //             "market_bid":"0.00000727",
-        //             "indicator":null,
-        //             "currency":"BTC",
-        //             "currency_pair_code":"TFTBTC",
-        //             "$symbol":null,
-        //             "btc_minimum_withdraw":null,
-        //             "fiat_minimum_withdraw":null,
-        //             "pusher_channel":"product_cash_tftbtc_637",
-        //             "taker_fee":"0.0",
-        //             "maker_fee":"0.0",
-        //             "low_market_bid":"0.00000685",
-        //             "high_market_ask":"0.00000885",
-        //             "volume_24h":"3696.0755956",
-        //             "last_price_24h":"0.00000716",
-        //             "last_traded_price":"0.00000766",
-        //             "last_traded_quantity":"1748.0377978",
-        //             "average_price":null,
-        //             "quoted_currency":"BTC",
-        //             "base_currency":"TFT",
-        //             "tick_size":"0.00000001",
-        //             "$disabled":false,
-        //             "margin_enabled":false,
-        //             "cfd_enabled":false,
-        //             "perpetual_enabled":false,
-        //             "last_event_timestamp":"1596962820.000797146",
-        //             "timestamp":"1596962820.000797146",
-        //             "multiplier_up":"9.0",
-        //             "multiplier_down":"0.1",
-        //             "average_time_interval":null
-        //         ),
-        //     )
-        //
-        $perpetual = yield $this->publicGetProducts (array( 'perpetual' => '1' ));
-        //
-        //     array(
-        //         array(
-        //             "$id":"604",
-        //             "product_type":"Perpetual",
-        //             "code":"CASH",
-        //             "name":null,
-        //             "market_ask":"11721.5",
-        //             "market_bid":"11719.0",
-        //             "indicator":null,
-        //             "currency":"USD",
-        //             "currency_pair_code":"P-BTCUSD",
-        //             "$symbol":"$",
-        //             "btc_minimum_withdraw":null,
-        //             "fiat_minimum_withdraw":null,
-        //             "pusher_channel":"product_cash_p-btcusd_604",
-        //             "taker_fee":"0.0012",
-        //             "maker_fee":"0.0",
-        //             "low_market_bid":"11624.5",
-        //             "high_market_ask":"11859.0",
-        //             "volume_24h":"0.271",
-        //             "last_price_24h":"11621.5",
-        //             "last_traded_price":"11771.5",
-        //             "last_traded_quantity":"0.09",
-        //             "average_price":"11771.5",
-        //             "quoted_currency":"USD",
-        //             "base_currency":"P-BTC",
-        //             "tick_size":"0.5",
-        //             "$disabled":false,
-        //             "margin_enabled":false,
-        //             "cfd_enabled":false,
-        //             "perpetual_enabled":true,
-        //             "last_event_timestamp":"1596963309.418853092",
-        //             "timestamp":"1596963309.418853092",
-        //             "multiplier_up":null,
-        //             "multiplier_down":"0.1",
-        //             "average_time_interval":300,
-        //             "index_price":"11682.8124",
-        //             "mark_price":"11719.96781",
-        //             "funding_rate":"0.00273",
-        //             "fair_price":"11720.2745"
-        //         ),
-        //     )
-        //
-        $currencies = yield $this->fetch_currencies();
-        $currenciesByCode = $this->index_by($currencies, 'code');
-        $result = array();
-        $markets = $this->array_concat($spot, $perpetual);
-        for ($i = 0; $i < count($markets); $i++) {
-            $market = $markets[$i];
-            $id = $this->safe_string($market, 'id');
-            $baseId = $this->safe_string($market, 'base_currency');
-            $quoteId = $this->safe_string($market, 'quoted_currency');
-            $productType = $this->safe_string($market, 'product_type');
-            $type = 'spot';
-            $spot = true;
-            $swap = false;
-            if ($productType === 'Perpetual') {
-                $spot = false;
-                $swap = true;
-                $type = 'swap';
-            }
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $symbol = null;
-            if ($swap) {
-                $symbol = $this->safe_string($market, 'currency_pair_code');
-            } else {
+        return Async\async(function () use ($params) {
+            /**
+             * retrieves data on all $markets for liquid
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @return {[array]} an array of objects representing $market data
+             */
+            $spot = Async\await($this->publicGetProducts ($params));
+            //
+            //     array(
+            //         array(
+            //             "id":"637",
+            //             "product_type":"CurrencyPair",
+            //             "code":"CASH",
+            //             "name":null,
+            //             "market_ask":"0.00000797",
+            //             "market_bid":"0.00000727",
+            //             "indicator":null,
+            //             "currency":"BTC",
+            //             "currency_pair_code":"TFTBTC",
+            //             "symbol":null,
+            //             "btc_minimum_withdraw":null,
+            //             "fiat_minimum_withdraw":null,
+            //             "pusher_channel":"product_cash_tftbtc_637",
+            //             "taker_fee":"0.0",
+            //             "maker_fee":"0.0",
+            //             "low_market_bid":"0.00000685",
+            //             "high_market_ask":"0.00000885",
+            //             "volume_24h":"3696.0755956",
+            //             "last_price_24h":"0.00000716",
+            //             "last_traded_price":"0.00000766",
+            //             "last_traded_quantity":"1748.0377978",
+            //             "average_price":null,
+            //             "quoted_currency":"BTC",
+            //             "base_currency":"TFT",
+            //             "tick_size":"0.00000001",
+            //             "disabled":false,
+            //             "margin_enabled":false,
+            //             "cfd_enabled":false,
+            //             "perpetual_enabled":false,
+            //             "last_event_timestamp":"1596962820.000797146",
+            //             "timestamp":"1596962820.000797146",
+            //             "multiplier_up":"9.0",
+            //             "multiplier_down":"0.1",
+            //             "average_time_interval":null
+            //         ),
+            //     )
+            //
+            $perpetual = Async\await($this->publicGetProducts (array( 'perpetual' => '1' )));
+            //
+            //     array(
+            //         array(
+            //             "id":"604",
+            //             "product_type":"Perpetual",
+            //             "code":"CASH",
+            //             "name":null,
+            //             "market_ask":"11721.5",
+            //             "market_bid":"11719.0",
+            //             "indicator":null,
+            //             "currency":"USD",
+            //             "currency_pair_code":"P-BTCUSD",
+            //             "symbol":"$",
+            //             "btc_minimum_withdraw":null,
+            //             "fiat_minimum_withdraw":null,
+            //             "pusher_channel":"product_cash_p-btcusd_604",
+            //             "taker_fee":"0.0012",
+            //             "maker_fee":"0.0",
+            //             "low_market_bid":"11624.5",
+            //             "high_market_ask":"11859.0",
+            //             "volume_24h":"0.271",
+            //             "last_price_24h":"11621.5",
+            //             "last_traded_price":"11771.5",
+            //             "last_traded_quantity":"0.09",
+            //             "average_price":"11771.5",
+            //             "quoted_currency":"USD",
+            //             "base_currency":"P-BTC",
+            //             "tick_size":"0.5",
+            //             "disabled":false,
+            //             "margin_enabled":false,
+            //             "cfd_enabled":false,
+            //             "perpetual_enabled":true,
+            //             "last_event_timestamp":"1596963309.418853092",
+            //             "timestamp":"1596963309.418853092",
+            //             "multiplier_up":null,
+            //             "multiplier_down":"0.1",
+            //             "average_time_interval":300,
+            //             "index_price":"11682.8124",
+            //             "mark_price":"11719.96781",
+            //             "funding_rate":"0.00273",
+            //             "fair_price":"11720.2745"
+            //         ),
+            //     )
+            //
+            $currencies = Async\await($this->fetch_currencies());
+            $currenciesByCode = $this->index_by($currencies, 'code');
+            $result = array();
+            $markets = $this->array_concat($spot, $perpetual);
+            for ($i = 0; $i < count($markets); $i++) {
+                $market = $markets[$i];
+                $id = $this->safe_string($market, 'id');
+                $baseId = $this->safe_string($market, 'base_currency');
+                $quoteId = $this->safe_string($market, 'quoted_currency');
+                $productType = $this->safe_string($market, 'product_type');
+                $swap = ($productType === 'Perpetual');
+                $type = $swap ? 'swap' : 'spot';
+                $spot = !$swap;
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $disabled = $this->safe_value($market, 'disabled', false);
+                $baseCurrency = $this->safe_value($currenciesByCode, $base);
+                $minAmount = null;
+                if ($baseCurrency !== null) {
+                    $minAmount = $this->safe_number($baseCurrency['info'], 'minimum_order_quantity');
+                }
+                $lastPrice = $this->safe_number($market, 'last_traded_price');
+                $minPrice = null;
+                $maxPrice = null;
+                if ($lastPrice) {
+                    $multiplierDown = $this->safe_number($market, 'multiplier_down');
+                    $multiplierUp = $this->safe_number($market, 'multiplier_up');
+                    if ($multiplierDown !== null) {
+                        $minPrice = $lastPrice * $multiplierDown;
+                    }
+                    if ($multiplierUp !== null) {
+                        $maxPrice = $lastPrice * $multiplierUp;
+                    }
+                }
+                $margin = $this->safe_value($market, 'margin_enabled');
                 $symbol = $base . '/' . $quote;
-            }
-            $maker = $this->fees['trading']['maker'];
-            $taker = $this->fees['trading']['taker'];
-            if ($type === 'swap') {
-                $maker = $this->safe_number($market, 'maker_fee', $this->fees['trading']['maker']);
-                $taker = $this->safe_number($market, 'taker_fee', $this->fees['trading']['taker']);
-            }
-            $disabled = $this->safe_value($market, 'disabled', false);
-            $active = !$disabled;
-            $baseCurrency = $this->safe_value($currenciesByCode, $base);
-            $precision = array(
-                'amount' => 0.00000001,
-                'price' => $this->safe_number($market, 'tick_size'),
-            );
-            $minAmount = null;
-            if ($baseCurrency !== null) {
-                $minAmount = $this->safe_number($baseCurrency['info'], 'minimum_order_quantity');
-            }
-            $lastPrice = $this->safe_number($market, 'last_traded_price');
-            $minPrice = null;
-            $maxPrice = null;
-            if ($lastPrice) {
-                $multiplierDown = $this->safe_number($market, 'multiplier_down');
-                $multiplierUp = $this->safe_number($market, 'multiplier_up');
-                if ($multiplierDown !== null) {
-                    $minPrice = $lastPrice * $multiplierDown;
+                $maker = $this->fees['trading']['maker'];
+                $taker = $this->fees['trading']['taker'];
+                $parsedMarket = array(
+                    'id' => $id,
+                    'symbol' => $symbol,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'settle' => null,
+                    'baseId' => $baseId,
+                    'quoteId' => $quoteId,
+                    'settleId' => null,
+                    'type' => $type,
+                    'spot' => $spot,
+                    'margin' => $spot && $margin,
+                    'swap' => $swap,
+                    'future' => false,
+                    'option' => false,
+                    'active' => !$disabled,
+                    'contract' => $swap,
+                    'linear' => null,
+                    'inverse' => null,
+                    'taker' => $taker,
+                    'maker' => $maker,
+                    'contractSize' => null,
+                    'expiry' => null,
+                    'expiryDatetime' => null,
+                    'strike' => null,
+                    'optionType' => null,
+                    'precision' => array(
+                        'amount' => $this->parse_number('0.00000001'),
+                        'price' => $this->safe_number($market, 'tick_size'),
+                    ),
+                    'limits' => array(
+                        'leverage' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'amount' => array(
+                            'min' => $minAmount,
+                            'max' => null,
+                        ),
+                        'price' => array(
+                            'min' => $minPrice,
+                            'max' => $maxPrice,
+                        ),
+                        'cost' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                    ),
+                    'info' => $market,
+                );
+                if ($swap) {
+                    $settlementCurrencies = $this->options['fetchMarkets']['settlementCurrencies'];
+                    for ($i = 0; $i < count($settlementCurrencies); $i++) {
+                        $settle = $settlementCurrencies[$i];
+                        $parsedMarket['settle'] = $settle;
+                        $parsedMarket['symbol'] = $symbol . ':' . $settle;
+                        $parsedMarket['linear'] = $quote === $settle;
+                        $parsedMarket['inverse'] = $base === $settle;
+                        $parsedMarket['taker'] = $this->safe_number($market, 'taker_fee', $taker);
+                        $parsedMarket['maker'] = $this->safe_number($market, 'maker_fee', $maker);
+                        $parsedMarket['contractSize'] = $this->parse_number('1');
+                        $result[] = $parsedMarket;
+                    }
+                } else {
+                    $result[] = $parsedMarket;
                 }
-                if ($multiplierUp !== null) {
-                    $maxPrice = $lastPrice * $multiplierUp;
-                }
             }
-            $limits = array(
-                'amount' => array(
-                    'min' => $minAmount,
-                    'max' => null,
-                ),
-                'price' => array(
-                    'min' => $minPrice,
-                    'max' => $maxPrice,
-                ),
-                'cost' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-            );
-            $result[] = array(
-                'id' => $id,
-                'symbol' => $symbol,
-                'base' => $base,
-                'quote' => $quote,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'type' => $type,
-                'spot' => $spot,
-                'swap' => $swap,
-                'maker' => $maker,
-                'taker' => $taker,
-                'limits' => $limits,
-                'precision' => $precision,
-                'active' => $active,
-                'info' => $market,
-            );
-        }
-        return $result;
+            return $result;
+        }) ();
     }
 
-    public function fetch_balance($params = array ()) {
-        yield $this->load_markets();
-        $response = yield $this->privateGetAccounts ($params);
-        //
-        //     {
-        //         crypto_accounts => array(
-        //             array(
-        //                 id => 2221179,
-        //                 currency => 'USDT',
-        //                 $balance => '0.0',
-        //                 reserved_balance => '0.0',
-        //                 pusher_channel => 'user_xxxxx_account_usdt',
-        //                 lowest_offer_interest_rate => null,
-        //                 highest_offer_interest_rate => null,
-        //                 address => '0',
-        //                 currency_symbol => 'USDT',
-        //                 minimum_withdraw => null,
-        //                 currency_type => 'crypto'
-        //             ),
-        //         ),
-        //         fiat_accounts => array(
-        //             {
-        //                 id => 1112734,
-        //                 currency => 'USD',
-        //                 $balance => '0.0',
-        //                 reserved_balance => '0.0',
-        //                 pusher_channel => 'user_xxxxx_account_usd',
-        //                 lowest_offer_interest_rate => null,
-        //                 highest_offer_interest_rate => null,
-        //                 currency_symbol => '$',
-        //                 send_to_btc_address => null,
-        //                 exchange_rate => '1.0',
-        //                 currency_type => 'fiat'
-        //             }
-        //         )
-        //     }
-        //
+    public function parse_balance($response) {
         $result = array(
             'info' => $response,
             'timestamp' => null,
@@ -501,16 +550,73 @@ class liquid extends Exchange {
             $account['used'] = $this->safe_string($balance, 'reserved_balance');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        return Async\async(function () use ($params) {
+            /**
+             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} $params extra parameters specific to the liquid api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->privateGetAccounts ($params));
+            //
+            //     {
+            //         crypto_accounts => array(
+            //             array(
+            //                 id => 2221179,
+            //                 currency => 'USDT',
+            //                 balance => '0.0',
+            //                 reserved_balance => '0.0',
+            //                 pusher_channel => 'user_xxxxx_account_usdt',
+            //                 lowest_offer_interest_rate => null,
+            //                 highest_offer_interest_rate => null,
+            //                 address => '0',
+            //                 currency_symbol => 'USDT',
+            //                 minimum_withdraw => null,
+            //                 currency_type => 'crypto'
+            //             ),
+            //         ),
+            //         fiat_accounts => array(
+            //             {
+            //                 id => 1112734,
+            //                 currency => 'USD',
+            //                 balance => '0.0',
+            //                 reserved_balance => '0.0',
+            //                 pusher_channel => 'user_xxxxx_account_usd',
+            //                 lowest_offer_interest_rate => null,
+            //                 highest_offer_interest_rate => null,
+            //                 currency_symbol => '$',
+            //                 send_to_btc_address => null,
+            //                 exchange_rate => '1.0',
+            //                 currency_type => 'fiat'
+            //             }
+            //         )
+            //     }
+            //
+            return $this->parse_balance($response);
+        }) ();
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $request = array(
-            'id' => $this->market_id($symbol),
-        );
-        $response = yield $this->publicGetProductsIdPriceLevels (array_merge($request, $params));
-        return $this->parse_order_book($response, $symbol, null, 'buy_price_levels', 'sell_price_levels');
+        return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {array} $params extra parameters specific to the liquid api endpoint
+             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'id' => $market['id'],
+            );
+            $response = Async\await($this->publicGetProductsIdPriceLevels (array_merge($request, $params)));
+            return $this->parse_order_book($response, $market['symbol'], null, 'buy_price_levels', 'sell_price_levels');
+        }) ();
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -518,85 +624,82 @@ class liquid extends Exchange {
         $last = null;
         if (is_array($ticker) && array_key_exists('last_traded_price', $ticker)) {
             if ($ticker['last_traded_price']) {
-                $length = is_array($ticker['last_traded_price']) ? count($ticker['last_traded_price']) : 0;
+                $length = count($ticker['last_traded_price']);
                 if ($length > 0) {
-                    $last = $this->safe_number($ticker, 'last_traded_price');
+                    $last = $this->safe_string($ticker, 'last_traded_price');
                 }
             }
         }
-        $symbol = null;
-        if ($market === null) {
-            $marketId = $this->safe_string($ticker, 'id');
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $market = $this->markets_by_id[$marketId];
-            } else {
-                $baseId = $this->safe_string($ticker, 'base_currency');
-                $quoteId = $this->safe_string($ticker, 'quoted_currency');
-                if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
-                    $market = $this->markets[$symbol];
-                } else {
-                    $symbol = $this->safe_currency_code($baseId) . '/' . $this->safe_currency_code($quoteId);
-                }
-            }
+        $marketId = $this->safe_string($ticker, 'id');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
+        $baseId = $this->safe_string($ticker, 'base_currency');
+        $quoteId = $this->safe_string($ticker, 'quoted_currency');
+        if (($baseId !== null) && ($quoteId !== null)) {
+            $symbol = $this->safe_currency_code($baseId) . '/' . $this->safe_currency_code($quoteId);
         }
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        $change = null;
-        $percentage = null;
-        $average = null;
-        $open = $this->safe_number($ticker, 'last_price_24h');
-        if ($open !== null && $last !== null) {
-            $change = $last - $open;
-            $average = $this->sum($last, $open) / 2;
-            if ($open > 0) {
-                $percentage = $change / $open * 100;
-            }
-        }
-        return array(
+        $open = $this->safe_string($ticker, 'last_price_24h');
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high_market_ask'),
-            'low' => $this->safe_number($ticker, 'low_market_bid'),
-            'bid' => $this->safe_number($ticker, 'market_bid'),
+            'high' => $this->safe_string($ticker, 'high_market_ask'),
+            'low' => $this->safe_string($ticker, 'low_market_bid'),
+            'bid' => $this->safe_string($ticker, 'market_bid'),
             'bidVolume' => null,
-            'ask' => $this->safe_number($ticker, 'market_ask'),
+            'ask' => $this->safe_string($ticker, 'market_ask'),
             'askVolume' => null,
             'vwap' => null,
             'open' => $open,
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
-            'change' => $change,
-            'percentage' => $percentage,
-            'average' => $average,
-            'baseVolume' => $this->safe_number($ticker, 'volume_24h'),
+            'change' => null,
+            'percentage' => null,
+            'average' => null,
+            'baseVolume' => $this->safe_string($ticker, 'volume_24h'),
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
-        yield $this->load_markets();
-        $response = yield $this->publicGetProducts ($params);
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $ticker = $this->parse_ticker($response[$i]);
-            $symbol = $ticker['symbol'];
-            $result[$symbol] = $ticker;
-        }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
+             * @param {array} $params extra parameters specific to the liquid api endpoint
+             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $response = Async\await($this->publicGetProducts ($params));
+            $result = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $ticker = $this->parse_ticker($response[$i]);
+                $symbol = $ticker['symbol'];
+                $result[$symbol] = $ticker;
+            }
+            return $this->filter_by_array($result, 'symbol', $symbols);
+        }) ();
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'id' => $market['id'],
-        );
-        $response = yield $this->publicGetProductsId (array_merge($request, $params));
-        return $this->parse_ticker($response, $market);
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+             * @param {array} $params extra parameters specific to the liquid api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'id' => $market['id'],
+            );
+            $response = Async\await($this->publicGetProductsId (array_merge($request, $params)));
+            return $this->parse_ticker($response, $market);
+        }) ();
     }
 
     public function parse_trade($trade, $market = null) {
@@ -617,138 +720,351 @@ class liquid extends Exchange {
         if ($mySide !== null) {
             $takerOrMaker = ($takerSide === $mySide) ? 'taker' : 'maker';
         }
-        $priceString = $this->safe_string($trade, 'price');
-        $amountString = $this->safe_string($trade, 'quantity');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
+        $price = $this->safe_string($trade, 'price');
+        $amount = $this->safe_string($trade, 'quantity');
         $id = $this->safe_string($trade, 'id');
-        $symbol = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-        }
-        return array(
+        $market = $this->safe_market(null, $market);
+        return $this->safe_trade(array(
             'info' => $trade,
             'id' => $id,
             'order' => $orderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'type' => null,
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
             'price' => $price,
             'amount' => $amount,
-            'cost' => $cost,
+            'cost' => null,
             'fee' => null,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'product_id' => $market['id'],
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * get the list of most recent trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the $market to fetch trades for
+             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+             * @param {int|null} $limit the maximum amount of trades to fetch
+             * @param {array} $params extra parameters specific to the liquid api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'product_id' => $market['id'],
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            if ($since !== null) {
+                // timestamp should be in seconds, whereas we use milliseconds in $since and everywhere
+                $request['timestamp'] = intval($since / 1000);
+            }
+            $response = Async\await($this->publicGetExecutions (array_merge($request, $params)));
+            $result = ($since !== null) ? $response : $response['models'];
+            return $this->parse_trades($result, $market, $since, $limit);
+        }) ();
+    }
+
+    public function fetch_trading_fee($symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the trading fees for a $market
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} $params extra parameters specific to the liquid api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'id' => $market['id'],
+            );
+            $response = Async\await($this->publicGetProductsId (array_merge($request, $params)));
+            //
+            //     {
+            //         "id":"637",
+            //         "product_type":"CurrencyPair",
+            //         "code":"CASH",
+            //         "name":null,
+            //         "market_ask":"0.00000797",
+            //         "market_bid":"0.00000727",
+            //         "indicator":null,
+            //         "currency":"BTC",
+            //         "currency_pair_code":"TFTBTC",
+            //         "symbol":null,
+            //         "btc_minimum_withdraw":null,
+            //         "fiat_minimum_withdraw":null,
+            //         "pusher_channel":"product_cash_tftbtc_637",
+            //         "taker_fee":"0.0",
+            //         "maker_fee":"0.0",
+            //         "low_market_bid":"0.00000685",
+            //         "high_market_ask":"0.00000885",
+            //         "volume_24h":"3696.0755956",
+            //         "last_price_24h":"0.00000716",
+            //         "last_traded_price":"0.00000766",
+            //         "last_traded_quantity":"1748.0377978",
+            //         "average_price":null,
+            //         "quoted_currency":"BTC",
+            //         "base_currency":"TFT",
+            //         "tick_size":"0.00000001",
+            //         "disabled":false,
+            //         "margin_enabled":false,
+            //         "cfd_enabled":false,
+            //         "perpetual_enabled":false,
+            //         "last_event_timestamp":"1596962820.000797146",
+            //         "timestamp":"1596962820.000797146",
+            //         "multiplier_up":"9.0",
+            //         "multiplier_down":"0.1",
+            //         "average_time_interval":null
+            //     }
+            //
+            return $this->parse_trading_fee($response, $market);
+        }) ();
+    }
+
+    public function parse_trading_fee($fee, $market = null) {
+        $marketId = $this->safe_string($fee, 'id');
+        $symbol = $this->safe_symbol($marketId, $market);
+        return array(
+            'info' => $fee,
+            'symbol' => $symbol,
+            'maker' => $this->safe_number($fee, 'maker_fee'),
+            'taker' => $this->safe_number($fee, 'taker_fee'),
+            'percentage' => true,
+            'tierBased' => true,
         );
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        if ($since !== null) {
-            // timestamp should be in seconds, whereas we use milliseconds in $since and everywhere
-            $request['timestamp'] = intval($since / 1000);
-        }
-        $response = yield $this->publicGetExecutions (array_merge($request, $params));
-        $result = ($since !== null) ? $response : $response['models'];
-        return $this->parse_trades($result, $market, $since, $limit);
+    }
+
+    public function fetch_trading_fees($params = array ()) {
+        return Async\async(function () use ($params) {
+            /**
+             * fetch the trading fees for multiple $markets
+             * @param {array} $params extra parameters specific to the liquid api endpoint
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures} indexed by $market symbols
+             */
+            Async\await($this->load_markets());
+            $spot = Async\await($this->publicGetProducts ($params));
+            //
+            //     array(
+            //         array(
+            //             "id":"637",
+            //             "product_type":"CurrencyPair",
+            //             "code":"CASH",
+            //             "name":null,
+            //             "market_ask":"0.00000797",
+            //             "market_bid":"0.00000727",
+            //             "indicator":null,
+            //             "currency":"BTC",
+            //             "currency_pair_code":"TFTBTC",
+            //             "symbol":null,
+            //             "btc_minimum_withdraw":null,
+            //             "fiat_minimum_withdraw":null,
+            //             "pusher_channel":"product_cash_tftbtc_637",
+            //             "taker_fee":"0.0",
+            //             "maker_fee":"0.0",
+            //             "low_market_bid":"0.00000685",
+            //             "high_market_ask":"0.00000885",
+            //             "volume_24h":"3696.0755956",
+            //             "last_price_24h":"0.00000716",
+            //             "last_traded_price":"0.00000766",
+            //             "last_traded_quantity":"1748.0377978",
+            //             "average_price":null,
+            //             "quoted_currency":"BTC",
+            //             "base_currency":"TFT",
+            //             "tick_size":"0.00000001",
+            //             "disabled":false,
+            //             "margin_enabled":false,
+            //             "cfd_enabled":false,
+            //             "perpetual_enabled":false,
+            //             "last_event_timestamp":"1596962820.000797146",
+            //             "timestamp":"1596962820.000797146",
+            //             "multiplier_up":"9.0",
+            //             "multiplier_down":"0.1",
+            //             "average_time_interval":null
+            //         ),
+            //     )
+            //
+            $perpetual = Async\await($this->publicGetProducts (array( 'perpetual' => '1' )));
+            //
+            //     array(
+            //         array(
+            //             "id":"604",
+            //             "product_type":"Perpetual",
+            //             "code":"CASH",
+            //             "name":null,
+            //             "market_ask":"11721.5",
+            //             "market_bid":"11719.0",
+            //             "indicator":null,
+            //             "currency":"USD",
+            //             "currency_pair_code":"P-BTCUSD",
+            //             "symbol":"$",
+            //             "btc_minimum_withdraw":null,
+            //             "fiat_minimum_withdraw":null,
+            //             "pusher_channel":"product_cash_p-btcusd_604",
+            //             "taker_fee":"0.0012",
+            //             "maker_fee":"0.0",
+            //             "low_market_bid":"11624.5",
+            //             "high_market_ask":"11859.0",
+            //             "volume_24h":"0.271",
+            //             "last_price_24h":"11621.5",
+            //             "last_traded_price":"11771.5",
+            //             "last_traded_quantity":"0.09",
+            //             "average_price":"11771.5",
+            //             "quoted_currency":"USD",
+            //             "base_currency":"P-BTC",
+            //             "tick_size":"0.5",
+            //             "disabled":false,
+            //             "margin_enabled":false,
+            //             "cfd_enabled":false,
+            //             "perpetual_enabled":true,
+            //             "last_event_timestamp":"1596963309.418853092",
+            //             "timestamp":"1596963309.418853092",
+            //             "multiplier_up":null,
+            //             "multiplier_down":"0.1",
+            //             "average_time_interval":300,
+            //             "index_price":"11682.8124",
+            //             "mark_price":"11719.96781",
+            //             "funding_rate":"0.00273",
+            //             "fair_price":"11720.2745"
+            //         ),
+            //     )
+            //
+            $markets = $this->array_concat($spot, $perpetual);
+            $result = array();
+            for ($i = 0; $i < count($markets); $i++) {
+                $market = $markets[$i];
+                $marketId = $this->safe_string($market, 'id');
+                $symbol = $this->safe_symbol($marketId, $market);
+                $result[$symbol] = $this->parse_trading_fee($market);
+            }
+            return $result;
+        }) ();
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        // the `with_details` param is undocumented - it adds the order_id to the results
-        $request = array(
-            'product_id' => $market['id'],
-            'with_details' => true,
-        );
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $response = yield $this->privateGetExecutionsMe (array_merge($request, $params));
-        return $this->parse_trades($response['models'], $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all trades made by the user
+             * @param {string|null} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch trades for
+             * @param {int|null} $limit the maximum number of trades structures to retrieve
+             * @param {array} $params extra parameters specific to the liquid api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            // the `with_details` param is undocumented - it adds the order_id to the results
+            $request = array(
+                'product_id' => $market['id'],
+                'with_details' => true,
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->privateGetExecutionsMe (array_merge($request, $params)));
+            return $this->parse_trades($response['models'], $market, $since, $limit);
+        }) ();
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        yield $this->load_markets();
-        $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
-        $params = $this->omit($params, array( 'clientOrderId', 'client_order_id' ));
-        $request = array(
-            'order_type' => $type,
-            'product_id' => $this->market_id($symbol),
-            'side' => $side,
-            'quantity' => $this->amount_to_precision($symbol, $amount),
-        );
-        if ($clientOrderId !== null) {
-            $request['client_order_id'] = $clientOrderId;
-        }
-        if (($type === 'limit') || ($type === 'limit_post_only') || ($type === 'market_with_range') || ($type === 'stop')) {
-            $request['price'] = $this->price_to_precision($symbol, $price);
-        }
-        $response = yield $this->privatePostOrders (array_merge($request, $params));
-        //
-        //     {
-        //         "id" => 2157474,
-        //         "order_type" => "limit",
-        //         "quantity" => "0.01",
-        //         "disc_quantity" => "0.0",
-        //         "iceberg_total_quantity" => "0.0",
-        //         "$side" => "sell",
-        //         "filled_quantity" => "0.0",
-        //         "$price" => "500.0",
-        //         "created_at" => 1462123639,
-        //         "updated_at" => 1462123639,
-        //         "status" => "live",
-        //         "leverage_level" => 1,
-        //         "source_exchange" => "QUOINE",
-        //         "product_id" => 1,
-        //         "product_code" => "CASH",
-        //         "funding_currency" => "USD",
-        //         "currency_pair_code" => "BTCUSD",
-        //         "order_fee" => "0.0",
-        //         "client_order_id" => null,
-        //     }
-        //
-        return $this->parse_order($response);
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * create a trade order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the liquid api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $clientOrderId = $this->safe_string_2($params, 'clientOrderId', 'client_order_id');
+            $params = $this->omit($params, array( 'clientOrderId', 'client_order_id' ));
+            $market = $this->market($symbol);
+            $request = array(
+                'order_type' => $type,
+                'product_id' => $market['id'],
+                'side' => $side,
+                'quantity' => $this->amount_to_precision($market['symbol'], $amount),
+            );
+            if ($clientOrderId !== null) {
+                $request['client_order_id'] = $clientOrderId;
+            }
+            if (($type === 'limit') || ($type === 'limit_post_only') || ($type === 'market_with_range') || ($type === 'stop')) {
+                $request['price'] = $this->price_to_precision($market['symbol'], $price);
+            }
+            $response = Async\await($this->privatePostOrders (array_merge($request, $params)));
+            //
+            //     {
+            //         "id" => 2157474,
+            //         "order_type" => "limit",
+            //         "quantity" => "0.01",
+            //         "disc_quantity" => "0.0",
+            //         "iceberg_total_quantity" => "0.0",
+            //         "side" => "sell",
+            //         "filled_quantity" => "0.0",
+            //         "price" => "500.0",
+            //         "created_at" => 1462123639,
+            //         "updated_at" => 1462123639,
+            //         "status" => "live",
+            //         "leverage_level" => 1,
+            //         "source_exchange" => "QUOINE",
+            //         "product_id" => 1,
+            //         "product_code" => "CASH",
+            //         "funding_currency" => "USD",
+            //         "currency_pair_code" => "BTCUSD",
+            //         "order_fee" => "0.0",
+            //         "client_order_id" => null,
+            //     }
+            //
+            return $this->parse_order($response);
+        }) ();
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        yield $this->load_markets();
-        $request = array(
-            'id' => $id,
-        );
-        $response = yield $this->privatePutOrdersIdCancel (array_merge($request, $params));
-        $order = $this->parse_order($response);
-        if ($order['status'] === 'closed') {
-            if ($this->options['cancelOrderException']) {
-                throw new OrderNotFound($this->id . ' $order closed already => ' . $this->json($response));
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * cancels an open $order
+             * @param {string} $id $order $id
+             * @param {string|null} $symbol unified $symbol of the market the $order was made in
+             * @param {array} $params extra parameters specific to the liquid api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'id' => $id,
+            );
+            $response = Async\await($this->privatePutOrdersIdCancel (array_merge($request, $params)));
+            $order = $this->parse_order($response);
+            if ($order['status'] === 'closed') {
+                if ($this->options['cancelOrderException']) {
+                    throw new OrderNotFound($this->id . ' $order closed already => ' . $this->json($response));
+                }
             }
-        }
-        return $order;
+            return $order;
+        }) ();
     }
 
     public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        yield $this->load_markets();
-        if ($price === null) {
-            throw new ArgumentsRequired($this->id . ' editOrder() requires the $price argument');
-        }
-        $request = array(
-            'order' => array(
-                'quantity' => $this->amount_to_precision($symbol, $amount),
-                'price' => $this->price_to_precision($symbol, $price),
-            ),
-            'id' => $id,
-        );
-        $response = yield $this->privatePutOrdersId (array_merge($request, $params));
-        return $this->parse_order($response);
+        return Async\async(function () use ($id, $symbol, $type, $side, $amount, $price, $params) {
+            Async\await($this->load_markets());
+            if ($price === null) {
+                throw new ArgumentsRequired($this->id . ' editOrder() requires the $price argument');
+            }
+            $request = array(
+                'order' => array(
+                    'quantity' => $this->amount_to_precision($symbol, $amount),
+                    'price' => $this->price_to_precision($symbol, $price),
+                ),
+                'id' => $id,
+            );
+            $response = Async\await($this->privatePutOrdersId (array_merge($request, $params)));
+            return $this->parse_order($response);
+        }) ();
     }
 
     public function parse_order_status($status) {
@@ -770,12 +1086,12 @@ class liquid extends Exchange {
         //         "quantity" => "0.01",
         //         "disc_quantity" => "0.0",
         //         "iceberg_total_quantity" => "0.0",
-        //         "$side" => "sell",
+        //         "side" => "sell",
         //         "filled_quantity" => "0.0",
-        //         "$price" => "500.0",
+        //         "price" => "500.0",
         //         "created_at" => 1462123639,
         //         "updated_at" => 1462123639,
-        //         "$status" => "live",
+        //         "status" => "live",
         //         "leverage_level" => 1,
         //         "source_exchange" => "QUOINE",
         //         "product_id" => 1,
@@ -794,12 +1110,12 @@ class liquid extends Exchange {
         //         "quantity" => "0.01",
         //         "disc_quantity" => "0.0",
         //         "iceberg_total_quantity" => "0.0",
-        //         "$side" => "sell",
+        //         "side" => "sell",
         //         "filled_quantity" => "0.01",
-        //         "$price" => "500.0",
+        //         "price" => "500.0",
         //         "created_at" => 1462123639,
         //         "updated_at" => 1462123639,
-        //         "$status" => "$filled",
+        //         "status" => "filled",
         //         "leverage_level" => 2,
         //         "source_exchange" => "QUOINE",
         //         "product_id" => 1,
@@ -811,7 +1127,7 @@ class liquid extends Exchange {
         //             {
         //                 "id" => 4566133,
         //                 "quantity" => "0.01",
-        //                 "$price" => "500.0",
+        //                 "price" => "500.0",
         //                 "taker_side" => "buy",
         //                 "my_side" => "sell",
         //                 "created_at" => 1465396785
@@ -822,191 +1138,337 @@ class liquid extends Exchange {
         $orderId = $this->safe_string($order, 'id');
         $timestamp = $this->safe_timestamp($order, 'created_at');
         $marketId = $this->safe_string($order, 'product_id');
-        $market = $this->safe_value($this->markets_by_id, $marketId);
+        $market = $this->safe_market($marketId, $market);
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $amount = $this->safe_number($order, 'quantity');
-        $filled = $this->safe_number($order, 'filled_quantity');
-        $price = $this->safe_number($order, 'price');
-        $symbol = null;
-        $feeCurrency = null;
-        if ($market !== null) {
-            $symbol = $market['symbol'];
-            $feeCurrency = $market['quote'];
-        }
+        $amount = $this->safe_string($order, 'quantity');
+        $filled = $this->safe_string($order, 'filled_quantity');
+        $price = $this->safe_string($order, 'price');
         $type = $this->safe_string($order, 'order_type');
-        $tradeCost = 0;
-        $tradeFilled = 0;
-        $average = $this->safe_number($order, 'average_price');
-        $trades = $this->parse_trades($this->safe_value($order, 'executions', array()), $market, null, null, array(
-            'order' => $orderId,
-            'type' => $type,
-        ));
-        $numTrades = is_array($trades) ? count($trades) : 0;
-        for ($i = 0; $i < $numTrades; $i++) {
-            // php copies values upon assignment, but not references them
-            // todo rewrite this (shortly)
-            $trade = $trades[$i];
-            $trade['order'] = $orderId;
-            $trade['type'] = $type;
-            $tradeFilled = $this->sum($tradeFilled, $trade['amount']);
-            $tradeCost = $this->sum($tradeCost, $trade['cost']);
-        }
-        $cost = null;
-        $lastTradeTimestamp = null;
-        if ($numTrades > 0) {
-            $lastTradeTimestamp = $trades[$numTrades - 1]['timestamp'];
-            if (!$average && ($tradeFilled > 0)) {
-                $average = $tradeCost / $tradeFilled;
-            }
-            if ($cost === null) {
-                $cost = $tradeCost;
-            }
-            if ($filled === null) {
-                $filled = $tradeFilled;
-            }
-        }
-        $remaining = null;
-        if ($amount !== null && $filled !== null) {
-            $remaining = $amount - $filled;
-        }
+        $average = $this->safe_string($order, 'average_price');
+        $trades = $this->safe_value($order, 'executions', array());
         $side = $this->safe_string($order, 'side');
         $clientOrderId = $this->safe_string($order, 'client_order_id');
-        return array(
+        return $this->safe_order(array(
             'id' => $orderId,
             'clientOrderId' => $clientOrderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => $lastTradeTimestamp,
+            'lastTradeTimestamp' => null,
             'type' => $type,
             'timeInForce' => null,
             'postOnly' => null,
             'status' => $status,
-            'symbol' => $symbol,
+            'symbol' => $market['symbol'],
             'side' => $side,
             'price' => $price,
             'stopPrice' => null,
             'amount' => $amount,
             'filled' => $filled,
-            'cost' => $cost,
-            'remaining' => $remaining,
+            'cost' => null,
+            'remaining' => null,
             'average' => $average,
             'trades' => $trades,
             'fee' => array(
-                'currency' => $feeCurrency,
-                'cost' => $this->safe_number($order, 'order_fee'),
+                'currency' => $market['quote'],
+                'cost' => $this->safe_string($order, 'order_fee'),
             ),
             'info' => $order,
-        );
+        ));
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
-        yield $this->load_markets();
-        $request = array(
-            'id' => $id,
-        );
-        $response = yield $this->privateGetOrdersId (array_merge($request, $params));
-        return $this->parse_order($response);
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * fetches information on an order made by the user
+             * @param {string|null} $symbol not used by liquid fetchOrder
+             * @param {array} $params extra parameters specific to the liquid api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'id' => $id,
+            );
+            $response = Async\await($this->privateGetOrdersId (array_merge($request, $params)));
+            //
+            //     {
+            //         "id" => 6929766032,
+            //         "order_type" => "limit",
+            //         "quantity" => "0.003",
+            //         "disc_quantity" => "0.0",
+            //         "iceberg_total_quantity" => "0.0",
+            //         "side" => "buy",
+            //         "filled_quantity" => "0.0",
+            //         "price" => 1800.0,
+            //         "created_at" => 1653139172,
+            //         "updated_at" => 1653139172,
+            //         "status" => "live",
+            //         "leverage_level" => 1,
+            //         "source_exchange" => "QUOINE",
+            //         "product_id" => 625,
+            //         "margin_type" => null,
+            //         "take_profit" => null,
+            //         "stop_loss" => null,
+            //         "trading_type" => "spot",
+            //         "product_code" => "CASH",
+            //         "funding_currency" => "USDT",
+            //         "crypto_account_id" => null,
+            //         "currency_pair_code" => "ETHUSDT",
+            //         "average_price" => 0.0,
+            //         "target" => "spot",
+            //         "order_fee" => "0.0",
+            //         "source_action" => "manual",
+            //         "unwound_trade_id" => null,
+            //         "trade_id" => null,
+            //         "client_order_id" => "2865675_1653139172173",
+            //         "settings" => null,
+            //         "trailing_stop_type" => null,
+            //         "trailing_stop_value" => null,
+            //         "executions" => array( // array will be empty for unfilled order
+            //           {
+            //             "id" => 485442157,
+            //             "quantity" => "0.002",
+            //             "price" => "1973.32",
+            //             "taker_side" => "buy",
+            //             "created_at" => 1653139978,
+            //             "timestamp" => "1653139978.434518",
+            //             "my_side" => "buy"
+            //          }
+            //         ),
+            //         "stop_triggered_time" => null
+            //     }
+            //
+            return $this->parse_order($response);
+        }) ();
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        yield $this->load_markets();
-        $market = null;
-        $request = array(
-            // 'funding_currency' => $market['quoteId'], // filter $orders based on "funding" currency (quote currency)
-            // 'product_id' => $market['id'],
-            // 'status' => 'live', // 'filled', 'cancelled'
-            // 'trading_type' => 'spot', // 'margin', 'cfd'
-            'with_details' => 1, // return full order details including executions
-        );
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['product_id'] = $market['id'];
-        }
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $response = yield $this->privateGetOrders (array_merge($request, $params));
-        //
-        //     {
-        //         "models" => array(
-        //             {
-        //                 "id" => 2157474,
-        //                 "order_type" => "$limit",
-        //                 "quantity" => "0.01",
-        //                 "disc_quantity" => "0.0",
-        //                 "iceberg_total_quantity" => "0.0",
-        //                 "side" => "sell",
-        //                 "filled_quantity" => "0.0",
-        //                 "price" => "500.0",
-        //                 "created_at" => 1462123639,
-        //                 "updated_at" => 1462123639,
-        //                 "status" => "live",
-        //                 "leverage_level" => 1,
-        //                 "source_exchange" => "QUOINE",
-        //                 "product_id" => 1,
-        //                 "product_code" => "CASH",
-        //                 "funding_currency" => "USD",
-        //                 "currency_pair_code" => "BTCUSD",
-        //                 "order_fee" => "0.0",
-        //                 "executions" => array(), // optional
-        //             }
-        //         ),
-        //         "current_page" => 1,
-        //         "total_pages" => 1
-        //     }
-        //
-        $orders = $this->safe_value($response, 'models', array());
-        return $this->parse_orders($orders, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple $orders made by the user
+             * @param {string|null} $symbol unified $market $symbol of the $market $orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch $orders for
+             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {array} $params extra parameters specific to the liquid api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            $request = array(
+                // 'funding_currency' => $market['quoteId'], // filter $orders based on "funding" currency (quote currency)
+                // 'product_id' => $market['id'],
+                // 'status' => 'live', // 'filled', 'cancelled'
+                // 'trading_type' => 'spot', // 'margin', 'cfd'
+                'with_details' => 1, // return full order details including executions
+            );
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['product_id'] = $market['id'];
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            $response = Async\await($this->privateGetOrders (array_merge($request, $params)));
+            //
+            //     {
+            //         "models" => array(
+            //           {
+            //             "id" => 6929766034,
+            //             "order_type" => "limit",
+            //             "quantity" => "0.003",
+            //             "disc_quantity" => "0.0",
+            //             "iceberg_total_quantity" => "0.0",
+            //             "side" => "buy",
+            //             "filled_quantity" => "0.0",
+            //             "price" => 1800.0,
+            //             "created_at" => 1653139172,
+            //             "updated_at" => 1653139172,
+            //             "status" => "live",
+            //             "leverage_level" => 1,
+            //             "source_exchange" => 0,
+            //             "product_id" => 625,
+            //             "margin_type" => null,
+            //             "take_profit" => null,
+            //             "stop_loss" => null,
+            //             "trading_type" => "spot",
+            //             "product_code" => "CASH",
+            //             "funding_currency" => "USDT",
+            //             "crypto_account_id" => null,
+            //             "currency_pair_code" => "ETHUSDT",
+            //             "average_price" => 0.0,
+            //             "target" => "spot",
+            //             "order_fee" => "0.0",
+            //             "source_action" => "manual",
+            //             "unwound_trade_id" => null,
+            //             "trade_id" => null,
+            //             "client_order_id" => "2865672_1653139172173",
+            //             "settings" => null,
+            //             "trailing_stop_type" => null,
+            //             "trailing_stop_value" => null,
+            //             "stop_triggered_time" => null
+            //             "executions" => array( // array will be empty for unfilled order
+            //               {
+            //                 "id" => 485442157,
+            //                 "quantity" => "0.002",
+            //                 "price" => "1973.32",
+            //                 "taker_side" => "buy",
+            //                 "created_at" => 1653139978,
+            //                 "timestamp" => "1653139978.434518",
+            //                 "my_side" => "buy"
+            //              }
+            //             ),
+            //           }
+            //         ),
+            //         "current_page" => 1,
+            //         "total_pages" => 1
+            //     }
+            //
+            $orders = $this->safe_value($response, 'models', array());
+            return $this->parse_orders($orders, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $request = array( 'status' => 'live' );
-        return yield $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all unfilled currently open orders
+             * @param {string|null} $symbol unified market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch open orders for
+             * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+             * @param {array} $params extra parameters specific to the liquid api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            $request = array( 'status' => 'live' );
+            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+        }) ();
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        $request = array( 'status' => 'filled' );
-        return yield $this->fetch_orders($symbol, $since, $limit, array_merge($request, $params));
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple closed orders made by the user
+             * @param {string|null} $symbol unified market $symbol of the market orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch orders for
+             * @param {int|null} $limit the maximum number of  orde structures to retrieve
+             * @param {array} $params extra parameters specific to the liquid api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            $request = array( 'status' => 'filled' );
+            return Async\await($this->fetch_orders($symbol, $since, $limit, array_merge($request, $params)));
+        }) ();
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
-        $this->check_address($address);
-        yield $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            // 'auth_code' => '', // optional 2fa $code
-            'currency' => $currency['id'],
-            'address' => $address,
-            'amount' => $this->currency_to_precision($code, $amount),
-            // 'payment_id' => $tag, // for XRP only
-            // 'memo_type' => 'text', // 'text', 'id' or 'hash', for XLM only
-            // 'memo_value' => $tag, // for XLM only
-        );
-        if ($tag !== null) {
-            if ($code === 'XRP') {
-                $request['payment_id'] = $tag;
-            } else if ($code === 'XLM') {
-                $request['memo_type'] = 'text'; // overrideable via $params
-                $request['memo_value'] = $tag;
-            } else {
-                throw new NotSupported($this->id . ' withdraw() only supports a $tag along the $address for XRP or XLM');
+        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
+            /**
+             * make a withdrawal
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount the $amount to withdraw
+             * @param {string} $address the $address to withdraw to
+             * @param {string|null} $tag
+             * @param {array} $params extra parameters specific to the liquid api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             */
+            list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+            $this->check_address($address);
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                // 'auth_code' => '', // optional 2fa $code
+                'crypto_withdrawal' => array(
+                    'currency' => $currency['id'],
+                    'address' => $address,
+                    'amount' => $amount,
+                    // 'payment_id' => $tag, // for XRP only
+                    // 'memo_type' => 'text', // 'text', 'id' or 'hash', for XLM only
+                    // 'memo_value' => $tag, // for XLM only
+                ),
+            );
+            if ($tag !== null) {
+                if ($code === 'XRP') {
+                    $request['crypto_withdrawal']['payment_id'] = $tag;
+                } elseif ($code === 'XLM') {
+                    $request['crypto_withdrawal']['memo_type'] = 'text'; // overrideable via $params
+                    $request['crypto_withdrawal']['memo_value'] = $tag;
+                } else {
+                    throw new NotSupported($this->id . ' withdraw() only supports a $tag along the $address for XRP or XLM');
+                }
             }
-        }
-        $response = yield $this->privatePostCryptoWithdrawals (array_merge($request, $params));
-        //
-        //     {
-        //         "id" => 1353,
-        //         "$address" => "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2",
-        //         "$amount" => 1.0,
-        //         "state" => "pending",
-        //         "$currency" => "BTC",
-        //         "withdrawal_fee" => 0.0,
-        //         "created_at" => 1568016450,
-        //         "updated_at" => 1568016450,
-        //         "payment_id" => null
-        //     }
-        //
-        return $this->parse_transaction($response, $currency);
+            $networks = $this->safe_value($this->options, 'networks', array());
+            $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+            if ($network === null) {
+                $paramsCwArray = $this->safe_value($params, 'crypto_withdrawal', array());
+                $network = $this->safe_string_upper($paramsCwArray, 'network');
+            }
+            $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+            if ($network !== null) {
+                $request['crypto_withdrawal']['network'] = $network;
+                $params = $this->omit($params, 'network');
+                $params['crypto_withdrawal'] = $this->omit($params['crypto_withdrawal'], 'network');
+            }
+            $response = Async\await($this->privatePostCryptoWithdrawals ($this->deep_extend($request, $params)));
+            //
+            //     {
+            //         "id" => 1353,
+            //         "address" => "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2",
+            //         "amount" => 1.0,
+            //         "state" => "pending",
+            //         "currency" => "BTC",
+            //         "withdrawal_fee" => 0.0,
+            //         "created_at" => 1568016450,
+            //         "updated_at" => 1568016450,
+            //         "payment_id" => null
+            //     }
+            //
+            return $this->parse_transaction($response, $currency);
+        }) ();
+    }
+
+    public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch all withdrawals made from an account
+             * @param {string|null} $code unified $currency $code
+             * @param {int|null} $since the earliest time in ms to fetch withdrawals for
+             * @param {int|null} $limit the maximum number of withdrawals structures to retrieve
+             * @param {array} $params extra parameters specific to the liquid api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                // state => 'processed', // optional => pending, filed, cancelled, processing, processed, reverted to_be_reviewed, declined, broadcasted
+            );
+            $currency = null;
+            if ($code !== null) {
+                $currency = $this->currency($code);
+            }
+            $response = Async\await($this->privateGetCryptoWithdrawals (array_merge($request, $params)));
+            //
+            //     {
+            //         models => array(
+            //             array(
+            //                 id => '2',
+            //                 address => '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',
+            //                 amount => '0.01',
+            //                 state => 'processed',
+            //                 $currency => 'BTC',
+            //                 withdrawal_fee => '0.0005',
+            //                 created_at => '1614718276',
+            //                 updated_at => '1614720926',
+            //                 payment_id => null,
+            //                 transaction_hash => 'xxxxxxxx...',
+            //                 broadcasted_at => '1614720762',
+            //                 wallet_label => 'btc',
+            //                 chain_name => 'Bitcoin',
+            //                 network => null
+            //             ),
+            //         ),
+            //         current_page => '1',
+            //         total_pages => '1'
+            //     }
+            //
+            $transactions = $this->safe_value($response, 'models', array());
+            return $this->parse_transactions($transactions, $currency, $since, $limit);
+        }) ();
     }
 
     public function parse_transaction_status($status) {
@@ -1014,6 +1476,12 @@ class liquid extends Exchange {
             'pending' => 'pending',
             'cancelled' => 'canceled',
             'approved' => 'ok',
+            'processing' => 'pending',
+            'processed' => 'ok',
+            'reverted' => 'failed',
+            'to_be_reviewed' => 'pending',
+            'declined' => 'failed',
+            'broadcasted' => 'ok',
         );
         return $this->safe_string($statuses, $status, $status);
     }
@@ -1022,47 +1490,82 @@ class liquid extends Exchange {
         //
         // withdraw
         //
-        //     {
-        //         "$id" => 1353,
-        //         "$address" => "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2",
-        //         "$amount" => 1.0,
-        //         "state" => "pending",
-        //         "$currency" => "BTC",
-        //         "withdrawal_fee" => 0.0,
-        //         "created_at" => 1568016450,
-        //         "updated_at" => 1568016450,
-        //         "payment_id" => null
-        //     }
+        //     array(
+        //         $id => '1',
+        //         $address => '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',
+        //         $amount => '0.01',
+        //         state => 'pending',
+        //         $currency => 'BTC',
+        //         withdrawal_fee => '0.0007',
+        //         created_at => '1626000533',
+        //         updated_at => '1626000533',
+        //         payment_id => null,
+        //         transaction_hash => null,
+        //         broadcasted_at => null,
+        //         wallet_label => null,
+        //         chain_name => 'Bitcoin',
+        //         $network => null
+        //     ),
         //
-        // fetchDeposits, fetchWithdrawals
+        // fetchWithdrawals
+        //
+        //     array(
+        //         $id => '2',
+        //         $address => '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',
+        //         $amount => '0.01',
+        //         state => 'processed',
+        //         $currency => 'BTC',
+        //         withdrawal_fee => '0.0005',
+        //         created_at => '1614718276',
+        //         updated_at => '1614720926',
+        //         payment_id => '',
+        //         transaction_hash => 'xxxxxxxx...',
+        //         broadcasted_at => '1614720762',
+        //         wallet_label => 'btc',
+        //         chain_name => 'Bitcoin',
+        //         $network => null
+        //     ),
+        //
+        // fetchDeposits
         //
         //     ...
         //
         $id = $this->safe_string($transaction, 'id');
         $address = $this->safe_string($transaction, 'address');
         $tag = $this->safe_string_2($transaction, 'payment_id', 'memo_value');
-        $txid = null;
-        $currencyId = $this->safe_string($transaction, 'asset');
+        $txid = $this->safe_string($transaction, 'transaction_hash');
+        $currencyId = $this->safe_string_2($transaction, 'currency', 'asset');
         $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = $this->safe_timestamp($transaction, 'created_at');
         $updated = $this->safe_timestamp($transaction, 'updated_at');
         $type = 'withdrawal';
         $status = $this->parse_transaction_status($this->safe_string($transaction, 'state'));
-        $amount = $this->safe_number($transaction, 'amount');
+        $amountString = $this->safe_string($transaction, 'amount');
+        $feeCostString = $this->safe_string($transaction, 'withdrawal_fee');
+        $amount = $this->parse_number(Precise::string_sub($amountString, $feeCostString));
+        $network = $this->safe_string($transaction, 'chain_name');
         return array(
             'info' => $transaction,
             'id' => $id,
             'txid' => $txid,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
+            'network' => $network,
             'address' => $address,
+            'addressTo' => null,
+            'addressFrom' => null,
             'tag' => $tag,
+            'tagTo' => null,
+            'tagFrom' => null,
             'type' => $type,
             'amount' => $amount,
             'currency' => $code,
             'status' => $status,
             'updated' => $updated,
-            'fee' => null,
+            'fee' => array(
+                'currency' => $code,
+                'cost' => $this->parse_number($feeCostString),
+            ),
         );
     }
 
@@ -1083,7 +1586,7 @@ class liquid extends Exchange {
                 if ($query) {
                     $url .= '?' . $this->urlencode($query);
                 }
-            } else if ($query) {
+            } elseif ($query) {
                 $body = $this->json($query);
             }
             $nonce = $this->nonce();
@@ -1101,7 +1604,7 @@ class liquid extends Exchange {
                 $url .= '?' . $this->urlencode($query);
             }
         }
-        $url = $this->urls['api'] . $url;
+        $url = $this->urls['api']['rest'] . $url;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
@@ -1111,7 +1614,7 @@ class liquid extends Exchange {
         }
         if ($code === 401) {
             // expected non-json $response
-            $this->throw_exactly_matched_exception($this->exceptions, $body, $body);
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $body, $body);
             return;
         }
         if ($code === 429) {
@@ -1125,14 +1628,15 @@ class liquid extends Exchange {
         $errors = $this->safe_value($response, 'errors');
         if ($message !== null) {
             //
-            //  array( "$message" => "Order not found" )
+            //  array( "message" => "Order not found" )
             //
-            $this->throw_exactly_matched_exception($this->exceptions, $message, $feedback);
-        } else if ($errors !== null) {
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
+            $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
+        } elseif ($errors !== null) {
             //
-            //  array( "$errors" => array( "user" => ["not_enough_free_balance"] ))
-            //  array( "$errors" => array( "quantity" => ["less_than_order_size"] ))
-            //  array( "$errors" => array( "order" => ["Can not update partially filled order"] ))
+            //  array( "errors" => array( "user" => ["not_enough_free_balance"] ))
+            //  array( "errors" => array( "quantity" => ["less_than_order_size"] ))
+            //  array( "errors" => array( "order" => ["Can not update partially filled order"] ))
             //
             $types = is_array($errors) ? array_keys($errors) : array();
             for ($i = 0; $i < count($types); $i++) {
@@ -1140,7 +1644,7 @@ class liquid extends Exchange {
                 $errorMessages = $errors[$type];
                 for ($j = 0; $j < count($errorMessages); $j++) {
                     $message = $errorMessages[$j];
-                    $this->throw_exactly_matched_exception($this->exceptions, $message, $feedback);
+                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
                 }
             }
         } else {

@@ -6,7 +6,6 @@ import json
 import os
 import sys
 import time  # noqa: F401
-from os import _exit
 from traceback import format_tb
 
 # ------------------------------------------------------------------------------
@@ -22,6 +21,7 @@ import ccxt  # noqa: E402
 from test_trade import test_trade  # noqa: E402
 from test_order import test_order  # noqa: E402
 from test_ohlcv import test_ohlcv  # noqa: E402
+from test_position import test_position  # noqa: E402
 from test_transaction import test_transaction  # noqa: E402
 
 # ------------------------------------------------------------------------------
@@ -52,6 +52,8 @@ exchanges = {}
 # ------------------------------------------------------------------------------
 
 path = os.path.dirname(ccxt.__file__)
+print(os.getcwd(), path)
+print(sys.argv)
 if 'site-packages' in os.path.dirname(ccxt.__file__):
     raise Exception("You are running test_async.py/test.py against a globally-installed version of the library! It was previously installed into your site-packages folder by pip or pip3. To ensure testing against the local folder uninstall it first with pip uninstall ccxt or pip3 uninstall ccxt")
 
@@ -109,7 +111,7 @@ def dump_error(*args):
 
 def handle_all_unhandled_exceptions(type, value, traceback):
     dump_error(yellow(type), yellow(value), '\n\n' + yellow('\n'.join(format_tb(traceback))))
-    _exit(1)  # unrecoverable crash
+    exit(1)  # unrecoverable crash
 
 
 sys.excepthook = handle_all_unhandled_exceptions
@@ -118,11 +120,12 @@ sys.excepthook = handle_all_unhandled_exceptions
 
 
 def test_order_book(exchange, symbol):
-    if exchange.has['fetchOrderBook']:
+    method = 'fetchOrderBook'
+    if exchange.has[method]:
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
         # dump(green(exchange.id), green(symbol), 'fetching order book...')
-        orderbook = exchange.fetch_order_book(symbol)
+        orderbook = getattr(exchange, method)(symbol)
         dump(
             green(exchange.id),
             green(symbol),
@@ -133,12 +136,13 @@ def test_order_book(exchange, symbol):
             'ask: ' + str(orderbook['asks'][0][0] if len(orderbook['asks']) else 'N/A'),
             'askVolume: ' + str(orderbook['asks'][0][1] if len(orderbook['asks']) else 'N/A'))
     else:
-        dump(yellow(exchange.id), 'fetch_order_book() supported')
+        dump(yellow(exchange.id), method + '() is not supported')
 
 # ------------------------------------------------------------------------------
 
 
 def test_ohlcvs(exchange, symbol):
+    method = 'fetchOHLCV'
     ignored_exchanges = [
         'cex',  # CEX can return historical candles for a certain date only
         'okex',  # okex fetchOHLCV counts "limit" candles from current time backwards
@@ -146,37 +150,39 @@ def test_ohlcvs(exchange, symbol):
     ]
     if exchange.id in ignored_exchanges:
         return
-    if exchange.has['fetchOHLCV']:
+    if exchange.has[method]:
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
         timeframes = exchange.timeframes if exchange.timeframes else {'1d': '1d'}
-        timeframe = list(timeframes.keys())[0]
+        exchange_has_one_minute_timeframe = '1m' in timeframes
+        timeframe = '1m' if exchange_has_one_minute_timeframe else list(timeframes.keys())[0]
         limit = 10
         duration = exchange.parse_timeframe(timeframe)
         since = exchange.milliseconds() - duration * limit * 1000 - 1000
-        ohlcvs = exchange.fetch_ohlcv(symbol, timeframe, since, limit)
+        ohlcvs = getattr(exchange, method)(symbol, timeframe, since, limit)
         for ohlcv in ohlcvs:
             test_ohlcv(exchange, ohlcv, symbol, int(time.time() * 1000))
         dump(green(exchange.id), 'fetched', green(len(ohlcvs)), 'OHLCVs')
     else:
-        dump(yellow(exchange.id), 'fetching OHLCV not supported')
+        dump(yellow(exchange.id), method + '() is not supported')
 
 # ------------------------------------------------------------------------------
 
 
 def test_tickers(exchange, symbol):
+    method = 'fetchTickers'
     ignored_exchanges = [
         'digifinex',  # requires apiKey to call v2 tickers
     ]
     if exchange.id in ignored_exchanges:
         return
-    if exchange.has['fetchTickers']:
+    if exchange.has[method]:
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
         tickers = None
         try:
             # dump(green(exchange.id), 'fetching all tickers at once...')
-            tickers = exchange.fetch_tickers()
+            tickers = getattr(exchange, method)()
             dump(green(exchange.id), 'fetched all', green(len(list(tickers.keys()))), 'tickers')
         except Exception as e:
             dump(green(exchange.id), 'failed to fetch all tickers, fetching multiple tickers at once...')
@@ -198,15 +204,16 @@ def is_active_symbol(exchange, symbol):
 
 
 def test_ticker(exchange, symbol):
+    method = 'fetchTicker'
     ignored_exchanges = [
         'digifinex',  # requires apiKey to call v2 tickers
     ]
     if exchange.id in ignored_exchanges:
         return
-    if exchange.has['fetchTicker']:
+    if exchange.has[method]:
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
-        ticker = exchange.fetch_ticker(symbol)
+        ticker = getattr(exchange, method)(symbol)
         dump(
             green(exchange.id),
             green(symbol),
@@ -218,34 +225,36 @@ def test_ticker(exchange, symbol):
             'ask: ' + str(ticker['ask']),
             'volume: ' + str(ticker['quoteVolume']))
     else:
-        dump(green(exchange.id), green(symbol), 'fetch_ticker() not supported')
+        dump(green(exchange.id), green(symbol), method + '() is not supported')
 
 # ------------------------------------------------------------------------------
 
 
 def test_trades(exchange, symbol):
-    if exchange.has['fetchTrades']:
+    method = 'fetchTrades'
+    if exchange.has[method]:
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
         # dump(green(exchange.id), green(symbol), 'fetching trades...')
-        trades = exchange.fetch_trades(symbol)
+        trades = getattr(exchange, method)(symbol)
         if trades:
             test_trade(exchange, trades[0], symbol, int(time.time() * 1000))
         dump(green(exchange.id), green(symbol), 'fetched', green(len(trades)), 'trades')
     else:
-        dump(green(exchange.id), green(symbol), 'fetch_trades() not supported')
+        dump(green(exchange.id), green(symbol), method + '() is not supported')
 
 # ------------------------------------------------------------------------------
 
 
 def test_orders(exchange, symbol):
-    if exchange.has['fetchOrders']:
+    method = 'fetchOrders'
+    if exchange.has[method]:
         skipped_exchanges = [
             'bitmart',
             'rightbtc',
         ]
         if exchange.id in skipped_exchanges:
-            dump(green(exchange.id), green(symbol), 'fetch_orders() skipped')
+            dump(green(exchange.id), green(symbol), method + '() skipped')
             return
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
@@ -255,54 +264,100 @@ def test_orders(exchange, symbol):
             test_order(exchange, order, symbol, int(time.time() * 1000))
         dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'orders')
     else:
-        dump(green(exchange.id), green(symbol), 'fetch_orders() not supported')
+        dump(green(exchange.id), green(symbol), method + '() is not supported')
+
+# ------------------------------------------------------------------------------
+
+
+def test_positions(exchange, symbol):
+    method = 'fetchPositions'
+    if exchange.has[method]:
+        skipped_exchanges = [
+        ]
+        if exchange.id in skipped_exchanges:
+            dump(green(exchange.id), green(symbol), method + '() skipped')
+            return
+        delay = int(exchange.rateLimit / 1000)
+        time.sleep(delay)
+        # without symbol
+        dump(green(exchange.id), 'fetching positions...')
+        positions = getattr(exchange, method)()
+        for position in positions:
+            test_position(exchange, position, None, int(time.time() * 1000))
+        dump(green(exchange.id), 'fetched', green(len(positions)), 'positions')
+
+        # with symbol
+        dump(green(exchange.id), green(symbol), 'fetching positions...')
+        positions = getattr(exchange, method)([symbol])
+        for position in positions:
+            test_position(exchange, position, symbol, int(time.time() * 1000))
+        dump(green(exchange.id), green(symbol), 'fetched', green(len(positions)), 'positions')
+    else:
+        dump(green(exchange.id), green(symbol), method + '() is not supported')
 
 # ------------------------------------------------------------------------------
 
 
 def test_closed_orders(exchange, symbol):
-    if exchange.has['fetchClosedOrders']:
+    method = 'fetchClosedOrders'
+    if exchange.has[method]:
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
         # dump(green(exchange.id), green(symbol), 'fetching orders...')
-        orders = exchange.fetch_closed_orders(symbol)
+        orders = getattr(exchange, method)(symbol)
         for order in orders:
             test_order(exchange, order, symbol, int(time.time() * 1000))
             assert order['status'] == 'closed' or order['status'] == 'canceled'
         dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'closed orders')
     else:
-        dump(green(exchange.id), green(symbol), 'fetch_closed_orders() not supported')
+        dump(green(exchange.id), green(symbol), method + '() is not supported')
 
 # ------------------------------------------------------------------------------
 
 
 def test_open_orders(exchange, symbol):
-    if exchange.has['fetchOpenOrders']:
+    method = 'fetchOpenOrders'
+    if exchange.has[method]:
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
         # dump(green(exchange.id), green(symbol), 'fetching orders...')
-        orders = exchange.fetch_open_orders(symbol)
+        orders = getattr(exchange, method)(symbol)
         for order in orders:
             test_order(exchange, order, symbol, int(time.time() * 1000))
             assert order['status'] == 'open'
         dump(green(exchange.id), green(symbol), 'fetched', green(len(orders)), 'open orders')
     else:
-        dump(green(exchange.id), green(symbol), 'fetch_open_orders() not supported')
+        dump(green(exchange.id), green(symbol), method + '() is not supported')
 
 # ------------------------------------------------------------------------------
 
 
 def test_transactions(exchange, code):
-    if exchange.has['fetchTransactions']:
+    method = 'fetchTransactions'
+    if exchange.has[method]:
         delay = int(exchange.rateLimit / 1000)
         time.sleep(delay)
 
-        transactions = exchange.fetch_transactions(code)
+        transactions = getattr(exchange, method)(code)
         for transaction in transactions:
             test_transaction(exchange, transaction, code, int(time.time() * 1000))
         dump(green(exchange.id), green(code), 'fetched', green(len(transactions)), 'transactions')
     else:
-        dump(green(exchange.id), green(code), 'fetch_transactions() not supported')
+        dump(green(exchange.id), green(code), method + '() is not supported')
+
+# ------------------------------------------------------------------------------
+
+
+def test_balance(exchange):
+    method = 'fetchBalance'
+    if exchange.has[method]:
+        delay = int(exchange.rateLimit / 1000)
+        time.sleep(delay)
+
+        getattr(exchange, method)()
+        dump(green(exchange.id), 'fetched balance')
+    else:
+        dump(green(exchange.id), method + '() is not supported')
 
 # ------------------------------------------------------------------------------
 
@@ -310,26 +365,39 @@ def test_transactions(exchange, code):
 def test_symbol(exchange, symbol, code):
     dump(green('SYMBOL: ' + symbol))
     dump(green('CODE: ' + code))
+    dump('Testing fetch_ticker:' + symbol)
     test_ticker(exchange, symbol)
+    dump('Testing fetch_tickers:' + symbol)
     test_tickers(exchange, symbol)
+    dump('Testing fetch_ohlcv:' + symbol)
     test_ohlcvs(exchange, symbol)
 
     if exchange.id == 'coinmarketcap':
         response = exchange.fetchGlobal()
         dump(green(response))
     else:
+        dump('Testing fetch_order_book:' + symbol)
         test_order_book(exchange, symbol)
+        dump('Testing fetch_trades:' + symbol)
         test_trades(exchange, symbol)
         if (not hasattr(exchange, 'apiKey') or (len(exchange.apiKey) < 1)):
             return
-        if exchange.has['signIn']:
-            exchange.sign_in()
+        method = 'signIn'
+        if exchange.has[method]:
+            dump('Testing ' + method + '()')
+            getattr(exchange, method)()
+        dump('Testing fetch_orders:' + symbol)
         test_orders(exchange, symbol)
+        dump('Testing fetch_open_orders:' + symbol)
         test_open_orders(exchange, symbol)
+        dump('Testing fetch_closed_orders:' + symbol)
         test_closed_orders(exchange, symbol)
+        dump('Testing fetch_transactions:' + code)
         test_transactions(exchange, code)
-        exchange.fetch_balance()
-        dump(green(exchange.id), 'fetched balance')
+        dump('Testing fetch_balance')
+        test_balance(exchange)
+        dump('Testing fetch_positions:' + symbol)
+        test_positions(exchange, symbol)
 
 # ------------------------------------------------------------------------------
 
@@ -338,11 +406,22 @@ def load_exchange(exchange):
     exchange.load_markets()
 
 
+def get_test_symbol(exchange, symbols):
+    symbol = None
+    for s in symbols:
+        market = exchange.safe_value(exchange.markets, s)
+        if market is not None:
+            active = exchange.safe_value(market, 'active')
+            if active or (active is None):
+                symbol = s
+                break
+    return symbol
+
+
 def test_exchange(exchange, symbol=None):
 
     dump(green('EXCHANGE: ' + exchange.id))
     # delay = 2
-    keys = list(exchange.markets.keys())
 
     # ..........................................................................
     # public API
@@ -386,8 +465,7 @@ def test_exchange(exchange, symbol=None):
             code = codes[i]
 
     if not symbol:
-        symbol = keys[0]
-        symbols = [
+        symbol = get_test_symbol(exchange, [
             'BTC/USD',
             'BTC/USDT',
             'BTC/CNY',
@@ -398,12 +476,35 @@ def test_exchange(exchange, symbol=None):
             'BTC/JPY',
             'LTC/BTC',
             'USD/SLL',
-        ]
+            'EUR/USD',
+        ])
 
-        for s in symbols:
-            if s in keys:
-                symbol = s
-                break
+        if symbol is None:
+            for code in codes:
+                markets = list(exchange.markets.values())
+                activeMarkets = [market for market in markets if market['base'] == code]
+                if len(activeMarkets):
+                    activeSymbols = [market['symbol'] for market in activeMarkets]
+                    symbol = get_test_symbol(exchange, activeSymbols)
+                    break
+
+        if symbol is None:
+            markets = list(exchange.markets.values())
+            activeMarkets = [market for market in markets if market['base'] in codes]
+            activeSymbols = [market['symbol'] for market in activeMarkets]
+            symbol = get_test_symbol(exchange, activeSymbols)
+
+        if symbol is None:
+            markets = list(exchange.markets.values())
+            activeMarkets = [market for market in markets if not exchange.safe_value(market, 'active', False)]
+            activeSymbols = [market['symbol'] for market in activeMarkets]
+            symbol = get_test_symbol(exchange, activeSymbols)
+
+        if symbol is None:
+            symbol = get_test_symbol(exchange, exchange.symbols)
+
+        if symbol is None:
+            symbol = exchange.symbols[0]
 
     if symbol.find('.d') < 0:
         test_symbol(exchange, symbol, code)
@@ -469,7 +570,6 @@ def try_all_proxies(exchange, proxies=['']):
 proxies = [
     '',
     'https://cors-anywhere.herokuapp.com/',
-    # 'https://crossorigin.me/',
 ]
 
 # prefer local testing keys to global keys
@@ -479,7 +579,7 @@ keys_local = os.path.join(keys_folder, 'keys.local.json')
 keys_file = keys_local if os.path.exists(keys_local) else keys_global
 
 # load the api keys from config
-with open(keys_file) as file:
+with open(keys_file, encoding='utf8') as file:
     config = json.load(file)
 
 # instantiate all exchanges
@@ -489,7 +589,7 @@ for id in ccxt.exchanges:
     exchange = getattr(ccxt, id)
     exchange_config = {'verbose': argv.verbose}
     if sys.version_info[0] < 3:
-        exchange_config.update({'enableRateLimit': True})
+        exchange_config.update()
     if id in config:
         exchange_config = ccxt.Exchange.deep_extend(exchange_config, config[id])
     exchanges[id] = exchange(exchange_config)

@@ -1,10 +1,10 @@
 <?php
 
-$root = dirname (dirname (dirname (__FILE__)));
+$root = dirname(dirname(dirname(__FILE__)));
 
 include $root . '/ccxt.php';
 
-date_default_timezone_set ('UTC');
+date_default_timezone_set('UTC');
 
 $loop = \React\EventLoop\Factory::create();
 $kernel = \Recoil\React\ReactKernel::create($loop);
@@ -13,10 +13,9 @@ echo "CCXT v." . \ccxt\Exchange::VERSION . "\n";
 
 $kernel->execute(function() use ($loop, $kernel) {
 
-    $exchange = new \ccxt_async\coinbasepro (array(
+    $exchange = new \ccxt_async\coinbasepro(array(
         'loop' => $loop,
         'kernel' => $kernel,
-        'enableRateLimit' => true,
     ));
 
     $exchange->urls['api'] = $exchange->urls['test'];
@@ -65,7 +64,7 @@ $kernel->execute(function() use ($loop, $kernel) {
     } else {
 
         echo $exchange->id . ' market ' . $symbol . " is inactive!\n";
-        exit ();
+        exit();
     }
 }, $loop);
 

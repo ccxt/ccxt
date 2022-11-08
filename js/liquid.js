@@ -18,27 +18,40 @@ module.exports = class liquid extends Exchange {
             'version': '2',
             'rateLimit': 1000,
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': undefined, // has but not fully implemented
+                'swap': undefined, // has but not fully implemented
+                'future': false,
+                'option': false,
                 'cancelOrder': true,
-                'CORS': false,
                 'createOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchMarginMode': false,
                 'fetchMarkets': true,
                 'fetchMyTrades': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPositionMode': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': true,
+                'fetchWithdrawals': true,
+                'transfer': false,
                 'withdraw': true,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg',
-                'api': 'https://api.liquid.com',
+                'api': {
+                    'rest': 'https://api.liquid.com',
+                },
                 'www': 'https://www.liquid.com',
                 'doc': [
                     'https://developers.liquid.com',
@@ -55,7 +68,7 @@ module.exports = class liquid extends Exchange {
                         'products/{id}/price_levels',
                         'executions',
                         'ir_ladders/{currency}',
-                        'fees', // add fetchFees, fetchTradingFees, fetchFundingFees
+                        'fees', // add fetchFees, fetchTradingFees, fetchTransactionFees
                     ],
                 },
                 'private': {
@@ -66,7 +79,9 @@ module.exports = class liquid extends Exchange {
                         'accounts/{id}',
                         'accounts/{currency}/reserved_balance_details',
                         'crypto_accounts', // add fetchAccounts
-                        'crypto_withdrawals', // add fetchWithdrawals
+                        'crypto_withdrawal',
+                        'crypto_withdrawals',
+                        'crypto_withdrawals/crypto_networks',
                         'executions/me',
                         'fiat_accounts', // add fetchAccounts
                         'fund_infos', // add fetchDeposits
@@ -81,6 +96,11 @@ module.exports = class liquid extends Exchange {
                         'trading_accounts/{id}',
                         'transactions',
                         'withdrawals', // add fetchWithdrawals
+                        'user/fee_tier',
+                        'user/fees',
+                        'trading_accounts/{id}',
+                        'bank_accounts',
+                        'accounts/{currency}/reserved_balance_details',
                     ],
                     'post': [
                         'crypto_withdrawals',
@@ -89,6 +109,7 @@ module.exports = class liquid extends Exchange {
                         'loan_bids',
                         'orders',
                         'withdrawals',
+                        'fees/estimate',
                     ],
                     'put': [
                         'crypto_withdrawal/{id}/cancel',
@@ -181,31 +202,56 @@ module.exports = class liquid extends Exchange {
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
-                'API rate limit exceeded. Please retry after 300s': DDoSProtection,
-                'API Authentication failed': AuthenticationError,
-                'Nonce is too small': InvalidNonce,
-                'Order not found': OrderNotFound,
-                'Can not update partially filled order': InvalidOrder,
-                'Can not update non-live order': OrderNotFound,
-                'not_enough_free_balance': InsufficientFunds,
-                'must_be_positive': InvalidOrder,
-                'less_than_order_size': InvalidOrder,
-                'price_too_high': InvalidOrder,
-                'price_too_small': InvalidOrder, // {"errors":{"order":["price_too_small"]}}
-                'product_disabled': BadSymbol, // {"errors":{"order":["product_disabled"]}}
+                'exact': {
+                    'API rate limit exceeded. Please retry after 300s': DDoSProtection,
+                    'API Authentication failed': AuthenticationError,
+                    'Nonce is too small': InvalidNonce,
+                    'Order not found': OrderNotFound,
+                    'Can not update partially filled order': InvalidOrder,
+                    'Can not update non-live order': OrderNotFound,
+                    'not_enough_free_balance': InsufficientFunds,
+                    'must_be_positive': InvalidOrder,
+                    'less_than_order_size': InvalidOrder,
+                    'price_too_high': InvalidOrder,
+                    'price_too_small': InvalidOrder, // {"errors":{"order":["price_too_small"]}}
+                    'product_disabled': BadSymbol, // {"errors":{"order":["product_disabled"]}}
+                },
+                'broad': {
+                    'is not in your IP whitelist': AuthenticationError, // {"message":"95.145.188.43 is not in your IP whitelist"}
+                },
             },
             'commonCurrencies': {
-                'WIN': 'WCOIN',
+                'BIFI': 'BIFIF',
                 'HOT': 'HOT Token',
                 'MIOTA': 'IOTA', // https://github.com/ccxt/ccxt/issues/7487
+                'P-BTC': 'BTC',
+                'TON': 'Tokamak Network',
             },
             'options': {
                 'cancelOrderException': true,
+                'networks': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                    'XLM': 'Stellar',
+                    'ALGO': 'Algorand',
+                },
+                'swap': {
+                    'fetchMarkets': {
+                        'settlementCurrencies': [ 'BTC', 'ETH', 'XRP', 'QASH', 'USD', 'JPY', 'EUR', 'SGD', 'AUD' ],
+                    },
+                },
             },
         });
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name liquid#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {object} params extra parameters specific to the liquid api endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
         const response = await this.publicGetCurrencies (params);
         //
         //     [
@@ -223,6 +269,15 @@ module.exports = class liquid extends Exchange {
         //             depositable: true,
         //             withdrawable: true,
         //             discount_fee: 0.5,
+        //             credit_card_fundable: false,
+        //             lendable: false,
+        //             position_fundable: true,
+        //             has_memo: false,
+        //             stable_currency: null,
+        //             root_currency: 'USD',
+        //             minimum_loan_bid_quantity: '0.0',
+        //             maximum_order_taker_quantity: null,
+        //             name: 'United States Dollar'
         //         },
         //     ]
         //
@@ -231,20 +286,25 @@ module.exports = class liquid extends Exchange {
             const currency = response[i];
             const id = this.safeString (currency, 'currency');
             const code = this.safeCurrencyCode (id);
-            const active = currency['depositable'] && currency['withdrawable'];
-            const amountPrecision = this.safeInteger (currency, 'assets_precision');
+            const name = this.safeString (currency, 'name');
+            const depositable = this.safeValue (currency, 'depositable');
+            const withdrawable = this.safeValue (currency, 'withdrawable');
+            const active = depositable && withdrawable;
+            const amountPrecision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'assets_precision')));
             result[code] = {
                 'id': id,
                 'code': code,
                 'info': currency,
-                'name': code,
+                'name': name,
                 'active': active,
+                'deposit': depositable,
+                'withdraw': withdrawable,
                 'fee': this.safeNumber (currency, 'withdrawal_fee'),
                 'precision': amountPrecision,
                 'limits': {
                     'amount': {
-                        'min': Math.pow (10, -amountPrecision),
-                        'max': Math.pow (10, amountPrecision),
+                        'min': amountPrecision,
+                        'max': undefined,
                     },
                     'withdraw': {
                         'min': this.safeNumber (currency, 'minimum_withdrawal'),
@@ -257,6 +317,13 @@ module.exports = class liquid extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name liquid#fetchMarkets
+         * @description retrieves data on all markets for liquid
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[object]} an array of objects representing market data
+         */
         const spot = await this.publicGetProducts (params);
         //
         //     [
@@ -353,35 +420,13 @@ module.exports = class liquid extends Exchange {
             const baseId = this.safeString (market, 'base_currency');
             const quoteId = this.safeString (market, 'quoted_currency');
             const productType = this.safeString (market, 'product_type');
-            let type = 'spot';
-            let spot = true;
-            let swap = false;
-            if (productType === 'Perpetual') {
-                spot = false;
-                swap = true;
-                type = 'swap';
-            }
+            const swap = (productType === 'Perpetual');
+            const type = swap ? 'swap' : 'spot';
+            const spot = !swap;
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            let symbol = undefined;
-            if (swap) {
-                symbol = this.safeString (market, 'currency_pair_code');
-            } else {
-                symbol = base + '/' + quote;
-            }
-            let maker = this.fees['trading']['maker'];
-            let taker = this.fees['trading']['taker'];
-            if (type === 'swap') {
-                maker = this.safeNumber (market, 'maker_fee', this.fees['trading']['maker']);
-                taker = this.safeNumber (market, 'taker_fee', this.fees['trading']['taker']);
-            }
             const disabled = this.safeValue (market, 'disabled', false);
-            const active = !disabled;
             const baseCurrency = this.safeValue (currenciesByCode, base);
-            const precision = {
-                'amount': 0.00000001,
-                'price': this.safeNumber (market, 'tick_size'),
-            };
             let minAmount = undefined;
             if (baseCurrency !== undefined) {
                 minAmount = this.safeNumber (baseCurrency['info'], 'minimum_order_quantity');
@@ -399,42 +444,117 @@ module.exports = class liquid extends Exchange {
                     maxPrice = lastPrice * multiplierUp;
                 }
             }
-            const limits = {
-                'amount': {
-                    'min': minAmount,
-                    'max': undefined,
-                },
-                'price': {
-                    'min': minPrice,
-                    'max': maxPrice,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            };
-            result.push ({
+            const margin = this.safeValue (market, 'margin_enabled');
+            const symbol = base + '/' + quote;
+            const maker = this.fees['trading']['maker'];
+            const taker = this.fees['trading']['taker'];
+            const parsedMarket = {
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': undefined,
                 'type': type,
                 'spot': spot,
+                'margin': spot && margin,
                 'swap': swap,
-                'maker': maker,
+                'future': false,
+                'option': false,
+                'active': !disabled,
+                'contract': swap,
+                'linear': undefined,
+                'inverse': undefined,
                 'taker': taker,
-                'limits': limits,
-                'precision': precision,
-                'active': active,
+                'maker': maker,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.parseNumber ('0.00000001'),
+                    'price': this.safeNumber (market, 'tick_size'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': minAmount,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': minPrice,
+                        'max': maxPrice,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
                 'info': market,
-            });
+            };
+            if (swap) {
+                const settlementCurrencies = this.options['fetchMarkets']['settlementCurrencies'];
+                for (let i = 0; i < settlementCurrencies.length; i++) {
+                    const settle = settlementCurrencies[i];
+                    parsedMarket['settle'] = settle;
+                    parsedMarket['symbol'] = symbol + ':' + settle;
+                    parsedMarket['linear'] = quote === settle;
+                    parsedMarket['inverse'] = base === settle;
+                    parsedMarket['taker'] = this.safeNumber (market, 'taker_fee', taker);
+                    parsedMarket['maker'] = this.safeNumber (market, 'maker_fee', maker);
+                    parsedMarket['contractSize'] = this.parseNumber ('1');
+                    result.push (parsedMarket);
+                }
+            } else {
+                result.push (parsedMarket);
+            }
         }
         return result;
     }
 
+    parseBalance (response) {
+        const result = {
+            'info': response,
+            'timestamp': undefined,
+            'datetime': undefined,
+        };
+        const crypto = this.safeValue (response, 'crypto_accounts', []);
+        const fiat = this.safeValue (response, 'fiat_accounts', []);
+        for (let i = 0; i < crypto.length; i++) {
+            const balance = crypto[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['total'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'reserved_balance');
+            result[code] = account;
+        }
+        for (let i = 0; i < fiat.length; i++) {
+            const balance = fiat[i];
+            const currencyId = this.safeString (balance, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['total'] = this.safeString (balance, 'balance');
+            account['used'] = this.safeString (balance, 'reserved_balance');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name liquid#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} params extra parameters specific to the liquid api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const response = await this.privateGetAccounts (params);
         //
@@ -471,41 +591,26 @@ module.exports = class liquid extends Exchange {
         //         ]
         //     }
         //
-        const result = {
-            'info': response,
-            'timestamp': undefined,
-            'datetime': undefined,
-        };
-        const crypto = this.safeValue (response, 'crypto_accounts', []);
-        const fiat = this.safeValue (response, 'fiat_accounts', []);
-        for (let i = 0; i < crypto.length; i++) {
-            const balance = crypto[i];
-            const currencyId = this.safeString (balance, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['total'] = this.safeString (balance, 'balance');
-            account['used'] = this.safeString (balance, 'reserved_balance');
-            result[code] = account;
-        }
-        for (let i = 0; i < fiat.length; i++) {
-            const balance = fiat[i];
-            const currencyId = this.safeString (balance, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['total'] = this.safeString (balance, 'balance');
-            account['used'] = this.safeString (balance, 'reserved_balance');
-            result[code] = account;
-        }
-        return this.parseBalance (result, false);
+        return this.parseBalance (response);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name liquid#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {object} params extra parameters specific to the liquid api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'id': this.marketId (symbol),
+            'id': market['id'],
         };
         const response = await this.publicGetProductsIdPriceLevels (this.extend (request, params));
-        return this.parseOrderBook (response, symbol, undefined, 'buy_price_levels', 'sell_price_levels');
+        return this.parseOrderBook (response, market['symbol'], undefined, 'buy_price_levels', 'sell_price_levels');
     }
 
     parseTicker (ticker, market = undefined) {
@@ -515,65 +620,54 @@ module.exports = class liquid extends Exchange {
             if (ticker['last_traded_price']) {
                 const length = ticker['last_traded_price'].length;
                 if (length > 0) {
-                    last = this.safeNumber (ticker, 'last_traded_price');
+                    last = this.safeString (ticker, 'last_traded_price');
                 }
             }
         }
-        let symbol = undefined;
-        if (market === undefined) {
-            const marketId = this.safeString (ticker, 'id');
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                const baseId = this.safeString (ticker, 'base_currency');
-                const quoteId = this.safeString (ticker, 'quoted_currency');
-                if (symbol in this.markets) {
-                    market = this.markets[symbol];
-                } else {
-                    symbol = this.safeCurrencyCode (baseId) + '/' + this.safeCurrencyCode (quoteId);
-                }
-            }
+        const marketId = this.safeString (ticker, 'id');
+        market = this.safeMarket (marketId, market);
+        let symbol = market['symbol'];
+        const baseId = this.safeString (ticker, 'base_currency');
+        const quoteId = this.safeString (ticker, 'quoted_currency');
+        if ((baseId !== undefined) && (quoteId !== undefined)) {
+            symbol = this.safeCurrencyCode (baseId) + '/' + this.safeCurrencyCode (quoteId);
         }
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        let change = undefined;
-        let percentage = undefined;
-        let average = undefined;
-        const open = this.safeNumber (ticker, 'last_price_24h');
-        if (open !== undefined && last !== undefined) {
-            change = last - open;
-            average = this.sum (last, open) / 2;
-            if (open > 0) {
-                percentage = change / open * 100;
-            }
-        }
-        return {
+        const open = this.safeString (ticker, 'last_price_24h');
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high_market_ask'),
-            'low': this.safeNumber (ticker, 'low_market_bid'),
-            'bid': this.safeNumber (ticker, 'market_bid'),
+            'high': this.safeString (ticker, 'high_market_ask'),
+            'low': this.safeString (ticker, 'low_market_bid'),
+            'bid': this.safeString (ticker, 'market_bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'market_ask'),
+            'ask': this.safeString (ticker, 'market_ask'),
             'askVolume': undefined,
             'vwap': undefined,
             'open': open,
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
-            'baseVolume': this.safeNumber (ticker, 'volume_24h'),
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'volume_24h'),
             'quoteVolume': undefined,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name liquid#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} params extra parameters specific to the liquid api endpoint
+         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.publicGetProducts (params);
         const result = {};
         for (let i = 0; i < response.length; i++) {
@@ -585,6 +679,14 @@ module.exports = class liquid extends Exchange {
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name liquid#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the liquid api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -612,34 +714,38 @@ module.exports = class liquid extends Exchange {
         if (mySide !== undefined) {
             takerOrMaker = (takerSide === mySide) ? 'taker' : 'maker';
         }
-        const priceString = this.safeString (trade, 'price');
-        const amountString = this.safeString (trade, 'quantity');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString (trade, 'quantity');
         const id = this.safeString (trade, 'id');
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
-        return {
+        market = this.safeMarket (undefined, market);
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
-            'cost': cost,
+            'cost': undefined,
             'fee': undefined,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name liquid#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {object} params extra parameters specific to the liquid api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -657,7 +763,192 @@ module.exports = class liquid extends Exchange {
         return this.parseTrades (result, market, since, limit);
     }
 
+    async fetchTradingFee (symbol, params = {}) {
+        /**
+         * @method
+         * @name liquid#fetchTradingFee
+         * @description fetch the trading fees for a market
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the liquid api endpoint
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'id': market['id'],
+        };
+        const response = await this.publicGetProductsId (this.extend (request, params));
+        //
+        //     {
+        //         "id":"637",
+        //         "product_type":"CurrencyPair",
+        //         "code":"CASH",
+        //         "name":null,
+        //         "market_ask":"0.00000797",
+        //         "market_bid":"0.00000727",
+        //         "indicator":null,
+        //         "currency":"BTC",
+        //         "currency_pair_code":"TFTBTC",
+        //         "symbol":null,
+        //         "btc_minimum_withdraw":null,
+        //         "fiat_minimum_withdraw":null,
+        //         "pusher_channel":"product_cash_tftbtc_637",
+        //         "taker_fee":"0.0",
+        //         "maker_fee":"0.0",
+        //         "low_market_bid":"0.00000685",
+        //         "high_market_ask":"0.00000885",
+        //         "volume_24h":"3696.0755956",
+        //         "last_price_24h":"0.00000716",
+        //         "last_traded_price":"0.00000766",
+        //         "last_traded_quantity":"1748.0377978",
+        //         "average_price":null,
+        //         "quoted_currency":"BTC",
+        //         "base_currency":"TFT",
+        //         "tick_size":"0.00000001",
+        //         "disabled":false,
+        //         "margin_enabled":false,
+        //         "cfd_enabled":false,
+        //         "perpetual_enabled":false,
+        //         "last_event_timestamp":"1596962820.000797146",
+        //         "timestamp":"1596962820.000797146",
+        //         "multiplier_up":"9.0",
+        //         "multiplier_down":"0.1",
+        //         "average_time_interval":null
+        //     }
+        //
+        return this.parseTradingFee (response, market);
+    }
+
+    parseTradingFee (fee, market = undefined) {
+        const marketId = this.safeString (fee, 'id');
+        const symbol = this.safeSymbol (marketId, market);
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': this.safeNumber (fee, 'maker_fee'),
+            'taker': this.safeNumber (fee, 'taker_fee'),
+            'percentage': true,
+            'tierBased': true,
+        };
+    }
+
+    async fetchTradingFees (params = {}) {
+        /**
+         * @method
+         * @name liquid#fetchTradingFees
+         * @description fetch the trading fees for multiple markets
+         * @param {object} params extra parameters specific to the liquid api endpoint
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const spot = await this.publicGetProducts (params);
+        //
+        //     [
+        //         {
+        //             "id":"637",
+        //             "product_type":"CurrencyPair",
+        //             "code":"CASH",
+        //             "name":null,
+        //             "market_ask":"0.00000797",
+        //             "market_bid":"0.00000727",
+        //             "indicator":null,
+        //             "currency":"BTC",
+        //             "currency_pair_code":"TFTBTC",
+        //             "symbol":null,
+        //             "btc_minimum_withdraw":null,
+        //             "fiat_minimum_withdraw":null,
+        //             "pusher_channel":"product_cash_tftbtc_637",
+        //             "taker_fee":"0.0",
+        //             "maker_fee":"0.0",
+        //             "low_market_bid":"0.00000685",
+        //             "high_market_ask":"0.00000885",
+        //             "volume_24h":"3696.0755956",
+        //             "last_price_24h":"0.00000716",
+        //             "last_traded_price":"0.00000766",
+        //             "last_traded_quantity":"1748.0377978",
+        //             "average_price":null,
+        //             "quoted_currency":"BTC",
+        //             "base_currency":"TFT",
+        //             "tick_size":"0.00000001",
+        //             "disabled":false,
+        //             "margin_enabled":false,
+        //             "cfd_enabled":false,
+        //             "perpetual_enabled":false,
+        //             "last_event_timestamp":"1596962820.000797146",
+        //             "timestamp":"1596962820.000797146",
+        //             "multiplier_up":"9.0",
+        //             "multiplier_down":"0.1",
+        //             "average_time_interval":null
+        //         },
+        //     ]
+        //
+        const perpetual = await this.publicGetProducts ({ 'perpetual': '1' });
+        //
+        //     [
+        //         {
+        //             "id":"604",
+        //             "product_type":"Perpetual",
+        //             "code":"CASH",
+        //             "name":null,
+        //             "market_ask":"11721.5",
+        //             "market_bid":"11719.0",
+        //             "indicator":null,
+        //             "currency":"USD",
+        //             "currency_pair_code":"P-BTCUSD",
+        //             "symbol":"$",
+        //             "btc_minimum_withdraw":null,
+        //             "fiat_minimum_withdraw":null,
+        //             "pusher_channel":"product_cash_p-btcusd_604",
+        //             "taker_fee":"0.0012",
+        //             "maker_fee":"0.0",
+        //             "low_market_bid":"11624.5",
+        //             "high_market_ask":"11859.0",
+        //             "volume_24h":"0.271",
+        //             "last_price_24h":"11621.5",
+        //             "last_traded_price":"11771.5",
+        //             "last_traded_quantity":"0.09",
+        //             "average_price":"11771.5",
+        //             "quoted_currency":"USD",
+        //             "base_currency":"P-BTC",
+        //             "tick_size":"0.5",
+        //             "disabled":false,
+        //             "margin_enabled":false,
+        //             "cfd_enabled":false,
+        //             "perpetual_enabled":true,
+        //             "last_event_timestamp":"1596963309.418853092",
+        //             "timestamp":"1596963309.418853092",
+        //             "multiplier_up":null,
+        //             "multiplier_down":"0.1",
+        //             "average_time_interval":300,
+        //             "index_price":"11682.8124",
+        //             "mark_price":"11719.96781",
+        //             "funding_rate":"0.00273",
+        //             "fair_price":"11720.2745"
+        //         },
+        //     ]
+        //
+        const markets = this.arrayConcat (spot, perpetual);
+        const result = {};
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            const marketId = this.safeString (market, 'id');
+            const symbol = this.safeSymbol (marketId, market);
+            result[symbol] = this.parseTradingFee (market);
+        }
+        return result;
+    }
+
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name liquid#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {string|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {object} params extra parameters specific to the liquid api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         // the `with_details` param is undocumented - it adds the order_id to the results
@@ -673,20 +964,33 @@ module.exports = class liquid extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name liquid#createOrder
+         * @description create a trade order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the liquid api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
         params = this.omit (params, [ 'clientOrderId', 'client_order_id' ]);
+        const market = this.market (symbol);
         const request = {
             'order_type': type,
-            'product_id': this.marketId (symbol),
+            'product_id': market['id'],
             'side': side,
-            'quantity': this.amountToPrecision (symbol, amount),
+            'quantity': this.amountToPrecision (market['symbol'], amount),
         };
         if (clientOrderId !== undefined) {
             request['client_order_id'] = clientOrderId;
         }
         if ((type === 'limit') || (type === 'limit_post_only') || (type === 'market_with_range') || (type === 'stop')) {
-            request['price'] = this.priceToPrecision (symbol, price);
+            request['price'] = this.priceToPrecision (market['symbol'], price);
         }
         const response = await this.privatePostOrders (this.extend (request, params));
         //
@@ -716,6 +1020,15 @@ module.exports = class liquid extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name liquid#cancelOrder
+         * @description cancels an open order
+         * @param {string} id order id
+         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the liquid api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'id': id,
@@ -817,93 +1130,120 @@ module.exports = class liquid extends Exchange {
         const orderId = this.safeString (order, 'id');
         const timestamp = this.safeTimestamp (order, 'created_at');
         const marketId = this.safeString (order, 'product_id');
-        market = this.safeValue (this.markets_by_id, marketId);
+        market = this.safeMarket (marketId, market);
         const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const amount = this.safeNumber (order, 'quantity');
-        let filled = this.safeNumber (order, 'filled_quantity');
-        const price = this.safeNumber (order, 'price');
-        let symbol = undefined;
-        let feeCurrency = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-            feeCurrency = market['quote'];
-        }
+        const amount = this.safeString (order, 'quantity');
+        const filled = this.safeString (order, 'filled_quantity');
+        const price = this.safeString (order, 'price');
         const type = this.safeString (order, 'order_type');
-        let tradeCost = 0;
-        let tradeFilled = 0;
-        let average = this.safeNumber (order, 'average_price');
-        const trades = this.parseTrades (this.safeValue (order, 'executions', []), market, undefined, undefined, {
-            'order': orderId,
-            'type': type,
-        });
-        const numTrades = trades.length;
-        for (let i = 0; i < numTrades; i++) {
-            // php copies values upon assignment, but not references them
-            // todo rewrite this (shortly)
-            const trade = trades[i];
-            trade['order'] = orderId;
-            trade['type'] = type;
-            tradeFilled = this.sum (tradeFilled, trade['amount']);
-            tradeCost = this.sum (tradeCost, trade['cost']);
-        }
-        let cost = undefined;
-        let lastTradeTimestamp = undefined;
-        if (numTrades > 0) {
-            lastTradeTimestamp = trades[numTrades - 1]['timestamp'];
-            if (!average && (tradeFilled > 0)) {
-                average = tradeCost / tradeFilled;
-            }
-            if (cost === undefined) {
-                cost = tradeCost;
-            }
-            if (filled === undefined) {
-                filled = tradeFilled;
-            }
-        }
-        let remaining = undefined;
-        if (amount !== undefined && filled !== undefined) {
-            remaining = amount - filled;
-        }
+        const average = this.safeString (order, 'average_price');
+        const trades = this.safeValue (order, 'executions', []);
         const side = this.safeString (order, 'side');
         const clientOrderId = this.safeString (order, 'client_order_id');
-        return {
+        return this.safeOrder ({
             'id': orderId,
             'clientOrderId': clientOrderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': lastTradeTimestamp,
+            'lastTradeTimestamp': undefined,
             'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
             'status': status,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'side': side,
             'price': price,
             'stopPrice': undefined,
             'amount': amount,
             'filled': filled,
-            'cost': cost,
-            'remaining': remaining,
+            'cost': undefined,
+            'remaining': undefined,
             'average': average,
             'trades': trades,
             'fee': {
-                'currency': feeCurrency,
-                'cost': this.safeNumber (order, 'order_fee'),
+                'currency': market['quote'],
+                'cost': this.safeString (order, 'order_fee'),
             },
             'info': order,
-        };
+        });
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name liquid#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {string|undefined} symbol not used by liquid fetchOrder
+         * @param {object} params extra parameters specific to the liquid api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'id': id,
         };
         const response = await this.privateGetOrdersId (this.extend (request, params));
+        //
+        //     {
+        //         "id": 6929766032,
+        //         "order_type": "limit",
+        //         "quantity": "0.003",
+        //         "disc_quantity": "0.0",
+        //         "iceberg_total_quantity": "0.0",
+        //         "side": "buy",
+        //         "filled_quantity": "0.0",
+        //         "price": 1800.0,
+        //         "created_at": 1653139172,
+        //         "updated_at": 1653139172,
+        //         "status": "live",
+        //         "leverage_level": 1,
+        //         "source_exchange": "QUOINE",
+        //         "product_id": 625,
+        //         "margin_type": null,
+        //         "take_profit": null,
+        //         "stop_loss": null,
+        //         "trading_type": "spot",
+        //         "product_code": "CASH",
+        //         "funding_currency": "USDT",
+        //         "crypto_account_id": null,
+        //         "currency_pair_code": "ETHUSDT",
+        //         "average_price": 0.0,
+        //         "target": "spot",
+        //         "order_fee": "0.0",
+        //         "source_action": "manual",
+        //         "unwound_trade_id": null,
+        //         "trade_id": null,
+        //         "client_order_id": "2865675_1653139172173",
+        //         "settings": null,
+        //         "trailing_stop_type": null,
+        //         "trailing_stop_value": null,
+        //         "executions": [ // array will be empty for unfilled order
+        //           {
+        //             "id": 485442157,
+        //             "quantity": "0.002",
+        //             "price": "1973.32",
+        //             "taker_side": "buy",
+        //             "created_at": 1653139978,
+        //             "timestamp": "1653139978.434518",
+        //             "my_side": "buy"
+        //          }
+        //         ],
+        //         "stop_triggered_time": null
+        //     }
+        //
         return this.parseOrder (response);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name liquid#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the liquid api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         let market = undefined;
         const request = {
@@ -924,27 +1264,52 @@ module.exports = class liquid extends Exchange {
         //
         //     {
         //         "models": [
-        //             {
-        //                 "id": 2157474,
-        //                 "order_type": "limit",
-        //                 "quantity": "0.01",
-        //                 "disc_quantity": "0.0",
-        //                 "iceberg_total_quantity": "0.0",
-        //                 "side": "sell",
-        //                 "filled_quantity": "0.0",
-        //                 "price": "500.0",
-        //                 "created_at": 1462123639,
-        //                 "updated_at": 1462123639,
-        //                 "status": "live",
-        //                 "leverage_level": 1,
-        //                 "source_exchange": "QUOINE",
-        //                 "product_id": 1,
-        //                 "product_code": "CASH",
-        //                 "funding_currency": "USD",
-        //                 "currency_pair_code": "BTCUSD",
-        //                 "order_fee": "0.0",
-        //                 "executions": [], // optional
-        //             }
+        //           {
+        //             "id": 6929766034,
+        //             "order_type": "limit",
+        //             "quantity": "0.003",
+        //             "disc_quantity": "0.0",
+        //             "iceberg_total_quantity": "0.0",
+        //             "side": "buy",
+        //             "filled_quantity": "0.0",
+        //             "price": 1800.0,
+        //             "created_at": 1653139172,
+        //             "updated_at": 1653139172,
+        //             "status": "live",
+        //             "leverage_level": 1,
+        //             "source_exchange": 0,
+        //             "product_id": 625,
+        //             "margin_type": null,
+        //             "take_profit": null,
+        //             "stop_loss": null,
+        //             "trading_type": "spot",
+        //             "product_code": "CASH",
+        //             "funding_currency": "USDT",
+        //             "crypto_account_id": null,
+        //             "currency_pair_code": "ETHUSDT",
+        //             "average_price": 0.0,
+        //             "target": "spot",
+        //             "order_fee": "0.0",
+        //             "source_action": "manual",
+        //             "unwound_trade_id": null,
+        //             "trade_id": null,
+        //             "client_order_id": "2865672_1653139172173",
+        //             "settings": null,
+        //             "trailing_stop_type": null,
+        //             "trailing_stop_value": null,
+        //             "stop_triggered_time": null
+        //             "executions": [ // array will be empty for unfilled order
+        //               {
+        //                 "id": 485442157,
+        //                 "quantity": "0.002",
+        //                 "price": "1973.32",
+        //                 "taker_side": "buy",
+        //                 "created_at": 1653139978,
+        //                 "timestamp": "1653139978.434518",
+        //                 "my_side": "buy"
+        //              }
+        //             ],
+        //           }
         //         ],
         //         "current_page": 1,
         //         "total_pages": 1
@@ -955,39 +1320,85 @@ module.exports = class liquid extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name liquid#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {string|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {object} params extra parameters specific to the liquid api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const request = { 'status': 'live' };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name liquid#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the liquid api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const request = { 'status': 'filled' };
         return await this.fetchOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name liquid#withdraw
+         * @description make a withdrawal
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string|undefined} tag
+         * @param {object} params extra parameters specific to the liquid api endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
             // 'auth_code': '', // optional 2fa code
-            'currency': currency['id'],
-            'address': address,
-            'amount': this.currencyToPrecision (code, amount),
-            // 'payment_id': tag, // for XRP only
-            // 'memo_type': 'text', // 'text', 'id' or 'hash', for XLM only
-            // 'memo_value': tag, // for XLM only
+            'crypto_withdrawal': {
+                'currency': currency['id'],
+                'address': address,
+                'amount': amount,
+                // 'payment_id': tag, // for XRP only
+                // 'memo_type': 'text', // 'text', 'id' or 'hash', for XLM only
+                // 'memo_value': tag, // for XLM only
+            },
         };
         if (tag !== undefined) {
             if (code === 'XRP') {
-                request['payment_id'] = tag;
+                request['crypto_withdrawal']['payment_id'] = tag;
             } else if (code === 'XLM') {
-                request['memo_type'] = 'text'; // overrideable via params
-                request['memo_value'] = tag;
+                request['crypto_withdrawal']['memo_type'] = 'text'; // overrideable via params
+                request['crypto_withdrawal']['memo_value'] = tag;
             } else {
                 throw new NotSupported (this.id + ' withdraw() only supports a tag along the address for XRP or XLM');
             }
         }
-        const response = await this.privatePostCryptoWithdrawals (this.extend (request, params));
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        if (network === undefined) {
+            const paramsCwArray = this.safeValue (params, 'crypto_withdrawal', {});
+            network = this.safeStringUpper (paramsCwArray, 'network');
+        }
+        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+        if (network !== undefined) {
+            request['crypto_withdrawal']['network'] = network;
+            params = this.omit (params, 'network');
+            params['crypto_withdrawal'] = this.omit (params['crypto_withdrawal'], 'network');
+        }
+        const response = await this.privatePostCryptoWithdrawals (this.deepExtend (request, params));
         //
         //     {
         //         "id": 1353,
@@ -1004,11 +1415,65 @@ module.exports = class liquid extends Exchange {
         return this.parseTransaction (response, currency);
     }
 
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name liquid#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+         * @param {string|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {object} params extra parameters specific to the liquid api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            // state: 'processed', // optional: pending, filed, cancelled, processing, processed, reverted to_be_reviewed, declined, broadcasted
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
+        const response = await this.privateGetCryptoWithdrawals (this.extend (request, params));
+        //
+        //     {
+        //         models: [
+        //             {
+        //                 id: '2',
+        //                 address: '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',
+        //                 amount: '0.01',
+        //                 state: 'processed',
+        //                 currency: 'BTC',
+        //                 withdrawal_fee: '0.0005',
+        //                 created_at: '1614718276',
+        //                 updated_at: '1614720926',
+        //                 payment_id: null,
+        //                 transaction_hash: 'xxxxxxxx...',
+        //                 broadcasted_at: '1614720762',
+        //                 wallet_label: 'btc',
+        //                 chain_name: 'Bitcoin',
+        //                 network: null
+        //             },
+        //         ],
+        //         current_page: '1',
+        //         total_pages: '1'
+        //     }
+        //
+        const transactions = this.safeValue (response, 'models', []);
+        return this.parseTransactions (transactions, currency, since, limit);
+    }
+
     parseTransactionStatus (status) {
         const statuses = {
             'pending': 'pending',
             'cancelled': 'canceled',
             'approved': 'ok',
+            'processing': 'pending',
+            'processed': 'ok',
+            'reverted': 'failed',
+            'to_be_reviewed': 'pending',
+            'declined': 'failed',
+            'broadcasted': 'ok',
         };
         return this.safeString (statuses, status, status);
     }
@@ -1018,46 +1483,81 @@ module.exports = class liquid extends Exchange {
         // withdraw
         //
         //     {
-        //         "id": 1353,
-        //         "address": "1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2",
-        //         "amount": 1.0,
-        //         "state": "pending",
-        //         "currency": "BTC",
-        //         "withdrawal_fee": 0.0,
-        //         "created_at": 1568016450,
-        //         "updated_at": 1568016450,
-        //         "payment_id": null
-        //     }
+        //         id: '1',
+        //         address: '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',
+        //         amount: '0.01',
+        //         state: 'pending',
+        //         currency: 'BTC',
+        //         withdrawal_fee: '0.0007',
+        //         created_at: '1626000533',
+        //         updated_at: '1626000533',
+        //         payment_id: null,
+        //         transaction_hash: null,
+        //         broadcasted_at: null,
+        //         wallet_label: null,
+        //         chain_name: 'Bitcoin',
+        //         network: null
+        //     },
         //
-        // fetchDeposits, fetchWithdrawals
+        // fetchWithdrawals
+        //
+        //     {
+        //         id: '2',
+        //         address: '1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2',
+        //         amount: '0.01',
+        //         state: 'processed',
+        //         currency: 'BTC',
+        //         withdrawal_fee: '0.0005',
+        //         created_at: '1614718276',
+        //         updated_at: '1614720926',
+        //         payment_id: '',
+        //         transaction_hash: 'xxxxxxxx...',
+        //         broadcasted_at: '1614720762',
+        //         wallet_label: 'btc',
+        //         chain_name: 'Bitcoin',
+        //         network: null
+        //     },
+        //
+        // fetchDeposits
         //
         //     ...
         //
         const id = this.safeString (transaction, 'id');
         const address = this.safeString (transaction, 'address');
         const tag = this.safeString2 (transaction, 'payment_id', 'memo_value');
-        const txid = undefined;
-        const currencyId = this.safeString (transaction, 'asset');
+        const txid = this.safeString (transaction, 'transaction_hash');
+        const currencyId = this.safeString2 (transaction, 'currency', 'asset');
         const code = this.safeCurrencyCode (currencyId, currency);
         const timestamp = this.safeTimestamp (transaction, 'created_at');
         const updated = this.safeTimestamp (transaction, 'updated_at');
         const type = 'withdrawal';
         const status = this.parseTransactionStatus (this.safeString (transaction, 'state'));
-        const amount = this.safeNumber (transaction, 'amount');
+        const amountString = this.safeString (transaction, 'amount');
+        const feeCostString = this.safeString (transaction, 'withdrawal_fee');
+        const amount = this.parseNumber (Precise.stringSub (amountString, feeCostString));
+        const network = this.safeString (transaction, 'chain_name');
         return {
             'info': transaction,
             'id': id,
             'txid': txid,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
+            'network': network,
             'address': address,
+            'addressTo': undefined,
+            'addressFrom': undefined,
             'tag': tag,
+            'tagTo': undefined,
+            'tagFrom': undefined,
             'type': type,
             'amount': amount,
             'currency': code,
             'status': status,
             'updated': updated,
-            'fee': undefined,
+            'fee': {
+                'currency': code,
+                'cost': this.parseNumber (feeCostString),
+            },
         };
     }
 
@@ -1096,7 +1596,7 @@ module.exports = class liquid extends Exchange {
                 url += '?' + this.urlencode (query);
             }
         }
-        url = this.urls['api'] + url;
+        url = this.urls['api']['rest'] + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
@@ -1106,7 +1606,7 @@ module.exports = class liquid extends Exchange {
         }
         if (code === 401) {
             // expected non-json response
-            this.throwExactlyMatchedException (this.exceptions, body, body);
+            this.throwExactlyMatchedException (this.exceptions['exact'], body, body);
             return;
         }
         if (code === 429) {
@@ -1122,7 +1622,8 @@ module.exports = class liquid extends Exchange {
             //
             //  { "message": "Order not found" }
             //
-            this.throwExactlyMatchedException (this.exceptions, message, feedback);
+            this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
+            this.throwBroadlyMatchedException (this.exceptions['broad'], message, feedback);
         } else if (errors !== undefined) {
             //
             //  { "errors": { "user": ["not_enough_free_balance"] }}
@@ -1135,7 +1636,7 @@ module.exports = class liquid extends Exchange {
                 const errorMessages = errors[type];
                 for (let j = 0; j < errorMessages.length; j++) {
                     const message = errorMessages[j];
-                    this.throwExactlyMatchedException (this.exceptions, message, feedback);
+                    this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
                 }
             }
         } else {

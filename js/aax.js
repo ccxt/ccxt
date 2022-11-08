@@ -15,33 +15,104 @@ module.exports = class aax extends Exchange {
             'id': 'aax',
             'name': 'AAX',
             'countries': [ 'MT' ], // Malta
-            'enableRateLimit': true,
-            'rateLimit': 500,
+            // 6000 /  hour => 100 per minute => 1.66 requests per second => rateLimit = 600
+            // market endpoints ratelimits arent mentioned in docs so they are also set to "all other authenticated endpoints"
+            // 5000 / hour => weight = 1.2 ("all other authenticated endpoints")
+            // 600 / hour => weight = 10
+            // 200 / hour => weight = 30
+            'rateLimit': 600,
             'version': 'v2',
             'hostname': 'aaxpro.com', // aax.com
-            'certified': true,
             'pro': true,
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': true,
+                'swap': true,
+                'future': false,
+                'option': false,
+                'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
+                'cancelOrders': true,
+                'createDepositAddress': false,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
                 'editOrder': true,
+                'fetchAccounts': true,
                 'fetchBalance': true,
+                'fetchBidsAsks': undefined,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchCanceledOrders': true,
+                'fetchClosedOrder': undefined,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
+                'fetchDeposit': false,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDepositAddressesByNetwork': undefined,
+                'fetchDeposits': true,
+                'fetchFundingHistory': true,
+                'fetchFundingRate': true,
+                'fetchFundingRateHistory': true,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchL3OrderBook': undefined,
+                'fetchLedger': undefined,
+                'fetchLedgerEntry': undefined,
+                'fetchLeverage': undefined,
+                'fetchLeverageTiers': false,
+                'fetchMarginMode': false,
+                'fetchMarketLeverageTiers': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
+                'fetchOpenInterestHistory': false,
+                'fetchOpenOrder': undefined,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchOrderBooks': false,
                 'fetchOrders': true,
+                'fetchOrderTrades': undefined,
+                'fetchPosition': true,
+                'fetchPositionMode': false,
+                'fetchPositions': true,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
                 'fetchTicker': 'emulated',
                 'fetchTickers': true,
+                'fetchTime': true,
                 'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': false,
+                'fetchTradingLimits': undefined,
+                'fetchTransactionFee': undefined,
+                'fetchTransactionFees': undefined,
+                'fetchTransactions': undefined,
+                'fetchTransfer': false,
+                'fetchTransfers': true,
+                'fetchWithdrawal': false,
+                'fetchWithdrawals': true,
+                'fetchWithdrawalWhitelist': false,
+                'reduceMargin': false,
+                'setLeverage': true,
+                'setMargin': true,
+                'setMarginMode': false,
+                'setPositionMode': undefined,
+                'signIn': undefined,
+                'transfer': true,
+                'withdraw': false,
             },
             'timeframes': {
                 '1m': '1m',
@@ -68,10 +139,10 @@ module.exports = class aax extends Exchange {
                     'public': 'https://api.{hostname}',
                     'private': 'https://api.{hostname}',
                 },
-                'www': 'https://www.aaxpro.com', // string website URL
-                'doc': 'https://www.aaxpro.com/apidoc/index.html',
-                'fees': 'https://www.aaxpro.com/en-US/fees/',
-                'referral': 'https://www.aaxpro.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB',
+                'www': 'https://www.aax.com', // string website URL
+                'doc': 'https://www.aax.com/apidoc/index.html',
+                'fees': 'https://www.aax.com/en-US/vip/',
+                'referral': 'https://www.aax.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB',
             },
             'api': {
                 'v1': {
@@ -89,66 +160,73 @@ module.exports = class aax extends Exchange {
                     //     'tickers', // Get ticker of all markets
                     //     'tickers/{market}', // Get ticker of specific market
                     // ],
-                    'get': [
-                        'currencies',
-                        'announcement/maintenance', // System Maintenance Notice
-                        'instruments', // Retrieve all trading pairs information
-                        'market/orderbook', // Order Book
-                        'futures/position/openInterest', // Open Interest
-                        'market/tickers', // Get the Last 24h Market Summary
-                        'market/candles', // Get Current Candlestick
-                        'market/history/candles', // Get Current Candlestick
-                        'market/trades', // Get the Most Recent Trades
-                        'market/markPrice', // Get Current Mark Price
-                        'futures/funding/predictedFunding/{symbol}', // Get Predicted Funding Rate
-                        'futures/funding/prevFundingRate/{symbol}', // Get Last Funding Rate
-                        'market/candles/index', // Get Current Index Candlestick
-                    ],
+                    'get': {
+                        'currencies': 1.2,
+                        'announcement/maintenance': 1.2, // System Maintenance Notice
+                        'time': 1.2,
+                        'instruments': 1.2, // Retrieve all trading pairs information
+                        'market/orderbook': 1.2, // Order Book
+                        'futures/position/openInterest': 1.2, // Open Interest
+                        'market/tickers': 1.2, // Get the Last 24h Market Summary
+                        'market/candles': 1.2, // Get Current Candlestick
+                        'market/history/candles': 1.2, // Get Current Candlestick
+                        'market/trades': 1.2, // Get the Most Recent Trades
+                        'market/markPrice': 1.2, // Get Current Mark Price
+                        'futures/funding/predictedFunding/{symbol}': 1.2, // Get Predicted Funding Rate
+                        'futures/funding/prevFundingRate/{symbol}': 1.2, // Get Last Funding Rate
+                        'futures/funding/fundingRate': 1.2,
+                        'market/candles/index': 1.2, // * Deprecated
+                        'market/index/candles': 1.2,
+                    },
                 },
                 'private': {
-                    'get': [
-                        'user/info', // Retrieve user information
-                        'account/balances', // Get Account Balances
-                        'account/deposit/address', // undocumented
-                        'spot/trades', // Retrieve trades details for a spot order
-                        'spot/openOrders', // Retrieve spot open orders
-                        'spot/orders', // Retrieve historical spot orders
-                        'futures/position', // Get positions for all contracts
-                        'futures/position/closed', // Get closed positions
-                        'futures/trades', // Retrieve trade details for a futures order
-                        'futures/openOrders', // Retrieve futures open orders
-                        'futures/orders', // Retrieve historical futures orders
-                        'futures/funding/predictedFundingFee/{symbol}', // Get predicted funding fee
-                    ],
-                    'post': [
-                        'account/transfer', // Asset Transfer
-                        'spot/orders', // Create a new spot order
-                        'spot/orders/cancelAllOnTimeout', // Automatically cancel all your spot orders after a specified timeout.
-                        'futures/orders', // Create a new futures order
-                        'futures/orders/cancelAllOnTimeout', // Automatically cancel all your futures orders after a specified timeout.
-                        'futures/position/sltp', // Set take profit and stop loss orders for an opening position
-                        'futures/position/close', // Close position
-                        'futures/position/leverage', // Update leverage for position
-                        'futures/position/margin', // Modify Isolated Position Margin
-                    ],
-                    'put': [
-                        'spot/orders', // Amend spot order
-                        'futures/orders', // Amend the quantity of an open futures order
-                    ],
-                    'delete': [
-                        'spot/orders/cancel/{orderID}', // Cancel a spot order
-                        'spot/orders/cancel/all', // Batch cancel spot orders
-                        'futures/orders/cancel/{orderID}', // Cancel a futures order
-                        'futures/orders/cancel/all', // Batch cancel futures orders
-                    ],
+                    'get': {
+                        'user/info': 1.2, // Retrieve user information
+                        'account/balances': 1.2, // Get Account Balances
+                        'account/deposit/address': 1.2, // undocumented
+                        'account/deposits': 1.2, // Get account deposits history
+                        'account/transfer': 1.2,
+                        'account/withdraws': 1.2, // Get account withdrawals history
+                        'spot/trades': 1.2, // Retrieve trades details for a spot order
+                        'spot/openOrders': 1.2, // Retrieve spot open orders
+                        'spot/orders': 1.2, // Retrieve historical spot orders
+                        'futures/position': 1.2, // Get positions for all contracts
+                        'futures/position/closed': 1.2, // Get closed positions
+                        'futures/trades': 1.2, // Retrieve trade details for a futures order
+                        'futures/openOrders': 1.2, // Retrieve futures open orders
+                        'futures/orders': 1.2, // Retrieve historical futures orders
+                        'futures/funding/fundingFee': 1.2,
+                        'futures/funding/predictedFundingFee/{symbol}': 1.2, // Get predicted funding fee
+                    },
+                    'post': {
+                        'account/transfer': 1.2, // Asset Transfer
+                        'spot/orders': 1.2, // Create a new spot order
+                        'spot/orders/cancelAllOnTimeout': 10, // Automatically cancel all your spot orders after a specified timeout.
+                        'futures/orders': 1.2, // Create a new futures order
+                        'futures/orders/cancelAllOnTimeout': 10, // Automatically cancel all your futures orders after a specified timeout.
+                        'futures/position/sltp': 1.2, // Set take profit and stop loss orders for an opening position
+                        'futures/position/close': 1.2, // Close position
+                        'futures/position/leverage': 30, // Update leverage for position
+                        'futures/position/margin': 1.2, // Modify Isolated Position Margin
+                    },
+                    'put': {
+                        'spot/orders': 1.2, // Amend spot order
+                        'futures/orders': 1.2, // Amend the quantity of an open futures order
+                    },
+                    'delete': {
+                        'spot/orders/cancel/{orderID}': 1, // Cancel a spot order
+                        'spot/orders/cancel/all': 10, // Batch cancel spot orders
+                        'futures/orders/cancel/{orderID}': 1, // Cancel a futures order
+                        'futures/orders/cancel/all': 10, // Batch cancel futures orders
+                    },
                 },
             },
             'fees': {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.06 / 100,
-                    'taker': 0.10 / 100,
+                    'maker': this.parseNumber ('0.0006'),
+                    'taker': this.parseNumber ('0.001'),
                 },
                 'funding': {
                     'tierBased': false,
@@ -234,54 +312,117 @@ module.exports = class aax extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'defaultType': 'spot', // 'spot', 'future'
-                'types': {
+                'accountsByType': {
                     'spot': 'SPTP',
                     'future': 'FUTP',
                     'otc': 'F2CP',
                     'saving': 'VLTP',
                 },
-                'accounts': {
+                'accountsById': {
                     'SPTP': 'spot',
                     'FUTP': 'future',
                     'F2CP': 'otc',
                     'VLTP': 'saving',
                 },
+                'networks': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                    'SOL': 'SPL',
+                },
+                'transfer': {
+                    'fillResponseFromRequest': true,
+                },
             },
         });
     }
 
+    async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name aax#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
+        const response = await this.publicGetTime (params);
+        //
+        //    {
+        //        "code": 1,
+        //        "data": 1573542445411,  // unit: millisecond
+        //        "message": "success",
+        //        "ts": 1573542445411
+        //    }
+        //
+        return this.safeInteger (response, 'data');
+    }
+
     async fetchStatus (params = {}) {
+        /**
+         * @method
+         * @name aax#fetchStatus
+         * @description the latest known information on the availability of the exchange API
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
+         */
         const response = await this.publicGetAnnouncementMaintenance (params);
+        //
+        // note, when there is no maintenance, then data is `null`
         //
         //     {
         //         "code": 1,
         //         "data": {
         //             "startTime":"2020-06-25T02:15:00.000Z",
         //             "endTime":"2020-06-25T02:45:00.000Z"，
-        //             "description":"Spot Trading :UTC Jun 25, 2020 02:15 to 02:45 (HKT Jun 25 10:15 to 10:45),Futures Trading: UTC Jun 25, 2020 02:15 to 02:45 (HKT Jun 25 10:15 to 10:45).We apologize for any inconvenience caused. Thank you for your patience and understanding.Should you have any enquiries, please do not hesitate our live chat support or via email at cs@aax.com."
+        //             "description":"Spot Trading :UTC Jun 25, 2020 02:15 to 02:45 (HKT Jun 25 10:15 to 10:45),Futures Trading: UTC Jun 25, 2020 02:15 to 02:45 (HKT Jun 25 10:15 to 10:45).We apologize for any inconvenience caused. Thank you for your patience and understanding.Should you have any enquiries, please do not hesitate our live chat support or via email at cs@aax.com.",
+        //             "haltReason":1,
+        //             "systemStatus":{
+        //                 "spotTrading":"readOnly",
+        //                 "futuresTreading":"closeOnly",
+        //                 "walletOperating":"enable",
+        //                 "otcTrading":"disable"
+        //             },
         //         },
         //         "message":"success",
         //         "ts":1593043237000
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
         const timestamp = this.milliseconds ();
-        const startTime = this.parse8601 (this.safeString (data, 'startTime'));
-        const endTime = this.parse8601 (this.safeString (data, 'endTime'));
-        const update = {
-            'updated': this.safeInteger (response, 'ts', timestamp),
-        };
-        if (endTime !== undefined) {
-            const startTimeIsOk = (startTime === undefined) ? true : (timestamp < startTime);
-            const isOk = (timestamp > endTime) || startTimeIsOk;
-            update['eta'] = endTime;
-            update['status'] = isOk ? 'ok' : 'maintenance';
+        const updated = this.safeInteger (response, 'ts', timestamp);
+        const data = this.safeValue (response, 'data', {});
+        let status = undefined;
+        let eta = undefined;
+        if (data) {
+            const startTime = this.parse8601 (this.safeString (data, 'startTime'));
+            const endTime = this.parse8601 (this.safeString (data, 'endTime'));
+            if (endTime !== undefined) {
+                const startTimeIsOk = (startTime === undefined) ? true : (updated < startTime);
+                const isOk = (updated > endTime) || startTimeIsOk;
+                eta = endTime;
+                status = isOk ? 'ok' : 'maintenance';
+            } else {
+                status = data;
+            }
+        } else {
+            eta = undefined;
+            status = 'ok';
         }
-        this.status = this.extend (this.status, update);
-        return this.status;
+        return {
+            'status': status,
+            'updated': updated,
+            'eta': eta,
+            'url': undefined,
+            'info': response,
+        };
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name aax#fetchMarkets
+         * @description retrieves data on all markets for aax
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[object]} an array of objects representing market data
+         */
         const response = await this.publicGetInstruments (params);
         //
         //     {
@@ -355,142 +496,212 @@ module.exports = class aax extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
             const id = this.safeString (market, 'symbol');
             const baseId = this.safeString (market, 'base');
             const quoteId = this.safeString (market, 'quote');
+            const settleId = this.safeString (market, 'settleCurrency');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            const settle = this.safeCurrencyCode (settleId);
             const status = this.safeString (market, 'status');
-            const active = (status === 'enable');
-            const taker = this.safeNumber (market, 'takerFee');
-            const maker = this.safeNumber (market, 'makerFee');
-            const type = this.safeString (market, 'type');
+            const marketType = this.safeString (market, 'type');
             let inverse = undefined;
             let linear = undefined;
             let quanto = undefined;
-            const spot = (type === 'spot');
-            const futures = (type === 'futures');
+            const spot = (marketType === 'spot');
+            const swap = (marketType === 'futures');
             const settleType = this.safeStringLower (market, 'settleType');
             if (settleType !== undefined) {
                 inverse = (settleType === 'inverse');
                 linear = (settleType === 'vanilla');
                 quanto = (settleType === 'quanto');
             }
-            let symbol = id;
-            if (type === 'spot') {
-                symbol = base + '/' + quote;
+            let symbol = base + '/' + quote;
+            let type = 'spot';
+            let contractSize = undefined;
+            let minLeverage = undefined;
+            let maxLeverage = undefined;
+            if (swap) {
+                symbol = symbol + ':' + settle;
+                type = 'swap';
+                contractSize = this.safeNumber (market, 'multiplier');
+                minLeverage = '1';
+                const imRate = this.safeString (market, 'imRate');
+                maxLeverage = Precise.stringDiv ('1', imRate);
             }
-            const precision = {
-                'amount': this.safeNumber (market, 'lotSize'),
-                'price': this.safeNumber (market, 'tickSize'),
-            };
             result.push ({
                 'id': id,
                 'symbol': symbol,
                 'base': base,
                 'quote': quote,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': settleId,
                 'type': type,
                 'spot': spot,
-                'futures': futures,
-                'inverse': inverse,
+                'margin': false,
+                'swap': swap,
+                'future': false,
+                'option': false,
+                'active': (status === 'enable'),
+                'contract': swap,
                 'linear': linear,
+                'inverse': inverse,
                 'quanto': quanto,
-                'precision': precision,
-                'info': market,
-                'active': active,
-                'taker': taker,
-                'maker': maker,
-                'percentage': false,
-                'tierBased': true,
+                'taker': this.safeNumber (market, 'takerFee'),
+                'maker': this.safeNumber (market, 'makerFee'),
+                'contractSize': contractSize,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.safeNumber (market, 'lotSize'),
+                    'price': this.safeNumber (market, 'tickSize'),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': this.parseNumber (minLeverage),
+                        'max': this.parseNumber (maxLeverage),
+                    },
                     'amount': {
-                        'min': this.safeString (market, 'minQuantity'),
-                        'max': this.safeString (market, 'maxQuantity'),
+                        'min': this.safeNumber (market, 'minQuantity'),
+                        'max': this.safeNumber (market, 'maxQuantity'),
                     },
                     'price': {
-                        'min': this.safeString (market, 'minPrice'),
-                        'max': this.safeString (market, 'maxPrice'),
+                        'min': this.safeNumber (market, 'minPrice'),
+                        'max': this.safeNumber (market, 'maxPrice'),
                     },
                     'cost': {
                         'min': undefined,
                         'max': undefined,
                     },
                 },
+                'info': market,
             });
         }
         return result;
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name aax#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
         const response = await this.publicGetCurrencies (params);
         //
         //     {
-        //         "code":1,
-        //         "data":[
+        //         "code": 1,
+        //         "data": [
         //             {
-        //                 "chain":"BTC",
-        //                 "displayName":"Bitcoin",
-        //                 "withdrawFee":"0.0004",
-        //                 "withdrawMin":"0.001",
-        //                 "otcFee":"0",
-        //                 "enableOTC":true,
-        //                 "visible":true,
-        //                 "enableTransfer":true,
-        //                 "transferMin":"0.00001",
-        //                 "depositMin":"0.0005",
-        //                 "enableWithdraw":true,
-        //                 "enableDeposit":true,
-        //                 "addrWithMemo":false,
-        //                 "withdrawPrecision":"0.00000001",
-        //                 "currency":"BTC",
-        //                 "network":"BTC", // ETH, ERC20, TRX, TRC20, OMNI, LTC, XRP, XLM, ...
-        //                 "minConfirm":"2"
+        //                 "chain": "BTC",
+        //                 "displayName": "Bitcoin",
+        //                 "withdrawFee": "0.0004",
+        //                 "withdrawMin": "0.001",
+        //                 "otcFee": "0",
+        //                 "enableOTC": true,
+        //                 "visible": true,
+        //                 "enableTransfer": true,
+        //                 "transferMin": "0.00001",
+        //                 "depositMin": "0.0005",
+        //                 "enableWithdraw": true,
+        //                 "enableDeposit": true,
+        //                 "addrWithMemo": false,
+        //                 "withdrawPrecision": "0.00000001",
+        //                 "currency": "BTC",
+        //                 "network": "BTC", // ETH, ERC20, TRX, TRC20, OMNI, LTC, XRP, XLM, ...
+        //                 "minConfirm": "2"
         //             },
         //         ],
-        //         "message":"success",
-        //         "ts":1624330530697
+        //         "message": "success",
+        //         "ts": 1624330530697
         //     }
         //
         const result = {};
         const data = this.safeValue (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const currency = data[i];
-            const id = this.safeString (currency, 'chain');
-            const name = this.safeString (currency, 'displayName');
+            const id = this.safeString (currency, 'currency');
             const code = this.safeCurrencyCode (id);
-            const precision = this.safeNumber (currency, 'withdrawPrecision');
+            const networkId = this.safeString (currency, 'network');
             const enableWithdraw = this.safeValue (currency, 'enableWithdraw');
             const enableDeposit = this.safeValue (currency, 'enableDeposit');
-            const fee = this.safeNumber (currency, 'withdrawFee');
             const visible = this.safeValue (currency, 'visible');
             const active = (enableWithdraw && enableDeposit && visible);
-            const network = this.safeString (currency, 'network');
-            result[code] = {
-                'id': id,
-                'name': name,
-                'code': code,
-                'precision': precision,
+            const network = {
                 'info': currency,
-                'active': active,
-                'fee': fee,
-                'network': network,
+                'id': networkId,
+                'network': this.safeCurrencyCode (networkId),
                 'limits': {
-                    'deposit': {
-                        'min': this.safeNumber (currency, 'depositMin'),
-                        'max': undefined,
-                    },
                     'withdraw': {
                         'min': this.safeNumber (currency, 'withdrawMin'),
                         'max': undefined,
                     },
+                    'deposit': {
+                        'min': this.safeNumber (currency, 'depositMin'),
+                        'max': undefined,
+                    },
                 },
+                'active': active,
+                'withdraw': enableWithdraw && visible,
+                'deposit': enableDeposit && visible,
+                'fee': this.safeNumber (currency, 'withdrawFee'),
+                'precision': this.safeNumber (currency, 'withdrawPrecision'),
             };
+            const resultItem = this.safeValue (result, code);
+            const fee = this.safeString (currency, 'withdrawFee');
+            const precision = this.safeString (currency, 'withdrawPrecision');
+            const depositMin = this.safeString (currency, 'depositMin');
+            const withdrawMin = this.safeString (currency, 'withdrawMin');
+            if (resultItem !== undefined) {
+                resultItem['networks'].push (network);
+                const previousPrecision = resultItem['precision'].toString ();
+                const previousDepositMin = resultItem['limits']['deposit']['min'].toString ();
+                const previousWithdrawMin = resultItem['limits']['withdraw']['min'].toString ();
+                const previousFee = resultItem['fee'].toString ();
+                resultItem['precision'] = this.parseNumber (Precise.stringMax (previousPrecision, precision));
+                resultItem['limits']['deposit']['min'] = this.parseNumber (Precise.stringMin (previousDepositMin, depositMin));
+                resultItem['limits']['withdraw']['min'] = this.parseNumber (Precise.stringMin (previousWithdrawMin, withdrawMin));
+                resultItem['fee'] = this.parseNumber (Precise.stringMin (previousFee, fee));
+            } else {
+                const name = this.safeString (currency, 'displayName');
+                const deposit = (enableDeposit && visible);
+                const withdraw = (enableWithdraw && visible);
+                result[code] = {
+                    'info': {},
+                    'id': id,
+                    'name': name,
+                    'code': code,
+                    'precision': this.parseNumber (precision),
+                    'active': active,
+                    'deposit': deposit,
+                    'withdraw': withdraw,
+                    'fee': this.parseNumber (fee),
+                    'networks': [ network ],
+                    'limits': {
+                        'amount': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': this.parseNumber (depositMin),
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': this.parseNumber (withdrawMin),
+                            'max': undefined,
+                        },
+                    },
+                };
+            }
         }
         return result;
     }
@@ -512,25 +723,15 @@ module.exports = class aax extends Exchange {
         const timestamp = this.safeInteger (ticker, 't');
         const marketId = this.safeString (ticker, 's');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeNumber (ticker, 'c');
-        const open = this.safeNumber (ticker, 'o');
-        let change = undefined;
-        let percentage = undefined;
-        let average = undefined;
-        if (last !== undefined && open !== undefined) {
-            change = last - open;
-            if (open > 0) {
-                percentage = change / open * 100;
-            }
-            average = this.sum (last, open) / 2;
-        }
-        const quoteVolume = this.safeNumber (ticker, 'v');
-        return {
+        const last = this.safeString (ticker, 'c');
+        const open = this.safeString (ticker, 'o');
+        const quoteVolume = this.safeString (ticker, 'v');
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'h'),
-            'low': this.safeNumber (ticker, 'l'),
+            'datetime': undefined,
+            'high': this.safeString (ticker, 'h'),
+            'low': this.safeString (ticker, 'l'),
             'bid': undefined,
             'bidVolume': undefined,
             'ask': undefined,
@@ -540,17 +741,131 @@ module.exports = class aax extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': change,
-            'percentage': percentage,
-            'average': average,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
             'baseVolume': undefined,
             'quoteVolume': quoteVolume,
             'info': ticker,
+        }, market);
+    }
+
+    async setMargin (symbol, amount, params = {}) {
+        /**
+         * @method
+         * @name aax#setMargin
+         * @description Either adds or reduces margin in an isolated position in order to set the margin to a specific value
+         * @see https://www.aax.com/apidoc/index.html#modify-isolated-position-margin
+         * @param {string} symbol unified market symbol of the market to set margin in
+         * @param {float} amount the amount to set the margin to
+         * @param {object} params parameters specific to the aax api endpoint
+         * @returns {object} A [margin structure]{@link https://docs.ccxt.com/en/latest/manual.html#add-margin-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'margin': amount,
+        };
+        const response = await this.privatePostFuturesPositionMargin (this.extend (request, params));
+        //
+        //     {
+        //         code: '1',
+        //         data: {
+        //             autoMarginCall: false,
+        //             avgEntryPrice: '0.52331',
+        //             bankruptPrice: '0.3185780400',
+        //             base: 'ADA',
+        //             code: 'FP',
+        //             commission: '0.00031399',
+        //             currentQty: '1',
+        //             funding: '0',
+        //             fundingStatus: null,
+        //             id: '447888550222172160',
+        //             leverage: '5.25',
+        //             liquidationPrice: '0.324007',
+        //             marketPrice: '0',
+        //             openTime: '2022-05-20T14:30:42.759Z',
+        //             posLeverage: '2.56',
+        //             posMargin: '0.20473196',
+        //             quote: 'USDT',
+        //             realisedPnl: '0',
+        //             riskLimit: '10000000',
+        //             riskyPrice: '0.403728',
+        //             settleType: 'VANILLA',
+        //             stopLossPrice: '0',
+        //             stopLossSource: '0',
+        //             symbol: 'ADAUSDTFP',
+        //             takeProfitPrice: '0',
+        //             takeProfitSource: '0',
+        //             unrealisedPnl: '-0.00151000',
+        //             userID: '3311296'
+        //         },
+        //         message: 'success',
+        //         ts: '1653057280756'
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseModifyMargin (data, market);
+    }
+
+    parseModifyMargin (data, market = undefined) {
+        //
+        //     {
+        //         autoMarginCall: false,
+        //         avgEntryPrice: '0.52331',
+        //         bankruptPrice: '0.3185780400',
+        //         base: 'ADA',
+        //         code: 'FP',
+        //         commission: '0.00031399',
+        //         currentQty: '1',
+        //         funding: '0',
+        //         fundingStatus: null,
+        //         id: '447888550222172160',
+        //         leverage: '5.25',
+        //         liquidationPrice: '0.324007',
+        //         marketPrice: '0',
+        //         openTime: '2022-05-20T14:30:42.759Z',
+        //         posLeverage: '2.56',
+        //         posMargin: '0.20473196',
+        //         quote: 'USDT',
+        //         realisedPnl: '0',
+        //         riskLimit: '10000000',
+        //         riskyPrice: '0.403728',
+        //         settleType: 'VANILLA',
+        //         stopLossPrice: '0',
+        //         stopLossSource: '0',
+        //         symbol: 'ADAUSDTFP',
+        //         takeProfitPrice: '0',
+        //         takeProfitSource: '0',
+        //         unrealisedPnl: '-0.00151000',
+        //         userID: '3315296'
+        //     }
+        //
+        const marketId = this.safeString (data, 'symbol');
+        const quote = this.safeString (data, 'quote');
+        return {
+            'info': data,
+            'type': 'set',
+            'amount': undefined,
+            'total': this.safeNumber (data, 'posMargin'),
+            'code': this.safeCurrencyCode (quote),
+            'symbol': this.safeSymbol (marketId, market),
+            'status': undefined,
         };
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.publicGetMarketTickers (params);
         //
         //     {
@@ -581,8 +896,18 @@ module.exports = class aax extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         if (limit === undefined) {
             limit = 20;
         } else {
@@ -621,9 +946,11 @@ module.exports = class aax extends Exchange {
         // public fetchTrades
         //
         //     {
-        //         "p":"9395.50000000",
-        //         "q":"50.000000",
-        //         "t":1592563996718
+        //         "i":"T1qzQeZG9g",
+        //         "p":"-61348.81000000",
+        //         "q":"0.045400",
+        //         "s":"sell",
+        //         "t":1635731102731
         //     }
         //
         // private fetchMyTrades
@@ -662,13 +989,10 @@ module.exports = class aax extends Exchange {
         if (timestamp === undefined) {
             timestamp = this.parse8601 (this.safeString (trade, 'createTime'));
         }
-        const id = this.safeString2 (trade, 'tid', 'tradeID');
-        let symbol = undefined;
+        let id = this.safeString2 (trade, 'tid', 'tradeID');
+        id = this.safeString (trade, 'i', id);
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
         let priceString = this.safeString2 (trade, 'p', 'filledPrice');
         const amountString = this.safeString2 (trade, 'q', 'filledQty');
         const orderId = this.safeString (trade, 'orderID');
@@ -687,44 +1011,91 @@ module.exports = class aax extends Exchange {
             side = (priceString[0] === '-') ? 'sell' : 'buy';
         }
         priceString = Precise.stringAbs (priceString);
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const orderType = this.parseOrderType (this.safeString (trade, 'orderType'));
         let fee = undefined;
-        const feeCost = this.safeNumber (trade, 'commission');
+        const feeCost = this.safeString (trade, 'commission');
         if (feeCost !== undefined) {
             let feeCurrency = undefined;
-            if (market !== undefined) {
-                if (side === 'buy') {
-                    feeCurrency = market['base'];
-                } else if (side === 'sell') {
-                    feeCurrency = market['quote'];
-                }
+            if (side === 'buy') {
+                feeCurrency = market['base'];
+            } else if (side === 'sell') {
+                feeCurrency = market['quote'];
             }
             fee = {
                 'currency': feeCurrency,
                 'cost': feeCost,
             };
         }
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': orderType,
             'side': side,
             'order': orderId,
             'takerOrMaker': takerOrMaker,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'fee': fee,
-        };
+        }, market);
+    }
+
+    async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#fetchTransfers
+         * @description fetch a history of internal transfers made on an account
+         * @param {string|undefined} code unified currency code of the currency transferred
+         * @param {int|undefined} since the earliest time in ms to fetch transfers for
+         * @param {int|undefined} limit the maximum number of  transfers structures to retrieve
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {[object]} a list of [transfer structures]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {};
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const response = await this.privateGetAccountTransfer (this.extend (request, params));
+        //
+        //      {
+        //          code: '1',
+        //          data: [{
+        //                  quantity: '0.000010000000',
+        //                  transferID: '480975741034369024',
+        //                  transferTime: '2022-03-24T13:53:07.042Z',
+        //                  fromPurse: 'VLTP',
+        //                  toPurse: 'SPTP',
+        //                  currency: 'ETH'
+        //              },
+        //          ],
+        //          message: 'success',
+        //          ts: '1648338516932'
+        //      }
+        //
+        const transfers = this.safeValue (response, 'data', []);
+        return this.parseTransfers (transfers, currency, since, limit);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         limit = (limit === undefined) ? 2000 : limit;
@@ -736,11 +1107,12 @@ module.exports = class aax extends Exchange {
         const response = await this.publicGetMarketTrades (request);
         //
         //     {
-        //         "e":"BTCUSDFP@trades",
-        //         "trades": [
-        //             {"p":"9395.50000000","q":"50.000000","t":1592563996718},
-        //             {"p":"9395.50000000","q":"50.000000","t":1592563993577},
-        //         ],
+        //         "e":"BTCUSDT@trades",
+        //         "trades":[
+        //             {"i":"T1qzQeZG9g","p":"-61348.81000000","q":"0.045400","s":"sell","t":1635731102731},
+        //             {"i":"T1qzQeU6UK","p":"61343.10000000","q":"0.179300","s":"buy","t":1635731102133},
+        //             {"i":"T1qzQe5BQm","p":"-61346.02000000","q":"0.021100","s":"sell","t":1635731099231},
+        //         ]
         //     }
         //
         const trades = this.safeValue (response, 'trades', []);
@@ -754,21 +1126,33 @@ module.exports = class aax extends Exchange {
         //         0.042684, // 1 high
         //         0.042366, // 2 low
         //         0.042386, // 3 close
-        //         0.93734243, // 4 volume
+        //         1374.66736, // 4 quote-volume
         //         1611514800, // 5 timestamp
+        //         32421.4, // 6 base-volume
         //     ]
         //
         return [
-            this.safeTimestamp (ohlcv, 5),
-            this.safeNumber (ohlcv, 0),
-            this.safeNumber (ohlcv, 1),
-            this.safeNumber (ohlcv, 2),
-            this.safeNumber (ohlcv, 3),
-            this.safeNumber (ohlcv, 4),
+            this.safeInteger (ohlcv, 5), // timestamp
+            this.safeNumber (ohlcv, 0), // open
+            this.safeNumber (ohlcv, 1), // high
+            this.safeNumber (ohlcv, 2), // low
+            this.safeNumber (ohlcv, 3), // close
+            this.safeNumber (ohlcv, 6), // base-volume
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -791,9 +1175,8 @@ module.exports = class aax extends Exchange {
         //
         //     {
         //         "data":[
-        //             [0.042398,0.042684,0.042366,0.042386,0.93734243,1611514800],
-        //             [0.042386,0.042602,0.042234,0.042373,1.01925239,1611518400],
-        //             [0.042373,0.042558,0.042362,0.042389,0.93801705,1611522000],
+        //             [0.042398,0.042684,0.042366,0.042386,1374.66736,1611514800,32421.4],
+        //             ...
         //         ],
         //         "success":true,
         //         "t":1611875157
@@ -803,11 +1186,72 @@ module.exports = class aax extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
+    async fetchAccounts (params = {}) {
+        /**
+         * @method
+         * @name aax#fetchAccounts
+         * @description fetch all the accounts associated with a profile
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} a dictionary of [account structures]{@link https://docs.ccxt.com/en/latest/manual.html#account-structure} indexed by the account type
+         */
+        const response = await this.privateGetAccountBalances (params);
+        //
+        //     {
+        //         "code":1,
+        //         "data":[
+        //             {
+        //                 "purseType":"FUTP",
+        //                 "currency":"BTC",
+        //                 "available":"0.41000000",
+        //                 "unavailable":"0.00000000"
+        //             },
+        //             {
+        //                 "purseType":"FUTP",
+        //                 "currency":"USDT",
+        //                 "available":"0.21000000",
+        //                 "unvaliable":"0.00000000"
+        //             }
+        //         ]
+        //         "message":"success",
+        //         "ts":1573530401020
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseAccounts (data);
+    }
+
+    parseAccount (account) {
+        //
+        //    {
+        //        "purseType":"FUTP",
+        //        "currency":"USDT",
+        //        "available":"0.21000000",
+        //        "unvaliable":"0.00000000"
+        //    }
+        //
+        const currencyId = this.safeString (account, 'currency');
+        const accountId = this.safeString (account, 'purseType');
+        const accountsById = this.safeValue (this.options, 'accountsById', {});
+        return {
+            'info': account,
+            'id': undefined,
+            'code': this.safeCurrencyCode (currencyId),
+            'type': this.safeString (accountsById, accountId, accountId),
+        };
+    }
+
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name aax#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
         const type = this.safeString (params, 'type', defaultType);
-        const types = this.safeValue (this.options, 'types', {});
+        const types = this.safeValue (this.options, 'accountsByType', {});
         const purseType = this.safeString (types, type, type);
         const request = {
             'purseType': purseType,
@@ -835,7 +1279,7 @@ module.exports = class aax extends Exchange {
         //         "ts":1573530401020
         //     }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const timestamp = this.safeInteger (response, 'ts');
         const result = {
             'info': response,
@@ -854,10 +1298,22 @@ module.exports = class aax extends Exchange {
                 result[code] = account;
             }
         }
-        return this.parseBalance (result, false);
+        return this.safeBalance (result);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#createOrder
+         * @description create a trade order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         let orderType = type.toUpperCase ();
         const orderSide = side.toUpperCase ();
         await this.loadMarkets ();
@@ -870,19 +1326,22 @@ module.exports = class aax extends Exchange {
             // 'stopPrice': this.priceToPrecision (symbol, stopPrice),
             // 'clOrdID': clientOrderId, // up to 20 chars, lowercase and uppercase letters only
             // 'timeInForce': 'GTC', // GTC, IOC, FOK, default is GTC
-            // 'execInst': 'Post-Only', // the only value supported by the exchange, futures-only
+            // 'execInst': 'Post-Only', // the only value supported by the exchange, futures and spot
         };
-        const timeInForce = this.safeString (params, 'timeInForce');
-        if (timeInForce !== undefined) {
-            request['timeInForce'] = timeInForce;
-            params = this.omit (params, 'timeInForce');
-        }
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clOrdID'] = clientOrderId;
-            params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
         }
-        const stopPrice = this.safeNumber (params, 'stopPrice');
+        const postOnly = this.isPostOnly (orderType === 'MARKET', undefined, params);
+        const timeInForce = this.safeString (params, 'timeInForce');
+        if (postOnly) {
+            request['execInst'] = 'Post-Only';
+        }
+        if (timeInForce !== undefined && timeInForce !== 'PO') {
+            request['timeInForce'] = timeInForce;
+        }
+        const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
+        params = this.omit (params, [ 'clOrdID', 'clientOrderId', 'postOnly', 'timeInForce', 'stopPrice', 'triggerPrice' ]);
         if (stopPrice === undefined) {
             if ((orderType === 'STOP-LIMIT') || (orderType === 'STOP')) {
                 throw new ArgumentsRequired (this.id + ' createOrder() requires a stopPrice parameter for ' + orderType + ' orders');
@@ -894,7 +1353,6 @@ module.exports = class aax extends Exchange {
                 orderType = 'STOP';
             }
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
-            params = this.omit (params, 'stopPrice');
         }
         if (orderType === 'LIMIT' || orderType === 'STOP-LIMIT') {
             request['price'] = this.priceToPrecision (symbol, price);
@@ -903,7 +1361,7 @@ module.exports = class aax extends Exchange {
         let method = undefined;
         if (market['spot']) {
             method = 'privatePostSpotOrders';
-        } else if (market['futures']) {
+        } else if (market['contract']) {
             method = 'privatePostFuturesOrders';
         }
         const response = await this[method] (this.extend (request, params));
@@ -1000,7 +1458,7 @@ module.exports = class aax extends Exchange {
             // 'price': this.priceToPrecision (symbol, price),
             // 'stopPrice': this.priceToPrecision (symbol, stopPrice),
         };
-        const stopPrice = this.safeNumber (params, 'stopPrice');
+        const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
         if (stopPrice !== undefined) {
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             params = this.omit (params, 'stopPrice');
@@ -1014,7 +1472,7 @@ module.exports = class aax extends Exchange {
         let method = undefined;
         if (market['spot']) {
             method = 'privatePutSpotOrders';
-        } else if (market['futures']) {
+        } else if (market['contract']) {
             method = 'privatePutFuturesOrders';
         }
         const response = await this[method] (this.extend (request, params));
@@ -1103,25 +1561,30 @@ module.exports = class aax extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#cancelOrder
+         * @description cancels an open order
+         * @param {string} id order id
+         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'orderID': id,
         };
-        let method = undefined;
-        const defaultType = this.safeString2 (this.options, 'cancelOrder', 'defaultType', 'spot');
-        let type = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
-            type = market['type'];
         }
-        if (type === 'spot') {
-            method = 'privateDeleteSpotOrdersCancelOrderID';
-        } else if (type === 'futures') {
-            method = 'privateDeleteFuturesOrdersCancelOrderID';
-        }
-        const response = await this[method] (this.extend (request, params));
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateDeleteSpotOrdersCancelOrderID',
+            'swap': 'privateDeleteFuturesOrdersCancelOrderID',
+            'future': 'privateDeleteFuturesOrdersCancelOrderID',
+        });
+        const response = await this[method] (this.extend (request, query));
         //
         // spot
         //
@@ -1205,7 +1668,58 @@ module.exports = class aax extends Exchange {
         return this.parseOrder (data, market);
     }
 
+    async cancelOrders (ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#cancelOrders
+         * @description cancel all open orders in a market
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {[object]} raw data of order ids queued for cancelation
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        let method = undefined;
+        if (market['spot']) {
+            method = 'privateDeleteSpotOrdersCancelAll';
+        } else if (market['contract']) {
+            method = 'privateDeleteFuturesOrdersCancelAll';
+        }
+        const clientOrderIds = this.safeValue (params, 'clientOrderIds');
+        // cannot cancel both by orderId and clientOrderId in the same request
+        // aax throws an error saying order not found
+        if (clientOrderIds !== undefined) {
+            params = this.omit (params, [ 'clientOrderIds' ]);
+            request['clOrdID'] = clientOrderIds.join (',');
+        } else if (ids !== undefined) {
+            request['orderID'] = ids.join (',');
+        }
+        //
+        //  {
+        //      "code": 1,
+        //      "data": [ "2gaB7mSf72", "2gaB79T5UA" ],
+        //      "message": "success",
+        //      "ts": 1663021367883
+        //  }
+        //
+        return await this[method] (this.extend (request, params));
+    }
+
     async cancelAllOrders (symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#cancelAllOrders
+         * @description cancel all open orders in a market
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
         }
@@ -1217,7 +1731,7 @@ module.exports = class aax extends Exchange {
         let method = undefined;
         if (market['spot']) {
             method = 'privateDeleteSpotOrdersCancelAll';
-        } else if (market['futures']) {
+        } else if (market['contract']) {
             method = 'privateDeleteFuturesOrdersCancelAll';
         }
         const response = await this[method] (this.extend (request, params));
@@ -1236,6 +1750,14 @@ module.exports = class aax extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const defaultType = this.safeString2 (this.options, 'fetchOrder', 'defaultType', 'spot');
         params['type'] = this.safeString (params, 'type', defaultType);
@@ -1260,6 +1782,16 @@ module.exports = class aax extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {string|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             // 'pageNum': '1',
@@ -1269,30 +1801,26 @@ module.exports = class aax extends Exchange {
             // 'side': 'undefined', // BUY, SELL
             // 'clOrdID': clientOrderId,
         };
-        const defaultType = this.safeString2 (this.options, 'fetchOpenOrders', 'defaultType', 'spot');
-        let type = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
-            type = market['type'];
         }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateGetSpotOpenOrders',
+            'swap': 'privateGetFuturesOpenOrders',
+            'future': 'privateGetFuturesOpenOrders',
+        });
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clOrdID'] = clientOrderId;
             params = this.omit (params, [ 'clOrdID', 'clientOrderId' ]);
         }
-        let method = undefined;
-        if (type === 'spot') {
-            method = 'privateGetSpotOpenOrders';
-        } else if (type === 'futures') {
-            method = 'privateGetFuturesOpenOrders';
-        }
         if (limit !== undefined) {
             request['pageSize'] = limit; // default 10
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         //
         // spot
         //
@@ -1392,6 +1920,16 @@ module.exports = class aax extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const request = {
             'orderStatus': '2', // 1 new, 2 filled, 3 canceled
         };
@@ -1399,6 +1937,16 @@ module.exports = class aax extends Exchange {
     }
 
     async fetchCanceledOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#fetchCanceledOrders
+         * @description fetches information on multiple canceled orders made by the user
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since timestamp in ms of the earliest order, default is undefined
+         * @param {int|undefined} limit max number of orders to return, default is undefined
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const request = {
             'orderStatus': '3', // 1 new, 2 filled, 3 canceled
         };
@@ -1406,6 +1954,16 @@ module.exports = class aax extends Exchange {
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             // 'pageNum': '1',
@@ -1415,27 +1973,23 @@ module.exports = class aax extends Exchange {
             // 'base': market['baseId'],
             // 'quote': market['quoteId'],
             // 'orderStatus': undefined, // 1 new, 2 filled, 3 canceled
-            // 'startDate': this.ymd (since),
-            // 'endDate': this.ymd (this.milliseconds()),
+            // 'startDate': this.yyyymmdd (since),
+            // 'endDate': this.yyyymmdd (this.milliseconds()),
             // 'orderType': undefined, // MARKET, LIMIT, STOP, STOP-LIMIT
             // 'side': 'undefined', // BUY, SELL
             // 'clOrdID': clientOrderId,
         };
-        let method = undefined;
-        const defaultType = this.safeString2 (this.options, 'fetchOrders', 'defaultType', 'spot');
-        let type = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
-            type = market['type'];
         }
-        if (type === 'spot') {
-            method = 'privateGetSpotOrders';
-        } else if (type === 'futures') {
-            method = 'privateGetFuturesOrders';
-        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateGetSpotOrders',
+            'swap': 'privateGetFuturesOrders',
+            'future': 'privateGetFuturesOrders',
+        });
         const clientOrderId = this.safeString2 (params, 'clOrdID', 'clientOrderId');
         if (clientOrderId !== undefined) {
             request['clOrdID'] = clientOrderId;
@@ -1445,9 +1999,9 @@ module.exports = class aax extends Exchange {
             request['pageSize'] = limit; // default 10
         }
         if (since !== undefined) {
-            request['startDate'] = this.ymd (since);
+            request['startDate'] = this.yyyymmdd (since);
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         //
         // spot
         //
@@ -1636,17 +2190,16 @@ module.exports = class aax extends Exchange {
         const clientOrderId = this.safeString (order, 'clOrdID');
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
-        const symbol = market['symbol'];
-        const price = this.safeNumber (order, 'price');
+        const price = this.safeString (order, 'price');
         const stopPrice = this.safeNumber (order, 'stopPrice');
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
         const execInst = this.safeString (order, 'execInst');
         const postOnly = (execInst === 'Post-Only');
-        const average = this.safeNumber (order, 'avgPrice');
-        const amount = this.safeNumber (order, 'orderQty');
-        const filled = this.safeNumber (order, 'cumQty');
-        let remaining = this.safeNumber (order, 'leavesQty');
-        if ((filled === 0) && (remaining === 0)) {
+        const average = this.safeString (order, 'avgPrice');
+        const amount = this.safeString (order, 'orderQty');
+        const filled = this.safeString (order, 'cumQty');
+        let remaining = this.safeString (order, 'leavesQty');
+        if ((Precise.stringEquals (filled, '0')) && (Precise.stringEquals (remaining, '0'))) {
             remaining = undefined;
         }
         let lastTradeTimestamp = this.safeValue (order, 'transactTime');
@@ -1657,12 +2210,10 @@ module.exports = class aax extends Exchange {
         const feeCost = this.safeNumber (order, 'commission');
         if (feeCost !== undefined) {
             let feeCurrency = undefined;
-            if (market !== undefined) {
-                if (side === 'buy') {
-                    feeCurrency = market['base'];
-                } else if (side === 'sell') {
-                    feeCurrency = market['quote'];
-                }
+            if (side === 'buy') {
+                feeCurrency = market['base'];
+            } else if (side === 'sell') {
+                feeCurrency = market['quote'];
             }
             fee = {
                 'currency': feeCurrency,
@@ -1677,7 +2228,7 @@ module.exports = class aax extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'status': status,
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': type,
             'timeInForce': timeInForce,
             'postOnly': postOnly,
@@ -1691,10 +2242,20 @@ module.exports = class aax extends Exchange {
             'cost': undefined,
             'trades': undefined,
             'fee': fee,
-        });
+        }, market);
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {string|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         await this.loadMarkets ();
         const request = {
             // 'pageNum': '1',
@@ -1703,33 +2264,29 @@ module.exports = class aax extends Exchange {
             // 'orderID': id,
             // 'base': market['baseId'],
             // 'quote': market['quoteId'],
-            // 'startDate': this.ymd (since),
-            // 'endDate': this.ymd (this.milliseconds()),
+            // 'startDate': this.yyyymmdd (since),
+            // 'endDate': this.yyyymmdd (this.milliseconds()),
             // 'orderType': undefined, // MARKET, LIMIT, STOP, STOP-LIMIT
             // 'side': 'undefined', // BUY, SELL
         };
-        let method = undefined;
-        const defaultType = this.safeString2 (this.options, 'fetchMyTrades', 'defaultType', 'spot');
-        let type = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
             request['symbol'] = market['id'];
-            type = market['type'];
         }
-        if (type === 'spot') {
-            method = 'privateGetSpotTrades';
-        } else if (type === 'futures') {
-            method = 'privateGetFuturesTrades';
-        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateGetSpotTrades',
+            'swap': 'privateGetFuturesTrades',
+            'future': 'privateGetFuturesTrades',
+        });
         if (limit !== undefined) {
             request['pageSize'] = limit; // default 10
         }
         if (since !== undefined) {
-            request['startDate'] = this.ymd (since);
+            request['startDate'] = this.yyyymmdd (since);
         }
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         //
         //     {
         //         "code":1,
@@ -1779,12 +2336,26 @@ module.exports = class aax extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name aax#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
             // 'network': undefined, // 'ERC20
         };
+        if ('network' in params) {
+            const networks = this.safeValue (this.options, 'networks', {});
+            const network = this.safeStringUpper (params, 'network');
+            params = this.omit (params, 'network');
+            request['network'] = this.safeStringUpper (networks, network, network);
+        }
         const response = await this.privateGetAccountDepositAddress (this.extend (request, params));
         //
         //     {
@@ -1803,6 +2374,282 @@ module.exports = class aax extends Exchange {
         return this.parseDepositAddress (data, currency);
     }
 
+    async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @param {string|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            // status Not required -  Deposit status, "1: pending,2: confirmed, 3:failed"
+            // currency: Not required -  String Currency
+            // startTime Not required Integer Default: 90 days from current timestamp.
+            // endTime Not required Integer Default: present timestamp.
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            const startTime = parseInt (since / 1000);
+            request['startTime'] = startTime;
+            request['endTime'] = this.sum (startTime, 90 * 24 * 60 * 60); // Only allows a 90 day window between start and end
+        }
+        const response = await this.privateGetAccountDeposits (this.extend (request, params));
+        // {    "code": 1,
+        //     "data": [{
+        //         "currency": "USDT",
+        //         "network": "USDT",
+        //         "quantity": "19.000000000000",
+        //         "txHash": "75eb2e5f037b025c535664c49a0f7cc8f601dae218a5f4fe82290ff652c43f3d",
+        //         "address": "1GkB7Taf7uttcguKEb2DmmyRTnihskJ9Le",
+        //         "status": "2",
+        //         "createdTime": "2021-01-08T19:45:01.354Z",
+        //         "updatedTime": "2021-01-08T20:03:05.000Z",
+        //     }]
+        //     "message": "success",
+        //     "ts": 1573561743499
+        // }
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit);
+    }
+
+    async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+         * @param {string|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            // status Not required : "0: Under Review, 1: Manual Review, 2: On Chain, 3: Review Failed, 4: On Chain, 5: Completed, 6: Failed"
+            // currency: Not required -  String Currency
+            // startTime Not required Integer Default: 30 days from current timestamp.
+            // endTime Not required Integer Default: present timestamp.
+            // Note difference between endTime and startTime must be 90 days or less
+        };
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+            request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            const startTime = parseInt (since / 1000);
+            request['startTime'] = startTime;
+            request['endTime'] = this.sum (startTime, 90 * 24 * 60 * 60); // Only allows a 90 day window between start and end
+        }
+        const response = await this.privateGetAccountWithdraws (this.extend (request, params));
+        // {
+        //     "code":1,
+        //     "data": [
+        //       {
+        //            "currency":"USDT",
+        //            "network":"USDT",
+        //            "quantity":"19.000000000000",
+        //            "fee":"0.10000"
+        //            "txHash":"75eb2e5f037b025c535664c49a0f7cc8f601dae218a5f4fe82290ff652c43f3d",
+        //            "address":"1GkB7Taf7uttcguKEb2DmmyRTnihskJ9Le",
+        //            "addressTag": "",
+        //            "status":"2",
+        //            "createdTime":"2021-01-08T19:45:01.354Z",
+        //            "updatedTime":"2021-01-08T20:03:05.000Z",
+        //       }
+        //  ]
+        //     "message":"success",
+        //     "ts":1573561743499
+        //  }
+        const data = this.safeValue (response, 'data', []);
+        return this.parseTransactions (data, currency, since, limit);
+    }
+
+    parseTransactionStatusByType (status, type = undefined) {
+        const statuses = {
+            'deposit': {
+                '1': 'pending',
+                '2': 'ok',
+                '3': 'failed',
+            },
+            'withdrawal': {
+                '0': 'pending', // under review
+                '1': 'pending', // manual review
+                '2': 'pending', // on chain
+                '3': 'failed',  // failed
+                '4': 'pending', // on chain
+                '5': 'ok',      // completed
+                '6': 'failed',  // failed
+            },
+        };
+        return this.safeString (this.safeValue (statuses, type, {}), status, status);
+    }
+
+    parseAddressByType (address, tag, type = undefined) {
+        let addressFrom = undefined;
+        let addressTo = undefined;
+        let tagFrom = undefined;
+        let tagTo = undefined;
+        if (type === 'deposit') {
+            addressFrom = address;
+            tagFrom = tag;
+        } else if (type === 'withdrawal') {
+            addressTo = address;
+            tagTo = tag;
+        }
+        return [ addressFrom, tagFrom, addressTo, tagTo ];
+    }
+
+    parseTransaction (transaction, currency = undefined) {
+        //
+        // fetchDeposits
+        //
+        //    {
+        //         "currency": "USDT",
+        //         "network": "USDT",
+        //         "quantity": "19.000000000000",
+        //         "txHash": "75eb2e5f037b025c535664c49a0f7cc8f601dae218a5f4fe82290ff652c43f3d",
+        //         "address": "1GkB7Taf7uttcguKEb2DmmyRTnihskJ9Le",
+        //         "status": "2",
+        //         "createdTime": "2021-01-08T19:45:01.354Z",
+        //         "updatedTime": "2021-01-08T20:03:05.000Z",
+        //     }
+        //
+        // fetchWithdrawals
+        //
+        //     {
+        //         "currency":"USDT",
+        //         "network":"USDT",
+        //         "quantity":"19.000000000000",
+        //         "fee":"0.10000"
+        //         "txHash":"75eb2e5f037b025c535664c49a0f7cc8f601dae218a5f4fe82290ff652c43f3d",
+        //         "address":"1GkB7Taf7uttcguKEb2DmmyRTnihskJ9Le",
+        //         "addressTag": "",
+        //         "status":"2",
+        //         "createdTime":"2021-01-08T19:45:01.354Z",
+        //         "updatedTime":"2021-01-08T20:03:05.000Z",
+        //      }
+        //
+        const fee = this.safeString (transaction, 'fee');
+        let type = 'withdrawal';
+        if (fee === undefined) {
+            type = 'deposit';
+        }
+        const code = this.safeCurrencyCode (this.safeString (transaction, 'currency'));
+        const txid = this.safeString (transaction, 'txHash');
+        const address = this.safeString (transaction, 'address');
+        const tag = this.safeString (transaction, 'addressTag'); // withdrawals only
+        const [ addressFrom, tagFrom, addressTo, tagTo ] = this.parseAddressByType (address, tag, type);
+        const amountString = this.safeString (transaction, 'quantity');
+        const timestamp = this.parse8601 (this.safeString (transaction, 'createdTime'));
+        const updated = this.parse8601 (this.safeString (transaction, 'updatedTime'));
+        const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
+        const network = this.safeString (transaction, 'network');
+        return {
+            'id': undefined,
+            'info': transaction,
+            'txid': txid,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'network': network,
+            'addressFrom': addressFrom,
+            'address': address,
+            'addressTo': addressTo,
+            'amount': this.parseNumber (amountString),
+            'type': type,
+            'currency': code,
+            'status': status,
+            'updated': updated,
+            'tagFrom': tagFrom,
+            'tag': tag,
+            'tagTo': tagTo,
+            'comment': undefined,
+            'fee': fee,
+        };
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        /**
+         * @method
+         * @name aax#fetchFundingRate
+         * @description fetch the current funding rate
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadRequest ('Funding rates only exist for swap contracts');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetFuturesFundingPrevFundingRateSymbol (this.extend (request, params));
+        //
+        //    {
+        //        "code": 1,
+        //        "data": {
+        //           "symbol": "BTCUSDFP",
+        //           "markPrice": "11192.5",
+        //           "fundingRate": "0.001",
+        //           "fundingTime": "2020-08-12T08:00:00Z",
+        //           "nextFundingTime": "2020-08-12T16:00:00Z"
+        //        },
+        //        "message": "success",
+        //        "ts": 1573542445411
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseFundingRate (data);
+    }
+
+    parseFundingRate (contract, market = undefined) {
+        //
+        //    {
+        //        "symbol": "BTCUSDFP",
+        //        "markPrice": "11192.5",
+        //        "fundingRate": "0.001",
+        //        "fundingTime": "2020-08-12T08:00:00Z",
+        //        "nextFundingTime": "2020-08-12T16:00:00Z"
+        //    }
+        //
+        const marketId = this.safeString (contract, 'symbol');
+        const symbol = this.safeSymbol (marketId, market);
+        const markPrice = this.safeNumber (contract, 'markPrice');
+        const previousFundingRate = this.safeNumber (contract, 'fundingRate');
+        const previousFundingDatetime = this.safeString (contract, 'fundingTime');
+        const fundingDatetime = this.safeString (contract, 'nextFundingTime');
+        return {
+            'info': contract,
+            'symbol': symbol,
+            'markPrice': markPrice,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': undefined,
+            'fundingTimestamp': this.parse8601 (fundingDatetime),
+            'fundingDatetime': fundingDatetime,
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': previousFundingRate,
+            'previousFundingTimestamp': this.parse8601 (previousFundingDatetime),
+            'previousFundingDatetime': previousFundingDatetime,
+        };
+    }
+
     parseDepositAddress (depositAddress, currency = undefined) {
         //
         //     {
@@ -1814,13 +2661,580 @@ module.exports = class aax extends Exchange {
         //
         const address = this.safeString (depositAddress, 'address');
         const tag = this.safeString (depositAddress, 'tag');
-        const currencyId = this.safeString (depositAddress, 'currency');
+        let currencyId = this.safeString (depositAddress, 'currency');
+        const network = this.safeString (depositAddress, 'network');
+        if (network !== undefined) {
+            currencyId = currencyId.replace (network, '');
+        }
         const code = this.safeCurrencyCode (currencyId);
         return {
             'info': depositAddress,
-            'code': code,
+            'currency': code,
             'address': address,
             'tag': tag,
+            'network': network,
+        };
+    }
+
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#fetchFundingRateHistory
+         * @description fetches historical funding rate prices
+         * @param {string|undefined} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
+         * @param {int|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @param {int|undefined} params.until timestamp in ms of the latest funding rate to fetch
+         * @returns {[object]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (since !== undefined) {
+            request['startTime'] = parseInt (since / 1000);
+        }
+        const till = this.safeInteger2 (params, 'until', 'till'); // unified in milliseconds
+        params = this.omit (params, [ 'till', 'until' ]);
+        if (till !== undefined) {
+            request['endTime'] = parseInt (till / 1000);
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this.publicGetFuturesFundingFundingRate (this.extend (request, params));
+        //
+        //    {
+        //        "code": 1,
+        //        "data": [
+        //            {
+        //                "fundingRate": "0.00033992",
+        //                "fundingTime": "2021-12-31T00:00:00.000Z",
+        //                "symbol": "ETHUSDTFP"
+        //            },
+        //        ]
+        //    }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const rates = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const marketId = this.safeString (entry, 'symbol');
+            const symbol = this.safeSymbol (marketId);
+            const datetime = this.safeString (entry, 'fundingTime');
+            rates.push ({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': this.safeNumber (entry, 'fundingRate'),
+                'timestamp': this.parse8601 (datetime),
+                'datetime': datetime,
+            });
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
+    }
+
+    async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#fetchFundingHistory
+         * @description fetch the history of funding payments paid and received on this account
+         * @param {string} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch funding history for
+         * @param {int|undefined} limit the maximum number of funding history structures to retrieve
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} a [funding history structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-history-structure}
+         */
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingHistory() requires a symbol argument');
+        }
+        if (limit === undefined) {
+            limit = 100; // Default
+        } else if (limit > 1000) {
+            throw new BadRequest (this.id + ' fetchFundingHistory() limit argument cannot exceed 1000');
+        }
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'limit': limit,
+        };
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        const response = await this.privateGetFuturesFundingFundingFee (this.extend (request, params));
+        //
+        //    {
+        //        "code": 1,
+        //        "data": [
+        //            {
+        //                "symbol": "BTCUSDTFP",
+        //                "fundingRate":"0.001",
+        //                "fundingFee":"100",
+        //                "currency":"USDT",
+        //                "fundingTime": "2020-08-12T08:00:00Z",
+        //                "markPrice": "11192.5",
+        //            }
+        //        ],
+        //        "message": "success",
+        //        "ts": 1573542445411
+        //    }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const datetime = this.safeString (entry, 'fundingTime');
+            result.push ({
+                'info': entry,
+                'symbol': symbol,
+                'code': this.safeCurrencyCode (this.safeString (entry, 'currency')),
+                'timestamp': this.parse8601 (datetime),
+                'datetime': datetime,
+                'id': undefined,
+                'amount': this.safeNumber (entry, 'fundingFee'),
+            });
+        }
+        return result;
+    }
+
+    async setLeverage (leverage, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#setLeverage
+         * @description set the level of leverage for a market
+         * @param {float} leverage the rate of leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} response from the exchange
+         */
+        await this.loadMarkets ();
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setLeverage() requires a symbol argument');
+        }
+        if ((leverage < 1) || (leverage > 100)) {
+            throw new BadRequest (this.id + ' leverage should be between 1 and 100');
+        }
+        const market = this.market (symbol);
+        if (market['type'] !== 'swap') {
+            throw new BadSymbol (this.id + ' setLeverage() supports swap contracts only');
+        }
+        const request = {
+            'symbol': market['id'],
+            'leverage': leverage,
+        };
+        return await this.privatePostFuturesPositionLeverage (this.extend (request, params));
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //     {
+        //          quantity: '0.000010000000',
+        //          transferID: '480975741034369024',
+        //          transferTime: '2022-03-24T13:53:07.042Z',
+        //          fromPurse: 'VLTP',
+        //          toPurse: 'SPTP',
+        //          currency: 'ETH'
+        //     },
+        const id = this.safeString (transfer, 'transferID');
+        const amount = this.safeNumber (transfer, 'quantity');
+        const timestamp = this.parse8601 (this.safeString (transfer, 'transferTime'));
+        const accounts = this.safeValue (this.options, 'accounts', {});
+        const fromId = this.safeString (transfer, 'fromPurse');
+        const toId = this.safeString (transfer, 'toPurse');
+        const fromAccount = this.safeString (accounts, fromId);
+        const toAccount = this.safeString (accounts, toId);
+        const currencyId = this.safeString (transfer, 'currency');
+        const currencyCode = this.safeCurrencyCode (currencyId, currency);
+        return {
+            'info': transfer,
+            'id': id,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': currencyCode,
+            'amount': amount,
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
+            'status': undefined,
+        };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            '1': 'ok',
+        };
+        return this.safeString (statuses, status, 'canceled');
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name aax#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @param {string} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {string} fromAccount account to transfer from
+         * @param {string} toAccount account to transfer to
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const accountTypes = this.safeValue (this.options, 'accountsByType', {});
+        const fromId = this.safeString (accountTypes, fromAccount, fromAccount);
+        const toId = this.safeString (accountTypes, toAccount, toAccount);
+        const request = {
+            'currency': currency['id'],
+            'fromPurse': fromId,
+            'toPurse': toId,
+            'quantity': amount,
+        };
+        const response = await this.privatePostAccountTransfer (this.extend (request, params));
+        //
+        //     {
+        //         "code": 1,
+        //         "data": {
+        //             "transferID": 888561,
+        //             "transferTime": "2022-03-22T15:29:05.197Z"
+        //         },
+        //         "message": "success",
+        //         "ts": 1647962945151
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const transfer = this.parseTransfer (data, currency);
+        const transferOptions = this.safeValue (this.options, 'transfer', {});
+        const fillResponseFromRequest = this.safeValue (transferOptions, 'fillResponseFromRequest', true);
+        if (fillResponseFromRequest) {
+            if (transfer['fromAccount'] === undefined) {
+                transfer['fromAccount'] = fromAccount;
+            }
+            if (transfer['toAccount'] === undefined) {
+                transfer['toAccount'] = toAccount;
+            }
+            if (transfer['amount'] === undefined) {
+                transfer['amount'] = amount;
+            }
+        }
+        transfer['status'] = this.parseTransferStatus (this.safeString (response, 'code'));
+        return transfer;
+    }
+
+    parsePosition (position, market = undefined) {
+        //
+        //    {
+        //        "autoMarginCall": false,
+        //        "avgEntryPrice": "3706.03",
+        //        "bankruptPrice": "2963.3415880000",
+        //        "base": "ETH",
+        //        "code": "FP",
+        //        "commission": "0.02964824",
+        //        "currentQty": "2",
+        //        "funding": "-0.04827355",
+        //        "fundingStatus": null,
+        //        "id": "385839395735639395",
+        //        "leverage": "5",
+        //        "liquidationPrice": "2983.07",
+        //        "marketPrice": "3731.84",
+        //        "openTime": "2021-12-31T18:57:25.930Z",
+        //        "posLeverage": "5.00",
+        //        "posMargin": "14.85376824",
+        //        "quote": "USDT",
+        //        "realisedPnl": "-0.07792179",
+        //        "riskLimit": "10000000",
+        //        "riskyPrice": "3272.25",
+        //        "settleType": "VANILLA",
+        //        "stopLossPrice": "0",
+        //        "stopLossSource": 1,
+        //        "symbol": "ETHUSDTFP",
+        //        "takeProfitPrice": "0",
+        //        "takeProfitSource": 1,
+        //        "unrealisedPnl": "0.51620000",
+        //        "userID": "3829384",
+        //        "ts": 1641027194500
+        //    }
+        //
+        const contract = this.safeString (position, 'symbol');
+        market = this.safeMarket (contract, market);
+        const size = this.safeString (position, 'currentQty');
+        let side = undefined;
+        if (Precise.stringGt (size, '0')) {
+            side = 'long';
+        } else if (Precise.stringLt (size, '0')) {
+            side = 'short';
+        }
+        const leverage = this.safeString (position, 'leverage');
+        const unrealisedPnl = this.safeString (position, 'unrealisedPnl');
+        const currentQty = this.safeString (position, 'currentQty');
+        const contractSize = this.safeString (market, 'contractSize');
+        const initialQuote = Precise.stringMul (currentQty, contractSize);
+        const marketPrice = this.safeString (position, 'marketPrice');
+        const timestamp = this.safeInteger (position, 'ts');
+        const liquidationPrice = this.safeString (position, 'liquidationPrice');
+        const marketInfo = this.safeValue (market, 'info');
+        const multiplier = this.safeString (marketInfo, 'multiplier');
+        const settleType = this.safeString (position, 'settleType');
+        const avgEntryPrice = this.safeString (position, 'avgEntryPrice');
+        const commission = this.safeString (position, 'commission');
+        let initialMargin = undefined;
+        let maintenanceMargin = undefined;
+        let notional = undefined;
+        // https://support.aax.com/en/articles/5295653-what-is-margin
+        if (settleType === 'VANILLA') {
+            notional = Precise.stringMul (initialQuote, marketPrice);
+            // Initial Margin (Limit order) = Number of contracts * Price * Multiplier / Leverage
+            initialMargin = Precise.stringDiv (Precise.stringMul (Precise.stringMul (currentQty, avgEntryPrice), multiplier), leverage);
+            // Maintenance Margin = (Number of contracts/ Entry Price * Multiplier / Leverage) + Commission fees
+            const tmp = Precise.stringDiv (Precise.stringMul (currentQty, multiplier), Precise.stringMul (avgEntryPrice, leverage));
+            maintenanceMargin = Precise.stringAdd (tmp, commission);
+        } else {
+            // inverse contracts
+            notional = Precise.stringDiv (initialQuote, marketPrice);
+            // Initial Margin (Limit Order) = Number of contracts / Entry Price / Leverage
+            // ^ no brackets /<::>\
+            initialMargin = Precise.stringDiv (currentQty, Precise.stringMul (leverage, avgEntryPrice));
+            // Maintenance Margin = Number of contracts / Entry price / Leverage
+            maintenanceMargin = initialMargin;
+        }
+        const collateral = this.safeString (position, 'posMargin');
+        const percentage = Precise.stringDiv (unrealisedPnl, initialMargin);
+        const marginRatio = Precise.stringDiv (maintenanceMargin, collateral);
+        return {
+            'info': position,
+            'id': undefined,
+            'symbol': this.safeString (market, 'symbol'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'initialMargin': this.parseNumber (initialMargin),
+            'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMargin, notional)),
+            'maintenanceMargin': this.parseNumber (maintenanceMargin),
+            'maintenanceMarginPercentage': this.parseNumber (Precise.stringDiv (maintenanceMargin, notional)),
+            'entryPrice': this.parseNumber (avgEntryPrice),
+            'notional': this.parseNumber (notional),
+            'leverage': this.parseNumber (leverage),
+            'unrealizedPnl': this.parseNumber (unrealisedPnl),
+            'contracts': this.parseNumber (size),
+            'contractSize': this.parseNumber (contractSize),
+            'marginRatio': this.parseNumber (marginRatio),
+            'liquidationPrice': liquidationPrice,
+            'markPrice': this.safeNumber (position, 'marketPrice'),
+            'collateral': this.parseNumber (collateral),
+            'marginMode': 'isolated',
+            'side': side,
+            'percentage': this.parseNumber (percentage),
+        };
+    }
+
+    async fetchPosition (symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#fetchPosition
+         * @description fetch data on a single open contract trade position
+         * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {object} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.privateGetFuturesPosition (this.extend (request, params));
+        //
+        //    {
+        //        "code": 1,
+        //        "data": [
+        //            {
+        //                "autoMarginCall": false,
+        //                "avgEntryPrice": "3706.03",
+        //                "bankruptPrice": "2963.3415880000",
+        //                "base": "ETH",
+        //                "code": "FP",
+        //                "commission": "0.02964824",
+        //                "currentQty": "2",
+        //                "funding": "-0.04827355",
+        //                "fundingStatus": null,
+        //                "id": "385839395735639395",
+        //                "leverage": "5",
+        //                "liquidationPrice": "2983.07",
+        //                "marketPrice": "3731.84",
+        //                "openTime": "2021-12-31T18:57:25.930Z",
+        //                "posLeverage": "5.00",
+        //                "posMargin": "14.85376824",
+        //                "quote": "USDT",
+        //                "realisedPnl": "-0.07792179",
+        //                "riskLimit": "10000000",
+        //                "riskyPrice": "3272.25",
+        //                "settleType": "VANILLA",
+        //                "stopLossPrice": "0",
+        //                "stopLossSource": 1,
+        //                "symbol": "ETHUSDTFP",
+        //                "takeProfitPrice": "0",
+        //                "takeProfitSource": 1,
+        //                "unrealisedPnl": "0.51620000",
+        //                "userID": "3829384"
+        //            }
+        //            ...
+        //        ],
+        //        "message": "success",
+        //        "ts": 1641026778068
+        //    }
+        //
+        const positions = this.safeValue (response, 'data', []);
+        const timestamp = this.safeInteger (response, 'ts');
+        const first = this.safeValue (positions, 0);
+        const position = this.parsePosition (first);
+        return this.extend (position, {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        });
+    }
+
+    async fetchPositions (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name aax#fetchPositions
+         * @description fetch all open positions
+         * @param {[string]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the aax api endpoint
+         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        if (symbols !== undefined) {
+            let symbol = undefined;
+            if (Array.isArray (symbols)) {
+                const symbolsLength = symbols.length;
+                if (symbolsLength > 1) {
+                    throw new BadRequest (this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
+                }
+                symbol = symbols[0];
+            } else {
+                symbol = symbols;
+            }
+            symbols = this.marketSymbols (symbols);
+            const market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        const response = await this.privateGetFuturesPosition (this.extend (request, params));
+        //
+        //    {
+        //        "code": 1,
+        //        "data": [
+        //            {
+        //                "autoMarginCall": false,
+        //                "avgEntryPrice": "3706.03",
+        //                "bankruptPrice": "2963.3415880000",
+        //                "base": "ETH",
+        //                "code": "FP",
+        //                "commission": "0.02964824",
+        //                "currentQty": "2",
+        //                "funding": "-0.04827355",
+        //                "fundingStatus": null,
+        //                "id": "385839395735639395",
+        //                "leverage": "5",
+        //                "liquidationPrice": "2983.07",
+        //                "marketPrice": "3731.84",
+        //                "openTime": "2021-12-31T18:57:25.930Z",
+        //                "posLeverage": "5.00",
+        //                "posMargin": "14.85376824",
+        //                "quote": "USDT",
+        //                "realisedPnl": "-0.07792179",
+        //                "riskLimit": "10000000",
+        //                "riskyPrice": "3272.25",
+        //                "settleType": "VANILLA",
+        //                "stopLossPrice": "0",
+        //                "stopLossSource": 1,
+        //                "symbol": "ETHUSDTFP",
+        //                "takeProfitPrice": "0",
+        //                "takeProfitSource": 1,
+        //                "unrealisedPnl": "0.51620000",
+        //                "userID": "3829384"
+        //            }
+        //            ...
+        //        ],
+        //        "message": "success",
+        //        "ts": 1641026778068
+        //    }
+        //
+        const result = [];
+        const positions = this.safeValue (response, 'data', []);
+        const timestamp = this.safeInteger (response, 'ts');
+        for (let i = 0; i < positions.length; i++) {
+            const position = this.parsePosition (positions[i]);
+            result.push (this.extend (position, {
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            }));
+        }
+        return this.filterByArray (result, 'symbol', symbols, false);
+    }
+
+    async fetchOpenInterest (symbol, params = {}) {
+        /**
+         * @method
+         * @name aax#fetchOpenInterest
+         * @description Retrieves the open interest of a currency
+         * @see https://www.aax.com/apidoc/index.html#open-interest
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {object} params exchange specific parameters
+         * @returns {object} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['contract']) {
+            throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetFuturesPositionOpenInterest (this.extend (request, params));
+        //
+        //     {
+        //         "code": 1,
+        //         "data": {
+        //             "openInterest": "37137299.49007",
+        //             "openInterestUSD": "721016725.9898761994667",
+        //             "symbol": "BTCUSDTFP"
+        //         },
+        //         "message": "success",
+        //         "ts": 1664486817471
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const timestamp = this.safeInteger (response, 'ts');
+        const openInterest = this.parseOpenInterest (data, market);
+        return this.extend (openInterest, {
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        });
+    }
+
+    parseOpenInterest (interest, market = undefined) {
+        //
+        //     {
+        //         "openInterest": "37137299.49007",
+        //         "openInterestUSD": "721016725.9898761994667",
+        //         "symbol": "BTCUSDTFP"
+        //     }
+        //
+        const id = this.safeString (interest, 'symbol');
+        market = this.safeMarket (id, market);
+        const amount = this.safeNumber (interest, 'openInterest');
+        const value = this.safeNumber (interest, 'openInterestUSD');
+        return {
+            'symbol': this.safeSymbol (id),
+            'openInterestAmount': amount,
+            'baseVolume': amount, // deprecated
+            'openInterestValue': value,
+            'quoteVolume': value, // deprecated
+            'timestamp': undefined,
+            'datetime': undefined,
+            'info': interest,
         };
     }
 
@@ -1863,7 +3277,7 @@ module.exports = class aax extends Exchange {
                 headers['X-ACCESS-SIGN'] = signature;
             }
         }
-        url = this.implodeParams (this.urls['api'][api], { 'hostname': this.hostname }) + url;
+        url = this.implodeHostname (this.urls['api'][api]) + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 

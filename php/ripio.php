@@ -6,13 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
 
 class ripio extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'ripio',
             'name' => 'Ripio',
             'countries' => array( 'AR', 'BR' ), // Argentina
@@ -21,20 +19,53 @@ class ripio extends Exchange {
             'pro' => true,
             // new metainfo interface
             'has' => array(
-                'CORS' => false,
+                'CORS' => null,
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'addMargin' => false,
                 'cancelOrder' => true,
                 'createOrder' => true,
+                'createReduceOnlyOrder' => false,
                 'fetchBalance' => true,
+                'fetchBorrowRate' => false,
+                'fetchBorrowRateHistories' => false,
+                'fetchBorrowRateHistory' => false,
+                'fetchBorrowRates' => false,
+                'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
+                'fetchFundingHistory' => false,
+                'fetchFundingRate' => false,
+                'fetchFundingRateHistory' => false,
+                'fetchFundingRates' => false,
+                'fetchIndexOHLCV' => false,
+                'fetchLeverage' => false,
+                'fetchLeverageTiers' => false,
+                'fetchMarginMode' => false,
+                'fetchMarkOHLCV' => false,
                 'fetchMyTrades' => true,
+                'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
                 'fetchOrders' => true,
+                'fetchPosition' => false,
+                'fetchPositionMode' => false,
+                'fetchPositions' => false,
+                'fetchPositionsRisk' => false,
+                'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
                 'fetchTrades' => true,
+                'fetchTradingFee' => false,
+                'fetchTradingFees' => true,
+                'reduceMargin' => false,
+                'setLeverage' => false,
+                'setMarginMode' => false,
+                'setPositionMode' => false,
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/94507548-a83d6a80-0218-11eb-9998-28b9cec54165.jpg',
@@ -77,8 +108,8 @@ class ripio extends Exchange {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
-                    'taker' => 0.0 / 100,
-                    'maker' => 0.0 / 100,
+                    'taker' => $this->parse_number('0.0'),
+                    'maker' => $this->parse_number('0.0'),
                 ),
             ),
             'precisionMode' => TICK_SIZE,
@@ -114,20 +145,30 @@ class ripio extends Exchange {
     }
 
     public function fetch_markets($params = array ()) {
+        /**
+         * retrieves data on all markets for ripio
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return {[array]} an array of objects representing $market data
+         */
         $response = $this->publicGetPair ($params);
         //
         //     {
         //         "next":null,
         //         "previous":null,
-        //         "$results":array(
-        //             array(
-        //                 "$base":"BTC",
+        //         "results":array(
+        //             {
+        //                 "base":"BTC",
         //                 "base_name":"Bitcoin",
-        //                 "$quote":"USDC",
+        //                 "quote":"USDC",
         //                 "quote_name":"USD Coin",
-        //                 "$symbol":"BTC_USDC",
-        //                 "$fees":array(
-        //                     array("traded_volume":0.0,"maker_fee":0.0,"taker_fee":0.0,"cancellation_fee":0.0)
+        //                 "symbol":"BTC_USDC",
+        //                 "fees":array(
+        //                     array(
+        //                         "traded_volume" => 0.0,
+        //                         "maker_fee" => 0.0,
+        //                         "taker_fee" => 0.0,
+        //                         "cancellation_fee" => 0.0
+        //                     }
         //                 ),
         //                 "country":"ZZ",
         //                 "enabled":true,
@@ -149,75 +190,94 @@ class ripio extends Exchange {
             $id = $this->safe_string($market, 'symbol');
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
-            $symbol = $base . '/' . $quote;
-            $precision = array(
-                'amount' => $this->safe_number($market, 'min_amount'),
-                'price' => $this->safe_number($market, 'price_tick'),
-            );
-            $limits = array(
-                'amount' => array(
-                    'min' => $this->safe_number($market, 'min_amount'),
-                    'max' => null,
-                ),
-                'price' => array(
-                    'min' => null,
-                    'max' => null,
-                ),
-                'cost' => array(
-                    'min' => $this->safe_number($market, 'min_value'),
-                    'max' => null,
-                ),
-            );
-            $active = $this->safe_value($market, 'enabled', true);
             $fees = $this->safe_value($market, 'fees', array());
             $firstFee = $this->safe_value($fees, 0, array());
-            $maker = $this->safe_number($firstFee, 'maker_fee', 0.0);
-            $taker = $this->safe_number($firstFee, 'taker_fee', 0.0);
             $result[] = array(
                 'id' => $id,
-                'symbol' => $symbol,
+                'symbol' => $base . '/' . $quote,
                 'base' => $base,
                 'quote' => $quote,
+                'settle' => null,
                 'baseId' => $baseId,
                 'quoteId' => $quoteId,
-                'precision' => $precision,
-                'maker' => $maker,
-                'taker' => $taker,
-                'limits' => $limits,
+                'settleId' => null,
+                'type' => 'spot',
+                'spot' => true,
+                'margin' => false,
+                'swap' => false,
+                'future' => false,
+                'option' => false,
+                'active' => $this->safe_value($market, 'enabled', true),
+                'contract' => false,
+                'linear' => null,
+                'inverse' => null,
+                'taker' => $this->safe_number($firstFee, 'taker_fee', 0.0),
+                'maker' => $this->safe_number($firstFee, 'maker_fee', 0.0),
+                'contractSize' => null,
+                'expiry' => null,
+                'expiryDatetime' => null,
+                'strike' => null,
+                'optionType' => null,
+                'precision' => array(
+                    'amount' => $this->safe_number($market, 'min_amount'),
+                    'price' => $this->safe_number($market, 'price_tick'),
+                ),
+                'limits' => array(
+                    'leverage' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'amount' => array(
+                        'min' => $this->safe_number($market, 'min_amount'),
+                        'max' => null,
+                    ),
+                    'price' => array(
+                        'min' => null,
+                        'max' => null,
+                    ),
+                    'cost' => array(
+                        'min' => $this->safe_number($market, 'min_value'),
+                        'max' => null,
+                    ),
+                ),
                 'info' => $market,
-                'active' => $active,
             );
         }
         return $result;
     }
 
     public function fetch_currencies($params = array ()) {
+        /**
+         * fetches all available currencies on an exchange
+         * @param {array} $params extra parameters specific to the ripio api endpoint
+         * @return {array} an associative dictionary of currencies
+         */
         $response = $this->publicGetCurrency ($params);
         //
         //     {
         //         "next":null,
         //         "previous":null,
-        //         "$results":array(
+        //         "results":array(
         //             array(
-        //                 "$name":"Argentine Peso",
+        //                 "name":"Argentine Peso",
         //                 "symbol":"$",
-        //                 "$currency":"ARS",
+        //                 "currency":"ARS",
         //                 "country":"AR",
         //                 "decimal_places":"2",
         //                 "enabled":true
         //             ),
         //             array(
-        //                 "$name":"Bitcoin Cash",
+        //                 "name":"Bitcoin Cash",
         //                 "symbol":"BCH",
-        //                 "$currency":"BCH",
+        //                 "currency":"BCH",
         //                 "country":"AR",
         //                 "decimal_places":"8",
         //                 "enabled":true
         //             ),
         //             {
-        //                 "$name":"Bitcoin",
+        //                 "name":"Bitcoin",
         //                 "symbol":"BTC",
-        //                 "$currency":"BTC",
+        //                 "currency":"BTC",
         //                 "country":"AR",
         //                 "decimal_places":"8",
         //                 "enabled":true
@@ -233,15 +293,16 @@ class ripio extends Exchange {
             $code = $this->safe_currency_code($id);
             $name = $this->safe_string($currency, 'name');
             $active = $this->safe_value($currency, 'enabled', true);
-            $precision = $this->safe_integer($currency, 'decimal_places');
             $result[$code] = array(
                 'id' => $id,
                 'code' => $code,
                 'name' => $name,
                 'info' => $currency, // the original payload
                 'active' => $active,
+                'deposit' => null,
+                'withdraw' => null,
                 'fee' => null,
-                'precision' => $precision,
+                'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'decimal_places'))),
                 'limits' => array(
                     'amount' => array( 'min' => null, 'max' => null ),
                     'withdraw' => array( 'min' => null, 'max' => null ),
@@ -276,19 +337,20 @@ class ripio extends Exchange {
         //
         $timestamp = $this->parse8601($this->safe_string($ticker, 'created_at'));
         $marketId = $this->safe_string($ticker, 'pair');
-        $symbol = $this->safe_symbol($marketId, $market);
-        $last = $this->safe_number($ticker, 'last_price');
-        $average = $this->safe_number($ticker, 'avg');
-        return array(
+        $market = $this->safe_market($marketId, $market, '_');
+        $symbol = $market['symbol'];
+        $last = $this->safe_string($ticker, 'last_price');
+        $average = $this->safe_string($ticker, 'avg');
+        return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_number($ticker, 'high'),
-            'low' => $this->safe_number($ticker, 'low'),
-            'bid' => $this->safe_number($ticker, 'bid'),
-            'bidVolume' => $this->safe_number($ticker, 'bid_volume'),
-            'ask' => $this->safe_number($ticker, 'ask'),
-            'askVolume' => $this->safe_number($ticker, 'ask_volume'),
+            'high' => $this->safe_string($ticker, 'high'),
+            'low' => $this->safe_string($ticker, 'low'),
+            'bid' => $this->safe_string($ticker, 'bid'),
+            'bidVolume' => $this->safe_string($ticker, 'bid_volume'),
+            'ask' => $this->safe_string($ticker, 'ask'),
+            'askVolume' => $this->safe_string($ticker, 'ask_volume'),
             'vwap' => null,
             'open' => null,
             'close' => $last,
@@ -300,10 +362,16 @@ class ripio extends Exchange {
             'baseVolume' => null,
             'quoteVolume' => null,
             'info' => $ticker,
-        );
+        ), $market);
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
+        /**
+         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+         * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
+         * @param {array} $params extra parameters specific to the ripio api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -334,7 +402,14 @@ class ripio extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market tickers are returned if not assigned
+         * @param {array} $params extra parameters specific to the ripio api endpoint
+         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         */
         $this->load_markets();
+        $symbols = $this->market_symbols($symbols);
         $response = $this->publicGetRateAll ($params);
         //
         //     array(
@@ -368,9 +443,17 @@ class ripio extends Exchange {
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
+        /**
+         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+         * @param {int|null} $limit the maximum amount of order book entries to return
+         * @param {array} $params extra parameters specific to the ripio api endpoint
+         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+         */
         $this->load_markets();
+        $market = $this->market($symbol);
         $request = array(
-            'pair' => $this->market_id($symbol),
+            'pair' => $market['id'],
         );
         $response = $this->publicGetOrderbookPair (array_merge($request, $params));
         //
@@ -388,20 +471,35 @@ class ripio extends Exchange {
         //         "updated_id":47225
         //     }
         //
-        $orderbook = $this->parse_order_book($response, $symbol, null, 'buy', 'sell', 'price', 'amount');
+        $orderbook = $this->parse_order_book($response, $market['symbol'], null, 'buy', 'sell', 'price', 'amount');
         $orderbook['nonce'] = $this->safe_integer($response, 'updated_id');
         return $orderbook;
     }
 
     public function parse_trade($trade, $market = null) {
         //
-        // public fetchTrades, private fetchMyTrades
+        //
+        // fetchTrades (public)
+        //
+        //      {
+        //          "created_at":1649899167,
+        //          "amount":"0.00852",
+        //          "price":"3106.000000",
+        //          "side":"SELL",
+        //          "pair":"ETH_USDC",
+        //          "taker_fee":"0",
+        //          "taker_side":"SELL",
+        //          "maker_fee":"0"
+        //      }
+        //
+        //
+        // fetchMyTrades (private)
         //
         //     {
         //         "created_at":1601322501,
-        //         "$amount":"0.00276",
-        //         "$price":"10850.020000",
-        //         "$side":"SELL",
+        //         "amount":"0.00276",
+        //         "price":"10850.020000",
+        //         "side":"SELL",
         //         "pair":"BTC_USDC",
         //         "taker_fee":"0",
         //         "taker_side":"SELL",
@@ -418,7 +516,7 @@ class ripio extends Exchange {
         //         "match_price":10593.99,
         //         "maker_fee":0.0,
         //         "taker_fee":0.0,
-        //         "$timestamp":1601730306942
+        //         "timestamp":1601730306942
         //     }
         //
         $id = $this->safe_string($trade, 'id');
@@ -432,21 +530,18 @@ class ripio extends Exchange {
         }
         $priceString = $this->safe_string_2($trade, 'price', 'match_price');
         $amountString = $this->safe_string_2($trade, 'amount', 'exchanged');
-        $price = $this->parse_number($priceString);
-        $amount = $this->parse_number($amountString);
-        $cost = $this->parse_number(Precise::string_mul($priceString, $amountString));
         $marketId = $this->safe_string($trade, 'pair');
         $market = $this->safe_market($marketId, $market);
-        $feeCost = $this->safe_number($trade, $takerOrMaker . '_fee');
+        $feeCostString = $this->safe_string($trade, $takerOrMaker . '_fee');
         $orderId = $this->safe_string($trade, $takerOrMaker);
         $fee = null;
-        if ($feeCost !== null) {
+        if ($feeCostString !== null) {
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => ($side === 'buy') ? $market['base'] : $market['quote'],
             );
         }
-        return array(
+        return $this->safe_trade(array(
             'id' => $id,
             'order' => $orderId,
             'timestamp' => $timestamp,
@@ -454,16 +549,24 @@ class ripio extends Exchange {
             'symbol' => $market['symbol'],
             'type' => null,
             'side' => $side,
-            'price' => $price,
-            'amount' => $amount,
-            'cost' => $cost,
+            'price' => $priceString,
+            'amount' => $amountString,
+            'cost' => null,
             'takerOrMaker' => $takerOrMaker,
             'fee' => $fee,
             'info' => $trade,
-        );
+        ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        /**
+         * get the list of most recent trades for a particular $symbol
+         * @param {string} $symbol unified $symbol of the $market to fetch trades for
+         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+         * @param {int|null} $limit the maximum amount of trades to fetch
+         * @param {array} $params extra parameters specific to the ripio api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $request = array(
@@ -471,40 +574,80 @@ class ripio extends Exchange {
         );
         $response = $this->publicGetTradehistoryPair (array_merge($request, $params));
         //
-        //     array(
-        //         {
-        //             "created_at":1601322501,
-        //             "amount":"0.00276",
-        //             "price":"10850.020000",
-        //             "side":"SELL",
-        //             "pair":"BTC_USDC",
-        //             "taker_fee":"0",
-        //             "taker_side":"SELL",
-        //             "maker_fee":"0",
-        //             "taker":2577953,
-        //             "maker":2577937
-        //         }
-        //     )
+        //      array(
+        //          {
+        //              "created_at":1649899167,
+        //              "amount":"0.00852",
+        //              "price":"3106.000000",
+        //              "side":"SELL",
+        //              "pair":"ETH_USDC",
+        //              "taker_fee":"0",
+        //              "taker_side":"SELL",
+        //              "maker_fee":"0"
+        //          }
+        //      )
         //
         return $this->parse_trades($response, $market, $since, $limit);
     }
 
-    public function fetch_balance($params = array ()) {
+    public function fetch_trading_fees($params = array ()) {
+        /**
+         * fetch the trading $fees for multiple markets
+         * @param {array} $params extra parameters specific to the ripio api endpoint
+         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structures} indexed by market symbols
+         */
         $this->load_markets();
-        $response = $this->privateGetBalancesExchangeBalances ($params);
+        $response = $this->publicGetPair ($params);
         //
-        //     array(
-        //         array(
-        //             "id":603794,
-        //             "currency":"USD Coin",
-        //             "symbol":"USDC",
-        //             "available":"0",
-        //             "locked":"0",
-        //             "$code":"exchange",
-        //             "balance_type":"crypto"
-        //         ),
-        //     )
+        //     {
+        //         next => null,
+        //         previous => null,
+        //         $results => array(
+        //             {
+        //                 base => 'BTC',
+        //                 base_name => 'Bitcoin',
+        //                 quote => 'USDC',
+        //                 quote_name => 'USD Coin',
+        //                 $symbol => 'BTC_USDC',
+        //                 $fees => array(
+        //                     array(
+        //                         traded_volume => '0.0',
+        //                         maker_fee => '0.0',
+        //                         taker_fee => '0.0',
+        //                         cancellation_fee => '0.0'
+        //                     }
+        //                 ),
+        //                 country => 'ZZ',
+        //                 enabled => true,
+        //                 priority => '10',
+        //                 min_amount => '0.0000100000',
+        //                 price_tick => '0.000001',
+        //                 min_value => '10',
+        //                 limit_price_threshold => '25.00'
+        //             ),
+        //         )
+        //     }
         //
+        $results = $this->safe_value($response, 'results', array());
+        $result = array();
+        for ($i = 0; $i < count($results); $i++) {
+            $pair = $results[$i];
+            $marketId = $this->safe_string($pair, 'symbol');
+            $symbol = $this->safe_symbol($marketId, null, '_');
+            $fees = $this->safe_value($pair, 'fees', array());
+            $fee = $this->safe_value($fees, 0, array());
+            $result[$symbol] = array(
+                'info' => $pair,
+                'symbol' => $symbol,
+                'maker' => $this->safe_number($fee, 'maker_fee'),
+                'taker' => $this->safe_number($fee, 'taker_fee'),
+                'tierBased' => false,
+            );
+        }
+        return $result;
+    }
+
+    public function parse_balance($response) {
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
@@ -515,10 +658,44 @@ class ripio extends Exchange {
             $account['used'] = $this->safe_string($balance, 'locked');
             $result[$code] = $account;
         }
-        return $this->parse_balance($result, false);
+        return $this->safe_balance($result);
+    }
+
+    public function fetch_balance($params = array ()) {
+        /**
+         * query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {array} $params extra parameters specific to the ripio api endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+         */
+        $this->load_markets();
+        $response = $this->privateGetBalancesExchangeBalances ($params);
+        //
+        //     array(
+        //         array(
+        //             "id":603794,
+        //             "currency":"USD Coin",
+        //             "symbol":"USDC",
+        //             "available":"0",
+        //             "locked":"0",
+        //             "code":"exchange",
+        //             "balance_type":"crypto"
+        //         ),
+        //     )
+        //
+        return $this->parse_balance($response);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * create a trade order
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+         * @param {array} $params extra parameters specific to the ripio api endpoint
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         $this->load_markets();
         $market = $this->market($symbol);
         $uppercaseType = strtoupper($type);
@@ -537,8 +714,8 @@ class ripio extends Exchange {
         //     {
         //         "order_id" => "160f523c-f6ef-4cd1-a7c9-1a8ede1468d8",
         //         "pair" => "BTC_ARS",
-        //         "$side" => "BUY",
-        //         "$amount" => "0.00400",
+        //         "side" => "BUY",
+        //         "amount" => "0.00400",
         //         "notional" => null,
         //         "fill_or_kill" => false,
         //         "all_or_none" => false,
@@ -556,8 +733,8 @@ class ripio extends Exchange {
         //     {
         //         "order_id":"d6b60c01-8624-44f2-9e6c-9e8cd677ea5c",
         //         "pair":"BTC_USDC",
-        //         "$side":"BUY",
-        //         "$amount":"0.00200",
+        //         "side":"BUY",
+        //         "amount":"0.00200",
         //         "notional":"50",
         //         "fill_or_kill":false,
         //         "all_or_none":false,
@@ -587,6 +764,13 @@ class ripio extends Exchange {
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
+        /**
+         * cancels an open order
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} $params extra parameters specific to the ripio api endpoint
+         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $symbol argument');
         }
@@ -619,6 +803,12 @@ class ripio extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
+        /**
+         * fetches information on an order made by the user
+         * @param {string} $symbol unified $symbol of the $market the order was made in
+         * @param {array} $params extra parameters specific to the ripio api endpoint
+         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
@@ -651,6 +841,14 @@ class ripio extends Exchange {
     }
 
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple orders made by the user
+         * @param {string} $symbol unified $market $symbol of the $market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {array} $params extra parameters specific to the ripio api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrders() requires a $symbol argument');
         }
@@ -670,8 +868,8 @@ class ripio extends Exchange {
         //     {
         //         "next" => "https://api.exchange.ripio.com/api/v1/order/BTC_ARS/?$limit=20&offset=20&page=1&page_size=25&status=OPEN%2CPART",
         //         "previous" => null,
-        //         "$results" => {
-        //             "$data" => array(
+        //         "results" => {
+        //             "data" => array(
         //                 array(
         //                     "order_id" => "ca74280b-6966-4b73-a720-68709078922b",
         //                     "pair" => "BTC_ARS",
@@ -698,6 +896,14 @@ class ripio extends Exchange {
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all unfilled currently open orders
+         * @param {string} $symbol unified market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch open orders for
+         * @param {int|null} $limit the maximum number of  open orders structures to retrieve
+         * @param {array} $params extra parameters specific to the ripio api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $request = array(
             'status' => 'OPEN,PART',
         );
@@ -705,6 +911,14 @@ class ripio extends Exchange {
     }
 
     public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches information on multiple closed orders made by the user
+         * @param {string} $symbol unified market $symbol of the market orders were made in
+         * @param {int|null} $since the earliest time in ms to fetch orders for
+         * @param {int|null} $limit the maximum number of  orde structures to retrieve
+         * @param {array} $params extra parameters specific to the ripio api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+         */
         $request = array(
             'status' => 'CLOS,CANC,COMP',
         );
@@ -729,122 +943,97 @@ class ripio extends Exchange {
         //     {
         //         "order_id" => "286e560e-b8a2-464b-8b84-15a7e2a67eab",
         //         "pair" => "BTC_ARS",
-        //         "$side" => "SELL",
-        //         "$amount" => "0.00100",
+        //         "side" => "SELL",
+        //         "amount" => "0.00100",
         //         "notional" => null,
         //         "fill_or_kill" => false,
         //         "all_or_none" => false,
         //         "order_type" => "LIMIT",
-        //         "$status" => "CANC",
+        //         "status" => "CANC",
         //         "created_at" => 1575472707,
-        //         "$filled" => "0.00000",
+        //         "filled" => "0.00000",
         //         "limit_price" => "681000.00",
         //         "stop_price" => null,
         //         "distance" => null
         //     }
         //
         //     {
-        //         "order_id":"d6b60c01-8624-44f2-9e6c-9e8cd677ea5c",
-        //         "pair":"BTC_USDC",
-        //         "$side":"BUY",
-        //         "$amount":"0.00200",
-        //         "notional":"50",
-        //         "fill_or_kill":false,
-        //         "all_or_none":false,
-        //         "order_type":"MARKET",
-        //         "$status":"OPEN",
-        //         "created_at":1601730306,
-        //         "$filled":"0.00000",
-        //         "fill_price":10593.99,
-        //         "fee":0.0,
-        //         "$fills":array(
+        //         "order_id" => "d6b60c01-8624-44f2-9e6c-9e8cd677ea5c",
+        //         "pair" => "BTC_USDC",
+        //         "side" => "BUY",
+        //         "amount" => "0.00200",
+        //         "notional" => "50",
+        //         "fill_or_kill" => false,
+        //         "all_or_none" => false,
+        //         "order_type" => "MARKET",
+        //         "status" => "OPEN",
+        //         "created_at" => 1601730306,
+        //         "filled" => "0.00000",
+        //         "fill_price" => 10593.99,
+        //         "fee" => 0.0,
+        //         "fills" => array(
         //             {
-        //                 "pair":"BTC_USDC",
-        //                 "exchanged":0.002,
-        //                 "match_price":10593.99,
-        //                 "maker_fee":0.0,
-        //                 "taker_fee":0.0,
-        //                 "$timestamp":1601730306942
+        //                 "pair" => "BTC_USDC",
+        //                 "exchanged" => 0.002,
+        //                 "match_price" => 10593.99,
+        //                 "maker_fee" => 0.0,
+        //                 "taker_fee" => 0.0,
+        //                 "timestamp" => 1601730306942
         //             }
         //         ),
-        //         "filled_at":"2020-10-03T13:05:06.942186Z",
-        //         "limit_price":"0.000000",
-        //         "stop_price":null,
-        //         "distance":null
+        //         "filled_at" => "2020-10-03T13:05:06.942186Z",
+        //         "limit_price" => "0.000000",
+        //         "stop_price" => null,
+        //         "distance" => null
         //     }
         //
         $id = $this->safe_string($order, 'order_id');
-        $amount = $this->safe_number($order, 'amount');
-        $cost = $this->safe_number($order, 'notional');
+        $amount = $this->safe_string($order, 'amount');
+        $cost = $this->safe_string($order, 'notional');
         $type = $this->safe_string_lower($order, 'order_type');
         $priceField = ($type === 'market') ? 'fill_price' : 'limit_price';
-        $price = $this->safe_number($order, $priceField);
+        $price = $this->safe_string($order, $priceField);
         $side = $this->safe_string_lower($order, 'side');
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $timestamp = $this->safe_timestamp($order, 'created_at');
-        $average = $this->safe_value($order, 'fill_price');
-        $filled = $this->safe_number($order, 'filled');
-        $remaining = null;
+        $average = $this->safe_string($order, 'fill_price');
+        $filled = $this->safe_string($order, 'filled');
         $fills = $this->safe_value($order, 'fills');
-        $trades = null;
-        $lastTradeTimestamp = null;
-        if ($fills !== null) {
-            $numFills = is_array($fills) ? count($fills) : 0;
-            if ($numFills > 0) {
-                $filled = 0;
-                $cost = 0;
-                $trades = $this->parse_trades($fills, $market, null, null, array(
-                    'order' => $id,
-                    'side' => $side,
-                ));
-                for ($i = 0; $i < count($trades); $i++) {
-                    $trade = $trades[$i];
-                    $filled = $this->sum($trade['amount'], $filled);
-                    $cost = $this->sum($trade['cost'], $cost);
-                    $lastTradeTimestamp = $trade['timestamp'];
-                }
-                if (($average === null) && ($filled > 0)) {
-                    $average = $cost / $filled;
-                }
-            }
-        }
-        if ($filled !== null) {
-            if (($cost === null) && ($price !== null)) {
-                $cost = $price * $filled;
-            }
-            if ($amount !== null) {
-                $remaining = max (0, $amount - $filled);
-            }
-        }
         $marketId = $this->safe_string($order, 'pair');
-        $symbol = $this->safe_symbol($marketId, $market, '_');
-        $stopPrice = $this->safe_number($order, 'stop_price');
-        return array(
+        return $this->safe_order(array(
+            'info' => $order,
             'id' => $id,
             'clientOrderId' => null,
-            'info' => $order,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => $lastTradeTimestamp,
-            'symbol' => $symbol,
+            'lastTradeTimestamp' => null,
+            'symbol' => $this->safe_symbol($marketId, $market, '_'),
             'type' => $type,
             'timeInForce' => null,
             'postOnly' => null,
             'side' => $side,
             'price' => $price,
-            'stopPrice' => $stopPrice,
+            'stopPrice' => $this->safe_string($order, 'stop_price'),
             'amount' => $amount,
             'cost' => $cost,
             'average' => $average,
             'filled' => $filled,
-            'remaining' => $remaining,
+            'remaining' => null,
             'status' => $status,
             'fee' => null,
-            'trades' => $trades,
-        );
+            'trades' => $fills,
+        ), $market);
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetch all trades made by the user
+         * @param {string} $symbol unified $market $symbol
+         * @param {int|null} $since the earliest time in ms to fetch trades for
+         * @param {int|null} $limit the maximum number of trades structures to retrieve
+         * @param {array} $params extra parameters specific to the ripio api endpoint
+         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+         */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a $symbol argument');
         }
@@ -863,8 +1052,8 @@ class ripio extends Exchange {
         //     {
         //         "next" => "https://api.exchange.ripio.com/api/v1/trade/<pair>/?$limit=20&offset=20",
         //         "previous" => null,
-        //         "$results" => {
-        //             "$data" => array(
+        //         "results" => {
+        //             "data" => array(
         //                 array(
         //                     "created_at" => 1578414028,
         //                     "amount" => "0.00100",
@@ -894,7 +1083,7 @@ class ripio extends Exchange {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
             }
-        } else if ($api === 'private') {
+        } elseif ($api === 'private') {
             $this->check_required_credentials();
             if ($method === 'POST') {
                 $body = $this->json($query);
@@ -916,11 +1105,11 @@ class ripio extends Exchange {
             return;
         }
         //
-        //      array("$detail":"Authentication credentials were not provided.")
-        //      array("status_code":400,"$errors":array("pair":["Invalid pair FOOBAR"]),"$message":"An $error has occurred, please check the form.")
-        //      array("status_code":400,"$errors":array("order_type":["Invalid order type. Valid options => ['MARKET', 'LIMIT']"]),"$message":"An $error has occurred, please check the form.")
-        //      array("status_code":400,"$errors":array("non_field_errors":"Something unexpected ocurred!"),"$message":"Seems like an unexpected $error occurred. Please try again later or write us to support@ripio.com if the problem persists.")
-        //      array("status_code":400,"$errors":array("pair":["Invalid/Disabled pair BTC_ARS"]),"$message":"An $error has occurred, please check the form.")
+        //      array("detail":"Authentication credentials were not provided.")
+        //      array("status_code":400,"errors":array("pair":["Invalid pair FOOBAR"]),"message":"An $error has occurred, please check the form.")
+        //      array("status_code":400,"errors":array("order_type":["Invalid order type. Valid options => ['MARKET', 'LIMIT']"]),"message":"An $error has occurred, please check the form.")
+        //      array("status_code":400,"errors":array("non_field_errors":"Something unexpected ocurred!"),"message":"Seems like an unexpected $error occurred. Please try again later or write us to support@ripio.com if the problem persists.")
+        //      array("status_code":400,"errors":array("pair":["Invalid/Disabled pair BTC_ARS"]),"message":"An $error has occurred, please check the form.")
         //
         $detail = $this->safe_string($response, 'detail');
         if ($detail !== null) {

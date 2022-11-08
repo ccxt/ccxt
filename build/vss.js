@@ -12,23 +12,6 @@ const fs           = require ('fs')
     , { execSync } = require ('child_process')
     , { copyFile } = require ('./fs.js')
 
-
-//-----------------------------------------------------------------------------
-
-function incrementVersionPatchNumber (version) {
-
-    let [ major, minor, patch ] = version.split ('.')
-
-    // we don't increment it here anymore, because
-    // npm version patch will be explicitly called before
-
-    // patch = (parseInt (patch) + 1).toString ()
-
-    version = [ major, minor, patch ].join ('.')
-
-    return version
-}
-
 //-----------------------------------------------------------------------------
 
 function vss (filename, template, version) {
@@ -46,8 +29,6 @@ function vssEverything () {
 
     let { version } = require ('../package.json')
 
-    log.bright ('Old version: '.dim, version)
-    version = incrementVersionPatchNumber (version)
     log.bright ('New version: '.cyan, version)
 
     vss ('./ccxt.js',                                    "const version = '{version}'", version)
@@ -59,6 +40,8 @@ function vssEverything () {
     vss ('./python/ccxt/base/exchange.py',               "__version__ = '{version}'",   version)
     vss ('./python/ccxt/async_support/__init__.py',      "__version__ = '{version}'",   version)
     vss ('./python/ccxt/async_support/base/exchange.py', "__version__ = '{version}'",   version)
+    vss ('./python/ccxt/pro/__init__.py',                "__version__ = '{version}'",   version)
+    vss ('./python/ccxt/pro/base/exchange.py',           "__version__ = '{version}'",   version)
 
     vss ('./README.md',       "ccxt@{version}", version)
     vss ('./wiki/Install.md', "ccxt@{version}", version)
@@ -92,7 +75,6 @@ if (require.main === module) {
 // ============================================================================
 
 module.exports = {
-    incrementVersionPatchNumber,
     vss,
     vssEverything,
 }

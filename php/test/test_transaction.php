@@ -14,7 +14,7 @@ namespace ccxt;
 
 function test_transaction($exchange, $transaction, $code, $now) {
     assert ($transaction);
-    assert (gettype($transaction['id']) === 'string');
+    assert (($transaction['id'] === null) || (gettype($transaction['id']) === 'string'));
     assert ((is_float($transaction['timestamp']) || is_int($transaction['timestamp'])));
     assert ($transaction['timestamp'] > 1230940800000); // 03 Jan 2009 - first block
     assert ($transaction['timestamp'] < $now);
@@ -23,7 +23,15 @@ function test_transaction($exchange, $transaction, $code, $now) {
     assert (is_array($transaction) && array_key_exists('tag', $transaction));
     assert (is_array($transaction) && array_key_exists('txid', $transaction));
     assert ($transaction['datetime'] === $exchange->iso8601 ($transaction['timestamp']));
-    assert (($transaction['status'] === 'ok') || ($transaction['status'] === 'pending') || ($transaction['status'] === 'canceled'));
+    $statuses = array(
+        'ok',
+        'pending',
+        'failed',
+        'rejected',
+        'canceled',
+    );
+    $transactionStatusIsValid = $exchange->in_array($transaction['status'], $statuses);
+    assert ($transactionStatusIsValid);
     assert ($transaction['currency'] === $code);
     assert (gettype($transaction['type']) === 'string');
     assert ($transaction['type'] === 'deposit' || $transaction['type'] === 'withdrawal');

@@ -1,20 +1,18 @@
 <?php
 
-$root = dirname (dirname (dirname (__FILE__)));
+$root = dirname(dirname(dirname(__FILE__)));
 
 include $root . '/ccxt.php';
 
-date_default_timezone_set ('UTC');
+date_default_timezone_set('UTC');
 
 $exchange = new \ccxt\coinbase(array(
     'apiKey' => 'YOUR_API_KEY',
     'secret' => 'YOUR_SECRET',
     // 'verbose' => true, // uncomment for debugging
-    // https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
-    'enableRateLimit' => true, // rate-limiting is required by the Manual
 ));
 
-$exchange->load_markets ();
+$exchange->load_markets();
 
 // $exchange->verbose = true; // uncomment for debugging
 

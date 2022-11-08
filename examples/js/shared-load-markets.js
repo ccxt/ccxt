@@ -11,9 +11,7 @@ const globalExchanges = {}
 
 async function loadExchange (id) {
     try {
-        const exchange = new ccxt[id] ({
-            'enableRateLimit': true,
-        })
+        const exchange = new ccxt[id] ()
         await exchange.loadMarkets ()
         globalExchanges[id] = exchange
     } catch (e) {
@@ -52,7 +50,6 @@ async function main () {
             if (exchangeId in globalExchanges) {
                 const globalExchange = globalExchanges[exchangeId]
                 const exchange = new ccxt[exchangeId] ({
-                    'enableRateLimit': true,
                     // 'verbose': true, // uncomment for debug output
                     ... users[userId][exchangeId],
                 });
@@ -60,7 +57,6 @@ async function main () {
                     'ids',
                     'markets',
                     'markets_by_id',
-                    'marketsById',
                     'currencies',
                     'currencies_by_id',
                     'baseCurrencies',

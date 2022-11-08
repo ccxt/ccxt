@@ -8,7 +8,11 @@ include_once 'vendor/autoload.php';
 include_once 'test_trade.php';
 include_once 'test_order.php';
 include_once 'test_ohlcv.php';
+include_once 'test_position.php';
 include_once 'test_transaction.php';
+include_once 'test_account.php';
+
+use React\Async;
 
 function style($s, $style) {
     return $style . $s . "\033[0m";
@@ -51,11 +55,15 @@ $exchanges = null;
 // var_dump ($options);
 // exit ();
 
+# first we filter the args
+$verbose = count(array_filter($argv, function ($option) { return strstr($option, '--verbose') !== false; })) > 0;
+$args = array_values(array_filter($argv, function ($option) { return strstr($option, '--verbose') === false; }));
+
 //-----------------------------------------------------------------------------
 
 foreach (Exchange::$exchanges as $id) {
     $exchange = '\\ccxt\\async\\' . $id;
-    $exchanges[$id] = new $exchange(array('enableRateLimit' => true));
+    $exchanges[$id] = new $exchange();
 }
 
 $keys_global = './keys.json';
@@ -79,114 +87,158 @@ foreach ($config as $id => $params) {
 $exchanges['coinbasepro']->urls['api'] = $exchanges['coinbasepro']->urls['test'];
 
 function test_ticker($exchange, $symbol) {
-    dump(green($exchange->id), green($symbol), 'fetching ticker...');
-    $ticker = yield $exchange->fetch_ticker($symbol);
-    dump(green($exchange->id), green($symbol), 'ticker:', implode(' ', array(
-        $ticker['datetime'],
-        'high: ' . $ticker['high'],
-        'low: ' . $ticker['low'],
-        'bid: ' . $ticker['bid'],
-        'ask: ' . $ticker['ask'],
-        'volume: ' . $ticker['quoteVolume'], )));
+    $method = 'fetchTicker';
+    if ($exchange->has[$method]) {
+        dump(green($exchange->id), green($symbol), 'executing ' . $method . '()');
+        $ticker = yield $exchange->{$method}($symbol);
+        dump(green($exchange->id), green($symbol), 'ticker:', implode(' ', array(
+            $ticker['datetime'],
+            'high: ' . $ticker['high'],
+            'low: ' . $ticker['low'],
+            'bid: ' . $ticker['bid'],
+            'ask: ' . $ticker['ask'],
+            'volume: ' . $ticker['quoteVolume'], )));
+    } else {
+        dump(green($symbol), $method . '() is not supported');
+    }
 }
 
 function test_order_book($exchange, $symbol) {
-    dump(green($exchange->id), green($symbol), 'fetching order book...');
-    $orderbook = yield $exchange->fetch_order_book($symbol);
-    dump(green($exchange->id), green($symbol), 'order book:', implode(' ', array(
-        $orderbook['datetime'],
-        'bid: '       . @$orderbook['bids'][0][0],
-        'bidVolume: ' . @$orderbook['bids'][0][1],
-        'ask: '       . @$orderbook['asks'][0][0],
-        'askVolume: ' . @$orderbook['asks'][0][1])));
+    $method = 'fetchOrderBook';
+    if ($exchange->has[$method]) {
+        dump(green($exchange->id), green($symbol), 'executing ' . $method . '()');
+        $orderbook = yield $exchange->{$method}($symbol);
+        dump(green($exchange->id), green($symbol), 'order book:', implode(' ', array(
+            $orderbook['datetime'],
+            'bid: '       . @$orderbook['bids'][0][0],
+            'bidVolume: ' . @$orderbook['bids'][0][1],
+            'ask: '       . @$orderbook['asks'][0][0],
+            'askVolume: ' . @$orderbook['asks'][0][1])));
+    } else {
+        dump(green($symbol), $method . '() is not supported');
+    }
 }
 
 //-----------------------------------------------------------------------------
 
 function test_trades($exchange, $symbol) {
-    if ($exchange->has['fetchTrades']) {
-
-        dump(green($symbol), 'fetching trades...');
-        $trades = yield $exchange->fetch_trades($symbol);
+    $method = 'fetchTrades';
+    if ($exchange->has[$method]) {
+        dump(green($exchange->id), green($symbol), 'executing ' . $method . '()');
+        $trades = yield $exchange->{$method}($symbol);
         if (count($trades) > 0) {
             test_trade($exchange, $trades[0], $symbol, time() * 1000);
         }
         dump(green($symbol), 'fetched', green(count($trades)), 'trades');
     } else {
-        dump(green($symbol), 'fetchTrades() not supported');
+        dump(green($symbol), $method . '() is not supported');
     }
 }
 
 //-----------------------------------------------------------------------------
 
 function test_orders($exchange, $symbol) {
-    if ($exchange->has['fetchOrders']) {
+    $method = 'fetchOrders';
+    if ($exchange->has[$method]) {
         $skipped_exchanges = array (
             'bitmart',
             'rightbtc',
         );
         if (in_array($exchange->id, $skipped_exchanges)) {
-            dump(green($symbol), 'fetch_orders() skipped');
+            dump(green($symbol), $method . '() skipped');
             return;
         }
-        dump(green($symbol), 'fetching orders...');
-        $orders = yield $exchange->fetch_orders($symbol);
+        dump(green($exchange->id), green($symbol), 'executing ' . $method . '()');
+        $orders = yield $exchange->{$method}($symbol);
         foreach ($orders as $order) {
             test_order($exchange, $order, $symbol, time() * 1000);
         }
         dump(green($symbol), 'fetched', green(count($orders)), 'orders');
     } else {
-        dump(green($symbol), 'fetchOrders() not supported');
+        dump(green($symbol), $method . '() is not supported');
     }
 }
 
 //-----------------------------------------------------------------------------
 
-function test_closed_orders($exchange, $symbol) {
-    if ($exchange->has['fetchClosedOrders']) {
+function test_positions($exchange, $symbol) {
+    $method = 'fetchPositions';
+    if ($exchange->has[$method]) {
+        $skipped_exchanges = array (
+        );
+        if (in_array($exchange->id, $skipped_exchanges)) {
+            dump(green($symbol), $method . '() skipped');
+            return;
+        }
 
-        dump(green($symbol), 'fetching closed orders...');
-        $orders = yield $exchange->fetch_closed_orders($symbol);
+        // without symbol
+        dump(green($exchange->id), 'executing ' . $method . '()');
+        $positions = yield $exchange->{$method}();
+        foreach ($positions as $position) {
+            test_position($exchange, $position, null, time() * 1000);
+        }
+        dump(green($symbol), 'fetched', green(count($positions)), 'positions');
+
+        // with symbol
+        dump(green($exchange->id), green($symbol), 'executing ' . $method . '()');
+        $positions = yield $exchange->{$method}(array($symbol));
+        foreach ($positions as $position) {
+            test_position($exchange, $position, $symbol, time() * 1000);
+        }
+        dump(green($symbol), 'fetched', green(count($positions)), 'positions');
+    } else {
+        dump(green($symbol), $method . '() is not supported');
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+
+function test_closed_orders($exchange, $symbol) {
+    $method = 'fetchClosedOrders';
+    if ($exchange->has[$method]) {
+        dump(green($exchange->id), green($symbol), 'executing ' . $method . '()');
+        $orders = yield $exchange->{$method}($symbol);
         foreach ($orders as $order) {
             test_order($exchange, $order, $symbol, time() * 1000);
             assert($order['status'] === 'closed' || $order['status'] === 'canceled');
         }
         dump(green($symbol), 'fetched', green(count($orders)), 'closed orders');
     } else {
-        dump(green($symbol), 'fetchClosedOrders() not supported');
+        dump(green($symbol), $method . '() is not supported');
     }
 }
 
 //-----------------------------------------------------------------------------
 
 function test_open_orders($exchange, $symbol) {
-    if ($exchange->has['fetchOpenOrders']) {
-
-        dump(green($symbol), 'fetching open orders...');
-        $orders = yield $exchange->fetch_open_orders($symbol);
+    $method = 'fetchOpenOrders';
+    if ($exchange->has[$method]) {
+        dump(green($exchange->id), green($symbol), 'executing ' . $method . '()');
+        $orders = yield $exchange->{$method}($symbol);
         foreach ($orders as $order) {
             test_order($exchange, $order, $symbol, time() * 1000);
             assert($order['status'] === 'open');
         }
         dump(green($symbol), 'fetched', green(count($orders)), 'open orders');
     } else {
-        dump(green($symbol), 'fetchOpenOrders() not supported');
+        dump(green($symbol), $method . '() is not supported');
     }
 }
 
 //-----------------------------------------------------------------------------
 
 function test_transactions($exchange, $code) {
-    if ($exchange->has['fetchTransactions']) {
-
-        dump(green($code), 'fetching transactions...');
-        $transactions = yield $exchange->fetch_transactions($code);
+    $method = 'fetchTransactions';
+    if ($exchange->has[$method]) {
+        dump(green($exchange->id), green($code), 'executing ' . $method . '()');
+        $transactions = yield $exchange->{$method}($code);
         foreach ($transactions as $transaction) {
             test_transaction($exchange, $transaction, $code, time() * 1000);
         }
         dump(green($code), 'fetched', green(count($transactions)), 'transactions');
     } else {
-        dump(green($code), 'fetchTransactions() not supported');
+        dump(green($code), $method . '() is not supported');
     }
 }
 
@@ -201,52 +253,68 @@ function test_ohlcvs($exchange, $symbol) {
     if (in_array($exchange->id, $ignored_exchanges)) {
         return;
     }
-    if ($exchange->has['fetchOHLCV']) {
-
+    $method = 'fetchOHLCV';
+    if ($exchange->has[$method]) {
         $timeframes = $exchange->timeframes ? $exchange->timeframes : array('1d' => '1d');
-        $timeframe = array_keys($timeframes)[0];
+        $exchange_has_one_minute_timeframe = array_key_exists('1m', $timeframes);
+        $timeframe = $exchange_has_one_minute_timeframe ? '1m' : array_keys($timeframes)[0];
         $limit = 10;
         $duration = $exchange->parse_timeframe($timeframe);
         $since = $exchange->milliseconds() - $duration * $limit * 1000 - 1000;
-        dump(green($symbol), 'fetching ohlcvs...');
-        $ohlcvs = yield $exchange->fetch_ohlcv($symbol, $timeframe, $since, $limit);
+        dump(green($exchange->id), green($symbol), 'testing ' . $method . '()');
+        $ohlcvs = yield $exchange->{$method}($symbol, $timeframe, $since, $limit);
         foreach ($ohlcvs as $ohlcv) {
             test_ohlcv($exchange, $ohlcv, $symbol, time() * 1000);
         }
         dump(green($symbol), 'fetched', green(count($ohlcvs)), 'ohlcvs');
     } else {
-        dump(green($symbol), 'fetchOHLCV() not supported');
+        dump(green($symbol), 'fetchOHLCV() is not supported');
     }
 }
 
 //-----------------------------------------------------------------------------
 
 function test_symbol($exchange, $symbol, $code) {
-    if ($exchange->has['fetchTicker']) {
+    $method = 'fetchTicker';
+    if ($exchange->has[$method]) {
         test_ticker($exchange, $symbol);
     }
-    if ($exchange->id === 'coinmarketcap') {
-        dump(var_export(yield $exchange->fetchGlobal()));
-    } else {
-        yield test_order_book($exchange, $symbol);
-        yield test_trades($exchange, $symbol);
-        yield test_ohlcvs($exchange, $symbol);
-        if ($exchange->check_required_credentials(false)) {
-            if ($exchange->has['signIn']) {
-                $exchange->sign_in();
-            }
-            test_orders($exchange, $symbol);
-            test_closed_orders($exchange, $symbol);
-            test_open_orders($exchange, $symbol);
-            test_transactions($exchange, $code);
-            $balance = yield $exchange->fetch_balance();
-            var_dump($balance);
+    yield from test_order_book($exchange, $symbol);
+    yield from test_trades($exchange, $symbol);
+    yield from test_ohlcvs($exchange, $symbol);
+    if ($exchange->check_required_credentials(false)) {
+        if ($exchange->has['signIn']) {
+            $exchange->sign_in();
         }
+        test_orders($exchange, $symbol);
+        test_closed_orders($exchange, $symbol);
+        test_open_orders($exchange, $symbol);
+        test_transactions($exchange, $code);
+        $balance = yield $exchange->fetch_balance();
+        var_dump($balance);
+    }
+}
+
+//-----------------------------------------------------------------------------
+
+function test_accounts($exchange) {
+    $method = 'fetchAccounts';
+    if ($exchange->has[$method]) {
+        dump(green($exchange->id), 'executing ' . $method . '()');
+        $accounts = yield $exchange->{$method}();
+        foreach ($accounts as $account) {
+            test_account($exchange, $account, $method);
+        }
+        dump(green($exchange->id), 'fetched', green(count($accounts)), 'accounts');
+    } else {
+        dump(green($exchange->id), $method . '() is not supported');
     }
 }
 
 function load_exchange($exchange) {
+    global $verbose;
     $markets = yield $exchange->load_markets();
+    $exchange->verbose = $verbose;
     // $exchange->verbose = true;
     $symbols = array_keys($markets);
     dump(green($exchange->id), green(count($symbols)), 'symbols:', implode(', ', $symbols));
@@ -269,8 +337,8 @@ function try_all_proxies($exchange, $proxies) {
 
             $current_proxy = (++$current_proxy) % count($proxies);
 
-            yield load_exchange($exchange);
-            yield test_exchange($exchange);
+            yield from load_exchange($exchange);
+            yield from test_exchange($exchange);
             break;
         } catch (\ccxt\RequestTimeout $e) {
             dump(yellow('[Timeout Error] ' . $e->getMessage() . ' (ignoring)'));
@@ -292,85 +360,146 @@ function try_all_proxies($exchange, $proxies) {
     }
 }
 
-function test_exchange($exchange) {
-
-    $symbol = is_array($exchange->symbols) ? current($exchange->symbols) : '';
-    $symbols = array(
-        'BTC/USD',
-        'BTC/USDT',
-        'BTC/CNY',
-        'BTC/EUR',
-        'BTC/ETH',
-        'ETH/BTC',
-        'ETH/USDT',
-        'BTC/JPY',
-        'LTC/BTC',
-    );
-
+function get_test_symbol($exchange, $symbols) {
+    $symbol = null;
     foreach ($symbols as $s) {
-        if (in_array ($s, $exchange->symbols) && (array_key_exists ('active', $exchange->markets[$s]) ? $exchange->markets[$s]['active'] : true)) {
-            $symbol = $s;
-            break;
+        $market = $exchange->safe_value($exchange->markets, $s);
+        if ($market !== null) {
+            $active = $exchange->safe_value($market, 'active');
+            if ($active || $active === null) {
+                $symbol = $s;
+                break;
+            }
         }
     }
+    return $symbol;
+}
 
-    $codes = array(
-        'BTC',
-        'ETH',
-        'XRP',
-        'LTC',
-        'BCH',
-        'EOS',
-        'BNB',
-        'BSV',
-        'USDT',
-        'ATOM',
-        'BAT',
-        'BTG',
-        'DASH',
-        'DOGE',
-        'ETC',
-        'IOTA',
-        'LSK',
-        'MKR',
-        'NEO',
-        'PAX',
-        'QTUM',
-        'TRX',
-        'TUSD',
-        'USD',
-        'USDC',
-        'WAVES',
-        'XEM',
-        'XMR',
-        'ZEC',
-        'ZRX',
-    );
-
+function get_test_code($exchange, $codes) {
     $code = $codes[0];
     for ($i = 0; $i < count($codes); $i++) {
         if (array_key_exists($codes[$i], $exchange->currencies)) {
             $code = $codes[$i];
         }
     }
+    return $code;
+}
+
+$common_codes = array(
+    'BTC',
+    'ETH',
+    'XRP',
+    'LTC',
+    'BCH',
+    'EOS',
+    'BNB',
+    'BSV',
+    'USDT',
+    'ATOM',
+    'BAT',
+    'BTG',
+    'DASH',
+    'DOGE',
+    'ETC',
+    'IOTA',
+    'LSK',
+    'MKR',
+    'NEO',
+    'PAX',
+    'QTUM',
+    'TRX',
+    'TUSD',
+    'USD',
+    'USDC',
+    'WAVES',
+    'XEM',
+    'XMR',
+    'ZEC',
+    'ZRX',
+);
+
+$common_symbols = array(
+    'BTC/USD',
+    'BTC/USDT',
+    'BTC/CNY',
+    'BTC/EUR',
+    'BTC/ETH',
+    'ETH/BTC',
+    'ETH/USDT',
+    'BTC/JPY',
+    'LTC/BTC',
+    'USD/SLL',
+    'EUR/USD',
+);
+
+function get_test_symbol_and_code($exchange, $symbols, $codes) {
+
+    $code = get_test_code($exchange, $codes);
+
+    $symbol = get_test_symbol($exchange, $symbols);
+
+    if ($symbol === null) {
+        $markets = array_values($exchange->markets);
+        foreach ($codes as $code) {
+            $activeMarkets = array_filter($markets, function($market) use ($exchange, $code) {
+                return $market['base'] === $code;
+            });
+            if (count($activeMarkets)) {
+                $activeSymbols = array_map(function($market) {
+                    return $market['symbol'];
+                }, $activeMarkets);
+                $symbol = get_test_symbol($exchange, $activeSymbols);
+                break;
+            }
+        }
+    }
+
+    if ($symbol === null) {
+        $markets = array_values($exchange->markets);
+        $activeMarkets = array_filter($markets, function($market) use ($exchange) {
+            return !$exchange->safe_value($market, 'active', false);
+        });
+        $activeSymbols = array_map(function($market) {
+            return $market['symbol'];
+        }, $activeMarkets);
+        $symbol = get_test_symbol($exchange, $activeSymbols);
+    }
+
+    if ($symbol === null) {
+        $symbol = get_test_symbol($exchange, $exchange->symbols);
+    }
+
+    if ($symbol === null) {
+        $symbol = $exchange->symbols[0];
+    }
+
+    return array($symbol, $code);
+}
+
+function test_exchange($exchange) {
+
+    global $common_symbols, $common_codes;
+
+    list($symbol, $code) = get_test_symbol_and_code($exchange, $common_symbols, $common_codes);
 
     if (strpos($symbol, '.d') === false) {
         dump(green('SYMBOL:'), green($symbol));
         dump(green('CODE:'), green($code));
-        yield test_symbol($exchange, $symbol, $code);
+        yield from test_symbol($exchange, $symbol, $code);
     }
+
+    yield from test_accounts($exchange);
 }
 
 $proxies = array(
     '',
     'https://cors-anywhere.herokuapp.com/',
-    // 'https://crossorigin.me/',
 );
 
-$main = function() use ($argv, $exchanges, $proxies, $config) {
-    if (count($argv) > 1) {
-        if ($exchanges[$argv[1]]) {
-            $id = $argv[1];
+$main = function() use ($args, $exchanges, $proxies, $config, $common_codes) {
+    if (count($args) > 1) {
+        if ($exchanges[$args[1]]) {
+            $id = $args[1];
             $exchange = $exchanges[$id];
 
             $exchange_config = $exchange->safe_value($config, $id, array());
@@ -382,22 +511,22 @@ $main = function() use ($argv, $exchanges, $proxies, $config) {
 
             dump(green('EXCHANGE:'), green($exchange->id));
 
-            if (count($argv) > 2) {
-                yield load_exchange($exchange);
-                yield test_symbol($exchange, $argv[2]);
+            if (count($args) > 2) {
+                yield from load_exchange($exchange);
+                $code = get_test_code($exchange, $common_codes);
+                yield from test_symbol($exchange, $args[2], $code);
             } else {
-                yield try_all_proxies($exchange, $proxies);
+                yield from try_all_proxies($exchange, $proxies);
             }
         } else {
-            echo $argv[1] . " not found.\n";
+            echo $args[1] . " not found.\n";
         }
     } else {
         foreach ($exchanges as $id => $exchange) {
-            yield try_all_proxies($exchange, $proxies);
+            yield from try_all_proxies($exchange, $proxies);
         }
     }
 };
 
-$kernel = async\Exchange::get_kernel();
-$kernel->execute($main);
-$kernel->run();
+$promise = Async\coroutine($main);
+Async\await($promise);

@@ -3,14 +3,13 @@
 const ccxt = require ('../../ccxt.js')
     , { writeFileSync } = require ('fs')
     , path = require ('path')
-    , enableRateLimit = true
     , exchanges = {}
     , tickers = {}
 
 
 ccxt.exchanges.forEach (id => {
     try {
-        const exchange = new ccxt[id] ({ enableRateLimit })
+        const exchange = new ccxt[id] ()
         if (exchange.has['fetchTickers']) {
             exchanges[id] = exchange
         }

@@ -6,12 +6,12 @@ async function test () {
 
     let exchanges = { 
         "bittrex": {
-            "apiKey": "60f38a5818934fc08308778f94d3d8c4", 
-            "secret": "9d294ddb5b944403b58e5298653720c1",
+            "apiKey": "YOUR_API_KEY", 
+            "secret": "YOUR_SECRET",
         },
         "bitfinex": { 
-            "apiKey": "02YsRDRAFwqt9JXfFKPIEw82mgmNbZtfpwvt8q5WK5a", 
-            "secret": "IummLrCfcZ9d9NPEtMg6chCpO8hugCvsDIscNm1F3pE"
+            "apiKey": "YOUR_API_KEY", 
+            "secret": "YOUR_SECRET"
         },
     }
 
@@ -21,7 +21,7 @@ async function test () {
 
         console.log (exchanges[id])
 
-        // // instantiate the exchange
+        // instantiate the exchange
         let exchange = new ccxt[id] (exchanges[id])
         console.log (exchange.id, exchange.apiKey)
         exchanges[id] = exchange

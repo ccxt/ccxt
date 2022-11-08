@@ -4,22 +4,16 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.async_support.base.exchange import Exchange
-
-# -----------------------------------------------------------------------------
-
-try:
-    basestring  # Python 3
-except NameError:
-    basestring = str  # Python 2
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import DDoSProtection
-from ccxt.base.precise import Precise
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class bitforex(Exchange):
@@ -29,22 +23,45 @@ class bitforex(Exchange):
             'id': 'bitforex',
             'name': 'Bitforex',
             'countries': ['CN'],
+            'rateLimit': 500,  # https://github.com/ccxt/ccxt/issues/5054
             'version': 'v1',
             'has': {
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': None,  # has but unimplemented
+                'future': False,
+                'option': False,
                 'cancelOrder': True,
                 'createOrder': True,
+                'createStopLimitOrder': False,
+                'createStopMarketOrder': False,
+                'createStopOrder': False,
                 'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
-                'fetchMyTrades': False,
+                'fetchMyTrades': None,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrders': False,
+                'fetchOrders': None,
+                'fetchPositionMode': False,
                 'fetchTicker': True,
-                'fetchTickers': False,
+                'fetchTickers': None,
                 'fetchTrades': True,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
+                'fetchWithdrawal': False,
+                'fetchWithdrawals': False,
+                'transfer': False,
+                'withdraw': False,
             },
             'timeframes': {
                 '1m': '1min',
@@ -61,7 +78,9 @@ class bitforex(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87295553-1160ec00-c50e-11ea-8ea0-df79276a9646.jpg',
-                'api': 'https://api.bitforex.com',
+                'api': {
+                    'rest': 'https://api.bitforex.com',
+                },
                 'www': 'https://www.bitforex.com',
                 'doc': 'https://github.com/githubdev2020/API_Doc_en/wiki',
                 'fees': 'https://help.bitforex.com/en_us/?cat=13',
@@ -69,200 +88,92 @@ class bitforex(Exchange):
             },
             'api': {
                 'public': {
-                    'get': [
-                        'api/v1/market/symbols',
-                        'api/v1/market/ticker',
-                        'api/v1/market/depth',
-                        'api/v1/market/trades',
-                        'api/v1/market/kline',
-                    ],
+                    'get': {
+                        'api/v1/market/symbols': 20,
+                        'api/v1/market/ticker': 4,
+                        'api/v1/market/ticker-all': 4,
+                        'api/v1/market/depth': 4,
+                        'api/v1/market/depth-all': 4,
+                        'api/v1/market/trades': 20,
+                        'api/v1/market/kline': 20,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'api/v1/fund/mainAccount',
-                        'api/v1/fund/allAccount',
-                        'api/v1/trade/placeOrder',
-                        'api/v1/trade/placeMultiOrder',
-                        'api/v1/trade/cancelOrder',
-                        'api/v1/trade/cancelMultiOrder',
-                        'api/v1/trade/orderInfo',
-                        'api/v1/trade/multiOrderInfo',
-                        'api/v1/trade/orderInfos',
-                    ],
+                    'post': {
+                        'api/v1/fund/mainAccount': 1,
+                        'api/v1/fund/allAccount': 30,
+                        'api/v1/trade/placeOrder': 1,
+                        'api/v1/trade/placeMultiOrder': 10,
+                        'api/v1/trade/cancelOrder': 1,
+                        'api/v1/trade/cancelMultiOrder': 20,
+                        'api/v1/trade/cancelAllOrder': 20,
+                        'api/v1/trade/orderInfo': 1,
+                        'api/v1/trade/multiOrderInfo': 10,
+                        'api/v1/trade/orderInfos': 20,
+                    },
                 },
             },
             'fees': {
                 'trading': {
                     'tierBased': False,
                     'percentage': True,
-                    'maker': 0.1 / 100,
-                    'taker': 0.1 / 100,
+                    'maker': self.parse_number('0.001'),
+                    'taker': self.parse_number('0.001'),
                 },
                 'funding': {
                     'tierBased': False,
                     'percentage': True,
                     'deposit': {},
-                    'withdraw': {
-                        'BTC': 0.0005,
-                        'ETH': 0.01,
-                        'BCH': 0.0001,
-                        'LTC': 0.001,
-                        'ETC': 0.005,
-                        'USDT': 5,
-                        'CMCT': 30,
-                        'AION': 3,
-                        'LVT': 0,
-                        'DATA': 40,
-                        'RHP': 50,
-                        'NEO': 0,
-                        'AIDOC': 10,
-                        'BQT': 2,
-                        'R': 2,
-                        'DPY': 0.8,
-                        'GTC': 40,
-                        'AGI': 30,
-                        'DENT': 100,
-                        'SAN': 1,
-                        'SPANK': 8,
-                        'AID': 5,
-                        'OMG': 0.1,
-                        'BFT': 5,
-                        'SHOW': 150,
-                        'TRX': 20,
-                        'ABYSS': 10,
-                        'THM': 25,
-                        'ZIL': 20,
-                        'PPT': 0.2,
-                        'WTC': 0.4,
-                        'LRC': 7,
-                        'BNT': 1,
-                        'CTXC': 1,
-                        'MITH': 20,
-                        'TRUE': 4,
-                        'LYM': 10,
-                        'VEE': 100,
-                        'AUTO': 200,
-                        'REN': 50,
-                        'TIO': 2.5,
-                        'NGC': 1.5,
-                        'PST': 10,
-                        'CRE': 200,
-                        'IPC': 5,
-                        'PTT': 1000,
-                        'XMCT': 20,
-                        'ATMI': 40,
-                        'TERN': 40,
-                        'XLM': 0.01,
-                        'ODE': 15,
-                        'FTM': 100,
-                        'RTE': 100,
-                        'DCC': 100,
-                        'IMT': 500,
-                        'GOT': 3,
-                        'EGT': 500,
-                        'DACC': 1000,
-                        'UBEX': 500,
-                        'ABL': 100,
-                        'OLT': 100,
-                        'DAV': 40,
-                        'THRT': 10,
-                        'RMESH': 3,
-                        'UPP': 20,
-                        'SDT': 0,
-                        'SHR': 10,
-                        'MTV': 3,
-                        'ESS': 100,
-                        'MET': 3,
-                        'TTC': 20,
-                        'LXT': 10,
-                        'XCLP': 100,
-                        'LUK': 100,
-                        'UBC': 100,
-                        'DTX': 10,
-                        'BEAT': 20,
-                        'DEED': 2,
-                        'BGX': 3000,
-                        'PRL': 20,
-                        'ELY': 50,
-                        'CARD': 300,
-                        'SQR': 15,
-                        'VRA': 400,
-                        'BWX': 3500,
-                        'MAS': 75,
-                        'FLP': 0.6,
-                        'UNC': 300,
-                        'CRNC': 15,
-                        'MFG': 70,
-                        'ZXC': 70,
-                        'TRT': 30,
-                        'ZIX': 35,
-                        'XRA': 10,
-                        'AMO': 1600,
-                        'IPG': 3,
-                        'uDoo': 50,
-                        'URB': 30,
-                        'ARCONA': 3,
-                        'CRAD': 5,
-                        'NOBS': 1000,
-                        'ADF': 2,
-                        'ELF': 5,
-                        'LX': 20,
-                        'PATH': 15,
-                        'SILK': 120,
-                        'SKYFT': 50,
-                        'EDN': 50,
-                        'ADE': 50,
-                        'EDR': 10,
-                        'TIME': 0.25,
-                        'SPRK': 20,
-                        'QTUM': 0.01,
-                        'BF': 5,
-                        'ZPR': 100,
-                        'HYB': 10,
-                        'CAN': 30,
-                        'CEL': 10,
-                        'ATS': 50,
-                        'KCASH': 1,
-                        'ACT': 0.01,
-                        'MT': 300,
-                        'DXT': 30,
-                        'WAB': 4000,
-                        'HYDRO': 400,
-                        'LQD': 5,
-                        'OPTC': 200,
-                        'EQUAD': 80,
-                        'LATX': 50,
-                        'LEDU': 100,
-                        'RIT': 70,
-                        'ACDC': 500,
-                        'FSN': 2,
-                    },
+                    'withdraw': {},
                 },
             },
             'commonCurrencies': {
-                'ACE': 'ACE Entertainment',
+                'BKC': 'Bank Coin',
                 'CAPP': 'Crypto Application Token',
                 'CREDIT': 'TerraCredit',
                 'CTC': 'Culture Ticket Chain',
-                'GOT': 'GoNetwork',
-                'HBC': 'Hybrid Bank Cash',
+                'EWT': 'EcoWatt Token',
                 'IQ': 'IQ.Cash',
-                'UOS': 'UOS Network',
+                'MIR': 'MIR COIN',
+                'NOIA': 'METANOIA',
+                'TON': 'To The Moon',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
-                '4004': OrderNotFound,
+                '1000': OrderNotFound,  # {"code":"1000","success":false,"time":1643047898676,"message":"The order does not exist or the status is wrong"}
+                '1003': BadSymbol,  # {"success":false,"code":"1003","message":"Param Invalid:param invalid -symbol:symbol error"}
                 '1013': AuthenticationError,
                 '1016': AuthenticationError,
                 '1017': PermissionDenied,  # {"code":"1017","success":false,"time":1602670594367,"message":"IP not allow"}
                 '1019': BadSymbol,  # {"code":"1019","success":false,"time":1607087743778,"message":"Symbol Invalid"}
                 '3002': InsufficientFunds,
+                '4002': InvalidOrder,  # {"success":false,"code":"4002","message":"Price unreasonable"}
                 '4003': InvalidOrder,  # {"success":false,"code":"4003","message":"amount too small"}
+                '4004': OrderNotFound,
                 '10204': DDoSProtection,
             },
         })
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for bitforex
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = await self.publicGetApiV1MarketSymbols(params)
+        #
+        #    {
+        #        "data": [
+        #            {
+        #                "amountPrecision":4,
+        #                "minOrderAmount":3.0E-4,
+        #                "pricePrecision":2,
+        #                "symbol":"coin-usdt-btc"
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
         data = response['data']
         result = []
         for i in range(0, len(data)):
@@ -273,71 +184,109 @@ class bitforex(Exchange):
             quoteId = symbolParts[1]
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            symbol = base + '/' + quote
-            active = True
-            precision = {
-                'amount': self.safe_integer(market, 'amountPrecision'),
-                'price': self.safe_integer(market, 'pricePrecision'),
-            }
-            limits = {
-                'amount': {
-                    'min': self.safe_number(market, 'minOrderAmount'),
-                    'max': None,
-                },
-                'price': {
-                    'min': None,
-                    'max': None,
-                },
-                'cost': {
-                    'min': None,
-                    'max': None,
-                },
-            }
             result.append({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': active,
-                'precision': precision,
-                'limits': limits,
+                'settleId': None,
+                'type': 'spot',
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': True,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDateTime': None,
+                'strike': None,
+                'optionType': None,
+                'precision': {
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amountPrecision'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'pricePrecision'))),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'amount': {
+                        'min': self.safe_number(market, 'minOrderAmount'),
+                        'max': None,
+                    },
+                    'price': {
+                        'min': None,
+                        'max': None,
+                    },
+                    'cost': {
+                        'min': None,
+                        'max': None,
+                    },
+                },
                 'info': market,
             })
         return result
 
     def parse_trade(self, trade, market=None):
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
+        #
+        # fetchTrades(public) v1
+        #
+        #      {
+        #          "price":57594.53,
+        #          "amount":0.3172,
+        #          "time":1637329685322,
+        #          "direction":1,
+        #          "tid":"1131019666"
+        #      }
+        #
+        #      {
+        #          "price":57591.33,
+        #          "amount":0.002,
+        #          "time":1637329685322,
+        #          "direction":1,
+        #          "tid":"1131019639"
+        #      }
+        #
+        market = self.safe_market(None, market)
         timestamp = self.safe_integer(trade, 'time')
         id = self.safe_string(trade, 'tid')
         orderId = None
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
         sideId = self.safe_integer(trade, 'direction')
         side = self.parse_side(sideId)
-        return {
+        return self.safe_trade({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': None,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'order': orderId,
             'fee': None,
             'takerOrMaker': None,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the bitforex api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         request = {
             'symbol': self.market_id(symbol),
@@ -346,11 +295,25 @@ class bitforex(Exchange):
             request['size'] = limit
         market = self.market(symbol)
         response = await self.publicGetApiV1MarketTrades(self.extend(request, params))
+        #
+        # {
+        #  "data":
+        #      [
+        #          {
+        #              "price":57594.53,
+        #              "amount":0.3172,
+        #              "time":1637329685322,
+        #              "direction":1,
+        #              "tid":"1131019666"
+        #          }
+        #      ],
+        #  "success": True,
+        #  "time": 1637329688475
+        # }
+        #
         return self.parse_trades(response['data'], market, since, limit)
 
-    async def fetch_balance(self, params={}):
-        await self.load_markets()
-        response = await self.privatePostApiV1FundAllAccount(params)
+    def parse_balance(self, response):
         data = response['data']
         result = {'info': response}
         for i in range(0, len(data)):
@@ -362,39 +325,85 @@ class bitforex(Exchange):
             account['free'] = self.safe_string(balance, 'active')
             account['total'] = self.safe_string(balance, 'fix')
             result[code] = account
-        return self.parse_balance(result, False)
+        return self.safe_balance(result)
+
+    async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the bitforex api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
+        await self.load_markets()
+        response = await self.privatePostApiV1FundAllAccount(params)
+        return self.parse_balance(response)
+
+    def parse_ticker(self, ticker, market=None):
+        #
+        #     {
+        #         "buy":7.04E-7,
+        #         "date":1643371198598,
+        #         "high":7.48E-7,
+        #         "last":7.28E-7,
+        #         "low":7.10E-7,
+        #         "sell":7.54E-7,
+        #         "vol":9877287.2874
+        #     }
+        #
+        symbol = self.safe_symbol(None, market)
+        timestamp = self.safe_integer(ticker, 'date')
+        return self.safe_ticker({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'high': self.safe_string(ticker, 'high'),
+            'low': self.safe_string(ticker, 'low'),
+            'bid': self.safe_string(ticker, 'buy'),
+            'bidVolume': None,
+            'ask': self.safe_string(ticker, 'sell'),
+            'askVolume': None,
+            'vwap': None,
+            'open': None,
+            'close': self.safe_string(ticker, 'last'),
+            'last': self.safe_string(ticker, 'last'),
+            'previousClose': None,
+            'change': None,
+            'percentage': None,
+            'average': None,
+            'baseVolume': self.safe_string(ticker, 'vol'),
+            'quoteVolume': None,
+            'info': ticker,
+        }, market)
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the bitforex api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.markets[symbol]
         request = {
             'symbol': market['id'],
         }
-        response = await self.publicGetApiV1MarketTicker(self.extend(request, params))
-        data = response['data']
-        timestamp = self.safe_integer(data, 'date')
-        return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
-            'high': self.safe_number(data, 'high'),
-            'low': self.safe_number(data, 'low'),
-            'bid': self.safe_number(data, 'buy'),
-            'bidVolume': None,
-            'ask': self.safe_number(data, 'sell'),
-            'askVolume': None,
-            'vwap': None,
-            'open': None,
-            'close': self.safe_number(data, 'last'),
-            'last': self.safe_number(data, 'last'),
-            'previousClose': None,
-            'change': None,
-            'percentage': None,
-            'average': None,
-            'baseVolume': self.safe_number(data, 'vol'),
-            'quoteVolume': None,
-            'info': response,
-        }
+        response = await self.publicGetApiV1MarketTickerAll(self.extend(request, params))
+        ticker = self.safe_value(response, 'data')
+        #
+        #     {
+        #         "data":{
+        #             "buy":37082.83,
+        #             "date":1643388686660,
+        #             "high":37487.83,
+        #             "last":37086.79,
+        #             "low":35544.44,
+        #             "sell":37090.52,
+        #             "vol":690.9776
+        #         },
+        #         "success":true,
+        #         "time":1643388686660
+        #     }
+        #
+        return self.parse_ticker(ticker, market)
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -418,6 +427,15 @@ class bitforex(Exchange):
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the bitforex api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -442,17 +460,24 @@ class bitforex(Exchange):
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the bitforex api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
-        marketId = self.market_id(symbol)
+        market = self.market(symbol)
         request = {
-            'symbol': marketId,
+            'symbol': market['id'],
         }
         if limit is not None:
             request['size'] = limit
-        response = await self.publicGetApiV1MarketDepth(self.extend(request, params))
+        response = await self.publicGetApiV1MarketDepthAll(self.extend(request, params))
         data = self.safe_value(response, 'data')
         timestamp = self.safe_integer(response, 'time')
-        return self.parse_order_book(data, symbol, timestamp, 'bids', 'asks', 'price', 'amount')
+        return self.parse_order_book(data, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount')
 
     def parse_order_status(self, status):
         statuses = {
@@ -480,10 +505,10 @@ class bitforex(Exchange):
         sideId = self.safe_integer(order, 'tradeType')
         side = self.parse_side(sideId)
         type = None
-        price = self.safe_number(order, 'orderPrice')
-        average = self.safe_number(order, 'avgPrice')
-        amount = self.safe_number(order, 'orderAmount')
-        filled = self.safe_number(order, 'dealAmount')
+        price = self.safe_string(order, 'orderPrice')
+        average = self.safe_string(order, 'avgPrice')
+        amount = self.safe_string(order, 'orderAmount')
+        filled = self.safe_string(order, 'dealAmount')
         status = self.parse_order_status(self.safe_string(order, 'orderState'))
         feeSide = 'base' if (side == 'buy') else 'quote'
         feeCurrency = market[feeSide]
@@ -513,9 +538,15 @@ class bitforex(Exchange):
             'status': status,
             'fee': fee,
             'trades': None,
-        })
+        }, market)
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bitforex api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -527,6 +558,16 @@ class bitforex(Exchange):
         return order
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the bitforex api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -537,6 +578,16 @@ class bitforex(Exchange):
         return self.parse_orders(response['data'], market, since, limit)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the bitforex api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -547,14 +598,25 @@ class bitforex(Exchange):
         return self.parse_orders(response['data'], market, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the bitforex api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         sideId = None
         if side == 'buy':
             sideId = 1
         elif side == 'sell':
             sideId = 2
+        market = self.market(symbol)
         request = {
-            'symbol': self.market_id(symbol),
+            'symbol': market['id'],
             'price': price,
             'amount': amount,
             'tradeType': sideId,
@@ -567,6 +629,13 @@ class bitforex(Exchange):
         }
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bitforex api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         request = {
             'orderId': id,
@@ -579,7 +648,7 @@ class bitforex(Exchange):
         return returnVal
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'] + '/' + self.implode_params(path, params)
+        url = self.urls['api']['rest'] + '/' + self.implode_params(path, params)
         query = self.omit(params, self.extract_params(path))
         if api == 'public':
             if query:
@@ -600,7 +669,7 @@ class bitforex(Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):
-        if not isinstance(body, basestring):
+        if not isinstance(body, str):
             return  # fallback to default error handler
         if (body[0] == '{') or (body[0] == '['):
             feedback = self.id + ' ' + body

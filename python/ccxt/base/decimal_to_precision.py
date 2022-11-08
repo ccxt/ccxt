@@ -36,7 +36,7 @@ PAD_WITH_ZERO = 6
 def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=DECIMAL_PLACES, padding_mode=NO_PADDING):
     assert precision is not None
     if counting_mode == TICK_SIZE:
-        assert(isinstance(precision, float) or isinstance(precision, numbers.Integral))
+        assert(isinstance(precision, float) or isinstance(precision, decimal.Decimal) or isinstance(precision, numbers.Integral))
     else:
         assert(isinstance(precision, numbers.Integral))
     assert rounding_mode in [TRUNCATE, ROUND]
@@ -164,6 +164,8 @@ def decimal_to_precision(n, rounding_mode=ROUND, precision=None, counting_mode=D
 
 def number_to_string(x):
     # avoids scientific notation for too large and too small numbers
+    if x is None:
+        return None
     d = decimal.Decimal(str(x))
     formatted = '{:f}'.format(d)
     return formatted.rstrip('0').rstrip('.') if '.' in formatted else formatted

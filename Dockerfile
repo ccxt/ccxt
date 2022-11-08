@@ -12,7 +12,7 @@ RUN sed -i 's/archive\.ubuntu\.com/us\.archive\.ubuntu\.com/' /etc/apt/sources.l
 # Miscellaneous deps
 RUN apt-get update && apt-get install -y --no-install-recommends curl gnupg git ca-certificates
 # PHP
-RUN apt-get update && apt-get install -y --no-install-recommends php php-curl php-iconv php-mbstring php-bcmath
+RUN apt-get update && apt-get install -y --no-install-recommends php php-curl php-iconv php-mbstring php-bcmath php-gmp
 # Node
 RUN curl -sL https://deb.nodesource.com/setup_14.x | bash -
 RUN apt-get update && apt-get install -y nodejs
@@ -21,6 +21,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends python3 python3
 RUN pip3 install 'idna==2.9' --force-reinstall
 RUN pip3 install --upgrade setuptools
 RUN pip3 install tox
+RUN pip3 install aiohttp
+RUN pip3 install cryptography
+RUN pip3 install requests
 # Installs as a local Node & Python module, so that `require ('ccxt')` and `import ccxt` should work after that
 RUN npm install
 RUN ln -s /ccxt /usr/lib/node_modules/

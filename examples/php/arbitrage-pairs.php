@@ -1,11 +1,11 @@
 <?php
 
-$root = dirname (dirname (dirname (__FILE__)));
+$root = dirname(dirname(dirname(__FILE__)));
 
 include $root . '/ccxt.php';
 include 'Console/Table.php'; // pear-install it from here: https://pear.php.net/package/Console_Table/
 
-date_default_timezone_set ('UTC');
+date_default_timezone_set('UTC');
 
 function style ($s, $style) { return $style . $s . "\033[0m"; }
 function green     ($s) { return style ($s, "\033[92m"); }

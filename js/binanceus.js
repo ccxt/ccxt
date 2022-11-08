@@ -20,10 +20,8 @@ module.exports = class binanceus extends binance {
                     'web': 'https://www.binance.us',
                     'sapi': 'https://api.binance.us/sapi/v1',
                     'wapi': 'https://api.binance.us/wapi/v3',
-                    'public': 'https://api.binance.us/api/v1',
+                    'public': 'https://api.binance.us/api/v3',
                     'private': 'https://api.binance.us/api/v3',
-                    'v3': 'https://api.binance.us/api/v3',
-                    'v1': 'https://api.binance.us/api/v1',
                 },
                 'www': 'https://www.binance.us',
                 'referral': 'https://www.binance.us/?ref=35005074',
@@ -34,18 +32,14 @@ module.exports = class binanceus extends binance {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': 0.001, // 0.1% trading fee, zero fees for all trading pairs before November 1
-                    'maker': 0.001, // 0.1% trading fee, zero fees for all trading pairs before November 1
+                    'taker': this.parseNumber ('0.001'), // 0.1% trading fee, zero fees for all trading pairs before November 1
+                    'maker': this.parseNumber ('0.001'), // 0.1% trading fee, zero fees for all trading pairs before November 1
                 },
             },
             'options': {
                 'quoteOrderQty': false,
             },
         });
-    }
-
-    async fetchCurrencies (params = {}) {
-        return undefined;
     }
 };
 

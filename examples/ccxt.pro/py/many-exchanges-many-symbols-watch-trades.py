@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
-import ccxtpro
-from asyncio import gather, get_event_loop
+import ccxt.pro
+from asyncio import gather, run
 
 
 async def symbol_loop(exchange, symbol):
@@ -17,27 +17,23 @@ async def symbol_loop(exchange, symbol):
             break  # you can break just this one loop if it fails
 
 
-async def exchange_loop(asyncio_loop, exchange_id, symbols):
+async def exchange_loop(exchange_id, symbols):
     print('Starting the', exchange_id, 'exchange loop with', symbols)
-    exchange = getattr(ccxtpro, exchange_id)({
+    exchange = getattr(ccxt.pro, exchange_id)({
         'newUpdates': True,  # https://github.com/ccxt/ccxt/wiki/ccxt.pro.manual#incremental-data-structures
-        'enableRateLimit': True,  # https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
-        'asyncio_loop': asyncio_loop,
     })
     loops = [symbol_loop(exchange, symbol) for symbol in symbols]
     await gather(*loops)
     await exchange.close()
 
 
-async def main(asyncio_loop):
+async def main():
     exchanges = {
         'okex': ['BTC/USDT', 'ETH/BTC', 'ETH/USDT'],
         'binance': ['BTC/USDT', 'ETH/BTC'],
     }
-    loops = [exchange_loop(asyncio_loop, exchange_id, symbols) for exchange_id, symbols in exchanges.items()]
+    loops = [exchange_loop(exchange_id, symbols) for exchange_id, symbols in exchanges.items()]
     await gather(*loops)
 
 
-if __name__ == '__main__':
-    asyncio_loop = get_event_loop()
-    asyncio_loop.run_until_complete(main(asyncio_loop))
+run(main())

@@ -32,14 +32,15 @@ function test_trade($exchange, $trade, $symbol, $now) {
     $fee = (is_array($trade) && array_key_exists('fee', $trade)) ? $trade['fee'] : null;
     $fees = (is_array($trade) && array_key_exists('fees', $trade)) ? $trade['fees'] : null;
     // logical XOR
-    if ($fee || $fees) {
-        assert (!($fee && $fees));
-    }
+    // doesn't work when both $fee is defined and $fees is defined
+    // if ($fee || $fees) {
+    //     assert (!($fee && $fees));
+    // }
     if ($fee) {
         assert ((is_array($fee) && array_key_exists('cost', $fee)) && (is_array($fee) && array_key_exists('currency', $fee)));
     }
     if ($fees) {
-        assert (gettype($fees) === 'array' && count(array_filter(array_keys($fees), 'is_string')) == 0);
+        assert (gettype($fees) === 'array' && array_keys($fees) === array_keys(array_keys($fees)));
         for ($i = 0; $i < count($fees); $i++) {
             $fee = $fees[$i];
             assert ((is_array($fee) && array_key_exists('cost', $fee)) && (is_array($fee) && array_key_exists('currency', $fee)));
@@ -64,6 +65,8 @@ function test_trade($exchange, $trade, $symbol, $now) {
     assert ($trade['price'] > 0);
     assert ((is_float($trade['amount']) || is_int($trade['amount'])), 'trade.amount is not a number');
     assert ($trade['amount'] >= 0);
+    assert ($trade['cost'] === null || (is_float($trade['cost']) || is_int($trade['cost'])), 'trade.cost is not a number');
+    assert ($trade['cost'] === null || $trade['cost'] >= 0);
     $takerOrMaker = $trade['takerOrMaker'];
     assert ($takerOrMaker === null || $takerOrMaker === 'taker' || $takerOrMaker === 'maker');
 }

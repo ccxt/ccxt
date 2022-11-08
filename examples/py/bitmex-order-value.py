@@ -9,9 +9,7 @@ sys.path.append(root + '/python')
 import ccxt  # noqa: E402
 
 
-exchange = ccxt.bitmex({
-    'enableRateLimit': True
-})
+exchange = ccxt.bitmex()
 
 markets = exchange.load_markets()
 symbol = 'XBTU20'

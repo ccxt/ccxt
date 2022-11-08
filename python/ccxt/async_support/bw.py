@@ -11,7 +11,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import RateLimitExceeded
 from ccxt.base.errors import ExchangeNotAvailable
-from ccxt.base.precise import Precise
+from ccxt.base.decimal_to_precision import TICK_SIZE
 
 
 class bw(Exchange):
@@ -24,44 +24,51 @@ class bw(Exchange):
             'rateLimit': 1500,
             'version': 'v1',
             'has': {
-                'cancelAllOrders': False,
+                'CORS': None,
+                'spot': True,
+                'margin': None,  # has but unimplemented
+                'swap': None,  # has but unimplemented
+                'future': None,
+                'option': None,
+                'cancelAllOrders': None,
                 'cancelOrder': True,
-                'cancelOrders': False,
-                'CORS': False,
-                'createDepositAddress': False,
+                'cancelOrders': None,
+                'createDepositAddress': None,
                 'createLimitOrder': True,
-                'createMarketOrder': False,
+                'createMarketOrder': None,
                 'createOrder': True,
-                'deposit': False,
-                'editOrder': False,
+                'createStopLimitOrder': False,
+                'createStopMarketOrder': False,
+                'createStopOrder': False,
+                'editOrder': None,
                 'fetchBalance': True,
-                'fetchBidsAsks': False,
+                'fetchBidsAsks': None,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
-                'fetchFundingFees': False,
-                'fetchL2OrderBook': False,
-                'fetchLedger': False,
+                'fetchL2OrderBook': None,
+                'fetchLedger': None,
+                'fetchMarginMode': False,
                 'fetchMarkets': True,
-                'fetchMyTrades': False,
+                'fetchMyTrades': None,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
-                'fetchOrderBooks': False,
+                'fetchOrderBooks': None,
                 'fetchOrders': True,
+                'fetchPositionMode': False,
                 'fetchTicker': True,
                 'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
-                'fetchTradingFees': False,
-                'fetchTradingLimits': False,
-                'fetchTransactions': False,
+                'fetchTradingFees': True,
+                'fetchTradingLimits': None,
+                'fetchTransactionFees': None,
+                'fetchTransactions': None,
                 'fetchWithdrawals': True,
-                'privateAPI': False,
-                'publicAPI': False,
-                'withdraw': False,
+                'withdraw': None,
             },
             'timeframes': {
                 '1m': '1M',
@@ -69,12 +76,15 @@ class bw(Exchange):
                 '15m': '15M',
                 '30m': '30M',
                 '1h': '1H',
+                '1d': '1D',
                 '1w': '1W',
             },
             'hostname': 'bw.com',  # set to 'bw.io' for China mainland
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/69436317-31128c80-0d52-11ea-91d1-eb7bb5818812.jpg',
-                'api': 'https://www.{hostname}',
+                'api': {
+                    'rest': 'https://www.{hostname}',
+                },
                 'www': 'https://www.bw.com',
                 'doc': 'https://github.com/bw-exchange/api_docs_en/wiki',
                 'fees': 'https://www.bw.com/feesRate',
@@ -86,14 +96,15 @@ class bw(Exchange):
             },
             'fees': {
                 'trading': {
-                    'tierBased': False,
+                    'tierBased': True,
                     'percentage': True,
-                    'taker': 0.2 / 100,
-                    'maker': 0.2 / 100,
+                    'taker': self.parse_number('0.002'),
+                    'maker': self.parse_number('0.002'),
                 },
                 'funding': {
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     '999': AuthenticationError,
@@ -142,38 +153,48 @@ class bw(Exchange):
         })
 
     async def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for bw
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         response = await self.publicGetExchangeConfigControllerWebsiteMarketcontrollerGetByWebId(params)
         #
-        #     {
-        #         "datas": [
-        #             {
-        #                 "orderNum":null,
-        #                 "leverEnable":true,
-        #                 "leverMultiple":10,
-        #                 "marketId":"291",
-        #                 "webId":"102",
-        #                 "serverId":"entrust_bw_23",
-        #                 "name":"eos_usdt",
-        #                 "leverType":"2",
-        #                 "buyerCurrencyId":"11",
-        #                 "sellerCurrencyId":"7",
-        #                 "amountDecimal":4,
-        #                 "priceDecimal":3,
-        #                 "minAmount":"0.0100000000",
-        #                 "state":1,
-        #                 "openTime":1572537600000,
-        #                 "defaultFee":"0.00200000",
-        #                 "createUid":null,
-        #                 "createTime":0,
-        #                 "modifyUid":null,
-        #                 "modifyTime":1574160113735,
-        #                 "combineMarketId":"",
-        #                 "isCombine":0,
-        #                 "isMining":0
-        #             }
-        #         ],
-        #         "resMsg": {"message":"success !", "method":null, "code":"1"}
-        #     }
+        #    {
+        #        resMsg: {
+        #            method: null,
+        #            code: '1',
+        #            message: 'success !'
+        #        },
+        #        datas: [
+        #            {
+        #                leverMultiple: '10',
+        #                amountDecimal: '4',
+        #                minAmount: '0.0100000000',
+        #                modifyUid: null,
+        #                buyerCurrencyId: '11',
+        #                isCombine: '0',
+        #                priceDecimal: '3',
+        #                combineMarketId: '',
+        #                openPrice: '0',
+        #                leverEnable: True,
+        #                marketId: '291',
+        #                serverId: 'entrust_bw_2',
+        #                isMining: '0',
+        #                webId: '102',
+        #                modifyTime: '1581595375498',
+        #                defaultFee: '0.00200000',
+        #                sellerCurrencyId: '7',
+        #                createTime: '0',
+        #                state: '1',
+        #                name: 'eos_usdt',
+        #                leverType: '2',
+        #                createUid: null,
+        #                orderNum: null,
+        #                openTime: '1574956800000'
+        #            },
+        #        ]
+        #    }
         #
         markets = self.safe_value(response, 'datas', [])
         result = []
@@ -187,48 +208,69 @@ class bw(Exchange):
             quote = self.safe_currency_code(quote)
             baseId = self.safe_string(market, 'sellerCurrencyId')
             quoteId = self.safe_string(market, 'buyerCurrencyId')
-            baseNumericId = int(baseId)
-            quoteNumericId = int(quoteId)
-            symbol = base + '/' + quote
             state = self.safe_integer(market, 'state')
-            active = (state == 1)
             fee = self.safe_number(market, 'defaultFee')
             result.append({
                 'id': id,
-                'active': active,
                 'numericId': numericId,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'baseNumericId': baseNumericId,
-                'quoteNumericId': quoteNumericId,
-                'maker': fee,
+                'settleId': None,
+                'baseNumericId': int(baseId),
+                'quoteNumericId': int(quoteId),
+                'type': 'spot',
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'active': (state == 1),
+                'contract': False,
+                'linear': None,
+                'inverse': None,
                 'taker': fee,
-                'info': market,
+                'maker': fee,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(market, 'amountDecimal'),
-                    'price': self.safe_integer(market, 'priceDecimal'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'amountDecimal'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(market, 'priceDecimal'))),
                 },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
                         'min': self.safe_number(market, 'minAmount'),
                         'max': None,
                     },
                     'price': {
-                        'min': 0,
+                        'min': self.parse_number('0'),
                         'max': None,
                     },
                     'cost': {
-                        'min': 0,
+                        'min': self.parse_number('0'),
                         'max': None,
                     },
                 },
+                'info': market,
             })
         return result
 
     async def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the bw api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
         response = await self.publicGetExchangeConfigControllerWebsiteCurrencycontrollerGetCurrencyList(params)
         #
         #     {
@@ -290,6 +332,10 @@ class bw(Exchange):
             id = self.safe_string(currency, 'currencyId')
             code = self.safe_currency_code(self.safe_string_upper(currency, 'name'))
             state = self.safe_integer(currency, 'state')
+            rechargeFlag = self.safe_integer(currency, 'rechargeFlag')
+            drawFlag = self.safe_integer(currency, 'drawFlag')
+            deposit = rechargeFlag == 1
+            withdraw = drawFlag == 1
             active = state == 1
             result[code] = {
                 'id': id,
@@ -297,6 +343,8 @@ class bw(Exchange):
                 'info': currency,
                 'name': code,
                 'active': active,
+                'deposit': deposit,
+                'withdraw': withdraw,
                 'fee': self.safe_number(currency, 'drawFee'),
                 'precision': None,
                 'limits': {
@@ -329,35 +377,42 @@ class bw(Exchange):
         #     ]
         #
         marketId = self.safe_string(ticker, 0)
-        symbol = self.safe_symbol(marketId, market)
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         timestamp = self.milliseconds()
-        close = float(self.safe_value(ticker, 1))
+        close = self.safe_string(ticker, 1)
         bid = self.safe_value(ticker, 'bid', {})
         ask = self.safe_value(ticker, 'ask', {})
-        return {
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': float(self.safe_value(ticker, 2)),
-            'low': float(self.safe_value(ticker, 3)),
-            'bid': float(self.safe_value(ticker, 7)),
-            'bidVolume': self.safe_number(bid, 'quantity'),
-            'ask': float(self.safe_value(ticker, 8)),
-            'askVolume': self.safe_number(ask, 'quantity'),
+            'high': self.safe_string(ticker, 2),
+            'low': self.safe_string(ticker, 3),
+            'bid': self.safe_string(ticker, 7),
+            'bidVolume': self.safe_string(bid, 'quantity'),
+            'ask': self.safe_string(ticker, 8),
+            'askVolume': self.safe_string(ask, 'quantity'),
             'vwap': None,
             'open': None,
             'close': close,
             'last': close,
             'previousClose': None,
-            'change': float(self.safe_value(ticker, 5)),
+            'change': self.safe_string(ticker, 5),
             'percentage': None,
             'average': None,
-            'baseVolume': float(self.safe_value(ticker, 4)),
-            'quoteVolume': float(self.safe_value(ticker, 9)),
+            'baseVolume': self.safe_string(ticker, 4),
+            'quoteVolume': self.safe_string(ticker, 9),
             'info': ticker,
-        }
+        }, market)
 
     async def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the bw api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -385,7 +440,14 @@ class bw(Exchange):
         return self.parse_ticker(ticker, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the bw api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         await self.load_markets()
+        symbols = self.market_symbols(symbols)
         response = await self.publicGetApiDataV1Tickers(params)
         #
         #     {
@@ -416,6 +478,13 @@ class bw(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the bw api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -444,7 +513,7 @@ class bw(Exchange):
         #
         orderbook = self.safe_value(response, 'datas', [])
         timestamp = self.safe_timestamp(orderbook, 'timestamp')
-        return self.parse_order_book(orderbook, symbol, timestamp)
+        return self.parse_order_book(orderbook, market['symbol'], timestamp)
 
     def parse_trade(self, trade, market=None):
         #
@@ -467,41 +536,35 @@ class bw(Exchange):
         timestamp = self.safe_timestamp(trade, 2)
         priceString = self.safe_string(trade, 5)
         amountString = self.safe_string(trade, 6)
-        price = self.parse_number(priceString)
-        amount = self.parse_number(amountString)
-        cost = self.parse_number(Precise.string_mul(priceString, amountString))
-        marketId = self.safe_string(trade, 1)
-        symbol = None
-        if marketId is not None:
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-            else:
-                marketName = self.safe_string(trade, 3)
-                baseId, quoteId = marketName.split('_')
-                base = self.safe_currency_code(baseId)
-                quote = self.safe_currency_code(quoteId)
-                symbol = base + '/' + quote
-        if (symbol is None) and (market is not None):
-            symbol = market['symbol']
+        marketId = self.safe_string(trade, 3)
+        market = self.safe_market(marketId, market, '_')
         sideString = self.safe_string(trade, 4)
         side = 'sell' if (sideString == 'ask') else 'buy'
-        return {
+        return self.safe_trade({
             'id': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'order': None,
             'type': 'limit',
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': None,
             'info': trade,
-        }
+        }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the bw api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -528,6 +591,65 @@ class bw(Exchange):
         #
         trades = self.safe_value(response, 'datas', [])
         return self.parse_trades(trades, market, since, limit)
+
+    async def fetch_trading_fees(self, params={}):
+        """
+        fetch the trading fees for multiple markets
+        :param dict params: extra parameters specific to the bw api endpoint
+        :returns dict: a dictionary of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>` indexed by market symbols
+        """
+        await self.load_markets()
+        response = await self.publicGetExchangeConfigControllerWebsiteMarketcontrollerGetByWebId()
+        #
+        #    {
+        #        resMsg: {method: null, code: '1', message: 'success !'},
+        #        datas: [
+        #            {
+        #                leverMultiple: '10',
+        #                amountDecimal: '4',
+        #                minAmount: '0.0100000000',
+        #                modifyUid: null,
+        #                buyerCurrencyId: '11',
+        #                isCombine: '0',
+        #                priceDecimal: '3',
+        #                combineMarketId: '',
+        #                openPrice: '0',
+        #                leverEnable: True,
+        #                marketId: '291',
+        #                serverId: 'entrust_bw_2',
+        #                isMining: '0',
+        #                webId: '102',
+        #                modifyTime: '1581595375498',
+        #                defaultFee: '0.00200000',
+        #                sellerCurrencyId: '7',
+        #                createTime: '0',
+        #                state: '1',
+        #                name: 'eos_usdt',
+        #                leverType: '2',
+        #                createUid: null,
+        #                orderNum: null,
+        #                openTime: '1574956800000'
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
+        datas = self.safe_value(response, 'datas', [])
+        result = {}
+        for i in range(0, len(datas)):
+            data = datas[i]
+            marketId = self.safe_string(data, 'name')
+            symbol = self.safe_symbol(marketId, None, '_')
+            fee = self.safe_number(data, 'defaultFee')
+            result[symbol] = {
+                'info': data,
+                'symbol': symbol,
+                'maker': fee,
+                'taker': fee,
+                'percentage': True,
+                'tierBased': True,
+            }
+        return result
 
     def parse_ohlcv(self, ohlcv, market=None):
         #
@@ -558,6 +680,15 @@ class bw(Exchange):
         ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the bw api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -581,7 +712,26 @@ class bw(Exchange):
         data = self.safe_value(response, 'datas', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
+    def parse_balance(self, response):
+        data = self.safe_value(response, 'datas', {})
+        balances = self.safe_value(data, 'list', [])
+        result = {'info': response}
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            currencyId = self.safe_string(balance, 'currencyTypeId')
+            code = self.safe_currency_code(currencyId)
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'amount')
+            account['used'] = self.safe_string(balance, 'freeze')
+            result[code] = account
+        return self.safe_balance(result)
+
     async def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the bw api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
         await self.load_markets()
         response = await self.privatePostExchangeFundControllerWebsiteFundcontrollerFindbypage(params)
         #
@@ -601,22 +751,21 @@ class bw(Exchange):
         #         "resMsg": {"code": "1", "message": "success !"}
         #     }
         #
-        data = self.safe_value(response, 'datas', {})
-        balances = self.safe_value(data, 'list', [])
-        result = {'info': response}
-        for i in range(0, len(balances)):
-            balance = balances[i]
-            currencyId = self.safe_string(balance, 'currencyTypeId')
-            code = self.safe_currency_code(currencyId)
-            account = self.account()
-            account['free'] = self.safe_string(balance, 'amount')
-            account['used'] = self.safe_string(balance, 'freeze')
-            result[code] = account
-        return self.parse_balance(result, False)
+        return self.parse_balance(response)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the bw api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if price is None:
-            raise ExchangeError(self.id + ' allows limit orders only')
+            raise ExchangeError(self.id + ' createOrder() allows limit orders only')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -703,11 +852,11 @@ class bw(Exchange):
             side = 'sell'
         elif side == '1':
             side = 'buy'
-        amount = self.safe_number(order, 'amount')
-        price = self.safe_number(order, 'price')
-        filled = self.safe_number(order, 'completeAmount')
-        remaining = self.safe_number_2(order, 'availabelAmount', 'availableAmount')  # typo in the docs or in the API, availabel vs available
-        cost = self.safe_number(order, 'totalMoney')
+        amount = self.safe_string(order, 'amount')
+        price = self.safe_string(order, 'price')
+        filled = self.safe_string(order, 'completeAmount')
+        remaining = self.safe_string_2(order, 'availabelAmount', 'availableAmount')  # typo in the docs or in the API, availabel vs available
+        cost = self.safe_string(order, 'totalMoney')
         status = self.parse_order_status(self.safe_string(order, 'status'))
         return self.safe_order({
             'info': order,
@@ -731,9 +880,15 @@ class bw(Exchange):
             'status': status,
             'fee': None,
             'trades': None,
-        })
+        }, market)
 
     async def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bw api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         await self.load_markets()
@@ -767,6 +922,13 @@ class bw(Exchange):
         return self.parse_order(order, market)
 
     async def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str symbol: unified symbol of the market the order was made in
+        :param dict params: extra parameters specific to the bw api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' cancelOrder() requires a symbol argument')
         await self.load_markets()
@@ -788,6 +950,14 @@ class bw(Exchange):
         }
 
     async def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the bw api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
         await self.load_markets()
@@ -832,6 +1002,14 @@ class bw(Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the bw api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires a symbol argument')
         await self.load_markets()
@@ -849,8 +1027,16 @@ class bw(Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     async def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the bw api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenOrders() requires a symbol argument')
+            raise ArgumentsRequired(self.id + ' fetchOrders() requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
         request = {
@@ -899,7 +1085,7 @@ class bw(Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.implode_params(self.urls['api'], {'hostname': self.hostname}) + '/' + path
+        url = self.implode_hostname(self.urls['api']['rest']) + '/' + path
         if method == 'GET':
             if params:
                 url += '?' + self.urlencode(params)
@@ -926,6 +1112,12 @@ class bw(Exchange):
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     async def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the bw api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -951,6 +1143,7 @@ class bw(Exchange):
             'currency': code,
             'address': self.check_address(address),
             'tag': tag,
+            'network': None,
             'info': response,
         }
 
@@ -1016,6 +1209,7 @@ class bw(Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'addressFrom': None,
             'address': address,
             'addressTo': None,
@@ -1031,6 +1225,14 @@ class bw(Exchange):
         }
 
     async def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the bw api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchDeposits() requires a currency code argument')
         await self.load_markets()
@@ -1069,9 +1271,17 @@ class bw(Exchange):
         #
         data = self.safe_value(response, 'datas', {})
         deposits = self.safe_value(data, 'list', [])
-        return self.parse_transactions(deposits, code, since, limit)
+        return self.parse_transactions(deposits, currency, since, limit)
 
     async def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the bw api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         if code is None:
             raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a currency code argument')
         await self.load_markets()
@@ -1110,7 +1320,7 @@ class bw(Exchange):
         #
         data = self.safe_value(response, 'datas', {})
         withdrawals = self.safe_value(data, 'list', [])
-        return self.parse_transactions(withdrawals, code, since, limit)
+        return self.parse_transactions(withdrawals, currency, since, limit)
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if not response:

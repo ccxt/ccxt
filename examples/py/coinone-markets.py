@@ -10,7 +10,6 @@ sys.path.append(root + '/python')
 import ccxt  # noqa: E402
 
 exchange = ccxt.coinone({
-    'enableRateLimit': True,
     # 'verbose': True,  # uncomment for verbose output
 })
 

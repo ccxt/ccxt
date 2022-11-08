@@ -1,6 +1,5 @@
-import ccxtpro
-import asyncio
-# import pprint
+import ccxt.pro
+from asyncio import run, gather
 
 
 def table(values):
@@ -57,7 +56,7 @@ async def watch_ohlcv(color, duration, exchange, symbol, timeframe, limit):
 
 
 async def main():
-    exchange = ccxtpro.bitmex({'enableRateLimit': True})
+    exchange = ccxt.pro.bitmex()
     await exchange.load_markets()
     duration = 1200000  # run 20 minutes = 1200000 milliseconds
     symbol = 'BTC/USD'
@@ -67,8 +66,8 @@ async def main():
         watch_ohlcv('\x1b[33m', duration, exchange, symbol, '1m', limit),  # yellow
         watch_ohlcv('\x1b[32m', duration, exchange, symbol, '5m', limit),  # green
     ]
-    await asyncio.gather(*loops)
+    await gather(*loops)
     await exchange.close()
 
 
-asyncio.get_event_loop().run_until_complete(main())
+run(main())

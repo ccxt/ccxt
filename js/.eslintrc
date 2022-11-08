@@ -7,6 +7,7 @@
     "sourceType": "script"
   },
   "extends": ["eslint:recommended", "airbnb-base"],
+  "ignorePatterns": ["test/*", "static_dependencies/*"],
   "rules": {
     "strict": "off",
     "semi": "error",
@@ -20,6 +21,7 @@
         "exports": "always-multiline",
         "functions": "never"
     }],
+    "import/extensions": "off",
     "brace-style": ["error", "1tbs"],
     "multiline-comment-style": ["error", "separate-lines"],
     "dot-notation": "off",
@@ -40,7 +42,7 @@
     "no-nested-ternary": "error",
     "eqeqeq": "error",
     "quotes": ["error", "single", { "avoidEscape": true }],
-    "no-unused-vars": ["error", { "argsIgnorePattern": "^(symbol|price|tag|since|limit|params|market|timeframe|api|path|code|currency|response|requestHeaders|requestBody|bidsKey|asksKey)" }],
+    "no-unused-vars": ["error", { "argsIgnorePattern": "^(symbol|price|tag|since|limit|params|market|timeframe|api|path|code|currency|statusCode|statusText|url|method|response|requestHeaders|requestBody|bidsKey|asksKey|context|config|type|priceKey|amountKey|networkCode|marginMode|subscription|message|client)" }],
     "new-parens": "error",
     "new-cap": ["error"],
     "no-var": "error",
@@ -66,7 +68,7 @@
     "no-param-reassign": "off",
     "max-len": "off",
     "no-return-await": "off",
-    "array-bracket-spacing": "off",
+    "array-bracket-spacing": ["error", "always"],
     "radix": "off",
     "camelcase": "off",
     "no-lonely-if": "off",
@@ -79,6 +81,19 @@
     "operator-assignment": "off",
     "no-underscore-dangle": "off",
     "consistent-return": "off",
-    "no-await-in-loop": "off"
-  }
+    "no-await-in-loop": "off",
+    "prefer-exponentiation-operator": "off"
+  },
+  "overrides": [
+    {
+      "files": ["./base/functions/*.js"],
+      "rules": {
+        "multiline-comment-style": "off",
+        "quote-props": "off",
+        "no-restricted-syntax": "off",
+        "padding-line-between-statements": "off",
+        "padded-blocks": "off"
+      }
+    }
+  ]
 }

@@ -42,8 +42,9 @@ const precisionConstants = {
 // See https://stackoverflow.com/questions/1685680/how-to-avoid-scientific-notation-for-large-numbers-in-javascript for discussion
 
 function numberToString (x) { // avoids scientific notation for too large and too small numbers
+    if (x === undefined) return undefined
 
-    if (typeof x === 'string') return x
+    if (typeof x !== 'number') return x.toString ()
 
     const s = x.toString ()
     if (Math.abs (x) < 1.0) {
@@ -60,10 +61,12 @@ function numberToString (x) { // avoids scientific notation for too large and to
         if (parts[1]) {
             let e = parseInt (parts[1])
             const m = parts[0].split ('.')
+            let part = ''
             if (m[1]) {
                 e -= m[1].length
+                part = m[1]
             }
-            return m[0] + m[1] + (new Array (e + 1)).join ('0')
+            return m[0] + part + (new Array (e + 1)).join ('0')
         }
     }
     return s
@@ -292,30 +295,8 @@ const decimalToPrecision = (x, roundingMode
     return String.fromCharCode (...out)
 }
 
-// toWei / fromWei
-
-function fromWei (amount, decimals = 18) {
-    if (amount === undefined) {
-        return amount
-    }
-    const exponential = Math.floor (amount).toExponential () // wei must be whole numbers
-    const [ n, exponent ] = exponential.split ('e')
-    const newExponent = parseInt (exponent) - decimals
-    return parseFloat (n + 'e' + newExponent)
-}
-
-function toWei (amount, decimals = 18) {
-    if (amount === undefined) {
-        return amount
-    }
-    const exponential = parseFloat (amount).toExponential ()
-    const [ n, exponent ] = exponential.split ('e')
-    const newExponent = parseInt (exponent) + decimals
-    return numberToString (Math.floor (parseFloat (n + 'e' + newExponent))) // wei must be whole numbers
-}
-
 function omitZero (stringNumber) {
-    if (stringNumber === undefined) {
+    if (stringNumber === undefined || stringNumber === '') {
         return undefined
     }
     if (parseFloat (stringNumber) === 0) {
@@ -327,8 +308,6 @@ function omitZero (stringNumber) {
 /*  ------------------------------------------------------------------------ */
 
 module.exports = {
-    toWei,
-    fromWei,
     numberToString,
     precisionFromString,
     decimalToPrecision,

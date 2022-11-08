@@ -19,12 +19,13 @@ module.exports = class binanceusdm extends binance {
                 ],
             },
             'has': {
-                'fetchPositions': true,
-                'fetchIsolatedPositions': true,
-                'fetchFundingRate': true,
-                'fetchFundingHistory': true,
-                'setLeverage': true,
-                'setMarginMode': true,
+                'CORS': undefined,
+                'spot': false,
+                'margin': false,
+                'swap': true,
+                'future': true,
+                'option': undefined,
+                'createStopMarketOrder': true,
             },
             'options': {
                 'defaultType': 'future',
@@ -32,6 +33,7 @@ module.exports = class binanceusdm extends binance {
                 // tier amount, maintenance margin, initial margin
                 'leverageBrackets': undefined,
                 'marginTypes': {},
+                'marginModes': {},
             },
         });
     }

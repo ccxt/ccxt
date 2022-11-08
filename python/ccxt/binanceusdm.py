@@ -20,12 +20,13 @@ class binanceusdm(binance):
                 ],
             },
             'has': {
-                'fetchPositions': True,
-                'fetchIsolatedPositions': True,
-                'fetchFundingRate': True,
-                'fetchFundingHistory': True,
-                'setLeverage': True,
-                'setMarginMode': True,
+                'CORS': None,
+                'spot': False,
+                'margin': False,
+                'swap': True,
+                'future': True,
+                'option': None,
+                'createStopMarketOrder': True,
             },
             'options': {
                 'defaultType': 'future',
@@ -33,6 +34,7 @@ class binanceusdm(binance):
                 # tier amount, maintenance margin, initial margin
                 'leverageBrackets': None,
                 'marginTypes': {},
+                'marginModes': {},
             },
         })
 

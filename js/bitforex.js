@@ -3,8 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, AuthenticationError, OrderNotFound, InsufficientFunds, DDoSProtection, PermissionDenied, BadSymbol, InvalidOrder } = require ('./base/errors');
-const Precise = require ('./base/Precise');
+const { ExchangeError, ArgumentsRequired, AuthenticationError, OrderNotFound, InsufficientFunds, DDoSProtection, PermissionDenied, BadSymbol, InvalidOrder } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
 
 //  ---------------------------------------------------------------------------
 
@@ -14,22 +14,45 @@ module.exports = class bitforex extends Exchange {
             'id': 'bitforex',
             'name': 'Bitforex',
             'countries': [ 'CN' ],
+            'rateLimit': 500, // https://github.com/ccxt/ccxt/issues/5054
             'version': 'v1',
             'has': {
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': undefined, // has but unimplemented
+                'future': false,
+                'option': false,
                 'cancelOrder': true,
                 'createOrder': true,
+                'createStopLimitOrder': false,
+                'createStopMarketOrder': false,
+                'createStopOrder': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
+                'fetchMarginMode': false,
                 'fetchMarkets': true,
-                'fetchMyTrades': false,
+                'fetchMyTrades': undefined,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': false,
+                'fetchOrders': undefined,
+                'fetchPositionMode': false,
                 'fetchTicker': true,
-                'fetchTickers': false,
+                'fetchTickers': undefined,
                 'fetchTrades': true,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
+                'fetchWithdrawal': false,
+                'fetchWithdrawals': false,
+                'transfer': false,
+                'withdraw': false,
             },
             'timeframes': {
                 '1m': '1min',
@@ -46,7 +69,9 @@ module.exports = class bitforex extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87295553-1160ec00-c50e-11ea-8ea0-df79276a9646.jpg',
-                'api': 'https://api.bitforex.com',
+                'api': {
+                    'rest': 'https://api.bitforex.com',
+                },
                 'www': 'https://www.bitforex.com',
                 'doc': 'https://github.com/githubdev2020/API_Doc_en/wiki',
                 'fees': 'https://help.bitforex.com/en_us/?cat=13',
@@ -54,201 +79,95 @@ module.exports = class bitforex extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': [
-                        'api/v1/market/symbols',
-                        'api/v1/market/ticker',
-                        'api/v1/market/depth',
-                        'api/v1/market/trades',
-                        'api/v1/market/kline',
-                    ],
+                    'get': {
+                        'api/v1/market/symbols': 20,
+                        'api/v1/market/ticker': 4,
+                        'api/v1/market/ticker-all': 4,
+                        'api/v1/market/depth': 4,
+                        'api/v1/market/depth-all': 4,
+                        'api/v1/market/trades': 20,
+                        'api/v1/market/kline': 20,
+                    },
                 },
                 'private': {
-                    'post': [
-                        'api/v1/fund/mainAccount',
-                        'api/v1/fund/allAccount',
-                        'api/v1/trade/placeOrder',
-                        'api/v1/trade/placeMultiOrder',
-                        'api/v1/trade/cancelOrder',
-                        'api/v1/trade/cancelMultiOrder',
-                        'api/v1/trade/orderInfo',
-                        'api/v1/trade/multiOrderInfo',
-                        'api/v1/trade/orderInfos',
-                    ],
+                    'post': {
+                        'api/v1/fund/mainAccount': 1,
+                        'api/v1/fund/allAccount': 30,
+                        'api/v1/trade/placeOrder': 1,
+                        'api/v1/trade/placeMultiOrder': 10,
+                        'api/v1/trade/cancelOrder': 1,
+                        'api/v1/trade/cancelMultiOrder': 20,
+                        'api/v1/trade/cancelAllOrder': 20,
+                        'api/v1/trade/orderInfo': 1,
+                        'api/v1/trade/multiOrderInfo': 10,
+                        'api/v1/trade/orderInfos': 20,
+                    },
                 },
             },
             'fees': {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'maker': 0.1 / 100,
-                    'taker': 0.1 / 100,
+                    'maker': this.parseNumber ('0.001'),
+                    'taker': this.parseNumber ('0.001'),
                 },
                 'funding': {
                     'tierBased': false,
                     'percentage': true,
                     'deposit': {},
-                    'withdraw': {
-                        'BTC': 0.0005,
-                        'ETH': 0.01,
-                        'BCH': 0.0001,
-                        'LTC': 0.001,
-                        'ETC': 0.005,
-                        'USDT': 5,
-                        'CMCT': 30,
-                        'AION': 3,
-                        'LVT': 0,
-                        'DATA': 40,
-                        'RHP': 50,
-                        'NEO': 0,
-                        'AIDOC': 10,
-                        'BQT': 2,
-                        'R': 2,
-                        'DPY': 0.8,
-                        'GTC': 40,
-                        'AGI': 30,
-                        'DENT': 100,
-                        'SAN': 1,
-                        'SPANK': 8,
-                        'AID': 5,
-                        'OMG': 0.1,
-                        'BFT': 5,
-                        'SHOW': 150,
-                        'TRX': 20,
-                        'ABYSS': 10,
-                        'THM': 25,
-                        'ZIL': 20,
-                        'PPT': 0.2,
-                        'WTC': 0.4,
-                        'LRC': 7,
-                        'BNT': 1,
-                        'CTXC': 1,
-                        'MITH': 20,
-                        'TRUE': 4,
-                        'LYM': 10,
-                        'VEE': 100,
-                        'AUTO': 200,
-                        'REN': 50,
-                        'TIO': 2.5,
-                        'NGC': 1.5,
-                        'PST': 10,
-                        'CRE': 200,
-                        'IPC': 5,
-                        'PTT': 1000,
-                        'XMCT': 20,
-                        'ATMI': 40,
-                        'TERN': 40,
-                        'XLM': 0.01,
-                        'ODE': 15,
-                        'FTM': 100,
-                        'RTE': 100,
-                        'DCC': 100,
-                        'IMT': 500,
-                        'GOT': 3,
-                        'EGT': 500,
-                        'DACC': 1000,
-                        'UBEX': 500,
-                        'ABL': 100,
-                        'OLT': 100,
-                        'DAV': 40,
-                        'THRT': 10,
-                        'RMESH': 3,
-                        'UPP': 20,
-                        'SDT': 0,
-                        'SHR': 10,
-                        'MTV': 3,
-                        'ESS': 100,
-                        'MET': 3,
-                        'TTC': 20,
-                        'LXT': 10,
-                        'XCLP': 100,
-                        'LUK': 100,
-                        'UBC': 100,
-                        'DTX': 10,
-                        'BEAT': 20,
-                        'DEED': 2,
-                        'BGX': 3000,
-                        'PRL': 20,
-                        'ELY': 50,
-                        'CARD': 300,
-                        'SQR': 15,
-                        'VRA': 400,
-                        'BWX': 3500,
-                        'MAS': 75,
-                        'FLP': 0.6,
-                        'UNC': 300,
-                        'CRNC': 15,
-                        'MFG': 70,
-                        'ZXC': 70,
-                        'TRT': 30,
-                        'ZIX': 35,
-                        'XRA': 10,
-                        'AMO': 1600,
-                        'IPG': 3,
-                        'uDoo': 50,
-                        'URB': 30,
-                        'ARCONA': 3,
-                        'CRAD': 5,
-                        'NOBS': 1000,
-                        'ADF': 2,
-                        'ELF': 5,
-                        'LX': 20,
-                        'PATH': 15,
-                        'SILK': 120,
-                        'SKYFT': 50,
-                        'EDN': 50,
-                        'ADE': 50,
-                        'EDR': 10,
-                        'TIME': 0.25,
-                        'SPRK': 20,
-                        'QTUM': 0.01,
-                        'BF': 5,
-                        'ZPR': 100,
-                        'HYB': 10,
-                        'CAN': 30,
-                        'CEL': 10,
-                        'ATS': 50,
-                        'KCASH': 1,
-                        'ACT': 0.01,
-                        'MT': 300,
-                        'DXT': 30,
-                        'WAB': 4000,
-                        'HYDRO': 400,
-                        'LQD': 5,
-                        'OPTC': 200,
-                        'EQUAD': 80,
-                        'LATX': 50,
-                        'LEDU': 100,
-                        'RIT': 70,
-                        'ACDC': 500,
-                        'FSN': 2,
-                    },
+                    'withdraw': {},
                 },
             },
             'commonCurrencies': {
-                'ACE': 'ACE Entertainment',
+                'BKC': 'Bank Coin',
                 'CAPP': 'Crypto Application Token',
                 'CREDIT': 'TerraCredit',
                 'CTC': 'Culture Ticket Chain',
-                'GOT': 'GoNetwork',
-                'HBC': 'Hybrid Bank Cash',
+                'EWT': 'EcoWatt Token',
                 'IQ': 'IQ.Cash',
-                'UOS': 'UOS Network',
+                'MIR': 'MIR COIN',
+                'NOIA': 'METANOIA',
+                'TON': 'To The Moon',
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
-                '4004': OrderNotFound,
+                '1000': OrderNotFound, // {"code":"1000","success":false,"time":1643047898676,"message":"The order does not exist or the status is wrong"}
+                '1003': BadSymbol, // {"success":false,"code":"1003","message":"Param Invalid:param invalid -symbol:symbol error"}
                 '1013': AuthenticationError,
                 '1016': AuthenticationError,
                 '1017': PermissionDenied, // {"code":"1017","success":false,"time":1602670594367,"message":"IP not allow"}
                 '1019': BadSymbol, // {"code":"1019","success":false,"time":1607087743778,"message":"Symbol Invalid"}
                 '3002': InsufficientFunds,
+                '4002': InvalidOrder, // {"success":false,"code":"4002","message":"Price unreasonable"}
                 '4003': InvalidOrder, // {"success":false,"code":"4003","message":"amount too small"}
+                '4004': OrderNotFound,
                 '10204': DDoSProtection,
             },
         });
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name bitforex#fetchMarkets
+         * @description retrieves data on all markets for bitforex
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[object]} an array of objects representing market data
+         */
         const response = await this.publicGetApiV1MarketSymbols (params);
+        //
+        //    {
+        //        "data": [
+        //            {
+        //                "amountPrecision":4,
+        //                "minOrderAmount":3.0E-4,
+        //                "pricePrecision":2,
+        //                "symbol":"coin-usdt-btc"
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
         const data = response['data'];
         const result = [];
         for (let i = 0; i < data.length; i++) {
@@ -259,36 +178,52 @@ module.exports = class bitforex extends Exchange {
             const quoteId = symbolParts[1];
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const active = true;
-            const precision = {
-                'amount': this.safeInteger (market, 'amountPrecision'),
-                'price': this.safeInteger (market, 'pricePrecision'),
-            };
-            const limits = {
-                'amount': {
-                    'min': this.safeNumber (market, 'minOrderAmount'),
-                    'max': undefined,
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-            };
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'active': active,
-                'precision': precision,
-                'limits': limits,
+                'settleId': undefined,
+                'type': 'spot',
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': true,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDateTime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'amountPrecision'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'pricePrecision'))),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (market, 'minOrderAmount'),
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
                 'info': market,
             });
         }
@@ -296,38 +231,61 @@ module.exports = class bitforex extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        let symbol = undefined;
-        if (market !== undefined) {
-            symbol = market['symbol'];
-        }
+        //
+        // fetchTrades (public) v1
+        //
+        //      {
+        //          "price":57594.53,
+        //          "amount":0.3172,
+        //          "time":1637329685322,
+        //          "direction":1,
+        //          "tid":"1131019666"
+        //      }
+        //
+        //      {
+        //          "price":57591.33,
+        //          "amount":0.002,
+        //          "time":1637329685322,
+        //          "direction":1,
+        //          "tid":"1131019639"
+        //      }
+        //
+        market = this.safeMarket (undefined, market);
         const timestamp = this.safeInteger (trade, 'time');
         const id = this.safeString (trade, 'tid');
         const orderId = undefined;
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
-        const price = this.parseNumber (priceString);
-        const amount = this.parseNumber (amountString);
-        const cost = this.parseNumber (Precise.stringMul (priceString, amountString));
         const sideId = this.safeInteger (trade, 'direction');
         const side = this.parseSide (sideId);
-        return {
+        return this.safeTrade ({
             'info': trade,
             'id': id,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
+            'symbol': market['symbol'],
             'type': undefined,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': undefined,
             'order': orderId,
             'fee': undefined,
             'takerOrMaker': undefined,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitforex#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {object} params extra parameters specific to the bitforex api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const request = {
             'symbol': this.marketId (symbol),
@@ -337,12 +295,26 @@ module.exports = class bitforex extends Exchange {
         }
         const market = this.market (symbol);
         const response = await this.publicGetApiV1MarketTrades (this.extend (request, params));
+        //
+        // {
+        //  "data":
+        //      [
+        //          {
+        //              "price":57594.53,
+        //              "amount":0.3172,
+        //              "time":1637329685322,
+        //              "direction":1,
+        //              "tid":"1131019666"
+        //          }
+        //      ],
+        //  "success": true,
+        //  "time": 1637329688475
+        // }
+        //
         return this.parseTrades (response['data'], market, since, limit);
     }
 
-    async fetchBalance (params = {}) {
-        await this.loadMarkets ();
-        const response = await this.privatePostApiV1FundAllAccount (params);
+    parseBalance (response) {
         const data = response['data'];
         const result = { 'info': response };
         for (let i = 0; i < data.length; i++) {
@@ -355,40 +327,92 @@ module.exports = class bitforex extends Exchange {
             account['total'] = this.safeString (balance, 'fix');
             result[code] = account;
         }
-        return this.parseBalance (result, false);
+        return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name bitforex#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} params extra parameters specific to the bitforex api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privatePostApiV1FundAllAccount (params);
+        return this.parseBalance (response);
+    }
+
+    parseTicker (ticker, market = undefined) {
+        //
+        //     {
+        //         "buy":7.04E-7,
+        //         "date":1643371198598,
+        //         "high":7.48E-7,
+        //         "last":7.28E-7,
+        //         "low":7.10E-7,
+        //         "sell":7.54E-7,
+        //         "vol":9877287.2874
+        //     }
+        //
+        const symbol = this.safeSymbol (undefined, market);
+        const timestamp = this.safeInteger (ticker, 'date');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'buy'),
+            'bidVolume': undefined,
+            'ask': this.safeString (ticker, 'sell'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': this.safeString (ticker, 'last'),
+            'last': this.safeString (ticker, 'last'),
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'vol'),
+            'quoteVolume': undefined,
+            'info': ticker,
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name bitforex#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the bitforex api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.markets[symbol];
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetApiV1MarketTicker (this.extend (request, params));
-        const data = response['data'];
-        const timestamp = this.safeInteger (data, 'date');
-        return {
-            'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (data, 'high'),
-            'low': this.safeNumber (data, 'low'),
-            'bid': this.safeNumber (data, 'buy'),
-            'bidVolume': undefined,
-            'ask': this.safeNumber (data, 'sell'),
-            'askVolume': undefined,
-            'vwap': undefined,
-            'open': undefined,
-            'close': this.safeNumber (data, 'last'),
-            'last': this.safeNumber (data, 'last'),
-            'previousClose': undefined,
-            'change': undefined,
-            'percentage': undefined,
-            'average': undefined,
-            'baseVolume': this.safeNumber (data, 'vol'),
-            'quoteVolume': undefined,
-            'info': response,
-        };
+        const response = await this.publicGetApiV1MarketTickerAll (this.extend (request, params));
+        const ticker = this.safeValue (response, 'data');
+        //
+        //     {
+        //         "data":{
+        //             "buy":37082.83,
+        //             "date":1643388686660,
+        //             "high":37487.83,
+        //             "last":37086.79,
+        //             "low":35544.44,
+        //             "sell":37090.52,
+        //             "vol":690.9776
+        //         },
+        //         "success":true,
+        //         "time":1643388686660
+        //     }
+        //
+        return this.parseTicker (ticker, market);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -414,6 +438,17 @@ module.exports = class bitforex extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitforex#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the bitforex api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -440,18 +475,27 @@ module.exports = class bitforex extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitforex#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {object} params extra parameters specific to the bitforex api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
-        const marketId = this.marketId (symbol);
+        const market = this.market (symbol);
         const request = {
-            'symbol': marketId,
+            'symbol': market['id'],
         };
         if (limit !== undefined) {
             request['size'] = limit;
         }
-        const response = await this.publicGetApiV1MarketDepth (this.extend (request, params));
+        const response = await this.publicGetApiV1MarketDepthAll (this.extend (request, params));
         const data = this.safeValue (response, 'data');
         const timestamp = this.safeInteger (response, 'time');
-        return this.parseOrderBook (data, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     parseOrderStatus (status) {
@@ -483,10 +527,10 @@ module.exports = class bitforex extends Exchange {
         const sideId = this.safeInteger (order, 'tradeType');
         const side = this.parseSide (sideId);
         const type = undefined;
-        const price = this.safeNumber (order, 'orderPrice');
-        const average = this.safeNumber (order, 'avgPrice');
-        const amount = this.safeNumber (order, 'orderAmount');
-        const filled = this.safeNumber (order, 'dealAmount');
+        const price = this.safeString (order, 'orderPrice');
+        const average = this.safeString (order, 'avgPrice');
+        const amount = this.safeString (order, 'orderAmount');
+        const filled = this.safeString (order, 'dealAmount');
         const status = this.parseOrderStatus (this.safeString (order, 'orderState'));
         const feeSide = (side === 'buy') ? 'base' : 'quote';
         const feeCurrency = market[feeSide];
@@ -516,10 +560,18 @@ module.exports = class bitforex extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
-        });
+        }, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitforex#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the bitforex api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -532,6 +584,19 @@ module.exports = class bitforex extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitforex#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {string} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {object} params extra parameters specific to the bitforex api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -543,6 +608,19 @@ module.exports = class bitforex extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitforex#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the bitforex api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -554,6 +632,18 @@ module.exports = class bitforex extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitforex#createOrder
+         * @description create a trade order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the bitforex api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         let sideId = undefined;
         if (side === 'buy') {
@@ -561,8 +651,9 @@ module.exports = class bitforex extends Exchange {
         } else if (side === 'sell') {
             sideId = 2;
         }
+        const market = this.market (symbol);
         const request = {
-            'symbol': this.marketId (symbol),
+            'symbol': market['id'],
             'price': price,
             'amount': amount,
             'tradeType': sideId,
@@ -576,6 +667,15 @@ module.exports = class bitforex extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitforex#cancelOrder
+         * @description cancels an open order
+         * @param {string} id order id
+         * @param {string|undefined} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the bitforex api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'orderId': id,
@@ -590,7 +690,7 @@ module.exports = class bitforex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'] + '/' + this.implodeParams (path, params);
+        let url = this.urls['api']['rest'] + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
         if (api === 'public') {
             if (Object.keys (query).length) {

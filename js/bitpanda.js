@@ -4,6 +4,8 @@
 
 const Exchange = require ('./base/Exchange');
 const { AuthenticationError, ExchangeError, PermissionDenied, BadRequest, ArgumentsRequired, OrderNotFound, InsufficientFunds, ExchangeNotAvailable, DDoSProtection, InvalidAddress, InvalidOrder } = require ('./base/errors');
+const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -17,32 +19,76 @@ module.exports = class bitpanda extends Exchange {
             'version': 'v1',
             // new metainfo interface
             'has': {
-                'CORS': false,
-                'publicAPI': true,
-                'privateAPI': true,
+                'CORS': undefined,
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'addMargin': false,
                 'cancelAllOrders': true,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createDepositAddress': true,
                 'createOrder': true,
+                'createReduceOnlyOrder': false,
+                'fetchAccounts': false,
                 'fetchBalance': true,
+                'fetchBorrowRate': false,
+                'fetchBorrowRateHistories': false,
+                'fetchBorrowRateHistory': false,
+                'fetchBorrowRates': false,
+                'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
-                'fetchDeposits': true,
+                'fetchDeposit': false,
                 'fetchDepositAddress': true,
+                'fetchDepositAddresses': false,
+                'fetchDeposits': true,
+                'fetchFundingHistory': false,
+                'fetchFundingRate': false,
+                'fetchFundingRateHistory': false,
+                'fetchFundingRates': false,
+                'fetchIndexOHLCV': false,
+                'fetchLedger': false,
+                'fetchLeverage': false,
+                'fetchMarginMode': false,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
                 'fetchOrderBook': true,
+                'fetchOrders': false,
                 'fetchOrderTrades': true,
-                'fetchTime': true,
-                'fetchTrades': true,
-                'fetchTradingFees': true,
+                'fetchPosition': false,
+                'fetchPositionMode': false,
+                'fetchPositions': false,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
                 'fetchTickers': true,
+                'fetchTime': true,
+                'fetchTrades': true,
+                'fetchTradingFee': false,
+                'fetchTradingFees': true,
+                'fetchTransactionFee': false,
+                'fetchTransactionFees': false,
+                'fetchTransactions': false,
+                'fetchTransfer': false,
+                'fetchTransfers': false,
+                'fetchWithdrawal': false,
                 'fetchWithdrawals': true,
+                'privateAPI': true,
+                'publicAPI': true,
+                'reduceMargin': false,
+                'setLeverage': false,
+                'setMargin': false,
+                'setMarginMode': false,
+                'setPositionMode': false,
+                'transfer': false,
                 'withdraw': true,
             },
             'timeframes': {
@@ -117,28 +163,28 @@ module.exports = class bitpanda extends Exchange {
                 'trading': {
                     'tierBased': true,
                     'percentage': true,
-                    'taker': 0.15 / 100,
-                    'maker': 0.10 / 100,
+                    'taker': this.parseNumber ('0.0015'),
+                    'maker': this.parseNumber ('0.001'),
                     'tiers': [
                         // volume in BTC
                         {
                             'taker': [
-                                [0, 0.15 / 100],
-                                [100, 0.13 / 100],
-                                [250, 0.13 / 100],
-                                [1000, 0.1 / 100],
-                                [5000, 0.09 / 100],
-                                [10000, 0.075 / 100],
-                                [20000, 0.065 / 100],
+                                [ this.parseNumber ('0'), this.parseNumber ('0.0015') ],
+                                [ this.parseNumber ('100'), this.parseNumber ('0.0013') ],
+                                [ this.parseNumber ('250'), this.parseNumber ('0.0013') ],
+                                [ this.parseNumber ('1000'), this.parseNumber ('0.001') ],
+                                [ this.parseNumber ('5000'), this.parseNumber ('0.0009') ],
+                                [ this.parseNumber ('10000'), this.parseNumber ('0.00075') ],
+                                [ this.parseNumber ('20000'), this.parseNumber ('0.00065') ],
                             ],
                             'maker': [
-                                [0, 0.1 / 100],
-                                [100, 0.1 / 100],
-                                [250, 0.09 / 100],
-                                [1000, 0.075 / 100],
-                                [5000, 0.06 / 100],
-                                [10000, 0.05 / 100],
-                                [20000, 0.05 / 100],
+                                [ this.parseNumber ('0'), this.parseNumber ('0.001') ],
+                                [ this.parseNumber ('100'), this.parseNumber ('0.001') ],
+                                [ this.parseNumber ('250'), this.parseNumber ('0.0009') ],
+                                [ this.parseNumber ('1000'), this.parseNumber ('0.00075') ],
+                                [ this.parseNumber ('5000'), this.parseNumber ('0.0006') ],
+                                [ this.parseNumber ('10000'), this.parseNumber ('0.0005') ],
+                                [ this.parseNumber ('20000'), this.parseNumber ('0.0005') ],
                             ],
                         },
                     ],
@@ -148,6 +194,7 @@ module.exports = class bitpanda extends Exchange {
                 'apiKey': true,
                 'secret': false,
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'INVALID_CLIENT_UUID': InvalidOrder,
@@ -245,6 +292,13 @@ module.exports = class bitpanda extends Exchange {
     }
 
     async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name bitpanda#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the exchange server
+         * @param {object} params extra parameters specific to the bitpanda api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the exchange server
+         */
         const response = await this.publicGetTime (params);
         //
         //     {
@@ -256,6 +310,13 @@ module.exports = class bitpanda extends Exchange {
     }
 
     async fetchCurrencies (params = {}) {
+        /**
+         * @method
+         * @name bitpanda#fetchCurrencies
+         * @description fetches all available currencies on an exchange
+         * @param {object} params extra parameters specific to the bitpanda api endpoint
+         * @returns {object} an associative dictionary of currencies
+         */
         const response = await this.publicGetCurrencies (params);
         //
         //     [
@@ -277,7 +338,7 @@ module.exports = class bitpanda extends Exchange {
                 'info': currency, // the original payload
                 'active': undefined,
                 'fee': undefined,
-                'precision': this.safeInteger (currency, 'precision'),
+                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'precision'))),
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
                     'withdraw': { 'min': undefined, 'max': undefined },
@@ -288,6 +349,13 @@ module.exports = class bitpanda extends Exchange {
     }
 
     async fetchMarkets (params = {}) {
+        /**
+         * @method
+         * @name bitpanda#fetchMarkets
+         * @description retrieves data on all markets for bitpanda
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[object]} an array of objects representing market data
+         */
         const response = await this.publicGetInstruments (params);
         //
         //     [
@@ -311,44 +379,67 @@ module.exports = class bitpanda extends Exchange {
             const id = baseId + '_' + quoteId;
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
-            const symbol = base + '/' + quote;
-            const precision = {
-                'amount': this.safeInteger (market, 'amount_precision'),
-                'price': this.safeInteger (market, 'market_precision'),
-            };
-            const limits = {
-                'amount': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'price': {
-                    'min': undefined,
-                    'max': undefined,
-                },
-                'cost': {
-                    'min': this.safeNumber (market, 'min_size'),
-                    'max': undefined,
-                },
-            };
             const state = this.safeString (market, 'state');
-            const active = (state === 'ACTIVE');
             result.push ({
                 'id': id,
-                'symbol': symbol,
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': undefined,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'precision': precision,
-                'limits': limits,
+                'settleId': undefined,
+                'type': 'spot',
+                'spot': true,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': (state === 'ACTIVE'),
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (market, 'amount_precision'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'market_precision'))),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'cost': {
+                        'min': this.safeNumber (market, 'min_size'),
+                        'max': undefined,
+                    },
+                },
                 'info': market,
-                'active': active,
             });
         }
         return result;
     }
 
     async fetchTradingFees (params = {}) {
+        /**
+         * @method
+         * @name bitpanda#fetchTradingFees
+         * @description fetch the trading fees for multiple markets
+         * @param {object} params extra parameters specific to the bitpanda api endpoint
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         */
         let method = this.safeString (params, 'method');
         params = this.omit (params, 'method');
         if (method === undefined) {
@@ -380,43 +471,22 @@ module.exports = class bitpanda extends Exchange {
         //         }
         //     ]
         //
-        const feeGroupsById = this.indexBy (response, 'fee_group_id');
-        const feeGroupId = this.safeValue (this.options, 'fee_group_id', 'default');
-        const feeGroup = this.safeValue (feeGroupsById, feeGroupId, {});
-        const feeTiers = this.safeValue (feeGroup, 'fee_tiers');
+        const first = this.safeValue (response, 0, {});
+        const feeTiers = this.safeValue (first, 'fee_tiers');
+        const tiers = this.parseFeeTiers (feeTiers);
+        const firstTier = this.safeValue (feeTiers, 0, {});
         const result = {};
         for (let i = 0; i < this.symbols.length; i++) {
             const symbol = this.symbols[i];
-            const fee = {
-                'info': feeGroup,
+            result[symbol] = {
+                'info': first,
                 'symbol': symbol,
-                'maker': undefined,
-                'taker': undefined,
+                'maker': this.safeNumber (firstTier, 'maker_fee'),
+                'taker': this.safeNumber (firstTier, 'taker_fee'),
                 'percentage': true,
                 'tierBased': true,
+                'tiers': tiers,
             };
-            const takerFees = [];
-            const makerFees = [];
-            for (let i = 0; i < feeTiers.length; i++) {
-                const tier = feeTiers[i];
-                const volume = this.safeNumber (tier, 'volume');
-                let taker = this.safeNumber (tier, 'taker_fee');
-                let maker = this.safeNumber (tier, 'maker_fee');
-                taker /= 100;
-                maker /= 100;
-                takerFees.push ([ volume, taker ]);
-                makerFees.push ([ volume, maker ]);
-                if (i === 0) {
-                    fee['taker'] = taker;
-                    fee['maker'] = maker;
-                }
-            }
-            const tiers = {
-                'taker': takerFees,
-                'maker': makerFees,
-            };
-            fee['tiers'] = tiers;
-            result[symbol] = fee;
         }
         return result;
     }
@@ -446,32 +516,45 @@ module.exports = class bitpanda extends Exchange {
         //     }
         //
         const activeFeeTier = this.safeValue (response, 'active_fee_tier', {});
-        const result = {
-            'info': response,
-            'maker': this.safeNumber (activeFeeTier, 'maker_fee'),
-            'taker': this.safeNumber (activeFeeTier, 'taker_fee'),
-            'percentage': true,
-            'tierBased': true,
-        };
+        let makerFee = this.safeString (activeFeeTier, 'maker_fee');
+        let takerFee = this.safeString (activeFeeTier, 'taker_fee');
+        makerFee = Precise.stringDiv (makerFee, '100');
+        takerFee = Precise.stringDiv (takerFee, '100');
         const feeTiers = this.safeValue (response, 'fee_tiers');
+        const result = {};
+        const tiers = this.parseFeeTiers (feeTiers);
+        for (let i = 0; i < this.symbols.length; i++) {
+            const symbol = this.symbols[i];
+            result[symbol] = {
+                'info': response,
+                'symbol': symbol,
+                'maker': this.parseNumber (makerFee),
+                'taker': this.parseNumber (takerFee),
+                'percentage': true,
+                'tierBased': true,
+                'tiers': tiers,
+            };
+        }
+        return result;
+    }
+
+    parseFeeTiers (feeTiers, market = undefined) {
         const takerFees = [];
         const makerFees = [];
         for (let i = 0; i < feeTiers.length; i++) {
             const tier = feeTiers[i];
             const volume = this.safeNumber (tier, 'volume');
-            let taker = this.safeNumber (tier, 'taker_fee');
-            let maker = this.safeNumber (tier, 'maker_fee');
-            taker /= 100;
-            maker /= 100;
-            takerFees.push ([ volume, taker ]);
-            makerFees.push ([ volume, maker ]);
+            let taker = this.safeString (tier, 'taker_fee');
+            let maker = this.safeString (tier, 'maker_fee');
+            maker = Precise.stringDiv (maker, '100');
+            taker = Precise.stringDiv (taker, '100');
+            makerFees.push ([ volume, this.parseNumber (maker) ]);
+            takerFees.push ([ volume, this.parseNumber (taker) ]);
         }
-        const tiers = {
-            'taker': takerFees,
+        return {
             'maker': makerFees,
+            'taker': takerFees,
         };
-        result['tiers'] = tiers;
-        return result;
     }
 
     parseTicker (ticker, market = undefined) {
@@ -498,43 +581,44 @@ module.exports = class bitpanda extends Exchange {
         const timestamp = this.parse8601 (this.safeString (ticker, 'time'));
         const marketId = this.safeString (ticker, 'instrument_code');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const last = this.safeNumber (ticker, 'last_price');
-        const percentage = this.safeNumber (ticker, 'price_change_percentage');
-        const change = this.safeNumber (ticker, 'price_change');
-        let open = undefined;
-        let average = undefined;
-        if ((last !== undefined) && (change !== undefined)) {
-            open = last - change;
-            average = this.sum (last, open) / 2;
-        }
-        const baseVolume = this.safeNumber (ticker, 'base_volume');
-        const quoteVolume = this.safeNumber (ticker, 'quote_volume');
-        const vwap = this.vwap (baseVolume, quoteVolume);
-        return {
+        const last = this.safeString (ticker, 'last_price');
+        const percentage = this.safeString (ticker, 'price_change_percentage');
+        const change = this.safeString (ticker, 'price_change');
+        const baseVolume = this.safeString (ticker, 'base_volume');
+        const quoteVolume = this.safeString (ticker, 'quote_volume');
+        return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeNumber (ticker, 'high'),
-            'low': this.safeNumber (ticker, 'low'),
-            'bid': this.safeNumber (ticker, 'best_bid'),
+            'high': this.safeString (ticker, 'high'),
+            'low': this.safeString (ticker, 'low'),
+            'bid': this.safeString (ticker, 'best_bid'),
             'bidVolume': undefined,
-            'ask': this.safeNumber (ticker, 'best_ask'),
+            'ask': this.safeString (ticker, 'best_ask'),
             'askVolume': undefined,
-            'vwap': vwap,
-            'open': open,
+            'vwap': undefined,
+            'open': undefined,
             'close': last,
             'last': last,
             'previousClose': undefined,
             'change': change,
             'percentage': percentage,
-            'average': average,
+            'average': undefined,
             'baseVolume': baseVolume,
             'quoteVolume': quoteVolume,
             'info': ticker,
-        };
+        }, market);
     }
 
     async fetchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name bitpanda#fetchTicker
+         * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the bitpanda api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -563,7 +647,16 @@ module.exports = class bitpanda extends Exchange {
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitpanda#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} params extra parameters specific to the bitpanda api endpoint
+         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
         const response = await this.publicGetMarketTicker (params);
         //
         //     [
@@ -595,9 +688,19 @@ module.exports = class bitpanda extends Exchange {
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitpanda#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {object} params extra parameters specific to the bitpanda api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            'instrument_code': this.marketId (symbol),
+            'instrument_code': market['id'],
             // level 1 means only the best bid and ask
             // level 2 is a compiled order book up to market precision
             // level 3 is a full orderbook
@@ -665,7 +768,7 @@ module.exports = class bitpanda extends Exchange {
         //     }
         //
         const timestamp = this.parse8601 (this.safeString (response, 'time'));
-        return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', 'price', 'amount');
+        return this.parseOrderBook (response, market['symbol'], timestamp, 'bids', 'asks', 'price', 'amount');
     }
 
     parseOHLCV (ohlcv, market = undefined) {
@@ -712,6 +815,17 @@ module.exports = class bitpanda extends Exchange {
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitpanda#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the bitpanda api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const periodUnit = this.safeString (this.timeframes, timeframe);
@@ -793,29 +907,26 @@ module.exports = class bitpanda extends Exchange {
             timestamp = this.parse8601 (this.safeString (trade, 'time'));
         }
         const side = this.safeStringLower2 (trade, 'side', 'taker_side');
-        const price = this.safeNumber (trade, 'price');
-        const amount = this.safeNumber (trade, 'amount');
-        let cost = this.safeNumber (trade, 'volume');
-        if ((cost === undefined) && (amount !== undefined) && (price !== undefined)) {
-            cost = amount * price;
-        }
+        const priceString = this.safeString (trade, 'price');
+        const amountString = this.safeString (trade, 'amount');
+        const costString = this.safeString (trade, 'volume');
         const marketId = this.safeString (trade, 'instrument_code');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const feeCost = this.safeNumber (feeInfo, 'fee_amount');
+        const feeCostString = this.safeString (feeInfo, 'fee_amount');
         let takerOrMaker = undefined;
         let fee = undefined;
-        if (feeCost !== undefined) {
+        if (feeCostString !== undefined) {
             const feeCurrencyId = this.safeString (feeInfo, 'fee_currency');
             const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
-            const feeRate = this.safeNumber (feeInfo, 'fee_percentage');
+            const feeRateString = this.safeString (feeInfo, 'fee_percentage');
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': feeCurrencyCode,
-                'rate': feeRate,
+                'rate': feeRateString,
             };
             takerOrMaker = this.safeStringLower (feeInfo, 'fee_type');
         }
-        return {
+        return this.safeTrade ({
             'id': this.safeString2 (trade, 'trade_id', 'sequence'),
             'order': this.safeString (trade, 'order_id'),
             'timestamp': timestamp,
@@ -823,16 +934,26 @@ module.exports = class bitpanda extends Exchange {
             'symbol': symbol,
             'type': undefined,
             'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': costString,
             'takerOrMaker': takerOrMaker,
             'fee': fee,
             'info': trade,
-        };
+        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitpanda#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {object} params extra parameters specific to the bitpanda api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
@@ -864,7 +985,29 @@ module.exports = class bitpanda extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    parseBalance (response) {
+        const balances = this.safeValue (response, 'balances', []);
+        const result = { 'info': response };
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const currencyId = this.safeString (balance, 'currency_code');
+            const code = this.safeCurrencyCode (currencyId);
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'available');
+            account['used'] = this.safeString (balance, 'locked');
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name bitpanda#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} params extra parameters specific to the bitpanda api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const response = await this.privateGetAccountBalances (params);
         //
@@ -883,18 +1026,7 @@ module.exports = class bitpanda extends Exchange {
         //         ]
         //     }
         //
-        const balances = this.safeValue (response, 'balances', []);
-        const result = { 'info': response };
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
-            const currencyId = this.safeString (balance, 'currency_code');
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString (balance, 'available');
-            account['used'] = this.safeString (balance, 'locked');
-            result[code] = account;
-        }
-        return this.parseBalance (result, false);
+        return this.parseBalance (response);
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
@@ -909,11 +1041,20 @@ module.exports = class bitpanda extends Exchange {
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': undefined,
             'info': depositAddress,
         };
     }
 
     async createDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name bitpanda#createDepositAddress
+         * @description create a currency deposit address
+         * @param {string} code unified currency code of the currency for the deposit address
+         * @param {object} params extra parameters specific to the bitpanda api endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -932,6 +1073,14 @@ module.exports = class bitpanda extends Exchange {
     }
 
     async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name bitpanda#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the bitpanda api endpoint
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
@@ -951,6 +1100,16 @@ module.exports = class bitpanda extends Exchange {
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitpanda#fetchDeposits
+         * @description fetch all deposits made to an account
+         * @param {string|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve
+         * @param {object} params extra parameters specific to the bitpanda api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         const request = {
             // 'cursor': 'string', // pointer specifying the position from which the next pages should be returned
@@ -1006,6 +1165,16 @@ module.exports = class bitpanda extends Exchange {
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitpanda#fetchWithdrawals
+         * @description fetch all withdrawals made from an account
+         * @param {string|undefined} code unified currency code
+         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
+         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {object} params extra parameters specific to the bitpanda api endpoint
+         * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
         await this.loadMarkets ();
         const request = {
             // 'cursor': 'string', // pointer specifying the position from which the next pages should be returned
@@ -1062,6 +1231,18 @@ module.exports = class bitpanda extends Exchange {
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitpanda#withdraw
+         * @description make a withdrawal
+         * @param {string} code unified currency code
+         * @param {float} amount the amount to withdraw
+         * @param {string} address the address to withdraw to
+         * @param {string|undefined} tag
+         * @param {object} params extra parameters specific to the bitpanda api endpoint
+         * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
+         */
+        [ tag, params ] = this.handleWithdrawTagAndParams (tag, params);
         this.checkAddress (address);
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -1080,7 +1261,7 @@ module.exports = class bitpanda extends Exchange {
         if (isFiat) {
             const payoutAccountId = this.safeString (params, 'payout_account_id');
             if (payoutAccountId === undefined) {
-                throw ArgumentsRequired (this.id + ' withdraw() requires a payout_account_id param for fiat ' + code + ' withdrawals');
+                throw new ArgumentsRequired (this.id + ' withdraw() requires a payout_account_id param for fiat ' + code + ' withdrawals');
             }
         } else {
             const recipient = { 'address': address };
@@ -1170,6 +1351,7 @@ module.exports = class bitpanda extends Exchange {
             'id': id,
             'currency': currency['code'],
             'amount': amount,
+            'network': undefined,
             'address': addressTo,
             'addressFrom': undefined,
             'addressTo': addressTo,
@@ -1276,19 +1458,15 @@ module.exports = class bitpanda extends Exchange {
         const status = this.parseOrderStatus (rawStatus);
         const marketId = this.safeString (rawOrder, 'instrument_code');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const price = this.safeNumber (rawOrder, 'price');
-        const amount = this.safeNumber (rawOrder, 'amount');
-        const filledString = this.safeString (rawOrder, 'filled_amount');
-        const filled = this.parseNumber (filledString);
+        const price = this.safeString (rawOrder, 'price');
+        const amount = this.safeString (rawOrder, 'amount');
+        const filled = this.safeString (rawOrder, 'filled_amount');
         const side = this.safeStringLower (rawOrder, 'side');
         const type = this.safeStringLower (rawOrder, 'type');
         const timeInForce = this.parseTimeInForce (this.safeString (rawOrder, 'time_in_force'));
         const stopPrice = this.safeNumber (rawOrder, 'trigger_price');
         const postOnly = this.safeValue (rawOrder, 'is_post_only');
         const rawTrades = this.safeValue (order, 'trades', []);
-        const trades = this.parseTrades (rawTrades, market, undefined, undefined, {
-            'type': type,
-        });
         return this.safeOrder ({
             'id': id,
             'clientOrderId': clientOrderId,
@@ -1310,8 +1488,8 @@ module.exports = class bitpanda extends Exchange {
             'remaining': undefined,
             'status': status,
             // 'fee': undefined,
-            'trades': trades,
-        });
+            'trades': rawTrades,
+        }, market);
     }
 
     parseTimeInForce (timeInForce) {
@@ -1325,6 +1503,18 @@ module.exports = class bitpanda extends Exchange {
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitpanda#createOrder
+         * @description create a trade order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the bitpanda api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const uppercaseType = type.toUpperCase ();
@@ -1380,6 +1570,15 @@ module.exports = class bitpanda extends Exchange {
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitpanda#cancelOrder
+         * @description cancels an open order
+         * @param {string} id order id
+         * @param {string|undefined} symbol not used by bitmex cancelOrder ()
+         * @param {object} params extra parameters specific to the bitpanda api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_id');
         params = this.omit (params, [ 'clientOrderId', 'client_id' ]);
@@ -1399,6 +1598,14 @@ module.exports = class bitpanda extends Exchange {
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitpanda#cancelAllOrders
+         * @description cancel all open orders
+         * @param {string|undefined} symbol unified market symbol, only orders in the market of this symbol are cancelled when symbol is not undefined
+         * @param {object} params extra parameters specific to the bitpanda api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {};
         if (symbol !== undefined) {
@@ -1415,6 +1622,15 @@ module.exports = class bitpanda extends Exchange {
     }
 
     async cancelOrders (ids, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitpanda#cancelOrders
+         * @description cancel multiple orders
+         * @param {[string]} ids order ids
+         * @param {string|undefined} symbol unified market symbol, default is undefined
+         * @param {object} params extra parameters specific to the bitpanda api endpoint
+         * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'ids': ids.join (','),
@@ -1429,6 +1645,14 @@ module.exports = class bitpanda extends Exchange {
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitpanda#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {string|undefined} symbol not used by bitpanda fetchOrder
+         * @param {object} params extra parameters specific to the bitpanda api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'order_id': id,
@@ -1479,6 +1703,16 @@ module.exports = class bitpanda extends Exchange {
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitpanda#fetchOpenOrders
+         * @description fetch all unfilled currently open orders
+         * @param {string|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch open orders for
+         * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
+         * @param {object} params extra parameters specific to the bitpanda api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         const request = {
             // 'from': this.iso8601 (since),
@@ -1498,7 +1732,7 @@ module.exports = class bitpanda extends Exchange {
         if (since !== undefined) {
             const to = this.safeString (params, 'to');
             if (to === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOrders() requires a "to" iso8601 string param with the since argument is specified, max range is 100 days');
+                throw new ArgumentsRequired (this.id + ' fetchOpenOrders() requires a "to" iso8601 string param with the since argument is specified, max range is 100 days');
             }
             request['from'] = this.iso8601 (since);
         }
@@ -1590,6 +1824,16 @@ module.exports = class bitpanda extends Exchange {
     }
 
     async fetchClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitpanda#fetchClosedOrders
+         * @description fetches information on multiple closed orders made by the user
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the bitpanda api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         const request = {
             'with_cancelled_and_rejected': true, // default is false, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
         };
@@ -1597,6 +1841,17 @@ module.exports = class bitpanda extends Exchange {
     }
 
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitpanda#fetchOrderTrades
+         * @description fetch all the trades made from a single order
+         * @param {string} id order id
+         * @param {string|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades to retrieve
+         * @param {object} params extra parameters specific to the bitpanda api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         await this.loadMarkets ();
         const request = {
             'order_id': id,
@@ -1646,6 +1901,16 @@ module.exports = class bitpanda extends Exchange {
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitpanda#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {string|undefined} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {object} params extra parameters specific to the bitpanda api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
         await this.loadMarkets ();
         const request = {
             // 'from': this.iso8601 (since),

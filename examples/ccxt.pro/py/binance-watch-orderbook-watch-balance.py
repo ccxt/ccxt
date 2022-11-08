@@ -1,5 +1,5 @@
-import ccxtpro
-import asyncio
+import ccxt.pro
+from asyncio import run, gather
 
 
 data = {
@@ -41,8 +41,7 @@ async def watch_balance(exchange, symbol):
 
 
 async def main():
-    exchange = ccxtpro.binance({
-        'enableRateLimit': True,
+    exchange = ccxt.pro.binance({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
     })
@@ -54,11 +53,11 @@ async def main():
                 watch_order_book(exchange, symbol),
                 watch_balance(exchange, symbol)
             ]
-            await asyncio.gather(*loops)
+            await gather(*loops)
         except Exception as e:
             print(type(e).__name__, str(e))
             break
     await exchange.close()
 
 
-asyncio.get_event_loop().run_until_complete(main())
+run(main())

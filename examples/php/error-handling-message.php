@@ -1,12 +1,12 @@
 <?php
 
-$root = dirname (dirname (dirname (__FILE__)));
+$root = dirname(dirname(dirname(__FILE__)));
 
 include $root . '/ccxt.php';
 
-date_default_timezone_set ('UTC');
+date_default_timezone_set('UTC');
 
-$exchange = new \ccxt\bittrex (array (
+$exchange = new \ccxt\bittrex(array(
     'apiKey' => 'foo',
     'secret' => 'bar',
 ));
@@ -39,9 +39,9 @@ try {
     // If you want to access it, that might indicate a design error in your code.
     // See: https://github.com/ccxt/ccxt/issues/3053
 
-    $message = $e->getMessage ();
+    $message = $e->getMessage();
 
-    if (preg_match ('/[a-z]+\s+(\{.+\})$/iu', $e->getMessage (), $matches)) {
+    if (preg_match ('/[a-z]+\s+(\{.+\})$/iu', $e->getMessage(), $matches)) {
         $message = $matches[1];
     }
 

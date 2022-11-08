@@ -26,9 +26,10 @@ function testTrade (exchange, trade, symbol, now) {
     const fee = ('fee' in trade) ? trade['fee'] : undefined;
     const fees = ('fees' in trade) ? trade['fees'] : undefined;
     // logical XOR
-    if (fee || fees) {
-        assert (!(fee && fees));
-    }
+    // doesn't work when both fee is defined and fees is defined
+    // if (fee || fees) {
+    //     assert (!(fee && fees));
+    // }
     if (fee) {
         assert (('cost' in fee) && ('currency' in fee));
     }
@@ -58,6 +59,8 @@ function testTrade (exchange, trade, symbol, now) {
     assert (trade['price'] > 0);
     assert (typeof trade['amount'] === 'number', 'trade.amount is not a number');
     assert (trade['amount'] >= 0);
+    assert (trade['cost'] === undefined || typeof trade['cost'] === 'number', 'trade.cost is not a number');
+    assert (trade['cost'] === undefined || trade['cost'] >= 0);
     const takerOrMaker = trade['takerOrMaker'];
     assert (takerOrMaker === undefined || takerOrMaker === 'taker' || takerOrMaker === 'maker');
 }

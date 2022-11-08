@@ -2,26 +2,24 @@
 
 // ----------------------------------------------------------------------------
 
-const log       = require ('ololog')
-    , ansi      = require ('ansicolor').nice
-    , chai      = require ('chai')
-    , expect    = chai.expect
-    , assert    = chai.assert
+const assert = require ('assert')
     , testOrder = require ('./test.order.js')
 
-/*  ------------------------------------------------------------------------ */
+// ----------------------------------------------------------------------------
 
 module.exports = async (exchange, symbol) => {
 
-    if (exchange.has.fetchOpenOrders) {
+    const method = 'fetchOpenOrders'
+
+    if (exchange.has[method]) {
 
         // log ('fetching open orders...')
 
-        const orders = await exchange.fetchOpenOrders (symbol)
+        const orders = await exchange[method] (symbol)
 
         assert (orders instanceof Array)
 
-        log ('fetched', orders.length.toString ().green, 'open orders')
+        console.log ('fetched', orders.length, 'open orders')
 
         const now = Date.now ()
 
@@ -35,6 +33,6 @@ module.exports = async (exchange, symbol) => {
 
     } else {
 
-        log ('fetching open orders not supported')
+        console.log (method + '() is not supported')
     }
 }

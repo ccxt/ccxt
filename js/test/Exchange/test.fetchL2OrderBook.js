@@ -2,18 +2,11 @@
 
 // ----------------------------------------------------------------------------
 
-const log       = require ('ololog')
-    , ansi      = require ('ansicolor').nice
-    , chai      = require ('chai')
-    , expect    = chai.expect
-    , assert    = chai.assert
-    , testOrderBook = require ('./test.orderbook.js')
+const testOrderBook = require ('./test.orderbook.js')
 
-/*  ------------------------------------------------------------------------ */
+// ----------------------------------------------------------------------------
 
 module.exports = async (exchange, symbol) => {
-
-    // log (symbol.green, 'fetching order book...')
 
     const method = 'fetchL2OrderBook'
 
@@ -25,7 +18,6 @@ module.exports = async (exchange, symbol) => {
 
     } else {
 
-        log (method + '() not supported')
+        console.log (method + '() is not supported')
     }
-
 }
