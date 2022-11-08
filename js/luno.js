@@ -48,6 +48,7 @@ module.exports = class luno extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
+                'fetchOHLCV': false, // overload of base fetchOHLCV, as it doesn't work in this exchange
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -61,7 +62,8 @@ module.exports = class luno extends Exchange {
                 'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
-                'fetchTradingFees': true,
+                'fetchTradingFee': true,
+                'fetchTradingFees': false,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -770,18 +772,31 @@ module.exports = class luno extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchTradingFees (params = {}) {
+    async fetchTradingFee (symbol, params = {}) {
         /**
          * @method
-         * @name luno#fetchTradingFees
-         * @description fetch the trading fees for multiple markets
+         * @name luno#fetchTradingFee
+         * @description fetch the trading fees for a market
+         * @param {string} symbol unified market symbol
          * @param {object} params extra parameters specific to the luno api endpoint
-         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privateGetFeeInfo (params);
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.privateGetFeeInfo (this.extend (request, params));
+        //
+        //     {
+        //          "maker_fee": "0.00250000",
+        //          "taker_fee": "0.00500000",
+        //          "thirty_day_volume": "0"
+        //     }
+        //
         return {
             'info': response,
+            'symbol': symbol,
             'maker': this.safeNumber (response, 'maker_fee'),
             'taker': this.safeNumber (response, 'taker_fee'),
         };

@@ -129,8 +129,8 @@ module.exports = class binance extends Exchange {
                 'test': {
                     'dapiPublic': 'https://testnet.binancefuture.com/dapi/v1',
                     'dapiPrivate': 'https://testnet.binancefuture.com/dapi/v1',
-                    'vapiPublic': 'https://testnet.binanceops.com/vapi/v1',
-                    'vapiPrivate': 'https://testnet.binanceops.com/vapi/v1',
+                    'eapiPublic': 'https://testnet.binanceops.com/eapi/v1',
+                    'eapiPrivate': 'https://testnet.binanceops.com/eapi/v1',
                     'fapiPublic': 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivate': 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivateV2': 'https://testnet.binancefuture.com/fapi/v2',
@@ -144,8 +144,8 @@ module.exports = class binance extends Exchange {
                     'sapiV3': 'https://api.binance.com/sapi/v3',
                     'dapiPublic': 'https://dapi.binance.com/dapi/v1',
                     'dapiPrivate': 'https://dapi.binance.com/dapi/v1',
-                    'vapiPublic': 'https://vapi.binance.com/vapi/v1',
-                    'vapiPrivate': 'https://vapi.binance.com/vapi/v1',
+                    'eapiPublic': 'https://eapi.binance.com/eapi/v1',
+                    'eapiPrivate': 'https://eapi.binance.com/eapi/v1',
                     'dapiPrivateV2': 'https://dapi.binance.com/dapi/v2',
                     'dapiData': 'https://dapi.binance.com/futures/data',
                     'fapiPublic': 'https://fapi.binance.com/fapi/v1',
@@ -158,7 +158,7 @@ module.exports = class binance extends Exchange {
                 },
                 'www': 'https://www.binance.com',
                 'referral': {
-                    'url': 'https://www.binance.com/en/register?ref=D7YA7CLY',
+                    'url': 'https://accounts.binance.com/en/register?ref=D7YA7CLY',
                     'discount': 0.1,
                 },
                 'doc': [
@@ -204,6 +204,7 @@ module.exports = class binance extends Exchange {
                         'margin/myTrades': 1,
                         'margin/maxBorrowable': 5, // Weight(IP): 50 => cost = 0.1 * 50 = 5
                         'margin/maxTransferable': 5,
+                        'margin/tradeCoeff': 1,
                         'margin/isolated/transfer': 0.1,
                         'margin/isolated/account': 1,
                         'margin/isolated/pair': 1,
@@ -219,15 +220,19 @@ module.exports = class binance extends Exchange {
                         'margin/rateLimit/order': 2,
                         'margin/dribblet': 0.1,
                         'loan/income': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
+                        'loan/ongoing/orders': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/ltv/adjustment/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/borrow/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/repay/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/loanable/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/collateral/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/repay/collateral/rate': 600, // Weight(IP): 6000 => cost = 0.1 * 6000 = 600
                         'fiat/orders': 600.03, // Weight(UID): 90000 => cost = 0.006667 * 90000 = 600.03
                         'fiat/payments': 0.1,
                         'futures/transfer': 1,
                         'futures/loan/borrow/history': 1,
                         'futures/loan/repay/history': 1,
                         'futures/loan/wallet': 1,
-                        'futures/loan/configs': 1,
-                        'futures/loan/calcAdjustLevel': 5, // Weight(IP): 50 => cost = 0.1 * 50 = 5
-                        'futures/loan/calcMaxAdjustAmount': 5,
                         'futures/loan/adjustCollateral/history': 1,
                         'futures/loan/liquidationHistory': 1,
                         'rebate/taxQuery': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
@@ -333,6 +338,7 @@ module.exports = class binance extends Exchange {
                         'pay/transactions': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'giftcard/verify': 0.1,
                         'giftcard/cryptography/rsa-public-key': 0.1,
+                        'giftcard/buyCode/token-limit': 0.1,
                         'algo/futures/openOrders': 0.1,
                         'algo/futures/historicalOrders': 0.1,
                         'algo/futures/subOrders': 0.1,
@@ -350,11 +356,13 @@ module.exports = class binance extends Exchange {
                         'asset/dust-btc': 0.1,
                         'asset/transfer': 0.1,
                         'asset/get-funding-asset': 0.1,
+                        'asset/convert-transfer': 0.033335,
+                        'asset/convert-transfer/queryByPage': 0.033335,
                         'account/disableFastWithdrawSwitch': 0.1,
                         'account/enableFastWithdrawSwitch': 0.1,
                         // 'account/apiRestrictions/ipRestriction': 1, discontinued
                         // 'account/apiRestrictions/ipRestriction/ipList': 1, discontinued
-                        'capital/withdraw/apply': 0.1,
+                        'capital/withdraw/apply': 4.0002, // Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
                         'margin/transfer': 1, // Weight(IP): 600 => cost = 0.1 * 600 = 60
                         'margin/loan': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'margin/repay': 20.001,
@@ -364,6 +372,7 @@ module.exports = class binance extends Exchange {
                         'margin/isolated/transfer': 4.0002, // Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
                         'margin/isolated/account': 2.0001, // Weight(UID): 300 => cost = 0.006667 * 300 = 2.0001
                         'bnbBurn': 0.1,
+                        'sub-account/virtualSubAccount': 0.1,
                         'sub-account/margin/transfer': 4.0002, // Weight(UID): 600 => cost =  0.006667 * 600 = 4.0002
                         'sub-account/margin/enable': 0.1,
                         'sub-account/futures/enable': 0.1,
@@ -377,9 +386,6 @@ module.exports = class binance extends Exchange {
                         'userDataStream': 0.1,
                         'userDataStream/isolated': 0.1,
                         'futures/transfer': 0.1,
-                        'futures/loan/borrow': 20.001, // Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
-                        'futures/loan/repay': 20.001,
-                        'futures/loan/adjustCollateral': 20.001,
                         // lending
                         'lending/customizedFixed/purchase': 0.1,
                         'lending/daily/purchase': 0.1,
@@ -419,6 +425,7 @@ module.exports = class binance extends Exchange {
                         //
                         'giftcard/createCode': 0.1,
                         'giftcard/redeemCode': 0.1,
+                        'giftcard/buyCode': 0.1,
                         'algo/futures/newOrderVp': 20.001,
                         'algo/futures/newOrderTwap': 20.001,
                         // staking
@@ -426,6 +433,10 @@ module.exports = class binance extends Exchange {
                         'staking/redeem': 0.1,
                         'staking/setAutoStaking': 0.1,
                         'portfolio/repay': 20.001,
+                        'loan/borrow': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
+                        'loan/repay': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
+                        'loan/adjust/ltv': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
+                        'loan/customize/margin_call': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                     },
                     'put': {
                         'userDataStream': 0.1,
@@ -523,6 +534,7 @@ module.exports = class binance extends Exchange {
                         'forceOrders': { 'cost': 20, 'noSymbol': 50 },
                         'adlQuantile': 5,
                         'orderAmendment': 1,
+                        'pmAccountInfo': 5,
                     },
                     'post': {
                         'positionSide/dual': 1,
@@ -613,6 +625,7 @@ module.exports = class binance extends Exchange {
                         'apiReferral/rebateVol': 1,
                         'apiReferral/traderSummary': 1,
                         'adlQuantile': 5,
+                        'pmAccountInfo': 5,
                     },
                     'post': {
                         'batchOrders': 5,
@@ -645,47 +658,54 @@ module.exports = class binance extends Exchange {
                         'positionRisk': 1,
                     },
                 },
-                'vapiPublic': {
-                    'get': [
-                        'ping',
-                        'time',
-                        'optionInfo',
-                        'exchangeInfo',
-                        'index',
-                        'ticker',
-                        'mark',
-                        'depth',
-                        'klines',
-                        'trades',
-                        'historicalTrades',
-                    ],
+                'eapiPublic': {
+                    'get': {
+                        'ping': 1,
+                        'time': 1,
+                        'exchangeInfo': 1,
+                        'index': 1,
+                        'ticker': 5,
+                        'mark': 5,
+                        'depth': 1,
+                        'klines': 1,
+                        'trades': 5,
+                        'historicalTrades': 20,
+                        'exerciseHistory': 3,
+                    },
                 },
-                'vapiPrivate': {
-                    'get': [
-                        'account',
-                        'position',
-                        'order',
-                        'openOrders',
-                        'historyOrders',
-                        'userTrades',
-                    ],
-                    'post': [
-                        'transfer',
-                        'bill',
-                        'order',
-                        'batchOrders',
-                        'userDataStream',
-                        'openAccount',
-                    ],
-                    'put': [
-                        'userDataStream',
-                    ],
-                    'delete': [
-                        'order',
-                        'batchOrders',
-                        'allOpenOrders',
-                        'userDataStream',
-                    ],
+                'eapiPrivate': {
+                    'get': {
+                        'account': 3,
+                        'position': 5,
+                        'openOrders': { 'cost': 1, 'noSymbol': 40 },
+                        'historyOrders': 3,
+                        'userTrades': 5,
+                        'exerciseRecord': 5,
+                        'bill': 1,
+                        'marginAccount': 3,
+                        'mmp': 1,
+                        'countdownCancelAll': 1,
+                    },
+                    'post': {
+                        'transfer': 1,
+                        'order': 1,
+                        'batchOrders': 5,
+                        'listenKey': 1,
+                        'mmpSet': 1,
+                        'mmpReset': 1,
+                        'countdownCancelAll': 1,
+                        'countdownCancelAllHeartBeat': 10,
+                    },
+                    'put': {
+                        'listenKey': 1,
+                    },
+                    'delete': {
+                        'order': 1,
+                        'batchOrders': 1,
+                        'allOpenOrders': 1,
+                        'allOpenOrdersByUnderlying': 1,
+                        'listenKey': 1,
+                    },
                 },
                 'public': {
                     'get': {
@@ -1023,6 +1043,8 @@ module.exports = class binance extends Exchange {
                     'Market is closed.': ExchangeNotAvailable, // {"code":-1013,"msg":"Market is closed."}
                     'Too many requests. Please try again later.': DDoSProtection, // {"msg":"Too many requests. Please try again later.","success":false}
                     'This action disabled is on this account.': AccountSuspended, // {"code":-2010,"msg":"This action disabled is on this account."}
+                    'This type of sub-account exceeds the maximum number limit': BadRequest, // {"code":-9000,"msg":"This type of sub-account exceeds the maximum number limit"}
+                    'This symbol is not permitted for this account.': PermissionDenied, // {"code":-2010,"msg":"This symbol is not permitted for this account."}
                     '-1000': ExchangeNotAvailable, // {"code":-1000,"msg":"An unknown error occured while processing the request."}
                     '-1001': ExchangeNotAvailable, // {"code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'"}
                     '-1002': AuthenticationError, // {"code":-1002,"msg":"'You are not authorized to execute this request.'"}
@@ -1698,8 +1720,6 @@ module.exports = class binance extends Exchange {
             };
             if ('PRICE_FILTER' in filtersByType) {
                 const filter = this.safeValue (filtersByType, 'PRICE_FILTER', {});
-                const tickSize = this.safeString (filter, 'tickSize');
-                entry['precision']['price'] = this.precisionFromString (tickSize);
                 // PRICE_FILTER reports zero values for maxPrice
                 // since they updated filter types in November 2018
                 // https://github.com/ccxt/ccxt/issues/4286
@@ -3021,7 +3041,10 @@ module.exports = class binance extends Exchange {
                     if (quoteOrderQty !== undefined) {
                         request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQty, TRUNCATE, precision, this.precisionMode);
                     } else if (price !== undefined) {
-                        request['quoteOrderQty'] = this.decimalToPrecision (amount * price, TRUNCATE, precision, this.precisionMode);
+                        const amountString = this.numberToString (amount);
+                        const priceString = this.numberToString (price);
+                        const quoteOrderQuantity = Precise.stringMul (amountString, priceString);
+                        request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQuantity, TRUNCATE, precision, this.precisionMode);
                     } else {
                         quantityIsRequired = true;
                     }
@@ -5148,6 +5171,7 @@ module.exports = class binance extends Exchange {
         const hedged = positionSide !== 'BOTH';
         return {
             'info': position,
+            'id': undefined,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -5316,6 +5340,7 @@ module.exports = class binance extends Exchange {
         const hedged = positionSide !== 'BOTH';
         return {
             'info': position,
+            'id': undefined,
             'symbol': symbol,
             'contracts': contracts,
             'contractSize': contractSize,
@@ -5842,7 +5867,7 @@ module.exports = class binance extends Exchange {
             } else {
                 throw new AuthenticationError (this.id + ' userDataStream endpoint requires `apiKey` credential');
             }
-        } else if ((api === 'private') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV3') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
+        } else if ((api === 'private') || (api === 'eapiPrivate') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV3') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
             this.checkRequiredCredentials ();
             let query = undefined;
             const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
@@ -6448,7 +6473,7 @@ module.exports = class binance extends Exchange {
         /**
          * @method
          * @name binance#fetchOpenInterestHistory
-         * @description Retrieves the open intestest history of a currency
+         * @description Retrieves the open interest history of a currency
          * @param {string} symbol Unified CCXT market symbol
          * @param {string} timeframe "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
          * @param {int|undefined} since the time(ms) of the earliest record to retrieve as a unix timestamp
@@ -6511,10 +6536,14 @@ module.exports = class binance extends Exchange {
         const timestamp = this.safeInteger (interest, 'timestamp');
         const id = this.safeString (interest, 'symbol');
         market = this.safeMarket (id, market);
+        const amount = this.safeNumber (interest, 'sumOpenInterest');
+        const value = this.safeNumber (interest, 'sumOpenInterestValue');
         return {
             'symbol': this.safeSymbol (id),
-            'baseVolume': this.safeNumber (interest, 'sumOpenInterest'),
-            'quoteVolume': this.safeNumber (interest, 'sumOpenInterestValue'),
+            'baseVolume': amount,  // deprecated
+            'quoteVolume': value,  // deprecated
+            'openInterestAmount': amount,
+            'openInterestValue': value,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,

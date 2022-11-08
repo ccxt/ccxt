@@ -6,8 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
 
 class wazirx extends Exchange {
 
@@ -567,33 +565,35 @@ class wazirx extends Exchange {
             $request['limit'] = $limit;
         }
         $response = $this->privateGetAllOrders (array_merge($request, $params));
-        // array(
-        //     array(
-        //         "id" => 28,
-        //         "symbol" => "wrxinr",
-        //         "price" => "9293.0",
-        //         "origQty" => "10.0",
-        //         "executedQty" => "8.2",
-        //         "status" => "cancel",
-        //         "type" => "limit",
-        //         "side" => "sell",
-        //         "createdTime" => 1499827319559,
-        //         "updatedTime" => 1499827319559
-        //     ),
-        //     {
-        //         "id" => 30,
-        //         "symbol" => "wrxinr",
-        //         "price" => "9293.0",
-        //         "stopPrice" => "9200.0",
-        //         "origQty" => "10.0",
-        //         "executedQty" => "0.0",
-        //         "status" => "cancel",
-        //         "type" => "stop_limit",
-        //         "side" => "sell",
-        //         "createdTime" => 1499827319559,
-        //         "updatedTime" => 1507725176595
-        //     }
-        // )
+        //
+        //   array(
+        //       array(
+        //           "id" => 28,
+        //           "symbol" => "wrxinr",
+        //           "price" => "9293.0",
+        //           "origQty" => "10.0",
+        //           "executedQty" => "8.2",
+        //           "status" => "cancel",
+        //           "type" => "limit",
+        //           "side" => "sell",
+        //           "createdTime" => 1499827319559,
+        //           "updatedTime" => 1499827319559
+        //       ),
+        //       {
+        //           "id" => 30,
+        //           "symbol" => "wrxinr",
+        //           "price" => "9293.0",
+        //           "stopPrice" => "9200.0",
+        //           "origQty" => "10.0",
+        //           "executedQty" => "0.0",
+        //           "status" => "cancel",
+        //           "type" => "stop_limit",
+        //           "side" => "sell",
+        //           "createdTime" => 1499827319559,
+        //           "updatedTime" => 1507725176595
+        //       }
+        //   )
+        //
         $orders = $this->parse_orders($response, $market, $since, $limit);
         $orders = $this->filter_by($orders, 'symbol', $symbol);
         return $orders;

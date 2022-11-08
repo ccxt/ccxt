@@ -6,9 +6,10 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\Precise;
+use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
+use ccxt\Precise;
+use React\Async;
 
 class tidex extends Exchange {
 
@@ -167,176 +168,180 @@ class tidex extends Exchange {
     }
 
     public function fetch_currencies($params = array ()) {
-        /**
-         * fetches all available currencies on an exchange
-         * @param {array} $params extra parameters specific to the tidex api endpoint
-         * @return {array} an associative dictionary of currencies
-         */
-        $response = yield $this->webGetCurrency ($params);
-        //
-        //     array(
-        //         {
-        //             "id":2,
-        //             "symbol":"BTC",
-        //             "type":2,
-        //             "name":"Bitcoin",
-        //             "amountPoint":8,
-        //             "depositEnable":true,
-        //             "depositMinAmount":0.0005,
-        //             "withdrawEnable":true,
-        //             "withdrawFee":0.0004,
-        //             "withdrawMinAmount":0.0005,
-        //             "settings":array(
-        //                 "Blockchain":"https://blockchair.com/bitcoin/",
-        //                 "TxUrl":"https://blockchair.com/bitcoin/transaction/{0}",
-        //                 "AddrUrl":"https://blockchair.com/bitcoin/address/{0}",
-        //                 "ConfirmationCount":3,
-        //                 "NeedMemo":false
-        //             ),
-        //             "visible":true,
-        //             "isDelisted":false
-        //         }
-        //     )
-        //
-        $result = array();
-        for ($i = 0; $i < count($response); $i++) {
-            $currency = $response[$i];
-            $id = $this->safe_string($currency, 'symbol');
-            $code = $this->safe_currency_code($id);
-            $visible = $this->safe_value($currency, 'visible');
-            $active = $visible === true;
-            $withdrawEnable = $this->safe_value($currency, 'withdrawEnable', true);
-            $depositEnable = $this->safe_value($currency, 'depositEnable', true);
-            if (!$withdrawEnable || !$depositEnable) {
-                $active = false;
+        return Async\async(function () use ($params) {
+            /**
+             * fetches all available currencies on an exchange
+             * @param {array} $params extra parameters specific to the tidex api endpoint
+             * @return {array} an associative dictionary of currencies
+             */
+            $response = Async\await($this->webGetCurrency ($params));
+            //
+            //     array(
+            //         {
+            //             "id":2,
+            //             "symbol":"BTC",
+            //             "type":2,
+            //             "name":"Bitcoin",
+            //             "amountPoint":8,
+            //             "depositEnable":true,
+            //             "depositMinAmount":0.0005,
+            //             "withdrawEnable":true,
+            //             "withdrawFee":0.0004,
+            //             "withdrawMinAmount":0.0005,
+            //             "settings":array(
+            //                 "Blockchain":"https://blockchair.com/bitcoin/",
+            //                 "TxUrl":"https://blockchair.com/bitcoin/transaction/{0}",
+            //                 "AddrUrl":"https://blockchair.com/bitcoin/address/{0}",
+            //                 "ConfirmationCount":3,
+            //                 "NeedMemo":false
+            //             ),
+            //             "visible":true,
+            //             "isDelisted":false
+            //         }
+            //     )
+            //
+            $result = array();
+            for ($i = 0; $i < count($response); $i++) {
+                $currency = $response[$i];
+                $id = $this->safe_string($currency, 'symbol');
+                $code = $this->safe_currency_code($id);
+                $visible = $this->safe_value($currency, 'visible');
+                $active = $visible === true;
+                $withdrawEnable = $this->safe_value($currency, 'withdrawEnable', true);
+                $depositEnable = $this->safe_value($currency, 'depositEnable', true);
+                if (!$withdrawEnable || !$depositEnable) {
+                    $active = false;
+                }
+                $name = $this->safe_string($currency, 'name');
+                $fee = $this->safe_number($currency, 'withdrawFee');
+                $result[$code] = array(
+                    'id' => $id,
+                    'code' => $code,
+                    'name' => $name,
+                    'active' => $active,
+                    'deposit' => $depositEnable,
+                    'withdraw' => $withdrawEnable,
+                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'amountPoint'))),
+                    'funding' => array(
+                        'withdraw' => array(
+                            'active' => $withdrawEnable,
+                            'fee' => $fee,
+                        ),
+                        'deposit' => array(
+                            'active' => $depositEnable,
+                            'fee' => $this->parse_number('0'),
+                        ),
+                    ),
+                    'limits' => array(
+                        'amount' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'withdraw' => array(
+                            'min' => $this->safe_number($currency, 'withdrawMinAmount'),
+                            'max' => null,
+                        ),
+                        'deposit' => array(
+                            'min' => $this->safe_number($currency, 'depositMinAmount'),
+                            'max' => null,
+                        ),
+                    ),
+                    'info' => $currency,
+                );
             }
-            $name = $this->safe_string($currency, 'name');
-            $fee = $this->safe_number($currency, 'withdrawFee');
-            $result[$code] = array(
-                'id' => $id,
-                'code' => $code,
-                'name' => $name,
-                'active' => $active,
-                'deposit' => $depositEnable,
-                'withdraw' => $withdrawEnable,
-                'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'amountPoint'))),
-                'funding' => array(
-                    'withdraw' => array(
-                        'active' => $withdrawEnable,
-                        'fee' => $fee,
-                    ),
-                    'deposit' => array(
-                        'active' => $depositEnable,
-                        'fee' => $this->parse_number('0'),
-                    ),
-                ),
-                'limits' => array(
-                    'amount' => array(
-                        'min' => null,
-                        'max' => null,
-                    ),
-                    'withdraw' => array(
-                        'min' => $this->safe_number($currency, 'withdrawMinAmount'),
-                        'max' => null,
-                    ),
-                    'deposit' => array(
-                        'min' => $this->safe_number($currency, 'depositMinAmount'),
-                        'max' => null,
-                    ),
-                ),
-                'info' => $currency,
-            );
-        }
-        return $result;
+            return $result;
+        }) ();
     }
 
     public function fetch_markets($params = array ()) {
-        /**
-         * retrieves data on all $markets for tidex
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return {[array]} an array of objects representing $market data
-         */
-        $response = yield $this->publicGetInfo ($params);
-        //
-        //     {
-        //         "server_time":1615861869,
-        //         "pairs":array(
-        //             "ltc_btc":array(
-        //                 "decimal_places":8,
-        //                 "min_price":0.00000001,
-        //                 "max_price":3.0,
-        //                 "min_amount":0.001,
-        //                 "max_amount":1000000.0,
-        //                 "min_total":0.0001,
-        //                 "hidden":0,
-        //                 "fee":0.1,
-        //             ),
-        //         ),
-        //     }
-        //
-        $markets = $response['pairs'];
-        $keys = is_array($markets) ? array_keys($markets) : array();
-        $result = array();
-        for ($i = 0; $i < count($keys); $i++) {
-            $id = $keys[$i];
-            $market = $markets[$id];
-            list($baseId, $quoteId) = explode('_', $id);
-            $base = $this->safe_currency_code($baseId);
-            $quote = $this->safe_currency_code($quoteId);
-            $hidden = $this->safe_integer($market, 'hidden');
-            $takerFeeString = $this->safe_string($market, 'fee');
-            $takerFeeString = Precise::string_div($takerFeeString, '100');
-            $result[] = array(
-                'id' => $id,
-                'symbol' => $base . '/' . $quote,
-                'base' => $base,
-                'quote' => $quote,
-                'settle' => null,
-                'baseId' => $baseId,
-                'quoteId' => $quoteId,
-                'settleId' => null,
-                'type' => 'spot',
-                'spot' => true,
-                'margin' => false,
-                'swap' => false,
-                'future' => false,
-                'option' => false,
-                'active' => ($hidden === 0),
-                'contract' => false,
-                'linear' => null,
-                'inverse' => null,
-                'taker' => $this->parse_number($takerFeeString),
-                'contractSize' => null,
-                'expiry' => null,
-                'expiryDatetime' => null,
-                'strike' => null,
-                'optionType' => null,
-                'precision' => array(
-                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'decimal_places'))),
-                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'decimal_places'))),
-                ),
-                'limits' => array(
-                    'leverage' => array(
-                        'min' => null,
-                        'max' => null,
+        return Async\async(function () use ($params) {
+            /**
+             * retrieves data on all $markets for tidex
+             * @param {array} $params extra parameters specific to the exchange api endpoint
+             * @return {[array]} an array of objects representing $market data
+             */
+            $response = Async\await($this->publicGetInfo ($params));
+            //
+            //     {
+            //         "server_time":1615861869,
+            //         "pairs":array(
+            //             "ltc_btc":array(
+            //                 "decimal_places":8,
+            //                 "min_price":0.00000001,
+            //                 "max_price":3.0,
+            //                 "min_amount":0.001,
+            //                 "max_amount":1000000.0,
+            //                 "min_total":0.0001,
+            //                 "hidden":0,
+            //                 "fee":0.1,
+            //             ),
+            //         ),
+            //     }
+            //
+            $markets = $response['pairs'];
+            $keys = is_array($markets) ? array_keys($markets) : array();
+            $result = array();
+            for ($i = 0; $i < count($keys); $i++) {
+                $id = $keys[$i];
+                $market = $markets[$id];
+                list($baseId, $quoteId) = explode('_', $id);
+                $base = $this->safe_currency_code($baseId);
+                $quote = $this->safe_currency_code($quoteId);
+                $hidden = $this->safe_integer($market, 'hidden');
+                $takerFeeString = $this->safe_string($market, 'fee');
+                $takerFeeString = Precise::string_div($takerFeeString, '100');
+                $result[] = array(
+                    'id' => $id,
+                    'symbol' => $base . '/' . $quote,
+                    'base' => $base,
+                    'quote' => $quote,
+                    'settle' => null,
+                    'baseId' => $baseId,
+                    'quoteId' => $quoteId,
+                    'settleId' => null,
+                    'type' => 'spot',
+                    'spot' => true,
+                    'margin' => false,
+                    'swap' => false,
+                    'future' => false,
+                    'option' => false,
+                    'active' => ($hidden === 0),
+                    'contract' => false,
+                    'linear' => null,
+                    'inverse' => null,
+                    'taker' => $this->parse_number($takerFeeString),
+                    'contractSize' => null,
+                    'expiry' => null,
+                    'expiryDatetime' => null,
+                    'strike' => null,
+                    'optionType' => null,
+                    'precision' => array(
+                        'amount' => $this->parse_number($this->parse_precision($this->safe_string($market, 'decimal_places'))),
+                        'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'decimal_places'))),
                     ),
-                    'amount' => array(
-                        'min' => $this->safe_number($market, 'min_amount'),
-                        'max' => $this->safe_number($market, 'max_amount'),
+                    'limits' => array(
+                        'leverage' => array(
+                            'min' => null,
+                            'max' => null,
+                        ),
+                        'amount' => array(
+                            'min' => $this->safe_number($market, 'min_amount'),
+                            'max' => $this->safe_number($market, 'max_amount'),
+                        ),
+                        'price' => array(
+                            'min' => $this->safe_number($market, 'min_price'),
+                            'max' => $this->safe_number($market, 'max_price'),
+                        ),
+                        'cost' => array(
+                            'min' => $this->safe_number($market, 'min_total'),
+                            'max' => null,
+                        ),
                     ),
-                    'price' => array(
-                        'min' => $this->safe_number($market, 'min_price'),
-                        'max' => $this->safe_number($market, 'max_price'),
-                    ),
-                    'cost' => array(
-                        'min' => $this->safe_number($market, 'min_total'),
-                        'max' => null,
-                    ),
-                ),
-                'info' => $market,
-            );
-        }
-        return $result;
+                    'info' => $market,
+                );
+            }
+            return $result;
+        }) ();
     }
 
     public function parse_balance($response) {
@@ -362,103 +367,109 @@ class tidex extends Exchange {
     }
 
     public function fetch_balance($params = array ()) {
-        /**
-         * query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {array} $params extra parameters specific to the tidex api endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
-         */
-        yield $this->load_markets();
-        $response = yield $this->privatePostGetInfoExt ($params);
-        //
-        //     {
-        //         "success":1,
-        //         "return":array(
-        //             "funds":array(
-        //                 "btc":array("value":0.0000499885629956,"inOrders":0.0),
-        //                 "eth":array("value":0.000000030741708,"inOrders":0.0),
-        //                 "tdx":array("value":0.0000000155385356,"inOrders":0.0)
-        //             ),
-        //             "rights":array(
-        //                 "info":true,
-        //                 "trade":true,
-        //                 "withdraw":false
-        //             ),
-        //             "transaction_count":0,
-        //             "open_orders":0,
-        //             "server_time":1619436907
-        //         ),
-        //         "stat":{
-        //             "isSuccess":true,
-        //             "serverTime":"00:00:00.0001157",
-        //             "time":"00:00:00.0101364",
-        //             "errors":null
-        //         }
-        //     }
-        //
-        return $this->parse_balance($response);
+        return Async\async(function () use ($params) {
+            /**
+             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * @param {array} $params extra parameters specific to the tidex api endpoint
+             * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->privatePostGetInfoExt ($params));
+            //
+            //     {
+            //         "success":1,
+            //         "return":array(
+            //             "funds":array(
+            //                 "btc":array("value":0.0000499885629956,"inOrders":0.0),
+            //                 "eth":array("value":0.000000030741708,"inOrders":0.0),
+            //                 "tdx":array("value":0.0000000155385356,"inOrders":0.0)
+            //             ),
+            //             "rights":array(
+            //                 "info":true,
+            //                 "trade":true,
+            //                 "withdraw":false
+            //             ),
+            //             "transaction_count":0,
+            //             "open_orders":0,
+            //             "server_time":1619436907
+            //         ),
+            //         "stat":{
+            //             "isSuccess":true,
+            //             "serverTime":"00:00:00.0001157",
+            //             "time":"00:00:00.0101364",
+            //             "errors":null
+            //         }
+            //     }
+            //
+            return $this->parse_balance($response);
+        }) ();
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
-        /**
-         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
-         * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int|null} $limit the maximum amount of order book entries to return
-         * @param {array} $params extra parameters specific to the tidex api endpoint
-         * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'pair' => $market['id'],
-        );
-        if ($limit !== null) {
-            $request['limit'] = $limit; // default = 150, max = 2000
-        }
-        $response = yield $this->publicGetDepthPair (array_merge($request, $params));
-        $market_id_in_reponse = (is_array($response) && array_key_exists($market['id'], $response));
-        if (!$market_id_in_reponse) {
-            throw new ExchangeError($this->id . ' ' . $market['symbol'] . ' order book is empty or not available');
-        }
-        $orderbook = $response[$market['id']];
-        return $this->parse_order_book($orderbook, $symbol);
+        return Async\async(function () use ($symbol, $limit, $params) {
+            /**
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+             * @param {string} $symbol unified $symbol of the $market to fetch the order book for
+             * @param {int|null} $limit the maximum amount of order book entries to return
+             * @param {array} $params extra parameters specific to the tidex api endpoint
+             * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by $market symbols
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'pair' => $market['id'],
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit; // default = 150, max = 2000
+            }
+            $response = Async\await($this->publicGetDepthPair (array_merge($request, $params)));
+            $market_id_in_reponse = (is_array($response) && array_key_exists($market['id'], $response));
+            if (!$market_id_in_reponse) {
+                throw new ExchangeError($this->id . ' ' . $market['symbol'] . ' order book is empty or not available');
+            }
+            $orderbook = $response[$market['id']];
+            return $this->parse_order_book($orderbook, $symbol);
+        }) ();
     }
 
     public function fetch_order_books($symbols = null, $limit = null, $params = array ()) {
-        /**
-         * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
-         * @param {[string]|null} $symbols list of unified market $symbols, all $symbols fetched if null, default is null
-         * @param {int|null} $limit max number of entries per orderbook to return, default is null
-         * @param {array} $params extra parameters specific to the tidex api endpoint
-         * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market $symbol
-         */
-        yield $this->load_markets();
-        $ids = null;
-        if ($symbols === null) {
-            $ids = implode('-', $this->ids);
-            // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
-            if (strlen($ids) > 2048) {
-                $numIds = count($this->ids);
-                throw new ExchangeError($this->id . ' fetchOrderBooks() has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
+        return Async\async(function () use ($symbols, $limit, $params) {
+            /**
+             * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data for multiple markets
+             * @param {[string]|null} $symbols list of unified market $symbols, all $symbols fetched if null, default is null
+             * @param {int|null} $limit max number of entries per orderbook to return, default is null
+             * @param {array} $params extra parameters specific to the tidex api endpoint
+             * @return {array} a dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market $symbol
+             */
+            Async\await($this->load_markets());
+            $ids = null;
+            if ($symbols === null) {
+                $ids = implode('-', $this->ids);
+                // max URL length is 2083 $symbols, including http schema, hostname, tld, etc...
+                if (strlen($ids) > 2048) {
+                    $numIds = count($this->ids);
+                    throw new ExchangeError($this->id . ' fetchOrderBooks() has ' . (string) $numIds . ' $symbols exceeding max URL length, you are required to specify a list of $symbols in the first argument to fetchOrderBooks');
+                }
+            } else {
+                $ids = $this->market_ids($symbols);
+                $ids = implode('-', $ids);
             }
-        } else {
-            $ids = $this->market_ids($symbols);
-            $ids = implode('-', $ids);
-        }
-        $request = array(
-            'pair' => $ids,
-        );
-        if ($limit !== null) {
-            $request['limit'] = $limit; // default = 150, max = 2000
-        }
-        $response = yield $this->publicGetDepthPair (array_merge($request, $params));
-        $result = array();
-        $ids = is_array($response) ? array_keys($response) : array();
-        for ($i = 0; $i < count($ids); $i++) {
-            $id = $ids[$i];
-            $symbol = $this->safe_symbol($id);
-            $result[$symbol] = $this->parse_order_book($response[$id], $symbol);
-        }
-        return $result;
+            $request = array(
+                'pair' => $ids,
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit; // default = 150, max = 2000
+            }
+            $response = Async\await($this->publicGetDepthPair (array_merge($request, $params)));
+            $result = array();
+            $ids = is_array($response) ? array_keys($response) : array();
+            for ($i = 0; $i < count($ids); $i++) {
+                $id = $ids[$i];
+                $symbol = $this->safe_symbol($id);
+                $result[$symbol] = $this->parse_order_book($response[$id], $symbol);
+            }
+            return $result;
+        }) ();
     }
 
     public function parse_ticker($ticker, $market = null) {
@@ -503,51 +514,55 @@ class tidex extends Exchange {
     }
 
     public function fetch_tickers($symbols = null, $params = array ()) {
-        /**
-         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
-         * @param {array} $params extra parameters specific to the tidex api endpoint
-         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
-         */
-        yield $this->load_markets();
-        $symbols = $this->market_symbols($symbols);
-        $ids = $this->ids;
-        if ($symbols === null) {
-            $numIds = count($ids);
-            $ids = implode('-', $ids);
-            // max URL length is 2048 $symbols, including http schema, hostname, tld, etc...
-            if (strlen($ids) > $this->options['fetchTickersMaxLength']) {
-                $maxLength = $this->safe_integer($this->options, 'fetchTickersMaxLength', 2048);
-                throw new ArgumentsRequired($this->id . ' fetchTickers() has ' . (string) $numIds . ' markets exceeding max URL length for this endpoint (' . (string) $maxLength . ' characters), please, specify a list of $symbols of interest in the first argument to fetchTickers');
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
+             * @param {array} $params extra parameters specific to the tidex api endpoint
+             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             */
+            Async\await($this->load_markets());
+            $symbols = $this->market_symbols($symbols);
+            $ids = $this->ids;
+            if ($symbols === null) {
+                $numIds = count($ids);
+                $ids = implode('-', $ids);
+                // max URL length is 2048 $symbols, including http schema, hostname, tld, etc...
+                if (strlen($ids) > $this->options['fetchTickersMaxLength']) {
+                    $maxLength = $this->safe_integer($this->options, 'fetchTickersMaxLength', 2048);
+                    throw new ArgumentsRequired($this->id . ' fetchTickers() has ' . (string) $numIds . ' markets exceeding max URL length for this endpoint (' . (string) $maxLength . ' characters), please, specify a list of $symbols of interest in the first argument to fetchTickers');
+                }
+            } else {
+                $ids = $this->market_ids($symbols);
+                $ids = implode('-', $ids);
             }
-        } else {
-            $ids = $this->market_ids($symbols);
-            $ids = implode('-', $ids);
-        }
-        $request = array(
-            'pair' => $ids,
-        );
-        $response = yield $this->publicGetTickerPair (array_merge($request, $params));
-        $result = array();
-        $keys = is_array($response) ? array_keys($response) : array();
-        for ($i = 0; $i < count($keys); $i++) {
-            $id = $keys[$i];
-            $market = $this->safe_market($id);
-            $symbol = $market['symbol'];
-            $result[$symbol] = $this->parse_ticker($response[$id], $market);
-        }
-        return $this->filter_by_array($result, 'symbol', $symbols);
+            $request = array(
+                'pair' => $ids,
+            );
+            $response = Async\await($this->publicGetTickerPair (array_merge($request, $params)));
+            $result = array();
+            $keys = is_array($response) ? array_keys($response) : array();
+            for ($i = 0; $i < count($keys); $i++) {
+                $id = $keys[$i];
+                $market = $this->safe_market($id);
+                $symbol = $market['symbol'];
+                $result[$symbol] = $this->parse_ticker($response[$id], $market);
+            }
+            return $this->filter_by_array($result, 'symbol', $symbols);
+        }) ();
     }
 
     public function fetch_ticker($symbol, $params = array ()) {
-        /**
-         * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
-         * @param {string} $symbol unified $symbol of the market to fetch the ticker for
-         * @param {array} $params extra parameters specific to the tidex api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
-         */
-        $tickers = yield $this->fetch_tickers(array( $symbol ), $params);
-        return $tickers[$symbol];
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+             * @param {string} $symbol unified $symbol of the market to fetch the ticker for
+             * @param {array} $params extra parameters specific to the tidex api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
+             */
+            $tickers = Async\await($this->fetch_tickers(array( $symbol ), $params));
+            return $tickers[$symbol];
+        }) ();
     }
 
     public function parse_trade($trade, $market = null) {
@@ -607,108 +622,114 @@ class tidex extends Exchange {
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
-        /**
-         * get the list of most recent trades for a particular $symbol
-         * @param {string} $symbol unified $symbol of the $market to fetch trades for
-         * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-         * @param {int|null} $limit the maximum amount of trades to fetch
-         * @param {array} $params extra parameters specific to the tidex api endpoint
-         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
-         */
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'pair' => $market['id'],
-        );
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
-        $response = yield $this->publicGetTradesPair (array_merge($request, $params));
-        if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
-            $numElements = count($response);
-            if ($numElements === 0) {
-                return array();
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * get the list of most recent trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the $market to fetch trades for
+             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+             * @param {int|null} $limit the maximum amount of trades to fetch
+             * @param {array} $params extra parameters specific to the tidex api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'pair' => $market['id'],
+            );
+            if ($limit !== null) {
+                $request['limit'] = $limit;
             }
-        }
-        return $this->parse_trades($response[$market['id']], $market, $since, $limit);
+            $response = Async\await($this->publicGetTradesPair (array_merge($request, $params)));
+            if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+                $numElements = count($response);
+                if ($numElements === 0) {
+                    return array();
+                }
+            }
+            return $this->parse_trades($response[$market['id']], $market, $since, $limit);
+        }) ();
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
-        /**
-         * create a trade order
-         * @param {string} $symbol unified $symbol of the $market to create an order in
-         * @param {string} $type 'market' or 'limit'
-         * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
-         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
-         * @param {array} $params extra parameters specific to the tidex api endpoint
-         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        if ($type === 'market') {
-            throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
-        }
-        $amountString = (string) $amount;
-        $priceString = (string) $price;
-        yield $this->load_markets();
-        $market = $this->market($symbol);
-        $request = array(
-            'pair' => $market['id'],
-            'type' => $side,
-            'amount' => $this->amount_to_precision($symbol, $amount),
-            'rate' => $this->price_to_precision($symbol, $price),
-        );
-        $response = yield $this->privatePostTrade (array_merge($request, $params));
-        $id = null;
-        $status = 'open';
-        $filledString = '0.0';
-        $remainingString = $amountString;
-        $returnResult = $this->safe_value($response, 'return');
-        if ($returnResult !== null) {
-            $id = $this->safe_string($returnResult, 'order_id');
-            if ($id === '0') {
-                $id = $this->safe_string($returnResult, 'init_order_id');
-                $status = 'closed';
+        return Async\async(function () use ($symbol, $type, $side, $amount, $price, $params) {
+            /**
+             * create a trade order
+             * @param {string} $symbol unified $symbol of the $market to create an order in
+             * @param {string} $type 'market' or 'limit'
+             * @param {string} $side 'buy' or 'sell'
+             * @param {float} $amount how much of currency you want to trade in units of base currency
+             * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
+             * @param {array} $params extra parameters specific to the tidex api endpoint
+             * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            if ($type === 'market') {
+                throw new ExchangeError($this->id . ' createOrder() allows limit orders only');
             }
-            $filledString = $this->safe_string($returnResult, 'received', $filledString);
-            $remainingString = $this->safe_string($returnResult, 'remains', $amountString);
-        }
-        $timestamp = $this->milliseconds();
-        return $this->safe_order(array(
-            'id' => $id,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
-            'lastTradeTimestamp' => null,
-            'status' => $status,
-            'symbol' => $symbol,
-            'type' => $type,
-            'side' => $side,
-            'price' => $priceString,
-            'cost' => null,
-            'amount' => $amountString,
-            'remaining' => $remainingString,
-            'filled' => $filledString,
-            'fee' => null,
-            // 'trades' => $this->parse_trades(order['trades'], $market),
-            'info' => $response,
-            'clientOrderId' => null,
-            'average' => null,
-            'trades' => null,
-        ), $market);
+            $amountString = (string) $amount;
+            $priceString = (string) $price;
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'pair' => $market['id'],
+                'type' => $side,
+                'amount' => $this->amount_to_precision($symbol, $amount),
+                'rate' => $this->price_to_precision($symbol, $price),
+            );
+            $response = Async\await($this->privatePostTrade (array_merge($request, $params)));
+            $id = null;
+            $status = 'open';
+            $filledString = '0.0';
+            $remainingString = $amountString;
+            $returnResult = $this->safe_value($response, 'return');
+            if ($returnResult !== null) {
+                $id = $this->safe_string($returnResult, 'order_id');
+                if ($id === '0') {
+                    $id = $this->safe_string($returnResult, 'init_order_id');
+                    $status = 'closed';
+                }
+                $filledString = $this->safe_string($returnResult, 'received', $filledString);
+                $remainingString = $this->safe_string($returnResult, 'remains', $amountString);
+            }
+            $timestamp = $this->milliseconds();
+            return $this->safe_order(array(
+                'id' => $id,
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+                'lastTradeTimestamp' => null,
+                'status' => $status,
+                'symbol' => $symbol,
+                'type' => $type,
+                'side' => $side,
+                'price' => $priceString,
+                'cost' => null,
+                'amount' => $amountString,
+                'remaining' => $remainingString,
+                'filled' => $filledString,
+                'fee' => null,
+                // 'trades' => $this->parse_trades(order['trades'], $market),
+                'info' => $response,
+                'clientOrderId' => null,
+                'average' => null,
+                'trades' => null,
+            ), $market);
+        }) ();
     }
 
     public function cancel_order($id, $symbol = null, $params = array ()) {
-        /**
-         * cancels an open order
-         * @param {string} $id order $id
-         * @param {string|null} $symbol not used by tidex cancelOrder ()
-         * @param {array} $params extra parameters specific to the tidex api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
-         */
-        yield $this->load_markets();
-        $request = array(
-            'order_id' => intval($id),
-        );
-        return yield $this->privatePostCancelOrder (array_merge($request, $params));
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * cancels an open order
+             * @param {string} $id order $id
+             * @param {string|null} $symbol not used by tidex cancelOrder ()
+             * @param {array} $params extra parameters specific to the tidex api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'order_id' => intval($id),
+            );
+            return Async\await($this->privatePostCancelOrder (array_merge($request, $params)));
+        }) ();
     }
 
     public function parse_order_status($status) {
@@ -763,153 +784,161 @@ class tidex extends Exchange {
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
-        /**
-         * fetches information on an $order made by the user
-         * @param {string|null} $symbol not used by tidex fetchOrder
-         * @param {array} $params extra parameters specific to the tidex api endpoint
-         * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
-         */
-        yield $this->load_markets();
-        $request = array(
-            'order_id' => intval($id),
-        );
-        $response = yield $this->privatePostOrderInfo (array_merge($request, $params));
-        $id = (string) $id;
-        $result = $this->safe_value($response, 'return', array());
-        $order = $this->safe_value($result, $id);
-        return $this->parse_order(array_merge(array( 'id' => $id ), $order));
+        return Async\async(function () use ($id, $symbol, $params) {
+            /**
+             * fetches information on an $order made by the user
+             * @param {string|null} $symbol not used by tidex fetchOrder
+             * @param {array} $params extra parameters specific to the tidex api endpoint
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+             */
+            Async\await($this->load_markets());
+            $request = array(
+                'order_id' => intval($id),
+            );
+            $response = Async\await($this->privatePostOrderInfo (array_merge($request, $params)));
+            $id = (string) $id;
+            $result = $this->safe_value($response, 'return', array());
+            $order = $this->safe_value($result, $id);
+            return $this->parse_order(array_merge(array( 'id' => $id ), $order));
+        }) ();
     }
 
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all unfilled currently open $orders
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch open $orders for
-         * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
-         * @param {array} $params extra parameters specific to the tidex api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
-         */
-        yield $this->load_markets();
-        $request = array();
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['pair'] = $market['id'];
-        }
-        $response = yield $this->privatePostActiveOrders (array_merge($request, $params));
-        //
-        //     {
-        //         "success":1,
-        //         "return":{
-        //             "1255468911":array(
-        //                 "status":0,
-        //                 "pair":"spike_usdt",
-        //                 "type":"sell",
-        //                 "amount":35028.44256388,
-        //                 "rate":0.00199989,
-        //                 "timestamp_created":1602684432
-        //             }
-        //         ),
-        //         "stat":{
-        //             "isSuccess":true,
-        //             "serverTime":"00:00:00.0000826",
-        //             "time":"00:00:00.0091423",
-        //             "errors":null
-        //         }
-        //     }
-        //
-        // it can only return 'open' $orders (i.e. no way to fetch 'closed' $orders)
-        $orders = $this->safe_value($response, 'return', array());
-        return $this->parse_orders($orders, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all unfilled currently open $orders
+             * @param {string|null} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch open $orders for
+             * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
+             * @param {array} $params extra parameters specific to the tidex api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            Async\await($this->load_markets());
+            $request = array();
+            $market = null;
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['pair'] = $market['id'];
+            }
+            $response = Async\await($this->privatePostActiveOrders (array_merge($request, $params)));
+            //
+            //     {
+            //         "success":1,
+            //         "return":{
+            //             "1255468911":array(
+            //                 "status":0,
+            //                 "pair":"spike_usdt",
+            //                 "type":"sell",
+            //                 "amount":35028.44256388,
+            //                 "rate":0.00199989,
+            //                 "timestamp_created":1602684432
+            //             }
+            //         ),
+            //         "stat":{
+            //             "isSuccess":true,
+            //             "serverTime":"00:00:00.0000826",
+            //             "time":"00:00:00.0091423",
+            //             "errors":null
+            //         }
+            //     }
+            //
+            // it can only return 'open' $orders (i.e. no way to fetch 'closed' $orders)
+            $orders = $this->safe_value($response, 'return', array());
+            return $this->parse_orders($orders, $market, $since, $limit);
+        }) ();
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
-        /**
-         * fetch all $trades made by the user
-         * @param {string|null} $symbol unified $market $symbol
-         * @param {int|null} $since the earliest time in ms to fetch $trades for
-         * @param {int|null} $limit the maximum number of $trades structures to retrieve
-         * @param {array} $params extra parameters specific to the tidex api endpoint
-         * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
-         */
-        yield $this->load_markets();
-        $market = null;
-        // some derived classes use camelcase notation for $request fields
-        $request = array(
-            // 'from' => 123456789, // trade ID, from which the display starts numerical 0 (test result => liqui ignores this field)
-            // 'count' => 1000, // the number of $trades for display numerical, default = 1000
-            // 'from_id' => trade ID, from which the display starts numerical 0
-            // 'end_id' => trade ID on which the display ends numerical ∞
-            // 'order' => 'ASC', // sorting, default = DESC (test result => liqui ignores this field, most recent trade always goes last)
-            // 'since' => 1234567890, // UTC start time, default = 0 (test result => liqui ignores this field)
-            // 'end' => 1234567890, // UTC end time, default = ∞ (test result => liqui ignores this field)
-            // 'pair' => 'eth_btc', // default = all markets
-        );
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $request['pair'] = $market['id'];
-        }
-        if ($limit !== null) {
-            $request['count'] = intval($limit);
-        }
-        if ($since !== null) {
-            $request['since'] = intval($since / 1000);
-        }
-        $response = yield $this->privatePostTradeHistory (array_merge($request, $params));
-        $trades = $this->safe_value($response, 'return', array());
-        return $this->parse_trades($trades, $market, $since, $limit);
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetch all $trades made by the user
+             * @param {string|null} $symbol unified $market $symbol
+             * @param {int|null} $since the earliest time in ms to fetch $trades for
+             * @param {int|null} $limit the maximum number of $trades structures to retrieve
+             * @param {array} $params extra parameters specific to the tidex api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
+             */
+            Async\await($this->load_markets());
+            $market = null;
+            // some derived classes use camelcase notation for $request fields
+            $request = array(
+                // 'from' => 123456789, // trade ID, from which the display starts numerical 0 (test result => liqui ignores this field)
+                // 'count' => 1000, // the number of $trades for display numerical, default = 1000
+                // 'from_id' => trade ID, from which the display starts numerical 0
+                // 'end_id' => trade ID on which the display ends numerical ∞
+                // 'order' => 'ASC', // sorting, default = DESC (test result => liqui ignores this field, most recent trade always goes last)
+                // 'since' => 1234567890, // UTC start time, default = 0 (test result => liqui ignores this field)
+                // 'end' => 1234567890, // UTC end time, default = ∞ (test result => liqui ignores this field)
+                // 'pair' => 'eth_btc', // default = all markets
+            );
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['pair'] = $market['id'];
+            }
+            if ($limit !== null) {
+                $request['count'] = intval($limit);
+            }
+            if ($since !== null) {
+                $request['since'] = intval($since / 1000);
+            }
+            $response = Async\await($this->privatePostTradeHistory (array_merge($request, $params)));
+            $trades = $this->safe_value($response, 'return', array());
+            return $this->parse_trades($trades, $market, $since, $limit);
+        }) ();
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
-        /**
-         * make a withdrawal
-         * @param {string} $code unified $currency $code
-         * @param {float} $amount the $amount to withdraw
-         * @param {string} $address the $address to withdraw to
-         * @param {string|null} $tag
-         * @param {array} $params extra parameters specific to the tidex api endpoint
-         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
-         */
-        list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
-        $this->check_address($address);
-        yield $this->load_markets();
-        $currency = $this->currency($code);
-        $request = array(
-            'asset' => $currency['id'],
-            'amount' => floatval($amount),
-            'address' => $address,
-        );
-        if ($tag !== null) {
-            $request['memo'] = $tag;
-        }
-        $response = yield $this->privatePostCreateWithdraw (array_merge($request, $params));
-        //
-        //     {
-        //         "success":1,
-        //         "return":{
-        //             "withdraw_id":1111,
-        //             "withdraw_info":{
-        //                 "id":1111,
-        //                 "asset_id":1,
-        //                 "asset":"BTC",
-        //                 "amount":0.0093,
-        //                 "fee":0.0007,
-        //                 "create_time":1575128018,
-        //                 "status":"Created",
-        //                 "data":array(
-        //                     "address":"1KFHE7w8BhaENAswwryaoccDb6qcT6DbYY",
-        //                     "memo":"memo",
-        //                     "tx":null,
-        //                     "error":null
-        //                 ),
-        //                 "in_blockchain":false
-        //             }
-        //         }
-        //     }
-        //
-        $result = $this->safe_value($response, 'return', array());
-        $withdrawInfo = $this->safe_value($result, 'withdraw_info', array());
-        return $this->parse_transaction($withdrawInfo, $currency);
+        return Async\async(function () use ($code, $amount, $address, $tag, $params) {
+            /**
+             * make a withdrawal
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount the $amount to withdraw
+             * @param {string} $address the $address to withdraw to
+             * @param {string|null} $tag
+             * @param {array} $params extra parameters specific to the tidex api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
+             */
+            list($tag, $params) = $this->handle_withdraw_tag_and_params($tag, $params);
+            $this->check_address($address);
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'asset' => $currency['id'],
+                'amount' => floatval($amount),
+                'address' => $address,
+            );
+            if ($tag !== null) {
+                $request['memo'] = $tag;
+            }
+            $response = Async\await($this->privatePostCreateWithdraw (array_merge($request, $params)));
+            //
+            //     {
+            //         "success":1,
+            //         "return":{
+            //             "withdraw_id":1111,
+            //             "withdraw_info":{
+            //                 "id":1111,
+            //                 "asset_id":1,
+            //                 "asset":"BTC",
+            //                 "amount":0.0093,
+            //                 "fee":0.0007,
+            //                 "create_time":1575128018,
+            //                 "status":"Created",
+            //                 "data":array(
+            //                     "address":"1KFHE7w8BhaENAswwryaoccDb6qcT6DbYY",
+            //                     "memo":"memo",
+            //                     "tx":null,
+            //                     "error":null
+            //                 ),
+            //                 "in_blockchain":false
+            //             }
+            //         }
+            //     }
+            //
+            $result = $this->safe_value($response, 'return', array());
+            $withdrawInfo = $this->safe_value($result, 'withdraw_info', array());
+            return $this->parse_transaction($withdrawInfo, $currency);
+        }) ();
     }
 
     public function parse_transaction($transaction, $currency = null) {

@@ -199,6 +199,7 @@ class coinmate(Exchange):
                     'Not enough account balance available': InsufficientFunds,
                     'Incorrect order ID': InvalidOrder,
                     'Minimum Order Size ': InvalidOrder,
+                    'max allowed precision': InvalidOrder,  # {"error":true,"errorMessage":"USDT_EUR - max allowed precision is 4 decimal places","data":null}
                     'TOO MANY REQUESTS': RateLimitExceeded,
                     'Access denied.': AuthenticationError,  # {"error":true,"errorMessage":"Access denied.","data":null}
                 },

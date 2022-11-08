@@ -8,6 +8,7 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
@@ -348,6 +349,7 @@ class kraken(Exchange):
                 'EFunding:Unknown asset': BadSymbol,  # {"error":["EFunding:Unknown asset"]}
                 'EService:Market in post_only mode': OnMaintenance,  # {"error":["EService:Market in post_only mode"]}
                 'EGeneral:Too many requests': DDoSProtection,  # {"error":["EGeneral:Too many requests"]}
+                'ETrade:User Locked': AccountSuspended,  # {"error":["ETrade:User Locked"]}
             },
         })
 
@@ -363,46 +365,46 @@ class kraken(Exchange):
         response = self.publicGetAssetPairs(params)
         #
         #     {
-        #         "error":[],
-        #         "result":{
-        #             "ADAETH":{
-        #                 "altname":"ADAETH",
-        #                 "wsname":"ADA\/ETH",
-        #                 "aclass_base":"currency",
-        #                 "base":"ADA",
-        #                 "aclass_quote":"currency",
-        #                 "quote":"XETH",
-        #                 "lot":"unit",
-        #                 "pair_decimals":7,
-        #                 "lot_decimals":8,
-        #                 "lot_multiplier":1,
-        #                 "leverage_buy":[],
-        #                 "leverage_sell":[],
-        #                 "fees":[
-        #                     [0,0.26],
-        #                     [50000,0.24],
-        #                     [100000,0.22],
-        #                     [250000,0.2],
-        #                     [500000,0.18],
-        #                     [1000000,0.16],
-        #                     [2500000,0.14],
-        #                     [5000000,0.12],
-        #                     [10000000,0.1]
+        #         "error": [],
+        #         "result": {
+        #             "ADAETH": {
+        #                 "altname": "ADAETH",
+        #                 "wsname": "ADA\/ETH",
+        #                 "aclass_base": "currency",
+        #                 "base": "ADA",
+        #                 "aclass_quote": "currency",
+        #                 "quote": "XETH",
+        #                 "lot": "unit",
+        #                 "pair_decimals": 7,
+        #                 "lot_decimals": 8,
+        #                 "lot_multiplier": 1,
+        #                 "leverage_buy": [],
+        #                 "leverage_sell": [],
+        #                 "fees": [
+        #                     [0, 0.26],
+        #                     [50000, 0.24],
+        #                     [100000, 0.22],
+        #                     [250000, 0.2],
+        #                     [500000, 0.18],
+        #                     [1000000, 0.16],
+        #                     [2500000, 0.14],
+        #                     [5000000, 0.12],
+        #                     [10000000, 0.1]
         #                 ],
-        #                 "fees_maker":[
-        #                     [0,0.16],
-        #                     [50000,0.14],
-        #                     [100000,0.12],
-        #                     [250000,0.1],
-        #                     [500000,0.08],
-        #                     [1000000,0.06],
-        #                     [2500000,0.04],
-        #                     [5000000,0.02],
-        #                     [10000000,0]
+        #                 "fees_maker": [
+        #                     [0, 0.16],
+        #                     [50000, 0.14],
+        #                     [100000, 0.12],
+        #                     [250000, 0.1],
+        #                     [500000, 0.08],
+        #                     [1000000, 0.06],
+        #                     [2500000, 0.04],
+        #                     [5000000, 0.02],
+        #                     [10000000, 0]
         #                 ],
-        #                 "fee_volume_currency":"ZUSD",
-        #                 "margin_call":80,
-        #                 "margin_stop":40,
+        #                 "fee_volume_currency": "ZUSD",
+        #                 "margin_call": 80,
+        #                 "margin_stop": 40,
         #                 "ordermin": "1"
         #             },
         #         }
@@ -422,16 +424,16 @@ class kraken(Exchange):
             altname = self.safe_string(market, 'altname')
             makerFees = self.safe_value(market, 'fees_maker', [])
             firstMakerFee = self.safe_value(makerFees, 0, [])
-            firstMakerFeeRate = self.safe_number(firstMakerFee, 1)
+            firstMakerFeeRate = self.safe_string(firstMakerFee, 1)
             maker = None
             if firstMakerFeeRate is not None:
-                maker = float(firstMakerFeeRate) / 100
+                maker = self.parse_number(Precise.string_div(firstMakerFeeRate, '100'))
             takerFees = self.safe_value(market, 'fees', [])
             firstTakerFee = self.safe_value(takerFees, 0, [])
-            firstTakerFeeRate = self.safe_number(firstTakerFee, 1)
+            firstTakerFeeRate = self.safe_string(firstTakerFee, 1)
             taker = None
             if firstTakerFeeRate is not None:
-                taker = float(firstTakerFeeRate) / 100
+                taker = self.parse_number(Precise.string_div(firstTakerFeeRate, '100'))
             leverageBuy = self.safe_value(market, 'leverage_buy', [])
             leverageBuyLength = len(leverageBuy)
             precisionPrice = self.parse_number(self.parse_precision(self.safe_string(market, 'pair_decimals')))

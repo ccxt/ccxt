@@ -6,10 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\InvalidOrder;
 
 class exmo extends Exchange {
 
@@ -418,20 +414,12 @@ class exmo extends Exchange {
     public function fetch_transaction_fees($codes = null, $params = array ()) {
         /**
          * fetch transaction fees
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
          * @param {[string]|null} $codes list of unified $currency $codes
          * @param {array} $params extra parameters specific to the exmo api endpoint
          * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fees-structure transaction fees structures}
          */
         $this->load_markets();
-        $currencyList = $this->publicGetCurrencyListExtended ($params);
-        //
-        //     array(
-        //         array("name":"VLX","description":"Velas"),
-        //         array("name":"RUB","description":"Russian Ruble"),
-        //         array("name":"BTC","description":"Bitcoin"),
-        //         array("name":"USD","description":"US Dollar")
-        //     )
-        //
         $cryptoList = $this->publicGetPaymentsProvidersCryptoList ($params);
         //
         //     {
@@ -467,26 +455,28 @@ class exmo extends Exchange {
         //         ),
         //     }
         //
-        $result = array(
-            'info' => $cryptoList,
-            'withdraw' => array(),
-            'deposit' => array(),
-        );
-        for ($i = 0; $i < count($currencyList); $i++) {
-            $currency = $currencyList[$i];
-            $currencyId = $this->safe_string($currency, 'name');
-            $code = $this->safe_currency_code($currencyId);
+        $result = array();
+        $cryptoListKeys = is_array($cryptoList) ? array_keys($cryptoList) : array();
+        for ($i = 0; $i < count($cryptoListKeys); $i++) {
+            $code = $cryptoListKeys[$i];
+            if ($codes !== null && !$this->in_array($code, $codes)) {
+                continue;
+            }
+            $result[$code] = array(
+                'deposit' => null,
+                'withdraw' => null,
+            );
+            $currency = $this->currency($code);
+            $currencyId = $this->safe_string($currency, 'id');
             $providers = $this->safe_value($cryptoList, $currencyId, array());
             for ($j = 0; $j < count($providers); $j++) {
                 $provider = $providers[$j];
                 $type = $this->safe_string($provider, 'type');
                 $commissionDesc = $this->safe_string($provider, 'commission_desc');
-                $newFee = $this->parse_fixed_float_value($commissionDesc);
-                $previousFee = $this->safe_number($result[$type], $code);
-                if (($previousFee === null) || (($newFee !== null) && ($newFee < $previousFee))) {
-                    $result[$type][$code] = $newFee;
-                }
+                $fee = $this->parse_fixed_float_value($commissionDesc);
+                $result[$code][$type] = $fee;
             }
+            $result[$code]['info'] = $providers;
         }
         // cache them for later use
         $this->options['transactionFees'] = $result;
@@ -721,14 +711,13 @@ class exmo extends Exchange {
         $now = $this->milliseconds();
         if ($since === null) {
             if ($limit === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument or a $limit argument');
-            } else {
-                if ($limit > $maxLimit) {
-                    throw new BadRequest($this->id . ' fetchOHLCV() will serve ' . (string) $maxLimit . ' $candles at most');
-                }
-                $request['from'] = intval($now / 1000) - $limit * $duration - 1;
-                $request['to'] = intval($now / 1000);
+                $limit = 1000; // cap default at generous amount
             }
+            if ($limit > $maxLimit) {
+                $limit = $maxLimit; // avoid exception
+            }
+            $request['from'] = intval($now / 1000) - $limit * $duration - 1;
+            $request['to'] = intval($now / 1000);
         } else {
             $request['from'] = intval($since / 1000) - 1;
             if ($limit === null) {
@@ -1527,6 +1516,12 @@ class exmo extends Exchange {
          */
         $this->load_markets();
         $response = $this->privatePostDepositAddress ($params);
+        //
+        //     {
+        //         "TRX":"TBnwrf4ZdoYXE3C8L2KMs7YPSL3fg6q6V9",
+        //         "USDTTRC20":"TBnwrf4ZdoYXE3C8L2KMs7YPSL3fg6q6V9"
+        //     }
+        //
         $depositAddress = $this->safe_string($response, $code);
         $address = null;
         $tag = null;
@@ -1687,7 +1682,7 @@ class exmo extends Exchange {
             $key = ($type === 'withdrawal') ? 'withdraw' : 'deposit';
             $feeCost = $this->safe_string($transaction, 'commission');
             if ($feeCost === null) {
-                $feeCost = $this->safe_string($this->options['transactionFees'][$key], $code);
+                $feeCost = $this->safe_string($this->options['transactionFees'][$code], $key);
             }
             // users don't pay for cashbacks, no fees for that
             $provider = $this->safe_string($transaction, 'provider');

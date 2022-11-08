@@ -1357,7 +1357,7 @@ module.exports = class bw extends Exchange {
         //
         const data = this.safeValue (response, 'datas', {});
         const deposits = this.safeValue (data, 'list', []);
-        return this.parseTransactions (deposits, code, since, limit);
+        return this.parseTransactions (deposits, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1412,7 +1412,7 @@ module.exports = class bw extends Exchange {
         //
         const data = this.safeValue (response, 'datas', {});
         const withdrawals = this.safeValue (data, 'list', []);
-        return this.parseTransactions (withdrawals, code, since, limit);
+        return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

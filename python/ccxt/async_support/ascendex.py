@@ -204,6 +204,7 @@ class ascendex(Exchange):
                             'futures/contract': 1,
                             'futures/collateral': 1,
                             'futures/pricing-data': 1,
+                            'futures/ticker': 1,
                         },
                     },
                     'private': {
@@ -932,16 +933,27 @@ class ascendex(Exchange):
     async def fetch_tickers(self, symbols=None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        see https://ascendex.github.io/ascendex-pro-api/#ticker
+        see https://ascendex.github.io/ascendex-futures-pro-api-v2/#ticker
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the ascendex api endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         request = {}
+        market = None
         if symbols is not None:
+            symbol = self.safe_value(symbols, 0)
+            market = self.market(symbol)
             marketIds = self.market_ids(symbols)
             request['symbol'] = ','.join(marketIds)
-        response = await self.v1PublicGetTicker(self.extend(request, params))
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTickers', market, params)
+        response = None
+        if type == 'spot':
+            response = await self.v1PublicGetTicker(self.extend(request, params))
+        else:
+            response = await self.v2PublicGetFuturesTicker(self.extend(request, params))
         #
         #     {
         #         "code":0,
@@ -961,6 +973,8 @@ class ascendex(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', [])
+        if not isinstance(data, list):
+            return self.parse_tickers([data], symbols)
         return self.parse_tickers(data, symbols)
 
     def parse_ohlcv(self, ohlcv, market=None):
@@ -2423,7 +2437,6 @@ class ascendex(Exchange):
         currentTime = self.safe_integer(contract, 'time')
         nextFundingRate = self.safe_number(contract, 'fundingRate')
         nextFundingRateTimestamp = self.safe_integer(contract, 'nextFundingTime')
-        previousFundingTimestamp = None
         return {
             'info': contract,
             'symbol': symbol,
@@ -2434,11 +2447,14 @@ class ascendex(Exchange):
             'timestamp': currentTime,
             'datetime': self.iso8601(currentTime),
             'previousFundingRate': None,
-            'nextFundingRate': nextFundingRate,
-            'previousFundingTimestamp': previousFundingTimestamp,
-            'nextFundingTimestamp': nextFundingRateTimestamp,
-            'previousFundingDatetime': self.iso8601(previousFundingTimestamp),
-            'nextFundingDatetime': self.iso8601(nextFundingRateTimestamp),
+            'nextFundingRate': None,
+            'previousFundingTimestamp': None,
+            'nextFundingTimestamp': None,
+            'previousFundingDatetime': None,
+            'nextFundingDatetime': None,
+            'fundingRate': nextFundingRate,
+            'fundingTimestamp': nextFundingRateTimestamp,
+            'fundingDatetime': self.iso8601(nextFundingRateTimestamp),
         }
 
     async def fetch_funding_rates(self, symbols=None, params={}):

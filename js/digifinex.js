@@ -39,6 +39,7 @@ module.exports = class digifinex extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingRate': true,
                 'fetchLedger': true,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
@@ -264,6 +265,14 @@ module.exports = class digifinex extends Exchange {
         });
     }
 
+    safeNetwork (networkId) {
+        if (networkId === undefined) {
+            return undefined;
+        } else {
+            return networkId.toUpperCase ();
+        }
+    }
+
     async fetchCurrencies (params = {}) {
         /**
          * @method
@@ -321,12 +330,51 @@ module.exports = class digifinex extends Exchange {
             const deposit = depositStatus > 0;
             const withdraw = withdrawStatus > 0;
             const active = deposit && withdraw;
-            const fee = this.safeNumber (currency, 'withdraw_fee_rate');
+            const fee = this.safeNumber (currency, 'min_withdraw_fee'); // withdraw_fee_rate was zero for all currencies, so this was the worst case scenario
+            const minWithdraw = this.safeNumber (currency, 'min_withdraw_amount');
+            const minDeposit = this.safeNumber (currency, 'min_deposit_amount');
+            const networkId = this.safeString (currency, 'chain');
+            const network = {
+                'id': networkId,
+                'network': this.safeNetwork (networkId),
+                'name': undefined,
+                'active': active,
+                'fee': fee,
+                'precision': this.parseNumber ('0.00000001'), // todo fix hardcoded value
+                'deposit': deposit,
+                'withdraw': withdraw,
+                'limits': {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': minWithdraw,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': minDeposit,
+                        'max': undefined,
+                    },
+                },
+                'info': currency,
+            };
             if (code in result) {
                 if (Array.isArray (result[code]['info'])) {
                     result[code]['info'].push (currency);
                 } else {
                     result[code]['info'] = [ result[code]['info'], currency ];
+                }
+                if (withdraw) {
+                    result[code]['withdraw'] = true;
+                    result[code]['limits']['withdraw']['min'] = Math.min (result[code]['limits']['withdraw']['min'], minWithdraw);
+                }
+                if (deposit) {
+                    result[code]['deposit'] = true;
+                    result[code]['limits']['deposit']['min'] = Math.min (result[code]['limits']['deposit']['min'], minDeposit);
+                }
+                if (active) {
+                    result[code]['active'] = true;
                 }
             } else {
                 result[code] = {
@@ -346,12 +394,18 @@ module.exports = class digifinex extends Exchange {
                             'max': undefined,
                         },
                         'withdraw': {
-                            'min': this.safeNumber (currency, 'min_withdraw_amount'),
+                            'min': minWithdraw,
+                            'max': undefined,
+                        },
+                        'deposit': {
+                            'min': minDeposit,
                             'max': undefined,
                         },
                     },
+                    'networks': {},
                 };
             }
+            result[code]['networks'][networkId] = network;
         }
         return result;
     }
@@ -2147,6 +2201,75 @@ module.exports = class digifinex extends Exchange {
             result[code] = borrowRate;
         }
         return result;
+    }
+
+    async fetchFundingRate (symbol, params = {}) {
+        /**
+         * @method
+         * @name digifinex#fetchFundingRate
+         * @description fetch the current funding rate
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#currentfundingrate
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the digifinex api endpoint
+         * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#funding-rate-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadSymbol (this.id + ' fetchFundingRate() supports swap contracts only');
+        }
+        const request = {
+            'instrument_id': market['id'],
+        };
+        const response = await this.publicSwapGetPublicFundingRate (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "instrument_id": "BTCUSDTPERP",
+        //             "funding_rate": "-0.00012",
+        //             "funding_time": 1662710400000,
+        //             "next_funding_rate": "0.0001049907085171607",
+        //             "next_funding_time": 1662739200000
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseFundingRate (data, market);
+    }
+
+    parseFundingRate (contract, market = undefined) {
+        //
+        //     {
+        //         "instrument_id": "BTCUSDTPERP",
+        //         "funding_rate": "-0.00012",
+        //         "funding_time": 1662710400000,
+        //         "next_funding_rate": "0.0001049907085171607",
+        //         "next_funding_time": 1662739200000
+        //     }
+        //
+        const marketId = this.safeString (contract, 'instrument_id');
+        const timestamp = this.safeInteger (contract, 'funding_time');
+        const nextTimestamp = this.safeInteger (contract, 'next_funding_time');
+        return {
+            'info': contract,
+            'symbol': this.safeSymbol (marketId, market),
+            'markPrice': undefined,
+            'indexPrice': undefined,
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'fundingRate': this.safeString (contract, 'funding_rate'),
+            'fundingTimestamp': timestamp,
+            'fundingDatetime': this.iso8601 (timestamp),
+            'nextFundingRate': this.safeString (contract, 'next_funding_rate'),
+            'nextFundingTimestamp': nextTimestamp,
+            'nextFundingDatetime': this.iso8601 (nextTimestamp),
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+        };
     }
 
     handleMarginModeAndParams (methodName, params = {}) {

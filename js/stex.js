@@ -777,7 +777,7 @@ module.exports = class stex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1d', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name stex#fetchOHLCV
@@ -1979,7 +1979,7 @@ module.exports = class stex extends Exchange {
         //     }
         //
         const deposits = this.safeValue (response, 'data', []);
-        return this.parseTransactions (deposits, code, since, limit);
+        return this.parseTransactions (deposits, currency, since, limit);
     }
 
     async fetchWithdrawal (id, code = undefined, params = {}) {
@@ -2106,7 +2106,7 @@ module.exports = class stex extends Exchange {
         //     }
         //
         const withdrawals = this.safeValue (response, 'data', []);
-        return this.parseTransactions (withdrawals, code, since, limit);
+        return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
@@ -2421,12 +2421,12 @@ module.exports = class stex extends Exchange {
          * @method
          * @name stex#fetchTransactionFees
          * @description fetch transaction fees
-         * @param {[string]|undefined} codes not used by stex fetchTransactionFees ()
+         * @see https://apidocs.stex.com/#tag/Public/paths/~1public~1currencies/get
+         * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the stex api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const response = await this.publicGetCurrencies (params);
         //
         //     {
         //         "success": true,
@@ -2466,20 +2466,22 @@ module.exports = class stex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        const withdrawFees = {};
-        const depositFees = {};
-        for (let i = 0; i < data.length; i++) {
-            const id = this.safeString (data[i], 'id');
-            const code = this.safeCurrencyCode (id);
-            withdrawFees[code] = this.safeNumber (data[i], 'withdrawal_fee_const');
-            depositFees[code] = this.safeNumber (data[i], 'deposit_fee_const');
+        const currencyKeys = Object.keys (this.currencies);
+        const result = {};
+        for (let i = 0; i < currencyKeys.length; i++) {
+            const code = currencyKeys[i];
+            const currency = this.currencies[code];
+            if (codes !== undefined && !this.inArray (code, codes)) {
+                continue;
+            }
+            const info = this.safeValue (currency, 'info');
+            result[code] = {
+                'withdraw': this.safeNumber (currency, 'fee'),
+                'deposit': this.safeNumber (info, 'deposit_fee_const'),
+                'info': info,
+            };
         }
-        return {
-            'withdraw': withdrawFees,
-            'deposit': depositFees,
-            'info': response,
-        };
+        return result;
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {

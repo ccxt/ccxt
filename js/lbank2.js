@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError, InvalidAddress, DuplicateOrderId, ArgumentsRequired, InsufficientFunds, InvalidOrder, InvalidNonce, AuthenticationError, RateLimitExceeded, PermissionDenied, BadRequest, BadSymbol } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
 
@@ -257,6 +258,9 @@ module.exports = class lbank2 extends Exchange {
                     'oec': 'OEC',
                     'btctron': 'BTCTRON',
                     'xrp': 'XRP',
+                },
+                'defaultNetworks': {
+                    'USDT': 'TRC20',
                 },
             },
         });
@@ -673,11 +677,12 @@ module.exports = class lbank2 extends Exchange {
         // endpoint doesnt work
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (since === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchOHLCV () requires a since argument');
-        }
         if (limit === undefined) {
             limit = 100;
+        }
+        if (since === undefined) {
+            const duration = this.parseTimeframe (timeframe);
+            since = this.milliseconds () - duration * 1000 * limit;
         }
         const request = {
             'symbol': market['id'],
@@ -857,6 +862,36 @@ module.exports = class lbank2 extends Exchange {
             method = this.safeString (options, 'method', 'privatePostSupplementUserInfo');
         }
         const response = await this[method] ();
+        //
+        //    {
+        //        "result": "true",
+        //        "data": [
+        //            {
+        //                "usableAmt": "14.36",
+        //                "assetAmt": "14.36",
+        //                "networkList": [
+        //                    {
+        //                        "isDefault": false,
+        //                        "withdrawFeeRate": "",
+        //                        "name": "erc20",
+        //                        "withdrawMin": 30,
+        //                        "minLimit": 0.0001,
+        //                        "minDeposit": 20,
+        //                        "feeAssetCode": "usdt",
+        //                        "withdrawFee": "30",
+        //                        "type": 1,
+        //                        "coin": "usdt",
+        //                        "network": "eth"
+        //                    },
+        //                    ...
+        //                ],
+        //                "freezeAmt": "0",
+        //                "coin": "ada"
+        //            }
+        //        ],
+        //        "code": 0
+        //    }
+        //
         return this.parseBalance (response);
     }
 
@@ -962,7 +997,10 @@ module.exports = class lbank2 extends Exchange {
                     if (price === undefined) {
                         throw new InvalidOrder (this.id + " createOrder () requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply the price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
                     } else {
-                        const cost = parseFloat (amount) * parseFloat (price);
+                        const amountString = this.numberToString (amount);
+                        const priceString = this.numberToString (price);
+                        const quoteAmount = Precise.stringMul (amountString, priceString);
+                        const cost = this.parseNumber (quoteAmount);
                         request['price'] = this.priceToPrecision (symbol, cost);
                     }
                 } else {
@@ -1493,6 +1531,15 @@ module.exports = class lbank2 extends Exchange {
         return result;
     }
 
+    getNetworkCodeForCurrency (currencyCode, params) {
+        const defaultNetworks = this.safeValue (this.options, 'defaultNetworks');
+        const defaultNetwork = this.safeStringUpper (defaultNetworks, currencyCode);
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper (params, 'network', defaultNetwork); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeString (networks, network, network); // handle ERC20>ETH alias
+        return network;
+    }
+
     async fetchDepositAddress (code, params = {}) {
         /**
          * @method
@@ -1518,9 +1565,7 @@ module.exports = class lbank2 extends Exchange {
         const request = {
             'assetCode': currency['id'],
         };
-        const networks = this.safeValue (this.options, 'networks');
-        let network = this.safeStringUpper (params, 'network');
-        network = this.safeString (networks, network, network);
+        const network = this.getNetworkCodeForCurrency (code, params);
         if (network !== undefined) {
             request['netWork'] = network; // ... yes, really lol
             params = this.omit (params, 'network');
@@ -1778,8 +1823,9 @@ module.exports = class lbank2 extends Exchange {
             // 'status': Recharge status: ("1","Applying"),("2","Recharge successful"),("3","Recharge failed"),("4","Already Cancel"), ("5", "Transfer")
             // 'endTime': end time, timestamp in milliseconds, default now
         };
+        let currency = undefined;
         if (code !== undefined) {
-            const currency = this.currency (code);
+            currency = this.currency (code);
             request['coin'] = currency['id'];
         }
         if (since !== undefined) {
@@ -1811,7 +1857,7 @@ module.exports = class lbank2 extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const deposits = this.safeValue (data, 'depositOrders', []);
-        return this.parseTransactions (deposits, code, since, limit);
+        return this.parseTransactions (deposits, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1831,8 +1877,9 @@ module.exports = class lbank2 extends Exchange {
             // 'endTime': end time, timestamp in milliseconds, default now
             // 'withdrawOrderId': Custom withdrawal id
         };
+        let currency = undefined;
         if (code !== undefined) {
-            const currency = this.currency (code);
+            currency = this.currency (code);
             request['coin'] = currency['id'];
         }
         if (since !== undefined) {
@@ -1867,7 +1914,7 @@ module.exports = class lbank2 extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const withdraws = this.safeValue (data, 'withdraws', []);
-        return this.parseTransactions (withdraws, code, since, limit);
+        return this.parseTransactions (withdraws, currency, since, limit);
     }
 
     async fetchTransactionFees (codes = undefined, params = {}) {
@@ -1902,6 +1949,36 @@ module.exports = class lbank2 extends Exchange {
         // incl. for coins which undefined in public method
         await this.loadMarkets ();
         const response = await this.privatePostSupplementUserInfo ();
+        //
+        //    {
+        //        "result": "true",
+        //        "data": [
+        //            {
+        //                "usableAmt": "14.36",
+        //                "assetAmt": "14.36",
+        //                "networkList": [
+        //                    {
+        //                        "isDefault": false,
+        //                        "withdrawFeeRate": "",
+        //                        "name": "erc20",
+        //                        "withdrawMin": 30,
+        //                        "minLimit": 0.0001,
+        //                        "minDeposit": 20,
+        //                        "feeAssetCode": "usdt",
+        //                        "withdrawFee": "30",
+        //                        "type": 1,
+        //                        "coin": "usdt",
+        //                        "network": "eth"
+        //                    },
+        //                    ...
+        //                ],
+        //                "freezeAmt": "0",
+        //                "coin": "ada"
+        //            }
+        //        ],
+        //        "code": 0
+        //    }
+        //
         const result = this.safeValue (response, 'data', []);
         const withdrawFees = {};
         for (let i = 0; i < result.length; i++) {
@@ -1939,6 +2016,27 @@ module.exports = class lbank2 extends Exchange {
             request['assetCode'] = currency['id'];
         }
         const response = await this.publicGetWithdrawConfigs (this.extend (request, params));
+        //
+        //    {
+        //        result: 'true',
+        //        data: [
+        //          {
+        //            amountScale: '4',
+        //            chain: 'heco',
+        //            assetCode: 'lbk',
+        //            min: '200',
+        //            transferAmtScale: '4',
+        //            canWithDraw: true,
+        //            fee: '100',
+        //            minTransfer: '0.0001',
+        //            type: '1'
+        //          },
+        //          ...
+        //        ],
+        //        error_code: '0',
+        //        ts: '1663364435973'
+        //    }
+        //
         const result = this.safeValue (response, 'data', []);
         const withdrawFees = {};
         for (let i = 0; i < result.length; i++) {
@@ -1956,7 +2054,7 @@ module.exports = class lbank2 extends Exchange {
                 if (withdrawFees[code] === undefined) {
                     withdrawFees[code] = {};
                 }
-                withdrawFees[code][network] = fee;
+                withdrawFees[code][network] = this.parseNumber (fee);
             }
         }
         return {

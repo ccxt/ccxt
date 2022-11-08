@@ -7,6 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 import hashlib
 import math
 from ccxt.base.errors import ExchangeError
+from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -67,7 +68,14 @@ class btcturk(Exchange):
                 'setPositionMode': False,
             },
             'timeframes': {
-                '1d': '1d',
+                '1m': 1,
+                '15m': 15,
+                '30m': 30,
+                '1h': 60,
+                '4h': 240,
+                '1d': '1 day',
+                '1w': '1 week',
+                '1y': '1 year',
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87153926-efbef500-c2c0-11ea-9842-05b63612c4b9.jpg',
@@ -106,6 +114,7 @@ class btcturk(Exchange):
                 'graph': {
                     'get': {
                         'ohlcs': 1,
+                        'klines/history': 1,
                     },
                 },
             },
@@ -133,46 +142,47 @@ class btcturk(Exchange):
         """
         response = await self.publicGetServerExchangeinfo(params)
         #
-        #     {
-        #       "data": {
-        #         "timeZone": "UTC",
-        #         "serverTime": "1618826678404",
-        #         "symbols": [
-        #           {
-        #             "id": "1",
-        #             "name": "BTCTRY",
-        #             "nameNormalized": "BTC_TRY",
-        #             "status": "TRADING",
-        #             "numerator": "BTC",
-        #             "denominator": "TRY",
-        #             "numeratorScale": "8",
-        #             "denominatorScale": "2",
-        #             "hasFraction": False,
-        #             "filters": [
-        #               {
-        #                 "filterType": "PRICE_FILTER",
-        #                 "minPrice": "0.0000000000001",
-        #                 "maxPrice": "10000000",
-        #                 "tickSize": "10",
-        #                 "minExchangeValue": "99.91",
-        #                 "minAmount": null,
-        #                 "maxAmount": null
-        #               }
-        #             ],
-        #             "orderMethods": [
-        #               "MARKET",
-        #               "LIMIT",
-        #               "STOP_MARKET",
-        #               "STOP_LIMIT"
-        #             ],
-        #             "displayFormat": "#,###",
-        #             "commissionFromNumerator": False,
-        #             "order": "1000",
-        #             "priceRounding": False
-        #           },
-        #         },
-        #       ],
-        #     }
+        #    {
+        #        "data": {
+        #            "timeZone": "UTC",
+        #            "serverTime": "1618826678404",
+        #            "symbols": [
+        #                {
+        #                    "id": "1",
+        #                    "name": "BTCTRY",
+        #                    "nameNormalized": "BTC_TRY",
+        #                    "status": "TRADING",
+        #                    "numerator": "BTC",
+        #                    "denominator": "TRY",
+        #                    "numeratorScale": "8",
+        #                    "denominatorScale": "2",
+        #                    "hasFraction": False,
+        #                    "filters": [
+        #                        {
+        #                            "filterType": "PRICE_FILTER",
+        #                            "minPrice": "0.0000000000001",
+        #                            "maxPrice": "10000000",
+        #                            "tickSize": "10",
+        #                            "minExchangeValue": "99.91",
+        #                            "minAmount": null,
+        #                            "maxAmount": null
+        #                        }
+        #                    ],
+        #                    "orderMethods": [
+        #                        "MARKET",
+        #                        "LIMIT",
+        #                        "STOP_MARKET",
+        #                        "STOP_LIMIT"
+        #                    ],
+        #                    "displayFormat": "#,###",
+        #                    "commissionFromNumerator": False,
+        #                    "order": "1000",
+        #                    "priceRounding": False
+        #                },
+        #                ...
+        #            },
+        #        ],
+        #    }
         #
         data = self.safe_value(response, 'data')
         markets = self.safe_value(data, 'symbols', [])
@@ -495,21 +505,18 @@ class btcturk(Exchange):
         return self.parse_trades(data, market, since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None):
-        #     {
-        #        "pair": "BTCTRY",
-        #        "time": 1508284800,
-        #        "open": 20873.689453125,
-        #        "high": 20925.0,
-        #        "low": 19310.0,
-        #        "close": 20679.55078125,
-        #        "volume": 402.216101626982,
-        #        "total": 8103096.44443274,
-        #        "average": 20146.13,
-        #        "dailyChangeAmount": -194.14,
-        #        "dailyChangePercentage": -0.93
-        #      },
+        #
+        #    {
+        #        'timestamp': 1661990400,
+        #        'high': 368388.0,
+        #        'open': 368388.0,
+        #        'low': 368388.0,
+        #        'close': 368388.0,
+        #        'volume': 0.00035208,
+        #    }
+        #
         return [
-            self.safe_timestamp(ohlcv, 'time'),
+            self.safe_timestamp(ohlcv, 'timestamp'),
             self.safe_number(ohlcv, 'open'),
             self.safe_number(ohlcv, 'high'),
             self.safe_number(ohlcv, 'low'),
@@ -517,25 +524,99 @@ class btcturk(Exchange):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='1d', since=None, limit=None, params={}):
+    async def fetch_ohlcv(self, symbol, timeframe='1h', since=None, limit=None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        see https://docs.btcturk.com/public-endpoints/get-kline-data
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int|None since: timestamp in ms of the earliest candle to fetch
         :param int|None limit: the maximum amount of candles to fetch
         :param dict params: extra parameters specific to the btcturk api endpoint
+        :param int|None params['until']: timestamp in ms of the latest candle to fetch
         :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
         request = {
-            'pair': market['id'],
+            'symbol': market['id'],
+            'resolution': self.safe_value(self.timeframes, timeframe, timeframe),  # allows the user to pass custom timeframes if needed
         }
+        until = self.safe_integer(params, 'until', self.milliseconds())
+        request['to'] = int(until / 1000)
+        if since is not None:
+            request['from'] = int(since / 1000)
+        elif limit is None:  # since will also be None
+            limit = 100  # default value
         if limit is not None:
-            request['last'] = limit
-        response = await self.graphGetOhlcs(self.extend(request, params))
+            if timeframe == '1y':  # difficult with leap years
+                raise BadRequest(self.id + ' fetchOHLCV() does not accept a limit parameter when timeframe == "1y"')
+            seconds = self.parse_timeframe(timeframe)
+            limitSeconds = seconds * (limit - 1)
+            if since is not None:
+                to = int(since / 1000) + limitSeconds
+                request['to'] = min(request['to'], to)
+            else:
+                request['from'] = int(until / 1000) - limitSeconds
+        response = await self.graphGetKlinesHistory(self.extend(request, params))
+        #
+        #    {
+        #        "s": "ok",
+        #        "t": [
+        #          1661990400,
+        #          1661990520,
+        #          ...
+        #        ],
+        #        "h": [
+        #          368388.0,
+        #          369090.0,
+        #          ...
+        #        ],
+        #        "o": [
+        #          368388.0,
+        #          368467.0,
+        #          ...
+        #        ],
+        #        "l": [
+        #          368388.0,
+        #          368467.0,
+        #          ...
+        #        ],
+        #        "c": [
+        #          368388.0,
+        #          369090.0,
+        #          ...
+        #        ],
+        #        "v": [
+        #          0.00035208,
+        #          0.2972395,
+        #          ...
+        #        ]
+        #    }
+        #
         return self.parse_ohlcvs(response, market, timeframe, since, limit)
+
+    def parse_ohlcvs(self, ohlcvs, market=None, timeframe='1m', since=None, limit=None):
+        results = []
+        timestamp = self.safe_value(ohlcvs, 't')
+        high = self.safe_value(ohlcvs, 'h')
+        open = self.safe_value(ohlcvs, 'o')
+        low = self.safe_value(ohlcvs, 'l')
+        close = self.safe_value(ohlcvs, 'c')
+        volume = self.safe_value(ohlcvs, 'v')
+        for i in range(0, len(timestamp)):
+            ohlcv = {
+                'timestamp': self.safe_value(timestamp, i),
+                'high': self.safe_value(high, i),
+                'open': self.safe_value(open, i),
+                'low': self.safe_value(low, i),
+                'close': self.safe_value(close, i),
+                'volume': self.safe_value(volume, i),
+            }
+            results.append(self.parse_ohlcv(ohlcv, market))
+        sorted = self.sort_by(results, 0)
+        tail = (since is None)
+        return self.filter_by_since_limit(sorted, since, limit, 0, tail)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         """
