@@ -372,11 +372,11 @@ module.exports = class digifinex extends Exchange {
     async fetchMarketsV2 (params = {}) {
         const defaultType = this.safeString (this.options, 'defaultType');
         const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchMarketsV2', params);
-        let method = (marginMode !== undefined) ? 'publicSpotGetMarginSymbols' : 'publicSpotGetTradesSymbols';
-        if (defaultType === 'swap') {
-            method = 'publicSwapGetPublicInstruments';
-        }
-        const response = await this[method] (query);
+        const method = (marginMode !== undefined) ? 'publicSpotGetMarginSymbols' : 'publicSpotGetTradesSymbols';
+        let promises = [ this[method] (query), this.publicSwapGetPublicInstruments (params) ];
+        promises = await Promise.all (promises);
+        const spotMarkets = promises[0];
+        const swapMarkets = promises[1];
         //
         // Spot
         //
@@ -450,11 +450,12 @@ module.exports = class digifinex extends Exchange {
         //         ]
         //     }
         //
-        const marketsQuery = (defaultType === 'swap') ? 'data' : 'symbol_list';
-        const markets = this.safeValue (response, marketsQuery, []);
+        const spotData = this.safeValue (spotMarkets, 'symbol_list', []);
+        const swapData = this.safeValue (swapMarkets, 'data', []);
+        const response = this.arrayConcat (spotData, swapData);
         const result = [];
-        for (let i = 0; i < markets.length; i++) {
-            const market = markets[i];
+        for (let i = 0; i < response.length; i++) {
+            const market = response[i];
             const id = this.safeString2 (market, 'symbol', 'instrument_id');
             const baseId = this.safeString2 (market, 'base_asset', 'base_currency');
             const quoteId = this.safeString2 (market, 'quote_asset', 'quote_currency');
@@ -472,17 +473,23 @@ module.exports = class digifinex extends Exchange {
             // const status = this.safeString (market, 'status');
             // const active = (status === 'TRADING');
             //
-            const isAllowed = this.safeInteger (market, 'is_allow', 1);
+            let isAllowed = this.safeInteger (market, 'is_allow', 1);
             let type = (defaultType === 'margin') ? 'margin' : 'spot';
-            if (defaultType === 'swap') {
-                type = 'swap';
-            }
-            const spot = (defaultType === 'spot') ? true : undefined;
-            const swap = (defaultType === 'swap') ? true : undefined;
+            const spot = settle === undefined;
+            const swap = !spot;
             const margin = (marginMode !== undefined) ? true : undefined;
             let symbol = base + '/' + quote;
-            if (defaultType === 'swap') {
+            let isInverse = undefined;
+            let isLinear = undefined;
+            if (swap) {
+                type = 'swap';
                 symbol = base + '/' + quote + ':' + settle;
+                isInverse = this.safeValue (market, 'is_inverse');
+                isLinear = (!isInverse) ? true : false;
+                const isTrading = this.safeValue (market, 'isTrading');
+                if (isTrading) {
+                    isAllowed = true;
+                }
             }
             result.push ({
                 'id': id,
@@ -501,9 +508,9 @@ module.exports = class digifinex extends Exchange {
                 'option': false,
                 'active': isAllowed ? true : undefined,
                 'contract': swap,
-                'linear': undefined,
-                'inverse': undefined,
-                'contractSize': undefined,
+                'linear': isLinear,
+                'inverse': isInverse,
+                'contractSize': this.safeNumber (market, 'contract_value'),
                 'expiry': undefined,
                 'expiryDatetime': undefined,
                 'strike': undefined,
@@ -518,11 +525,11 @@ module.exports = class digifinex extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': this.safeNumber (market, 'minimum_amount'),
+                        'min': this.safeNumber2 (market, 'minimum_amount', 'min_order_amount'),
                         'max': undefined,
                     },
                     'price': {
-                        'min': undefined,
+                        'min': this.safeNumber (market, 'tick_size'),
                         'max': undefined,
                     },
                     'cost': {
