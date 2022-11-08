@@ -532,7 +532,7 @@ export default class ndax extends Exchange {
         result['timestamp'] = timestamp;
         result['datetime'] = this.iso8601 (timestamp);
         result['nonce'] = nonce;
-        return result;
+        return result as any;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

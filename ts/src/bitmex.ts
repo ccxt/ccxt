@@ -624,7 +624,7 @@ export default class bitmex extends Exchange {
         }
         result['bids'] = this.sortBy (result['bids'], 0, true);
         result['asks'] = this.sortBy (result['asks'], 0);
-        return result;
+        return result as any;
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {

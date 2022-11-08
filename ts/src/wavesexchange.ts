@@ -598,7 +598,7 @@ export default class wavesexchange extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
-        };
+        } as any;
     }
 
     parseOrderBookSide (bookSide, market = undefined, limit = undefined) {

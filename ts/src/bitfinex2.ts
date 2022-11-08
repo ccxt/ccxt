@@ -4,6 +4,7 @@ import { ExchangeError, InvalidAddress, ArgumentsRequired, InsufficientFunds, Au
 import { Precise } from './base/Precise.js';
 import { Exchange } from './base/Exchange.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
+import { OrderBook } from './base/ws/OrderBook.js';
 // ---------------------------------------------------------------------------
 
 export default class bitfinex2 extends Exchange {
@@ -1017,7 +1018,7 @@ export default class bitfinex2 extends Exchange {
         }
         result['bids'] = this.sortBy (result['bids'], 0, true);
         result['asks'] = this.sortBy (result['asks'], 0);
-        return result;
+        return result as any;
     }
 
     parseTicker (ticker, market = undefined) {

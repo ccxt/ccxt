@@ -1372,7 +1372,7 @@ export default class poloniex extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
-        };
+        } as any;
     }
 
     async createDepositAddress (code, params = {}) {

@@ -575,7 +575,7 @@ export default class zonda extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'nonce': this.safeInteger (response, 'seqNo'),
-        };
+        } as any;
     }
 
     parseTicker (ticker, market = undefined) {

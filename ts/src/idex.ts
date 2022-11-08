@@ -699,7 +699,7 @@ export default class idex extends Exchange {
             'nonce': nonce,
             'bids': this.parseSide (response, 'bids'),
             'asks': this.parseSide (response, 'asks'),
-        };
+        } as any;
     }
 
     parseSide (book, side) {

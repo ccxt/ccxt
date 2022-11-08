@@ -2099,7 +2099,7 @@ export default class bybit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'nonce': undefined,
-        };
+        } as any;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -2193,7 +2193,7 @@ export default class bybit extends Exchange {
         const asksKey = market['spot'] ? 'asks' : 'Sell';
         const priceKey = market['spot'] ? 0 : 'price';
         const sizeKey = market['spot'] ? 1 : 'size';
-        return this.parseOrderBook (result, symbol, timestamp, bidsKey, asksKey, priceKey, sizeKey);
+        return this.parseOrderBook (result, symbol, timestamp, bidsKey, asksKey, priceKey, sizeKey) as any;
     }
 
     parseBalance (response) {
