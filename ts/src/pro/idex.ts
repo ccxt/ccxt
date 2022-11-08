@@ -150,6 +150,7 @@ export default class idex extends idexRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const name = 'trades';
         const subscribeObject = {
             'name': name,
@@ -234,8 +235,20 @@ export default class idex extends idexRest {
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name idex#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the idex api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const name = 'candles';
         const interval = this.timeframes[timeframe];
         const subscribeObject = {
@@ -421,8 +434,8 @@ export default class idex extends idexRest {
             subscription['limit'] = limit;
         }
         // 1. Connect to the WebSocket API endpoint and subscribe to the L2 Order Book for the target market.
-        const orderbook = await this.subscribe (subscribeObject, messageHash, (subscription as any));
-        return orderbook.limit (limit);
+        const orderbook = await this.subscribe (subscribeObject, messageHash, subscription as any);
+        return orderbook.limit ();
     }
 
     handleOrderBook (client, message) {
@@ -517,6 +530,7 @@ export default class idex extends idexRest {
         };
         let messageHash = name;
         if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
             const marketId = this.marketId (symbol);
             subscribeObject['markets'] = [ marketId ];
             messageHash = name + ':' + marketId;

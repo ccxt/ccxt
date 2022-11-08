@@ -27,6 +27,7 @@ export default class gate extends Exchange {
                         'delivery': 'https://api.gateio.ws/api/v4',
                         'spot': 'https://api.gateio.ws/api/v4',
                         'options': 'https://api.gateio.ws/api/v4',
+                        'sub_accounts': 'https://api.gateio.ws/api/v4',
                     },
                     'private': {
                         'withdrawals': 'https://api.gateio.ws/api/v4',
@@ -36,6 +37,7 @@ export default class gate extends Exchange {
                         'delivery': 'https://api.gateio.ws/api/v4',
                         'spot': 'https://api.gateio.ws/api/v4',
                         'options': 'https://api.gateio.ws/api/v4',
+                        'subAccounts': 'https://api.gateio.ws/api/v4',
                     },
                 },
                 'test': {
@@ -186,10 +188,10 @@ export default class gate extends Exchange {
                 'private': {
                     'withdrawals': {
                         'post': {
-                            '': 3000, // 3000 = 10 seconds
+                            'withdrawals': 3000, // 3000 = 10 seconds
                         },
                         'delete': {
-                            '{withdrawal_id}': 300,
+                            'withdrawals/{withdrawal_id}': 300,
                         },
                     },
                     'wallet': {
@@ -206,6 +208,26 @@ export default class gate extends Exchange {
                         'post': {
                             'transfers': 300,
                             'sub_account_transfers': 300,
+                        },
+                    },
+                    'subAccounts': {
+                        'get': {
+                            'sub_accounts': 1,
+                            'sub_accounts/{user_id}': 1,
+                            'sub_accounts/{user_id}/keys': 1,
+                            'sub_accounts/{user_id}/keys/{key}': 1,
+                        },
+                        'post': {
+                            'sub_accounts': 1,
+                            'sub_accounts/{user_id}/keys': 1,
+                            'sub_accounts/{user_id}/lock': 1,
+                            'sub_accounts/{user_id}/unlock': 1,
+                        },
+                        'put': {
+                            'sub_accounts/{user_id}/keys/{key}': 1,
+                        },
+                        'delete': {
+                            'sub_accounts/{user_id}/keys/{key}': 1,
                         },
                     },
                     'spot': {
@@ -1675,7 +1697,8 @@ export default class gate extends Exchange {
          * @method
          * @name gate#fetchTransactionFees
          * @description fetch transaction fees
-         * @param {[string]|undefined} codes not used by gate fetchTransactionFees ()
+         * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
+         * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the gate api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
@@ -1698,28 +1721,33 @@ export default class gate extends Exchange {
         //        }
         //    }
         //
-        const withdrawFees = {};
+        const result = {};
+        let withdrawFees = {};
         for (let i = 0; i < response.length; i++) {
+            withdrawFees = {};
             const entry = response[i];
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            withdrawFees[code] = {};
-            let withdrawFix = this.safeValue (entry, 'withdraw_fix_on_chains');
-            if (withdrawFix === undefined) {
-                withdrawFix = {};
-                withdrawFix[code] = this.safeNumber (entry, 'withdraw_fix');
+            if ((codes !== undefined) && !this.inArray (code, codes)) {
+                continue;
             }
-            const keys = Object.keys (withdrawFix);
-            for (let i = 0; i < keys.length; i++) {
-                const key = keys[i];
-                withdrawFees[code][key] = this.parseNumber (withdrawFix[key]);
+            const withdrawFixOnChains = this.safeValue (entry, 'withdraw_fix_on_chains');
+            if (withdrawFixOnChains === undefined) {
+                withdrawFees = this.safeNumber (entry, 'withdraw_fix');
+            } else {
+                const chainKeys = Object.keys (withdrawFixOnChains);
+                for (let i = 0; i < chainKeys.length; i++) {
+                    const chainKey = chainKeys[i];
+                    withdrawFees[chainKey] = this.parseNumber (withdrawFixOnChains[chainKey]);
+                }
             }
+            result[code] = {
+                'withdraw': withdrawFees,
+                'deposit': undefined,
+                'info': entry,
+            };
         }
-        return {
-            'info': response,
-            'withdraw': withdrawFees,
-            'deposit': {},
-        };
+        return result;
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2821,7 +2849,7 @@ export default class gate extends Exchange {
             request['chain'] = network;
             params = this.omit (params, 'network');
         }
-        const response = await (this as any).privateWithdrawalsPost (this.extend (request, params));
+        const response = await (this as any).privateWithdrawalsPostWithdrawals (this.extend (request, params));
         //
         //    {
         //        "id": "w13389675",
@@ -4628,7 +4656,10 @@ export default class gate extends Exchange {
         let query = this.omit (params, this.extractParams (path));
         path = this.implodeParams (path, params);
         const endPart = (path === '') ? '' : ('/' + path);
-        const entirePath = '/' + type + endPart;
+        let entirePath = '/' + type + endPart;
+        if ((type === 'subAccounts') || (type === 'withdrawals')) {
+            entirePath = endPart;
+        }
         let url = this.urls['api'][authentication][type];
         if (url === undefined) {
             throw new NotSupported (this.id + ' does not have a testnet for the ' + type + ' market type.');

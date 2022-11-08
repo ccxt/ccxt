@@ -398,7 +398,7 @@ class bitfinex extends Exchange {
             /**
              * fetch transaction $fees
              * @see https://docs.bitfinex.com/v1/reference/rest-auth-$fees
-             * @param {[string]|null} $codes not used by bitfinex2 fetchTransactionFees ()
+             * @param {[string]|null} $codes list of unified currency $codes
              * @param {array} $params extra parameters specific to the bitfinex api endpoint
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure $fees structures}
              */
@@ -417,7 +417,7 @@ class bitfinex extends Exchange {
             for ($i = 0; $i < count($ids); $i++) {
                 $id = $ids[$i];
                 $code = $this->safe_currency_code($id);
-                if ($codes !== null && !$this->in_array($code, $codes)) {
+                if (($codes !== null) && !$this->in_array($code, $codes)) {
                     continue;
                 }
                 $result[$code] = array(

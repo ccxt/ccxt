@@ -5,17 +5,22 @@ import assert from 'assert';
 
 // ----------------------------------------------------------------------------
 
-export default async (exchange) => {
+export default async (exchange, symbol) => {
     const method = 'fetchFundingRateHistory';
     const format = {
-        'currency': 'USDT',
+        'symbol': 'BTC/USDT:USDT',
         'info': {}, // Or []
         'timestamp': 1638230400000,
         'datetime': '2021-11-30T00:00:00.000Z',
-        'rate': 0.0006,
+        'fundingRate': 0.0006,
     };
     if (exchange.has[method]) {
-        const fundingRates = await exchange[method] ();
+        const market = exchange.market (symbol);
+        if (market.spot) {
+            console.log (method + '() is not supported for spot market symbol');
+            return;
+        }
+        const fundingRates = await exchange[method] (symbol);
         console.log ('fetched all', fundingRates.length, 'funding rates');
         for (let i = 0; i < fundingRates.length; i++) {
             const fundingRate = fundingRates[i];

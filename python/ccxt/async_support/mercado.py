@@ -681,7 +681,7 @@ class mercado(Exchange):
 
     def parse_ohlcv(self, ohlcv, market=None):
         return [
-            self.safe_timestamp(ohlcv, 0),
+            self.safe_integer(ohlcv, 0),
             self.safe_number(ohlcv, 1),
             self.safe_number(ohlcv, 2),
             self.safe_number(ohlcv, 3),

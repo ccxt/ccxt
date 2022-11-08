@@ -234,7 +234,7 @@ async def test():
         'enableRateLimit': True,
     }, apiKeys))
 
-    if hasattr(exchange, 'skipWs') and exchange.skipWs:
+    if (hasattr(exchange, 'skip') and exchange.skip) or (hasattr(exchange, 'skipWs') and exchange.skipWs):
         sys.stdout.write(exchange.id + ' [Skipped]\n')
         sys.stdout.flush()
     else:

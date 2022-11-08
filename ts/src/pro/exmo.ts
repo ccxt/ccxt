@@ -213,6 +213,7 @@ export default class exmo extends exmoRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const url = this.urls['api']['ws']['public'];
         const messageHash = 'ticker:' + symbol;
         const message = {
@@ -271,6 +272,7 @@ export default class exmo extends exmoRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const url = this.urls['api']['ws']['public'];
         const messageHash = 'trades:' + symbol;
         const message = {
@@ -343,6 +345,7 @@ export default class exmo extends exmoRest {
             messageHash = 'myTrades:' + type;
         } else {
             const market = this.market (symbol);
+            symbol = market['symbol'];
             messageHash = 'myTrades:' + market['symbol'];
         }
         const message = {
@@ -463,6 +466,7 @@ export default class exmo extends exmoRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const url = this.urls['api']['ws']['public'];
         const messageHash = 'orderbook:' + symbol;
         params = this.omit (params, 'aggregation');
@@ -475,7 +479,7 @@ export default class exmo extends exmoRest {
         };
         const request = this.deepExtend (subscribe, params);
         const orderbook = await this.watch (url, messageHash, request, messageHash);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBook (client, message) {

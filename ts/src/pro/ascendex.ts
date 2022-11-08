@@ -73,8 +73,20 @@ export default class ascendex extends ascendexRest {
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ascendex#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the ascendex api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         if ((limit === undefined) || (limit > 1440)) {
             limit = 100;
         }
@@ -140,6 +152,7 @@ export default class ascendex extends ascendexRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const channel = 'trades' + ':' + market['id'];
         params = this.extend (params, {
             'ch': channel,
@@ -206,7 +219,7 @@ export default class ascendex extends ascendexRest {
             'ch': channel,
         });
         const orderbook = await this.watchPublic (channel, params);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     async watchOrderBookSnapshot (symbol, limit = undefined, params = {}) {
@@ -222,7 +235,7 @@ export default class ascendex extends ascendexRest {
             'op': 'req',
         });
         const orderbook = await this.watchPublic (channel, params);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBookSnapshot (client, message) {
@@ -479,6 +492,7 @@ export default class ascendex extends ascendexRest {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            symbol = market['symbol'];
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         let messageHash = undefined;

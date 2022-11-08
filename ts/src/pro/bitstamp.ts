@@ -54,6 +54,7 @@ export default class bitstamp extends bitstampRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const options = this.safeValue (this.options, 'watchOrderBook', {});
         const type = this.safeString (options, 'type', 'order_book');
         const messageHash = type + '_' + market['id'];
@@ -74,7 +75,7 @@ export default class bitstamp extends bitstampRest {
         };
         const message = this.extend (request, params);
         const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     async fetchOrderBookSnapshot (client, message, subscription) {
@@ -208,6 +209,7 @@ export default class bitstamp extends bitstampRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const options = this.safeValue (this.options, 'watchTrades', {});
         const type = this.safeString (options, 'type', 'live_trades');
         const messageHash = type + '_' + market['id'];
@@ -340,6 +342,7 @@ export default class bitstamp extends bitstampRest {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const channel = 'private-my_orders';
         const messageHash = channel + '_' + market['id'];
         const subscription = {

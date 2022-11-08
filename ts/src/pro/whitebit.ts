@@ -158,7 +158,7 @@ export default class whitebit extends whitebitRest {
             true, // true for allowing multiple subscriptions
         ];
         const orderbook = await this.watchPublic (messageHash, method, reqParams, params);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBook (client, message) {

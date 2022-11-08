@@ -2,7 +2,7 @@
 //  ---------------------------------------------------------------------------
 
 import cryptocomRest from '../cryptocom.js';
-import { AuthenticationError, NotSupported, ExchangeError } from '../base/errors.js';
+import { AuthenticationError, NotSupported } from '../base/errors.js';
 import { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } from '../base/ws/Cache.js';
 
 //  ---------------------------------------------------------------------------
@@ -54,26 +54,20 @@ export default class cryptocom extends cryptocomRest {
          * @method
          * @name cryptocom#watchOrderBook
          * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://exchange-docs.crypto.com/spot/index.html#book-instrument_name-depth
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the cryptocom api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
-        if (limit !== undefined) {
-            if ((limit !== 10) && (limit !== 150)) {
-                throw new ExchangeError (this.id + ' watchOrderBook limit argument must be undefined, 10 or 150');
-            }
-        } else {
-            limit = 150; // default value
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['spot']) {
             throw new NotSupported (this.id + ' watchOrderBook() supports spot markets only');
         }
-        const messageHash = 'book' + '.' + market['id'] + '.' + limit.toString ();
+        const messageHash = 'book' + '.' + market['id'];
         const orderbook = await this.watchPublic (messageHash, params);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBookSnapshot (client, message) {
@@ -130,6 +124,7 @@ export default class cryptocom extends cryptocomRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         if (!market['spot']) {
             throw new NotSupported (this.id + ' watchTrades() supports spot markets only');
         }
@@ -199,6 +194,7 @@ export default class cryptocom extends cryptocomRest {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            symbol = market['symbol'];
         }
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         let messageHash = (defaultType === 'margin') ? 'user.margin.trade' : 'user.trade';
@@ -265,8 +261,20 @@ export default class cryptocom extends cryptocomRest {
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name cryptocom#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the cryptocom api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         if (!market['spot']) {
             throw new NotSupported (this.id + ' watchOHLCV() supports spot markets only');
         }
@@ -327,6 +335,7 @@ export default class cryptocom extends cryptocomRest {
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            symbol = market['symbol'];
         }
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
         let messageHash = (defaultType === 'margin') ? 'user.margin.order' : 'user.order';

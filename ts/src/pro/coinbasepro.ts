@@ -95,6 +95,8 @@ export default class coinbasepro extends coinbaseproRest {
          * @param {object} params extra parameters specific to the coinbasepro api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const name = 'matches';
         const trades = await this.subscribe (name, symbol, name, params);
         if (this.newUpdates) {
@@ -117,6 +119,8 @@ export default class coinbasepro extends coinbaseproRest {
         if (symbol === undefined) {
             throw new BadSymbol (this.id + ' watchMyTrades requires a symbol');
         }
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const name = 'user';
         const messageHash = 'myTrades';
         const authentication = this.authenticate ();
@@ -141,6 +145,8 @@ export default class coinbasepro extends coinbaseproRest {
         if (symbol === undefined) {
             throw new BadSymbol (this.id + ' watchMyTrades requires a symbol');
         }
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const name = 'user';
         const messageHash = 'orders';
         const authentication = this.authenticate ();
@@ -164,6 +170,7 @@ export default class coinbasepro extends coinbaseproRest {
         const name = 'level2';
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const messageHash = name + ':' + market['id'];
         const url = this.urls['api']['ws'];
         const subscribe = {
@@ -183,7 +190,7 @@ export default class coinbasepro extends coinbaseproRest {
             'limit': limit,
         };
         const orderbook = await this.watch (url, messageHash, request, messageHash, subscription);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleTrade (client, message) {

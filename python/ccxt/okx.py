@@ -113,7 +113,7 @@ class okx(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': False,
-                'fetchTradingLimits': None,
+                'fetchTradingLimits': False,
                 'fetchTransactionFee': False,
                 'fetchTransactionFees': False,
                 'fetchTransactions': False,
@@ -171,6 +171,7 @@ class okx(Exchange):
                         'market/ticker': 1,
                         'market/index-tickers': 1,
                         'market/books': 1,
+                        'market/books-lite': 1.66,
                         'market/candles': 0.5,
                         'market/history-candles': 1,
                         'market/history-mark-price-candles': 120,
@@ -386,6 +387,7 @@ class okx(Exchange):
                     '50026': ExchangeNotAvailable,  # System error, please try again later.
                     '50027': PermissionDenied,  # The account is restricted from trading
                     '50028': ExchangeError,  # Unable to take the order, please reach out to support center for details
+                    '50044': BadRequest,  # Must select one broker type
                     # API Class
                     '50100': ExchangeError,  # API frozen, please contact customer service
                     '50101': AuthenticationError,  # Broker id of APIKey does not match current environment
@@ -630,8 +632,12 @@ class okx(Exchange):
                     '60018': BadRequest,  # The {0} {1} {2} {3} {4} does not exist
                     '60019': BadRequest,  # Invalid op {op}
                     '63999': ExchangeError,  # Internal system error
+                    '70010': BadRequest,  # Timestamp parameters need to be in Unix timestamp format in milliseconds.
+                    '70013': BadRequest,  # endTs needs to be bigger than or equal to beginTs.
+                    '70016': BadRequest,  # Please specify your instrument settings for at least one instType.
                 },
                 'broad': {
+                    'Internal Server Error': ExchangeNotAvailable,  # {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"Internal Server Error","msg":"Internal Server Error"}
                     'server error': ExchangeNotAvailable,  # {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"server error 1236805249","msg":"server error 1236805249"}
                 },
             },
@@ -1560,7 +1566,7 @@ class okx(Exchange):
             limit = 100  # default 100, max 100
         duration = self.parse_timeframe(timeframe)
         bar = self.timeframes[timeframe]
-        if (timezone == 'UTC') and (duration >= 21600000):
+        if (timezone == 'UTC') and (duration >= 21600):  # if utc and timeframe >= 6h
             bar += timezone.lower()
         request = {
             'instId': market['id'],
@@ -1654,6 +1660,7 @@ class okx(Exchange):
             rate = data[i]
             timestamp = self.safe_number(rate, 'fundingTime')
             rates.append({
+                'info': rate,
                 'symbol': self.safe_symbol(self.safe_string(rate, 'instId')),
                 'fundingRate': self.safe_number(rate, 'realizedRate'),
                 'timestamp': timestamp,
@@ -2343,6 +2350,9 @@ class okx(Exchange):
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None  # fix empty clientOrderId string
         stopPrice = self.safe_number_n(order, ['triggerPx', 'slTriggerPx', 'tpTriggerPx'])
+        reduceOnly = self.safe_string(order, 'reduceOnly')
+        if reduceOnly is not None:
+            reduceOnly = (reduceOnly == 'true')
         return self.safe_order({
             'info': order,
             'id': id,
@@ -2365,6 +2375,7 @@ class okx(Exchange):
             'status': status,
             'fee': fee,
             'trades': None,
+            'reduceOnly': reduceOnly,
         }, market)
 
     def fetch_order(self, id, symbol=None, params={}):
@@ -3874,7 +3885,8 @@ class okx(Exchange):
                 entry = symbols[i]
                 market = self.market(entry)
                 marketIds.append(market['id'])
-            request['instId'] = str(marketIds)
+            if len(marketIds) > 0:
+                request['instId'] = str(marketIds)
         response = self.privateGetAccountPositions(self.extend(request, params))
         #
         #     {

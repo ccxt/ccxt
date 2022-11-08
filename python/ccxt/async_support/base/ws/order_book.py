@@ -27,9 +27,9 @@ class OrderBook(dict):
         # merge to self
         super(OrderBook, self).__init__(defaults)
 
-    def limit(self, n=None):
-        self['asks'].limit(n)
-        self['bids'].limit(n)
+    def limit(self):
+        self['asks'].limit()
+        self['bids'].limit()
         return self
 
     def reset(self, snapshot={}):

@@ -1125,9 +1125,9 @@ class bitso extends Exchange {
          * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         $this->load_markets();
-        $response = Async\await($this->privateGetOrdersOid (array(
+        $response = $this->privateGetOrdersOid (array(
             'oid' => $id,
-        )));
+        ));
         $payload = $this->safe_value($response, 'payload');
         if (gettype($payload) === 'array' && array_keys($payload) === array_keys(array_keys($payload))) {
             $numOrders = count($response['payload']);
@@ -1274,7 +1274,7 @@ class bitso extends Exchange {
         /**
          * fetch transaction fees
          * @see https://bitso.com/api_info#fees
-         * @param {[string]|null} $codes not used by bitso fetchTransactionFees
+         * @param {[string]|null} $codes list of unified currency $codes
          * @param {array} $params extra parameters specific to the bitso api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
          */
@@ -1330,7 +1330,7 @@ class bitso extends Exchange {
             $depositFee = $depositFees[$i];
             $currencyId = $this->safe_string($depositFee, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            if ($codes !== null && !$this->in_array($code, $codes)) {
+            if (($codes !== null) && !$this->in_array($code, $codes)) {
                 continue;
             }
             $result[$code] = array(
@@ -1347,7 +1347,7 @@ class bitso extends Exchange {
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];
             $code = $this->safe_currency_code($currencyId);
-            if ($codes !== null && !$this->in_array($code, $codes)) {
+            if (($codes !== null) && !$this->in_array($code, $codes)) {
                 continue;
             }
             $result[$code] = array(

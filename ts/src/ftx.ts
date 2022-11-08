@@ -373,6 +373,7 @@ export default class ftx extends Exchange {
                     'Not authorized for subaccount-specific access': PermissionDenied, // {"success":false,"error":"Not authorized for subaccount-specific access"}
                     'Not approved to trade this product': PermissionDenied, // {"success":false,"error":"Not approved to trade this product"}
                     'Internal Error': ExchangeNotAvailable, // {"success":false,"error":"Internal Error"}
+                    'Order took too long to process': ExchangeNotAvailable, // {"success":false,"error":"Order took too long to process"}
                 },
                 'broad': {
                     // {"error":"Not logged in","success":false}
@@ -976,16 +977,20 @@ export default class ftx extends Exchange {
         const price = this.safeString (params, 'price');
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, [ 'price', 'until' ]);
-        if (since !== undefined) {
+        const duration = this.parseTimeframe (timeframe);
+        const now = this.seconds ();
+        if (since === undefined) { // Issue #12855, inconsistent results if since is not provided
+            request['end_time'] = now;
+            request['start_time'] = this.sum (now, -limit * duration);
+        } else {
             const startTime = this.parseToInt (since / 1000);
             request['start_time'] = startTime;
-            const duration = this.parseTimeframe (timeframe);
             const endTime = this.sum (startTime, limit * duration);
-            request['end_time'] = Math.min (endTime, this.seconds ());
-            if (duration > 86400) {
-                const wholeDaysInTimeframe = this.parseToInt (duration / 86400);
-                request['limit'] = Math.min (limit * wholeDaysInTimeframe, maxLimit);
-            }
+            request['end_time'] = Math.min (endTime, now);
+        }
+        if (duration > 86400) {
+            const wholeDaysInTimeframe = this.parseToInt (duration / 86400);
+            request['limit'] = Math.min (limit * wholeDaysInTimeframe, maxLimit);
         }
         if (until !== undefined) {
             request['end_time'] = this.parseToInt (until / 1000);
@@ -1911,18 +1916,19 @@ export default class ftx extends Exchange {
         const defaultMethod = this.safeString (options, 'method', 'privateDeleteOrdersOrderId');
         let method = this.safeString (params, 'method', defaultMethod);
         const type = this.safeValue (params, 'type');  // Deprecated: use params.stop instead
-        const stop = this.safeValue (params, 'stop');
+        let isTriggerOrder = undefined;
+        [ isTriggerOrder, params ] = this.isTriggerOrder (params);
         const clientOrderId = this.safeValue2 (params, 'client_order_id', 'clientOrderId');
         if (clientOrderId === undefined) {
             request['order_id'] = parseInt (id);
-            if (stop || (type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
+            if (isTriggerOrder || this.inArray (type, [ 'stop', 'trailingStop', 'takeProfit' ])) {
                 method = 'privateDeleteConditionalOrdersOrderId';
             }
         } else {
             request['client_order_id'] = clientOrderId;
             method = 'privateDeleteOrdersByClientIdClientOrderId';
         }
-        const query = this.omit (params, [ 'method', 'type', 'client_order_id', 'clientOrderId', 'stop' ]);
+        const query = this.omit (params, [ 'method', 'type', 'client_order_id', 'clientOrderId' ]);
         const response = await this[method] (this.extend (request, query));
         //
         //     {
@@ -1947,6 +1953,7 @@ export default class ftx extends Exchange {
         await this.loadMarkets ();
         // https://docs.ccxt.com/en/latest/manual.html#user-defined-clientorderid
         const clientOrderIds = this.safeValue (params, 'clientOrderIds');
+        // FTX doesn't have endpoint for trigger orders related to cancelOrders
         if (clientOrderIds !== undefined) {
             //
             //     { success: true, result: [ 'billy', 'bob', 'gina' ] }
@@ -1981,6 +1988,13 @@ export default class ftx extends Exchange {
         const marketId = this.getMarketId (symbol, 'market', params);
         if (marketId !== undefined) {
             request['market'] = marketId;
+        }
+        let isTriggerOrder = undefined;
+        [ isTriggerOrder, params ] = this.isTriggerOrder (params);
+        // if user wants to cancel only conditional orders, then set below fields. Otherwise, request will cancel all orders - conditional and regular orders
+        if (isTriggerOrder) {
+            request['conditionalOrdersOnly'] = true;
+            request['limitOrdersOnly'] = false;
         }
         const response = await (this as any).privateDeleteOrders (this.extend (request, params));
         const result = this.safeValue (response, 'result', {});
@@ -2064,11 +2078,12 @@ export default class ftx extends Exchange {
         const defaultMethod = this.safeString (options, 'method', 'privateGetOrders');
         let method = this.safeString (params, 'method', defaultMethod);
         const type = this.safeValue (params, 'type');
-        const stop = this.safeValue (params, 'stop');
-        if (stop || (type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
+        let isTriggerOrder = undefined;
+        [ isTriggerOrder, params ] = this.isTriggerOrder (params);
+        if (isTriggerOrder || this.inArray (type, [ 'trigger', 'stop', 'trailingStop', 'takeProfit' ])) {
             method = 'privateGetConditionalOrders';
         }
-        const query = this.omit (params, [ 'method', 'type', 'stop' ]);
+        const query = this.omit (params, [ 'method', 'type' ]);
         const response = await this[method] (this.extend (request, query));
         //
         //     {
@@ -2128,7 +2143,9 @@ export default class ftx extends Exchange {
         const defaultMethod = this.safeString (options, 'method', 'privateGetOrdersHistory');
         let method = this.safeString (params, 'method', defaultMethod);
         const type = this.safeValue (params, 'type');
-        if ((type === 'stop') || (type === 'trailingStop') || (type === 'takeProfit')) {
+        let isTriggerOrder = undefined;
+        [ isTriggerOrder, params ] = this.isTriggerOrder (params);
+        if (isTriggerOrder || this.inArray (type, [ 'trigger', 'stop', 'trailingStop', 'takeProfit' ])) {
             method = 'privateGetConditionalOrdersHistory';
         }
         const query = this.omit (params, [ 'method', 'type' ]);
@@ -2177,7 +2194,48 @@ export default class ftx extends Exchange {
         const request = {
             'orderId': id,
         };
+        // if it's conditional order
+        const type = this.safeValue (params, 'type');
+        params = this.omit (params, 'type');
+        let isTriggerOrder = undefined;
+        [ isTriggerOrder, params ] = this.isTriggerOrder (params);
+        if (isTriggerOrder || this.inArray (type, [ 'trigger', 'stop', 'trailingStop', 'takeProfit' ])) {
+            // if it is conditional order, then it would have a reference order id to be sent to the specific endpoint, from where we will get the actual order ID and then use that ID
+            const realOrderId = await this.fetchOrderIfFromConditionalOrder (id);
+            if (realOrderId !== undefined) {
+                request['orderId'] = realOrderId;
+            } else {
+                // if order-id was not found, then there were no fills and no need to make any further request
+                return [];
+            }
+        }
         return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
+    }
+
+    async fetchOrderIfFromConditionalOrder (id) {
+        const request = {
+            'conditional_order_id': id,
+        };
+        const response = await this.privateGetConditionalOrdersConditionalOrderIdTriggers (request);
+        // Note: if endpoint retuns non-empy "result" property, then it means order had fill and returns the order reference ID, which is the real id of the regular order
+        //
+        // {
+        //     "success": true,
+        //     "result": [
+        //         {
+        //             "time": "2022-03-29T04:54:04.390665+00:00",
+        //             "orderId": 132144259673, // this is not the same conditional-order's id, instead it is the regular order id, which can be used in regular methods
+        //             "error": null,
+        //             "orderSize": 0.1234,
+        //             "filledSize": 0.1234
+        //         }
+        //     ]
+        // }
+        //
+        // Also note, the above endpoint seems to return one object in array
+        const result = this.safeValue (response, 'result');
+        const orderObject = this.safeValue (result, 0, {});
+        return this.safeString (orderObject, 'orderId');
     }
 
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {

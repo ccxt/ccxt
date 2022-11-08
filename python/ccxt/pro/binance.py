@@ -156,7 +156,7 @@ class binance(Exchange, ccxt.async_support.binance):
         message = self.extend(request, query)
         # 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
         orderbook = await self.watch(url, messageHash, message, messageHash, subscription)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     async def fetch_order_book_snapshot(self, client, message, subscription):
         defaultLimit = self.safe_integer(self.options, 'watchOrderBookLimit', 1000)
@@ -531,6 +531,15 @@ class binance(Exchange, ccxt.async_support.binance):
         client.resolve(tradesArray, messageHash)
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
         marketId = market['lowercaseId']
@@ -940,12 +949,15 @@ class binance(Exchange, ccxt.async_support.binance):
         """
         await self.load_markets()
         await self.authenticate(params)
-        defaultType = self.safe_string_2(self.options, 'watchOrders', 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
-        url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
         messageHash = 'orders'
+        market = None
         if symbol is not None:
+            market = self.market(symbol)
+            symbol = market['symbol']
             messageHash += ':' + symbol
+        type = None
+        type, params = self.handle_market_type_and_params('watchOrders', market, params)
+        url = self.urls['api']['ws'][type] + '/' + self.options[type]['listenKey']
         client = self.client(url)
         self.set_balance_cache(client, type)
         message = None

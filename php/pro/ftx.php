@@ -161,7 +161,7 @@ class ftx extends \ccxt\async\ftx {
              * @return {array} A dictionary of {@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure order book structures} indexed by market symbols
              */
             $orderbook = Async\await($this->watch_public($symbol, 'orderbook'));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

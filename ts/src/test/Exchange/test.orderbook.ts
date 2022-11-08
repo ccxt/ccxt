@@ -40,6 +40,7 @@ export default (exchange, orderbook, method, symbol) => {
         'bitrue',
         'bkex',
         'blockchaincom',
+        'btcalpha',
         'btcbox',
         'ftxus',
         'mexc',

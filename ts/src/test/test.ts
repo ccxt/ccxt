@@ -93,16 +93,16 @@ if (settings) {
     }
 }
 
-Object.assign (exchange, settings)
+Object.assign (exchange, settings);
 
 // check auth keys in env var
 const requiredCredentials = exchange.requiredCredentials;
 for (const [credential, isRequired] of Object.entries (requiredCredentials)) {
     if (isRequired && exchange[credential] === undefined) {
-        const credentialEnvName = (exchangeId + '_' + credential).toUpperCase () // example: KRAKEN_APIKEY
-        const credentialValue = process.env[credentialEnvName]
+        const credentialEnvName = (exchangeId + '_' + credential).toUpperCase (); // example: KRAKEN_APIKEY
+        const credentialValue = process.env[credentialEnvName];
         if (credentialValue) {
-            exchange[credential] = credentialValue
+            exchange[credential] = credentialValue;
         }
     }
 }
@@ -293,21 +293,21 @@ async function testExchange (exchange) {
     // if (exchange.urls['test'])
     //    exchange.urls['api'] = exchange.urls['test']
 
-    const balance = await test ('fetchBalance', exchange)
+    const balance = await test ('fetchBalance', exchange);
 
-    await test ('fetchAccounts', exchange)
-    await test ('fetchTransactionFees', exchange)
-    await test ('fetchTradingFees', exchange)
-    await test ('fetchStatus', exchange)
+    await test ('fetchAccounts', exchange);
+    await test ('fetchTransactionFees', exchange);
+    await test ('fetchTradingFees', exchange);
+    await test ('fetchStatus', exchange);
 
-    await test ('fetchOrders', exchange, symbol)
-    await test ('fetchOpenOrders', exchange, symbol)
-    await test ('fetchClosedOrders', exchange, symbol)
-    await test ('fetchMyTrades', exchange, symbol)
-    await test ('fetchLeverageTiers', exchange, symbol)
-    await test ('fetchOpenInterestHistory', exchange, symbol)
+    await test ('fetchOrders', exchange, symbol);
+    await test ('fetchOpenOrders', exchange, symbol);
+    await test ('fetchClosedOrders', exchange, symbol);
+    await test ('fetchMyTrades', exchange, symbol);
+    await test ('fetchLeverageTiers', exchange, symbol);
+    await test ('fetchOpenInterestHistory', exchange, symbol);
 
-    await test ('fetchPositions', exchange, symbol)
+    await test ('fetchPositions', exchange, symbol);
 
     if ('fetchLedger' in tests) {
         await test ('fetchLedger', exchange, code);

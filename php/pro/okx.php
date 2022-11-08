@@ -115,6 +115,8 @@ class okx extends \ccxt\async\okx {
              * @param {array} $params extra parameters specific to the okx api endpoint
              * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
              */
+            Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
             $trades = Async\await($this->subscribe('public', 'trades', $symbol, $params));
             if ($this->newUpdates) {
                 $limit = $trades->getLimit ($symbol, $limit);
@@ -213,6 +215,17 @@ class okx extends \ccxt\async\okx {
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+             * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of candles to fetch
+             * @param {array} $params extra parameters specific to the okx api endpoint
+             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             */
+            Async\await($this->load_markets());
+            $symbol = $this->symbol($symbol);
             $interval = $this->timeframes[$timeframe];
             $name = 'candle' . $interval;
             $ohlcv = Async\await($this->subscribe('public', $name, $symbol, $params));
@@ -299,7 +312,7 @@ class okx extends \ccxt\async\okx {
             //
             $depth = $this->safe_string($options, 'depth', 'books');
             $orderbook = Async\await($this->subscribe('public', $depth, $symbol, $params));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 
@@ -642,6 +655,7 @@ class okx extends \ccxt\async\okx {
             $market = null;
             if ($symbol !== null) {
                 $market = $this->market($symbol);
+                $symbol = $market['symbol'];
                 $type = $market['type'];
             }
             if ($type === 'future') {

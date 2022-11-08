@@ -1807,6 +1807,9 @@ export default class Exchange {
     }
 
     calculateFee (symbol: string, type: string, side: string, amount: number, price: number, takerOrMaker = 'taker', params = {}) {
+        if (type === 'market' && takerOrMaker === 'maker') {
+            throw new ArgumentsRequired (this.id + ' calculateFee() - you have provided incompatible arguments - "market" type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.');
+        }
         const market = this.markets[symbol];
         const feeSide = this.safeString (market, 'feeSide', 'quote');
         let key = 'quote';
@@ -1823,7 +1826,7 @@ export default class Exchange {
             // the fee is always in the currency you get
             cost = amountString;
             if (side === 'sell') {
-                cost = priceString;
+                cost = Precise.stringMul (cost, priceString);
             } else {
                 key = 'base';
             }
@@ -1836,7 +1839,15 @@ export default class Exchange {
                 key = 'base';
             }
         }
-        const rate = this.numberToString (market[takerOrMaker]);
+        // for derivatives, the fee is in 'settle' currency
+        if (!market['spot']) {
+            key = 'settle';
+        }
+        // even if `takerOrMaker` argument was set to 'maker', for 'market' orders we should forcefully override it to 'taker'
+        if (type === 'market') {
+            takerOrMaker = 'taker';
+        }
+        const rate = this.safeString (market, takerOrMaker);
         if (cost !== undefined) {
             cost = Precise.stringMul (cost, rate);
         }
@@ -3179,6 +3190,14 @@ export default class Exchange {
         return result;
     }
 
+    isTriggerOrder (params) {
+        const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
+        if (isTrigger) {
+            params = this.omit (params, [ 'trigger', 'stop' ]);
+        }
+        return [ isTrigger, params ];
+    }
+
     isPostOnly (isMarketOrder: boolean, exchangeSpecificParam, params = {}) {
         /**
          * @ignore
@@ -3374,6 +3393,36 @@ export default class Exchange {
             params = this.omit (params, [ 'marginMode', 'defaultMarginMode' ]);
         }
         return [ marginMode, params ];
+    }
+
+    checkRequiredArgument (methodName, argument, argumentName, options = []) {
+        /**
+         * @ignore
+         * @method
+         * @param {string} argument the argument to check
+         * @param {string} argumentName the name of the argument to check
+         * @param {string} methodName the name of the method that the argument is being checked for
+         * @param {[string]} options a list of options that the argument can be
+         * @returns {undefined}
+         */
+        if ((argument === undefined) || ((options.length > 0) && (!(this.inArray (argument, options))))) {
+            const messageOptions = options.join (', ');
+            let message = this.id + ' ' + methodName + '() requires a ' + argumentName + ' argument';
+            if (messageOptions !== '') {
+                message += ', one of ' + '(' + messageOptions + ')';
+            }
+            throw new ArgumentsRequired (message);
+        }
+    }
+
+    checkRequiredSymbol (methodName, symbol) {
+        /**
+         * @ignore
+         * @method
+         * @param {string} symbol unified symbol of the market
+         * @param {string} methodName name of the method that requires a symbol
+         */
+        this.checkRequiredArgument (methodName, symbol, 'symbol');
     }
 }
 

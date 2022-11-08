@@ -49,6 +49,7 @@ class btcalpha(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
+                'fetchL2OrderBook': True,
                 'fetchLeverage': False,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
@@ -103,7 +104,7 @@ class btcalpha(Exchange):
                     'get': [
                         'currencies/',
                         'pairs/',
-                        'orderbook/{pair_name}/',
+                        'orderbook/{pair_name}',
                         'exchanges/',
                         'charts/{pair}/{type}/chart/',
                     ],
@@ -281,7 +282,8 @@ class btcalpha(Exchange):
         #
         marketId = self.safe_string(trade, 'pair')
         market = self.safe_market(marketId, market, '_')
-        timestamp = self.safe_timestamp(trade, 'timestamp')
+        timestampRaw = self.safe_string(trade, 'timestamp')
+        timestamp = self.parse_number(Precise.string_mul(timestampRaw, '1000000'))
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string(trade, 'amount')
         id = self.safe_string(trade, 'id')

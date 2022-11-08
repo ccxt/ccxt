@@ -222,6 +222,15 @@ class huobi(Exchange, ccxt.async_support.huobi):
         return message
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
@@ -292,7 +301,7 @@ class huobi(Exchange, ccxt.async_support.huobi):
         if not market['spot']:
             params['data_type'] = 'incremental'
         orderbook = await self.subscribe_public(url, symbol, messageHash, self.handle_order_book_subscription, params)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_order_book_snapshot(self, client, message, subscription):
         #
@@ -377,7 +386,7 @@ class huobi(Exchange, ccxt.async_support.huobi):
             'method': self.handle_order_book_snapshot,
         }
         orderbook = await self.watch(url, requestId, request, requestId, snapshotSubscription)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     async def fetch_order_book_snapshot(self, client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
@@ -683,7 +692,7 @@ class huobi(Exchange, ccxt.async_support.huobi):
         orders = await self.subscribe_private(channel, messageHash, type, subType, params)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_since_limit(orders, since, limit)
+        return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
     def handle_order(self, client, message):
         #

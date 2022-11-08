@@ -91,7 +91,7 @@ class okx extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => false,
-                'fetchTradingLimits' => null,
+                'fetchTradingLimits' => false,
                 'fetchTransactionFee' => false,
                 'fetchTransactionFees' => false,
                 'fetchTransactions' => false,
@@ -149,6 +149,7 @@ class okx extends Exchange {
                         'market/ticker' => 1,
                         'market/index-tickers' => 1,
                         'market/books' => 1,
+                        'market/books-lite' => 1.66,
                         'market/candles' => 0.5,
                         'market/history-candles' => 1,
                         'market/history-mark-price-candles' => 120,
@@ -364,6 +365,7 @@ class okx extends Exchange {
                     '50026' => '\\ccxt\\ExchangeNotAvailable', // System error, please try again later.
                     '50027' => '\\ccxt\\PermissionDenied', // The account is restricted from trading
                     '50028' => '\\ccxt\\ExchangeError', // Unable to take the order, please reach out to support center for details
+                    '50044' => '\\ccxt\\BadRequest', // Must select one broker type
                     // API Class
                     '50100' => '\\ccxt\\ExchangeError', // API frozen, please contact customer service
                     '50101' => '\\ccxt\\AuthenticationError', // Broker id of APIKey does not match current environment
@@ -608,8 +610,12 @@ class okx extends Exchange {
                     '60018' => '\\ccxt\\BadRequest', // The {0} {1} {2} {3} {4} does not exist
                     '60019' => '\\ccxt\\BadRequest', // Invalid op {op}
                     '63999' => '\\ccxt\\ExchangeError', // Internal system error
+                    '70010' => '\\ccxt\\BadRequest', // Timestamp parameters need to be in Unix timestamp format in milliseconds.
+                    '70013' => '\\ccxt\\BadRequest', // endTs needs to be bigger than or equal to beginTs.
+                    '70016' => '\\ccxt\\BadRequest', // Please specify your instrument settings for at least one instType.
                 ),
                 'broad' => array(
+                    'Internal Server Error' => '\\ccxt\\ExchangeNotAvailable', // array("code":500,"data":array(),"detailMsg":"","error_code":"500","error_message":"Internal Server Error","msg":"Internal Server Error")
                     'server error' => '\\ccxt\\ExchangeNotAvailable', // array("code":500,"data":array(),"detailMsg":"","error_code":"500","error_message":"server error 1236805249","msg":"server error 1236805249")
                 ),
             ),
@@ -1585,7 +1591,7 @@ class okx extends Exchange {
         }
         $duration = $this->parse_timeframe($timeframe);
         $bar = $this->timeframes[$timeframe];
-        if (($timezone === 'UTC') && ($duration >= 21600000)) {
+        if (($timezone === 'UTC') && ($duration >= 21600)) { // if utc and $timeframe >= 6h
             $bar .= strtolower($timezone);
         }
         $request = array(
@@ -1688,6 +1694,7 @@ class okx extends Exchange {
             $rate = $data[$i];
             $timestamp = $this->safe_number($rate, 'fundingTime');
             $rates[] = array(
+                'info' => $rate,
                 'symbol' => $this->safe_symbol($this->safe_string($rate, 'instId')),
                 'fundingRate' => $this->safe_number($rate, 'realizedRate'),
                 'timestamp' => $timestamp,
@@ -2432,6 +2439,10 @@ class okx extends Exchange {
             $clientOrderId = null; // fix empty $clientOrderId string
         }
         $stopPrice = $this->safe_number_n($order, array( 'triggerPx', 'slTriggerPx', 'tpTriggerPx' ));
+        $reduceOnly = $this->safe_string($order, 'reduceOnly');
+        if ($reduceOnly !== null) {
+            $reduceOnly = ($reduceOnly === 'true');
+        }
         return $this->safe_order(array(
             'info' => $order,
             'id' => $id,
@@ -2454,6 +2465,7 @@ class okx extends Exchange {
             'status' => $status,
             'fee' => $fee,
             'trades' => null,
+            'reduceOnly' => $reduceOnly,
         ), $market);
     }
 
@@ -4040,7 +4052,9 @@ class okx extends Exchange {
                 $market = $this->market($entry);
                 $marketIds[] = $market['id'];
             }
-            $request['instId'] = (string) $marketIds;
+            if (strlen($marketIds) > 0) {
+                $request['instId'] = (string) $marketIds;
+            }
         }
         $response = $this->privateGetAccountPositions (array_merge($request, $params));
         //

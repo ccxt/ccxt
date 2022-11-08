@@ -43,6 +43,7 @@ export default class btcalpha extends Exchange {
                 'fetchFundingRateHistory': false,
                 'fetchFundingRates': false,
                 'fetchIndexOHLCV': false,
+                'fetchL2OrderBook': true,
                 'fetchLeverage': false,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
@@ -97,7 +98,7 @@ export default class btcalpha extends Exchange {
                     'get': [
                         'currencies/',
                         'pairs/',
-                        'orderbook/{pair_name}/',
+                        'orderbook/{pair_name}',
                         'exchanges/',
                         'charts/{pair}/{type}/chart/',
                     ],
@@ -287,7 +288,8 @@ export default class btcalpha extends Exchange {
         //
         const marketId = this.safeString (trade, 'pair');
         market = this.safeMarket (marketId, market, '_');
-        const timestamp = this.safeTimestamp (trade, 'timestamp');
+        const timestampRaw = this.safeString (trade, 'timestamp');
+        const timestamp = this.parseNumber (Precise.stringMul (timestampRaw, '1000000'));
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString (trade, 'amount');
         const id = this.safeString (trade, 'id');

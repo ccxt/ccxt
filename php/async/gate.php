@@ -38,6 +38,7 @@ class gate extends Exchange {
                         'delivery' => 'https://api.gateio.ws/api/v4',
                         'spot' => 'https://api.gateio.ws/api/v4',
                         'options' => 'https://api.gateio.ws/api/v4',
+                        'sub_accounts' => 'https://api.gateio.ws/api/v4',
                     ),
                     'private' => array(
                         'withdrawals' => 'https://api.gateio.ws/api/v4',
@@ -47,6 +48,7 @@ class gate extends Exchange {
                         'delivery' => 'https://api.gateio.ws/api/v4',
                         'spot' => 'https://api.gateio.ws/api/v4',
                         'options' => 'https://api.gateio.ws/api/v4',
+                        'subAccounts' => 'https://api.gateio.ws/api/v4',
                     ),
                 ),
                 'test' => array(
@@ -197,10 +199,10 @@ class gate extends Exchange {
                 'private' => array(
                     'withdrawals' => array(
                         'post' => array(
-                            '' => 3000, // 3000 = 10 seconds
+                            'withdrawals' => 3000, // 3000 = 10 seconds
                         ),
                         'delete' => array(
-                            '{withdrawal_id}' => 300,
+                            'withdrawals/{withdrawal_id}' => 300,
                         ),
                     ),
                     'wallet' => array(
@@ -217,6 +219,26 @@ class gate extends Exchange {
                         'post' => array(
                             'transfers' => 300,
                             'sub_account_transfers' => 300,
+                        ),
+                    ),
+                    'subAccounts' => array(
+                        'get' => array(
+                            'sub_accounts' => 1,
+                            'sub_accounts/{user_id}' => 1,
+                            'sub_accounts/{user_id}/keys' => 1,
+                            'sub_accounts/{user_id}/keys/{key}' => 1,
+                        ),
+                        'post' => array(
+                            'sub_accounts' => 1,
+                            'sub_accounts/{user_id}/keys' => 1,
+                            'sub_accounts/{user_id}/lock' => 1,
+                            'sub_accounts/{user_id}/unlock' => 1,
+                        ),
+                        'put' => array(
+                            'sub_accounts/{user_id}/keys/{key}' => 1,
+                        ),
+                        'delete' => array(
+                            'sub_accounts/{user_id}/keys/{key}' => 1,
                         ),
                     ),
                     'spot' => array(
@@ -1687,7 +1709,8 @@ class gate extends Exchange {
         return Async\async(function () use ($codes, $params) {
             /**
              * fetch transaction fees
-             * @param {[string]|null} $codes not used by gate fetchTransactionFees ()
+             * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
+             * @param {[string]|null} $codes list of unified currency $codes
              * @param {array} $params extra parameters specific to the gate api endpoint
              * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
              */
@@ -1710,28 +1733,33 @@ class gate extends Exchange {
             //        }
             //    }
             //
+            $result = array();
             $withdrawFees = array();
             for ($i = 0; $i < count($response); $i++) {
+                $withdrawFees = array();
                 $entry = $response[$i];
                 $currencyId = $this->safe_string($entry, 'currency');
                 $code = $this->safe_currency_code($currencyId);
-                $withdrawFees[$code] = array();
-                $withdrawFix = $this->safe_value($entry, 'withdraw_fix_on_chains');
-                if ($withdrawFix === null) {
-                    $withdrawFix = array();
-                    $withdrawFix[$code] = $this->safe_number($entry, 'withdraw_fix');
+                if (($codes !== null) && !$this->in_array($code, $codes)) {
+                    continue;
                 }
-                $keys = is_array($withdrawFix) ? array_keys($withdrawFix) : array();
-                for ($i = 0; $i < count($keys); $i++) {
-                    $key = $keys[$i];
-                    $withdrawFees[$code][$key] = $this->parse_number($withdrawFix[$key]);
+                $withdrawFixOnChains = $this->safe_value($entry, 'withdraw_fix_on_chains');
+                if ($withdrawFixOnChains === null) {
+                    $withdrawFees = $this->safe_number($entry, 'withdraw_fix');
+                } else {
+                    $chainKeys = is_array($withdrawFixOnChains) ? array_keys($withdrawFixOnChains) : array();
+                    for ($i = 0; $i < count($chainKeys); $i++) {
+                        $chainKey = $chainKeys[$i];
+                        $withdrawFees[$chainKey] = $this->parse_number($withdrawFixOnChains[$chainKey]);
+                    }
                 }
+                $result[$code] = array(
+                    'withdraw' => $withdrawFees,
+                    'deposit' => null,
+                    'info' => $entry,
+                );
             }
-            return array(
-                'info' => $response,
-                'withdraw' => $withdrawFees,
-                'deposit' => array(),
-            );
+            return $result;
         }) ();
     }
 
@@ -2835,7 +2863,7 @@ class gate extends Exchange {
                 $request['chain'] = $network;
                 $params = $this->omit($params, 'network');
             }
-            $response = Async\await($this->privateWithdrawalsPost (array_merge($request, $params)));
+            $response = Async\await($this->privateWithdrawalsPostWithdrawals (array_merge($request, $params)));
             //
             //    {
             //        "id" => "w13389675",
@@ -4645,6 +4673,9 @@ class gate extends Exchange {
         $path = $this->implode_params($path, $params);
         $endPart = ($path === '') ? '' : ('/' . $path);
         $entirePath = '/' . $type . $endPart;
+        if (($type === 'subAccounts') || ($type === 'withdrawals')) {
+            $entirePath = $endPart;
+        }
         $url = $this->urls['api'][$authentication][$type];
         if ($url === null) {
             throw new NotSupported($this->id . ' does not have a testnet for the ' . $type . ' market $type->');

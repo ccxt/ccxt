@@ -57,6 +57,7 @@ export default class bybit extends Exchange {
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -285,6 +286,7 @@ export default class bybit extends Exchange {
                         'contract/v3/private/copytrading/position/list': 1,
                         'contract/v3/private/copytrading/wallet/balance': 1,
                         'contract/v3/private/position/limit-info': 25, // 120 per minute = 2 per second => cost = 50 / 2 = 25
+                        'contract/v3/private/order/unfilled-orders': 1,
                         // derivative
                         'unified/v3/private/order/unfilled-orders': 1,
                         'unified/v3/private/order/list': 1,
@@ -3129,18 +3131,22 @@ export default class bybit extends Exchange {
             // 'stop_order_id': id, // only for conditional orders
             // 'p_r_trigger_price': 123.45, // new trigger price also known as stop_px
         };
-        const orderType = this.safeString (params, 'orderType');
-        const isStop = this.safeValue (params, 'stop', false);
-        const isConditionalOrder = isStop || (orderType === 'stop' || orderType === 'conditional');
-        params = this.omit (params, [ 'orderType', 'stop' ]);
-        const idKey = isConditionalOrder ? 'stop_order_id' : 'order_id';
-        request[idKey] = id;
         if (amount !== undefined) {
             request['p_r_qty'] = this.amountToPrecision (symbol, amount);
         }
         if (price !== undefined) {
             request['p_r_price'] = this.priceToPrecision (symbol, price);
         }
+        let isConditionalOrder = false;
+        let idKey = 'order_id';
+        const triggerPrice = this.safeValueN (params, [ 'stopPrice', 'triggerPrice' ]);
+        if (triggerPrice !== undefined) {
+            isConditionalOrder = true;
+            idKey = 'stop_order_id';
+            request['p_r_trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
+            params = this.omit (params, [ 'stopPrice', 'triggerPrice' ]);
+        }
+        request[idKey] = id;
         let method = undefined;
         if (market['linear']) {
             method = isConditionalOrder ? 'privatePostPrivateLinearStopOrderReplace' : 'privatePostPrivateLinearOrderReplace';
@@ -4854,65 +4860,131 @@ export default class bybit extends Exchange {
         /**
          * @method
          * @name bybit#fetchOpenInterestHistory
-         * @description Gets the total amount of unsettled contracts. In other words, the total number of contracts held in open positions
+         * @description Gets the total amount of unsettled contracts. The total number of contracts held in open positions
+         * @see https://bybit-exchange.github.io/docs/derivativesV3/contract/#t-dv_marketopeninterest
          * @param {string} symbol Unified market symbol
          * @param {string} timeframe "5m", 15m, 30m, 1h, 4h, 1d
-         * @param {int} since Not used by Bybit
-         * @param {int} limit The number of open interest structures to return. Max 200, default 50
+         * @param {int|undefined} since Start timestamp in milliseconds
+         * @param {int|undefined} limit The number of open interest structures to return. Max 200, default 50
          * @param {object} params Exchange specific parameters
+         * @param {string|undefined} params.category "linear" or "inverse"
          * @returns An array of open interest structures
          */
         if (timeframe === '1m') {
-            throw new BadRequest (this.id + 'fetchOpenInterestHistory cannot use the 1m timeframe');
+            throw new BadRequest (this.id + ' fetchOpenInterestHistory() cannot use the 1m timeframe');
         }
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        let market = this.market (symbol);
+        const subType = market['linear'] ? 'linear' : 'inverse';
+        const category = this.safeString (params, 'category', subType);
         const request = {
             'symbol': market['id'],
-            'period': timeframe,
+            'interval': timeframe,
+            'category': category,
         };
+        if (since !== undefined) {
+            request['since'] = since;
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await (this as any).publicGetV2PublicOpenInterest (this.extend (request, params));
+        const response = await (this as any).publicGetDerivativesV3PublicOpenInterest (this.extend (request, params));
         //
-        //    {
-        //        "ret_code": 0,
-        //        "ret_msg": "OK",
-        //        "ext_code": "",
-        //        "ext_info": "",
-        //        "result": [
-        //            {
-        //                "open_interest": 805604444,
-        //                "timestamp": 1645056000,
-        //                "symbol": "BTCUSD"
-        //            },
-        //            ...
-        //        ],
-        //        "time_now": "1645085118.727358"
-        //    }
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "symbol": "BTCUSDT",
+        //             "category": "linear",
+        //             "list": [
+        //                 {
+        //                     "openInterest": "64757.62400000",
+        //                     "timestamp": "1665784800000"
+        //                 },
+        //                 ...
+        //             ]
+        //         },
+        //         "retExtInfo": null,
+        //         "time": 1665784849646
+        //     }
         //
-        const result = this.safeValue (response, 'result');
-        return this.parseOpenInterests (result, market, since, limit);
+        const result = this.safeValue (response, 'result', {});
+        const id = this.safeString (result, 'symbol');
+        market = this.safeMarket (id, market);
+        const data = this.safeValue (result, 'list', []);
+        return this.parseOpenInterests (data, market, since, limit);
+    }
+
+    async fetchOpenInterest (symbol, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchOpenInterest
+         * @description Retrieves the open interest of a derivative trading pair
+         * @see https://bybit-exchange.github.io/docs/derivativesV3/contract/#t-dv_marketopeninterest
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {object} params exchange specific parameters
+         * @param {string|undefined} params.interval 5m, 15m, 30m, 1h, 4h, 1d
+         * @param {string|undefined} params.category "linear" or "inverse"
+         * @returns {object} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
+         */
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        if (!market['contract']) {
+            throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
+        }
+        const timeframe = this.safeString (params, 'interval', '1h');
+        if (timeframe === '1m') {
+            throw new BadRequest (this.id + ' fetchOpenInterest() cannot use the 1m timeframe');
+        }
+        const subType = market['linear'] ? 'linear' : 'inverse';
+        const category = this.safeString (params, 'category', subType);
+        const request = {
+            'symbol': market['id'],
+            'interval': timeframe,
+            'category': category,
+        };
+        const response = await (this as any).publicGetDerivativesV3PublicOpenInterest (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "symbol": "BTCUSDT",
+        //             "category": "linear",
+        //             "list": [
+        //                 {
+        //                     "openInterest": "64757.62400000",
+        //                     "timestamp": "1665784800000"
+        //                 },
+        //                 ...
+        //             ]
+        //         },
+        //         "retExtInfo": null,
+        //         "time": 1665784849646
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const id = this.safeString (result, 'symbol');
+        market = this.safeMarket (id, market);
+        const data = this.safeValue (result, 'list', []);
+        return this.parseOpenInterest (data[0], market);
     }
 
     parseOpenInterest (interest, market = undefined) {
         //
         //    {
-        //        "open_interest": 805604444,
-        //        "timestamp": 1645056000,
-        //        "symbol": "BTCUSD"
+        //        "openInterest": 64757.62400000,
+        //        "timestamp": 1665784800000,
         //    }
         //
-        const id = this.safeString (interest, 'symbol');
-        market = this.safeMarket (id, market);
-        const timestamp = this.safeTimestamp (interest, 'timestamp');
-        const numContracts = this.safeString (interest, 'open_interest');
-        const contractSize = this.safeString (market, 'contractSize');
+        const timestamp = this.safeInteger (interest, 'timestamp');
+        const value = this.safeNumber (interest, 'openInterest');
         return {
-            'symbol': this.safeSymbol (id),
-            'baseVolume': Precise.stringMul (numContracts, contractSize),
-            'quoteVolume': undefined,
+            'symbol': this.safeSymbol (market['id']),
+            'baseVolume': value,  // deprecated
+            'quoteVolume': undefined,  // deprecated
+            'openInterestAmount': undefined,
+            'openInterestValue': value,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,

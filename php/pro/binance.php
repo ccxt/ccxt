@@ -163,7 +163,7 @@ class binance extends \ccxt\async\binance {
             $message = array_merge($request, $query);
             // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
             $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 
@@ -585,6 +585,15 @@ class binance extends \ccxt\async\binance {
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of candles to fetch
+             * @param {array} $params extra parameters specific to the binance api endpoint
+             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $marketId = $market['lowercaseId'];
@@ -1029,7 +1038,7 @@ class binance extends \ccxt\async\binance {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
-             * @param {string|null} $symbol unified market $symbol of the market $orders were made in
+             * @param {string|null} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int|null} $since the earliest time in ms to fetch $orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the binance api endpoint
@@ -1037,13 +1046,16 @@ class binance extends \ccxt\async\binance {
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate($params));
-            $defaultType = $this->safe_string_2($this->options, 'watchOrders', 'defaultType', 'spot');
-            $type = $this->safe_string($params, 'type', $defaultType);
-            $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
             $messageHash = 'orders';
+            $market = null;
             if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
                 $messageHash .= ':' . $symbol;
             }
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
+            $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
             $client = $this->client($url);
             $this->set_balance_cache($client, $type);
             $message = null;

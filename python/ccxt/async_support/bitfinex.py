@@ -408,7 +408,7 @@ class bitfinex(Exchange):
         """
         fetch transaction fees
         see https://docs.bitfinex.com/v1/reference/rest-auth-fees
-        :param [str]|None codes: not used by bitfinex2 fetchTransactionFees()
+        :param [str]|None codes: list of unified currency codes
         :param dict params: extra parameters specific to the bitfinex api endpoint
         :returns [dict]: a list of `fees structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
         """
@@ -427,7 +427,7 @@ class bitfinex(Exchange):
         for i in range(0, len(ids)):
             id = ids[i]
             code = self.safe_currency_code(id)
-            if codes is not None and not self.in_array(code, codes):
+            if (codes is not None) and not self.in_array(code, codes):
                 continue
             result[code] = {
                 'withdraw': self.safe_number(fees, id),

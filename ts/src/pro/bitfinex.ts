@@ -64,6 +64,8 @@ export default class bitfinex extends bitfinexRest {
          * @param {object} params extra parameters specific to the bitfinex api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const trades = await this.subscribe ('trades', symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -281,7 +283,7 @@ export default class bitfinex extends bitfinexRest {
             'len': limit, // string, number of price points, '25', '100', default = '25'
         };
         const orderbook = await this.subscribe ('book', symbol, this.deepExtend (request, params));
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBook (client, message, subscription) {
@@ -476,6 +478,9 @@ export default class bitfinex extends bitfinexRest {
          */
         await this.loadMarkets ();
         await this.authenticate ();
+        if (symbol !== undefined) {
+            symbol = this.symbol (symbol);
+        }
         const url = this.urls['api']['ws']['private'];
         const orders = await this.watch (url, 'os', undefined, 1);
         if (this.newUpdates) {

@@ -30,6 +30,7 @@ export default class ripio extends ripioRest {
     async watchTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const name = 'trades';
         const messageHash = name + '_' + market['id'].toLowerCase ();
         const url = this.urls['api']['ws'] + messageHash + '/' + this.options['uuid'];
@@ -99,6 +100,7 @@ export default class ripio extends ripioRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const name = 'rate';
         const messageHash = name + '_' + market['id'].toLowerCase ();
         const url = this.urls['api']['ws'] + messageHash + '/' + this.options['uuid'];
@@ -160,6 +162,7 @@ export default class ripio extends ripioRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const name = 'orderbook';
         const messageHash = name + '_' + market['id'].toLowerCase ();
         const url = this.urls['api']['ws'] + messageHash + '/' + this.options['uuid'];
@@ -179,7 +182,7 @@ export default class ripio extends ripioRest {
             this.delay (delay, this.fetchOrderBookSnapshot, client, subscription);
         }
         const orderbook = await this.watch (url, messageHash, undefined, messageHash, subscription);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     async fetchOrderBookSnapshot (client, subscription) {
