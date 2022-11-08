@@ -32,6 +32,8 @@ use React\EventLoop\Loop;
 
 use Exception;
 
+use \ccxt\pro\ClientTrait;
+
 include 'Throttle.php';
 
 $version = '2.0.57';
@@ -46,6 +48,8 @@ class Exchange extends \ccxt\Exchange {
         'ping' => null,
         'maxPingPongMisses' => 2.0,
     );
+    
+    use \ccxt\pro\ClientTrait;
 
     public $browser;
     public $marketsLoading = null;

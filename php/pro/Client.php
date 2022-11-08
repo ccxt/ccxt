@@ -45,18 +45,11 @@ class Client {
     public $keepAlive = 30000;
     public $maxPingPongMisses = 2.0;
     public $lastPong = null;
-    
     public $ping = null;
-    public $get_verbose_mode;
-    public $get_max_ping_pong_misses;
-    public $get_enable_rate_limit;
-    public $get_token_bucket;
-    public $get_keep_alive;
-    public $get_inflate;
-    public $get_gunzip;
+    public $verbose = false; // verbose output
+    public $gunzip = false;
+    public $inflate = false;
     public $throttle = null;
-
-
     public $connection = null;
     public $connected; // connection-related Future
     public $isConnected = false;
@@ -80,7 +73,7 @@ class Client {
     }
 
     public function resolve($result, $message_hash) {
-        if (($this->get_verbose_mode)() && ($message_hash === null)) {
+        if ($this->verbose && ($message_hash === null)) {
             $this->log(date('c'), 'resolve received null messageHash');
         }
         if (array_key_exists($message_hash, $this->futures)) {
@@ -146,13 +139,13 @@ class Client {
 
     public function create_connection() {
         $timeout = $this->connectionTimeout / 1000;
-        if (($this->get_verbose_mode)()) {
+        if ($this->verbose) {
             echo date('c'), ' connecting to ', $this->url, "\n";
         }
         $promise = call_user_func($this->connector, $this->url);
         Timer\timeout($promise, $timeout, Loop::get())->then(
             function($connection) {
-                if (($this->get_verbose_mode)()) {
+                if ($this->verbose) {
                     echo date('c'), " connected\n";
                 }
                 $this->connection = $connection;
@@ -186,13 +179,13 @@ class Client {
         if (!$this->connection) {
             $this->connection = true;
             if ($backoff_delay) {
-                if (($this->get_verbose_mode)()) {
+                if ($this->verbose) {
                     echo date('c'), ' backoff delay ', $backoff_delay, " seconds\n";
                 }
                 $callback = array($this, 'create_connection');
                 Loop::addTimer(((float)$backoff_delay) / 1000, $callback);
             } else {
-                if (($this->get_verbose_mode)()) {
+                if ($this->verbose) {
                     echo date('c'), ' no backoff delay', "\n";
                 }
                 $this->create_connection();
@@ -203,7 +196,7 @@ class Client {
 
     public function send($data) {
         $message = is_string($data) ? $data : Exchange::json($data);
-        if (($this->get_verbose_mode)()) {
+        if ($this->verbose) {
             echo date('c'), ' sending ', $message, "\n";
         }
         $this->connection->send($message);
@@ -220,7 +213,7 @@ class Client {
     }
 
     public function on_error($error) {
-        if (($this->get_verbose_mode)()) {
+        if ($this->verbose) {
             echo date('c'), ' on_error ', get_class($error), ' ', $error->getMessage(), "\n";
         }
         $this->error = $error;
@@ -230,7 +223,7 @@ class Client {
     }
 
     public function on_close($message) {
-        if (($this->get_verbose_mode)()) {
+        if ($this->verbose) {
             echo date('c'), ' on_close ', (string) $message, "\n";
         }
         $on_close_callback = $this->on_close_callback;
@@ -243,21 +236,21 @@ class Client {
 
     public function on_message(Message $message) {
         if (!ctype_print((string)$message)) { // only decompress if the message is a binary
-            if (($this->get_gunzip)()) {
+            if ($this->gunzip) {
                 $message = \ccxt\pro\gunzip($message);
-            } else if (($this->get_inflate)()) {
+            } else if ($this->inflate) {
                 $message = \ccxt\pro\inflate($message);
             }
         }
 
         try {
             $message = (string) $message;
-            if (($this->get_verbose_mode)()) {
+            if ($this->verbose) {
                 echo date('c'), ' on_message ', $message, "\n";
             }
             $message = Exchange::is_json_encoded_object($message) ? json_decode($message, true) : $message;
         } catch (Exception $e) {
-            if (($this->get_verbose_mode)()) {
+            if ($this->verbose) {
                 echo date('c'), ' on_message json_decode ', $e->getMessage(), "\n";
             }
             // reset with a json encoding error ?
@@ -272,8 +265,8 @@ class Client {
     }
 
     public function set_ping_interval() {
-        if (($this->get_keep_alive)()) {
-            $delay = (($this->get_keep_alive)() / 1000);
+        if ($this->keepAlive) {
+            $delay = ($this->keepAlive / 1000);
             $this->pingInterval = Loop::addPeriodicTimer($delay, array($this, 'on_ping_interval'));
         }
     }
@@ -290,10 +283,10 @@ class Client {
     }
 
     public function on_ping_interval() {
-        if (($this->get_keep_alive)() && $this->isConnected) {
+        if ($this->keepAlive && $this->isConnected) {
             $now = $this->milliseconds();
             $this->lastPong = isset ($this->lastPong) ? $this->lastPong : $now;
-            if (($this->lastPong + ($this->get_keep_alive)() * ($this->get_max_ping_pong_misses)()) < $now) {
+            if (($this->lastPong + $this->keepAlive * $this->maxPingPongMisses) < $now) {
                 $this->on_error(new RequestTimeout('Connection to ' . $this->url . ' timed out due to a ping-pong keepalive missing on time'));
             } else {
                 if ($this->ping) {
