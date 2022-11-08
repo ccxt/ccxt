@@ -66,10 +66,10 @@ class CCXTProTranspiler extends Transpiler {
 
 
     createPythonClassDeclaration (className, baseClass) {
-        // const baseClasses = (baseClass.indexOf ('Rest') >= 0) ?
-        //     [ 'Exchange', 'ccxt.async_support.' + baseClass.replace('Rest', '') ] :
-        //     [ baseClass ]
-        return 'class ' + className + '(' + baseClass + '):'
+        const baseClasses = (baseClass.indexOf ('Rest') >= 0) ?
+            [ 'Exchange', 'ccxt.async_support.' + baseClass.replace('Rest', '') ] :
+            [ baseClass ]
+        return 'class ' + className + '(' +  baseClasses.join (', ') + '):'
     }
 
     createPythonClassImports (baseClass, async = false) {
@@ -80,9 +80,9 @@ class CCXTProTranspiler extends Transpiler {
 
         async = (async ? '.async_support' : '')
 
-        if (baseClass.indexOf ('Bridge') >= 0) {
+        if (baseClass.indexOf ('Rest') >= 0) {
             return [
-                'from ccxt.pro.bridge.bridge' + ' import ' + baseClass,
+                // 'from ccxt.async_support' + ' import ' + baseClass,
             ]
         } else {
             return [
