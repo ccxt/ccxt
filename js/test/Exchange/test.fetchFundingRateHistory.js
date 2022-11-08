@@ -1,7 +1,5 @@
 'use strict'
-
 // ----------------------------------------------------------------------------
-
 const assert = require ('assert')
 
 // ----------------------------------------------------------------------------
@@ -11,7 +9,7 @@ module.exports = async (exchange, symbol) => {
     const method = 'fetchFundingRateHistory'
 
     const format = {
-        'symbol': 'BTC/USDT:USDT',
+        'symbol': 'BTC/USDT',
         'info': {}, // Or []
         'timestamp': 1638230400000,
         'datetime': '2021-11-30T00:00:00.000Z',
@@ -25,7 +23,7 @@ module.exports = async (exchange, symbol) => {
             console.log (method + '() is not supported for spot market symbol');
             return;
         }
-    
+
         const fundingRates = await exchange[method] (symbol)
         console.log ('fetched all', fundingRates.length, 'funding rates')
 
@@ -40,7 +38,6 @@ module.exports = async (exchange, symbol) => {
             assert (fundingRate['timestamp'] >= 1199145600000) // 2008-01-01 00:00:00
         }
         return fundingRates
-
     } else {
         console.log (method + '() is not supported')
     }
