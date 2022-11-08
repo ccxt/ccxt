@@ -2752,6 +2752,7 @@ module.exports = class okx extends Exchange {
          * @param {bool} params.stop True if fetching trigger or conditional orders
          * @param {string} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string|undefined} params.algoId Algo ID "'433845797218942976'"
+         * @param {int|undefined} params.until timestamp in ms to fetch orders for
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -2795,6 +2796,15 @@ module.exports = class okx extends Exchange {
                     throw new ArgumentsRequired (this.id + ' fetchCanceledOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
                 }
                 request['ordType'] = ordType;
+            }
+        } else {
+            if (since !== undefined) {
+                request['begin'] = since;
+            }
+            const until = this.safeInteger2 (params, 'till', 'until');
+            if (until !== undefined) {
+                request['end'] = until;
+                params = this.omit (params, [ 'until', 'till' ]);
             }
         }
         const send = this.omit (query, [ 'method', 'stop', 'ordType' ]);
@@ -2914,6 +2924,7 @@ module.exports = class okx extends Exchange {
          * @param {bool} params.stop True if fetching trigger or conditional orders
          * @param {string} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string|undefined} params.algoId Algo ID "'433845797218942976'"
+         * @param {int|undefined} params.until timestamp in ms to fetch orders for
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -2953,6 +2964,14 @@ module.exports = class okx extends Exchange {
             }
             request['state'] = 'effective';
         } else {
+            if (since !== undefined) {
+                request['begin'] = since;
+            }
+            const until = this.safeInteger2 (params, 'till', 'until');
+            if (until !== undefined) {
+                request['end'] = until;
+                params = this.omit (params, [ 'until', 'till' ]);
+            }
             request['state'] = 'filled';
         }
         const send = this.omit (query, [ 'method', 'stop' ]);
