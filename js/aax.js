@@ -3249,10 +3249,12 @@ module.exports = class aax extends Exchange {
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const codesLength = codes.length;
         const request = {};
-        if (codesLength === 1) {
-            request['currency'] = this.safeValue (codes, 0);
+        if (codes !== undefined) {
+            const codesLength = codes.length;
+            if (codesLength === 1) {
+                request['currency'] = this.safeValue (codes, 0);
+            }
         }
         const response = await this.publicGetCurrencies (this.extend (request, params));
         return this.parseTransactionFees (response, codes);
@@ -3266,19 +3268,20 @@ module.exports = class aax extends Exchange {
             const currencyId = this.safeString (entry, 'currency');
             const currency = this.safeCurrency (currencyId);
             const code = this.safeString (currency, 'code');
-            if (!this.inArray (code, Object.keys (result))) {
-                result[code] = {
-                    'withdraw': {},
-                    'deposit': undefined,
-                    'info': entry
-                }
-            }
             if ((codes === undefined) || (this.inArray (code, codes))) {
-                result[code] = this.parseTransactionFee (entry);
+                const resultKeys = Object.keys (result);
+                if (!this.inArray (code, resultKeys)) {
+                    result[code] = {
+                        'withdraw': this.parseTransactionFee (entry),
+                        'deposit': {},
+                        'info': [],
+                    };
+                }
+                result[code]['withdraw'] = this.extend (result[code]['withdraw'], this.parseTransactionFee (entry));
+                result[code]['info'].push (entry);
             }
         }
         return result;
-        }
     }
 
     parseTransactionFee (transaction, currency = undefined) {
@@ -3305,8 +3308,10 @@ module.exports = class aax extends Exchange {
         //       "minConfirm": "12"
         //  }
         //
+        const result = {};
         const network = this.safeString (transaction, 'network');
-        
+        result[network] = this.safeNumber (transaction, 'withdrawFee');
+        return result;
     }
 
     nonce () {
