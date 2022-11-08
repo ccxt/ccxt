@@ -77,8 +77,8 @@ module.exports = class coinex extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
-                'fetchTransactionFee:': false,
-                'fetchTransactoinFees': false,
+                'fetchTransactionFee:': 'emulated',
+                'fetchTransactionFees': true,
                 'fetchTransfer': false,
                 'fetchTransfers': true,
                 'fetchWithdrawal': false,
@@ -4368,6 +4368,90 @@ module.exports = class coinex extends Exchange {
             'datetime': undefined,
             'info': info,
         };
+    }
+
+    async fetchTransactionFees (codes = undefined, params = {}) {
+        await this.loadMarkets ();
+        const request = {};
+        if (codes !== undefined) {
+            const codesLength = codes.length;
+            if (codesLength === 1) {
+                request['coin_type'] = this.safeValue (codes, 0);
+            }
+        }
+        const response = await this.publicGetCommonAssetConfig (this.extend (request, params));
+        //
+        //    {
+        //        "code": 0,
+        //        "data": {
+        //            "CET-CSC": {
+        //                "asset": "CET",
+        //                "chain": "CSC",
+        //                "can_deposit": true,
+        //                "can_withdraw ": false,
+        //                "deposit_least_amount": "1",
+        //                "withdraw_least_amount": "1",
+        //                "withdraw_tx_fee": "0.1"
+        //            },
+        //            "CET-ERC20": {
+        //                "asset": "CET",
+        //                "chain": "ERC20",
+        //                "can_deposit": true,
+        //                "can_withdraw": false,
+        //                "deposit_least_amount": "14",
+        //                "withdraw_least_amount": "14",
+        //                "withdraw_tx_fee": "14"
+        //            }
+        //        },
+        //        "message": "Success"
+        //    }
+        //
+        return this.parseTransactionFees (response, codes);
+    }
+
+    parseTransactionFees (response, codes = undefined) {
+        const data = this.safeValue (response, 'data');
+        const dataKeys = Object.keys (data);
+        const result = {};
+        for (let i = 0; i < dataKeys.length; i++) {
+            const entry = data[dataKeys[i]];
+            const currencyId = this.safeString (entry, 'asset');
+            const currency = this.safeCurrency (currencyId);
+            const code = this.safeString (currency, 'code');
+            if ((codes === undefined) || (this.inArray (code, codes))) {
+                const resultKeys = Object.keys (result);
+                if (!this.inArray (code, resultKeys)) {
+                    result[code] = {
+                        'withdraw': this.parseTransactionFee (entry),
+                        'deposit': {},
+                        'info': [],
+                    };
+                }
+                result[code]['withdraw'] = this.extend (result[code]['withdraw'], this.parseTransactionFee (entry));
+                result[code]['info'].push (entry);
+            }
+        }
+        return result;
+    }
+
+    parseTransactionFee (transaction, currency = undefined) {
+        //
+        //    {
+        //        asset: 'CET',
+        //        chain: 'ERC20',
+        //        withdrawal_precision: 8,
+        //        can_deposit: true,
+        //        can_withdraw: true,
+        //        deposit_least_amount: '45',
+        //        withdraw_least_amount: '45',
+        //        withdraw_tx_fee: '45'
+        //    }
+        //
+        const result = {};
+        const networkId = this.safeString (transaction, 'chain');
+        const network = this.safeNetwork (networkId);
+        result[network['network']] = this.safeNumber (transaction, 'withdraw_tx_fee');
+        return result;
     }
 
     nonce () {
