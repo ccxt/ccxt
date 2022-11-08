@@ -4389,7 +4389,7 @@ export default class mexc3 extends Exchange {
          * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const response = await this.spotPrivateGetCapitalConfigGetall (params);
+        const response = await (this as any).spotPrivateGetCapitalConfigGetall (params);
         //
         //    [
         //       {

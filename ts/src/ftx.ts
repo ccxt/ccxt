@@ -2216,7 +2216,7 @@ export default class ftx extends Exchange {
         const request = {
             'conditional_order_id': id,
         };
-        const response = await this.privateGetConditionalOrdersConditionalOrderIdTriggers (request);
+        const response = await (this as any).privateGetConditionalOrdersConditionalOrderIdTriggers (request);
         // Note: if endpoint retuns non-empy "result" property, then it means order had fill and returns the order reference ID, which is the real id of the regular order
         //
         // {

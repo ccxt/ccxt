@@ -2474,9 +2474,10 @@ export default class okx extends Exchange {
             clientOrderId = undefined; // fix empty clientOrderId string
         }
         const stopPrice = this.safeNumberN (order, [ 'triggerPx', 'slTriggerPx', 'tpTriggerPx' ]);
-        let reduceOnly = this.safeString (order, 'reduceOnly');
-        if (reduceOnly !== undefined) {
-            reduceOnly = (reduceOnly === 'true');
+        const reduceOnlyRaw = this.safeString (order, 'reduceOnly');
+        let reduceOnly = false;
+        if (reduceOnlyRaw !== undefined) {
+            reduceOnly = (reduceOnlyRaw === 'true');
         }
         return this.safeOrder ({
             'info': order,

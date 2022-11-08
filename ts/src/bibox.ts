@@ -1045,7 +1045,7 @@ export default class bibox extends Exchange {
                 const currency = this.currency (code);
                 request['asset'] = currency['id'];
             }
-            balanceList = await this.v4PrivateGetUserdataAccounts (this.extend (request, requestParams));
+            balanceList = await (this as any).v4PrivateGetUserdataAccounts (this.extend (request, requestParams));
             //
             //    [
             //        {

@@ -541,7 +541,7 @@ export default class digifinex extends Exchange {
                 isLinear = (!isInverse) ? true : false;
                 const isTrading = this.safeValue (market, 'isTrading');
                 if (isTrading) {
-                    isAllowed = true;
+                    isAllowed = 1;
                 }
             }
             result.push ({
