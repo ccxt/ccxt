@@ -2801,10 +2801,10 @@ module.exports = class okx extends Exchange {
             if (since !== undefined) {
                 request['begin'] = since;
             }
-            const until = this.safeInteger2 (params, 'till', 'until');
+            const until = this.safeInteger2 (query, 'till', 'until');
             if (until !== undefined) {
                 request['end'] = until;
-                params = this.omit (params, [ 'until', 'till' ]);
+                query = this.omit (query, [ 'until', 'till' ]);
             }
         }
         const send = this.omit (query, [ 'method', 'stop', 'ordType' ]);
@@ -2967,10 +2967,10 @@ module.exports = class okx extends Exchange {
             if (since !== undefined) {
                 request['begin'] = since;
             }
-            const until = this.safeInteger2 (params, 'till', 'until');
+            const until = this.safeInteger2 (query, 'till', 'until');
             if (until !== undefined) {
                 request['end'] = until;
-                params = this.omit (params, [ 'until', 'till' ]);
+                query = this.omit (query, [ 'until', 'till' ]);
             }
             request['state'] = 'filled';
         }
