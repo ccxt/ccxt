@@ -327,24 +327,6 @@ class Exchange(BaseExchange):
             self.clients[url] = FastClient(url, on_message, on_error, on_close, on_connected, options)
         return self.clients[url]
 
-    async def spawn_async(self, method, *args):
-        try:
-            await method(*args)
-        except Exception:
-            # todo: handle spawned errors
-            pass
-
-    async def delay_async(self, timeout, method, *args):
-        await self.sleep(timeout)
-        try:
-            await method(*args)
-        except Exception:
-            # todo: handle spawned errors
-            pass
-
-    def spawn(self, method, *args):
-        asyncio.ensure_future(self.spawn_async(method, *args))
-
     def delay(self, timeout, method, *args):
         asyncio.ensure_future(self.delay_async(timeout, method, *args))
 
@@ -402,7 +384,7 @@ class Exchange(BaseExchange):
             if client.url in self.clients:
                 del self.clients[client.url]
 
-    async def close(self):
+    async def ws_close(self):
         if self.clients:
             await asyncio.wait([asyncio.create_task(client.close()) for client in self.clients.values()], return_when=asyncio.ALL_COMPLETED)
             for url in self.clients.copy():
@@ -441,7 +423,6 @@ class Exchange(BaseExchange):
 
     async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         raise NotSupported(self.id + '.watch_my_trades() not implemented yet')
-
 
     # ########################################################################
     # ########################################################################
