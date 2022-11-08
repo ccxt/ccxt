@@ -244,7 +244,6 @@ async function run () {
         }
 
         exchange.verbose = verbose
-        exchange.ws.verbose = verbose
 
         if (no_send) {
 

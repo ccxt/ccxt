@@ -4,7 +4,6 @@ import { ExchangeError, InvalidAddress, ArgumentsRequired, InsufficientFunds, Au
 import { Precise } from './base/Precise.js';
 import { Exchange } from './base/Exchange.js';
 import { SIGNIFICANT_DIGITS, DECIMAL_PLACES, TRUNCATE, ROUND } from './base/functions/number.js';
-import { OrderBook } from './base/ws/OrderBook.js';
 // ---------------------------------------------------------------------------
 
 export default class bitfinex2 extends Exchange {

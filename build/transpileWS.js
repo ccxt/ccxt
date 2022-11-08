@@ -67,7 +67,7 @@ class CCXTProTranspiler extends Transpiler {
 
     createPythonClassDeclaration (className, baseClass) {
         const baseClasses = (baseClass.indexOf ('Rest') >= 0) ?
-            [ 'Exchange', 'ccxt.async_support.' + baseClass.replace('Rest', '') ] :
+            [ 'ccxt.async_support.' + baseClass.replace('Rest', '') ] :
             [ baseClass ]
         return 'class ' + className + '(' +  baseClasses.join (', ') + '):'
     }
@@ -83,6 +83,7 @@ class CCXTProTranspiler extends Transpiler {
         if (baseClass.indexOf ('Rest') >= 0) {
             return [
                 // 'from ccxt.async_support' + ' import ' + baseClass,
+                "import ccxt.async_support"
             ]
         } else {
             return [
@@ -103,7 +104,7 @@ class CCXTProTranspiler extends Transpiler {
         const arrayCacheClasses = bodyAsString.match (/\bArrayCache(?:[A-Z][A-Za-z]+)?\b/g)
         if (arrayCacheClasses) {
             const uniqueArrayCacheClasses = unique (arrayCacheClasses).sort ()
-            const arrayCacheImport = 'from ccxt.pro.base.cache import ' + uniqueArrayCacheClasses.join (', ')
+            const arrayCacheImport = 'from ccxt.async_support.base.ws.cache import ' + uniqueArrayCacheClasses.join (', ')
             imports.push (arrayCacheImport)
         }
         return [
@@ -154,7 +155,7 @@ class CCXTProTranspiler extends Transpiler {
         const phpFile = './php/pro/test/OrderBook.php'
         const pyImports = [
             '',
-            'from ccxt.pro.base.order_book import OrderBook, IndexedOrderBook, CountedOrderBook  # noqa: F402',
+            'from ccxt.async_support.base.ws.order_book import OrderBook, IndexedOrderBook, CountedOrderBook  # noqa: F402',
             '',
         ].join ('\n')
         this.transpileTest (jsFile, pyFile, phpFile, pyImports)
@@ -168,7 +169,7 @@ class CCXTProTranspiler extends Transpiler {
         const phpFile = './php/pro/test/Cache.php'
         const pyImports = [
             '',
-            'from ccxt.pro.base.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById  # noqa: F402',
+            'from ccxt.async_support.base.ws.cache import ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById  # noqa: F402',
             '',
         ].join ('\n')
         this.transpileTest (jsFile, pyFile, phpFile, pyImports)
