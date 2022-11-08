@@ -1027,9 +1027,10 @@ module.exports = class bibox extends Exchange {
          * @name bibox#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://biboxcom.github.io/api/spot/v4/en/#get-accounts
+         * @see https://biboxcom.github.io/api/spot/v3/en/#wallet-assets
          * @param {object} params extra parameters specific to the bibox api endpoint
-         * @param {str} params.code unified currency code
-         * @param {str|undefined} params.type 'funding', or 'spot'
+         * @param {str} params.code unified currency code (v4 only)
+         * @param {str|undefined} params.type 'funding' (v3), or 'spot' (v4)
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
