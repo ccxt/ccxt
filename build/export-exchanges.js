@@ -409,7 +409,7 @@ async function exportEverything () {
     const flat = flatten (errorHierarchy['default'])
     flat.push ('error_hierarchy')
 
-    const staticExports = ['version', 'Exchange', 'exchanges', 'pro', 'Precise', 'functions', 'errors', 'WsConnector'] // missing  'exportExchanges' 
+    const staticExports = ['version', 'Exchange', 'exchanges', 'pro', 'Precise', 'functions', 'errors'] // missing  'exportExchanges' 
 
     const fullExports  = staticExports.concat(ids)
 
