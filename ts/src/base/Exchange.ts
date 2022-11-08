@@ -652,9 +652,6 @@ export default class Exchange {
         this.last_http_response    = undefined
         this.last_json_response    = undefined
         this.last_response_headers = undefined
-
-        this.clients = {}
-
         // camelCase and snake_notation support
         const unCamelCaseProperties = (obj = this) => {
             if (obj !== null) {
@@ -1252,13 +1249,13 @@ export default class Exchange {
         return new OrderBook (snapshot, depth);
     }
 
-    indexedOrderBook (snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
-        return new IndexedOrderBook (snapshot, depth);
-    }
+        getEnableRateLimit() {
+            return (this as any).enableRateLimit;
+        }
 
-    countedOrderBook (snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
-        return new CountedOrderBook (snapshot, depth);
-    }
+        getInflate() {
+            return !!(this as any).options?.ws?.inflate;
+        }
 
     client (url): WsClient {
         this.clients = this.clients || {};
@@ -1277,8 +1274,6 @@ export default class Exchange {
             }, wsOptions);
             this.clients[url] = new WsClient (url, onMessage, onError, onClose, onConnected, options);
         }
-        return this.clients[url];
-    }
 
     watch (url, messageHash, message = undefined, subscribeHash = undefined, subscription = undefined) {
         //
