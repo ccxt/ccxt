@@ -1227,35 +1227,24 @@ export default class Exchange {
         }
 
     // -----------------------------------------------------------------------
+    // -----------------------------------------------------------------------
     // WS/PRO methods
-
-    // inflate (data) {
-    //     return functions.inflate (data);
-    // }
-
-    // inflate64 (data) {
-    //     return functions.inflate64 (data);
-    // }
-
-    // gunzip (data) {
-    //     return functions.gunzip (data);
-    // }
-
-    handleMessage (client, message) {} // stub to override
-
-    ping (client) {} // stub to override
 
     orderBook (snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
         return new OrderBook (snapshot, depth);
     }
 
-        getEnableRateLimit() {
-            return (this as any).enableRateLimit;
-        }
+    indexedOrderBook (snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
+        return new IndexedOrderBook (snapshot, depth);
+    }
 
-        getInflate() {
-            return !!(this as any).options?.ws?.inflate;
-        }
+    countedOrderBook (snapshot = {}, depth = Number.MAX_SAFE_INTEGER) {
+        return new CountedOrderBook (snapshot, depth);
+    }
+
+    handleMessage (client, message) {} // stub to override
+
+    ping (client) {} // stub to override
 
     client (url): WsClient {
         this.clients = this.clients || {};
@@ -1274,6 +1263,8 @@ export default class Exchange {
             }, wsOptions);
             this.clients[url] = new WsClient (url, onMessage, onError, onClose, onConnected, options);
         }
+        return this.clients[url];
+    }
 
     watch (url, messageHash, message = undefined, subscribeHash = undefined, subscription = undefined) {
         //
