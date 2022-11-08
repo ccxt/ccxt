@@ -957,11 +957,27 @@ class bibox(Exchange):
 
     def parse_balance(self, response):
         #
+        # v4PrivateGetUserdataAccounts(spot)
+        #
         #    [
         #        {
         #            "s": "USDT",              # asset code
         #            "a": 2.6617573979,        # available amount
         #            "h": 0                    # frozen amount
+        #        },
+        #        ...
+        #    ]
+        #
+        # v3.1PrivatePostTransferMainAssets(funding)
+        #
+        #    [
+        #        {
+        #            coin_symbol: 'ETHW',
+        #            BTCValue: '0.00036926',
+        #            CNYValue: '53.61898578',
+        #            USDValue: '7.58403021',
+        #            balance: '1.14228556',
+        #            freeze: '0.00000000'
         #        },
         #        ...
         #    ]
@@ -969,11 +985,11 @@ class bibox(Exchange):
         result = {'info': response}
         for i in range(0, len(response)):
             balance = response[i]
-            currencyId = self.safe_string(balance, 's')
+            currencyId = self.safe_string_2(balance, 's', 'coin_symbol')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = self.safe_string(balance, 'a')
-            account['used'] = self.safe_string(balance, 'h')
+            account['free'] = self.safe_string_2(balance, 'a', 'balance')
+            account['used'] = self.safe_string_2(balance, 'h', 'freeze')
             result[code] = account
         return self.safe_balance(result)
 
@@ -981,29 +997,62 @@ class bibox(Exchange):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         see https://biboxcom.github.io/api/spot/v4/en/#get-accounts
+        see https://biboxcom.github.io/api/spot/v3/en/#wallet-assets
         :param dict params: extra parameters specific to the bibox api endpoint
-        :param str params['code']: unified currency code
+        :param str params['code']: unified currency code(v4 only)
+        :param str|None params['type']: 'funding'(v3), or 'spot'(v4)
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         self.load_markets()
-        code = self.safe_string(params, 'code')
-        params = self.omit(params, 'code')
+        marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
         request = {}
-        if code is not None:
-            currency = self.currency(code)
-            request['asset'] = currency['id']
-        response = self.v4PrivateGetUserdataAccounts(self.extend(request, params))
-        #
-        #    [
-        #        {
-        #            "s": "USDT",              # asset code
-        #            "a": 2.6617573979,        # available amount
-        #            "h": 0                    # frozen amount
-        #        },
-        #        ...
-        #    ]
-        #
-        return self.parse_balance(response)
+        balanceList = None
+        if marketType == 'spot':
+            code = self.safe_string(query, 'code')
+            requestParams = self.omit(query, 'code')
+            if code is not None:
+                currency = self.currency(code)
+                request['asset'] = currency['id']
+            balanceList = self.v4PrivateGetUserdataAccounts(self.extend(request, requestParams))
+            #
+            #    [
+            #        {
+            #            "s": "USDT",              # asset code
+            #            "a": 2.6617573979,        # available amount
+            #            "h": 0                    # frozen amount
+            #        },
+            #        ...
+            #    ]
+            #
+        elif (marketType == 'main') or (marketType == 'wallet') or (marketType == 'funding'):
+            method = 'v3.1PrivatePostTransferMainAssets'
+            request['select'] = 1  # 0-Total assets of each currency, 1-Request asset details of all currencies
+            response = getattr(self, method)(self.extend(request, query))
+            #
+            #    {
+            #        result: {
+            #            total_btc: '0.01',
+            #            total_cny: 'xxx',
+            #            total_usd: 'xxx',
+            #            assets_list: [
+            #                {
+            #                    coin_symbol: 'ETHW',
+            #                    BTCValue: '0.00036926',
+            #                    CNYValue: '53.61898578',
+            #                    USDValue: '7.58403021',
+            #                    balance: '1.14228556',
+            #                    freeze: '0.00000000'
+            #                },
+            #                ...
+            #            ]
+            #        },
+            #        cmd: 'mainAssets',
+            #        state: '0'
+            #    }
+            #
+            result = self.safe_value(response, 'result', {})
+            balanceList = self.safe_value(result, 'assets_list', [])
+        return self.parse_balance(balanceList)
 
     def parse_ledger_entry(self, item, currency=None):
         #
