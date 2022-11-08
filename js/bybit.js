@@ -5616,6 +5616,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#transfer
          * @description transfer currency internally between wallets on the same account
+         * @see https://bybit-exchange.github.io/docs/account_asset/#t-createinternaltransfer
          * @see https://bybit-exchange.github.io/docs/account_asset/v3/#t-createinternaltransfer
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
@@ -5645,7 +5646,7 @@ module.exports = class bybit extends Exchange {
             };
         } else {
             request = {
-                'transferId': transferId,
+                'transfer_id': transferId,
                 'from_account_type': fromId,
                 'to_account_type': toId,
                 'coin': currency['id'],
