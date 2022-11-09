@@ -49,6 +49,8 @@ module.exports = class digifinex extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
+                'fetchPosition': true,
+                'fetchPositions': true,
                 'fetchPositionMode': false,
                 'fetchStatus': true,
                 'fetchTicker': true,
@@ -2164,6 +2166,275 @@ module.exports = class digifinex extends Exchange {
         };
     }
 
+    async fetchPositions (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name digifinex#fetchPositions
+         * @description fetch all open positions
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-positions
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#positions
+         * @param {[string]|undefined} symbols list of unified market symbols
+         * @param {object} params extra parameters specific to the digifinex api endpoint
+         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const request = {};
+        let market = undefined;
+        let marketType = undefined;
+        if (symbols !== undefined) {
+            let symbol = undefined;
+            if (Array.isArray (symbols)) {
+                const symbolsLength = symbols.length;
+                if (symbolsLength > 1) {
+                    throw new BadRequest (this.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol');
+                }
+                symbol = symbols[0];
+            } else {
+                symbol = symbols;
+            }
+            market = this.market (symbol);
+        }
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPositions', market, params);
+        if (market !== undefined) {
+            const marketIdRequest = (marketType === 'spot' || marketType === 'margin') ? 'symbol' : 'instrument_id';
+            request[marketIdRequest] = market['id'];
+        }
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateSpotGetMarginPositions',
+            'margin': 'privateSpotGetMarginPositions',
+            'swap': 'privateSwapGetAccountPositions',
+        });
+        const response = await this[method] (this.extend (request, params));
+        //
+        // swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "instrument_id": "BTCUSDTPERP",
+        //                 "margin_mode": "fixed",
+        //                 "avail_position": "1",
+        //                 "avg_cost": "18369.3",
+        //                 "last": "18404.7",
+        //                 "leverage": "20",
+        //                 "liquidation_price": "451.12820512820264",
+        //                 "maint_margin_ratio": "0.005",
+        //                 "margin": "0.918465",
+        //                 "position": "1",
+        //                 "realized_pnl": "0",
+        //                 "unrealized_pnl": "0.03410000000000224",
+        //                 "unrealized_pnl_rate": "0.03712716325608732",
+        //                 "side": "long",
+        //                 "open_outstanding": "0",
+        //                 "risk_score": "0.495049504950495",
+        //                 "margin_ratio": "0.4029464788983229",
+        //                 "timestamp": 1667960497145
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        // margin
+        //
+        //     {
+        //         "margin": "77.71534772983289",
+        //         "code": 0,
+        //         "margin_rate": "10.284503769497306",
+        //         "positions": [
+        //             {
+        //                 "amount": 0.0010605,
+        //                 "side": "go_long",
+        //                 "entry_price": 18321.39,
+        //                 "liquidation_rate": 0.3,
+        //                 "liquidation_price": -52754.371758471,
+        //                 "unrealized_roe": -0.002784390267332,
+        //                 "symbol": "BTC_USDT",
+        //                 "unrealized_pnl": -0.010820048189999,
+        //                 "leverage_ratio": 5
+        //             },
+        //             ...
+        //         ],
+        //         "unrealized_pnl": "-0.10681600018999979"
+        //     }
+        //
+        const positionRequest = (marketType === 'spot' || marketType === 'margin') ? 'positions' : 'data';
+        const positions = this.safeValue (response, positionRequest, []);
+        const result = [];
+        for (let i = 0; i < positions.length; i++) {
+            result.push (this.parsePosition (positions[i], market));
+        }
+        return this.filterByArray (result, 'symbol', symbols, false);
+    }
+
+    async fetchPosition (symbol, params = {}) {
+        /**
+         * @method
+         * @name digifinex#fetchPosition
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-positions
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#positions
+         * @description fetch data on a single open contract trade position
+         * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
+         * @param {object} params extra parameters specific to the digifinex api endpoint
+         * @returns {object} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchPosition', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateSpotGetMarginPositions',
+            'margin': 'privateSpotGetMarginPositions',
+            'swap': 'privateSwapGetAccountPositions',
+        });
+        const request = {};
+        const marketIdRequest = (marketType === 'swap') ? 'instrument_id' : 'symbol';
+        request[marketIdRequest] = market['id'];
+        const response = await this[method] (this.extend (request, query));
+        //
+        // swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "instrument_id": "BTCUSDTPERP",
+        //                 "margin_mode": "fixed",
+        //                 "avail_position": "1",
+        //                 "avg_cost": "18369.3",
+        //                 "last": "18388.9",
+        //                 "leverage": "20",
+        //                 "liquidation_price": "383.38712921065553",
+        //                 "maint_margin_ratio": "0.005",
+        //                 "margin": "0.918465",
+        //                 "position": "1",
+        //                 "realized_pnl": "0",
+        //                 "unrealized_pnl": "0.021100000000004115",
+        //                 "unrealized_pnl_rate": "0.02297311274790451",
+        //                 "side": "long",
+        //                 "open_outstanding": "0",
+        //                 "risk_score": "0.4901960784313725",
+        //                 "margin_ratio": "0.40486964045976204",
+        //                 "timestamp": 1667960241758
+        //             }
+        //         ]
+        //     }
+        //
+        // margin
+        //
+        //     {
+        //         "margin": "77.71534772983289",
+        //         "code": 0,
+        //         "margin_rate": "10.284503769497306",
+        //         "positions": [
+        //             {
+        //                 "amount": 0.0010605,
+        //                 "side": "go_long",
+        //                 "entry_price": 18321.39,
+        //                 "liquidation_rate": 0.3,
+        //                 "liquidation_price": -52754.371758471,
+        //                 "unrealized_roe": -0.002784390267332,
+        //                 "symbol": "BTC_USDT",
+        //                 "unrealized_pnl": -0.010820048189999,
+        //                 "leverage_ratio": 5
+        //             }
+        //         ],
+        //         "unrealized_pnl": "-0.10681600018999979"
+        //     }
+        //
+        const dataRequest = (marketType === 'swap') ? 'data' : 'positions';
+        const data = this.safeValue (response, dataRequest, []);
+        const position = this.parsePosition (data[0], market);
+        if (marketType === 'swap') {
+            return position;
+        } else {
+            return this.extend (position, {
+                'collateral': this.safeNumber (response, 'margin'),
+                'marginRatio': this.safeNumber (response, 'margin_rate'),
+            });
+        }
+    }
+
+    parsePosition (position, market = undefined) {
+        //
+        // swap
+        //
+        //     {
+        //         "instrument_id": "BTCUSDTPERP",
+        //         "margin_mode": "fixed",
+        //         "avail_position": "1",
+        //         "avg_cost": "18369.3",
+        //         "last": "18388.9",
+        //         "leverage": "20",
+        //         "liquidation_price": "383.38712921065553",
+        //         "maint_margin_ratio": "0.005",
+        //         "margin": "0.918465",
+        //         "position": "1",
+        //         "realized_pnl": "0",
+        //         "unrealized_pnl": "0.021100000000004115",
+        //         "unrealized_pnl_rate": "0.02297311274790451",
+        //         "side": "long",
+        //         "open_outstanding": "0",
+        //         "risk_score": "0.4901960784313725",
+        //         "margin_ratio": "0.40486964045976204",
+        //         "timestamp": 1667960241758
+        //     }
+        //
+        // margin
+        //
+        //     {
+        //         "amount": 0.0010605,
+        //         "side": "go_long",
+        //         "entry_price": 18321.39,
+        //         "liquidation_rate": 0.3,
+        //         "liquidation_price": -52754.371758471,
+        //         "unrealized_roe": -0.002784390267332,
+        //         "symbol": "BTC_USDT",
+        //         "unrealized_pnl": -0.010820048189999,
+        //         "leverage_ratio": 5
+        //     }
+        //
+        const marketId = this.safeString2 (position, 'instrument_id', 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        let marginMode = this.safeString (position, 'margin_mode');
+        if (marginMode !== undefined) {
+            marginMode = (marginMode === 'fixed') ? 'cross' : 'isolated';
+        }
+        const timestamp = this.safeInteger (position, 'timestamp');
+        let side = this.safeString (position, 'side');
+        if (side === 'go_long') {
+            side = 'long';
+        } else if (side === 'go_short') {
+            side = 'short';
+        }
+        return {
+            'info': position,
+            'id': undefined,
+            'symbol': symbol,
+            'notional': undefined,
+            'marginMode': marginMode,
+            'liquidationPrice': this.safeNumber (position, 'liquidation_price'),
+            'entryPrice': this.safeNumber2 (position, 'avg_cost', 'entry_price'),
+            'unrealizedPnl': this.safeNumber (position, 'unrealized_pnl'),
+            'contracts': this.safeNumber (position, 'avail_position'),
+            'contractSize': this.safeNumber (market, 'contractSize'),
+            'markPrice': this.safeNumber (position, 'last'),
+            'side': side,
+            'hedged': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'maintenanceMargin': this.safeNumber (position, 'margin'),
+            'maintenanceMarginPercentage': this.safeNumber (position, 'maint_margin_ratio'),
+            'collateral': undefined,
+            'initialMargin': undefined,
+            'initialMarginPercentage': undefined,
+            'leverage': this.safeNumber2 (position, 'leverage', 'leverage_ratio'),
+            'marginRatio': this.safeNumber (position, 'margin_ratio'),
+            'percentage': undefined,
+        };
+    }
+
     handleMarginModeAndParams (methodName, params = {}) {
         /**
          * @ignore
@@ -2198,10 +2469,21 @@ module.exports = class digifinex extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         const urlencoded = this.urlencode (this.keysort (query));
         if (signed) {
-            const nonce = this.nonce ().toString ();
-            const auth = urlencoded;
-            // the signature is not time-limited :\
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+            let signature = undefined;
+            let nonce = undefined;
+            if (pathPart === '/swap/v2') {
+                nonce = this.milliseconds ().toString ();
+                let preHash = nonce + method + payload;
+                if (urlencoded) {
+                    preHash += '?' + urlencoded;
+                }
+                signature = this.hmac (this.encode (preHash), this.encode (this.secret));
+            } else {
+                nonce = this.nonce ().toString ();
+                const auth = urlencoded;
+                // the signature is not time-limited :\
+                signature = this.hmac (this.encode (auth), this.encode (this.secret));
+            }
             if (method === 'GET') {
                 if (urlencoded) {
                     url += '?' + urlencoded;
