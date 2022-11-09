@@ -18,6 +18,8 @@ const ansi = require ('ansicolor').nice
 process.on ('uncaughtException',  e => { log.bright.red.error (e); process.exit (1) })
 process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit (1) })
 
+const isDebugMode = require('inspector').url() !== undefined; // https://stackoverflow.com/a/67445850/2377343
+
 /*  --------------------------------------------------------------------------- */
 
 const [,, ...args] = process.argv
@@ -77,9 +79,19 @@ const exec = (bin, ...args) =>
         let hasWarnings = false
 
         ps.stdout.on ('data', data => { output += data.toString () })
-        ps.stderr.on ('data', data => { output += data.toString (); stderr += data.toString (); hasWarnings = true })
+        ps.stderr.on ('data', data => { 
+            const dataString = data.toString ();
+            if (!isDebugMode || !dataString.includes('ExperimentalWarning: The Fetch API is an experimental feature. This feature could change at any time')) {
+                output += dataString; stderr += dataString; hasWarnings = true;
+            }
+        })
 
         ps.on ('exit', code => {
+
+            if (isDebugMode) {
+                stderr = stderr.replace('Debugger attached.\r\n','').replace ('Waiting for the debugger to disconnect...\r\n', '');
+                if (stderr === '') { hasWarnings = false; }
+            }
 
             output = ansi.strip (output.trim ())
             stderr = ansi.strip (stderr)
