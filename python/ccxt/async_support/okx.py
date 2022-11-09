@@ -3888,7 +3888,7 @@ class okx(Exchange):
                 market = self.market(entry)
                 marketIds.append(market['id'])
             if len(marketIds) > 0:
-                request['instId'] = str(marketIds)
+                request['instId'] = ','.join(marketIds)
         response = await self.privateGetAccountPositions(self.extend(request, params))
         #
         #     {

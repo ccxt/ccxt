@@ -4132,7 +4132,7 @@ class okx extends Exchange {
                     $marketIds[] = $market['id'];
                 }
                 if (strlen($marketIds) > 0) {
-                    $request['instId'] = (string) $marketIds;
+                    $request['instId'] = implode(',', $marketIds);
                 }
             }
             $response = Async\await($this->privateGetAccountPositions (array_merge($request, $params)));
