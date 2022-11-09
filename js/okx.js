@@ -4123,7 +4123,7 @@ module.exports = class okx extends Exchange {
                 marketIds.push (market['id']);
             }
             if (marketIds.length > 0) {
-                request['instId'] = marketIds.toString ();
+                request['instId'] = marketIds.join (',');
             }
         }
         const response = await this.privateGetAccountPositions (this.extend (request, params));
