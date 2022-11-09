@@ -1384,8 +1384,14 @@ module.exports = class huobi extends huobiRest {
                 // client.subscription hash = 'accounts.usdt'
                 // we do 'accounts' + '.' + data[0]]['margin_asset'] to get it
                 const marginAsset = this.safeString (first, 'margin_asset');
-                messageHash += '.' + marginAsset.toLowerCase ();
-                subscription = this.safeValue (client.subscriptions, messageHash);
+                // if linear cross swap, marginAsset is 'USDT' and
+                // client.subscription hash should be 'accounts_cross.*'
+                if (messageHash === 'accounts_cross' && marginAsset === 'USDT') {
+                    subscription = this.safeValue (client.subscriptions, 'accounts_cross.*');
+                } else {
+                    messageHash += '.' + marginAsset.toLowerCase ();
+                    subscription = this.safeValue (client.subscriptions, messageHash);
+                }
             }
             const type = this.safeString (subscription, 'type');
             const subType = this.safeString (subscription, 'subType');
