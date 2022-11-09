@@ -2772,7 +2772,9 @@ module.exports = class okx extends Exchange {
             market = this.market (symbol);
             request['instId'] = market['id'];
         }
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchCanceledOrders', market, params);
+        let type = undefined;
+        let query = undefined;
+        [ type, query ] = this.handleMarketTypeAndParams ('fetchCanceledOrders', market, params);
         request['instType'] = this.convertToInstrumentType (type);
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
@@ -2944,7 +2946,9 @@ module.exports = class okx extends Exchange {
             market = this.market (symbol);
             request['instId'] = market['id'];
         }
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
+        let type = undefined;
+        let query = undefined;
+        [ type, query ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
         request['instType'] = this.convertToInstrumentType (type);
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
