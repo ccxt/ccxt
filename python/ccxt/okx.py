@@ -2610,6 +2610,7 @@ class okx(Exchange):
         :param bool params['stop']: True if fetching trigger or conditional orders
         :param str params['ordType']: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
         :param str|None params['algoId']: Algo ID "'433845797218942976'"
+        :param int|None params['until']: timestamp in ms to fetch orders for
         :returns dict: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
@@ -2628,6 +2629,8 @@ class okx(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['instId'] = market['id']
+        type = None
+        query = None
         type, query = self.handle_market_type_and_params('fetchCanceledOrders', market, params)
         request['instType'] = self.convert_to_instrument_type(type)
         if limit is not None:
@@ -2649,6 +2652,13 @@ class okx(Exchange):
                 if ordType is None:
                     raise ArgumentsRequired(self.id + ' fetchCanceledOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"')
                 request['ordType'] = ordType
+        else:
+            if since is not None:
+                request['begin'] = since
+            until = self.safe_integer_2(query, 'till', 'until')
+            if until is not None:
+                request['end'] = until
+                query = self.omit(query, ['until', 'till'])
         send = self.omit(query, ['method', 'stop', 'ordType'])
         response = getattr(self, method)(self.extend(request, send))
         #
@@ -2763,6 +2773,7 @@ class okx(Exchange):
         :param bool params['stop']: True if fetching trigger or conditional orders
         :param str params['ordType']: "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
         :param str|None params['algoId']: Algo ID "'433845797218942976'"
+        :param int|None params['until']: timestamp in ms to fetch orders for
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
@@ -2781,6 +2792,8 @@ class okx(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             request['instId'] = market['id']
+        type = None
+        query = None
         type, query = self.handle_market_type_and_params('fetchClosedOrders', market, params)
         request['instType'] = self.convert_to_instrument_type(type)
         if limit is not None:
@@ -2798,6 +2811,12 @@ class okx(Exchange):
                     raise ArgumentsRequired(self.id + ' fetchClosedOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"')
             request['state'] = 'effective'
         else:
+            if since is not None:
+                request['begin'] = since
+            until = self.safe_integer_2(query, 'till', 'until')
+            if until is not None:
+                request['end'] = until
+                query = self.omit(query, ['until', 'till'])
             request['state'] = 'filled'
         send = self.omit(query, ['method', 'stop'])
         response = getattr(self, method)(self.extend(request, send))
