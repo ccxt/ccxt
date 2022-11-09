@@ -1485,13 +1485,13 @@ module.exports = class bybit extends bybitRest {
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
             let messageHash = 'order:' + symbol;
-            if (topic !== undefined) {
+            if (topic) {
                 messageHash += ':' + topic;
             }
             client.resolve (orders, messageHash);
         }
         let messageHash = 'order';
-        if (topic !== undefined) {
+        if (topic) {
             messageHash += ':' + topic;
         }
         // non-symbol specific
