@@ -153,7 +153,6 @@ async function testSymbol (exchange, symbol) {
     await test ('fetchBidsAsks', exchange);
     await test ('fetchTransactionFees', exchange);
     await test ('fetchTransactionFee', exchange, symbol);
-    await test ('fetchLeverageTiers', exchange);
     await test ('fetchMarketLeverageTiers', exchange, symbol);
     await test ('fetchTime', exchange);
     await test ('fetchStatus', exchange);
