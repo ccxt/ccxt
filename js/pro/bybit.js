@@ -1484,10 +1484,16 @@ module.exports = class bybit extends bybitRest {
         const symbols = Object.keys (marketSymbols);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            const messageHash = 'order:' + symbol + ':' + topic;
+            let messageHash = 'order:' + symbol;
+            if (topic) {
+                messageHash += ':' + topic;
+            }
             client.resolve (orders, messageHash);
         }
-        const messageHash = 'order:' + topic;
+        let messageHash = 'order';
+        if (topic) {
+            messageHash += ':' + topic;
+        }
         // non-symbol specific
         client.resolve (orders, messageHash);
     }
