@@ -1393,9 +1393,13 @@ class bybit(Exchange, ccxt.async_support.bybit):
         symbols = list(marketSymbols.keys())
         for i in range(0, len(symbols)):
             symbol = symbols[i]
-            messageHash = 'order:' + symbol + ':' + topic
+            messageHash = 'order:' + symbol
+            if topic:
+                messageHash += ':' + topic
             client.resolve(orders, messageHash)
-        messageHash = 'order:' + topic
+        messageHash = 'order'
+        if topic:
+            messageHash += ':' + topic
         # non-symbol specific
         client.resolve(orders, messageHash)
 
