@@ -803,9 +803,13 @@ module.exports = class bibox extends Exchange {
         //            ...
         //    }
         //
-        let result = this.safeValue (response, 'e');
+        let result = this.safeValue (response, 'e', []);
         if (result === undefined) {
-            result = response || [];
+            if (Array.isArray (response)) {
+                result = response;
+            } else {
+                result = [];
+            }
         }
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
