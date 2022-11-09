@@ -154,8 +154,6 @@ async function testSymbol (exchange, symbol) {
     await test ('fetchTransactionFees', exchange);
     await test ('fetchTransactionFee', exchange, symbol);
     await test ('fetchMarketLeverageTiers', exchange, symbol);
-    await test ('fetchTime', exchange);
-    await test ('fetchStatus', exchange);
     await test ('fetchTradingLimits', exchange);
     await test ('fetchFundingRates', exchange);
     await test ('fetchFundingRate', exchange, symbol);
@@ -163,6 +161,8 @@ async function testSymbol (exchange, symbol) {
     await test ('fetchIndexOHLCV', exchange, symbol);
     await test ('fetchMarkOHLCV', exchange, symbol);
     await test ('fetchPremiumIndexOHLCV', exchange, symbol);
+    await test ('fetchTime', exchange);
+    await test ('fetchStatus', exchange);
 }
 
 //-----------------------------------------------------------------------------
