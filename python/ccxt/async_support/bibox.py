@@ -787,9 +787,12 @@ class bibox(Exchange):
         #            ...
         #    }
         #
-        result = self.safe_value(response, 'e')
+        result = self.safe_value(response, 'e', [])
         if result is None:
-            result = response or []
+            if isinstance(response, list):
+                result = response
+            else:
+                result = []
         return self.parse_ohlcvs(result, market, timeframe, since, limit)
 
     async def fetch_currencies(self, params={}):
