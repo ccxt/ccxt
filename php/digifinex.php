@@ -39,6 +39,7 @@ class digifinex extends Exchange {
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
                 'fetchFundingRate' => true,
+                'fetchFundingRateHistory' => true,
                 'fetchLedger' => true,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
@@ -2110,6 +2111,66 @@ class digifinex extends Exchange {
             'previousFundingTimestamp' => null,
             'previousFundingDatetime' => null,
         );
+    }
+
+    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        /**
+         * fetches historical funding rate prices
+         * @param {string|null} $symbol unified $symbol of the $market to fetch the funding rate history for
+         * @param {int|null} $since $timestamp in ms of the earliest funding rate to fetch
+         * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
+         * @param {array} $params extra parameters specific to the digifinex api endpoint
+         * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+         */
+        $this->check_required_symbol('fetchFundingRateHistory', $symbol);
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new BadSymbol($this->id . ' fetchFundingRateHistory() supports swap contracts only');
+        }
+        $request = array(
+            'instrument_id' => $market['id'],
+        );
+        if ($since !== null) {
+            $request['start_timestamp'] = $since;
+        }
+        if ($limit !== null) {
+            $request['limit'] = $limit;
+        }
+        $response = $this->publicSwapGetPublicFundingRateHistory (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => {
+        //             "instrument_id" => "BTCUSDTPERP",
+        //             "funding_rates" => array(
+        //                 array(
+        //                     "rate" => "-0.00375",
+        //                     "time" => 1607673600000
+        //                 ),
+        //                 ...
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $result = $this->safe_value($data, 'funding_rates', array());
+        $rates = array();
+        for ($i = 0; $i < count($result); $i++) {
+            $entry = $result[$i];
+            $marketId = $this->safe_string($data, 'instrument_id');
+            $symbol = $this->safe_symbol($marketId);
+            $timestamp = $this->safe_integer($entry, 'time');
+            $rates[] = array(
+                'info' => $entry,
+                'symbol' => $symbol,
+                'fundingRate' => $this->safe_string($entry, 'rate'),
+                'timestamp' => $timestamp,
+                'datetime' => $this->iso8601($timestamp),
+            );
+        }
+        $sorted = $this->sort_by($rates, 'timestamp');
+        return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
     public function handle_margin_mode_and_params($methodName, $params = array ()) {
