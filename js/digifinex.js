@@ -2176,9 +2176,7 @@ module.exports = class digifinex extends Exchange {
          * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {[object]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
-        }
+        this.checkRequiredSymbol ('fetchFundingRateHistory', symbol);
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (!market['swap']) {
