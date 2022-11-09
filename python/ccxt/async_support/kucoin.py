@@ -452,6 +452,7 @@ class kucoin(Exchange):
                         'POST': {
                             'accounts/inner-transfer': 'v2',
                             'accounts/sub-transfer': 'v2',
+                            'accounts': 'v2',
                         },
                     },
                     'futuresPrivate': {
@@ -1985,6 +1986,7 @@ class kucoin(Exchange):
         #         "amount": 1,
         #         "fee": 0.0001,
         #         "currency": "KCS",
+        #         "chain": "",
         #         "isInner": False,
         #         "walletTxId": "5bbb57386d99522d9f954c5a@test004",
         #         "status": "SUCCESS",
@@ -2000,6 +2002,7 @@ class kucoin(Exchange):
         #         "address": "0x5bedb060b8eb8d823e2414d82acce78d38be7fe9",
         #         "memo": "",
         #         "currency": "ETH",
+        #         "chain": "",
         #         "amount": 1.0000000,
         #         "fee": 0.0100000,
         #         "walletTxId": "3e2414d82acce78d38be7fe9",
@@ -2053,12 +2056,13 @@ class kucoin(Exchange):
             if updated is not None:
                 updated = updated * 1000
         tag = self.safe_string(transaction, 'memo')
+        network = self.safe_string(transaction, 'chain')
         return {
             'info': transaction,
             'id': self.safe_string_2(transaction, 'id', 'withdrawalId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': None,
+            'network': network,
             'address': address,
             'addressTo': address,
             'addressFrom': None,

@@ -434,6 +434,7 @@ module.exports = class kucoin extends Exchange {
                         'POST': {
                             'accounts/inner-transfer': 'v2',
                             'accounts/sub-transfer': 'v2',
+                            'accounts': 'v2',
                         },
                     },
                     'futuresPrivate': {
@@ -2102,6 +2103,7 @@ module.exports = class kucoin extends Exchange {
         //         "amount": 1,
         //         "fee": 0.0001,
         //         "currency": "KCS",
+        //         "chain": "",
         //         "isInner": false,
         //         "walletTxId": "5bbb57386d99522d9f954c5a@test004",
         //         "status": "SUCCESS",
@@ -2117,6 +2119,7 @@ module.exports = class kucoin extends Exchange {
         //         "address": "0x5bedb060b8eb8d823e2414d82acce78d38be7fe9",
         //         "memo": "",
         //         "currency": "ETH",
+        //         "chain": "",
         //         "amount": 1.0000000,
         //         "fee": 0.0100000,
         //         "walletTxId": "3e2414d82acce78d38be7fe9",
@@ -2179,12 +2182,13 @@ module.exports = class kucoin extends Exchange {
             }
         }
         const tag = this.safeString (transaction, 'memo');
+        const network = this.safeString (transaction, 'chain');
         return {
             'info': transaction,
             'id': this.safeString2 (transaction, 'id', 'withdrawalId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': undefined,
+            'network': network,
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,

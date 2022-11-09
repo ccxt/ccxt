@@ -57,6 +57,7 @@ class digifinex(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
                 'fetchFundingRate': True,
+                'fetchFundingRateHistory': True,
                 'fetchLedger': True,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
@@ -2036,6 +2037,61 @@ class digifinex(Exchange):
             'previousFundingTimestamp': None,
             'previousFundingDatetime': None,
         }
+
+    async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches historical funding rate prices
+        :param str|None symbol: unified symbol of the market to fetch the funding rate history for
+        :param int|None since: timestamp in ms of the earliest funding rate to fetch
+        :param int|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
+        :param dict params: extra parameters specific to the digifinex api endpoint
+        :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
+        """
+        self.check_required_symbol('fetchFundingRateHistory', symbol)
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadSymbol(self.id + ' fetchFundingRateHistory() supports swap contracts only')
+        request = {
+            'instrument_id': market['id'],
+        }
+        if since is not None:
+            request['start_timestamp'] = since
+        if limit is not None:
+            request['limit'] = limit
+        response = await self.publicSwapGetPublicFundingRateHistory(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "instrument_id": "BTCUSDTPERP",
+        #             "funding_rates": [
+        #                 {
+        #                     "rate": "-0.00375",
+        #                     "time": 1607673600000
+        #                 },
+        #                 ...
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        result = self.safe_value(data, 'funding_rates', [])
+        rates = []
+        for i in range(0, len(result)):
+            entry = result[i]
+            marketId = self.safe_string(data, 'instrument_id')
+            symbol = self.safe_symbol(marketId)
+            timestamp = self.safe_integer(entry, 'time')
+            rates.append({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': self.safe_string(entry, 'rate'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+            })
+        sorted = self.sort_by(rates, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
     def handle_margin_mode_and_params(self, methodName, params={}):
         """
