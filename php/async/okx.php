@@ -2762,6 +2762,7 @@ class okx extends Exchange {
              * @param {bool} $params->stop True if fetching trigger or conditional orders
              * @param {string} $params->ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
              * @param {string|null} $params->algoId Algo ID "'433845797218942976'"
+             * @param {int|null} $params->until timestamp in ms to fetch orders for
              * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
             Async\await($this->load_markets());
@@ -2781,6 +2782,8 @@ class okx extends Exchange {
                 $market = $this->market($symbol);
                 $request['instId'] = $market['id'];
             }
+            $type = null;
+            $query = null;
             list($type, $query) = $this->handle_market_type_and_params('fetchCanceledOrders', $market, $params);
             $request['instType'] = $this->convert_to_instrument_type($type);
             if ($limit !== null) {
@@ -2805,6 +2808,15 @@ class okx extends Exchange {
                         throw new ArgumentsRequired($this->id . ' fetchCanceledOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
                     }
                     $request['ordType'] = $ordType;
+                }
+            } else {
+                if ($since !== null) {
+                    $request['begin'] = $since;
+                }
+                $until = $this->safe_integer_2($query, 'till', 'until');
+                if ($until !== null) {
+                    $request['end'] = $until;
+                    $query = $this->omit($query, array( 'until', 'till' ));
                 }
             }
             $send = $this->omit($query, array( 'method', 'stop', 'ordType' ));
@@ -2924,6 +2936,7 @@ class okx extends Exchange {
              * @param {bool} $params->stop True if fetching trigger or conditional orders
              * @param {string} $params->ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
              * @param {string|null} $params->algoId Algo ID "'433845797218942976'"
+             * @param {int|null} $params->until timestamp in ms to fetch orders for
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
             Async\await($this->load_markets());
@@ -2943,6 +2956,8 @@ class okx extends Exchange {
                 $market = $this->market($symbol);
                 $request['instId'] = $market['id'];
             }
+            $type = null;
+            $query = null;
             list($type, $query) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
             $request['instType'] = $this->convert_to_instrument_type($type);
             if ($limit !== null) {
@@ -2963,6 +2978,14 @@ class okx extends Exchange {
                 }
                 $request['state'] = 'effective';
             } else {
+                if ($since !== null) {
+                    $request['begin'] = $since;
+                }
+                $until = $this->safe_integer_2($query, 'till', 'until');
+                if ($until !== null) {
+                    $request['end'] = $until;
+                    $query = $this->omit($query, array( 'until', 'till' ));
+                }
                 $request['state'] = 'filled';
             }
             $send = $this->omit($query, array( 'method', 'stop' ));
@@ -4132,7 +4155,7 @@ class okx extends Exchange {
                     $marketIds[] = $market['id'];
                 }
                 if (strlen($marketIds) > 0) {
-                    $request['instId'] = (string) $marketIds;
+                    $request['instId'] = implode(',', $marketIds);
                 }
             }
             $response = Async\await($this->privateGetAccountPositions (array_merge($request, $params)));

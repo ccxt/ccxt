@@ -255,10 +255,9 @@ class bitrue(Exchange):
                     'limit': 'FULL',  # we change it from 'ACK' by default to 'FULL'(returns immediately if limit is not hit)
                 },
                 'networks': {
-                    'SPL': 'SOLANA',
-                    'SOL': 'SOLANA',
-                    'DOGE': 'dogecoin',
-                    'ADA': 'Cardano',
+                    'ERC20': 'ETH',
+                    'TRC20': 'TRX',
+                    'TRON': 'TRX',
                 },
             },
             'commonCurrencies': {
@@ -1732,7 +1731,9 @@ class bitrue(Exchange):
         chainName = self.safe_string(params, 'chainName')
         if chainName is None:
             networks = self.safe_value(currency, 'networks', {})
+            optionsNetworks = self.safe_value(self.options, 'networks', {})
             network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+            network = self.safe_string(optionsNetworks, network, network)
             networkEntry = self.safe_value(networks, network, {})
             chainName = self.safe_string(networkEntry, 'id')  # handle ERC20>ETH alias
             if chainName is None:

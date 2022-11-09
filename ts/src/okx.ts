@@ -2753,6 +2753,7 @@ export default class okx extends Exchange {
          * @param {bool} params.stop True if fetching trigger or conditional orders
          * @param {string} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string|undefined} params.algoId Algo ID "'433845797218942976'"
+         * @param {int|undefined} params.until timestamp in ms to fetch orders for
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -2772,7 +2773,9 @@ export default class okx extends Exchange {
             market = this.market (symbol);
             request['instId'] = market['id'];
         }
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchCanceledOrders', market, params);
+        let type = undefined;
+        let query = undefined;
+        [ type, query ] = this.handleMarketTypeAndParams ('fetchCanceledOrders', market, params);
         request['instType'] = this.convertToInstrumentType (type);
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
@@ -2796,6 +2799,15 @@ export default class okx extends Exchange {
                     throw new ArgumentsRequired (this.id + ' fetchCanceledOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
                 }
                 request['ordType'] = ordType;
+            }
+        } else {
+            if (since !== undefined) {
+                request['begin'] = since;
+            }
+            const until = this.safeInteger2 (query, 'till', 'until');
+            if (until !== undefined) {
+                request['end'] = until;
+                query = this.omit (query, [ 'until', 'till' ]);
             }
         }
         const send = this.omit (query, [ 'method', 'stop', 'ordType' ]);
@@ -2915,6 +2927,7 @@ export default class okx extends Exchange {
          * @param {bool} params.stop True if fetching trigger or conditional orders
          * @param {string} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string|undefined} params.algoId Algo ID "'433845797218942976'"
+         * @param {int|undefined} params.until timestamp in ms to fetch orders for
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -2934,7 +2947,9 @@ export default class okx extends Exchange {
             market = this.market (symbol);
             request['instId'] = market['id'];
         }
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
+        let type = undefined;
+        let query = undefined;
+        [ type, query ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
         request['instType'] = this.convertToInstrumentType (type);
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
@@ -2954,6 +2969,14 @@ export default class okx extends Exchange {
             }
             request['state'] = 'effective';
         } else {
+            if (since !== undefined) {
+                request['begin'] = since;
+            }
+            const until = this.safeInteger2 (query, 'till', 'until');
+            if (until !== undefined) {
+                request['end'] = until;
+                query = this.omit (query, [ 'until', 'till' ]);
+            }
             request['state'] = 'filled';
         }
         const send = this.omit (query, [ 'method', 'stop' ]);
@@ -4123,7 +4146,7 @@ export default class okx extends Exchange {
                 marketIds.push (market['id']);
             }
             if (marketIds.length > 0) {
-                request['instId'] = marketIds.toString ();
+                request['instId'] = marketIds.join (',');
             }
         }
         const response = await (this as any).privateGetAccountPositions (this.extend (request, params));
