@@ -1387,7 +1387,7 @@ class huobi extends \ccxt\async\huobi {
             }
             $first = $this->safe_value($data, 0, array());
             $messageHash = $this->safe_string($message, 'topic');
-            $subscription = $this->safe_value($client->subscriptions, $messageHash);
+            $subscription = $this->safe_value_2($client->subscriptions, $messageHash, $messageHash . '.*');
             if ($subscription === null) {
                 // if $subscription not found means that we subscribed to a specific currency/symbol
                 // and we use the $first $data entry to find it
@@ -1419,7 +1419,7 @@ class huobi extends \ccxt\async\huobi {
                             // we skip it if the $market was delisted
                             if ($code !== null) {
                                 $account = $this->account();
-                                $account['free'] = $this->safe_string($balance, 'margin_balance');
+                                $account['free'] = $this->safe_string_2($balance, 'margin_balance', 'margin_available');
                                 $account['used'] = $this->safe_string($balance, 'margin_frozen');
                                 $accountsByCode = array();
                                 $accountsByCode[$code] = $account;
