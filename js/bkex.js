@@ -1404,26 +1404,26 @@ module.exports = class bkex extends Exchange {
         //          ]
         //      }
         //
-        const data = this.safeValue (response, 'data');
-        return this.parseTransactionFees (data, codes);
+        return this.parseTransactionFees (response, codes);
     }
 
-    parseTransactionFees (data, codes = undefined) {
-        const withdrawFees = {};
+    parseTransactionFees (response, codes = undefined) {
+        const data = this.safeValue (response, 'data');
+        const result = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const currencyId = this.safeString (entry, 'currency');
             const currency = this.safeCurrency (currencyId);
             const code = this.safeString (currency, 'code');
             if ((codes === undefined) || (this.inArray (code, codes))) {
-                withdrawFees[code] = this.parseTransactionFee (entry, currency);
+                result[code] = {
+                    'withdraw': this.parseTransactionFee (entry),
+                    'deposit': undefined,
+                    'info': entry,
+                };
             }
         }
-        return {
-            'withdraw': withdrawFees,
-            'deposit': {},
-            'info': data,
-        };
+        return result;
     }
 
     parseTransactionFee (transaction, currency = undefined) {
