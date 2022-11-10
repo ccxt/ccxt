@@ -159,8 +159,8 @@ async function testSymbol (exchange, symbol) {
     await test ('fetchIndexOHLCV', exchange, symbol);
     await test ('fetchMarkOHLCV', exchange, symbol);
     await test ('fetchPremiumIndexOHLCV', exchange, symbol);
-    await test ('fetchTime', exchange);
     await test ('fetchStatus', exchange);
+    await test ('fetchTime', exchange);
 }
 
 //-----------------------------------------------------------------------------
@@ -468,6 +468,11 @@ async function tryAllProxies (exchange, proxies) {
 //-----------------------------------------------------------------------------
 
 async function main () {
+
+    // we don't need to test aliases
+    if (exchange.alias) {
+        return;
+    }
 
     if (exchangeSymbol) {
 
