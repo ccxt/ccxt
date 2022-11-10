@@ -1006,7 +1006,8 @@ class Exchange(object):
         if isinstance(params, dict):
             for key in params:
                 if not isinstance(params[key], list):
-                    string = string.replace('{' + key + '}', str(params[key]))
+                    finalValue = str(params[key]) if params[key] is not None else ''
+                    string = string.replace('{' + key + '}', finalValue)
         return string
 
     @staticmethod
