@@ -1383,7 +1383,7 @@ export default class huobi extends huobiRest {
             }
             const first = this.safeValue (data, 0, {});
             let messageHash = this.safeString (message, 'topic');
-            let subscription = this.safeValue (client.subscriptions, messageHash);
+            let subscription = this.safeValue2 (client.subscriptions, messageHash, messageHash + '.*');
             if (subscription === undefined) {
                 // if subscription not found means that we subscribed to a specific currency/symbol
                 // and we use the first data entry to find it
@@ -1415,7 +1415,7 @@ export default class huobi extends huobiRest {
                             // we skip it if the market was delisted
                             if (code !== undefined) {
                                 const account = this.account ();
-                                account['free'] = this.safeString (balance, 'margin_balance');
+                                account['free'] = this.safeString2 (balance, 'margin_balance', 'margin_available');
                                 account['used'] = this.safeString (balance, 'margin_frozen');
                                 const accountsByCode = {};
                                 accountsByCode[code] = account;

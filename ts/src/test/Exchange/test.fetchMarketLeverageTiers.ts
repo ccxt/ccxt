@@ -5,6 +5,11 @@ import testLeverageTier from './test.leverageTier.js';
 export default async (exchange, symbol) => {
     const method = 'fetchMarketLeverageTiers';
     if (exchange.has[method]) {
+        const market = exchange.market (symbol);
+        if (market.spot) {
+            console.log (method + '() is not supported for spot markets');
+            return;
+        }
         const tiers = await exchange[method] (symbol);
         console.log (method + 'for ' + symbol);
         const arrayLength = tiers.length;
