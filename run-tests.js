@@ -84,7 +84,7 @@ const exec = (bin, ...args) =>
         ps.stdout.on ('data', data => { output += data.toString () })
         ps.stderr.on ('data', data => { 
             const dataString = data.toString ();
-            if (!isDebugMode) {
+            if (!isDebugMode || !dataString.includes('ExperimentalWarning: The Fetch API is an experimental feature. This feature could change at any time')) {
                 output += dataString; stderr += dataString; hasWarnings = true;
             }
         })
