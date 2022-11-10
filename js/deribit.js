@@ -125,6 +125,7 @@ module.exports = class deribit extends Exchange {
                         // Supporting
                         'get_time': 1,
                         'hello': 1,
+                        'status': 1,
                         'test': 1,
                         // Subscription management
                         'subscribe': 1,
