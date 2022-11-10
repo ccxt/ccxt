@@ -1376,7 +1376,7 @@ module.exports = class huobi extends huobiRest {
             }
             const first = this.safeValue (data, 0, {});
             let messageHash = this.safeString (message, 'topic');
-            let subscription = this.safeValue (client.subscriptions, messageHash);
+            let subscription = this.safeValue2 (client.subscriptions, messageHash, messageHash + '.*');
             if (subscription === undefined) {
                 // if subscription not found means that we subscribed to a specific currency/symbol
                 // and we use the first data entry to find it
@@ -1384,14 +1384,8 @@ module.exports = class huobi extends huobiRest {
                 // client.subscription hash = 'accounts.usdt'
                 // we do 'accounts' + '.' + data[0]]['margin_asset'] to get it
                 const marginAsset = this.safeString (first, 'margin_asset');
-                // if linear cross swap, marginAsset is 'USDT' and
-                // client.subscription hash should be 'accounts_cross.*'
-                if (messageHash === 'accounts_cross' && marginAsset === 'USDT') {
-                    subscription = this.safeValue (client.subscriptions, 'accounts_cross.*');
-                } else {
-                    messageHash += '.' + marginAsset.toLowerCase ();
-                    subscription = this.safeValue (client.subscriptions, messageHash);
-                }
+                messageHash += '.' + marginAsset.toLowerCase ();
+                subscription = this.safeValue (client.subscriptions, messageHash);
             }
             const type = this.safeString (subscription, 'type');
             const subType = this.safeString (subscription, 'subType');
@@ -1414,7 +1408,7 @@ module.exports = class huobi extends huobiRest {
                             // we skip it if the market was delisted
                             if (code !== undefined) {
                                 const account = this.account ();
-                                account['free'] = this.safeString (balance, 'margin_balance');
+                                account['free'] = this.safeString2 (balance, 'margin_balance', 'margin_available');
                                 account['used'] = this.safeString (balance, 'margin_frozen');
                                 const accountsByCode = {};
                                 accountsByCode[code] = account;
