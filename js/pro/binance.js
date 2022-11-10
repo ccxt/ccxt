@@ -989,9 +989,6 @@ module.exports = class binance extends binanceRest {
         const subscriptions = Object.keys (client.subscriptions);
         const accountType = subscriptions[0];
         const messageHash = accountType + ':balance';
-        if (this.balance[accountType] === undefined) {
-            return;
-        }
         this.balance[accountType]['info'] = message;
         const event = this.safeString (message, 'e');
         if (event === 'balanceUpdate') {
