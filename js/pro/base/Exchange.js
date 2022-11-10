@@ -16,6 +16,14 @@ module.exports = class Exchange extends BaseExchange {
         this.newUpdates = options.newUpdates || true;
     }
 
+    watchPosition (symbol, params = {}) {
+        if (this.has['watchPositions']) {
+            return watchPositions ([symbol], params)
+        } else {
+            throw new NotSupported (this.ids + ' does not support watchPosition yet')
+        }
+    }
+
     inflate (data) {
         return functions.inflate (data);
     }

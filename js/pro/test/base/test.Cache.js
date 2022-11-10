@@ -1,7 +1,7 @@
 'use strict';
 
 const assert = require ('assert');
-const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('../../base/Cache');
+const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCacheBySymbolBySide, PositionsCache } = require ('../../base/Cache');
 
 function equals (a, b) {
     if (a.length !== b.length) {
@@ -339,7 +339,7 @@ assert (limited === 1); // one new update
 
 cache = new ArrayCacheBySymbolById ();
 symbol = 'BTC/USDT';
-const symbol2 = 'ETH/USDT';
+let symbol2 = 'ETH/USDT';
 
 outsideLimit = 5;
 cache.append ({ 'symbol': symbol, 'id': 'one', 'i': 1 }); // create first order
@@ -353,3 +353,84 @@ assert (cache.getLimit (undefined, outsideLimit) === 2); // watch all orders
 cache.append ({ 'symbol': symbol2, 'id': 'two', 'i': 3 }); // update second order
 cache.append ({ 'symbol': symbol2, 'id': 'three', 'i': 3 }); // create third order
 assert (cache.getLimit (undefined, outsideLimit) === 2); // watch all orders
+
+// ----------------------------------------------------------------------------
+// test ArrayCacheBySymbolBySide, watch all positions, same symbol and side id gets updated
+
+cache = new ArrayCacheBySymbolBySide ();
+symbol = 'BTC/USDT';
+outsideLimit = 5;
+cache.append ({ 'symbol': symbol, 'side': 'short', 'contracts': 1 }); // create first position
+cache.append ({ 'symbol': symbol, 'side': 'short', 'contracts': 0 }); // first position is closed
+assert (cache.getLimit (symbol, outsideLimit) === 1); // limit position
+cache.append ({ 'symbol': symbol, 'side': 'short', 'contracts': 1 }); // create first position
+assert (cache.getLimit (symbol, outsideLimit) === 1) // watch all positions
+
+// ----------------------------------------------------------------------------
+// test ArrayCacheBySymbolBySide, watch all positions, same symbol and side id gets updated
+
+cache = new ArrayCacheBySymbolBySide ();
+symbol = 'BTC/USDT';
+outsideLimit = 5;
+cache.append ({ 'symbol': symbol, 'side': 'short', 'contracts': 1 }); // create first position
+assert (cache.getLimit (undefined, outsideLimit) === 1); // watch all positions
+cache.append ({ 'symbol': symbol, 'side': 'short', 'contracts': 0 }); // first position is closed
+assert (cache.getLimit (undefined, outsideLimit) === 1) // watch all positions
+cache.append ({ 'symbol': symbol, 'side': 'long', 'contracts': 3 }); // create second position
+assert (cache.getLimit (undefined, outsideLimit) === 1 ); // watch all positions
+cache.append ({ 'symbol': symbol, 'side': 'long', 'contracts': 2 }); // second position is reduced
+cache.append ({ 'symbol': symbol, 'side': 'long', 'contracts': 1 }); // second position is reduced
+assert (cache.getLimit (undefined, outsideLimit) === 1); // watch all orders
+assert (cache.length === 2 ); // one new update
+
+// ----------------------------------------------------------------------------
+// test ArrayCacheBySymbolBySide, watchPositions, and watchPosition (symbol) work independently
+
+cache = new ArrayCacheBySymbolBySide ();
+symbol = 'BTC/USDT';
+symbol2 = 'ETH/USDT';
+
+cache.append ({ 'symbol': symbol, 'side': 'short', 'contracts': 1 }); // create first position
+cache.append ({ 'symbol': symbol2, 'side': 'long', 'contracts': 1 }); // create second position
+assert (cache.getLimit (undefined, outsideLimit) === 2); // watch all positions
+assert (cache.getLimit (symbol, outsideLimit) === 1); // watch by symbol
+cache.append ({ 'symbol': symbol, 'side': 'short', 'contracts': 2 }); // update first position
+cache.append ({ 'symbol': symbol2, 'side': 'long', 'contracts': 2 }); // update second position
+assert (cache.getLimit (symbol, outsideLimit) === 1); // watch by symbol
+assert (cache.getLimit (undefined, outsideLimit) === 2); // watch all positions
+cache.append ({ 'symbol': symbol2, 'side': 'long', 'contracts': 3 }); // update second position
+assert (cache.getLimit (undefined, outsideLimit) === 1); // watch all positions
+
+// ----------------------------------------------------------------------------
+// test PositionsCache, watch all positions, same symbol and side id gets updated
+
+cache = new PositionsCache ();
+symbol = 'BTC/USDT';
+cache.append ({ 'symbol': symbol, 'side': 'short', 'contracts': 2 }); // create first position
+assert (equals (cache.toArray (), [{ 'symbol': symbol, 'side': 'short', 'contracts': 2 }])); // watch all positions
+cache.append ({ 'symbol': symbol, 'side': 'short', 'contracts': 1 }); // first position is closed
+assert (equals (cache.toArray (), [{ 'symbol': symbol, 'side': 'short', 'contracts': 1 }])); // watch all positions
+cache.append ({ 'symbol': symbol, 'side': 'long', 'contracts': 3 }); // create second position
+assert (equals (cache.toArray (), [{ 'symbol': symbol, 'side': 'long', 'contracts': 3 }])); // watch all positions
+cache.append ({ 'symbol': symbol, 'side': 'long', 'contracts': 2 }); // second position is reduced
+cache.append ({ 'symbol': symbol, 'side': 'long', 'contracts': 1 }); // second position is reduced
+assert (equals (cache.toArray ([symbol], false), [ { 'symbol': symbol, 'side': 'short', 'contracts': 1 }, { 'symbol': symbol, 'side': 'long', 'contracts': 1 }])); // watch postion
+
+// ----------------------------------------------------------------------------
+// test ArrayCacheBySymbolBySide, watchPositions, and watchPosition (symbol) work independently
+
+cache = new PositionsCache ();
+symbol = 'BTC/USDT';
+symbol2 = 'ETH/USDT';
+
+cache.append ({ 'symbol': symbol, 'side': 'short', 'contracts': 1, 'timestamp': 1 }); // create first position
+cache.append ({ 'symbol': symbol2, 'side': 'long', 'contracts': 1, 'timestamp': 2 }); // create second position
+assert (equals (cache.toArray (), [{ 'symbol': symbol2, 'side': 'long', 'contracts': 1, 'timestamp': 2 }, { 'symbol': symbol, 'side': 'short', 'contracts': 1, 'timestamp': 1}])); // watch all positions
+assert (equals (cache.toArray ([symbol], false), [{ 'symbol': symbol, 'side': 'short', 'contracts': 1, 'timestamp': 1 }])); // watch by symbol
+assert (equals (cache.toArray ([symbol2], false), [{ 'symbol': symbol2, 'side': 'long', 'contracts': 1, 'timestamp': 2 }])); // watch by symbol 2
+cache.append ({ 'symbol': symbol, 'side': 'short', 'contracts': 0, 'timestamp': 3 }); // update first position
+cache.append ({ 'symbol': symbol2, 'side': 'long', 'contracts': 2, 'timestamp': 3 }); // close second position
+assert (equals (cache.toArray ([symbol]), [{ 'symbol': symbol, 'side': 'short', 'contracts': 0, 'timestamp': 3 }])); // watch by symbol
+assert (equals (cache.toArray ([symbol], false), [])); // watch by symbol doesn't show seen closed positions
+cache.append ({ 'symbol': symbol2, 'side': 'long', 'contracts': 3 }); // update second position
+assert (equals (cache.toArray (), [{ 'symbol': symbol, 'side': 'short', 'contracts': 0, 'timestamp': 3 }, { 'symbol': symbol2, 'side': 'long', 'contracts': 3, 'timestamp': 3 }])); // watch all positions
