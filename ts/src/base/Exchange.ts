@@ -2507,7 +2507,7 @@ export default class Exchange {
         if ((currencyId === undefined) && (currency !== undefined)) {
             return currency;
         }
-        if ((this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id)) {
+        if ((this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id) && (this.currencies_by_id[currencyId] !== undefined)) {
             return this.currencies_by_id[currencyId];
         }
         let code = currencyId;
