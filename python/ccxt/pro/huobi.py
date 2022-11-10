@@ -1292,7 +1292,7 @@ class huobi(Exchange, ccxt.async_support.huobi):
                 return
             first = self.safe_value(data, 0, {})
             messageHash = self.safe_string(message, 'topic')
-            subscription = self.safe_value(client.subscriptions, messageHash)
+            subscription = self.safe_value_2(client.subscriptions, messageHash, messageHash + '.*')
             if subscription is None:
                 # if subscription not found means that we subscribed to a specific currency/symbol
                 # and we use the first data entry to find it
@@ -1323,7 +1323,7 @@ class huobi(Exchange, ccxt.async_support.huobi):
                             # we skip it if the market was delisted
                             if code is not None:
                                 account = self.account()
-                                account['free'] = self.safe_string(balance, 'margin_balance')
+                                account['free'] = self.safe_string_2(balance, 'margin_balance', 'margin_available')
                                 account['used'] = self.safe_string(balance, 'margin_frozen')
                                 accountsByCode = {}
                                 accountsByCode[code] = account
