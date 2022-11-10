@@ -1273,11 +1273,17 @@ class bybit extends \ccxt\async\bybit {
         $symbols = is_array($marketSymbols) ? array_keys($marketSymbols) : array();
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
-            $messageHash = 'usertrade:' . $symbol . ':' . $topic;
+            $messageHash = 'usertrade:' . $symbol;
+            if ($topic) {
+                $messageHash .= ':' . $topic;
+            }
             $client->resolve ($trades, $messageHash);
         }
         // non-$symbol specific
-        $messageHash = 'usertrade:' . $topic;
+        $messageHash = 'usertrade';
+        if ($topic) {
+            $messageHash .= ':' . $topic;
+        }
         $client->resolve ($trades, $messageHash);
     }
 

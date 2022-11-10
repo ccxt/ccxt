@@ -1191,10 +1191,14 @@ class bybit(Exchange, ccxt.async_support.bybit):
         symbols = list(marketSymbols.keys())
         for i in range(0, len(symbols)):
             symbol = symbols[i]
-            messageHash = 'usertrade:' + symbol + ':' + topic
+            messageHash = 'usertrade:' + symbol
+            if topic:
+                messageHash += ':' + topic
             client.resolve(trades, messageHash)
         # non-symbol specific
-        messageHash = 'usertrade:' + topic
+        messageHash = 'usertrade'
+        if topic:
+            messageHash += ':' + topic
         client.resolve(trades, messageHash)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):

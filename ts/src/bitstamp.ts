@@ -1139,36 +1139,68 @@ export default class bitstamp extends Exchange {
         return this.parseTradingFees (response);
     }
 
-    parseTransactionFees (balance) {
-        const withdraw = {};
-        const ids = Object.keys (balance);
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            if (id.indexOf ('_withdrawal_fee') >= 0) {
-                const currencyId = id.split ('_')[0];
-                const code = this.safeCurrencyCode (currencyId);
-                withdraw[code] = this.safeNumber (balance, id);
-            }
-        }
-        return {
-            'info': balance,
-            'withdraw': withdraw,
-            'deposit': {},
-        };
-    }
-
     async fetchTransactionFees (codes = undefined, params = {}) {
         /**
          * @method
          * @name bitstamp#fetchTransactionFees
          * @description fetch transaction fees
-         * @param {[string]|undefined} codes not used by bitstamp fetchTransactionFees ()
+         * @see https://www.bitstamp.net/api/#balance
+         * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the bitstamp api endpoint
          * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
         const balance = await (this as any).privatePostBalance (params);
         return this.parseTransactionFees (balance);
+    }
+
+    parseTransactionFees (response, codes = undefined) {
+        //
+        //  {
+        //     yfi_available: '0.00000000',
+        //     yfi_balance: '0.00000000',
+        //     yfi_reserved: '0.00000000',
+        //     yfi_withdrawal_fee: '0.00070000',
+        //     yfieur_fee: '0.000',
+        //     yfiusd_fee: '0.000',
+        //     zrx_available: '0.00000000',
+        //     zrx_balance: '0.00000000',
+        //     zrx_reserved: '0.00000000',
+        //     zrx_withdrawal_fee: '12.00000000',
+        //     zrxeur_fee: '0.000',
+        //     zrxusd_fee: '0.000',
+        //     ...
+        //  }
+        //
+        if (codes === undefined) {
+            codes = Object.keys (this.currencies);
+        }
+        const result = {};
+        let mainCurrencyId = undefined;
+        const ids = Object.keys (response);
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const currencyId = id.split ('_')[0];
+            const code = this.safeCurrencyCode (currencyId);
+            if (codes !== undefined && !this.inArray (code, codes)) {
+                continue;
+            }
+            if (id.indexOf ('_available') >= 0) {
+                mainCurrencyId = currencyId;
+                result[code] = {
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'info': {},
+                };
+            }
+            if (currencyId === mainCurrencyId) {
+                result[code]['info'][id] = this.safeNumber (response, id);
+            }
+            if (id.indexOf ('_withdrawal_fee') >= 0) {
+                result[code]['withdraw'] = this.safeNumber (response, id);
+            }
+        }
+        return result;
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
