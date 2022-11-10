@@ -2190,7 +2190,7 @@ export default class digifinex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicSwapGetPublicFundingRateHistory (this.extend (request, params));
+        const response = await (this as any).publicSwapGetPublicFundingRateHistory (this.extend (request, params));
         //
         //     {
         //         "code": 0,
