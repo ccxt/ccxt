@@ -17,7 +17,7 @@ export default async (exchange, symbol) => {
     if (exchange.has[method]) {
         const market = exchange.market (symbol);
         if (market.spot) {
-            console.log (method + '() is not supported for spot market symbol');
+            console.log (method + '() is not supported for spot markets');
             return;
         }
         const fundingRates = await exchange[method] (symbol);

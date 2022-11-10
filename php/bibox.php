@@ -791,9 +791,13 @@ class bibox extends Exchange {
         //            ...
         //    }
         //
-        $result = $this->safe_value($response, 'e');
+        $result = $this->safe_value($response, 'e', array());
         if ($result === null) {
-            $result = $response || array();
+            if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+                $result = $response;
+            } else {
+                $result = array();
+            }
         }
         return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
     }
