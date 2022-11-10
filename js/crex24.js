@@ -486,12 +486,17 @@ module.exports = class crex24 extends Exchange {
          * @method
          * @name crex24#fetchTransactionFees
          * @description fetch transaction fees
-         * @param {[string]|undefined} codes not used by crex24 fetchTransactionFees
+         * @see https://docs.crex24.com/trade-api/v2/#currencies-withdrawal-fees
+         * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the crex24 api endpoint
          * @returns {object} a list of [transaction fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const response = await this.publicGetCurrenciesWithdrawalFees (params);
+        const request = {};
+        if (codes !== undefined) {
+            request['filter'] = codes.join (',');
+        }
+        const response = await this.publicGetCurrenciesWithdrawalFees (this.extend (request, params));
         //
         //     [
         //         {
@@ -510,26 +515,55 @@ module.exports = class crex24 extends Exchange {
         //         }
         //     ]
         //
-        const withdrawFees = {};
+        return this.parseTransactionFees (response, codes);
+    }
+
+    parseTransactionFees (response, codes = undefined) {
+        const result = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            const networkList = this.safeValue (entry, 'fees');
-            withdrawFees[code] = {};
-            for (let j = 0; j < networkList.length; j++) {
-                const networkEntry = networkList[j];
-                const networkId = this.safeString (networkEntry, 'feeCurrency');
-                const networkCode = this.safeCurrencyCode (networkId);
-                const fee = this.safeNumber (networkEntry, 'amount');
-                withdrawFees[code][networkCode] = fee;
+            if (codes !== undefined && !this.inArray (code, codes)) {
+                continue;
             }
+            result[code] = this.parseTransactionFee (entry);
         }
-        return {
-            'withdraw': withdrawFees,
+        return result;
+    }
+
+    parseTransactionFee (transaction) {
+        //
+        //     [
+        //         {
+        //             currency: '1INCH',
+        //             fees: [
+        //                 { feeCurrency: 'BTC', amount: 0.00032 },
+        //                 { feeCurrency: 'ETH', amount: 0.0054 },
+        //                 { feeCurrency: 'DOGE', amount: 63.06669 },
+        //                 { feeCurrency: 'LTC', amount: 0.0912 },
+        //                 { feeCurrency: 'BCH', amount: 0.02364 },
+        //                 { feeCurrency: 'USDT', amount: 12.717 },
+        //                 { feeCurrency: 'USDC', amount: 12.7367 },
+        //                 { feeCurrency: 'TRX', amount: 205.99108 },
+        //                 { feeCurrency: 'EOS', amount: 3.30141 }
+        //             ]
+        //         }
+        //     ]
+        //
+        const result = {
+            'withdraw': {},
             'deposit': {},
-            'info': response,
+            'info': transaction,
         };
+        const networkList = this.safeValue (transaction, 'fees');
+        for (let j = 0; j < networkList.length; j++) {
+            const networkEntry = networkList[j];
+            const networkId = this.safeString (networkEntry, 'feeCurrency');
+            const fee = this.safeNumber (networkEntry, 'amount');
+            result['withdraw'][networkId] = fee;
+        }
+        return result;
     }
 
     parseBalance (response) {
@@ -1111,13 +1145,13 @@ module.exports = class crex24 extends Exchange {
             request['price'] = this.priceToPrecision (symbol, price);
         }
         if (stopPriceIsRequired) {
-            const stopPrice = this.safeNumber (params, 'stopPrice');
+            const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
             if (stopPrice === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder() requires a stopPrice extra param for a ' + type + ' order');
             } else {
                 request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
             }
-            params = this.omit (params, 'stopPrice');
+            params = this.omit (params, [ 'triggerPrice', 'stopPrice' ]);
         }
         const response = await this.tradingPostPlaceOrder (this.extend (request, params));
         //
