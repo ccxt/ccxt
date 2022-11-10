@@ -18,7 +18,10 @@ const ansi = require ('ansicolor').nice
 process.on ('uncaughtException',  e => { log.bright.red.error (e); process.exit (1) })
 process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit (1) })
 
-const isDebugMode = require('inspector').url() !== undefined; // https://stackoverflow.com/a/67445850/2377343
+// Notes:
+// 1) detect if we are running in debug mode of VSCODE , per https://stackoverflow.com/a/67445850/2377343
+// 2) also, to avoid "warnings" from test outputs, which will lead to incorrect CCXT results, use `--no-warnings` argument when running in debug
+const isDebugMode = require('inspector').url() !== undefined;
 
 /*  --------------------------------------------------------------------------- */
 
@@ -81,7 +84,7 @@ const exec = (bin, ...args) =>
         ps.stdout.on ('data', data => { output += data.toString () })
         ps.stderr.on ('data', data => { 
             const dataString = data.toString ();
-            if (!isDebugMode || !dataString.includes('ExperimentalWarning: The Fetch API is an experimental feature. This feature could change at any time')) {
+            if (!isDebugMode) {
                 output += dataString; stderr += dataString; hasWarnings = true;
             }
         })
