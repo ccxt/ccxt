@@ -672,7 +672,7 @@ export default class bybit extends Exchange {
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.publicGetV3PublicTime (params);
+        const response = await (this as any).publicGetV3PublicTime (params);
         //
         //    {
         //         "retCode": "0",
@@ -737,7 +737,7 @@ export default class bybit extends Exchange {
         if (!this.checkRequiredCredentials (false)) {
             return undefined;
         }
-        const response = await this.privateGetAssetV3PrivateCoinInfoQuery (params);
+        const response = await (this as any).privateGetAssetV3PrivateCoinInfoQuery (params);
         //
         //    {
         //        "retCode": "0",
@@ -881,7 +881,7 @@ export default class bybit extends Exchange {
     }
 
     async fetchSpotMarkets (params) {
-        const response = await this.publicGetSpotV3PublicSymbols (params);
+        const response = await (this as any).publicGetSpotV3PublicSymbols (params);
         //
         //    {
         //        "retCode": "0",
@@ -2106,7 +2106,7 @@ export default class bybit extends Exchange {
         }
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
-        let fee = {};
+        let fee = {} as any;
         const feeToken = this.safeString (trade, 'feeTokenId');
         if (feeToken !== undefined) {
             const feeCurrency = this.safeCurrencyCode (feeToken);
@@ -3031,7 +3031,7 @@ export default class bybit extends Exchange {
             const request = {
                 'orderId': id,
             };
-            const response = await this.privateGetSpotV3PrivateOrder (this.extend (params, request));
+            const response = await (this as any).privateGetSpotV3PrivateOrder (this.extend (params, request));
             //
             //    {
             //        "retCode": "0",
@@ -3173,7 +3173,7 @@ export default class bybit extends Exchange {
             params['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
         }
         params = this.omit (params, 'stopPrice');
-        const response = await this.privatePostSpotV3PrivateOrder (this.extend (request, params));
+        const response = await (this as any).privatePostSpotV3PrivateOrder (this.extend (request, params));
         //
         //    {
         //        "retCode": "0",
@@ -4427,7 +4427,7 @@ export default class bybit extends Exchange {
         const request = {
             'coin': currency['id'],
         };
-        const response = await this.privateGetAssetV3PrivateDepositAddressQuery (this.extend (request, params));
+        const response = await (this as any).privateGetAssetV3PrivateDepositAddressQuery (this.extend (request, params));
         //
         //    {
         //         "retCode": "0",
@@ -4480,7 +4480,7 @@ export default class bybit extends Exchange {
         if (networkId !== undefined) {
             request['chainType'] = networkId;
         }
-        const response = await this.privateGetAssetV3PrivateDepositAddressQuery (this.extend (request, query));
+        const response = await (this as any).privateGetAssetV3PrivateDepositAddressQuery (this.extend (request, query));
         //
         //    {
         //         "retCode": "0",
@@ -4559,7 +4559,7 @@ export default class bybit extends Exchange {
         }
         // Currently only works for deposits prior to 2021-07-15
         // will be updated soon
-        const response = await this.privateGetAssetV3PrivateDepositRecordQuery (this.extend (request, params));
+        const response = await (this as any).privateGetAssetV3PrivateDepositRecordQuery (this.extend (request, params));
         //
         //    {
         //         "retCode": "0",
@@ -4623,7 +4623,7 @@ export default class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetAssetV3PrivateWithdrawRecordQuery (this.extend (request, params));
+        const response = await (this as any).privateGetAssetV3PrivateWithdrawRecordQuery (this.extend (request, params));
         //
         //    {
         //         "retCode": "0",
@@ -4916,7 +4916,7 @@ export default class bybit extends Exchange {
         if (networkId !== undefined) {
             request['chain'] = networkId;
         }
-        const response = await this.privatePostAssetV3PrivateWithdrawCreate (this.extend (request, query));
+        const response = await (this as any).privatePostAssetV3PrivateWithdrawCreate (this.extend (request, query));
         //
         //    {
         //         "retCode": "0",
@@ -5505,7 +5505,7 @@ export default class bybit extends Exchange {
         const request = {
             'coin': currency['id'],
         };
-        const response = await this.privateGetSpotV3PrivateCrossMarginLoanInfo (this.extend (request, params));
+        const response = await (this as any).privateGetSpotV3PrivateCrossMarginLoanInfo (this.extend (request, params));
         //
         //    {
         //         "retCode": "0",
@@ -5559,7 +5559,7 @@ export default class bybit extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
-        const response = await this.privateGetSpotV3PrivateCrossMarginAccount (this.extend (request, params));
+        const response = await (this as any).privateGetSpotV3PrivateCrossMarginAccount (this.extend (request, params));
         //
         //     {
         //         "ret_code": 0,
@@ -5708,7 +5708,7 @@ export default class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetAssetV3PrivateTransferInterTransferListQuery (this.extend (request, params));
+        const response = await (this as any).privateGetAssetV3PrivateTransferInterTransferListQuery (this.extend (request, params));
         //
         //    {
         //         "retCode": "0",
@@ -5758,7 +5758,7 @@ export default class bybit extends Exchange {
             'coin': currency['id'],
             'qty': this.currencyToPrecision (code, amount),
         };
-        const response = await this.privatePostSpotV3PrivateCrossMarginLoan (this.extend (request, query));
+        const response = await (this as any).privatePostSpotV3PrivateCrossMarginLoan (this.extend (request, query));
         //
         //     {
         //         "retCode": 0,
@@ -5800,7 +5800,7 @@ export default class bybit extends Exchange {
             'coin': currency['id'],
             'qty': this.currencyToPrecision (code, amount),
         };
-        const response = await this.privatePostSpotV3PrivateCrossMarginRepay (this.extend (request, query));
+        const response = await (this as any).privatePostSpotV3PrivateCrossMarginRepay (this.extend (request, query));
         //
         //     {
         //         "retCode": 0,
