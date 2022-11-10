@@ -18,11 +18,6 @@ const ansi = require ('ansicolor').nice
 process.on ('uncaughtException',  e => { log.bright.red.error (e); process.exit (1) })
 process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit (1) })
 
-// Notes:
-// 1) detect if we are running in debug mode of VSCODE , per https://stackoverflow.com/a/67445850/2377343
-// 2) also, to avoid "warnings" from test outputs, which will lead to incorrect CCXT results, use `--no-warnings` argument when running in debug
-const isDebugMode = require('inspector').url() !== undefined;
-
 /*  --------------------------------------------------------------------------- */
 
 const [,, ...args] = process.argv
@@ -85,11 +80,6 @@ const exec = (bin, ...args) =>
         ps.stderr.on ('data', data => { output += data.toString (); stderr += data.toString (); hasWarnings = true })
 
         ps.on ('exit', code => {
-
-            if (isDebugMode) {
-                stderr = stderr.replace('Debugger attached.\r\n','').replace ('Waiting for the debugger to disconnect...\r\n', '').replace(/\(node:\d+\) ExperimentalWarning: The Fetch API is an experimental feature. This feature could change at any time\n\(Use `node --trace-warnings ...` to show where the warning was created\)\n/, '');
-                if (stderr === '') { hasWarnings = false; }
-            }
 
             output = ansi.strip (output.trim ())
             stderr = ansi.strip (stderr)
