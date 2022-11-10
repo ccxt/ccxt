@@ -1490,10 +1490,16 @@ class bybit extends \ccxt\async\bybit {
         $symbols = is_array($marketSymbols) ? array_keys($marketSymbols) : array();
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
-            $messageHash = 'order:' . $symbol . ':' . $topic;
+            $messageHash = 'order:' . $symbol;
+            if ($topic) {
+                $messageHash .= ':' . $topic;
+            }
             $client->resolve ($orders, $messageHash);
         }
-        $messageHash = 'order:' . $topic;
+        $messageHash = 'order';
+        if ($topic) {
+            $messageHash .= ':' . $topic;
+        }
         // non-$symbol specific
         $client->resolve ($orders, $messageHash);
     }

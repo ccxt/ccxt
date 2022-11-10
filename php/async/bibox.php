@@ -808,9 +808,13 @@ class bibox extends Exchange {
             //            ...
             //    }
             //
-            $result = $this->safe_value($response, 'e');
+            $result = $this->safe_value($response, 'e', array());
             if ($result === null) {
-                $result = $response || array();
+                if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+                    $result = $response;
+                } else {
+                    $result = array();
+                }
             }
             return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
         }) ();
@@ -994,6 +998,8 @@ class bibox extends Exchange {
 
     public function parse_balance($response) {
         //
+        // v4PrivateGetUserdataAccounts (spot)
+        //
         //    array(
         //        array(
         //            "s" => "USDT",              // asset $code
@@ -1003,14 +1009,28 @@ class bibox extends Exchange {
         //        ...
         //    )
         //
+        // v3.1PrivatePostTransferMainAssets (funding)
+        //
+        //    array(
+        //        array(
+        //            coin_symbol => 'ETHW',
+        //            BTCValue => '0.00036926',
+        //            CNYValue => '53.61898578',
+        //            USDValue => '7.58403021',
+        //            $balance => '1.14228556',
+        //            freeze => '0.00000000'
+        //        ),
+        //        ...
+        //    )
+        //
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
-            $currencyId = $this->safe_string($balance, 's');
+            $currencyId = $this->safe_string_2($balance, 's', 'coin_symbol');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_string($balance, 'a');
-            $account['used'] = $this->safe_string($balance, 'h');
+            $account['free'] = $this->safe_string_2($balance, 'a', 'balance');
+            $account['used'] = $this->safe_string_2($balance, 'h', 'freeze');
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
@@ -1019,32 +1039,66 @@ class bibox extends Exchange {
     public function fetch_balance($params = array ()) {
         return Async\async(function () use ($params) {
             /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * $query for balance and get the amount of funds available for trading or funds locked in orders
              * @see https://biboxcom.github.io/api/spot/v4/en/#get-accounts
+             * @see https://biboxcom.github.io/api/spot/v3/en/#wallet-assets
              * @param {array} $params extra parameters specific to the bibox api endpoint
-             * @param {str} $params->code unified $currency $code
+             * @param {str} $params->code unified $currency $code (v4 only)
+             * @param {str|null} $params->type 'funding' (v3), or 'spot' (v4)
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
             Async\await($this->load_markets());
-            $code = $this->safe_string($params, 'code');
-            $params = $this->omit($params, 'code');
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
             $request = array();
-            if ($code !== null) {
-                $currency = $this->currency($code);
-                $request['asset'] = $currency['id'];
+            $balanceList = null;
+            if ($marketType === 'spot') {
+                $code = $this->safe_string($query, 'code');
+                $requestParams = $this->omit($query, 'code');
+                if ($code !== null) {
+                    $currency = $this->currency($code);
+                    $request['asset'] = $currency['id'];
+                }
+                $balanceList = Async\await($this->v4PrivateGetUserdataAccounts (array_merge($request, $requestParams)));
+                //
+                //    array(
+                //        array(
+                //            "s" => "USDT",              // asset $code
+                //            "a" => 2.6617573979,        // available amount
+                //            "h" => 0                    // frozen amount
+                //        ),
+                //        ...
+                //    )
+                //
+            } elseif (($marketType === 'main') || ($marketType === 'wallet') || ($marketType === 'funding')) {
+                $method = 'v3.1PrivatePostTransferMainAssets';
+                $request['select'] = 1; // 0-Total assets of each $currency, 1-Request asset details of all currencies
+                $response = Async\await($this->$method (array_merge($request, $query)));
+                //
+                //    {
+                //        $result => array(
+                //            total_btc => '0.01',
+                //            total_cny => 'xxx',
+                //            total_usd => 'xxx',
+                //            assets_list => array(
+                //                array(
+                //                    coin_symbol => 'ETHW',
+                //                    BTCValue => '0.00036926',
+                //                    CNYValue => '53.61898578',
+                //                    USDValue => '7.58403021',
+                //                    balance => '1.14228556',
+                //                    freeze => '0.00000000'
+                //                ),
+                //                ...
+                //            )
+                //        ),
+                //        cmd => 'mainAssets',
+                //        state => '0'
+                //    }
+                //
+                $result = $this->safe_value($response, 'result', array());
+                $balanceList = $this->safe_value($result, 'assets_list', array());
             }
-            $response = Async\await($this->v4PrivateGetUserdataAccounts (array_merge($request, $params)));
-            //
-            //    array(
-            //        array(
-            //            "s" => "USDT",              // asset $code
-            //            "a" => 2.6617573979,        // available amount
-            //            "h" => 0                    // frozen amount
-            //        ),
-            //        ...
-            //    )
-            //
-            return $this->parse_balance($response);
+            return $this->parse_balance($balanceList);
         }) ();
     }
 

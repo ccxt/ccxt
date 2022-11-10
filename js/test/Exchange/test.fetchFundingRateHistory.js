@@ -22,7 +22,7 @@ module.exports = async (exchange, symbol) => {
 
         const market = exchange.market (symbol);
         if (market.spot) {
-            console.log (method + '() is not supported for spot market symbol');
+            console.log (method + '() is not supported for spot markets');
             return;
         }
     
