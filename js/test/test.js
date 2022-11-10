@@ -124,6 +124,7 @@ function findValueIndexInArray (arr, value) {
 function exceptionMessage (exc) {
     return '[' + exc.constructor.name + '] ' + exc.message.slice (0, 200);
 }
+
 // ### end of language specific common methods ###
 
 // ----------------------------------------------------------------------------
@@ -151,9 +152,6 @@ async function testSymbol (exchange, symbol) {
     await test ('fetchL2OrderBook', exchange, symbol);
     await test ('fetchOrderBooks', exchange);
     await test ('fetchBidsAsks', exchange);
-    await test ('fetchTransactionFees', exchange);
-    await test ('fetchTransactionFee', exchange, symbol);
-    await test ('fetchMarketLeverageTiers', exchange, symbol);
     await test ('fetchTradingLimits', exchange);
     await test ('fetchFundingRates', exchange);
     await test ('fetchFundingRate', exchange, symbol);
@@ -354,8 +352,11 @@ async function testExchange (exchange) {
 
     await test ('fetchAccounts', exchange);
     await test ('fetchTransactionFees', exchange);
-    await test ('fetchTradingFee', exchange, symbol); // fethcTradingFee(s) might be public for some exchanges
+    // fethcTradingFee(s) & fetchTransactionFee(s) might be public for some exchanges
+    await test ('fetchTradingFee', exchange, symbol);
     await test ('fetchTradingFees', exchange);
+    await test ('fetchTransactionFee', exchange, symbol);
+    await test ('fetchTransactionFees', exchange);
     await test ('fetchStatus', exchange);
 
     await test ('fetchOrders', exchange, symbol);
@@ -363,6 +364,7 @@ async function testExchange (exchange) {
     await test ('fetchClosedOrders', exchange, symbol);
     await test ('fetchMyTrades', exchange, symbol);
     await test ('fetchLeverageTiers', exchange, symbol);
+    await test ('fetchMarketLeverageTiers', exchange, symbol);
     await test ('fetchOpenInterestHistory', exchange, symbol);
     await test ('fetchPositions', exchange, symbol);
     await test ('fetchLedger', exchange, code);
