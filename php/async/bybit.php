@@ -3620,7 +3620,7 @@ class bybit extends Exchange {
              * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
              */
             $market = null;
-            $symbolDefined = ($market !== null);
+            $symbolDefined = ($symbol !== null);
             if ($symbolDefined) {
                 $market = $this->market($symbol);
             }
