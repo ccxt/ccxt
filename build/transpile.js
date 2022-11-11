@@ -2015,8 +2015,6 @@ class Transpiler {
             createFolderRecursively (phpAsyncFolder)
         }
 
-        this.transpileBaseMethods ()
-
         // const classes = this.transpileDerivedExchangeFiles (tsFolder, options, pattern, force)
         const classes = this.transpileDerivedExchangeFiles (tsFolder, options, '.ts', force, child || exchanges.length)
 
