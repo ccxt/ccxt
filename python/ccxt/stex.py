@@ -1078,13 +1078,7 @@ class stex(Exchange):
         if (type == 'BUY') or (type == 'SELL'):
             type = None
         side = self.safe_string_lower(order, 'type')
-        rawTrades = self.safe_value(order, 'trades')
-        trades = None
-        if rawTrades is not None:
-            trades = self.parse_trades(rawTrades, market, None, None, {
-                'symbol': symbol,
-                'order': id,
-            })
+        trades = self.safe_value(order, 'trades')
         stopPrice = self.safe_number(order, 'trigger_price')
         result = {
             'info': order,
