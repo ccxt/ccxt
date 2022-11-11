@@ -516,24 +516,10 @@ module.exports = class crex24 extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactionFees (response, codes);
+        return this.parseTransactionFees (response, codes, 'currency');
     }
 
-    parseTransactionFees (response, codes = undefined) {
-        const result = {};
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const currencyId = this.safeString (entry, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            if (codes !== undefined && !this.inArray (code, codes)) {
-                continue;
-            }
-            result[code] = this.parseTransactionFee (entry);
-        }
-        return result;
-    }
-
-    parseTransactionFee (fee) {
+    parseTransactionFee (fee, currency = undefined) {
         //
         //     [
         //         {
