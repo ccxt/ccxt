@@ -3588,7 +3588,7 @@ module.exports = class bybit extends Exchange {
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         let market = undefined;
-        const symbolDefined = (market !== undefined);
+        const symbolDefined = (symbol !== undefined);
         if (symbolDefined) {
             market = this.market (symbol);
         }
