@@ -1364,43 +1364,21 @@ module.exports = class bitso extends Exchange {
         //        }
         //    }
         //
-        const result = {};
         const payload = this.safeValue (response, 'payload', {});
-        const depositFees = this.safeValue (payload, 'deposit_fees', []);
-        for (let i = 0; i < depositFees.length; i++) {
-            const depositFee = depositFees[i];
-            const currencyId = this.safeString (depositFee, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            if ((codes !== undefined) && !this.inArray (code, codes)) {
-                continue;
-            }
-            result[code] = {
-                'deposit': this.safeNumber (depositFee, 'fee'),
-                'withdraw': undefined,
-                'info': {
-                    'deposit': depositFee,
-                    'withdraw': undefined,
-                },
-            };
-        }
-        const withdrawalFees = this.safeValue (payload, 'withdrawal_fees', []);
-        const currencyIds = Object.keys (withdrawalFees);
-        for (let i = 0; i < currencyIds.length; i++) {
-            const currencyId = currencyIds[i];
-            const code = this.safeCurrencyCode (currencyId);
-            if ((codes !== undefined) && !this.inArray (code, codes)) {
-                continue;
-            }
-            result[code] = {
-                'deposit': this.safeValue (result[code], 'deposit'),
-                'withdraw': this.safeNumber (withdrawalFees, currencyId),
-                'info': {
-                    'deposit': this.safeValue (result[code]['info'], 'deposit'),
-                    'withdraw': this.safeNumber (withdrawalFees, currencyId),
-                },
-            };
-        }
-        return result;
+        const depositResponse = this.safeValue (payload, 'deposit_fees', []);
+        const withdrawalResponse = this.safeValue (payload, 'withdrawal_fees', []);
+        const depositFees = this.parseTransactionFees (depositResponse);
+        const withdrawalFees = this.parseTransactionFees (withdrawalResponse);
+        return this.deepExtend (depositFees, withdrawalFees);
+    }
+
+    parseTransactionFee (transaction, currency = undefined) {
+        const id = this.safeString (currency, 'id');
+        return {
+            'deposit': this.safeValue (transaction, 'deposit'),
+            'withdraw': this.safeNumber (transaction, id),
+            'info': transaction,
+        };
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
