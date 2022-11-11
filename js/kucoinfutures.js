@@ -1800,27 +1800,43 @@ module.exports = class kucoinfutures extends kucoin {
         //
         // fetchMyTrades (private) v1
         //
-        //      {
-        //          "symbol":"DOGEUSDTM",
-        //          "tradeId":"620ec41a96bab27b5f4ced56",
-        //          "orderId":"620ec41a0d1d8a0001560bd0",
-        //          "side":"sell",
-        //          "liquidity":"taker",
-        //          "forceTaker":true,
-        //          "price":"0.13969",
-        //          "size":1,
-        //          "value":"13.969",
-        //          "feeRate":"0.0006",
-        //          "fixFee":"0",
-        //          "feeCurrency":"USDT",
-        //          "stop":"",
-        //          "tradeTime":1645134874858018058,
-        //          "fee":"0.0083814",
-        //          "settleCurrency":"USDT",
-        //          "orderType":"market",
-        //          "tradeType":"trade",
-        //          "createdAt":1645134874858
-        //      }
+        //    {
+        //        "symbol":"DOGEUSDTM",
+        //        "tradeId":"620ec41a96bab27b5f4ced56",
+        //        "orderId":"620ec41a0d1d8a0001560bd0",
+        //        "side":"sell",
+        //        "liquidity":"taker",
+        //        "forceTaker":true,
+        //        "price":"0.13969",
+        //        "size":1,
+        //        "value":"13.969",
+        //        "feeRate":"0.0006",
+        //        "fixFee":"0",
+        //        "feeCurrency":"USDT",
+        //        "stop":"",
+        //        "tradeTime":1645134874858018058,
+        //        "fee":"0.0083814",
+        //        "settleCurrency":"USDT",
+        //        "orderType":"market",
+        //        "tradeType":"trade",
+        //        "createdAt":1645134874858
+        //    }
+        //
+        // watchTrades
+        //
+        //    {
+        //        makerUserId: '62286a4d720edf0001e81961',
+        //        symbol: 'ADAUSDTM',
+        //        sequence: 41320766,
+        //        side: 'sell',
+        //        size: 2,
+        //        price: 0.35904,
+        //        takerOrderId: '636dd9da9857ba00010cfa44',
+        //        makerOrderId: '636dd9c8df149d0001e62bc8',
+        //        takerUserId: '6180be22b6ab210001fa3371',
+        //        tradeId: '636dd9da0000d400d477eca7',
+        //        ts: 1668143578987357700
+        //    }
         //
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market, '-');
