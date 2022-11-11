@@ -4442,7 +4442,7 @@ module.exports = class mexc3 extends Exchange {
         };
     }
 
-    parseTransactionFee (transaction, currency = undefined) {
+    parseTransactionFee (fee, currency = undefined) {
         //
         //    {
         //        coin: 'AGLD',
@@ -4469,7 +4469,7 @@ module.exports = class mexc3 extends Exchange {
         //        ]
         //    }
         //
-        const networkList = this.safeValue (transaction, 'networkList', []);
+        const networkList = this.safeValue (fee, 'networkList', []);
         const result = {};
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];

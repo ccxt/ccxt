@@ -466,13 +466,13 @@ module.exports = class whitebit extends Exchange {
         return this.parseTransactionFees (response, codes);
     }
 
-    parseTransactionFee (transaction, currency = undefined) {
-        const withdraw = this.safeValue (transaction, 'withdraw', {});
-        const deposit = this.safeValue (transaction, 'deposit', {});
+    parseTransactionFee (fee, currency = undefined) {
+        const withdraw = this.safeValue (fee, 'withdraw', {});
+        const deposit = this.safeValue (fee, 'deposit', {});
         return {
             'withdraw': this.safeNumber (withdraw, 'fixed'),
             'deposit': this.safeNumber (deposit, 'fixed'),
-            'info': transaction,
+            'info': fee,
         };
     }
 

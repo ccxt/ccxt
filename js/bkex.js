@@ -1426,7 +1426,7 @@ module.exports = class bkex extends Exchange {
         return result;
     }
 
-    parseTransactionFee (transaction, currency = undefined) {
+    parseTransactionFee (fee, currency = undefined) {
         //
         //      {
         //          "currency": "ETH",
@@ -1439,7 +1439,7 @@ module.exports = class bkex extends Exchange {
         //          "withdrawFee": 0.008
         //      }
         //
-        return this.safeNumber (transaction, 'withdrawFee');
+        return this.safeNumber (fee, 'withdrawFee');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

@@ -2019,10 +2019,10 @@ module.exports = class lbank2 extends Exchange {
         return this.safeValue (response, 'data', []);
     }
 
-    parseTransactionFee (transaction, currency = undefined) {
-        const canWithdraw = this.safeString (transaction, 'canWithDraw');
+    parseTransactionFee (fee, currency = undefined) {
+        const canWithdraw = this.safeString (fee, 'canWithDraw');
         if (canWithdraw !== false) {
-            const networkList = this.safeValue (transaction, 'networkList', []);
+            const networkList = this.safeValue (fee, 'networkList', []);
             const networks = {};
             for (let j = 0; j < networkList.length; j++) {
                 const networkEntry = networkList[j];
@@ -2036,13 +2036,13 @@ module.exports = class lbank2 extends Exchange {
             return {
                 'withdraw': networks,
                 'deposit': {},
-                'info': transaction,
+                'info': fee,
             };
         } else {
             return {
                 'withdraw': [],
                 'deposit': {},
-                'info': transaction,
+                'info': fee,
             };
         }
     }

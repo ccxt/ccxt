@@ -414,11 +414,11 @@ module.exports = class bitfinex extends Exchange {
         return this.parseTransactionFees (withdraw, codes);
     }
 
-    parseTransactionFee (transaction, currency = undefined) {
+    parseTransactionFee (fee, currency = undefined) {
         return {
-            'withdraw': transaction,
+            'withdraw': fee,
             'deposit': {},
-            'info': transaction,
+            'info': fee,
         };
     }
 

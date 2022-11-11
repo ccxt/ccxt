@@ -2464,11 +2464,11 @@ module.exports = class stex extends Exchange {
         return this.parseTransactionFees (response, codes, 'code');
     }
 
-    parseTransactionFee (transaction, currency = undefined) {
+    parseTransactionFee (fee, currency = undefined) {
         return {
-            'withdraw': this.safeNumber (transaction, 'withdraw_fee_const'),
-            'deposit': this.safeNumber (transaction, 'deposit_fee_const'),
-            'info': transaction,
+            'withdraw': this.safeNumber (fee, 'withdraw_fee_const'),
+            'deposit': this.safeNumber (fee, 'deposit_fee_const'),
+            'info': fee,
         };
     }
 

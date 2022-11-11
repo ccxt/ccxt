@@ -533,7 +533,7 @@ module.exports = class crex24 extends Exchange {
         return result;
     }
 
-    parseTransactionFee (transaction) {
+    parseTransactionFee (fee) {
         //
         //     [
         //         {
@@ -555,9 +555,9 @@ module.exports = class crex24 extends Exchange {
         const result = {
             'withdraw': {},
             'deposit': {},
-            'info': transaction,
+            'info': fee,
         };
-        const networkList = this.safeValue (transaction, 'fees');
+        const networkList = this.safeValue (fee, 'fees');
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
             const networkId = this.safeString (networkEntry, 'feeCurrency');

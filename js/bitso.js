@@ -1372,12 +1372,12 @@ module.exports = class bitso extends Exchange {
         return this.deepExtend (depositFees, withdrawalFees);
     }
 
-    parseTransactionFee (transaction, currency = undefined) {
+    parseTransactionFee (fee, currency = undefined) {
         const id = this.safeString (currency, 'id');
         return {
-            'deposit': this.safeValue (transaction, 'deposit'),
-            'withdraw': this.safeNumber (transaction, id),
-            'info': transaction,
+            'deposit': this.safeValue (fee, 'deposit'),
+            'withdraw': this.safeNumber (fee, id),
+            'info': fee,
         };
     }
 

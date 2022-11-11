@@ -4483,8 +4483,8 @@ module.exports = class binance extends Exchange {
         return this.parseTransactionFees (response, codes, 'coin');
     }
 
-    parseTransactionFee (transaction, currency = undefined) {
-        const networkList = this.safeValue (transaction, 'networkList', []);
+    parseTransactionFee (fee, currency = undefined) {
+        const networkList = this.safeValue (fee, 'networkList', []);
         const networks = {};
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
@@ -4496,7 +4496,7 @@ module.exports = class binance extends Exchange {
         return {
             'withdraw': networks,
             'deposit': {},
-            'info': transaction,
+            'info': fee,
         };
     }
 
