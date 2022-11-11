@@ -1223,20 +1223,36 @@ module.exports = class digifinex extends Exchange {
          * @method
          * @name digifinex#cancelOrder
          * @description cancels an open order
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#cancelorder
          * @param {string} id order id
          * @param {string|undefined} symbol not used by digifinex cancelOrder ()
          * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        const orderType = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateSpotPostSpotOrderCancel',
+            'margin': 'privateSpotPostMarginOrderCancel',
+            'swap': 'privateSwapPostTradeCancelOrder',
+        });
         const request = {
-            'market': orderType,
             'order_id': id,
         };
-        const response = await this.privateSpotPostMarketOrderCancel (this.extend (request, params));
+        if (marketType === 'swap') {
+            this.checkRequiredSymbol ('cancelOrder', symbol);
+            request['instrument_id'] = market['id'];
+        } else {
+            request['market'] = marketType;
+        }
+        const response = await this[method] (this.extend (request, query));
+        //
+        // spot
         //
         //     {
         //         "code": 0,
@@ -1249,10 +1265,19 @@ module.exports = class digifinex extends Exchange {
         //         ]
         //     }
         //
-        const canceledOrders = this.safeValue (response, 'success', []);
-        const numCanceledOrders = canceledOrders.length;
-        if (numCanceledOrders !== 1) {
-            throw new OrderNotFound (this.id + ' cancelOrder() ' + id + ' not found');
+        // swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": "1590923061186531328"
+        //     }
+        //
+        if ((marketType === 'spot') || (marketType === 'margin')) {
+            const canceledOrders = this.safeValue (response, 'success', []);
+            const numCanceledOrders = canceledOrders.length;
+            if (numCanceledOrders !== 1) {
+                throw new OrderNotFound (this.id + ' cancelOrder() ' + id + ' not found');
+            }
         }
         return response;
     }
