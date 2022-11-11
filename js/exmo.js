@@ -430,7 +430,7 @@ module.exports = class exmo extends Exchange {
          * @returns {object} a list of [transaction fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fees-structure}
          */
         await this.loadMarkets ();
-        const cryptoList = await this.publicGetPaymentsProvidersCryptoList (params);
+        const response = await this.publicGetPaymentsProvidersCryptoList (params);
         //
         //     {
         //         "BTC":[
@@ -465,31 +465,25 @@ module.exports = class exmo extends Exchange {
         //         ],
         //     }
         //
-        const result = {};
-        const cryptoListKeys = Object.keys (cryptoList);
-        for (let i = 0; i < cryptoListKeys.length; i++) {
-            const code = cryptoListKeys[i];
-            if (codes !== undefined && !this.inArray (code, codes)) {
-                continue;
-            }
-            result[code] = {
-                'deposit': undefined,
-                'withdraw': undefined,
-            };
-            const currency = this.currency (code);
-            const currencyId = this.safeString (currency, 'id');
-            const providers = this.safeValue (cryptoList, currencyId, []);
-            for (let j = 0; j < providers.length; j++) {
-                const provider = providers[j];
-                const type = this.safeString (provider, 'type');
-                const commissionDesc = this.safeString (provider, 'commission_desc');
-                const fee = this.parseFixedFloatValue (commissionDesc);
-                result[code][type] = fee;
-            }
-            result[code]['info'] = providers;
-        }
+        const result = this.parseTransactionFees (response, codes);
         // cache them for later use
         this.options['transactionFees'] = result;
+        return result;
+    }
+
+    parseTransactionFee (fee, currency = undefined) {
+        const result = {
+            'withdraw': {},
+            'deposit': {},
+        };
+        for (let i = 0; i < fee.length; i++) {
+            const provider = fee[i];
+            const type = this.safeString (provider, 'type');
+            const name = this.safeString (provider, 'name');
+            const commissionDesc = this.safeString (provider, 'commission_desc');
+            result[type][name] = this.parseFixedFloatValue (commissionDesc);
+        }
+        result['info'] = fee;
         return result;
     }
 
