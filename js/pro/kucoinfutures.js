@@ -217,25 +217,25 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
 
     handleTrade (client, message) {
         //
-        //     {
-        //         data: {
-        //             sequence: '1568787654360',
-        //             symbol: 'BTC-USDT',
-        //             side: 'buy',
-        //             size: '0.00536577',
-        //             price: '9345',
-        //             takerOrderId: '5e356c4a9f1a790008f8d921',
-        //             time: '1580559434436443257',
-        //             type: 'match',
-        //             makerOrderId: '5e356bffedf0010008fa5d7f',
-        //             tradeId: '5e356c4aeefabd62c62a1ece'
-        //         },
-        //         subject: 'trade.l3match',
-        //         topic: '/market/match:BTC-USDT',
-        //         type: 'message'
-        //     }
+        //    {
+        //        type: 'message',
+        //        topic: '/contractMarket/execution:ADAUSDTM',
+        //        subject: 'match',
+        //        data: {
+        //            makerUserId: '62286a4d720edf0001e81961',
+        //            symbol: 'ADAUSDTM',
+        //            sequence: 41320766,
+        //            side: 'sell',
+        //            size: 2,
+        //            price: 0.35904,
+        //            takerOrderId: '636dd9da9857ba00010cfa44',
+        //            makerOrderId: '636dd9c8df149d0001e62bc8',
+        //            takerUserId: '6180be22b6ab210001fa3371',
+        //            tradeId: '636dd9da0000d400d477eca7',
+        //            ts: 1668143578987357700
+        //        }
+        //    }
         //
-        // TODO
         const data = this.safeValue (message, 'data', {});
         const trade = this.parseTrade (data);
         const messageHash = this.safeString (message, 'topic');
