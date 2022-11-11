@@ -1218,7 +1218,7 @@ export default class bitmart extends Exchange {
             limit = maxLimit;
         }
         limit = Math.min (maxLimit, limit);
-        const now = parseInt ((this.milliseconds () / 1000).toString ());
+        const now = this.parseToInt (this.milliseconds () / 1000);
         const fromRequest = (type === 'spot') ? 'from' : 'start_time';
         const toRequest = (type === 'spot') ? 'to' : 'end_time';
         if (since === undefined) {
@@ -1226,7 +1226,7 @@ export default class bitmart extends Exchange {
             request[fromRequest] = start;
             request[toRequest] = now;
         } else {
-            const start = parseInt ((since / 1000).toString ()) - 1;
+            const start = this.parseToInt ((since / 1000)) - 1;
             const end = this.sum (start, limit * duration);
             request[fromRequest] = start;
             request[toRequest] = Math.min (end, now);

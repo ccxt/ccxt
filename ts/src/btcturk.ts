@@ -567,7 +567,7 @@ export default class btcturk extends Exchange {
             'resolution': this.safeValue (this.timeframes, timeframe, timeframe), // allows the user to pass custom timeframes if needed
         };
         const until = this.safeInteger (params, 'until', this.milliseconds ());
-        request['to'] = parseInt ((until / 1000).toString ());
+        request['to'] = this.parseToInt ((until / 1000));
         if (since !== undefined) {
             request['from'] = this.parseToInt (since / 1000);
         } else if (limit === undefined) { // since will also be undefined
@@ -580,10 +580,10 @@ export default class btcturk extends Exchange {
             const seconds = this.parseTimeframe (timeframe);
             const limitSeconds = seconds * (limit - 1);
             if (since !== undefined) {
-                const to = parseInt ((since / 1000).toString ()) + limitSeconds;
+                const to = this.parseToInt (since / 1000) + limitSeconds;
                 request['to'] = Math.min (request['to'], to);
             } else {
-                request['from'] = parseInt ((until / 1000).toString ()) - limitSeconds;
+                request['from'] = this.parseToInt (until / 1000) - limitSeconds;
             }
         }
         const response = await (this as any).graphGetKlinesHistory (this.extend (request, params));
