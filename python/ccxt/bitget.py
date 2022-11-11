@@ -102,7 +102,7 @@ class bitget(Exchange):
                 'setLeverage': True,
                 'setMarginMode': True,
                 'setPositionMode': False,
-                'transfer': False,
+                'transfer': True,
                 'withdraw': False,
             },
             'timeframes': {
@@ -3292,6 +3292,75 @@ class bitget(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         return self.parse_open_interest(data, market)
+
+    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        see https://bitgetlimited.github.io/apidoc/en/spot/#transfer
+        transfer currency internally between wallets on the same account
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the bitget api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMS
+        :param str params['clientOid']: custom id
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        fromSwap = fromAccount == 'swap'
+        toSwap = toAccount == 'swap'
+        usdt = currency['code'] == 'USDT'
+        if fromSwap:
+            fromAccount = 'mix_usdt' if usdt else 'mix_usd'
+        elif toSwap:
+            toAccount = 'mix_usdt' if usdt else 'mix_usd'
+        request = {
+            'fromType': fromAccount,
+            'toType': toAccount,
+            'amount': amount,
+            'coin': currency['info']['coinName'],
+        }
+        response = self.privateSpotPostWalletTransfer(self.extend(request, params))
+        #
+        #    {
+        #        "code": "00000",
+        #        "msg": "success",
+        #        "requestTime": 1668119107154,
+        #        "data": "SUCCESS"
+        #    }
+        #
+        return self.parse_transfer(response, currency)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #    {
+        #        "code": "00000",
+        #        "msg": "success",
+        #        "requestTime": 1668119107154,
+        #        "data": "SUCCESS"
+        #    }
+        #
+        timestamp = self.safe_integer(transfer, 'requestTime')
+        msg = self.safe_string(transfer, 'msg')
+        return {
+            'info': transfer,
+            'id': self.safe_string(transfer, 'id'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'currency': self.safe_string(currency, 'code'),
+            'amount': self.safe_number(transfer, 'size'),
+            'fromAccount': None,
+            'toAccount': None,
+            'status': 'ok' if (msg == 'success') else msg,
+        }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            'success': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
 
     def parse_open_interest(self, interest, market=None):
         #
