@@ -431,21 +431,15 @@ async function tryAllProxies (exchange, proxies) {
     for (let numRetries = 0; numRetries < maxRetries; numRetries++) {
 
         try {
-
             exchange.proxy = proxies[currentProxy];
-
             // add random origin for proxies
             const proxiesLength = exchange.proxy.length;
             if (proxiesLength > 0) {
                 exchange.origin = exchange.uuid ();
             }
-
             await testExchange (exchange);
-
             break;
-
         } catch (e) {
-
             currentProxy = (currentProxy + 1) % maxRetries;
             console.log (exceptionMessage (e));
             if (e instanceof ccxt.DDoSProtection) {
