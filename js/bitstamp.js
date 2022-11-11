@@ -1174,9 +1174,6 @@ module.exports = class bitstamp extends Exchange {
         //     ...
         //  }
         //
-        if (codes === undefined) {
-            codes = Object.keys (this.currencies);
-        }
         const result = {};
         let mainCurrencyId = undefined;
         const ids = Object.keys (response);
