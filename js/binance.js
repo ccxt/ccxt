@@ -4480,25 +4480,23 @@ module.exports = class binance extends Exchange {
         //     }
         //  ]
         //
-        const withdrawFees = {};
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const currencyId = this.safeString (entry, 'coin');
-            const code = this.safeCurrencyCode (currencyId);
-            const networkList = this.safeValue (entry, 'networkList', []);
-            withdrawFees[code] = {};
-            for (let j = 0; j < networkList.length; j++) {
-                const networkEntry = networkList[j];
-                const networkId = this.safeString (networkEntry, 'network');
-                const networkCode = this.safeCurrencyCode (networkId);
-                const fee = this.safeNumber (networkEntry, 'withdrawFee');
-                withdrawFees[code][networkCode] = fee;
-            }
+        return this.parseTransactionFees (response, codes, 'coin');
+    }
+
+    parseTransactionFee (transaction, currency = undefined) {
+        const networkList = this.safeValue (transaction, 'networkList', []);
+        const networks = {};
+        for (let j = 0; j < networkList.length; j++) {
+            const networkEntry = networkList[j];
+            const networkId = this.safeString (networkEntry, 'network');
+            const networkCode = this.safeCurrencyCode (networkId);
+            const fee = this.safeNumber (networkEntry, 'withdrawFee');
+            networks[networkCode] = fee;
         }
         return {
-            'withdraw': withdrawFees,
+            'withdraw': networks,
             'deposit': {},
-            'info': response,
+            'info': transaction,
         };
     }
 
