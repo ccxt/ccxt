@@ -29,5 +29,5 @@
     "zb":            { "skipWs": true },
     "tidebit":       { "skip": true },
     "tokocrypto":    { "skip": true },
-    "exmo":          { "skip": true }
+    "exmo":          { "skipWs": true }
 }
