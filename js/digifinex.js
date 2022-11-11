@@ -1114,44 +1114,103 @@ module.exports = class digifinex extends Exchange {
          * @method
          * @name digifinex#createOrder
          * @description create a trade order
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#create-new-order
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#orderplace
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the digifinex api endpoint
+         * @param {string} params.timeInForce "GTC", "IOC", "FOK", or "PO"
+         * @param {bool} params.postOnly true or false
+         * @param {bool} params.reduceOnly true or false
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        const orderType = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
-        const request = {
-            'market': orderType,
-            'symbol': market['id'],
-            'amount': this.amountToPrecision (market['symbol'], amount),
-            // 'post_only': 0, // 0 by default, if set to 1 the order will be canceled if it can be executed immediately, making sure there will be no market taking
-        };
-        let suffix = '';
-        if (type === 'market') {
-            suffix = '_market';
+        symbol = market['symbol'];
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateSpotPostSpotOrderNew',
+            'margin': 'privateSpotPostMarginOrderNew',
+            'swap': 'privateSwapPostTradeOrderPlace',
+        });
+        const request = {};
+        const swap = (marketType === 'swap');
+        const isMarketOrder = (type === 'market');
+        const isLimitOrder = (type === 'limit');
+        const marketIdRequest = swap ? 'instrument_id' : 'symbol';
+        request[marketIdRequest] = market['id'];
+        let postOnly = this.isPostOnly (isMarketOrder, false, params);
+        if (swap) {
+            const reduceOnly = this.safeValue (params, 'reduceOnly', false);
+            const timeInForce = this.safeString (params, 'timeInForce');
+            let orderType = undefined;
+            if (side === 'buy') {
+                const requestType = (reduceOnly) ? 4 : 1;
+                request['type'] = requestType;
+            } else {
+                const requestType = (reduceOnly) ? 3 : 2;
+                request['type'] = requestType;
+            }
+            if (isLimitOrder) {
+                orderType = 0;
+            }
+            if (timeInForce === 'FOK') {
+                orderType = isMarketOrder ? 15 : 9;
+            } else if (timeInForce === 'IOC') {
+                orderType = isMarketOrder ? 13 : 4;
+            } else if ((timeInForce === 'GTC') || (isMarketOrder)) {
+                orderType = 14;
+            } else if (timeInForce === 'PO') {
+                postOnly = true;
+            }
+            if (price !== undefined) {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+            request['order_type'] = orderType;
+            request['size'] = amount;  // swap orders require the amount to be the number of contracts
+            params = this.omit (params, [ 'reduceOnly', 'timeInForce' ]);
         } else {
-            request['price'] = this.priceToPrecision (market['symbol'], price);
+            postOnly = (postOnly === true) ? 1 : 2;
+            request['market'] = marketType;
+            let suffix = '';
+            if (type === 'market') {
+                suffix = '_market';
+            } else {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+            request['type'] = side + suffix;
+            // limit orders require the amount in the base currency, market orders require the amount in the quote currency
+            request['amount'] = this.amountToPrecision (symbol, amount);
         }
-        request['type'] = side + suffix;
-        const response = await this.privateSpotPostMarketOrderNew (this.extend (request, params));
+        if (postOnly) {
+            request['postOnly'] = postOnly;
+        }
+        const query = this.omit (params, [ 'postOnly', 'post_only' ]);
+        const response = await this[method] (this.extend (request, query));
+        //
+        // spot
         //
         //     {
         //         "code": 0,
         //         "order_id": "198361cecdc65f9c8c9bb2fa68faec40"
         //     }
         //
+        // swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": "1590873693003714560"
+        //     }
+        //
         const result = this.parseOrder (response, market);
         return this.extend (result, {
-            'symbol': market['symbol'],
-            'side': side,
+            'symbol': symbol,
             'type': type,
+            'side': side,
             'amount': amount,
             'price': price,
         });
@@ -1248,11 +1307,18 @@ module.exports = class digifinex extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // createOrder
+        // spot: createOrder
         //
         //     {
         //         "code": 0,
         //         "order_id": "198361cecdc65f9c8c9bb2fa68faec40"
+        //     }
+        //
+        // swap: createOrder
+        //
+        //     {
+        //         "code": 0,
+        //         "data": "1590873693003714560"
         //     }
         //
         // fetchOrder, fetchOpenOrders, fetchOrders
@@ -1272,7 +1338,7 @@ module.exports = class digifinex extends Exchange {
         //         "kind": "margin"
         //     }
         //
-        const id = this.safeString (order, 'order_id');
+        const id = this.safeString2 (order, 'order_id', 'data');
         const timestamp = this.safeTimestamp (order, 'created_date');
         const lastTradeTimestamp = this.safeTimestamp (order, 'finished_date');
         let side = this.safeString (order, 'type');
@@ -2259,11 +2325,26 @@ module.exports = class digifinex extends Exchange {
         const payload = pathPart + request;
         let url = this.urls['api']['rest'] + payload;
         const query = this.omit (params, this.extractParams (path));
-        const urlencoded = this.urlencode (this.keysort (query));
+        let urlencoded = this.urlencode (this.keysort (query));
         if (signed) {
-            const nonce = this.nonce ().toString ();
-            const auth = urlencoded;
-            // the signature is not time-limited :\
+            let auth = undefined;
+            let nonce = undefined;
+            if (pathPart === '/swap/v2') {
+                nonce = this.milliseconds ().toString ();
+                auth = nonce + method + payload;
+                if (method === 'GET') {
+                    if (urlencoded) {
+                        auth += '?' + urlencoded;
+                    }
+                } else if (method === 'POST') {
+                    const swapPostParams = JSON.stringify (params);
+                    urlencoded = swapPostParams;
+                    auth += swapPostParams;
+                }
+            } else {
+                nonce = this.nonce ().toString ();
+                auth = urlencoded;
+            }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret));
             if (method === 'GET') {
                 if (urlencoded) {
