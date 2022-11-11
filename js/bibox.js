@@ -53,8 +53,8 @@ module.exports = class bibox extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
-                'fetchTransactionFee': 'emulated',
-                'fetchTransactionFees': true,
+                'fetchTransactionFee': true,
+                'fetchTransactionFees': false,
                 'fetchWithdrawals': true,
                 'transfer': true,
                 'withdraw': true,
@@ -2046,62 +2046,57 @@ module.exports = class bibox extends Exchange {
         return this.parseTransaction (firstResult, currency);
     }
 
-    async fetchTransactionFees (codes = undefined, params = {}) {
+    async fetchTransactionFee (code, params = {}) {
         /**
          * @method
-         * @name bibox#fetchTransactionFees
-         * @description by default it will try load withdrawal fees of all currencies (with separate requests), however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
-         * @param {[string]|undefined} codes list of unified currency codes
+         * @name bibox#fetchTransactionFee
+         * @description fetch withdrawal fees for currencies
+         * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the bibox api endpoint
-         * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         * @returns {object} a [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const withdrawFees = {};
-        const info = {};
-        if (codes === undefined) {
-            codes = Object.keys (this.currencies);
-        }
-        for (let i = 0; i < codes.length; i++) {
-            const code = codes[i];
-            const currency = this.currency (code);
-            const request = {
-                'cmd': 'transfer/coinConfig',
-                'body': this.extend ({
-                    'coin_symbol': currency['id'],
-                }, params),
-            };
-            const response = await this.v1PrivatePostTransfer (request);
-            //     {
-            //         "result":[
-            //             {
-            //                 "result":[
-            //                     {
-            //                         "coin_symbol":"ETH",
-            //                         "is_active":1,
-            //                         "original_decimals":18,
-            //                         "enable_deposit":1,
-            //                         "enable_withdraw":1,
-            //                         "withdraw_fee":0.008,
-            //                         "withdraw_min":0.05,
-            //                         "deposit_avg_spent":173700,
-            //                         "withdraw_avg_spent":322600
-            //                     }
-            //                 ],
-            //                 "cmd":"transfer/coinConfig"
-            //             }
-            //         ]
-            //     }
-            //
-            const outerResults = this.safeValue (response, 'result', []);
-            const firstOuterResult = this.safeValue (outerResults, 0, {});
-            const innerResults = this.safeValue (firstOuterResult, 'result', []);
-            const firstInnerResult = this.safeValue (innerResults, 0, {});
-            info[code] = firstInnerResult;
-            withdrawFees[code] = this.safeNumber (firstInnerResult, 'withdraw_fee');
-        }
+        const currency = this.currency (code);
+        const request = {
+            'cmd': 'transfer/coinConfig',
+            'body': this.extend ({
+                'coin_symbol': currency['id'],
+            }, params),
+        };
+        const response = await this.v1PrivatePostTransfer (request);
+        //
+        //    {
+        //        "result": [
+        //            {
+        //                "result": [
+        //                    {
+        //                        "coin_symbol": "ETH",
+        //                        "is_active": 1,
+        //                        "original_decimals": 18,
+        //                        "enable_deposit": 1,
+        //                        "enable_withdraw": 1,
+        //                        "withdraw_fee": 0.008,
+        //                        "withdraw_min": 0.05,
+        //                        "deposit_avg_spent": 173700,
+        //                        "withdraw_avg_spent": 322600
+        //                    }
+        //                ],
+        //                "cmd": "transfer/coinConfig"
+        //            }
+        //        ]
+        //    }
+        //
+        const outerResults = this.safeValue (response, 'result', []);
+        const firstOuterResult = this.safeValue (outerResults, 0, {});
+        const innerResults = this.safeValue (firstOuterResult, 'result', []);
+        const firstInnerResult = this.safeValue (innerResults, 0, {});
+        return this.parseTransactionFee (firstInnerResult, currency);
+    }
+
+    parseTransactionFee (fee, currency = undefined) {
         return {
-            'info': info,
-            'withdraw': withdrawFees,
+            'info': 'fee',
+            'withdraw': this.safeNumber (fee, 'withdraw_fee'),
             'deposit': {},
         };
     }
