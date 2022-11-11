@@ -56,7 +56,7 @@ module.exports = class digifinex extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFee': false,
+                'fetchTradingFee': true,
                 'fetchTradingFees': false,
                 'fetchWithdrawals': true,
                 'setMarginMode': false,
@@ -243,6 +243,7 @@ module.exports = class digifinex extends Exchange {
                     '20040': [ RateLimitExceeded, 'Withdraw too frequently; limitation: 3 times a minute, 100 times a day' ],
                     '20041': [ PermissionDenied, 'Beyond the daily withdrawal limit' ],
                     '20042': [ BadSymbol, 'Current trading pair does not support API trading' ],
+                    '400002': [ BadRequest, 'Invalid Parameter' ],
                 },
                 'broad': {
                 },
@@ -2227,6 +2228,57 @@ module.exports = class digifinex extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
+    async fetchTradingFee (symbol, params = {}) {
+        /**
+         * @method
+         * @name digifinex#fetchTradingFee
+         * @description fetch the trading fees for a market
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#tradingfee
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the digifinex api endpoint
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadRequest (this.id + ' fetchTradingFee() supports swap markets only');
+        }
+        const request = {
+            'instrument_id': market['id'],
+        };
+        const response = await this.privateSwapGetAccountTradingFeeRate (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "instrument_id": "BTCUSDTPERP",
+        //             "taker_fee_rate": "0.0005",
+        //             "maker_fee_rate": "0.0003"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTradingFee (data, market);
+    }
+
+    parseTradingFee (fee, market = undefined) {
+        //
+        //     {
+        //         "instrument_id": "BTCUSDTPERP",
+        //         "taker_fee_rate": "0.0005",
+        //         "maker_fee_rate": "0.0003"
+        //     }
+        //
+        const marketId = this.safeString (fee, 'instrument_id');
+        const symbol = this.safeSymbol (marketId, market);
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': this.safeNumber (fee, 'maker_fee_rate'),
+            'taker': this.safeNumber (fee, 'taker_fee_rate'),
+        };
+    }
+
     handleMarginModeAndParams (methodName, params = {}) {
         /**
          * @ignore
@@ -2259,11 +2311,26 @@ module.exports = class digifinex extends Exchange {
         const payload = pathPart + request;
         let url = this.urls['api']['rest'] + payload;
         const query = this.omit (params, this.extractParams (path));
-        const urlencoded = this.urlencode (this.keysort (query));
+        let urlencoded = this.urlencode (this.keysort (query));
         if (signed) {
-            const nonce = this.nonce ().toString ();
-            const auth = urlencoded;
-            // the signature is not time-limited :\
+            let auth = undefined;
+            let nonce = undefined;
+            if (pathPart === '/swap/v2') {
+                nonce = this.milliseconds ().toString ();
+                auth = nonce + method + payload;
+                if (method === 'GET') {
+                    if (urlencoded) {
+                        auth += '?' + urlencoded;
+                    }
+                } else if (method === 'POST') {
+                    const swapPostParams = JSON.stringify (params);
+                    urlencoded = swapPostParams;
+                    auth += swapPostParams;
+                }
+            } else {
+                nonce = this.nonce ().toString ();
+                auth = urlencoded;
+            }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret));
             if (method === 'GET') {
                 if (urlencoded) {
