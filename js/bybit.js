@@ -173,7 +173,6 @@ module.exports = class bybit extends Exchange {
                         'v2/public/time': 1,
                         'v3/public/time': 1,
                         'v2/public/announcement': 1,
-                        'v3/public/time': 1,
                         // USDC endpoints
                         // option USDC
                         'option/usdc/openapi/public/v1/order-book': 1,
@@ -4498,6 +4497,7 @@ module.exports = class bybit extends Exchange {
             throw new ArgumentsRequired (this.id + ' cancelDerivativesOrder() requires a symbol argument');
         }
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
             // 'order_link_id': 'string', // one of order_id, stop_order_id or order_link_id is required
@@ -5295,7 +5295,7 @@ module.exports = class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'response', {});
         const orders = this.safeValue (result, 'list', []);
-        return this.parseOrders (result, market, since, limit);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchUnifiedMarginOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
