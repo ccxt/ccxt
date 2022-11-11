@@ -64,8 +64,8 @@ module.exports = class buda extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
-                'fetchTransactionFee': 'emulated',
-                'fetchTransactionFees': true,
+                'fetchTransactionFee': true,
+                'fetchTransactionFees': false,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,
@@ -416,10 +416,7 @@ module.exports = class buda extends Exchange {
             codes = Object.keys (this.currencies);
         }
         for (let i = 0; i < codes.length; i++) {
-            const code = codes[i];
-            const currency = this.currency (code);
-            const request = { 'currency': currency['id'] };
-            const withdrawResponse = await this.publicGetCurrenciesCurrencyFeesWithdrawal (request);
+            
             const depositResponse = await this.publicGetCurrenciesCurrencyFeesDeposit (request);
             withdrawFees[code] = this.parseTransactionFee (withdrawResponse['fee']);
             depositFees[code] = this.parseTransactionFee (depositResponse['fee']);
@@ -435,18 +432,24 @@ module.exports = class buda extends Exchange {
         };
     }
 
-    parseTransactionFee (fee, type = undefined) {
-        if (type === undefined) {
-            type = fee['name'];
-        }
+    async fetchTransactionFee (code, params = {}) {
+        this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = { 'currency': currency['id'] };
+        const response = await this.publicGetCurrenciesCurrencyFeesWithdrawal (this.extend (request, params));
+        return this.parseTransactionFee (response);
+    }
+
+    parseTransactionFee (fee, currency = undefined) {
+        let type = this.safeString (fee, 'name');
         if (type === 'withdrawal') {
             type = 'withdraw';
         }
         return {
             'type': type,
-            'currency': fee['base'][1],
-            'rate': fee['percent'],
-            'cost': parseFloat (fee['base'][0]),
+            'currency': this.safeString (this.safeString (fee, 'base'), 1),
+            'rate': this.safeString (fee, 'percent'),
+            'cost': parseFloat (this.safeString (this.safeString (fee, 'base'), 0)),
         };
     }
 
