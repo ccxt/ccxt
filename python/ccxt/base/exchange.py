@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.1.14'
+__version__ = '2.1.67'
 
 # -----------------------------------------------------------------------------
 
@@ -2097,6 +2097,8 @@ class Exchange(object):
         return self.filter_by_symbol_since_limit(results, symbol, since, limit, tail)
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
+        if type == 'market' and takerOrMaker == 'maker':
+            raise ArgumentsRequired(self.id + ' calculateFee() - you have provided incompatible arguments - "market" type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.')
         market = self.markets[symbol]
         feeSide = self.safe_string(market, 'feeSide', 'quote')
         key = 'quote'
@@ -2125,11 +2127,11 @@ class Exchange(object):
                 key = 'base'
         # for derivatives, the fee is in 'settle' currency
         if not market['spot']:
-            key = self.safe_string(market, 'settle', key)
+            key = 'settle'
         # even if `takerOrMaker` argument was set to 'maker', for 'market' orders we should forcefully override it to 'taker'
         if type == 'market':
             takerOrMaker = 'taker'
-        rate = self.number_to_string(market[takerOrMaker])
+        rate = self.safe_string(market, takerOrMaker)
         if cost is not None:
             cost = Precise.string_mul(cost, rate)
         return {
@@ -2678,7 +2680,7 @@ class Exchange(object):
     def safe_currency(self, currencyId, currency=None):
         if (currencyId is None) and (currency is not None):
             return currency
-        if (self.currencies_by_id is not None) and (currencyId in self.currencies_by_id):
+        if (self.currencies_by_id is not None) and (currencyId in self.currencies_by_id) and (self.currencies_by_id[currencyId] is not None):
             return self.currencies_by_id[currencyId]
         code = currencyId
         if currencyId is not None:

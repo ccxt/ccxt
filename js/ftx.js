@@ -978,16 +978,20 @@ module.exports = class ftx extends Exchange {
         const price = this.safeString (params, 'price');
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, [ 'price', 'until' ]);
-        if (since !== undefined) {
+        const duration = this.parseTimeframe (timeframe);
+        const now = this.seconds ();
+        if (since === undefined) { // Issue #12855, inconsistent results if since is not provided
+            request['end_time'] = now;
+            request['start_time'] = this.sum (now, -limit * duration);
+        } else {
             const startTime = parseInt (since / 1000);
             request['start_time'] = startTime;
-            const duration = this.parseTimeframe (timeframe);
             const endTime = this.sum (startTime, limit * duration);
-            request['end_time'] = Math.min (endTime, this.seconds ());
-            if (duration > 86400) {
-                const wholeDaysInTimeframe = parseInt (duration / 86400);
-                request['limit'] = Math.min (limit * wholeDaysInTimeframe, maxLimit);
-            }
+            request['end_time'] = Math.min (endTime, now);
+        }
+        if (duration > 86400) {
+            const wholeDaysInTimeframe = parseInt (duration / 86400);
+            request['limit'] = Math.min (limit * wholeDaysInTimeframe, maxLimit);
         }
         if (until !== undefined) {
             request['end_time'] = parseInt (until / 1000);

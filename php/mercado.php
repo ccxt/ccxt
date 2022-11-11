@@ -711,7 +711,7 @@ class mercado extends Exchange {
 
     public function parse_ohlcv($ohlcv, $market = null) {
         return array(
-            $this->safe_timestamp($ohlcv, 0),
+            $this->safe_integer($ohlcv, 0),
             $this->safe_number($ohlcv, 1),
             $this->safe_number($ohlcv, 2),
             $this->safe_number($ohlcv, 3),

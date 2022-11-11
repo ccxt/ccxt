@@ -237,10 +237,9 @@ module.exports = class bitrue extends Exchange {
                     'limit': 'FULL', // we change it from 'ACK' by default to 'FULL' (returns immediately if limit is not hit)
                 },
                 'networks': {
-                    'SPL': 'SOLANA',
-                    'SOL': 'SOLANA',
-                    'DOGE': 'dogecoin',
-                    'ADA': 'Cardano',
+                    'ERC20': 'ETH',
+                    'TRC20': 'TRX',
+                    'TRON': 'TRX',
                 },
             },
             'commonCurrencies': {
@@ -1836,7 +1835,9 @@ module.exports = class bitrue extends Exchange {
         let chainName = this.safeString (params, 'chainName');
         if (chainName === undefined) {
             const networks = this.safeValue (currency, 'networks', {});
-            const network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+            const optionsNetworks = this.safeValue (this.options, 'networks', {});
+            let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
+            network = this.safeString (optionsNetworks, network, network);
             const networkEntry = this.safeValue (networks, network, {});
             chainName = this.safeString (networkEntry, 'id'); // handle ERC20>ETH alias
             if (chainName === undefined) {

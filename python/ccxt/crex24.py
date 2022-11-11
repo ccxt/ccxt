@@ -484,12 +484,16 @@ class crex24(Exchange):
     def fetch_transaction_fees(self, codes=None, params={}):
         """
         fetch transaction fees
-        :param [str]|None codes: not used by crex24 fetchTransactionFees
+        see https://docs.crex24.com/trade-api/v2/#currencies-withdrawal-fees
+        :param [str]|None codes: list of unified currency codes
         :param dict params: extra parameters specific to the crex24 api endpoint
         :returns dict: a list of `transaction fees structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
         """
         self.load_markets()
-        response = self.publicGetCurrenciesWithdrawalFees(params)
+        request = {}
+        if codes is not None:
+            request['filter'] = ','.join(codes)
+        response = self.publicGetCurrenciesWithdrawalFees(self.extend(request, params))
         #
         #     [
         #         {
@@ -508,24 +512,50 @@ class crex24(Exchange):
         #         }
         #     ]
         #
-        withdrawFees = {}
+        return self.parse_transaction_fees(response, codes)
+
+    def parse_transaction_fees(self, response, codes=None):
+        result = {}
         for i in range(0, len(response)):
             entry = response[i]
             currencyId = self.safe_string(entry, 'currency')
             code = self.safe_currency_code(currencyId)
-            networkList = self.safe_value(entry, 'fees')
-            withdrawFees[code] = {}
-            for j in range(0, len(networkList)):
-                networkEntry = networkList[j]
-                networkId = self.safe_string(networkEntry, 'feeCurrency')
-                networkCode = self.safe_currency_code(networkId)
-                fee = self.safe_number(networkEntry, 'amount')
-                withdrawFees[code][networkCode] = fee
-        return {
-            'withdraw': withdrawFees,
+            if codes is not None and not self.in_array(code, codes):
+                continue
+            result[code] = self.parse_transaction_fee(entry)
+        return result
+
+    def parse_transaction_fee(self, transaction):
+        #
+        #     [
+        #         {
+        #             currency: '1INCH',
+        #             fees: [
+        #                 {feeCurrency: 'BTC', amount: 0.00032},
+        #                 {feeCurrency: 'ETH', amount: 0.0054},
+        #                 {feeCurrency: 'DOGE', amount: 63.06669},
+        #                 {feeCurrency: 'LTC', amount: 0.0912},
+        #                 {feeCurrency: 'BCH', amount: 0.02364},
+        #                 {feeCurrency: 'USDT', amount: 12.717},
+        #                 {feeCurrency: 'USDC', amount: 12.7367},
+        #                 {feeCurrency: 'TRX', amount: 205.99108},
+        #                 {feeCurrency: 'EOS', amount: 3.30141}
+        #             ]
+        #         }
+        #     ]
+        #
+        result = {
+            'withdraw': {},
             'deposit': {},
-            'info': response,
+            'info': transaction,
         }
+        networkList = self.safe_value(transaction, 'fees')
+        for j in range(0, len(networkList)):
+            networkEntry = networkList[j]
+            networkId = self.safe_string(networkEntry, 'feeCurrency')
+            fee = self.safe_number(networkEntry, 'amount')
+            result['withdraw'][networkId] = fee
+        return result
 
     def parse_balance(self, response):
         result = {'info': response}

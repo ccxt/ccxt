@@ -97,8 +97,8 @@ class mexc3(Exchange):
                 'fetchTradingFee': None,
                 'fetchTradingFees': True,
                 'fetchTradingLimits': None,
-                'fetchTransactionFee': None,
-                'fetchTransactionFees': None,
+                'fetchTransactionFee': 'emulated',
+                'fetchTransactionFees': True,
                 'fetchTransactions': None,
                 'fetchTransfer': True,
                 'fetchTransfers': True,
@@ -449,7 +449,8 @@ class mexc3(Exchange):
                     '2009': InvalidOrder,  # {"success":false,"code":2009,"message":"Position is not exists or closed."}
                     '2011': BadRequest,
                     '30004': InsufficientFunds,
-                    '33333': 'BadRequest',  # {"msg":"Not support transfer","code":33333}
+                    '33333': BadRequest,  # {"msg":"Not support transfer","code":33333}
+                    '44444': BadRequest,
                     '1002': InvalidOrder,
                     '30019': BadRequest,
                     '30005': InvalidOrder,
@@ -4064,6 +4065,99 @@ class mexc3(Exchange):
             'amount': amount,
             'symbol': symbol,
         })
+
+    def fetch_transaction_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdrawal fees
+        see https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+        :param [str]|None codes: returns fees for all currencies if None
+        :param dict params: extra parameters specific to the mexc3 api endpoint
+        :returns [dict]: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        self.load_markets()
+        response = self.spotPrivateGetCapitalConfigGetall(params)
+        #
+        #    [
+        #       {
+        #           coin: 'AGLD',
+        #           name: 'Adventure Gold',
+        #           networkList: [
+        #               {
+        #                   coin: 'AGLD',
+        #                   depositDesc: null,
+        #                   depositEnable: True,
+        #                   minConfirm: '0',
+        #                   name: 'Adventure Gold',
+        #                   network: 'ERC20',
+        #                   withdrawEnable: True,
+        #                   withdrawFee: '10.000000000000000000',
+        #                   withdrawIntegerMultiple: null,
+        #                   withdrawMax: '1200000.000000000000000000',
+        #                   withdrawMin: '20.000000000000000000',
+        #                   sameAddress: False,
+        #                   contract: '0x32353a6c91143bfd6c7d363b546e62a9a2489a20',
+        #                   withdrawTips: null,
+        #                   depositTips: null
+        #               }
+        #               ...
+        #           ]
+        #       },
+        #       ...
+        #    ]
+        #
+        return self.parse_transaction_fees(response, codes)
+
+    def parse_transaction_fees(self, response, codes=None):
+        withdrawFees = {}
+        for i in range(0, len(response)):
+            entry = response[i]
+            currencyId = self.safe_string(entry, 'coin')
+            currency = self.safe_currency(currencyId)
+            code = self.safe_string(currency, 'code')
+            if (codes is None) or (self.in_array(code, codes)):
+                withdrawFees[code] = self.parse_transaction_fee(entry, currency)
+        return {
+            'withdraw': withdrawFees,
+            'deposit': {},
+            'info': response,
+        }
+
+    def parse_transaction_fee(self, transaction, currency=None):
+        #
+        #    {
+        #        coin: 'AGLD',
+        #        name: 'Adventure Gold',
+        #        networkList: [
+        #            {
+        #                coin: 'AGLD',
+        #                depositDesc: null,
+        #                depositEnable: True,
+        #                minConfirm: '0',
+        #                name: 'Adventure Gold',
+        #                network: 'ERC20',
+        #                withdrawEnable: True,
+        #                withdrawFee: '10.000000000000000000',
+        #                withdrawIntegerMultiple: null,
+        #                withdrawMax: '1200000.000000000000000000',
+        #                withdrawMin: '20.000000000000000000',
+        #                sameAddress: False,
+        #                contract: '0x32353a6c91143bfd6c7d363b546e62a9a2489a20',
+        #                withdrawTips: null,
+        #                depositTips: null
+        #            }
+        #            ...
+        #        ]
+        #    }
+        #
+        networkList = self.safe_value(transaction, 'networkList', [])
+        result = {}
+        for j in range(0, len(networkList)):
+            networkEntry = networkList[j]
+            networkId = self.safe_string(networkEntry, 'network')
+            networkCode = self.safe_string(self.options['networks'], networkId, networkId)
+            fee = self.safe_number(networkEntry, 'withdrawFee')
+            result[networkCode] = fee
+        return result
 
     def parse_margin_loan(self, info, currency=None):
         #

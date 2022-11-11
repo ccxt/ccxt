@@ -983,16 +983,20 @@ class ftx extends Exchange {
             $price = $this->safe_string($params, 'price');
             $until = $this->safe_integer($params, 'until');
             $params = $this->omit($params, array( 'price', 'until' ));
-            if ($since !== null) {
+            $duration = $this->parse_timeframe($timeframe);
+            $now = $this->seconds();
+            if ($since === null) { // Issue #12855, inconsistent results if $since is not provided
+                $request['end_time'] = $now;
+                $request['start_time'] = $this->sum($now, -$limit * $duration);
+            } else {
                 $startTime = intval($since / 1000);
                 $request['start_time'] = $startTime;
-                $duration = $this->parse_timeframe($timeframe);
                 $endTime = $this->sum($startTime, $limit * $duration);
-                $request['end_time'] = min ($endTime, $this->seconds());
-                if ($duration > 86400) {
-                    $wholeDaysInTimeframe = intval($duration / 86400);
-                    $request['limit'] = min ($limit * $wholeDaysInTimeframe, $maxLimit);
-                }
+                $request['end_time'] = min ($endTime, $now);
+            }
+            if ($duration > 86400) {
+                $wholeDaysInTimeframe = intval($duration / 86400);
+                $request['limit'] = min ($limit * $wholeDaysInTimeframe, $maxLimit);
             }
             if ($until !== null) {
                 $request['end_time'] = intval($until / 1000);

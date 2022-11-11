@@ -452,6 +452,7 @@ class kucoin(Exchange):
                         'POST': {
                             'accounts/inner-transfer': 'v2',
                             'accounts/sub-transfer': 'v2',
+                            'accounts': 'v2',
                         },
                     },
                     'futuresPrivate': {
@@ -1985,6 +1986,7 @@ class kucoin(Exchange):
         #         "amount": 1,
         #         "fee": 0.0001,
         #         "currency": "KCS",
+        #         "chain": "",
         #         "isInner": False,
         #         "walletTxId": "5bbb57386d99522d9f954c5a@test004",
         #         "status": "SUCCESS",
@@ -2000,6 +2002,7 @@ class kucoin(Exchange):
         #         "address": "0x5bedb060b8eb8d823e2414d82acce78d38be7fe9",
         #         "memo": "",
         #         "currency": "ETH",
+        #         "chain": "",
         #         "amount": 1.0000000,
         #         "fee": 0.0100000,
         #         "walletTxId": "3e2414d82acce78d38be7fe9",
@@ -2053,12 +2056,13 @@ class kucoin(Exchange):
             if updated is not None:
                 updated = updated * 1000
         tag = self.safe_string(transaction, 'memo')
+        network = self.safe_string(transaction, 'chain')
         return {
             'info': transaction,
             'id': self.safe_string_2(transaction, 'id', 'withdrawalId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': None,
+            'network': network,
             'address': address,
             'addressTo': address,
             'addressFrom': None,
@@ -2210,31 +2214,98 @@ class kucoin(Exchange):
         responseData = response['data']['items']
         return self.parse_transactions(responseData, currency, since, limit, {'type': 'withdrawal'})
 
+    def fetch_balance_helper(self, entry):
+        account = self.account()
+        account['used'] = self.safe_string(entry, 'holdBalance')
+        account['free'] = self.safe_string(entry, 'availableBalance')
+        account['total'] = self.safe_string(entry, 'totalBalance')
+        return account
+
     async def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
+        see https://docs.kucoin.com/#list-accounts
+        see https://docs.kucoin.com/#query-isolated-margin-account-info
         :param dict params: extra parameters specific to the kucoin api endpoint
+        :param dict params['marginMode']: 'cross' or 'isolated', margin type for fetching margin balance
+        :param dict params['type']: extra parameters specific to the kucoin api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         await self.load_markets()
+        code = self.safe_string(params, 'code')
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
         requestedType = self.safe_string(params, 'type', defaultType)
         accountsByType = self.safe_value(self.options, 'accountsByType')
         type = self.safe_string(accountsByType, requestedType, requestedType)
         params = self.omit(params, 'type')
-        request = {
-            'type': type,
-        }
-        response = await self.privateGetAccounts(self.extend(request, params))
+        marginMode, query = self.handle_margin_mode_and_params('fetchBalance', params)
+        method = 'privateGetAccounts'
+        request = {}
+        isolated = (marginMode == 'isolated') or (type == 'isolated')
+        if isolated:
+            method = 'privateGetIsolatedAccounts'
+            if currency is not None:
+                request['balanceCurrency'] = currency['id']
+        else:
+            if currency is not None:
+                request['currency'] = currency['id']
+            request['type'] = type
+        response = await getattr(self, method)(self.extend(request, query))
         #
-        #     {
-        #         "code":"200000",
-        #         "data":[
-        #             {"balance":"0.00009788","available":"0.00009788","holds":"0","currency":"BTC","id":"5c6a4fd399a1d81c4f9cc4d0","type":"trade"},
-        #             {"balance":"3.41060034","available":"3.41060034","holds":"0","currency":"SOUL","id":"5c6a4d5d99a1d8182d37046d","type":"trade"},
-        #             {"balance":"0.01562641","available":"0.01562641","holds":"0","currency":"NEO","id":"5c6a4f1199a1d8165a99edb1","type":"trade"},
-        #         ]
-        #     }
+        # Spot and Cross
+        #
+        #    {
+        #        "code": "200000",
+        #        "data": [
+        #            {
+        #                "balance": "0.00009788",
+        #                "available": "0.00009788",
+        #                "holds": "0",
+        #                "currency": "BTC",
+        #                "id": "5c6a4fd399a1d81c4f9cc4d0",
+        #                "type": "trade",
+        #            },
+        #        ]
+        #    }
+        #
+        # Isolated
+        #
+        #    {
+        #        code: '200000',
+        #        data: {
+        #            totalConversionBalance: '0',
+        #            liabilityConversionBalance: '0',
+        #            assets: [
+        #                {
+        #                    symbol: 'MANA-USDT',
+        #                    status: 'CLEAR',
+        #                    debtRatio: '0',
+        #                    baseAsset: {
+        #                        currency: 'MANA',
+        #                        totalBalance: '0',
+        #                        holdBalance: '0',
+        #                        availableBalance: '0',
+        #                        liability: '0',
+        #                        interest: '0',
+        #                        borrowableAmount: '0'
+        #                    },
+        #                    quoteAsset: {
+        #                        currency: 'USDT',
+        #                        totalBalance: '0',
+        #                        holdBalance: '0',
+        #                        availableBalance: '0',
+        #                        liability: '0',
+        #                        interest: '0',
+        #                        borrowableAmount: '0'
+        #                    }
+        #                },
+        #                ...
+        #            ]
+        #        }
+        #    }
         #
         data = self.safe_value(response, 'data', [])
         result = {
@@ -2242,18 +2313,33 @@ class kucoin(Exchange):
             'timestamp': None,
             'datetime': None,
         }
-        for i in range(0, len(data)):
-            balance = data[i]
-            balanceType = self.safe_string(balance, 'type')
-            if balanceType == type:
-                currencyId = self.safe_string(balance, 'currency')
-                code = self.safe_currency_code(currencyId)
-                account = self.account()
-                account['total'] = self.safe_string(balance, 'balance')
-                account['free'] = self.safe_string(balance, 'available')
-                account['used'] = self.safe_string(balance, 'holds')
-                result[code] = account
-        return self.safe_balance(result)
+        if isolated:
+            assets = self.safe_value(data, 'assets', [])
+            for i in range(0, len(assets)):
+                entry = assets[i]
+                marketId = self.safe_string(entry, 'symbol')
+                symbol = self.safe_symbol(marketId, None, '_')
+                base = self.safe_value(entry, 'baseAsset', {})
+                quote = self.safe_value(entry, 'quoteAsset', {})
+                baseCode = self.safe_currency_code(self.safe_string(base, 'currency'))
+                quoteCode = self.safe_currency_code(self.safe_string(quote, 'currency'))
+                subResult = {}
+                subResult[baseCode] = self.fetch_balance_helper(base)
+                subResult[quoteCode] = self.fetch_balance_helper(quote)
+                result[symbol] = self.safe_balance(subResult)
+        else:
+            for i in range(0, len(data)):
+                balance = data[i]
+                balanceType = self.safe_string(balance, 'type')
+                if balanceType == type:
+                    currencyId = self.safe_string(balance, 'currency')
+                    code = self.safe_currency_code(currencyId)
+                    account = self.account()
+                    account['total'] = self.safe_string(balance, 'balance')
+                    account['free'] = self.safe_string(balance, 'available')
+                    account['used'] = self.safe_string(balance, 'holds')
+                    result[code] = account
+        return result if isolated else self.safe_balance(result)
 
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
         """
@@ -3006,7 +3092,9 @@ class kucoin(Exchange):
         query = self.omit(params, self.extract_params(path))
         endpart = ''
         headers = headers if (headers is not None) else {}
-        if path == 'symbols':
+        url = self.urls['api'][api]
+        isSandbox = url.find('sandbox') >= 0
+        if path == 'symbols' and not isSandbox:
             endpoint = '/api/v2/' + self.implode_params(path, params)
         if query:
             if (method == 'GET') or (method == 'DELETE'):
@@ -3015,7 +3103,7 @@ class kucoin(Exchange):
                 body = self.json(query)
                 endpart = body
                 headers['Content-Type'] = 'application/json'
-        url = self.urls['api'][api] + endpoint
+        url = url + endpoint
         isFuturePrivate = (api == 'futuresPrivate')
         isPrivate = (api == 'private')
         if isPrivate or isFuturePrivate:

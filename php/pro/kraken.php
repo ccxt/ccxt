@@ -297,6 +297,15 @@ class kraken extends \ccxt\async\kraken {
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of candles to fetch
+             * @param {array} $params extra parameters specific to the kraken api endpoint
+             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             */
             Async\await($this->load_markets());
             $name = 'ohlc';
             $market = $this->market($symbol);
@@ -772,6 +781,7 @@ class kraken extends \ccxt\async\kraken {
     public function watch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
+             * @see https://docs.kraken.com/websockets/#message-openOrders
              * watches information on multiple orders made by the user
              * @param {string|null} $symbol unified market $symbol of the market orders were made in
              * @param {int|null} $since the earliest time in ms to fetch orders for
@@ -919,11 +929,34 @@ class kraken extends \ccxt\async\kraken {
     public function parse_ws_order($order, $market = null) {
         //
         // createOrder
-        //
-        //     {
-        //         descr => array( $order => 'buy 0.02100000 ETHUSDT @ limit 330.00' ),
-        //         $txid => array( 'OEKVV2-IH52O-TPL6GZ' )
-        //     }
+        //    {
+        //        avg_price => '0.00000',
+        //        $cost => '0.00000',
+        //        descr => array(
+        //            close => null,
+        //            leverage => null,
+        //            $order => 'sell 0.01000000 ETH/USDT @ limit 1900.00000',
+        //            ordertype => 'limit',
+        //            pair => 'ETH/USDT',
+        //            $price => '1900.00000',
+        //            price2 => '0.00000',
+        //            $type => 'sell'
+        //        ),
+        //        expiretm => null,
+        //        $fee => '0.00000',
+        //        limitprice => '0.00000',
+        //        misc => '',
+        //        oflags => 'fciq',
+        //        opentm => '1667522705.757622',
+        //        refid => null,
+        //        starttm => null,
+        //        $status => 'open',
+        //        stopprice => '0.00000',
+        //        timeinforce => 'GTC',
+        //        userref => 0,
+        //        vol => '0.01000000',
+        //        vol_exec => '0.00000000'
+        //    }
         //
         $description = $this->safe_value($order, 'descr', array());
         $orderDescription = $this->safe_string($description, 'order');
@@ -961,7 +994,7 @@ class kraken extends \ccxt\async\kraken {
         if (($price === null) || ($price === 0.0)) {
             $price = $this->safe_float($order, 'price', $price);
         }
-        $average = $this->safe_float($order, 'price');
+        $average = $this->safe_float_2($order, 'avg_price', 'price');
         if ($market !== null) {
             $symbol = $market['symbol'];
             if (is_array($order) && array_key_exists('fee', $order)) {

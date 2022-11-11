@@ -222,6 +222,15 @@ class huobi(Exchange, ccxt.async_support.huobi):
         return message
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the huobi api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
@@ -683,7 +692,7 @@ class huobi(Exchange, ccxt.async_support.huobi):
         orders = await self.subscribe_private(channel, messageHash, type, subType, params)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_since_limit(orders, since, limit)
+        return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
     def handle_order(self, client, message):
         #
@@ -1283,7 +1292,7 @@ class huobi(Exchange, ccxt.async_support.huobi):
                 return
             first = self.safe_value(data, 0, {})
             messageHash = self.safe_string(message, 'topic')
-            subscription = self.safe_value(client.subscriptions, messageHash)
+            subscription = self.safe_value_2(client.subscriptions, messageHash, messageHash + '.*')
             if subscription is None:
                 # if subscription not found means that we subscribed to a specific currency/symbol
                 # and we use the first data entry to find it
@@ -1314,7 +1323,7 @@ class huobi(Exchange, ccxt.async_support.huobi):
                             # we skip it if the market was delisted
                             if code is not None:
                                 account = self.account()
-                                account['free'] = self.safe_string(balance, 'margin_balance')
+                                account['free'] = self.safe_string_2(balance, 'margin_balance', 'margin_available')
                                 account['used'] = self.safe_string(balance, 'margin_frozen')
                                 accountsByCode = {}
                                 accountsByCode[code] = account

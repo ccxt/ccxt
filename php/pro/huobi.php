@@ -235,6 +235,15 @@ class huobi extends \ccxt\async\huobi {
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of candles to fetch
+             * @param {array} $params extra parameters specific to the huobi api endpoint
+             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $symbol = $market['symbol'];
@@ -751,7 +760,7 @@ class huobi extends \ccxt\async\huobi {
             if ($this->newUpdates) {
                 $limit = $orders->getLimit ($symbol, $limit);
             }
-            return $this->filter_by_since_limit($orders, $since, $limit);
+            return $this->filter_by_since_limit($orders, $since, $limit, 'timestamp', true);
         }) ();
     }
 
@@ -1378,7 +1387,7 @@ class huobi extends \ccxt\async\huobi {
             }
             $first = $this->safe_value($data, 0, array());
             $messageHash = $this->safe_string($message, 'topic');
-            $subscription = $this->safe_value($client->subscriptions, $messageHash);
+            $subscription = $this->safe_value_2($client->subscriptions, $messageHash, $messageHash . '.*');
             if ($subscription === null) {
                 // if $subscription not found means that we subscribed to a specific currency/symbol
                 // and we use the $first $data entry to find it
@@ -1410,7 +1419,7 @@ class huobi extends \ccxt\async\huobi {
                             // we skip it if the $market was delisted
                             if ($code !== null) {
                                 $account = $this->account();
-                                $account['free'] = $this->safe_string($balance, 'margin_balance');
+                                $account['free'] = $this->safe_string_2($balance, 'margin_balance', 'margin_available');
                                 $account['used'] = $this->safe_string($balance, 'margin_frozen');
                                 $accountsByCode = array();
                                 $accountsByCode[$code] = $account;

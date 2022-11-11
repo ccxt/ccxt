@@ -2284,12 +2284,12 @@ class stex(Exchange):
     async def fetch_transaction_fees(self, codes=None, params={}):
         """
         fetch transaction fees
-        :param [str]|None codes: not used by stex fetchTransactionFees()
+        see https://apidocs.stex.com/#tag/Public/paths/~1public~1currencies/get
+        :param [str]|None codes: list of unified currency codes
         :param dict params: extra parameters specific to the stex api endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
         """
         await self.load_markets()
-        response = await self.publicGetCurrencies(params)
         #
         #     {
         #         "success": True,
@@ -2329,19 +2329,20 @@ class stex(Exchange):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
-        withdrawFees = {}
-        depositFees = {}
-        for i in range(0, len(data)):
-            id = self.safe_string(data[i], 'id')
-            code = self.safe_currency_code(id)
-            withdrawFees[code] = self.safe_number(data[i], 'withdrawal_fee_const')
-            depositFees[code] = self.safe_number(data[i], 'deposit_fee_const')
-        return {
-            'withdraw': withdrawFees,
-            'deposit': depositFees,
-            'info': response,
-        }
+        currencyKeys = list(self.currencies.keys())
+        result = {}
+        for i in range(0, len(currencyKeys)):
+            code = currencyKeys[i]
+            currency = self.currencies[code]
+            if codes is not None and not self.in_array(code, codes):
+                continue
+            info = self.safe_value(currency, 'info')
+            result[code] = {
+                'withdraw': self.safe_number(currency, 'fee'),
+                'deposit': self.safe_number(info, 'deposit_fee_const'),
+                'info': info,
+            }
+        return result
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

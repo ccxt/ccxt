@@ -227,6 +227,17 @@ module.exports = class huobi extends huobiRest {
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the huobi api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -739,7 +750,7 @@ module.exports = class huobi extends huobiRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (orders, since, limit);
+        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
     handleOrder (client, message) {
@@ -1365,7 +1376,7 @@ module.exports = class huobi extends huobiRest {
             }
             const first = this.safeValue (data, 0, {});
             let messageHash = this.safeString (message, 'topic');
-            let subscription = this.safeValue (client.subscriptions, messageHash);
+            let subscription = this.safeValue2 (client.subscriptions, messageHash, messageHash + '.*');
             if (subscription === undefined) {
                 // if subscription not found means that we subscribed to a specific currency/symbol
                 // and we use the first data entry to find it
@@ -1397,7 +1408,7 @@ module.exports = class huobi extends huobiRest {
                             // we skip it if the market was delisted
                             if (code !== undefined) {
                                 const account = this.account ();
-                                account['free'] = this.safeString (balance, 'margin_balance');
+                                account['free'] = this.safeString2 (balance, 'margin_balance', 'margin_available');
                                 account['used'] = this.safeString (balance, 'margin_frozen');
                                 const accountsByCode = {};
                                 accountsByCode[code] = account;
