@@ -585,10 +585,22 @@ module.exports = class huobi extends huobiRest {
             const size = this.safeString (parts, 3);
             const sizeParts = size.split ('_');
             const limit = this.safeNumber (sizeParts, 1);
-            orderbook = this.orderBook ({}, limit);
+            orderbook = this.orderBook ({
+                'symbol': symbol,
+            }, limit);
         }
         if (orderbook['nonce'] === undefined) {
-            orderbook.cache.push (message);
+            const market = this.market (symbol);
+            const tick = this.safeValue (message, 'tick', {});
+            const event = this.safeString (tick, 'event');
+            if (!market['spot'] && event === 'snapshot') {
+                orderbook['nonce'] = 0;
+                this.handleOrderBookMessage (client, message, orderbook);
+                this.orderbooks[symbol] = orderbook;
+                client.resolve (orderbook, messageHash);
+            } else {
+                orderbook.cache.push (message);
+            }
         } else {
             this.handleOrderBookMessage (client, message, orderbook);
             client.resolve (orderbook, messageHash);
@@ -598,14 +610,17 @@ module.exports = class huobi extends huobiRest {
     handleOrderBookSubscription (client, message, subscription) {
         const symbol = this.safeString (subscription, 'symbol');
         const limit = this.safeInteger (subscription, 'limit');
-        if (symbol in this.orderbooks) {
+        const market = this.market (symbol);
+        if (market['spot'] && symbol in this.orderbooks) {
             delete this.orderbooks[symbol];
         }
-        this.orderbooks[symbol] = this.orderBook ({}, limit);
+        if (market['spot']) {
+            this.orderbooks[symbol] = this.orderBook ({}, limit);
+        }
         if (this.markets[symbol]['spot'] === true) {
             this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
         } else {
-            this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
+            // this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
         }
     }
 
