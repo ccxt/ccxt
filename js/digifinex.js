@@ -2304,11 +2304,26 @@ module.exports = class digifinex extends Exchange {
         const payload = pathPart + request;
         let url = this.urls['api']['rest'] + payload;
         const query = this.omit (params, this.extractParams (path));
-        const urlencoded = this.urlencode (this.keysort (query));
+        let urlencoded = this.urlencode (this.keysort (query));
         if (signed) {
-            const nonce = this.nonce ().toString ();
-            const auth = urlencoded;
-            // the signature is not time-limited :\
+            let auth = undefined;
+            let nonce = undefined;
+            if (pathPart === '/swap/v2') {
+                nonce = this.milliseconds ().toString ();
+                auth = nonce + method + payload;
+                if (method === 'GET') {
+                    if (urlencoded) {
+                        auth += '?' + urlencoded;
+                    }
+                } else if (method === 'POST') {
+                    const swapPostParams = JSON.stringify (params);
+                    urlencoded = swapPostParams;
+                    auth += swapPostParams;
+                }
+            } else {
+                nonce = this.nonce ().toString ();
+                auth = urlencoded;
+            }
             const signature = this.hmac (this.encode (auth), this.encode (this.secret));
             if (method === 'GET') {
                 if (urlencoded) {
