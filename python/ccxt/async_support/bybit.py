@@ -3410,7 +3410,7 @@ class bybit(Exchange):
         :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         market = None
-        symbolDefined = (market is not None)
+        symbolDefined = (symbol is not None)
         if symbolDefined:
             market = self.market(symbol)
         marketType = None
