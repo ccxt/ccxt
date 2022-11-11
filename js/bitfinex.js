@@ -401,30 +401,25 @@ module.exports = class bitfinex extends Exchange {
          * @returns {[object]} a list of [fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const result = {};
         const response = await this.privatePostAccountFees (params);
         //
-        // {
-        //     'withdraw': {
-        //         'BTC': '0.0004',
-        //     }
-        // }
+        //    {
+        //        'withdraw': {
+        //            'BTC': '0.0004',
+        //            ...
+        //        }
+        //    }
         //
-        const fees = this.safeValue (response, 'withdraw');
-        const ids = Object.keys (fees);
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const code = this.safeCurrencyCode (id);
-            if ((codes !== undefined) && !this.inArray (code, codes)) {
-                continue;
-            }
-            result[code] = {
-                'withdraw': this.safeNumber (fees, id),
-                'deposit': {},
-                'info': this.safeNumber (fees, id),
-            };
-        }
-        return result;
+        const withdraw = this.safeValue (response, 'withdraw');
+        return this.parseTransactionFees (withdraw, codes);
+    }
+
+    parseTransactionFee (transaction, currency = undefined) {
+        return {
+            'withdraw': transaction,
+            'deposit': {},
+            'info': transaction,
+        };
     }
 
     async fetchTradingFees (params = {}) {
