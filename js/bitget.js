@@ -3492,6 +3492,7 @@ module.exports = class bitget extends Exchange {
         /**
          * @method
          * @name bitget#transfer
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#transfer
          * @description transfer currency internally between wallets on the same account
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
