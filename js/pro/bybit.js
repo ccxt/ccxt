@@ -1267,11 +1267,17 @@ module.exports = class bybit extends bybitRest {
         const symbols = Object.keys (marketSymbols);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            const messageHash = 'usertrade:' + symbol + ':' + topic;
+            let messageHash = 'usertrade:' + symbol;
+            if (topic) {
+                messageHash += ':' + topic;
+            }
             client.resolve (trades, messageHash);
         }
         // non-symbol specific
-        const messageHash = 'usertrade:' + topic;
+        let messageHash = 'usertrade';
+        if (topic) {
+            messageHash += ':' + topic;
+        }
         client.resolve (trades, messageHash);
     }
 

@@ -88,8 +88,8 @@ class bkex extends Exchange {
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
                 'fetchTradingLimits' => null,
-                'fetchTransactionFee' => null,
-                'fetchTransactionFees' => null,
+                'fetchTransactionFee' => 'emulated',
+                'fetchTransactionFees' => true,
                 'fetchTransactions' => null,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
@@ -1366,6 +1366,84 @@ class bkex extends Exchange {
             'STOP_LIMIT' => 'limit',
         );
         return $this->safe_string($statuses, $status, $status);
+    }
+
+    public function fetch_transaction_fees($codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * fetch transaction fees
+             * @see https://bkexapi.github.io/docs/api_en.htm?shell#basicInformation-2
+             * @param {[string]|null} $codes list of unified currency $codes
+             * @param {array} $params extra parameters specific to the bkex api endpoint
+             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->publicGetCommonCurrencys ($params));
+            //
+            //      {
+            //          "msg" => "success",
+            //          "code" => "0",
+            //          "data" => array(
+            //            array(
+            //              "currency" => "ETH",
+            //              "maxWithdrawOneDay" => 2000,
+            //              "maxWithdrawSingle" => 2000,
+            //              "minWithdrawSingle" => 0.1,
+            //              "supportDeposit" => true,
+            //              "supportTrade" => true,
+            //              "supportWithdraw" => true,
+            //              "withdrawFee" => 0.008
+            //            ),
+            //            {
+            //              "currency" => "BTC",
+            //              "maxWithdrawOneDay" => 100,
+            //              "maxWithdrawSingle" => 100,
+            //              "minWithdrawSingle" => 0.01,
+            //              "supportDeposit" => true,
+            //              "supportTrade" => true,
+            //              "supportWithdraw" => true,
+            //              "withdrawFee" => 0.008
+            //            }
+            //          )
+            //      }
+            //
+            return $this->parse_transaction_fees($response, $codes);
+        }) ();
+    }
+
+    public function parse_transaction_fees($response, $codes = null) {
+        $data = $this->safe_value($response, 'data');
+        $result = array();
+        for ($i = 0; $i < count($data); $i++) {
+            $entry = $data[$i];
+            $currencyId = $this->safe_string($entry, 'currency');
+            $currency = $this->safe_currency($currencyId);
+            $code = $this->safe_string($currency, 'code');
+            if (($codes === null) || ($this->in_array($code, $codes))) {
+                $result[$code] = array(
+                    'withdraw' => $this->parse_transaction_fee($entry),
+                    'deposit' => null,
+                    'info' => $entry,
+                );
+            }
+        }
+        return $result;
+    }
+
+    public function parse_transaction_fee($transaction, $currency = null) {
+        //
+        //      {
+        //          "currency" => "ETH",
+        //          "maxWithdrawOneDay" => 2000,
+        //          "maxWithdrawSingle" => 2000,
+        //          "minWithdrawSingle" => 0.1,
+        //          "supportDeposit" => true,
+        //          "supportTrade" => true,
+        //          "supportWithdraw" => true,
+        //          "withdrawFee" => 0.008
+        //      }
+        //
+        return $this->safe_number($transaction, 'withdrawFee');
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

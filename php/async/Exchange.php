@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.1.55';
+$version = '2.1.63';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.1.55';
+    const VERSION = '2.1.63';
 
     public $browser;
     public $marketsLoading = null;
@@ -1363,7 +1363,7 @@ class Exchange extends \ccxt\Exchange {
         if (($currencyId === null) && ($currency !== null)) {
             return $currency;
         }
-        if (($this->currencies_by_id !== null) && (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id))) {
+        if (($this->currencies_by_id !== null) && (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) && ($this->currencies_by_id[$currencyId] !== null)) {
             return $this->currencies_by_id[$currencyId];
         }
         $code = $currencyId;
