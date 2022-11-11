@@ -152,7 +152,6 @@ async function testSymbol (exchange, symbol) {
     await test ('fetchL2OrderBook', exchange, symbol);
     await test ('fetchOrderBooks', exchange);
     await test ('fetchBidsAsks', exchange);
-    await test ('fetchTradingLimits', exchange);
     await test ('fetchFundingRates', exchange);
     await test ('fetchFundingRate', exchange, symbol);
     await test ('fetchFundingRateHistory', exchange, symbol);
@@ -357,8 +356,7 @@ async function testExchange (exchange) {
     await test ('fetchTradingFees', exchange);
     await test ('fetchTransactionFee', exchange, symbol);
     await test ('fetchTransactionFees', exchange);
-    await test ('fetchStatus', exchange);
-
+    await test ('fetchTradingLimits', exchange);
     await test ('fetchOrders', exchange, symbol);
     await test ('fetchOpenOrders', exchange, symbol);
     await test ('fetchClosedOrders', exchange, symbol);
