@@ -463,22 +463,16 @@ module.exports = class whitebit extends Exchange {
         //           {...}
         //      }
         //
-        const currenciesIds = Object.keys (response);
-        const withdrawFees = {};
-        const depositFees = {};
-        for (let i = 0; i < currenciesIds.length; i++) {
-            const currency = currenciesIds[i];
-            const data = response[currency];
-            const code = this.safeCurrencyCode (currency);
-            const withdraw = this.safeValue (data, 'withdraw', {});
-            withdrawFees[code] = this.safeString (withdraw, 'fixed');
-            const deposit = this.safeValue (data, 'deposit', {});
-            depositFees[code] = this.safeString (deposit, 'fixed');
-        }
+        return this.parseTransactionFees (response, codes);
+    }
+
+    parseTransactionFee (transaction, currency = undefined) {
+        const withdraw = this.safeValue (transaction, 'withdraw', {});
+        const deposit = this.safeValue (transaction, 'deposit', {});
         return {
-            'withdraw': withdrawFees,
-            'deposit': depositFees,
-            'info': response,
+            'withdraw': this.safeNumber (withdraw, 'fixed'),
+            'deposit': this.safeNumber (deposit, 'fixed'),
+            'info': transaction,
         };
     }
 
