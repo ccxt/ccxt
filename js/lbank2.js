@@ -1930,19 +1930,19 @@ module.exports = class lbank2 extends Exchange {
         // private only returns information for currencies with non-zero balance
         await this.loadMarkets ();
         const isAuthorized = this.checkRequiredCredentials (false);
-        let result = undefined;
+        let method = undefined;
         if (isAuthorized === true) {
-            let method = this.safeString (params, 'method');
+            method = this.safeString (params, 'method');
             params = this.omit (params, 'method');
             if (method === undefined) {
                 const options = this.safeValue (this.options, 'fetchTransactionFees', {});
                 method = this.safeString (options, 'method', 'fetchPrivateTransactionFees');
             }
-            result = await this[method] (params);
         } else {
-            result = await this.fetchPublicTransactionFees (params);
+            method = 'fetchPublicTransactionFees';
         }
-        return result;
+        const response = await this[method] (params);
+        return this.parseTransactionFees (response, codes, !isAuthorized ? 'assetCode' : 'coin');
     }
 
     async fetchPrivateTransactionFees (params = {}) {
@@ -1950,6 +1950,7 @@ module.exports = class lbank2 extends Exchange {
         // incl. for coins which undefined in public method
         await this.loadMarkets ();
         const response = await this.privatePostSupplementUserInfo ();
+        return this.safeValue (response, 'data', []);
         //
         //    {
         //        "result": "true",
@@ -1980,29 +1981,6 @@ module.exports = class lbank2 extends Exchange {
         //        "code": 0
         //    }
         //
-        const result = this.safeValue (response, 'data', []);
-        const withdrawFees = {};
-        for (let i = 0; i < result.length; i++) {
-            const entry = result[i];
-            const currencyId = this.safeString (entry, 'coin');
-            const code = this.safeCurrencyCode (currencyId);
-            const networkList = this.safeValue (entry, 'networkList', []);
-            withdrawFees[code] = {};
-            for (let j = 0; j < networkList.length; j++) {
-                const networkEntry = networkList[j];
-                const networkId = this.safeString (networkEntry, 'name');
-                const networkCode = this.safeString (this.options['inverse-networks'], networkId, networkId);
-                const fee = this.safeNumber (networkEntry, 'withdrawFee');
-                if (fee !== undefined) {
-                    withdrawFees[code][networkCode] = fee;
-                }
-            }
-        }
-        return {
-            'withdraw': withdrawFees,
-            'deposit': {},
-            'info': response,
-        };
     }
 
     async fetchPublicTransactionFees (params = {}) {
@@ -2038,31 +2016,35 @@ module.exports = class lbank2 extends Exchange {
         //        ts: '1663364435973'
         //    }
         //
-        const result = this.safeValue (response, 'data', []);
-        const withdrawFees = {};
-        for (let i = 0; i < result.length; i++) {
-            const item = result[i];
-            const canWithdraw = this.safeString (item, 'canWithDraw');
-            if (canWithdraw === 'true') {
-                const currencyId = this.safeString (item, 'assetCode');
-                const code = this.safeCurrencyCode (currencyId);
-                const chain = this.safeString (item, 'chain');
-                let network = this.safeString (this.options['inverse-networks'], chain, chain);
-                if (network === undefined) {
-                    network = code;
+        return this.safeValue (response, 'data', []);
+    }
+
+    parseTransactionFee (transaction, currency = undefined) {
+        const canWithdraw = this.safeString (transaction, 'canWithDraw');
+        if (canWithdraw !== false) {
+            const networkList = this.safeValue (transaction, 'networkList', []);
+            const networks = {};
+            for (let j = 0; j < networkList.length; j++) {
+                const networkEntry = networkList[j];
+                const networkId = this.safeString (networkEntry, 'name');
+                const networkCode = this.safeString (this.options['inverse-networks'], networkId, networkId);
+                const fee = this.safeNumber2 (networkEntry, 'fee', 'withdrawFee');
+                if (fee !== undefined) {
+                    networks[networkCode] = fee;
                 }
-                const fee = this.safeString (item, 'fee');
-                if (withdrawFees[code] === undefined) {
-                    withdrawFees[code] = {};
-                }
-                withdrawFees[code][network] = this.parseNumber (fee);
             }
+            return {
+                'withdraw': networks,
+                'deposit': {},
+                'info': transaction,
+            };
+        } else {
+            return {
+                'withdraw': [],
+                'deposit': {},
+                'info': transaction,
+            };
         }
-        return {
-            'withdraw': withdrawFees,
-            'deposit': {},
-            'info': response,
-        };
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
