@@ -17,7 +17,7 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
                 // 'watchOrders': true,
                 // 'watchMyTrades': true,
                 // 'watchTickers': false, // for now
-                // 'watchTicker': true,
+                'watchTicker': true,
                 'watchTrades': true,
                 // 'watchBalance': true,
                 // 'watchOHLCV': true,
@@ -65,7 +65,7 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
             let response = undefined;
             const throwException = false;
             if (this.checkRequiredCredentials (throwException)) {
-                response = await this.privatePostBulletPrivate ();
+                response = await this.futuresPrivatePostBulletPrivate ();
                 //
                 //     {
                 //         code: "200000",
@@ -84,7 +84,7 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
                 //     }
                 //
             } else {
-                response = await this.publicPostBulletPublic ();
+                response = await this.futuresPublicPostBulletPublic ();
             }
             client.resolve (response, messageHash);
             // const data = this.safeValue (response, 'data', {});
@@ -104,7 +104,6 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
     }
 
     async subscribe (negotiation, topic, messageHash, method, symbol, params = {}) {
-        // TODO
         await this.loadMarkets ();
         // const market = this.market (symbol);
         const data = this.safeValue (negotiation, 'data', {});
@@ -162,72 +161,28 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
 
     handleTicker (client, message) {
         //
-        // market/snapshot
+        // market/tickerV2
         //
-        // updates come in every 2 sec unless there
-        // were no changes since the previous update
+        //    {
+        //        type: 'message',
+        //        topic: '/contractMarket/tickerV2:ADAUSDTM',
+        //        subject: 'tickerV2',
+        //        data: {
+        //            symbol: 'ADAUSDTM',
+        //            sequence: 1668007800439,
+        //            bestBidSize: 178,
+        //            bestBidPrice: '0.35959',
+        //            bestAskPrice: '0.35981',
+        //            ts: '1668141430037124460',
+        //            bestAskSize: 134
+        //        }
+        //    }
         //
-        //     {
-        //         "data": {
-        //             "sequence": "1545896669291",
-        //             "data": {
-        //                 "trading": true,
-        //                 "symbol": "KCS-BTC",
-        //                 "buy": 0.00011,
-        //                 "sell": 0.00012,
-        //                 "sort": 100,
-        //                 "volValue": 3.13851792584, // total
-        //                 "baseCurrency": "KCS",
-        //                 "market": "BTC",
-        //                 "quoteCurrency": "BTC",
-        //                 "symbolCode": "KCS-BTC",
-        //                 "datetime": 1548388122031,
-        //                 "high": 0.00013,
-        //                 "vol": 27514.34842,
-        //                 "low": 0.0001,
-        //                 "changePrice": -1.0e-5,
-        //                 "changeRate": -0.0769,
-        //                 "lastTradedPrice": 0.00012,
-        //                 "board": 0,
-        //                 "mark": 0
-        //             }
-        //         },
-        //         "subject": "trade.snapshot",
-        //         "topic": "/market/snapshot:KCS-BTC",
-        //         "type": "message"
-        //     }
-        //
-        // market/ticker
-        //
-        //     {
-        //         type: 'message',
-        //         topic: '/market/ticker:BTC-USDT',
-        //         subject: 'trade.ticker',
-        //         data: {
-        //             bestAsk: '62163',
-        //             bestAskSize: '0.99011388',
-        //             bestBid: '62162.9',
-        //             bestBidSize: '0.04794181',
-        //             price: '62162.9',
-        //             sequence: '1621383371852',
-        //             size: '0.00832274',
-        //             time: 1634641987564
-        //         }
-        //     }
-        //
-        // TODO
-        const topic = this.safeString (message, 'topic');
-        let market = undefined;
-        if (topic !== undefined) {
-            const parts = topic.split (':');
-            const marketId = this.safeString (parts, 1);
-            market = this.safeMarket (marketId, market, '-');
-        }
         const data = this.safeValue (message, 'data', {});
-        const rawTicker = this.safeValue (data, 'data', data);
-        const ticker = this.parseTicker (rawTicker, market);
-        const symbol = ticker['symbol'];
-        this.tickers[symbol] = ticker;
+        const marketId = this.safeValue (data, 'symbol');
+        const market = this.safeMarket (marketId, undefined, '-');
+        const ticker = this.parseTicker (data, market);
+        this.tickers[market['symbol']] = ticker;
         const messageHash = this.safeString (message, 'topic');
         if (messageHash !== undefined) {
             client.resolve (ticker, messageHash);
