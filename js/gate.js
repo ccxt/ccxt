@@ -1709,6 +1709,29 @@ module.exports = class gate extends Exchange {
         await this.loadMarkets ();
         const response = await this.privateWalletGetWithdrawStatus (params);
         //
+        //    [
+        //        {
+        //            "currency": "MTN",
+        //            "name": "Medicalchain",
+        //            "name_cn": "Medicalchain",
+        //            "deposit": "0",
+        //            "withdraw_percent": "0%",
+        //            "withdraw_fix": "900",
+        //            "withdraw_day_limit": "500000",
+        //            "withdraw_day_limit_remain": "500000",
+        //            "withdraw_amount_mini": "900.1",
+        //            "withdraw_eachtime_limit": "90000000000",
+        //            "withdraw_fix_on_chains": {
+        //                "ETH": "900"
+        //            }
+        //        }
+        //    ]
+        //
+        return this.parseTransactionFees (response, codes, 'currency');
+    }
+
+    parseTransactionFee (fee, currency = undefined) {
+        //
         //    {
         //        "currency": "MTN",
         //        "name": "Medicalchain",
@@ -1725,33 +1748,22 @@ module.exports = class gate extends Exchange {
         //        }
         //    }
         //
-        const result = {};
-        let withdrawFees = {};
-        for (let i = 0; i < response.length; i++) {
-            withdrawFees = {};
-            const entry = response[i];
-            const currencyId = this.safeString (entry, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            if ((codes !== undefined) && !this.inArray (code, codes)) {
-                continue;
+        const withdrawFixOnChains = this.safeValue (fee, 'withdraw_fix_on_chains');
+        let withdrawFees = undefined;
+        if (withdrawFixOnChains === undefined) {
+            withdrawFees = this.safeNumber (fee, 'withdraw_fix');
+        } else {
+            const chainKeys = Object.keys (withdrawFixOnChains);
+            for (let i = 0; i < chainKeys.length; i++) {
+                const chainKey = chainKeys[i];
+                withdrawFees[chainKey] = this.parseNumber (withdrawFixOnChains[chainKey]);
             }
-            const withdrawFixOnChains = this.safeValue (entry, 'withdraw_fix_on_chains');
-            if (withdrawFixOnChains === undefined) {
-                withdrawFees = this.safeNumber (entry, 'withdraw_fix');
-            } else {
-                const chainKeys = Object.keys (withdrawFixOnChains);
-                for (let i = 0; i < chainKeys.length; i++) {
-                    const chainKey = chainKeys[i];
-                    withdrawFees[chainKey] = this.parseNumber (withdrawFixOnChains[chainKey]);
-                }
-            }
-            result[code] = {
-                'withdraw': withdrawFees,
-                'deposit': undefined,
-                'info': entry,
-            };
         }
-        return result;
+        return {
+            'withdraw': withdrawFees,
+            'deposit': undefined,
+            'info': fee,
+        };
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
