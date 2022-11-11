@@ -1340,7 +1340,7 @@ module.exports = class digifinex extends Exchange {
         //         "kind": "margin"
         //     }
         //
-        // swap: fetchOrder, fetchOpenOrders
+        // swap: fetchOrder, fetchOpenOrders, fetchOrders
         //
         //     {
         //         "order_id": "1590898207657824256",
@@ -1537,31 +1537,46 @@ module.exports = class digifinex extends Exchange {
          * @method
          * @name digifinex#fetchOrders
          * @description fetches information on multiple orders made by the user
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-all-orders-including-history-orders
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#historyorder
          * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        const orderType = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
         await this.loadMarkets ();
         let market = undefined;
-        const request = {
-            'market': orderType,
-        };
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['symbol'] = market['id'];
         }
-        if (since !== undefined) {
-            request['start_time'] = parseInt (since / 1000); // default 3 days from now, max 30 days
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
+        const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateSpotGetSpotOrderHistory',
+            'margin': 'privateSpotGetMarginOrderHistory',
+            'swap': 'privateSwapGetTradeHistoryOrders',
+        });
+        const request = {};
+        if (marketType === 'swap') {
+            if (since !== undefined) {
+                request['start_timestamp'] = since;
+            }
+        } else {
+            request['market'] = marketType;
+            if (since !== undefined) {
+                request['start_time'] = parseInt (since / 1000); // default 3 days from now, max 30 days
+            }
+        }
+        if (market !== undefined) {
+            const marketIdRequest = (marketType === 'swap') ? 'instrument_id' : 'symbol';
+            request[marketIdRequest] = market['id'];
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default 10, max 100
+            request['limit'] = limit;
         }
-        const response = await this.privateSpotGetMarketOrderHistory (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
+        //
+        // spot
         //
         //     {
         //         "code": 0,
@@ -1580,6 +1595,34 @@ module.exports = class digifinex extends Exchange {
         //                 "type": "buy",
         //                 "kind": "margin"
         //             }
+        //         ]
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "order_id": "1590136768156405760",
+        //                 "instrument_id": "BTCUSDTPERP",
+        //                 "margin_mode": "crossed",
+        //                 "contract_val": "0.001",
+        //                 "type": 1,
+        //                 "order_type": 8,
+        //                 "price": "18660.2",
+        //                 "size": "1",
+        //                 "filled_qty": "1",
+        //                 "price_avg": "18514.5",
+        //                 "fee": "0.00925725",
+        //                 "state": 2,
+        //                 "leverage": "20",
+        //                 "turnover": "18.5145",
+        //                 "has_stop": 0,
+        //                 "insert_time": 1667953123526,
+        //                 "time_stamp": 1667953123596
+        //             },
+        //             ...
         //         ]
         //     }
         //
