@@ -6,6 +6,7 @@ namespace ccxt\async;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\BadRequest;
 use ccxt\BadSymbol;
 use ccxt\BadResponse;
 use ccxt\InvalidAddress;
@@ -63,7 +64,7 @@ class digifinex extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
-                'fetchTradingFee' => false,
+                'fetchTradingFee' => true,
                 'fetchTradingFees' => false,
                 'fetchWithdrawals' => true,
                 'setMarginMode' => false,
@@ -250,6 +251,7 @@ class digifinex extends Exchange {
                     '20040' => array( '\\ccxt\\RateLimitExceeded', 'Withdraw too frequently; limitation => 3 times a minute, 100 times a day' ),
                     '20041' => array( '\\ccxt\\PermissionDenied', 'Beyond the daily withdrawal limit' ),
                     '20042' => array( '\\ccxt\\BadSymbol', 'Current trading pair does not support API trading' ),
+                    '400002' => array( '\\ccxt\\BadRequest', 'Invalid Parameter' ),
                 ),
                 'broad' => array(
                 ),
@@ -2244,6 +2246,57 @@ class digifinex extends Exchange {
         }) ();
     }
 
+    public function fetch_trading_fee($symbol, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * fetch the trading fees for a $market
+             * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#tradingfee
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} $params extra parameters specific to the digifinex api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            if (!$market['swap']) {
+                throw new BadRequest($this->id . ' fetchTradingFee() supports swap markets only');
+            }
+            $request = array(
+                'instrument_id' => $market['id'],
+            );
+            $response = Async\await($this->privateSwapGetAccountTradingFeeRate (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => 0,
+            //         "data" => {
+            //             "instrument_id" => "BTCUSDTPERP",
+            //             "taker_fee_rate" => "0.0005",
+            //             "maker_fee_rate" => "0.0003"
+            //         }
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_trading_fee($data, $market);
+        }) ();
+    }
+
+    public function parse_trading_fee($fee, $market = null) {
+        //
+        //     {
+        //         "instrument_id" => "BTCUSDTPERP",
+        //         "taker_fee_rate" => "0.0005",
+        //         "maker_fee_rate" => "0.0003"
+        //     }
+        //
+        $marketId = $this->safe_string($fee, 'instrument_id');
+        $symbol = $this->safe_symbol($marketId, $market);
+        return array(
+            'info' => $fee,
+            'symbol' => $symbol,
+            'maker' => $this->safe_number($fee, 'maker_fee_rate'),
+            'taker' => $this->safe_number($fee, 'taker_fee_rate'),
+        );
+    }
+
     public function handle_margin_mode_and_params($methodName, $params = array ()) {
         /**
          * @ignore
@@ -2277,9 +2330,24 @@ class digifinex extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $urlencoded = $this->urlencode($this->keysort($query));
         if ($signed) {
-            $nonce = (string) $this->nonce();
-            $auth = $urlencoded;
-            // the $signature is not time-limited :\
+            $auth = null;
+            $nonce = null;
+            if ($pathPart === '/swap/v2') {
+                $nonce = (string) $this->milliseconds();
+                $auth = $nonce . $method . $payload;
+                if ($method === 'GET') {
+                    if ($urlencoded) {
+                        $auth .= '?' . $urlencoded;
+                    }
+                } elseif ($method === 'POST') {
+                    $swapPostParams = json_encode ($params);
+                    $urlencoded = $swapPostParams;
+                    $auth .= $swapPostParams;
+                }
+            } else {
+                $nonce = (string) $this->nonce();
+                $auth = $urlencoded;
+            }
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
             if ($method === 'GET') {
                 if ($urlencoded) {

@@ -73,7 +73,7 @@ class digifinex(Exchange):
                 'fetchTickers': True,
                 'fetchTime': True,
                 'fetchTrades': True,
-                'fetchTradingFee': False,
+                'fetchTradingFee': True,
                 'fetchTradingFees': False,
                 'fetchWithdrawals': True,
                 'setMarginMode': False,
@@ -260,6 +260,7 @@ class digifinex(Exchange):
                     '20040': [RateLimitExceeded, 'Withdraw too frequently; limitation: 3 times a minute, 100 times a day'],
                     '20041': [PermissionDenied, 'Beyond the daily withdrawal limit'],
                     '20042': [BadSymbol, 'Current trading pair does not support API trading'],
+                    '400002': [BadRequest, 'Invalid Parameter'],
                 },
                 'broad': {
                 },
@@ -2093,6 +2094,52 @@ class digifinex(Exchange):
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, symbol, since, limit)
 
+    async def fetch_trading_fee(self, symbol, params={}):
+        """
+        fetch the trading fees for a market
+        see https://docs.digifinex.com/en-ww/swap/v2/rest.html#tradingfee
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the digifinex api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadRequest(self.id + ' fetchTradingFee() supports swap markets only')
+        request = {
+            'instrument_id': market['id'],
+        }
+        response = await self.privateSwapGetAccountTradingFeeRate(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "instrument_id": "BTCUSDTPERP",
+        #             "taker_fee_rate": "0.0005",
+        #             "maker_fee_rate": "0.0003"
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_trading_fee(data, market)
+
+    def parse_trading_fee(self, fee, market=None):
+        #
+        #     {
+        #         "instrument_id": "BTCUSDTPERP",
+        #         "taker_fee_rate": "0.0005",
+        #         "maker_fee_rate": "0.0003"
+        #     }
+        #
+        marketId = self.safe_string(fee, 'instrument_id')
+        symbol = self.safe_symbol(marketId, market)
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': self.safe_number(fee, 'maker_fee_rate'),
+            'taker': self.safe_number(fee, 'taker_fee_rate'),
+        }
+
     def handle_margin_mode_and_params(self, methodName, params={}):
         """
          * @ignore
@@ -2122,9 +2169,21 @@ class digifinex(Exchange):
         query = self.omit(params, self.extract_params(path))
         urlencoded = self.urlencode(self.keysort(query))
         if signed:
-            nonce = str(self.nonce())
-            auth = urlencoded
-            # the signature is not time-limited :\
+            auth = None
+            nonce = None
+            if pathPart == '/swap/v2':
+                nonce = str(self.milliseconds())
+                auth = nonce + method + payload
+                if method == 'GET':
+                    if urlencoded:
+                        auth += '?' + urlencoded
+                elif method == 'POST':
+                    swapPostParams = json.dumps(params)
+                    urlencoded = swapPostParams
+                    auth += swapPostParams
+            else:
+                nonce = str(self.nonce())
+                auth = urlencoded
             signature = self.hmac(self.encode(auth), self.encode(self.secret))
             if method == 'GET':
                 if urlencoded:
