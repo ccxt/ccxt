@@ -29,7 +29,7 @@ export default async (exchange, symbol) => {
                 const key = keys[i];
                 assert (key in fundingRate);
             }
-            assert (fundingRate['rate'] >= 0);
+            assert (typeof fundingRate['fundingRate'] === 'number');
             assert (fundingRate['timestamp'] >= 1199145600000); // 2008-01-01 00:00:00
         }
         return fundingRates;

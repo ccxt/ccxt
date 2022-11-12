@@ -1117,14 +1117,7 @@ export default class stex extends Exchange {
             type = undefined;
         }
         const side = this.safeStringLower (order, 'type');
-        const rawTrades = this.safeValue (order, 'trades');
-        let trades = undefined;
-        if (rawTrades !== undefined) {
-            trades = this.parseTrades (rawTrades, market, undefined, undefined, {
-                'symbol': symbol,
-                'order': id,
-            });
-        }
+        const trades = this.safeValue (order, 'trades');
         const stopPrice = this.safeNumber (order, 'trigger_price');
         const result = {
             'info': order,

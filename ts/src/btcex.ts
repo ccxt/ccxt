@@ -1141,10 +1141,7 @@ export default class btcex extends Exchange {
         }
         const type = this.safeString (order, 'order_type');
         // injected in createOrder
-        let trades = this.safeValue (order, 'trades');
-        if (trades !== undefined) {
-            trades = this.parseTrades (trades, market);
-        }
+        const trades = this.safeValue (order, 'trades');
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
         const stopPrice = this.safeValue (order, 'trigger_price');
         const postOnly = this.safeValue (order, 'post_only');
