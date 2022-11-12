@@ -1830,7 +1830,8 @@ module.exports = class bybit extends Exchange {
             [ defaultSettle, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'settle', 'USDT');
             isUsdcSettled = defaultSettle === 'USDC';
         }
-        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+        let enableUnifiedMargin = undefined;
+        [ enableUnifiedMargin, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'enableUnifiedMargin', false);
         if (type === 'spot') {
             return await this.fetchSpotTickers (symbols, params);
         } else if (enableUnifiedMargin) {
@@ -2213,7 +2214,8 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const isUsdcSettled = market['settle'] === 'USDC';
-        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+        let enableUnifiedMargin = undefined;
+        [ enableUnifiedMargin, params ] = this.handleOptionAndParams (params, 'fetchOHLCV', 'enableUnifiedMargin', false);
         if (market['spot']) {
             return await this.fetchSpotOHLCV (symbol, timeframe, since, limit, params);
         } else if (enableUnifiedMargin) {
@@ -2325,7 +2327,8 @@ module.exports = class bybit extends Exchange {
          * @param {int|undefined} params.until timestamp in ms of the latest funding rate
          * @returns {[object]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
-        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+        let enableUnifiedMargin = undefined;
+        [ enableUnifiedMargin, params ] = this.handleOptionAndParams (params, 'fetchFundingRateHistory', 'enableUnifiedMargin', false);
         if (!enableUnifiedMargin) {
             throw new BadRequest (this.id + ' fetchFundingRateHistory() must enable unified margin mode');
         }
@@ -2381,9 +2384,9 @@ module.exports = class bybit extends Exchange {
         //
         const rates = [];
         const result = this.safeValue (response, 'result');
-        const list = this.safeValue (result, 'list');
-        for (let i = 0; i < list.length; i++) {
-            const entry = list[i];
+        const resultList = this.safeValue (result, 'list');
+        for (let i = 0; i < resultList.length; i++) {
+            const entry = resultList[i];
             const timestamp = this.safeInteger (entry, 'fundingRateTimestamp');
             rates.push ({
                 'info': entry,
@@ -2783,7 +2786,8 @@ module.exports = class bybit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+        let enableUnifiedMargin = undefined;
+        [ enableUnifiedMargin, params ] = this.handleOptionAndParams (params, 'fetchTrades', 'enableUnifiedMargin', false);
         const isUsdcSettled = market['settle'] === 'USDC';
         if (market['type'] === 'spot') {
             return await this.fetchSpotTrades (symbol, since, limit, params);
@@ -2804,7 +2808,9 @@ module.exports = class bybit extends Exchange {
         }
         let bids = [];
         let asks = [];
-        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+        let enableUnifiedMargin = undefined;
+        let params = undefined;
+        [ enableUnifiedMargin, params ] = this.handleOptionAndParams (params, 'parseOrderBook', 'enableUnifiedMargin', false);
         if (enableUnifiedMargin) {
             bids = this.safeValue (orderbook, 'b');
             asks = this.safeValue (orderbook, 'a');
@@ -2996,7 +3002,8 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const isUsdcSettled = market['settle'] === 'USDC';
-        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+        let enableUnifiedMargin = undefined;
+        [ enableUnifiedMargin, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'enableUnifiedMargin', false);
         if (market['spot']) {
             return await this.fetchSpotOrderBook (symbol, limit, params);
         } else if (enableUnifiedMargin) {
@@ -3323,7 +3330,8 @@ module.exports = class bybit extends Exchange {
         let settle = undefined;
         [ settle, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'settle', 'USDT');
         const isUsdcSettled = settle === 'USDC';
-        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+        let enableUnifiedMargin = undefined;
+        [ enableUnifiedMargin, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'enableUnifiedMargin', false);
         if (enableUnifiedMargin) {
             return await this.fetchUnifiedMarginBalance (params);
         } else if (!isUsdcSettled) {
@@ -3801,7 +3809,8 @@ module.exports = class bybit extends Exchange {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const isUsdcSettled = (market['settle'] === 'USDC');
-        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+        let enableUnifiedMargin = undefined;
+        [ enableUnifiedMargin, params ] = this.handleOptionAndParams (params, 'createOrder', 'enableUnifiedMargin', false);
         if (market['spot']) {
             return await this.createSpotOrder (symbol, type, side, amount, price, params);
         } else if (enableUnifiedMargin) {
@@ -4560,7 +4569,8 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const isUsdcSettled = market['settle'] === 'USDC';
-        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+        let enableUnifiedMargin = undefined;
+        [ enableUnifiedMargin, params ] = this.handleOptionAndParams (params, 'cancelOrder', 'enableUnifiedMargin', false);
         if (market['spot']) {
             return this.cancelSpotOrder (id, symbol, params);
         } else if (enableUnifiedMargin) {
@@ -4806,7 +4816,8 @@ module.exports = class bybit extends Exchange {
         if (!isUsdcSettled && symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument for ' + type + ' markets');
         }
-        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+        let enableUnifiedMargin = undefined;
+        [ enableUnifiedMargin, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'enableUnifiedMargin', false);
         if (type === 'spot') {
             return this.cancelAllSpotOrders (symbol, params);
         } else if (enableUnifiedMargin) {
@@ -5049,7 +5060,8 @@ module.exports = class bybit extends Exchange {
         if (market['spot']) {
             throw new NotSupported (this.id + ' fetchOrders() does not support ' + market['type'] + ' markets, use exchange.fetchOpenOrders () and exchange.fetchClosedOrders () instead');
         }
-        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+        let enableUnifiedMargin = undefined;
+        [ enableUnifiedMargin, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'enableUnifiedMargin', false);
         if (enableUnifiedMargin) {
             return await this.fetchUnifiedMarginOrders (symbol, since, limit, params);
         } else if (market['settle'] === 'USDC') {
@@ -5231,7 +5243,8 @@ module.exports = class bybit extends Exchange {
             const closeStatus = defaultStatuses.join (',');
             const status = this.safeString2 (params, 'order_status', 'status', closeStatus);
             params = this.omit (params, [ 'order_status', 'status' ]);
-            const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+            let enableUnifiedMargin = undefined;
+            [ enableUnifiedMargin, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'enableUnifiedMargin', false);
             if (enableUnifiedMargin) {
                 params['orderStatus'] = status;
             } else {
@@ -5502,7 +5515,8 @@ module.exports = class bybit extends Exchange {
         if (type === 'spot') {
             return await this.fetchSpotOpenOrders (symbol, since, limit, params);
         }
-        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+        let enableUnifiedMargin = undefined;
+        [ enableUnifiedMargin, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'enableUnifiedMargin', false);
         if (enableUnifiedMargin) {
             return await this.fetchUnifiedMarginOpenOrders (symbol, since, limit, params);
         } else if ((type === 'swap' || type === 'future') && !isUsdcSettled) {
@@ -6253,7 +6267,8 @@ module.exports = class bybit extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchPosition() requires a symbol argument');
         }
-        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+        let enableUnifiedMargin = undefined;
+        [ enableUnifiedMargin, params ] = this.handleOptionAndParams (params, 'fetchPosition', 'enableUnifiedMargin', false);
         if (!enableUnifiedMargin) {
             throw new NotSupported (this.id + ' fetchPosition() only support unified margin account');
         }
@@ -6563,7 +6578,8 @@ module.exports = class bybit extends Exchange {
         const request = {};
         let market = undefined;
         let isUsdcSettled = undefined;
-        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+        let enableUnifiedMargin = undefined;
+        [ enableUnifiedMargin, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'enableUnifiedMargin', false);
         if (Array.isArray (symbols)) {
             const length = symbols.length;
             if (length !== 1) {
@@ -6915,7 +6931,8 @@ module.exports = class bybit extends Exchange {
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
         const isUsdcSettled = market['settle'] === 'USDC';
-        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+        let enableUnifiedMargin = undefined;
+        [ enableUnifiedMargin, params ] = this.handleOptionAndParams (params, 'setLeverage', 'enableUnifiedMargin', false);
         if (enableUnifiedMargin) {
             return await this.setUnifiedMarginLeverage (leverage, symbol, params);
         }
@@ -7836,7 +7853,8 @@ module.exports = class bybit extends Exchange {
         }
         request['symbol'] = market['id'];
         const isUsdcSettled = market['settle'] === 'USDC';
-        const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
+        let enableUnifiedMargin = undefined;
+        [ enableUnifiedMargin, params ] = this.handleOptionAndParams (params, 'fetchMarketLeverageTiers', 'enableUnifiedMargin', false);
         if (enableUnifiedMargin) {
             return await this.fetchDerivativesMarketLeverageTiers (symbol, params);
         }
