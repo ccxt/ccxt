@@ -741,7 +741,7 @@ module.exports = class bittrex extends Exchange {
         const isTaker = this.safeValue (trade, 'isTaker');
         if (isTaker !== undefined) {
             takerOrMaker = isTaker ? 'taker' : 'maker';
-            if (!isTaker) { // as noted in PR this is misbehaving, API shows opposite side when it's 'maker'
+            if (!isTaker) { // as noted in PR #15655 this API provides confusing value - when it's 'maker' trade, then side value should reversed
                 if (side === 'buy') {
                     side = 'sell';
                 } else if (side === 'sell') {
