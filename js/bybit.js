@@ -1825,13 +1825,10 @@ module.exports = class bybit extends Exchange {
             type = market['type'];
             isUsdcSettled = market['settle'] === 'USDC';
         } else {
+            let defaultSettle = undefined;
             [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-            if (type !== 'spot') {
-                let defaultSettle = this.safeString (this.options, 'defaultSettle', 'USDT');
-                defaultSettle = this.safeString2 (params, 'settle', 'defaultSettle', isUsdcSettled);
-                params = this.omit (params, [ 'settle', 'defaultSettle' ]);
-                isUsdcSettled = defaultSettle === 'USDC';
-            }
+            [ defaultSettle, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'settle', 'USDT');
+            isUsdcSettled = defaultSettle === 'USDC';
         }
         const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
         if (type === 'spot') {
@@ -3323,9 +3320,8 @@ module.exports = class bybit extends Exchange {
         if (type === 'spot') {
             return await this.fetchSpotBalance (params);
         }
-        let settle = this.safeString (this.options, 'defaultSettle');
-        settle = this.safeString2 (params, 'settle', 'defaultSettle', settle);
-        params = this.omit (params, [ 'settle', 'defaultSettle' ]);
+        let settle = undefined;
+        [ settle, params ] = this.handleOptionAndParams (params, 'fetchBalance', 'settle', 'USDT');
         const isUsdcSettled = settle === 'USDC';
         const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
         if (enableUnifiedMargin) {
@@ -4801,10 +4797,9 @@ module.exports = class bybit extends Exchange {
             market = this.market (symbol);
             isUsdcSettled = market['settle'] === 'USDC';
         } else {
-            let settle = this.safeString (this.options, 'defaultSettle');
-            settle = this.safeString2 (params, 'settle', 'defaultSettle', settle);
-            params = this.omit (params, [ 'settle', 'defaultSettle' ]);
-            isUsdcSettled = (settle === 'USDC');
+            let settle = undefined;
+            [ settle, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'settle', 'USDT');
+            isUsdcSettled = settle === 'USDC';
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
@@ -5199,9 +5194,8 @@ module.exports = class bybit extends Exchange {
             market = this.market (symbol);
             isUsdcSettled = market['settle'] === 'USDC';
         } else {
-            let settle = this.safeString (this.options, 'defaultSettle');
-            settle = this.safeString2 (params, 'settle', 'defaultSettle', settle);
-            params = this.omit (params, [ 'settle', 'defaultSettle' ]);
+            let settle = undefined;
+            [ settle, params ] = this.handleOptionAndParams (params, 'fetchClosedOrders', 'settle', 'USDT');
             isUsdcSettled = settle === 'USDC';
         }
         let type = undefined;
@@ -5499,9 +5493,8 @@ module.exports = class bybit extends Exchange {
             market = this.market (symbol);
             isUsdcSettled = market['settle'] === 'USDC';
         } else {
-            let settle = this.safeString (this.options, 'defaultSettle');
-            settle = this.safeString2 (params, 'settle', 'defaultSettle', settle);
-            params = this.omit (params, [ 'settle', 'defaultSettle' ]);
+            let settle = undefined;
+            [ settle, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'settle', 'USDT');
             isUsdcSettled = settle === 'USDC';
         }
         let type = undefined;
@@ -6582,9 +6575,9 @@ module.exports = class bybit extends Exchange {
             request['symbol'] = market['id'];
         } else {
             // market undefined
-            let defaultSettle = this.safeString (this.options, 'defaultSettle');
-            defaultSettle = this.safeString2 (params, 'settle', 'defaultSettle', defaultSettle);
-            isUsdcSettled = (defaultSettle === 'USDC');
+            let defaultSettle = undefined;
+            [ defaultSettle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', 'USDT');
+            isUsdcSettled = defaultSettle === 'USDC';
         }
         params = this.omit (params, [ 'settle', 'defaultSettle' ]);
         if (enableUnifiedMargin) {
