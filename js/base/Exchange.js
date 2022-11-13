@@ -2220,7 +2220,7 @@ module.exports = class Exchange {
         if (this.has['fetchOpenOrders'] !== undefined) {
             throw new NotSupported (this.id + ' fetchOrders() is not supported yet, but you can use fetchOpenOrders() for this exchange instead');
         }
-        if (this.has['fetchClosedOrders']  !== undefined) {
+        if (this.has['fetchClosedOrders'] !== undefined) {
             throw new NotSupported (this.id + ' fetchOrders() is not supported yet, but you can use fetchClosedOrders() instead');
         }
         throw new NotSupported (this.id + ' fetchOrders() is not supported yet');
