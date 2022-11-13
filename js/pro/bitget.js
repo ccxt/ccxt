@@ -413,6 +413,28 @@ module.exports = class bitget extends bitgetRest {
             storedOrderBook['timestamp'] = timestamp;
             storedOrderBook['datetime'] = this.iso8601 (timestamp);
         }
+        const checksum = this.safeValue (this.options, 'checksum', true);
+        if (checksum) {
+            const storedAsks = storedOrderBook['asks'];
+            const storedBids = storedOrderBook['bids'];
+            const asksLength = storedAsks.length;
+            const bidsLength = storedBids.length;
+            const payloadArray = [];
+            for (let i = 0; i < 25; i++) {
+                if (i < bidsLength) {
+                    payloadArray.push (storedBids[i][0]);
+                    payloadArray.push (storedBids[i][1]);
+                }
+                if (i < asksLength) {
+                    payloadArray.push (storedAsks[i][0]);
+                    payloadArray.push (storedAsks[i][1]);
+                }
+            }
+            const payload = payloadArray.join (':');
+            const calculatedChecksum = this.crc32 (payload, true);
+            const responseChecksum = this.safeString (rawOrderBook, 'checksum');
+            console.log (payload, calculatedChecksum, responseChecksum, calculatedChecksum === responseChecksum)
+        }
         const messageHash = 'orderbook:' + symbol;
         client.resolve (storedOrderBook, messageHash);
     }
