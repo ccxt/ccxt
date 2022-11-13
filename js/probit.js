@@ -16,6 +16,7 @@ module.exports = class probit extends Exchange {
             'name': 'ProBit',
             'countries': [ 'SC', 'KR' ], // Seychelles, South Korea
             'rateLimit': 50, // ms
+            'pro': true,
             'has': {
                 'CORS': true,
                 'spot': true,
