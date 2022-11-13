@@ -122,17 +122,18 @@ module.exports = class cex extends cexRest {
         const url = this.urls['api']['ws'];
         const messageHash = 'trades';
         const subscriptionHash = 'old:' + symbol;
-        const client = this.safeValue (this.clients, url, {});
-        const subscriptions = this.safeValue (client, 'subscriptions', {});
-        const subscriptionKeys = Object.keys (subscriptions);
-        for (let i = 0; i < subscriptionKeys.length; i++) {
-            let subscriptionKey = subscriptionKeys[i];
-            if (subscriptionKey === subscriptionHash) {
-                continue;
-            }
-            subscriptionKey = subscriptionKey.slice (0, 3);
-            if (subscriptionKey === 'old') {
-                throw new ExchangeError (this.id + ' watchTrades() only supports watching one symbol at a time.');
+        const client = this.safeValue (this.clients, url);
+        if (client !== undefined) {
+            const subscriptionKeys = Object.keys (client.subscriptions);
+            for (let i = 0; i < subscriptionKeys.length; i++) {
+                let subscriptionKey = subscriptionKeys[i];
+                if (subscriptionKey === subscriptionHash) {
+                    continue;
+                }
+                subscriptionKey = subscriptionKey.slice (0, 3);
+                if (subscriptionKey === 'old') {
+                    throw new ExchangeError (this.id + ' watchTrades() only supports watching one symbol at a time.');
+                }
             }
         }
         const message = {
@@ -284,8 +285,17 @@ module.exports = class cex extends cexRest {
             ],
         };
         const request = this.deepExtend (message, params);
-        const tickers = await this.watch (url, messageHash, request, messageHash);
-        return this.filterByArray (tickers, 'symbol', symbols);
+        const ticker = await this.watch (url, messageHash, request, messageHash);
+        const tickerSymbol = ticker['symbol'];
+        if (symbols !== undefined && !this.inArray (symbols, tickerSymbol)) {
+            return await this.watchTickers (symbols, params);
+        }
+        if (this.newUpdates) {
+            const result = {};
+            result[tickerSymbol] = ticker;
+            return result;
+        }
+        return this.filterByArray (this.tickers, 'symbol', symbols);
     }
 
     handleTicker (client, message) {
@@ -307,7 +317,7 @@ module.exports = class cex extends cexRest {
         const messageHash = 'ticker:' + symbol;
         this.tickers[symbol] = ticker;
         client.resolve (ticker, messageHash);
-        client.resolve (this.tickers, 'tickers');
+        client.resolve (ticker, 'tickers');
     }
 
     parseWsTicker (ticker, market = undefined) {
@@ -407,6 +417,9 @@ module.exports = class cex extends cexRest {
         };
         const request = this.deepExtend (message, params);
         const orders = await this.watch (url, messageHash, request, messageHash, request);
+        if (this.newUpdates) {
+            limit = orders.getLimit (symbol, limit);
+        }
         return this.filterBySymbolSinceLimit (orders, symbol, since, limit, true);
     }
 
