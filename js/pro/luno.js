@@ -3,7 +3,6 @@
 //  ---------------------------------------------------------------------------
 
 const lunoRest = require ('../luno');
-const Precise = require ('../base/Precise');
 const { ExchangeError } = require ('../base/errors');
 const { ArrayCache } = require ('./base/Cache');
 
@@ -63,6 +62,9 @@ module.exports = class luno extends lunoRest {
         };
         const request = this.deepExtend (subscribe, params);
         const trades = await this.watch (url, messageHash, request, subscriptionHash);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
@@ -82,6 +84,10 @@ module.exports = class luno extends lunoRest {
         //         timestamp: 1660598775360
         //     }
         //
+        const rawTrades = this.safeValue (message, 'trade_updates');
+        if (rawTrades === undefined) {
+            return;
+        }
         const url = client['url'];
         const marketId = url.slice (31);
         const symbol = this.safeSymbol (marketId);
@@ -91,10 +97,6 @@ module.exports = class luno extends lunoRest {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             stored = new ArrayCache (limit);
             this.trades[symbol] = stored;
-        }
-        const rawTrades = this.safeValue (message, 'trade_updates', []);
-        if (rawTrades.length === 0) {
-            return;
         }
         for (let i = 0; i < rawTrades.length; i++) {
             const rawTrade = rawTrades[i];
@@ -283,21 +285,6 @@ module.exports = class luno extends lunoRest {
             asksOrderSide.storeArray (0, 0, orderId);
             bidsOrderSide.storeArray (0, 0, orderId);
         }
-        const trades = this.safeValue (message, 'trade_updates', []);
-        for (let i = 0; i < trades.length; i++) {
-            const trade = trades[i];
-            const orderId = this.safeString2 (trade, 'order_id', 'maker_order_id');
-            const amountToReduce = this.safeString (trade, 'base');
-            for (let ii = 0; ii < asksOrderSide.length; ii++) {
-                const ask = asksOrderSide[i];
-                if (ask[2] === orderId) {
-                    const previousAmount = this.parseNumber (ask[1]);
-                    const updatedAmount = Precise.stringSub (previousAmount, amountToReduce);
-                    asksOrderSide.storeArray (ask[0], updatedAmount, orderId);
-                    break;
-                }
-            }
-        }
         return message;
     }
 
@@ -314,6 +301,9 @@ module.exports = class luno extends lunoRest {
     }
 
     handleMessage (client, message) {
+        if (message === '') {
+            return;
+        }
         this.checkSequenceNumber (client, message);
         const url = client['url'];
         const handlers = {
