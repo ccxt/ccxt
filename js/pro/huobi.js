@@ -514,11 +514,6 @@ module.exports = class huobi extends huobiRest {
             orderbook.reset (snapshot);
             orderbook['nonce'] = seqNum;
         }
-        if (event === 'update') {
-            if (seqNum !== orderbook['nonce'] + 1) {
-                throw new ExchangeError (this.id + ' invalid nonce in orderbook update message for ' + symbol);
-            }
-        }
         if ((prevSeqNum === undefined || prevSeqNum <= orderbook['nonce']) && (seqNum > orderbook['nonce'])) {
             const asks = this.safeValue (tick, 'asks', []);
             const bids = this.safeValue (tick, 'bids', []);
