@@ -256,7 +256,7 @@ module.exports = class bitrue extends bitrueRest {
                 'cost': this.safeNumber (order, 'n'),
                 'rate': undefined,
             },
-            'trades': [order],
+            'trades': [ order ],
         }, market);
     }
 
