@@ -1833,7 +1833,7 @@ module.exports = class binance extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeString (balance, 'availableBalance');
                 account['used'] = this.safeString (balance, 'initialMargin');
-                account['total'] = this.safeStringN (balance, ['walletBalance', 'balance', 'marginBalance']);
+                account['total'] = this.safeStringN (balance, [ 'walletBalance', 'balance', 'marginBalance' ]);
                 result[code] = account;
             }
         }
