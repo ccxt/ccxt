@@ -34,7 +34,7 @@ module.exports = class blockchaincom extends blockchaincomRest {
                             'Origin': 'https://exchange.blockchain.com',
                         },
                     },
-                    'noOriginHeader': true,
+                    'noOriginHeader': false,
                 },
                 'sequenceNumbers': {},
             },
