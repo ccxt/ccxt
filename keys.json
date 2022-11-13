@@ -1,5 +1,5 @@
 {
-    "aax":           { "skipWs": true },
+    "aax":           { "skip": true, "skipWs": true },
     "bitcoincom":    { "skipWs": true },
     "bitmart":       { "skipWs": true },
     "bitmex":        { "skipWs": true },
