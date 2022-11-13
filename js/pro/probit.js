@@ -410,7 +410,7 @@ module.exports = class probit extends probitRest {
         };
         const request = this.deepExtend (message, params);
         const orderbook = await this.watch (url, messageHash, request, subscriptionHash, request);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBook (client, message) {
@@ -444,8 +444,8 @@ module.exports = class probit extends probitRest {
             const snapshot = this.parseOrderBook (dataBySide, symbol, undefined, 'buy', 'sell', 'price', 'quantity');
             storedOrderBook.reset (snapshot);
         } else {
-            const asks = this.safeValue (dataBySide, 'buy', []);
-            const bids = this.safeValue (dataBySide, 'sell', []);
+            const asks = this.safeValue (dataBySide, 'sell', []);
+            const bids = this.safeValue (dataBySide, 'buy', []);
             this.handleDeltas (storedOrderBook['asks'], asks);
             this.handleDeltas (storedOrderBook['bids'], bids);
         }
