@@ -256,11 +256,11 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
    * - China
      - .. image:: https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg
-          :target: https://w2.bibox365.com/login/register?invite_code=05Kj3I
+          :target: https://www.{hostname}
           :alt: bibox
      
      - bibox
-     - `Bibox <https://w2.bibox365.com/login/register?invite_code=05Kj3I>`__
+     - `Bibox <https://www.{hostname}>`__
      - .. image:: https://img.shields.io/badge/3.1-lightgray
           :target: https://biboxcom.github.io/en/
           :alt: API Version 3.1
@@ -572,17 +572,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/3-lightgray
           :target: https://api.hitbtc.com
           :alt: API Version 3
-     
-   * - Hong Kong
-     - .. image:: https://user-images.githubusercontent.com/51840849/87460811-1e690280-c616-11ea-8652-69f187305add.jpg
-          :target: http://bit.ly/2IX0LrM
-          :alt: tidebit
-     
-     - tidebit
-     - `TideBit <http://bit.ly/2IX0LrM>`__
-     - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://www.tidebit.com/documents/api/guide
-          :alt: API Version 2
      
    * - India
      - .. image:: https://user-images.githubusercontent.com/1294454/117201933-e7a6e780-adf5-11eb-9d80-98fc2a21c3d6.jpg
@@ -1103,11 +1092,11 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
    * - South Korea
      - .. image:: https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg
-          :target: https://w2.bibox365.com/login/register?invite_code=05Kj3I
+          :target: https://www.{hostname}
           :alt: bibox
      
      - bibox
-     - `Bibox <https://w2.bibox365.com/login/register?invite_code=05Kj3I>`__
+     - `Bibox <https://www.{hostname}>`__
      - .. image:: https://img.shields.io/badge/3.1-lightgray
           :target: https://biboxcom.github.io/en/
           :alt: API Version 3.1
@@ -1334,11 +1323,11 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
    * - UK
      - .. image:: https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg
-          :target: https://tidex.com/exchange/?ref=57f5638d9cd7
+          :target: https://tidex.com/exchange
           :alt: tidex
      
      - tidex
-     - `Tidex <https://tidex.com/exchange/?ref=57f5638d9cd7>`__
+     - `Tidex <https://tidex.com/exchange>`__
      - .. image:: https://img.shields.io/badge/3-lightgray
           :target: https://tidex.com/exchange/public-api
           :alt: API Version 3
@@ -1356,11 +1345,11 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
    * - US
      - .. image:: https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg
-          :target: https://w2.bibox365.com/login/register?invite_code=05Kj3I
+          :target: https://www.{hostname}
           :alt: bibox
      
      - bibox
-     - `Bibox <https://w2.bibox365.com/login/register?invite_code=05Kj3I>`__
+     - `Bibox <https://www.{hostname}>`__
      - .. image:: https://img.shields.io/badge/3.1-lightgray
           :target: https://biboxcom.github.io/en/
           :alt: API Version 3.1

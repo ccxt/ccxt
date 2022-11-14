@@ -555,7 +555,6 @@ declare module 'ccxt' {
     export class ripio extends Exchange {}
     export class stex extends Exchange {}
     export class therock extends Exchange {}
-    export class tidebit extends Exchange {}
     export class tidex extends Exchange {}
     export class timex extends Exchange {}
     export class tokocrypto extends Exchange {}
@@ -678,7 +677,6 @@ declare module 'ccxt' {
         | 'ripio'
         | 'stex'
         | 'therock'
-        | 'tidebit'
         | 'tidex'
         | 'timex'
         | 'tokocrypto'

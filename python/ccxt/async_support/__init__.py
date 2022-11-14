@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.1.76'
+__version__ = '2.1.77'
 
 # -----------------------------------------------------------------------------
 
@@ -157,7 +157,6 @@ from ccxt.async_support.qtrade import qtrade                                    
 from ccxt.async_support.ripio import ripio                                      # noqa: F401
 from ccxt.async_support.stex import stex                                        # noqa: F401
 from ccxt.async_support.therock import therock                                  # noqa: F401
-from ccxt.async_support.tidebit import tidebit                                  # noqa: F401
 from ccxt.async_support.tidex import tidex                                      # noqa: F401
 from ccxt.async_support.timex import timex                                      # noqa: F401
 from ccxt.async_support.tokocrypto import tokocrypto                            # noqa: F401
@@ -277,7 +276,6 @@ exchanges = [
     'ripio',
     'stex',
     'therock',
-    'tidebit',
     'tidex',
     'timex',
     'tokocrypto',
