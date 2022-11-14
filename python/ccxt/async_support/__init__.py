@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.1.74'
+__version__ = '2.1.75'
 
 # -----------------------------------------------------------------------------
 
@@ -116,8 +116,6 @@ from ccxt.async_support.digifinex import digifinex                              
 from ccxt.async_support.exmo import exmo                                        # noqa: F401
 from ccxt.async_support.flowbtc import flowbtc                                  # noqa: F401
 from ccxt.async_support.fmfwio import fmfwio                                    # noqa: F401
-from ccxt.async_support.ftx import ftx                                          # noqa: F401
-from ccxt.async_support.ftxus import ftxus                                      # noqa: F401
 from ccxt.async_support.gate import gate                                        # noqa: F401
 from ccxt.async_support.gateio import gateio                                    # noqa: F401
 from ccxt.async_support.gemini import gemini                                    # noqa: F401
@@ -238,8 +236,6 @@ exchanges = [
     'exmo',
     'flowbtc',
     'fmfwio',
-    'ftx',
-    'ftxus',
     'gate',
     'gateio',
     'gemini',

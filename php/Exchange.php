@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.1.74';
+$version = '2.1.75';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.1.74';
+    const VERSION = '2.1.75';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -125,8 +125,6 @@ class Exchange {
         'exmo',
         'flowbtc',
         'fmfwio',
-        'ftx',
-        'ftxus',
         'gate',
         'gateio',
         'gemini',
