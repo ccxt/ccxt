@@ -46,7 +46,7 @@ function getIncludedExchangeIds (path) {
 
     const isIncluded = (id) => ((includedIds.length === 0) || includedIds.includes (id))
     const ids = fs.readdirSync (path)
-        .filter (file => file.match (/[a-zA-Z0-9_-]+.js$/))
+        .filter (file => file.match (/[a-zA-Z0-9_-]+.ts$/))
         .map (file => file.slice (0, -3))
         .filter (isIncluded);
 
@@ -401,9 +401,9 @@ function flatten (nested, result = []) {
 // ----------------------------------------------------------------------------
 
 async function exportEverything () {
-    const ids = getIncludedExchangeIds ('./js/src/')
+    const ids = getIncludedExchangeIds ('./ts/src')
 
-    const wsIds = getIncludedExchangeIds ('./js/src/pro')
+    const wsIds = getIncludedExchangeIds ('./ts/src/pro')
 
     const errorHierarchy = await import ('../js/src/base/errorHierarchy.js')
     const flat = flatten (errorHierarchy['default'])
