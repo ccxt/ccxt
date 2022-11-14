@@ -14,7 +14,7 @@ module.exports = class wavesexchange extends Exchange {
             'id': 'wavesexchange',
             'name': 'Waves.Exchange',
             'countries': [ 'CH' ], // Switzerland
-            'certified': true,
+            'certified': false,
             'pro': false,
             'has': {
                 'CORS': undefined,
