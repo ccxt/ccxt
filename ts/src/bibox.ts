@@ -78,14 +78,13 @@ export default class bibox extends Exchange {
                 'api': {
                     'rest': 'https://api.{hostname}',
                 },
-                'www': 'https://www.bibox365.com',
+                'www': 'https://www.{hostname}',
                 'doc': [
                     'https://biboxcom.github.io/en/',
                     'https://biboxcom.github.io/v3/spot/en/',
                     'https://biboxcom.github.io/api/spot/v4',
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/360002336133',
-                'referral': 'https://w2.bibox365.com/login/register?invite_code=05Kj3I',
             },
             'api': {
                 'v1': {

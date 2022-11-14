@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.1.71'
+__version__ = '2.1.78'
 
 # -----------------------------------------------------------------------------
 
@@ -2406,6 +2406,14 @@ class Exchange(object):
         result = []
         for i in range(0, len(symbols)):
             result.append(self.symbol(symbols[i]))
+        return result
+
+    def market_codes(self, codes):
+        if codes is None:
+            return codes
+        result = []
+        for i in range(0, len(codes)):
+            result.append(self.common_currency_code(codes[i]))
         return result
 
     def parse_bids_asks(self, bidasks, priceKey=0, amountKey=1):

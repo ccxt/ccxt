@@ -36,11 +36,11 @@ use \ccxt\pro\ClientTrait;
 
 include 'Throttle.php';
 
-$version = '2.1.71';
+$version = '2.1.78';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.1.71';
+    const VERSION = '2.1.78';
 
     public $streaming = array(
         'keepAlive' => 30000,
@@ -1052,6 +1052,17 @@ class Exchange extends \ccxt\Exchange {
         $result = array();
         for ($i = 0; $i < count($symbols); $i++) {
             $result[] = $this->symbol ($symbols[$i]);
+        }
+        return $result;
+    }
+
+    public function market_codes($codes) {
+        if ($codes === null) {
+            return $codes;
+        }
+        $result = array();
+        for ($i = 0; $i < count($codes); $i++) {
+            $result[] = $this->common_currency_code($codes[$i]);
         }
         return $result;
     }

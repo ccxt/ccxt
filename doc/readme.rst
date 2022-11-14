@@ -26,7 +26,7 @@ CCXT – CryptoCurrency eXchange Trading Library
      :target: https://discord.gg/ccxt
      :alt: Discord
  
-.. image:: https://img.shields.io/badge/exchanges-120-blue.svg
+.. image:: https://img.shields.io/badge/exchanges-117-blue.svg
      :target: https://github.com/ccxt/ccxt/wiki/Exchange-Markets
      :alt: Supported Exchanges
  
@@ -296,6 +296,25 @@ Certified Cryptocurrency Exchanges
           :alt: CCXT Pro
      
      - 
+   * - .. image:: https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg
+          :target: https://www.kucoin.com/ucenter/signup?rcode=E5wkqe
+          :alt: kucoin
+     
+     - kucoin
+     - `KuCoin <https://www.kucoin.com/ucenter/signup?rcode=E5wkqe>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://docs.kucoin.com
+          :alt: API Version 2
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+     - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/137283979-8b2a818d-8633-461b-bfca-de89e8c446b2.jpg
           :target: https://m.mexc.com/auth/signup?inviteCode=1FQ1G
           :alt: mexc
@@ -333,27 +352,11 @@ Certified Cryptocurrency Exchanges
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-     - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/84547058-5fb27d80-ad0b-11ea-8711-78ac8b3c7f31.jpg
-          :target: https://waves.exchange
-          :alt: wavesexchange
-     
-     - wavesexchange
-     - `Waves.Exchange <https://waves.exchange>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://docs.waves.exchange
-          :alt: API Version *
-     
-     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
-          :target: https://github.com/ccxt/ccxt/wiki/Certification
-          :alt: CCXT Certified
-     
-     - 
 
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The CCXT library currently supports the following 114 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 111 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -422,11 +425,11 @@ The CCXT library currently supports the following 114 cryptocurrency exchange ma
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/51840849/77257418-3262b000-6c85-11ea-8fb8-20bdf20b3592.jpg
-          :target: https://w2.bibox365.com/login/register?invite_code=05Kj3I
+          :target: https://www.{hostname}
           :alt: bibox
      
      - bibox
-     - `Bibox <https://w2.bibox365.com/login/register?invite_code=05Kj3I>`__
+     - `Bibox <https://www.{hostname}>`__
      - .. image:: https://img.shields.io/badge/3.1-lightgray
           :target: https://biboxcom.github.io/en/
           :alt: API Version 3.1
@@ -1186,36 +1189,6 @@ The CCXT library currently supports the following 114 cryptocurrency exchange ma
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
-   * - .. image:: https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg
-          :target: https://ftx.com/referrals#a=1623029
-          :alt: ftx
-     
-     - ftx
-     - `FTX <https://ftx.com/referrals#a=1623029>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://github.com/ftexchange/ftx
-          :alt: API Version *
-     
-     - 
-     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
-          :target: https://ccxt.pro
-          :alt: CCXT Pro
-     
-   * - .. image:: https://user-images.githubusercontent.com/1294454/141506670-12f6115f-f425-4cd8-b892-b51d157ca01f.jpg
-          :target: https://ftx.com/referrals#a=1623029
-          :alt: ftxus
-     
-     - ftxus
-     - `FTX US <https://ftx.com/referrals#a=1623029>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://github.com/ftexchange/ftx
-          :alt: API Version *
-     
-     - 
-     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
-          :target: https://ccxt.pro
-          :alt: CCXT Pro
-     
    * - .. image:: https://user-images.githubusercontent.com/1294454/31784029-0313c702-b509-11e7-9ccc-bc0da6a0e435.jpg
           :target: https://www.gate.io/ref/2436035
           :alt: gate
@@ -1403,7 +1376,10 @@ The CCXT library currently supports the following 114 cryptocurrency exchange ma
           :target: https://docs.kucoin.com
           :alt: API Version 2
      
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
@@ -1720,24 +1696,12 @@ The CCXT library currently supports the following 114 cryptocurrency exchange ma
      
      - 
      - 
-   * - .. image:: https://user-images.githubusercontent.com/51840849/87460811-1e690280-c616-11ea-8652-69f187305add.jpg
-          :target: http://bit.ly/2IX0LrM
-          :alt: tidebit
-     
-     - tidebit
-     - `TideBit <http://bit.ly/2IX0LrM>`__
-     - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://www.tidebit.com/documents/api/guide
-          :alt: API Version 2
-     
-     - 
-     - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/30781780-03149dc4-a12e-11e7-82bb-313b269d24d4.jpg
-          :target: https://tidex.com/exchange/?ref=57f5638d9cd7
+          :target: https://tidex.com/exchange
           :alt: tidex
      
      - tidex
-     - `Tidex <https://tidex.com/exchange/?ref=57f5638d9cd7>`__
+     - `Tidex <https://tidex.com/exchange>`__
      - .. image:: https://img.shields.io/badge/3-lightgray
           :target: https://tidex.com/exchange/public-api
           :alt: API Version 3
@@ -1793,10 +1757,7 @@ The CCXT library currently supports the following 114 cryptocurrency exchange ma
           :target: https://docs.waves.exchange
           :alt: API Version *
      
-     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
-          :target: https://github.com/ccxt/ccxt/wiki/Certification
-          :alt: CCXT Certified
-     
+     - 
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/148647666-c109c20b-f8ac-472f-91c3-5f658cb90f49.jpeg
           :target: https://wazirx.com/invite/k7rrnks5
@@ -1957,14 +1918,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@2.1.71/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@2.1.71/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@2.1.78/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@2.1.78/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@2.1.71/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@2.1.78/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

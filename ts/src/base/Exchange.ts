@@ -2153,6 +2153,17 @@ export default class Exchange {
         return result;
     }
 
+    marketCodes (codes) {
+        if (codes === undefined) {
+            return codes;
+        }
+        const result = [];
+        for (let i = 0; i < codes.length; i++) {
+            result.push (this.commonCurrencyCode (codes[i]));
+        }
+        return result;
+    }
+
     parseBidsAsks (bidasks, priceKey: number | string = 0, amountKey: number | string = 1) {
         bidasks = this.toArray (bidasks);
         const result = [];

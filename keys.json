@@ -1,5 +1,5 @@
 {
-    "aax":           { "skipWs": true },
+    "aax":           { "skip": true, "skipWs": true },
     "bitcoincom":    { "skipWs": true },
     "bitmart":       { "skipWs": true },
     "bitmex":        { "skipWs": true },
@@ -7,6 +7,8 @@
     "cdax":          { "skipWs": true },
     "currencycom":   { "skipWs": true },
     "dsx":           { "skipWs": true },
+    "ftx":           { "skip": true, "skipWs": true },
+    "ftxus":         { "skip": true, "skipWs": true },
     "huobipro":      { "skipWs": true },
     "okcoin":        { "skipWs": true },
     "poloniex":      { "skipWs": true },
@@ -17,7 +19,6 @@
     "binancecoinm":  { "skipWs": true },
     "bitopro":       { "skipWs": true },
     "bitvavo":       { "skipWs": true },
-    "ftx":           { "skipWs": true },
     "huobi":         { "skipWs": true },
     "hollaex":       { "skipWs": true },
     "idex":          { "skipWs": true },

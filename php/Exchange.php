@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.1.71';
+$version = '2.1.78';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.1.71';
+    const VERSION = '2.1.78';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -125,8 +125,6 @@ class Exchange {
         'exmo',
         'flowbtc',
         'fmfwio',
-        'ftx',
-        'ftxus',
         'gate',
         'gateio',
         'gemini',
@@ -168,7 +166,6 @@ class Exchange {
         'ripio',
         'stex',
         'therock',
-        'tidebit',
         'tidex',
         'timex',
         'tokocrypto',
@@ -326,6 +323,7 @@ class Exchange {
         'convertOHLCVToTradingView' => 'convert_ohlcv_to_trading_view',
         'marketIds' => 'market_ids',
         'marketSymbols' => 'market_symbols',
+        'marketCodes' => 'market_codes',
         'parseBidsAsks' => 'parse_bids_asks',
         'fetchL2OrderBook' => 'fetch_l2_order_book',
         'filterBySymbol' => 'filter_by_symbol',
@@ -3228,6 +3226,17 @@ class Exchange {
         $result = array();
         for ($i = 0; $i < count($symbols); $i++) {
             $result[] = $this->symbol ($symbols[$i]);
+        }
+        return $result;
+    }
+
+    public function market_codes($codes) {
+        if ($codes === null) {
+            return $codes;
+        }
+        $result = array();
+        for ($i = 0; $i < count($codes); $i++) {
+            $result[] = $this->common_currency_code($codes[$i]);
         }
         return $result;
     }
