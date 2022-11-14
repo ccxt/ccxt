@@ -444,7 +444,7 @@ class bybit extends \ccxt\async\bybit {
         }
         $marketId = $this->safe_string_2($ticker, 'symbol', 's');
         $symbol = $this->safe_symbol($marketId, $market);
-        $last = $this->safe_string_n($ticker, array( 'l', 'last_price', 'lastPrice' ));
+        $last = $this->safe_string_n($ticker, array( 'c', 'last_price', 'lastPrice' ));
         $open = $this->safe_string_n($ticker, array( 'prev_price_24h', 'o', 'prevPrice24h' ));
         $quoteVolume = $this->safe_string_n($ticker, array( 'v', 'turnover24h' ));
         if ($quoteVolume === null) {
