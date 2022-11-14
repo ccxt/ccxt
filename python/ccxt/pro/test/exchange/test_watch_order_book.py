@@ -11,6 +11,7 @@ async def test_watch_order_book(exchange, symbol):
     skipped_exchanges = [
         'ripio',
         'gopax',  # requires authentication for watch_order_book
+        'luno', # requires authentication for watch_order_book
     ]
     if exchange.id in skipped_exchanges:
         print(exchange.id, method, 'test skipped')
