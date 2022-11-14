@@ -222,7 +222,7 @@ module.exports = class coinspot extends Exchange {
         //     }
         //
         const symbol = this.safeSymbol (undefined, market);
-        const timestamp = this.milliseconds ();
+        const timestamp = undefined;
         const last = this.safeString (ticker, 'last');
         return this.safeTicker ({
             'symbol': symbol,
