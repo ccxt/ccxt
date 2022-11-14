@@ -21,7 +21,7 @@ module.exports = class kucoin extends Exchange {
             // 60 requests in 3 seconds = 20 requests per second => ( 1000ms / 20 ) = 50 ms between requests on average
             'rateLimit': 50,
             'version': 'v2',
-            'certified': false,
+            'certified': true,
             'pro': true,
             'comment': 'Platform 2.0',
             'quoteJsonNumbers': false,
