@@ -15,13 +15,10 @@ module.exports = class kucoinfutures extends kucoinFuturesRest {
             'has': {
                 'ws': true,
                 'watchOrderBook': true,
-                'watchOrders': true,
                 'watchMyTrades': true,
-                'watchTickers': false, // for now
                 'watchTicker': true,
                 'watchTrades': true,
-                'watchBalance': false, // for now
-                'watchOHLCV': true,
+                'watchBalance': false, // on backend
             },
             'options': {
                 'tradesLimit': 1000,
@@ -154,63 +151,6 @@ module.exports = class kucoinfutures extends kucoinFuturesRest {
             client.resolve (ticker, messageHash);
         }
         return message;
-    }
-
-    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const negotiation = await this.negotiate ();
-        const market = this.market (symbol);
-        const period = this.timeframes[timeframe];
-        const topic = '/market/candles:' + market['id'] + '_' + period;
-        const messageHash = topic;
-        const trades = await this.subscribe (negotiation, topic, messageHash, undefined, symbol, params);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
-    }
-
-    handleOHLCV (client, message) {
-        //
-        //     {
-        //         data: {
-        //             symbol: 'BTC-USDT',
-        //             candles: [
-        //                 '1624881240',
-        //                 '34138.8',
-        //                 '34121.6',
-        //                 '34138.8',
-        //                 '34097.9',
-        //                 '3.06097133',
-        //                 '104430.955068564'
-        //             ],
-        //             time: 1624881284466023700
-        //         },
-        //         subject: 'trade.candles.update',
-        //         topic: '/market/candles:BTC-USDT_1min',
-        //         type: 'message'
-        //     }
-        //
-        const data = this.safeValue (message, 'data', {});
-        const marketId = this.safeString (data, 'symbol');
-        const candles = this.safeValue (data, 'candles', []);
-        const topic = this.safeString (message, 'topic');
-        const parts = topic.split ('_');
-        const interval = this.safeString (parts, 1);
-        // use a reverse lookup in a static map instead
-        const timeframe = this.findTimeframe (interval);
-        const symbol = this.safeSymbol (marketId);
-        const market = this.market (symbol);
-        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
-        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
-        if (stored === undefined) {
-            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
-            stored = new ArrayCacheByTimestamp (limit);
-            this.ohlcvs[symbol][timeframe] = stored;
-        }
-        const ohlcv = this.parseOHLCV (candles, market);
-        stored.append (ohlcv);
-        client.resolve (stored, topic);
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -430,105 +370,6 @@ module.exports = class kucoinfutures extends kucoinFuturesRest {
         return message;
     }
 
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const negotiation = await this.negotiate ();
-        const topic = '/spotMarket/tradeOrders';
-        const request = {
-            'privateChannel': true,
-        };
-        let messageHash = topic;
-        if (symbol !== undefined) {
-            messageHash = messageHash + ':' + symbol;
-        }
-        const trades = await this.subscribe (negotiation, topic, messageHash, undefined, undefined, this.extend (request, params));
-        if (this.newUpdates) {
-            limit = trades.getLimit ();
-        }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
-    }
-
-    handleMyTrade (client, message) {
-        let trades = this.myTrades;
-        if (trades === undefined) {
-            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            trades = new ArrayCacheBySymbolById (limit);
-        }
-        const data = this.safeValue (message, 'data');
-        const parsed = this.parseWsTrade (data);
-        trades.append (parsed);
-        const messageHash = 'myTrades';
-        client.resolve (trades, messageHash);
-        const symbolSpecificMessageHash = messageHash + ':' + parsed['symbol'];
-        client.resolve (trades, symbolSpecificMessageHash);
-    }
-
-    parseWsTrade (trade) {
-        // {
-        //     "type":"message",
-        //     "topic":"/spotMarket/tradeOrders",
-        //     "subject":"orderChange",
-        //     "channelType":"private",
-        //     "data":{
-        //         "symbol":"KCS-USDT",
-        //         "orderType":"limit",
-        //         "side":"sell",
-        //         "orderId":"5efab07953bdea00089965fa",
-        //         "liquidity":"taker",
-        //         "type":"match",
-        //         "orderTime":1593487482038606180,
-        //         "size":"0.1",
-        //         "filledSize":"0.1",
-        //         "price":"0.938",
-        //         "matchPrice":"0.96738",
-        //         "matchSize":"0.1",
-        //         "tradeId":"5efab07a4ee4c7000a82d6d9",
-        //         "clientOid":"1593487481000313",
-        //         "remainSize":"0",
-        //         "status":"match",
-        //         "ts":1593487482038606180
-        //     }
-        // }
-        const symbol = this.safeString (trade, 'symbol');
-        const type = this.safeString (trade, 'orderType');
-        const side = this.safeString (trade, 'side');
-        const takerOrMaker = this.safeString (trade, 'liquidity');
-        const tradeId = this.safeString (trade, 'tradeId');
-        const price = this.safeFloat (trade, 'matchPrice');
-        const amount = this.safeFloat (trade, 'matchSize');
-        const order = this.safeString (trade, 'orderId');
-        let timestamp = this.safeInteger (order, 'ts');
-        if (timestamp !== undefined) {
-            timestamp = parseInt (timestamp / 1000000);
-        }
-        let cost = undefined;
-        if ((price !== undefined) && (amount !== undefined)) {
-            cost = price * amount;
-        }
-        const market = this.market (symbol);
-        const feeCurrency = market['quote'];
-        const fee = {
-            'cost': undefined,
-            'rate': undefined,
-            'currency': feeCurrency,
-        };
-        return {
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'id': tradeId,
-            'order': order,
-            'type': type,
-            'takerOrMaker': takerOrMaker,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
-            'fee': fee,
-        };
-    }
-
     handleSubject (client, message) {
 
         const subject = this.safeString (message, 'subject');
@@ -565,10 +406,20 @@ module.exports = class kucoinfutures extends kucoinFuturesRest {
             'type': 'ping',
         };
     }
+    async watchHeartbeat () {
+        await this.loadMarkets ();
+        const negotiation = await this.negotiate ();
+
+        const topic = 'ping';
+        const messageHash = topic;
+        const heartbeat = await this.subscribe (negotiation, topic, messageHash);
+        return heartbeat;
+    }
 
     handlePong (client, message) {
         // https://docs.kucoin.com/#ping
         client.lastPong = this.milliseconds ();
+        client.resolve('ping', message);
         return message;
     }
 
