@@ -438,7 +438,7 @@ module.exports = class bybit extends bybitRest {
         }
         const marketId = this.safeString2 (ticker, 'symbol', 's');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeStringN (ticker, [ 'l', 'last_price', 'lastPrice' ]);
+        const last = this.safeStringN (ticker, [ 'c', 'last_price', 'lastPrice' ]);
         const open = this.safeStringN (ticker, [ 'prev_price_24h', 'o', 'prevPrice24h' ]);
         let quoteVolume = this.safeStringN (ticker, [ 'v', 'turnover24h' ]);
         if (quoteVolume === undefined) {
