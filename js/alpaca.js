@@ -9,6 +9,11 @@ const { TICK_SIZE } = require ('./base/functions/number');
 //  ---------------------------------------------------------------------------xs
 
 module.exports = class alpaca extends Exchange {
+    /**
+     * @class
+     * @name alpaca
+     * @description exchange class for alpaca api
+     */
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'alpaca',

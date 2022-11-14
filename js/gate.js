@@ -10,7 +10,7 @@ const { ExchangeError, BadRequest, ArgumentsRequired, AuthenticationError, Permi
 module.exports = class gate extends Exchange {
     /**
      * @class
-     * @name gateio
+     * @name gate
      * @description exchange class for gate.io api
      */
     describe () {

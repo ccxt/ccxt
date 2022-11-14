@@ -10,7 +10,7 @@ module.exports = class huobipro extends huobi {
     /**
      * @class
      * @name huobipro
-     * @description exchange class for huobipro api
+     * @description alias class for huobi
      */
     describe () {
         // this is an alias for backward-compatibility
