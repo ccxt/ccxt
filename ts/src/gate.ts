@@ -406,6 +406,7 @@ export default class gate extends Exchange {
                 'HIT': 'HitChain',
                 'MM': 'Million', // conflict with MilliMeter
                 'MPH': 'Morpher', // conflict with 88MPH
+                'POINT': 'GatePoint',
                 'RAI': 'Rai Reflex Index', // conflict with RAI Finance
                 'SBTC': 'Super Bitcoin',
                 'TNC': 'Trinity Network Credit',
@@ -2736,7 +2737,7 @@ export default class gate extends Exchange {
         if (pointFee !== undefined) {
             fees.push ({
                 'cost': pointFee,
-                'currency': 'POINT',
+                'currency': 'GatePoint',
             });
         }
         const takerOrMaker = this.safeString (trade, 'role');

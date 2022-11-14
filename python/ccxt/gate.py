@@ -426,6 +426,7 @@ class gate(Exchange):
                 'HIT': 'HitChain',
                 'MM': 'Million',  # conflict with MilliMeter
                 'MPH': 'Morpher',  # conflict with 88MPH
+                'POINT': 'GatePoint',
                 'RAI': 'Rai Reflex Index',  # conflict with RAI Finance
                 'SBTC': 'Super Bitcoin',
                 'TNC': 'Trinity Network Credit',
@@ -2602,7 +2603,7 @@ class gate(Exchange):
         if pointFee is not None:
             fees.append({
                 'cost': pointFee,
-                'currency': 'POINT',
+                'currency': 'GatePoint',
             })
         takerOrMaker = self.safe_string(trade, 'role')
         return self.safe_trade({

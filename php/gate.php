@@ -409,6 +409,7 @@ class gate extends Exchange {
                 'HIT' => 'HitChain',
                 'MM' => 'Million', // conflict with MilliMeter
                 'MPH' => 'Morpher', // conflict with 88MPH
+                'POINT' => 'GatePoint',
                 'RAI' => 'Rai Reflex Index', // conflict with RAI Finance
                 'SBTC' => 'Super Bitcoin',
                 'TNC' => 'Trinity Network Credit',
@@ -2697,7 +2698,7 @@ class gate extends Exchange {
         if ($pointFee !== null) {
             $fees[] = array(
                 'cost' => $pointFee,
-                'currency' => 'POINT',
+                'currency' => 'GatePoint',
             );
         }
         $takerOrMaker = $this->safe_string($trade, 'role');
