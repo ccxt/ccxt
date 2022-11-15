@@ -2308,7 +2308,7 @@ module.exports = class Exchange {
         }
         // TEALSTREET patch for backwards compatability
         // this.marketHelper (symbol.split (':')[0]);
-        const foundMarket = this.marketHelper (symbol) || this.marketHelper (symbol + ':USDT') || this.marketHelper (symbol + ':BTC') || this.marketHelper (symbol.split (':')[0]);
+        const foundMarket = this.marketHelper (symbol) || this.marketHelper (symbol + ':USDT') || this.marketHelper (symbol + ':BTC');
         if (foundMarket) {
             return foundMarket;
         }
