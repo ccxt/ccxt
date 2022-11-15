@@ -21,21 +21,13 @@ class kucoinfutures extends kucoin {
                 'watchBalance': false, // on backend
             },
             'options': {
-                'tradesLimit': 1000,
-                'watchOrderBookRate': 100, // get updates every 100ms or 1000ms
-                'fetchOrderBookSnapshot': {
-                    'maxAttempts': 3, // default number of sync attempts
-                    'delay': 1000, // warmup delay in ms before synchronizing
-                },
+                'channelPrefix': 'contractMarket',
                 'watchTicker': {
                     'topic': 'contractMarket/tickerV2',
                 },
-            },
-            'streaming': {
-                // kucoin does not support built-in ws protocol-level ping-pong
-                // instead it requires a custom json-based text ping-pong
-                // https://docs.kucoin.com/#ping
-                'ping': this.ping,
+                'watchTrades': {
+                    'topic': 'contractMarket/tickerV2',
+                },
             },
         });
     }
@@ -79,85 +71,6 @@ class kucoinfutures extends kucoin {
             // const token = this.safeString (data, 'token');
         }
         return await future;
-    }
-
-    async subscribe (negotiation, topic, messageHash, method, symbol, params = {}) {
-        await this.loadMarkets ();
-        // const market = this.market (symbol);
-        const data = this.safeValue (negotiation, 'data', {});
-        const instanceServers = this.safeValue (data, 'instanceServers', []);
-        const firstServer = this.safeValue (instanceServers, 0, {});
-        const endpoint = this.safeString (firstServer, 'endpoint');
-        const token = this.safeString (data, 'token');
-        const nonce = this.requestId ();
-        const query = {
-            'token': token,
-            'acceptUserMessage': 'true',
-            // 'connectId': nonce, // user-defined id is supported, received by handleSystemStatus
-        };
-        const url = endpoint + '?' + this.urlencode (query);
-        // const topic = '/market/snapshot'; // '/market/ticker';
-        // const messageHash = topic + ':' + market['id'];
-        const subscribe = {
-            'id': nonce,
-            'type': 'subscribe',
-            'topic': topic,
-            'response': true,
-        };
-        const subscription = {
-            'id': nonce.toString (),
-            'symbol': symbol,
-            'topic': topic,
-            'messageHash': messageHash,
-            'method': method,
-        };
-        const request = this.extend (subscribe, params);
-        const subscriptionHash = topic;
-        return await this.watch (url, messageHash, request, subscriptionHash, subscription);
-    }
-
-    async watchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const negotiation = await this.negotiate ();
-        const options = this.safeValue (this.options, 'watchTicker', {});
-        const channel = this.safeString (options, 'topic', 'contractMarket/tickerV2');
-        const topic = '/' + channel + ':' + market['id'];
-        const messageHash = topic;
-        return await this.subscribe (negotiation, topic, messageHash, undefined, symbol, params);
-    }
-
-    handleTicker (client, message) {
-        const topic = this.safeString (message, 'topic');
-        let market = undefined;
-        if (topic !== undefined) {
-            const parts = topic.split (':');
-            const marketId = this.safeString (parts, 1);
-            market = this.safeMarket (marketId, market, '-');
-        }
-        const data = this.safeValue (message, 'data', {});
-        const rawTicker = this.safeValue (data, 'data', data);
-        const ticker = this.parseTicker (rawTicker, market);
-        const symbol = ticker['symbol'];
-        this.tickers[symbol] = ticker;
-        const messageHash = this.safeString (message, 'topic');
-        if (messageHash !== undefined) {
-            client.resolve (ticker, messageHash);
-        }
-        return message;
-    }
-
-    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
-        await this.loadMarkets ();
-        const negotiation = await this.negotiate ();
-        const market = this.market (symbol);
-        const topic = '/contractMarket/execution:' + market['id'];
-        const messageHash = topic;
-        const trades = await this.subscribe (negotiation, topic, messageHash, undefined, symbol, params);
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
     handleTrade (client, message) {

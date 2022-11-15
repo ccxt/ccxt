@@ -29,8 +29,12 @@ module.exports = class kucoin extends kucoinRest {
                     'maxAttempts': 3, // default number of sync attempts
                     'delay': 1000, // warmup delay in ms before synchronizing
                 },
+                'channelPrefix': 'market',
                 'watchTicker': {
                     'topic': 'market/snapshot', // market/ticker
+                },
+                'watchTrades': {
+                    'topic': '/market/match',
                 },
             },
             'streaming': {
@@ -291,7 +295,9 @@ module.exports = class kucoin extends kucoinRest {
         const negotiation = await this.negotiate ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const topic = '/market/match:' + market['id'];
+        const options = this.safeValue (this.options, 'watchTrades', {});
+        const channel = this.safeString (options, 'topic', '/market/match');
+        const topic = channel + ':' + market['id'];
         const messageHash = topic;
         const trades = await this.subscribe (negotiation, topic, messageHash, undefined, symbol, params);
         if (this.newUpdates) {
@@ -301,25 +307,6 @@ module.exports = class kucoin extends kucoinRest {
     }
 
     handleTrade (client, message) {
-        //
-        //     {
-        //         data: {
-        //             sequence: '1568787654360',
-        //             symbol: 'BTC-USDT',
-        //             side: 'buy',
-        //             size: '0.00536577',
-        //             price: '9345',
-        //             takerOrderId: '5e356c4a9f1a790008f8d921',
-        //             time: '1580559434436443257',
-        //             type: 'match',
-        //             makerOrderId: '5e356bffedf0010008fa5d7f',
-        //             tradeId: '5e356c4aeefabd62c62a1ece'
-        //         },
-        //         subject: 'trade.l3match',
-        //         topic: '/market/match:BTC-USDT',
-        //         type: 'message'
-        //     }
-        //
         const data = this.safeValue (message, 'data', {});
         const trade = this.parseTrade (data);
         const messageHash = this.safeString (message, 'topic');
