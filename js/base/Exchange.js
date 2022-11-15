@@ -2783,13 +2783,11 @@ module.exports = class Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[string|undefined, object]} the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
          */
-        const defaultMarginMode = this.safeString2 (this.options, 'marginMode', 'defaultMarginMode');
+        const defaultMarginMode = this.safeString (this.options, 'marginMode', 'cross');
         const methodOptions = this.safeValue (this.options, methodName, {});
-        const methodMarginMode = this.safeString2 (methodOptions, 'marginMode', 'defaultMarginMode', defaultMarginMode);
-        const marginMode = this.safeStringLower2 (params, 'marginMode', 'defaultMarginMode', methodMarginMode);
-        if (marginMode !== undefined) {
-            params = this.omit (params, [ 'marginMode', 'defaultMarginMode' ]);
-        }
+        const methodMarginMode = this.safeString (methodOptions, 'marginMode', defaultMarginMode);
+        const marginMode = this.safeStringLower (params, 'marginMode', methodMarginMode);
+        params = this.omit (params, 'marginMode');
         return [ marginMode, params ];
     }
 
@@ -2813,13 +2811,18 @@ module.exports = class Exchange {
         }
     }
 
-    checkRequiredSymbol (methodName, symbol) {
+    checkRequiredMarginArgument (methodName, symbol, marginMode) {
         /**
          * @ignore
          * @method
          * @param {string} symbol unified symbol of the market
          * @param {string} methodName name of the method that requires a symbol
+         * @param {string} marginMode is either 'isolated' or 'cross'
          */
-        this.checkRequiredArgument (methodName, symbol, 'symbol');
+        if ((marginMode === 'isolated') && (symbol === undefined)) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a symbol argument for isolated margin');
+        } else if ((marginMode === 'cross') && (symbol !== undefined)) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() cannot have a symbol argument for cross margin');
+        }
     }
 };
