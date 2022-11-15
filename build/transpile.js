@@ -760,6 +760,7 @@ class Transpiler {
             'hashlib': 'hashlib',
             'math': 'math',
             'json.loads': 'json',
+            'json.dumps': 'json',
             'sys': 'sys',
         }
 
