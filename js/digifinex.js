@@ -1770,7 +1770,7 @@ module.exports = class digifinex extends Exchange {
         const data = this.safeValue (response, 'data');
         const order = (marketType === 'swap') ? data : this.safeValue (data, 0);
         if (order === undefined) {
-            throw new OrderNotFound (this.id + ' fetchOrder() order ' + id + ' not found');
+            throw new OrderNotFound (this.id + ' fetchOrder() order ' + id.toString () + ' not found');
         }
         return this.parseOrder (order, market);
     }
