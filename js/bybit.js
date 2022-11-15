@@ -2633,7 +2633,26 @@ module.exports = class bybit extends Exchange {
         //         "time": "1657870316630"
         //     }
         //
-        const id = this.safeString2 (trade, 'id', 'exec_id');
+        // private unified margin
+        //
+        //     {
+        //         "symbol": "AAVEUSDT",
+        //         "id": "1274785101965716992",
+        //         "orderId": "1274784252359089664",
+        //         "tradeId": "2270000000031365639",
+        //         "orderPrice": "82.5",
+        //         "orderQty": "0.016",
+        //         "execFee": "0",
+        //         "feeTokenId": "AAVE",
+        //         "creatTime": "1666702226326",
+        //         "isBuyer": "0",
+        //         "isMaker": "0",
+        //         "matchOrderId": "1274785101865076224",
+        //         "makerRebate": "0",
+        //         "executionTime": "1666702226335"
+        //     }
+        //
+        const id = this.safeStringN (trade, [ 'id', 'exec_id', 'execId' ]);
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
@@ -2642,7 +2661,7 @@ module.exports = class bybit extends Exchange {
         const costString = this.safeString (trade, 'exec_value');
         let timestamp = this.parse8601 (this.safeString (trade, 'time'));
         if (timestamp === undefined) {
-            timestamp = this.safeInteger2 (trade, 'trade_time_ms', 'time');
+            timestamp = this.safeIntegerN (trade, [ 'trade_time_ms', 'time', 'execTime' ]);
         }
         let side = this.safeStringLower (trade, 'side');
         if (side === undefined) {
@@ -2659,7 +2678,7 @@ module.exports = class bybit extends Exchange {
             const lastLiquidityInd = this.safeString (trade, 'last_liquidity_ind');
             takerOrMaker = (lastLiquidityInd === 'AddedLiquidity') ? 'maker' : 'taker';
         }
-        const feeCostString = this.safeString2 (trade, 'exec_fee', 'commission');
+        const feeCostString = this.safeStringN (trade, [ 'exec_fee', 'commission', 'execFee' ]);
         let fee = undefined;
         if (feeCostString !== undefined) {
             let feeCurrencyCode = undefined;
@@ -5615,58 +5634,33 @@ module.exports = class bybit extends Exchange {
         return await this.fetchMyTrades (symbol, since, limit, this.extend (request, params));
     }
 
-    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name bybit#fetchMyTrades
-         * @description fetch all trades made by the user
-         * @param {string} symbol unified market symbol
-         * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades structures to retrieve
-         * @param {object} params extra parameters specific to the bybit api endpoint
-         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
-         */
+    async fetchMySpotTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMySpotTrades() requires a symbol argument');
         }
         await this.loadMarkets ();
+        const market = this.market (symbol);
         const request = {
-            // 'order_id': 'f185806b-b801-40ff-adec-52289370ed62', // if not provided will return user's trading records
-            // 'symbol': market['id'],
-            // 'start_time': parseInt (since / 1000),
-            // 'page': 1,
+            'symbol': market['id'],
+            // 'orderId': 'f185806b-b801-40ff-adec-52289370ed62', // if not provided will return user's trading records
+            // 'startTime': parseInt (since / 1000),
+            // 'endTime': 0,
+            // 'fromTradeId': '',
+            // 'toTradeId': '',
             // 'limit' 20, // max 50
         };
-        let market = undefined;
         const orderId = this.safeString (params, 'order_id');
         if (orderId !== undefined) {
-            request['order_id'] = orderId;
+            request['orderId'] = orderId;
             params = this.omit (params, 'order_id');
         }
-        market = this.market (symbol);
-        const isUsdcSettled = market['settle'] === 'USDC';
-        if (isUsdcSettled) {
-            throw new NotSupported (this.id + ' fetchMyTrades() is not supported for market ' + symbol);
-        }
-        request['symbol'] = market['id'];
         if (since !== undefined) {
-            request['start_time'] = since;
+            request['startTime'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default 20, max 50
         }
-        let method = undefined;
-        if (market['spot']) {
-            method = 'privateGetSpotV3PrivateMyTrades';
-        } else if (market['future']) {
-            method = 'privateGetFuturesPrivateExecutionList';
-        } else {
-            // linear and inverse swaps
-            method = market['linear'] ? 'privateGetPrivateLinearTradeExecutionList' : 'privateGetV2PrivateExecutionList';
-        }
-        const response = await this[method] (this.extend (request, params));
-        //
-        // spot
+        const response = await this.privateGetSpotV3PrivateMyTrades (this.extend (request, params));
         //
         //    {
         //         "retCode": "0",
@@ -5696,6 +5690,114 @@ module.exports = class bybit extends Exchange {
         //         "time": "1666768215157"
         //     }
         //
+        const result = this.safeValue (response, 'result', {});
+        const trades = this.safeValue (result, 'list', []);
+        return this.parseTrades (trades, market, since, limit);
+    }
+
+    async fetchMyDerivativesTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyDerivativesTrades() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            // 'orderId': 'f185806b-b801-40ff-adec-52289370ed62', // if not provided will return user's trading records
+            // 'startTime': parseInt (since / 1000),
+            // 'endTime': 0,
+            // 'category': ''
+            // 'limit' 20, // max 50
+        };
+        const orderId = this.safeString (params, 'order_id');
+        if (orderId !== undefined) {
+            request['orderId'] = orderId;
+            params = this.omit (params, 'order_id');
+        }
+        if (market['option']) {
+            request['category'] = 'option';
+        } else if (market['linear']) {
+            request['category'] = 'linear';
+        } else {
+            throw new NotSupported (this.id + ' fetchMyDerivativesTrades() didn\'t support inverse market in unified margin');
+        }
+        if (since !== undefined) {
+            request['startTime'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 20, max 50
+        }
+        const response = await this.privateGetUnifiedV3PrivateExecutionList (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "Success",
+        //         "result": {
+        //             "nextPageCursor": "1565%3A0%2C1565%3A0",
+        //             "category": "option",
+        //             "list": [
+        //                 {
+        //                     "orderType": "Limit",
+        //                     "symbol": "BTC-14JUL22-17500-C",
+        //                     "orderLinkId": "188889689-yuanzhen-558998998898",
+        //                     "side": "Buy",
+        //                     "orderId": "09c5836f-81ef-4208-a5b4-43135d3e02a2",
+        //                     "leavesQty": "0.0000",
+        //                     "execTime": 1657714122417,
+        //                     "execFee": "0.11897082",
+        //                     "feeRate": "0.000300",
+        //                     "execId": "6e492560-78b4-5d2b-b331-22921d3173c9",
+        //                     "blockTradeId": "",
+        //                     "execPrice": "2360.00000000",
+        //                     "lastLiquidityInd": "TAKER",
+        //                     "orderQty": "0.0200",
+        //                     "orderPrice": "2360.00000000",
+        //                     "execValue": "47.20000000",
+        //                     "execType": "Trade",
+        //                     "execQty": "0.0200"
+        //                 }
+        //             ]
+        //         },
+        //         "time": 1657714292783
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const trades = this.safeValue (result, 'list', []);
+        return this.parseTrades (trades, market, since, limit);
+    }
+
+    async fetchMyDerivativesV2Trades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyDerivativesV2Trades() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            // 'order_id': 'f185806b-b801-40ff-adec-52289370ed62', // if not provided will return user's trading records
+            // 'start_time': parseInt (since / 1000),
+            // 'page': 1,
+            // 'limit' 20, // max 50
+        };
+        const orderId = this.safeString (params, 'order_id');
+        if (orderId !== undefined) {
+            request['order_id'] = orderId;
+            params = this.omit (params, 'order_id');
+        }
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 20, max 50
+        }
+        let method = undefined;
+        if (market['future']) {
+            method = 'privateGetFuturesPrivateExecutionList';
+        } else {
+            // linear and inverse swaps
+            method = market['linear'] ? 'privateGetPrivateLinearTradeExecutionList' : 'privateGetV2PrivateExecutionList';
+        }
+        const response = await this[method] (this.extend (request, params));
         //
         // inverse
         //
@@ -5783,6 +5885,37 @@ module.exports = class bybit extends Exchange {
             result = this.safeValueN (result, [ 'trade_list', 'data', 'list' ], []);
         }
         return this.parseTrades (result, market, since, limit);
+    }
+
+    async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchMyTrades
+         * @description fetch all trades made by the user
+         * @param {string} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        let market = undefined;
+        market = this.market (symbol);
+        const isUsdcSettled = market['settle'] === 'USDC';
+        if (isUsdcSettled) {
+            throw new NotSupported (this.id + ' fetchMyTrades() is not supported for market ' + symbol);
+        }
+        let enableUnifiedMargin = undefined;
+        [ enableUnifiedMargin, params ] = this.handleOptionAndParamsValue (params, 'fetchMyTrades', 'enableUnifiedMargin', false);
+        if (market['spot']) {
+            return await this.fetchMySpotTrades (symbol, since, limit, params);
+        } else if (enableUnifiedMargin) {
+            return await this.fetchMyDerivativesTrades (symbol, since, limit, params);
+        }
+        return await this.fetchMyDerivativesV2Trades (symbol, since, limit, params);
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
