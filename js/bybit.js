@@ -1713,8 +1713,8 @@ module.exports = class bybit extends Exchange {
         if (Array.isArray (result)) {
             rawTicker = this.safeValue (result, 0);
         } else {
-            if (isV3) {
-                const tickers = this.safeValue (result, 'list');
+            const tickers = this.safeValue (result, 'list');
+            if (tickers !== undefined) {
                 rawTicker = this.safeValue (tickers, 0);
             } else {
                 rawTicker = result;
@@ -2052,28 +2052,28 @@ module.exports = class bybit extends Exchange {
         const response = await this.publicGetSpotV3PublicQuoteKline (this.extend (request, params));
         //
         //     {
-        //         "ret_code": "0",
-        //         "ret_msg": null,
-        //         "result": [
-        //             [
-        //                 1651837620000,
-        //                 "35831.5",
-        //                 "35831.5",
-        //                 "35801.93",
-        //                 "35817.11",
-        //                 "1.23453",
-        //                 0,
-        //                 "44213.97591627",
-        //                 24,
-        //                 "0",
-        //                 "0"
-        //             ]
-        //         ],
-        //         "ext_code": null,
-        //         "ext_info": null
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //         "list": [
+        //             {
+        //             "t": 1659430380000,
+        //             "s": "BTCUSDT",
+        //             "sn": "BTCUSDT",
+        //             "c": "21170.14",
+        //             "h": "21170.14",
+        //             "l": "21127.86",
+        //             "o": "21127.86",
+        //             "v": "0.907276"
+        //             }
+        //         ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1659430400353
         //     }
         //
-        const ohlcvs = this.safeValue (response, 'result');
+        const result = this.safeValue (response, 'result', {});
+        const ohlcvs = this.safeValue (result, 'list', []);
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
@@ -2622,18 +2622,23 @@ module.exports = class bybit extends Exchange {
         //          "trade_time_ms": "1638276374312"
         //      }
         //
+        // public unified margin
+        //
+        //     {
+        //         "execId": "da66abbc-f358-5864-8d34-84ef7274d853",
+        //         "symbol": "BTCUSDT",
+        //         "price": "20802.50",
+        //         "size": "0.200",
+        //         "side": "Sell",
+        //         "time": "1657870316630"
+        //     }
+        //
         const id = this.safeString2 (trade, 'id', 'exec_id');
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        let amountString = this.safeString2 (trade, 'qty', 'exec_qty');
-        if (amountString === undefined) {
-            amountString = this.safeString (trade, 'orderQty');
-        }
-        let priceString = this.safeString2 (trade, 'exec_price', 'price');
-        if (priceString === undefined) {
-            priceString = this.safeString (trade, 'orderPrice');
-        }
+        const amountString = this.safeStringN (trade, [ 'qty', 'exec_qty', 'orderQty', 'size' ]);
+        const priceString = this.safeStringN (trade, [ 'exec_price', 'price', 'orderPrice' ]);
         const costString = this.safeString (trade, 'exec_value');
         let timestamp = this.parse8601 (this.safeString (trade, 'time'));
         if (timestamp === undefined) {
@@ -2733,7 +2738,8 @@ module.exports = class bybit extends Exchange {
         //         time_now: '1583954313.393362'
         //     }
         //
-        const trades = this.safeValue (response, 'result', {});
+        const result = this.safeValue (response, 'result', {});
+        const trades = this.safeValue (result, 'list', []);
         return this.parseTrades (trades, market, since, limit);
     }
 
@@ -6772,6 +6778,31 @@ module.exports = class bybit extends Exchange {
         //       "sessionAvgPrice":"30810.0"
         //    }
         //
+        // unified margin
+        //
+        //     {
+        //         "symbol": "ETHUSDT",
+        //         "leverage": "10",
+        //         "updatedTime": 1657711949945,
+        //         "side": "Buy",
+        //         "positionValue": "536.92500000",
+        //         "takeProfit": "",
+        //         "tpslMode": "Full",
+        //         "riskId": 11,
+        //         "trailingStop": "",
+        //         "entryPrice": "1073.85000000",
+        //         "unrealisedPnl": "",
+        //         "markPrice": "1080.65000000",
+        //         "size": "0.5000",
+        //         "positionStatus": "normal",
+        //         "stopLoss": "",
+        //         "cumRealisedPnl": "-0.32215500",
+        //         "positionMM": "2.97456450",
+        //         "createdTime": 1657711949928,
+        //         "positionIdx": 0,
+        //         "positionIM": "53.98243950"
+        //     }
+        //
         const contract = this.safeString (position, 'symbol');
         market = this.safeMarket (contract, market);
         const size = this.safeString (position, 'size');
@@ -6783,7 +6814,7 @@ module.exports = class bybit extends Exchange {
         const maintenanceMarginString = this.safeString (position, 'positionMM');
         let timestamp = this.parse8601 (this.safeString (position, 'updated_at'));
         if (timestamp === undefined) {
-            timestamp = this.safeInteger (position, 'createdAt');
+            timestamp = this.safeInteger (position, 'updatedAt');
         }
         const isIsolated = this.safeValue (position, 'is_isolated', false); // if not present it is cross
         const marginMode = isIsolated ? 'isolated' : 'cross';
