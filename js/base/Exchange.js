@@ -880,7 +880,7 @@ module.exports = class Exchange {
                     baseCurrencies.push (currency);
                 }
                 if ('quote' in market) {
-                    const currencyPrecision = this.safeValue2 (marketPrecision, 'quote', 'amount', defaultCurrencyPrecision);
+                    const currencyPrecision = this.safeValue2 (marketPrecision, 'quote', 'price', defaultCurrencyPrecision);
                     const currency = {
                         'id': this.safeString2 (market, 'quoteId', 'quote'),
                         'numericId': this.safeString (market, 'quoteNumericId'),
@@ -1193,42 +1193,55 @@ module.exports = class Exchange {
     }
 
     calculateFee (symbol, type, side, amount, price, takerOrMaker = 'taker', params = {}) {
+        if (type === 'market' && takerOrMaker === 'maker') {
+            throw new ArgumentsRequired (this.id + ' calculateFee() - you have provided incompatible arguments - "market" type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.');
+        }
         const market = this.markets[symbol];
         const feeSide = this.safeString (market, 'feeSide', 'quote');
         let key = 'quote';
         let cost = undefined;
+        const amountString = this.numberToString (amount);
+        const priceString = this.numberToString (price);
         if (feeSide === 'quote') {
             // the fee is always in quote currency
-            cost = amount * price;
+            cost = Precise.stringMul (amountString, priceString);
         } else if (feeSide === 'base') {
             // the fee is always in base currency
-            cost = amount;
+            cost = amountString;
         } else if (feeSide === 'get') {
             // the fee is always in the currency you get
-            cost = amount;
+            cost = amountString;
             if (side === 'sell') {
-                cost *= price;
+                cost = Precise.stringMul (cost, priceString);
             } else {
                 key = 'base';
             }
         } else if (feeSide === 'give') {
             // the fee is always in the currency you give
-            cost = amount;
+            cost = amountString;
             if (side === 'buy') {
-                cost *= price;
+                cost = Precise.stringMul (cost, priceString);
             } else {
                 key = 'base';
             }
         }
-        const rate = market[takerOrMaker];
+        // for derivatives, the fee is in 'settle' currency
+        if (!market['spot']) {
+            key = 'settle';
+        }
+        // even if `takerOrMaker` argument was set to 'maker', for 'market' orders we should forcefully override it to 'taker'
+        if (type === 'market') {
+            takerOrMaker = 'taker';
+        }
+        const rate = this.safeString (market, takerOrMaker);
         if (cost !== undefined) {
-            cost *= rate;
+            cost = Precise.stringMul (cost, rate);
         }
         return {
             'type': takerOrMaker,
             'currency': market[key],
-            'rate': rate,
-            'cost': cost,
+            'rate': this.parseNumber (rate),
+            'cost': this.parseNumber (cost),
         };
     }
 
@@ -1522,6 +1535,17 @@ module.exports = class Exchange {
         const result = [];
         for (let i = 0; i < symbols.length; i++) {
             result.push (this.symbol (symbols[i]));
+        }
+        return result;
+    }
+
+    marketCodes (codes) {
+        if (codes === undefined) {
+            return codes;
+        }
+        const result = [];
+        for (let i = 0; i < codes.length; i++) {
+            result.push (this.commonCurrencyCode (codes[i]));
         }
         return result;
     }
@@ -1858,6 +1882,18 @@ module.exports = class Exchange {
         throw new NotSupported (this.id + ' fetchPermissions() is not supported yet');
     }
 
+    async fetchPosition (symbol, params = {}) {
+        throw new NotSupported (this.id + ' fetchPosition() is not supported yet');
+    }
+
+    async fetchPositions (symbols = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchPositions() is not supported yet');
+    }
+
+    async fetchPositionsRisk (symbols = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchPositionsRisk() is not supported yet');
+    }
+
     async fetchBidsAsks (symbols = undefined, params = {}) {
         throw new NotSupported (this.id + ' fetchBidsAsks() is not supported yet');
     }
@@ -1872,7 +1908,7 @@ module.exports = class Exchange {
         if ((currencyId === undefined) && (currency !== undefined)) {
             return currency;
         }
-        if ((this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id)) {
+        if ((this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id) && (this.currencies_by_id[currencyId] !== undefined)) {
             return this.currencies_by_id[currencyId];
         }
         let code = currencyId;
@@ -2013,7 +2049,7 @@ module.exports = class Exchange {
         if (warnOnFetchFundingFee) {
             throw new NotSupported (this.id + ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning');
         }
-        return this.fetchTransactionFee (code, params);
+        return await this.fetchTransactionFee (code, params);
     }
 
     async fetchFundingFees (codes = undefined, params = {}) {
@@ -2021,14 +2057,14 @@ module.exports = class Exchange {
         if (warnOnFetchFundingFees) {
             throw new NotSupported (this.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');
         }
-        return this.fetchTransactionFees (codes, params);
+        return await this.fetchTransactionFees (codes, params);
     }
 
     async fetchTransactionFee (code, params = {}) {
         if (!this.has['fetchTransactionFees']) {
             throw new NotSupported (this.id + ' fetchTransactionFee() is not supported yet');
         }
-        return this.fetchTransactionFees ([ code ], params);
+        return await this.fetchTransactionFees ([ code ], params);
     }
 
     async fetchTransactionFees (codes = undefined, params = {}) {
@@ -2054,6 +2090,29 @@ module.exports = class Exchange {
             throw new ExchangeError (this.id + ' fetchBorrowRate() could not find the borrow rate for currency code ' + code);
         }
         return rate;
+    }
+
+    handleOptionAndParams (params, methodName, optionName, defaultValue = undefined) {
+        // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
+        const defaultOptionName = 'default' + this.capitalize (optionName); // we also need to check the 'defaultXyzWhatever'
+        // check if params contain the key
+        let value = this.safeString2 (params, optionName, defaultOptionName);
+        if (value !== undefined) {
+            params = this.omit (params, [ optionName, defaultOptionName ]);
+        }
+        if (value === undefined) {
+            // check if exchange-wide method options contain the key
+            const exchangeWideMethodOptions = this.safeValue (this.options, methodName);
+            if (exchangeWideMethodOptions !== undefined) {
+                value = this.safeString2 (exchangeWideMethodOptions, optionName, defaultOptionName);
+            }
+        }
+        if (value === undefined) {
+            // check if exchange-wide options contain the key
+            value = this.safeString2 (this.options, optionName, defaultOptionName);
+        }
+        value = (value !== undefined) ? value : defaultValue;
+        return [ value, params ];
     }
 
     handleMarketTypeAndParams (methodName, market = undefined, params = {}) {
@@ -2118,8 +2177,10 @@ module.exports = class Exchange {
         const keys = Object.keys (broad);
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            if (string.indexOf (key) >= 0) {
-                return key;
+            if (string !== undefined) { // #issues/12698
+                if (string.indexOf (key) >= 0) {
+                    return key;
+                }
             }
         }
         return undefined;
@@ -2527,6 +2588,14 @@ module.exports = class Exchange {
         return result;
     }
 
+    isTriggerOrder (params) {
+        const isTrigger = this.safeValue2 (params, 'trigger', 'stop');
+        if (isTrigger) {
+            params = this.omit (params, [ 'trigger', 'stop' ]);
+        }
+        return [ isTrigger, params ];
+    }
+
     isPostOnly (isMarketOrder, exchangeSpecificParam, params = {}) {
         /**
          * @ignore
@@ -2722,5 +2791,35 @@ module.exports = class Exchange {
             params = this.omit (params, [ 'marginMode', 'defaultMarginMode' ]);
         }
         return [ marginMode, params ];
+    }
+
+    checkRequiredArgument (methodName, argument, argumentName, options = []) {
+        /**
+         * @ignore
+         * @method
+         * @param {string} argument the argument to check
+         * @param {string} argumentName the name of the argument to check
+         * @param {string} methodName the name of the method that the argument is being checked for
+         * @param {[string]} options a list of options that the argument can be
+         * @returns {undefined}
+         */
+        if ((argument === undefined) || ((options.length > 0) && (!(this.inArray (argument, options))))) {
+            const messageOptions = options.join (', ');
+            let message = this.id + ' ' + methodName + '() requires a ' + argumentName + ' argument';
+            if (messageOptions !== '') {
+                message += ', one of ' + '(' + messageOptions + ')';
+            }
+            throw new ArgumentsRequired (message);
+        }
+    }
+
+    checkRequiredSymbol (methodName, symbol) {
+        /**
+         * @ignore
+         * @method
+         * @param {string} symbol unified symbol of the market
+         * @param {string} methodName name of the method that requires a symbol
+         */
+        this.checkRequiredArgument (methodName, symbol, 'symbol');
     }
 };

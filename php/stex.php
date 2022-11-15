@@ -6,9 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\OrderNotFound;
 
 class stex extends Exchange {
 
@@ -767,7 +764,7 @@ class stex extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1d', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
@@ -1076,22 +1073,22 @@ class stex extends Exchange {
         $marketId = $this->safe_string_2($order, 'currency_pair_id', 'currency_pair_name');
         $symbol = $this->safe_symbol($marketId, $market, '_');
         $timestamp = $this->safe_timestamp($order, 'timestamp');
-        $price = $this->safe_number($order, 'price');
-        $amount = $this->safe_number($order, 'initial_amount');
-        $filled = $this->safe_number($order, 'processed_amount');
+        $price = $this->safe_string($order, 'price');
+        $amount = $this->safe_string($order, 'initial_amount');
+        $filled = $this->safe_string($order, 'processed_amount');
         $remaining = null;
         $cost = null;
         if ($filled !== null) {
             if ($amount !== null) {
-                $remaining = $amount - $filled;
+                $remaining = Precise::string_sub($amount, $filled);
                 if ($this->options['parseOrderToPrecision']) {
-                    $remaining = floatval($this->amount_to_precision($symbol, $remaining));
+                    $remaining = $this->amount_to_precision($symbol, $remaining);
                 }
-                $remaining = max ($remaining, 0.0);
+                $remaining = Precise::string_max($remaining, '0.0');
             }
             if ($price !== null) {
                 if ($cost === null) {
-                    $cost = $price * $filled;
+                    $cost = Precise::string_mul($price, $filled);
                 }
             }
         }
@@ -1100,14 +1097,7 @@ class stex extends Exchange {
             $type = null;
         }
         $side = $this->safe_string_lower($order, 'type');
-        $rawTrades = $this->safe_value($order, 'trades');
-        $trades = null;
-        if ($rawTrades !== null) {
-            $trades = $this->parse_trades($rawTrades, $market, null, null, array(
-                'symbol' => $symbol,
-                'order' => $id,
-            ));
-        }
+        $trades = $this->safe_value($order, 'trades');
         $stopPrice = $this->safe_number($order, 'trigger_price');
         $result = array(
             'info' => $order,
@@ -1139,7 +1129,7 @@ class stex extends Exchange {
             if ($numFees > 0) {
                 $result['fees'] = array();
                 for ($i = 0; $i < count($fees); $i++) {
-                    $feeCost = $this->safe_number($fees[$i], 'amount');
+                    $feeCost = $this->safe_string($fees[$i], 'amount');
                     if ($feeCost !== null) {
                         $feeCurrencyId = $this->safe_string($fees[$i], 'currency_id');
                         $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
@@ -1153,7 +1143,7 @@ class stex extends Exchange {
                 $result['fee'] = null;
             }
         }
-        return $result;
+        return $this->safe_order($result, $market);
     }
 
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
@@ -1937,7 +1927,7 @@ class stex extends Exchange {
         //     }
         //
         $deposits = $this->safe_value($response, 'data', array());
-        return $this->parse_transactions($deposits, $code, $since, $limit);
+        return $this->parse_transactions($deposits, $currency, $since, $limit);
     }
 
     public function fetch_withdrawal($id, $code = null, $params = array ()) {
@@ -2060,7 +2050,7 @@ class stex extends Exchange {
         //     }
         //
         $withdrawals = $this->safe_value($response, 'data', array());
-        return $this->parse_transactions($withdrawals, $code, $since, $limit);
+        return $this->parse_transactions($withdrawals, $currency, $since, $limit);
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
@@ -2369,12 +2359,12 @@ class stex extends Exchange {
     public function fetch_transaction_fees($codes = null, $params = array ()) {
         /**
          * fetch transaction fees
-         * @param {[string]|null} $codes not used by stex fetchTransactionFees ()
+         * @see https://apidocs.stex.com/#tag/Public/paths/{1public}1currencies/get
+         * @param {[string]|null} $codes list of unified $currency $codes
          * @param {array} $params extra parameters specific to the stex api endpoint
          * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
          */
         $this->load_markets();
-        $response = $this->publicGetCurrencies ($params);
         //
         //     {
         //         "success" => true,
@@ -2414,20 +2404,22 @@ class stex extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $withdrawFees = array();
-        $depositFees = array();
-        for ($i = 0; $i < count($data); $i++) {
-            $id = $this->safe_string($data[$i], 'id');
-            $code = $this->safe_currency_code($id);
-            $withdrawFees[$code] = $this->safe_number($data[$i], 'withdrawal_fee_const');
-            $depositFees[$code] = $this->safe_number($data[$i], 'deposit_fee_const');
+        $currencyKeys = is_array($this->currencies) ? array_keys($this->currencies) : array();
+        $result = array();
+        for ($i = 0; $i < count($currencyKeys); $i++) {
+            $code = $currencyKeys[$i];
+            $currency = $this->currencies[$code];
+            if ($codes !== null && !$this->in_array($code, $codes)) {
+                continue;
+            }
+            $info = $this->safe_value($currency, 'info');
+            $result[$code] = array(
+                'withdraw' => $this->safe_number($currency, 'fee'),
+                'deposit' => $this->safe_number($info, 'deposit_fee_const'),
+                'info' => $info,
+            );
         }
-        return array(
-            'withdraw' => $withdrawFees,
-            'deposit' => $depositFees,
-            'info' => $response,
-        );
+        return $result;
     }
 
     public function handle_errors($httpCode, $reason, $url, $method, $headers, $body, $response, $requestHeaders, $requestBody) {

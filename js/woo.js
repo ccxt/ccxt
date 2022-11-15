@@ -131,6 +131,7 @@ module.exports = class woo extends Exchange {
                         'get': {
                             'info': 1,
                             'info/{symbol}': 1,
+                            'system_info': 1,
                             'market_trades': 1,
                             'token': 1,
                             'token_network': 1,
@@ -185,6 +186,23 @@ module.exports = class woo extends Exchange {
                     'private': {
                         'get': {
                             'client/holding': 1,
+                        },
+                    },
+                },
+                'v3': {
+                    'private': {
+                        'get': {
+                            'algo/order/{oid}': 1,
+                            'algo/orders': 1,
+                        },
+                        'post': {
+                            'algo/order': 5,
+                        },
+                        'delete': {
+                            'algo/order/{oid}': 1,
+                            'algo/orders/pending': 1,
+                            'algo/orders/pending/{symbol}': 1,
+                            'orders/pending': 1,
                         },
                     },
                 },
@@ -614,6 +632,7 @@ module.exports = class woo extends Exchange {
             const networks = networksByCurrencyId[currencyId];
             const code = this.safeCurrencyCode (currencyId);
             let name = undefined;
+            let minPrecision = undefined;
             const resultingNetworks = {};
             for (let j = 0; j < networks.length; j++) {
                 const network = networks[j];
@@ -621,7 +640,10 @@ module.exports = class woo extends Exchange {
                 const networkId = this.safeString (network, 'token');
                 const splitted = networkId.split ('_');
                 const unifiedNetwork = splitted[0];
-                const precision = this.parseNumber (this.parsePrecision (this.safeString (network, 'decimals')));
+                const precision = this.parsePrecision (this.safeString (network, 'decimals'));
+                if (precision !== undefined) {
+                    minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (precision, minPrecision);
+                }
                 resultingNetworks[unifiedNetwork] = {
                     'id': networkId,
                     'network': unifiedNetwork,
@@ -639,7 +661,7 @@ module.exports = class woo extends Exchange {
                     'deposit': undefined,
                     'withdraw': undefined,
                     'fee': undefined,
-                    'precision': precision, // will be filled down below
+                    'precision': this.parseNumber (precision),
                     'info': network,
                 };
             }
@@ -647,7 +669,7 @@ module.exports = class woo extends Exchange {
                 'id': currencyId,
                 'name': name,
                 'code': code,
-                'precision': undefined,
+                'precision': this.parseNumber (minPrecision),
                 'active': undefined,
                 'fee': undefined,
                 'networks': resultingNetworks,
@@ -661,7 +683,7 @@ module.exports = class woo extends Exchange {
                         'max': undefined,
                     },
                 },
-                'info': networks, // will be filled down below
+                'info': networks,
             };
         }
         return result;
@@ -710,7 +732,10 @@ module.exports = class woo extends Exchange {
                         if (price === undefined) {
                             throw new InvalidOrder (this.id + " createOrder() requires the price argument for market buy orders to calculate total order cost. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or alternatively, supply the total cost value in the 'order_amount' in  exchange-specific parameters");
                         } else {
-                            request['order_amount'] = this.costToPrecision (symbol, amount * price);
+                            const amountString = this.numberToString (amount);
+                            const priceString = this.numberToString (price);
+                            const orderAmount = Precise.stringMul (amountString, priceString);
+                            request['order_amount'] = this.costToPrecision (symbol, orderAmount);
                         }
                     } else {
                         request['order_amount'] = this.costToPrecision (symbol, cost);
@@ -1042,7 +1067,7 @@ module.exports = class woo extends Exchange {
         return this.parseOrderBook (response, symbol, timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
-    async fetchOHLCV (symbol, timeframe = '1h', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name woo#fetchOHLCV
@@ -1775,12 +1800,17 @@ module.exports = class woo extends Exchange {
             url += path;
             const ts = this.nonce ().toString ();
             let auth = this.urlencode (params);
-            if (method === 'POST' || method === 'DELETE') {
+            if (version === 'v3' && (method === 'POST')) {
                 body = auth;
+                auth = ts + method + '/' + version + '/' + path + body;
             } else {
-                url += '?' + auth;
+                if (method === 'POST' || method === 'DELETE') {
+                    body = auth;
+                } else {
+                    url += '?' + auth;
+                }
+                auth += '|' + ts;
             }
-            auth += '|' + ts;
             const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
             headers = {
                 'x-api-key': this.apiKey,
@@ -2028,7 +2058,7 @@ module.exports = class woo extends Exchange {
     async fetchLeverage (symbol, params = {}) {
         await this.loadMarkets ();
         const response = await this.v1PrivateGetClientInfo (params);
-        // //
+        //
         //     {
         //         "success": true,
         //         "application": {
@@ -2155,6 +2185,7 @@ module.exports = class woo extends Exchange {
         const notional = Precise.stringMul (size, markPrice);
         return {
             'info': position,
+            'id': undefined,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),

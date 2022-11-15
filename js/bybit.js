@@ -17,8 +17,6 @@ module.exports = class bybit extends Exchange {
             'countries': [ 'VG' ], // British Virgin Islands
             'version': 'v2',
             'userAgent': undefined,
-            // 50 requests per second for GET requests, 1000ms / 50 = 20ms between requests
-            // 20 requests per second for POST requests, cost = 50 / 20 = 2.5
             'rateLimit': 20,
             'hostname': 'bybit.com', // bybit.com, bytick.com
             'pro': true,
@@ -38,8 +36,8 @@ module.exports = class bybit extends Exchange {
                 'createStopOrder': true,
                 'editOrder': true,
                 'fetchBalance': true,
-                'fetchBorrowInterest': true,
-                'fetchBorrowRate': false,
+                'fetchBorrowInterest': false, // temporarily disabled, as it does not work
+                'fetchBorrowRate': true,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
                 'fetchBorrowRates': false,
@@ -58,6 +56,7 @@ module.exports = class bybit extends Exchange {
                 'fetchMarkOHLCV': true,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
+                'fetchOpenInterest': true,
                 'fetchOpenInterestHistory': true,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -120,7 +119,7 @@ module.exports = class bybit extends Exchange {
                     'https://github.com/bybit-exchange',
                 ],
                 'fees': 'https://help.bybit.com/hc/en-us/articles/360039261154',
-                'referral': 'https://partner.bybit.com/b/ccxt',
+                'referral': 'https://www.bybit.com/register?affiliate_id=35953',
             },
             'api': {
                 'public': {
@@ -159,8 +158,19 @@ module.exports = class bybit extends Exchange {
                         'spot/quote/v1/ticker/24hr': 1,
                         'spot/quote/v1/ticker/price': 1,
                         'spot/quote/v1/ticker/book_ticker': 1,
+                        'spot/v3/public/symbols': 1,
+                        'spot/v3/public/quote/depth': 1,
+                        'spot/v3/public/quote/depth/merged': 1,
+                        'spot/v3/public/quote/trades': 1,
+                        'spot/v3/public/quote/kline': 1,
+                        'spot/v3/public/quote/ticker/24hr': 1,
+                        'spot/v3/public/quote/ticker/price': 1,
+                        'spot/v3/public/quote/ticker/bookTicker': 1,
+                        'spot/v3/public/server-time': 1,
+                        'spot/v3/public/infos': 1,
                         // data
                         'v2/public/time': 1,
+                        'v3/public/time': 1,
                         'v2/public/announcement': 1,
                         // USDC endpoints
                         // option USDC
@@ -169,6 +179,8 @@ module.exports = class bybit extends Exchange {
                         'option/usdc/openapi/public/v1/tick': 1,
                         'option/usdc/openapi/public/v1/delivery-price': 1,
                         'option/usdc/openapi/public/v1/query-trade-latest': 1,
+                        'option/usdc/openapi/public/v1/query-historical-volatility': 1,
+                        'option/usdc/openapi/public/v1/all-tickers': 1,
                         // perpetual swap USDC
                         'perpetual/usdc/openapi/public/v1/order-book': 1,
                         'perpetual/usdc/openapi/public/v1/symbols': 1,
@@ -249,19 +261,38 @@ module.exports = class bybit extends Exchange {
                         'spot/v1/cross-margin/accounts/balance': 10,
                         'spot/v1/cross-margin/loan-info': 10,
                         'spot/v1/cross-margin/repay/history': 10,
+                        'spot/v3/private/order': 2.5,
+                        'spot/v3/private/open-orders': 2.5,
+                        'spot/v3/private/history-orders': 2.5,
+                        'spot/v3/private/my-trades': 2.5,
+                        'spot/v3/private/account': 2.5,
+                        'spot/v3/private/reference': 2.5,
+                        'spot/v3/private/record': 2.5,
+                        'spot/v3/private/cross-margin-orders': 10,
+                        'spot/v3/private/cross-margin-account': 10,
+                        'spot/v3/private/cross-margin-loan-info': 10,
+                        'spot/v3/private/cross-margin-repay-history': 10,
                         // account
                         'asset/v1/private/transfer/list': 50, // 60 per minute = 1 per second => cost = 50 / 1 = 50
+                        'asset/v3/private/transfer/inter-transfer/list/query': 0.84, // 60/s
                         'asset/v1/private/sub-member/transfer/list': 50,
+                        'asset/v3/private/transfer/sub-member/list/query': 0.84, // 60/s
+                        'asset/v3/private/transfer/sub-member-transfer/list/query': 0.84, // 60/s
+                        'asset/v3/private/transfer/universal-transfer/list/query': 0.84, // 60/s
                         'asset/v1/private/sub-member/member-ids': 50,
                         'asset/v1/private/deposit/record/query': 50,
                         'asset/v1/private/withdraw/record/query': 25,
                         'asset/v1/private/coin-info/query': 25,
+                        'asset/v3/private/coin-info/query': 25, // 2/s
                         'asset/v1/private/asset-info/query': 50,
                         'asset/v1/private/deposit/address': 100,
+                        'asset/v3/private/deposit/address/query': 0.17, // 300/s
                         'asset/v1/private/universal/transfer/list': 50,
                         'contract/v3/private/copytrading/order/list': 1,
                         'contract/v3/private/copytrading/position/list': 1,
                         'contract/v3/private/copytrading/wallet/balance': 1,
+                        'contract/v3/private/position/limit-info': 25, // 120 per minute = 2 per second => cost = 50 / 2 = 25
+                        'contract/v3/private/order/unfilled-orders': 1,
                         // derivative
                         'unified/v3/private/order/unfilled-orders': 1,
                         'unified/v3/private/order/list': 1,
@@ -274,6 +305,15 @@ module.exports = class bybit extends Exchange {
                         'asset/v2/private/exchange/exchange-order-all': 1,
                         'unified/v3/private/account/borrow-history': 1,
                         'unified/v3/private/account/borrow-rate': 1,
+                        'user/v3/private/frozen-sub-member': 10, // 5/s
+                        'user/v3/private/query-sub-members': 5, // 10/s
+                        'user/v3/private/query-api': 5, // 10/s
+                        'asset/v3/private/transfer/transfer-coin/list/query': 0.84, // 60/s
+                        'asset/v3/private/transfer/account-coin/balance/query': 0.84, // 60/s
+                        'asset/v3/private/transfer/asset-info/query': 0.84, // 60/s
+                        'asset/v3/public/deposit/allowed-deposit-list/query': 0.17, // 300/s
+                        'asset/v3/private/deposit/record/query': 0.17, // 300/s
+                        'asset/v3/private/withdraw/record/query': 0.17, // 300/s
                     },
                     'post': {
                         // inverse swap
@@ -329,13 +369,33 @@ module.exports = class bybit extends Exchange {
                         'spot/v1/order': 2.5,
                         'spot/v1/cross-margin/loan': 10,
                         'spot/v1/cross-margin/repay': 10,
+                        'spot/v3/private/order': 2.5,
+                        'spot/v3/private/cancel-order': 2.5,
+                        'spot/v3/private/cancel-orders': 2.5,
+                        'spot/v3/private/cancel-orders-by-ids': 2.5,
+                        'spot/v3/private/purchase': 2.5,
+                        'spot/v3/private/redeem': 2.5,
+                        'spot/v3/private/cross-margin-loan': 10,
+                        'spot/v3/private/cross-margin-repay': 10,
                         // account
                         'asset/v1/private/transfer': 150, // 20 per minute = 0.333 per second => cost = 50 / 0.3333 = 150
+                        'asset/v3/private/transfer/inter-transfer': 2.5, // 20/s
                         'asset/v1/private/sub-member/transfer': 150,
                         'asset/v1/private/withdraw': 50,
+                        'asset/v3/private/withdraw/create': 1, // 10/s
                         'asset/v1/private/withdraw/cancel': 50,
+                        'asset/v3/private/withdraw/cancel': 0.84, // 60/s
                         'asset/v1/private/transferable-subs/save': 3000,
                         'asset/v1/private/universal/transfer': 1500,
+                        'asset/v3/private/transfer/sub-member-transfer': 2.5, // 20/s
+                        'asset/v3/private/transfer/transfer-sub-member-save': 2.5, // 20/s
+                        'asset/v3/private/transfer/universal-transfer': 2.5, // 20/s
+                        'user/v3/private/create-sub-member': 10, // 5/s
+                        'user/v3/private/create-sub-api': 10, // 5/s
+                        'user/v3/private/update-api': 10, // 5/s
+                        'user/v3/private/delete-api': 10, // 5/s
+                        'user/v3/private/update-sub-api': 10, // 5/s
+                        'user/v3/private/delete-sub-api': 10, // 5/s
                         // USDC endpoints
                         // option USDC
                         'option/usdc/openapi/private/v1/place-order': 2.5,
@@ -374,6 +434,7 @@ module.exports = class bybit extends Exchange {
                         'contract/v3/private/copytrading/position/close': 2.5,
                         'contract/v3/private/copytrading/position/set-leverage': 2.5,
                         'contract/v3/private/copytrading/wallet/transfer': 2.5,
+                        'contract/v3/private/copytrading/order/trading-stop': 2.5,
                         // derivative
                         'unified/v3/private/order/create': 2.5,
                         'unified/v3/private/order/replace': 2.5,
@@ -419,6 +480,7 @@ module.exports = class bybit extends Exchange {
                     '-6017': BadRequest, // Repayment amount has exceeded the total liability
                     '-6025': BadRequest, // Amount to borrow cannot be lower than the min. amount to borrow (per transaction)
                     '-6029': BadRequest, // Amount to borrow has exceeded the user's estimated max amount to borrow
+                    '5004': ExchangeError, // {"retCode":5004,"retMsg":"Server Timeout","result":null,"retExtInfo":{},"time":1667577060106}
                     '7001': BadRequest, // {"retCode":7001,"retMsg":"request params type error"}
                     '10001': BadRequest, // parameter error
                     '10002': InvalidNonce, // request expired, check your timestamp and recv_window
@@ -431,6 +493,9 @@ module.exports = class bybit extends Exchange {
                     '10016': ExchangeError, // {"retCode":10016,"retMsg":"System error. Please try again later."}
                     '10017': BadRequest, // request path not found or request method is invalid
                     '10018': RateLimitExceeded, // exceed ip rate limit
+                    '10020': PermissionDenied, // {"retCode":10020,"retMsg":"your account is not a unified margin account, please update your account","result":null,"retExtInfo":null,"time":1664783731123}
+                    '12201': BadRequest, // {"retCode":12201,"retMsg":"Invalid orderCategory parameter.","result":{},"retExtInfo":null,"time":1666699391220}
+                    '131001': InsufficientFunds, // {"retCode":131001,"retMsg":"the available balance is not sufficient to cover the handling fee","result":{},"retExtInfo":{},"time":1666892821245}
                     '20001': OrderNotFound, // Order not exists
                     '20003': InvalidOrder, // missing parameter side
                     '20004': InvalidOrder, // invalid parameter side
@@ -527,6 +592,7 @@ module.exports = class bybit extends Exchange {
                     // the below two issues are caused as described: issues/9149#issuecomment-1146559498, when response is such:  {"ret_code":130021,"ret_msg":"oc_diff[1707966351], new_oc[1707966351] with ob[....]+AB[....]","ext_code":"","ext_info":"","result":null,"time_now":"1658395300.872766","rate_limit_status":99,"rate_limit_reset_ms":1658395300855,"rate_limit":100}
                     'oc_diff': InsufficientFunds,
                     'new_oc': InsufficientFunds,
+                    'openapi sign params error!': AuthenticationError, // {"retCode":10001,"retMsg":"empty value: apiTimestamp[] apiKey[] apiSignature[xxxxxxxxxxxxxxxxxxxxxxx]: openapi sign params error!","result":null,"retExtInfo":null,"time":1664789597123}
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -546,12 +612,35 @@ module.exports = class bybit extends Exchange {
                     'future': 'CONTRACT',
                     'swap': 'CONTRACT',
                     'option': 'OPTION',
+                    'investment': 'INVESTMENT',
+                    'unified': 'UNIFIED',
+                    'funding': 'FUND',
                 },
                 'accountsById': {
                     'SPOT': 'spot',
                     'MARGIN': 'spot',
                     'CONTRACT': 'contract',
                     'OPTION': 'option',
+                    'INVESTMENT': 'investment',
+                    'UNIFIED': 'unified',
+                },
+                'networks': {
+                    'ERC20': 'ETH',
+                    'TRC20': 'TRX',
+                    'BEP20': 'BSC',
+                    'OMNI': 'OMNI',
+                    'SPL': 'SOL',
+                },
+                'networksById': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                    'BSC': 'BEP20',
+                    'OMNI': 'OMNI',
+                    'SPL': 'SOL',
+                },
+                'defaultNetwork': 'ERC20',
+                'defaultNetworks': {
+                    'USDT': 'TRC20',
                 },
             },
             'fees': {
@@ -584,26 +673,58 @@ module.exports = class bybit extends Exchange {
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.publicGetV2PublicTime (params);
+        const response = await this.publicGetV3PublicTime (params);
         //
-        //     {
-        //         ret_code: 0,
-        //         ret_msg: 'OK',
-        //         ext_code: '',
-        //         ext_info: '',
-        //         result: {},
-        //         time_now: '1583933682.448826'
+        //    {
+        //         "retCode": "0",
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "timeSecond": "1666879482",
+        //             "timeNano": "1666879482792685914"
+        //         },
+        //         "retExtInfo": {},
+        //         "time": "1666879482792"
         //     }
         //
-        return this.safeTimestamp (response, 'time_now');
+        return this.safeInteger (response, 'time');
     }
 
-    safeNetwork (networkId) {
-        const networksById = {
-            'ETH': 'ERC20',
-            'TRX': 'TRC20',
-        };
+    networkIdToCode (networkId) {
+        const networksById = this.safeValue (this.options, 'networksById', {});
         return this.safeString (networksById, networkId, networkId);
+    }
+
+    networkCodeToId (networkCode) {
+        const networks = this.safeValue (this.options, 'networks', {});
+        return this.safeStringUpper (networks, networkCode, networkCode);
+    }
+
+    handleNetworkCodeAndParams (code, params) {
+        const networks = this.safeValue (this.options, 'networks', {});
+        const networkCodeOrIdInParams = this.safeStringUpper2 (params, 'networkCode', 'network');
+        let networkId = undefined;
+        if (networkCodeOrIdInParams !== undefined) {
+            params = this.omit (params, [ 'networkCode', 'network' ]);
+            networkId = this.safeStringUpper (networks, networkCodeOrIdInParams, networkCodeOrIdInParams);
+        }
+        // if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for 'request'-side only and thus we do not fill it with anything. We can only use defaults after response is received
+        return [ networkId, params ];
+    }
+
+    defaultNetworkId (code) {
+        let targetNetworkCode = undefined;
+        const defaultNetworks = this.safeValue (this.options, 'defaultNetworks', {});
+        if (code in defaultNetworks) {
+            targetNetworkCode = defaultNetworks[code];
+        } else {
+            const defaultNetwork = this.safeValue (this.options, 'defaultNetwork');
+            if (defaultNetwork !== undefined) {
+                targetNetworkCode = defaultNetwork;
+            }
+        }
+        const networks = this.safeValue (this.options, 'networks', {});
+        const networkId = this.safeStringUpper (networks, targetNetworkCode, targetNetworkCode);
+        return networkId;
     }
 
     async fetchCurrencies (params = {}) {
@@ -617,46 +738,58 @@ module.exports = class bybit extends Exchange {
         if (!this.checkRequiredCredentials (false)) {
             return undefined;
         }
-        const response = await this.privateGetAssetV1PrivateCoinInfoQuery (params);
+        const response = await this.privateGetAssetV3PrivateCoinInfoQuery (params);
         //
-        //     {
-        //         "ret_code":0,
-        //         "ret_msg":"OK",
-        //         "ext_code":"",
-        //         "result":{
-        //             "rows":[
-        //                 {
-        //                     "name":"BUSD",
-        //                     "coin":"BUSD",
-        //                     "remain_amount":"7500000",
-        //                     "chains":[
-        //                         {"chain_type":"BSC (BEP20)","confirmation":"20","withdraw_fee":"0.8","deposit_min":"0","withdraw_min":"1.6","chain":"BSC"},
-        //                         {"chain_type":"ERC20","confirmation":"12","withdraw_fee":"30","deposit_min":"0","withdraw_min":"30","chain":"ETH"},
-        //                     ],
-        //                 },
-        //                 {
-        //                     "name":"USDT",
-        //                     "coin":"USDT",
-        //                     "remain_amount":"15000000",
-        //                     "chains":[
-        //                         {"chain_type":"ERC20","confirmation":"12","withdraw_fee":"10","deposit_min":"0","withdraw_min":"20","chain":"ETH"},
-        //                         {"chain_type":"TRC20","confirmation":"100","withdraw_fee":"1","deposit_min":"0","withdraw_min":"10","chain":"TRX"},
-        //                         {"chain_type":"Arbitrum One","confirmation":"12","withdraw_fee":"10","deposit_min":"0","withdraw_min":"20","chain":"ARBI"},
-        //                         {"chain_type":"SOL","confirmation":"300","withdraw_fee":"1","deposit_min":"0","withdraw_min":"10","chain":"SOL"},
-        //                         {"chain_type":"BSC (BEP20)","confirmation":"20","withdraw_fee":"2","deposit_min":"0","withdraw_min":"10","chain":"BSC"},
-        //                         {"chain_type":"Zksync","confirmation":"1","withdraw_fee":"3","deposit_min":"0","withdraw_min":"3","chain":"ZKSYNC"},
-        //                         {"chain_type":"MATIC","confirmation":"128","withdraw_fee":"0.3","deposit_min":"0","withdraw_min":"0.3","chain":"MATIC"},
-        //                         {"chain_type":"OMNI","confirmation":"1","withdraw_fee":"","deposit_min":"0","withdraw_min":"","chain":"OMNI"},
-        //                     ],
-        //                 },
-        //             ],
-        //         },
-        //         "ext_info":null,
-        //         "time_now":1653312027278,
-        //         "rate_limit_status":119,
-        //         "rate_limit_reset_ms":1653312027278,
-        //         "rate_limit":1,
-        //     }
+        //    {
+        //        "retCode": "0",
+        //        "retMsg": "OK",
+        //        "result": {
+        //            "rows": [
+        //                {
+        //                    "name": "MATIC",
+        //                    "coin": "MATIC",
+        //                    "remainAmount": "1652850",
+        //                    "chains": [
+        //                        {
+        //                            "chainType": "MATIC",
+        //                            "confirmation": "128",
+        //                            "withdrawFee": "0.1",
+        //                            "depositMin": "0",
+        //                            "withdrawMin": "0.1",
+        //                            "chain": "MATIC",
+        //                            "chainDeposit": "1",
+        //                            "chainWithdraw": "1",
+        //                            "minAccuracy": "8"
+        //                        },
+        //                        {
+        //                            "chainType": "ERC20",
+        //                            "confirmation": "12",
+        //                            "withdrawFee": "10",
+        //                            "depositMin": "0",
+        //                            "withdrawMin": "20",
+        //                            "chain": "ETH",
+        //                            "chainDeposit": "1",
+        //                            "chainWithdraw": "1",
+        //                            "minAccuracy": "8"
+        //                        },
+        //                        {
+        //                            "chainType": "BSC (BEP20)",
+        //                            "confirmation": "15",
+        //                            "withdrawFee": "1",
+        //                            "depositMin": "0",
+        //                            "withdrawMin": "1",
+        //                            "chain": "BSC",
+        //                            "chainDeposit": "1",
+        //                            "chainWithdraw": "1",
+        //                            "minAccuracy": "8"
+        //                        }
+        //                    ]
+        //                },
+        //            ]
+        //        },
+        //        "retExtInfo": null,
+        //        "time": "1666728888775"
+        //    }
         //
         const data = this.safeValue (response, 'result', []);
         const rows = this.safeValue (data, 'rows', []);
@@ -668,26 +801,31 @@ module.exports = class bybit extends Exchange {
             const name = this.safeString (currency, 'name');
             const chains = this.safeValue (currency, 'chains', []);
             const networks = {};
+            let minPrecision = undefined;
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const networkId = this.safeString (chain, 'chain');
-                const network = this.safeNetwork (networkId);
-                networks[network] = {
+                const networkCode = this.networkIdToCode (networkId);
+                const precision = this.parseNumber (this.parsePrecision (this.safeString (chain, 'minAccuracy')));
+                minPrecision = (minPrecision === undefined) ? precision : Math.min (minPrecision, precision);
+                const depositAllowed = this.safeInteger (chain, 'chainDeposit') === 1;
+                const withdrawAllowed = this.safeInteger (chain, 'chainWithdraw') === 1;
+                networks[networkCode] = {
                     'info': chain,
                     'id': networkId,
-                    'network': network,
+                    'network': networkCode,
                     'active': undefined,
-                    'deposit': undefined,
-                    'withdraw': undefined,
-                    'fee': this.safeNumber (chain, 'withdraw_fee'),
-                    'precision': undefined,
+                    'deposit': depositAllowed,
+                    'withdraw': withdrawAllowed,
+                    'fee': this.safeNumber (chain, 'withdrawFee'),
+                    'precision': precision,
                     'limits': {
                         'withdraw': {
-                            'min': this.safeNumber (chain, 'withdraw_min'),
+                            'min': this.safeNumber (chain, 'withdrawMin'),
                             'max': undefined,
                         },
                         'deposit': {
-                            'min': this.safeNumber (chain, 'deposit_min'),
+                            'min': this.safeNumber (chain, 'depositMin'),
                             'max': undefined,
                         },
                     },
@@ -702,7 +840,7 @@ module.exports = class bybit extends Exchange {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': undefined,
-                'precision': this.parseNumber ('0.00000001'),
+                'precision': minPrecision,
                 'limits': {
                     'amount': {
                         'min': undefined,
@@ -744,42 +882,50 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchSpotMarkets (params) {
-        const response = await this.publicGetSpotV1Symbols (params);
+        const response = await this.publicGetSpotV3PublicSymbols (params);
         //
-        //     {
-        //         "ret_code":0,
-        //         "ret_msg":"",
-        //         "ext_code":null,
-        //         "ext_info":null,
-        //         "result":[
-        //             {
-        //                 "name":"BTCUSDT",
-        //                 "alias":"BTCUSDT",
-        //                 "baseCurrency":"BTC",
-        //                 "quoteCurrency":"USDT",
-        //                 "basePrecision":"0.000001",
-        //                 "quotePrecision":"0.00000001",
-        //                 "minTradeQuantity":"0.000158",
-        //                 "minTradeAmount":"10",
-        //                 "maxTradeQuantity":"4",
-        //                 "maxTradeAmount":"100000",
-        //                 "minPricePrecision":"0.01",
-        //                 "category":1,
-        //                 "showStatus":true
-        //             },
-        //         ]
-        //     }
-        const markets = this.safeValue (response, 'result', []);
+        //    {
+        //        "retCode": "0",
+        //        "retMsg": "OK",
+        //        "result": {
+        //            "list": [
+        //                {
+        //                    "name": "BTCUSDT",
+        //                    "alias": "BTCUSDT",
+        //                    "baseCoin": "BTC",
+        //                    "quoteCoin": "USDT",
+        //                    "basePrecision": "0.000001",
+        //                    "quotePrecision": "0.00000001",
+        //                    "minTradeQty": "0.00004",
+        //                    "minTradeAmt": "1",
+        //                    "maxTradeQty": "46.13",
+        //                    "maxTradeAmt": "938901",
+        //                    "minPricePrecision": "0.01",
+        //                    "category": "1",
+        //                    "showStatus": "1",
+        //                    "innovation": "0"
+        //                },
+        //            ]
+        //        },
+        //        "retExtMap": {},
+        //        "retExtInfo": null,
+        //        "time": "1666729450457"
+        //    }
+        //
+        const responseResult = this.safeValue (response, 'result', {});
+        const markets = this.safeValue (responseResult, 'list', []);
         const result = [];
+        const takerFee = this.parseNumber ('0.001');
+        const makerFee = this.parseNumber ('0.001');
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
             const id = this.safeString (market, 'name');
-            const baseId = this.safeString (market, 'baseCurrency');
-            const quoteId = this.safeString (market, 'quoteCurrency');
+            const baseId = this.safeString (market, 'baseCoin');
+            const quoteId = this.safeString (market, 'quoteCoin');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
-            const active = this.safeValue (market, 'showStatus');
+            const active = this.safeInteger (market, 'showStatus') === 1;
             const quotePrecision = this.safeNumber (market, 'quotePrecision');
             result.push ({
                 'id': id,
@@ -800,8 +946,8 @@ module.exports = class bybit extends Exchange {
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
-                'taker': this.parseNumber ('0.001'),
-                'maker': this.parseNumber ('0.001'),
+                'taker': takerFee,
+                'maker': makerFee,
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
@@ -817,16 +963,16 @@ module.exports = class bybit extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': this.safeNumber (market, 'minTradeQuantity'),
-                        'max': this.safeNumber (market, 'maxTradeQuantity'),
+                        'min': this.safeNumber (market, 'minTradeQty'),
+                        'max': this.safeNumber (market, 'maxTradeQty'),
                     },
                     'price': {
                         'min': undefined,
                         'max': undefined,
                     },
                     'cost': {
-                        'min': this.safeNumber (market, 'minTradeAmount'),
-                        'max': this.safeNumber (market, 'maxTradeAmount'),
+                        'min': this.safeNumber (market, 'minTradeAmt'),
+                        'max': this.safeNumber (market, 'maxTradeAmt'),
                     },
                 },
                 'info': market,
@@ -1197,20 +1343,58 @@ module.exports = class bybit extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        if ('s' in ticker) {
+            return this.parseSpotTicker (ticker, market);
+        } else {
+            return this.parseContractTicker (ticker, market);
+        }
+    }
+
+    parseSpotTicker (ticker, market = undefined) {
+        //
         // spot
         //
-        //    {
-        //        "time": "1651743420061",
-        //        "symbol": "BTCUSDT",
-        //        "bestBidPrice": "39466.75",
-        //        "bestAskPrice": "39466.83",
-        //        "volume": "4396.082921",
-        //        "quoteVolume": "172664909.03216557",
-        //        "lastPrice": "39466.71",
-        //        "highPrice": "40032.79",
-        //        "lowPrice": "38602.39",
-        //        "openPrice": "39031.53"
-        //    }
+        //     {
+        //         "t": "1666771860025",
+        //         "s": "AAVEUSDT",
+        //         "lp": "83.8",
+        //         "h": "86.4",
+        //         "l": "81",
+        //         "o": "82.9",
+        //         "bp": "83.5",
+        //         "ap": "83.7",
+        //         "v": "7433.527",
+        //         "qv": "619835.8676"
+        //     }
+        //
+        const marketId = this.safeString (ticker, 's');
+        const symbol = this.safeSymbol (marketId, market);
+        const timestamp = this.safeInteger (ticker, 't');
+        return this.safeTicker ({
+            'symbol': symbol,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'high': this.safeString (ticker, 'h'),
+            'low': this.safeString (ticker, 'l'),
+            'bid': this.safeString (ticker, 'bp'),
+            'bidVolume': undefined,
+            'ask': this.safeString (ticker, 'ap'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': this.safeString (ticker, 'o'),
+            'close': this.safeString (ticker, 'lp'),
+            'last': undefined,
+            'previousClose': undefined,
+            'change': undefined,
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'v'),
+            'quoteVolume': this.safeString (ticker, 'qv'),
+            'info': ticker,
+        }, market);
+    }
+
+    parseContractTicker (ticker, market = undefined) {
         //
         // linear usdt/ inverse swap and future
         //     {
@@ -1322,7 +1506,7 @@ module.exports = class bybit extends Exchange {
         let method = undefined;
         const isUsdcSettled = market['settle'] === 'USDC';
         if (market['spot']) {
-            method = 'publicGetSpotQuoteV1Ticker24hr';
+            method = 'publicGetSpotV3PublicQuoteTicker24hr';
         } else if (!isUsdcSettled) {
             // inverse perpetual // usdt linear // inverse futures
             method = 'publicGetV2PublicTickers';
@@ -1337,6 +1521,27 @@ module.exports = class bybit extends Exchange {
             'symbol': market['id'],
         };
         const response = await this[method] (this.extend (request, params));
+        //
+        // spot
+        //
+        //    {
+        //         "retCode": "0",
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "t": "1666771860025",
+        //             "s": "AAVEUSDT",
+        //             "lp": "83.8",
+        //             "h": "86.4",
+        //             "l": "81",
+        //             "o": "82.9",
+        //             "bp": "83.5",
+        //             "ap": "83.7",
+        //             "v": "7433.527",
+        //             "qv": "619835.8676"
+        //         },
+        //         "retExtInfo": {},
+        //         "time": "1666771898218"
+        //     }
         //
         //     {
         //         ret_code: 0,
@@ -1412,8 +1617,7 @@ module.exports = class bybit extends Exchange {
         } else {
             rawTicker = result;
         }
-        const ticker = this.parseTicker (rawTicker, market);
-        return ticker;
+        return this.parseTicker (rawTicker, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -1446,7 +1650,7 @@ module.exports = class bybit extends Exchange {
         }
         let method = undefined;
         if (type === 'spot') {
-            method = 'publicGetSpotQuoteV1Ticker24hr';
+            method = 'publicGetSpotV3PublicQuoteTicker24hr';
         } else if (!isUsdcSettled) {
             // inverse perpetual // usdt linear // inverse futures
             method = 'publicGetV2PublicTickers';
@@ -1454,17 +1658,72 @@ module.exports = class bybit extends Exchange {
             throw new NotSupported (this.id + ' fetchTickers() is not supported for USDC markets');
         }
         const response = await this[method] (params);
-        const result = this.safeValue (response, 'result', []);
-        const tickers = {};
-        for (let i = 0; i < result.length; i++) {
-            const ticker = this.parseTicker (result[i]);
-            const symbol = ticker['symbol'];
-            tickers[symbol] = ticker;
+        //
+        // spot
+        //
+        //    {
+        //         "retCode": "0",
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "t": "1666772160002",
+        //                     "s": "XDCUSDT",
+        //                     "lp": "0.03109",
+        //                     "h": "0.03116",
+        //                     "l": "0.03001",
+        //                     "o": "0.03044",
+        //                     "bp": "0.03105",
+        //                     "ap": "0.03109",
+        //                     "v": "1362796.9",
+        //                     "qv": "41423.411932"
+        //                 },
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": "1666772209124"
+        //     }
+        //
+        let result = this.safeValue (response, 'result', []);
+        if (!Array.isArray (result)) {
+            result = this.safeValue (result, 'list', []);
         }
-        return this.filterByArray (tickers, 'symbol', symbols);
+        return this.parseTickers (result, symbols, params);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
+        if ('t' in ohlcv) {
+            return this.parseSpotOHLCV (ohlcv, market);
+        } else {
+            return this.parseContractOHLCV (ohlcv, market);
+        }
+    }
+
+    parseSpotOHLCV (ohlcv, market = undefined) {
+        //
+        // spot
+        //     {
+        //         "t": "1666759020000",
+        //         "s": "AAVEUSDT",
+        //         "sn": "AAVEUSDT",
+        //         "c": "83",
+        //         "h": "83.4",
+        //         "l": "82.9",
+        //         "o": "83.4",
+        //         "v": "149.368"
+        //     }
+        //
+        return [
+            this.safeInteger (ohlcv, 't'),
+            this.safeNumber (ohlcv, 'o'),
+            this.safeNumber (ohlcv, 'h'),
+            this.safeNumber (ohlcv, 'l'),
+            this.safeNumber (ohlcv, 'c'),
+            this.safeNumber (ohlcv, 'v'),
+        ];
+    }
+
+    parseContractOHLCV (ohlcv, market = undefined) {
         //
         // inverse perpetual BTC/USD
         //
@@ -1506,21 +1765,6 @@ module.exports = class bybit extends Exchange {
         //         "close":"66001.50",
         //         "turnover":"1188.02"
         //     }
-        //
-        // spot
-        //     [
-        //         1651837620000, // start tame
-        //         "35831.5", // open
-        //         "35831.5", // high
-        //         "35801.93", // low
-        //         "35817.11", // close
-        //         "1.23453", // volume
-        //         0, // end time
-        //         "44213.97591627", // quote asset volume
-        //         24, // number of trades
-        //         "0", // taker base volume
-        //         "0" // taker quote volume
-        //     ]
         //
         if (Array.isArray (ohlcv)) {
             return [
@@ -1568,12 +1812,11 @@ module.exports = class bybit extends Exchange {
         const duration = this.parseTimeframe (timeframe);
         const now = this.seconds ();
         let sinceTimestamp = undefined;
+        if (limit === undefined) {
+            limit = 200; // default is 200 when requested with `since`
+        }
         if (since === undefined) {
-            if (limit === undefined) {
-                throw new ArgumentsRequired (this.id + ' fetchOHLCV() requires a since argument or a limit argument');
-            } else {
-                sinceTimestamp = now - limit * duration;
-            }
+            sinceTimestamp = now - limit * duration;
         } else {
             sinceTimestamp = parseInt (since / 1000);
         }
@@ -1585,14 +1828,14 @@ module.exports = class bybit extends Exchange {
         let sinceKey = 'from';
         const isUsdcSettled = market['settle'] === 'USDC';
         if (market['spot']) {
-            method = 'publicGetSpotQuoteV1Kline';
+            method = 'publicGetSpotV3PublicQuoteKline';
         } else if (market['contract'] && !isUsdcSettled) {
             if (market['linear']) {
                 // linear swaps/futures
                 const methods = {
                     'mark': 'publicGetPublicLinearMarkPriceKline',
                     'index': 'publicGetPublicLinearIndexPriceKline',
-                    'premium': 'publicGetPublicLinearPremiumIndexKline',
+                    'premiumIndex': 'publicGetPublicLinearPremiumIndexKline',
                 };
                 method = this.safeValue (methods, price, 'publicGetPublicLinearKline');
             } else {
@@ -1600,7 +1843,7 @@ module.exports = class bybit extends Exchange {
                 const methods = {
                     'mark': 'publicGetV2PublicMarkPriceKline',
                     'index': 'publicGetV2PublicIndexPriceKline',
-                    'premium': 'publicGetV2PublicPremiumPriceKline',
+                    'premiumIndex': 'publicGetV2PublicPremiumPriceKline',
                 };
                 method = this.safeValue (methods, price, 'publicGetV2PublicKlineList');
             }
@@ -1614,7 +1857,7 @@ module.exports = class bybit extends Exchange {
             const methods = {
                 'mark': 'publicGetPerpetualUsdcOpenapiPublicV1MarkPriceKline',
                 'index': 'publicGetPerpetualUsdcOpenapiPublicV1IndexPriceKline',
-                'premium': 'publicGetPerpetualUsdcOpenapiPublicV1PremiumPriceKline',
+                'premiumIndex': 'publicGetPerpetualUsdcOpenapiPublicV1PremiumPriceKline',
             };
             method = this.safeValue (methods, price, 'publicGetPerpetualUsdcOpenapiPublicV1KlineList');
         }
@@ -1669,30 +1912,34 @@ module.exports = class bybit extends Exchange {
         //         ],
         //         "time_now":"1587884120.168077"
         //     }
-        // spot
-        //     {
-        //    "ret_code": "0",
-        //    "ret_msg": null,
-        //     "result": [
-        //         [
-        //             1651837620000,
-        //             "35831.5",
-        //             "35831.5",
-        //             "35801.93",
-        //             "35817.11",
-        //             "1.23453",
-        //             0,
-        //             "44213.97591627",
-        //             24,
-        //             "0",
-        //             "0"
-        //         ]
-        //     ],
-        //     "ext_code": null,
-        //     "ext_info": null
-        // }
         //
-        const result = this.safeValue (response, 'result', {});
+        // spot
+        //
+        //    {
+        //         "retCode": "0",
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "t": "1666759020000",
+        //                     "s": "AAVEUSDT",
+        //                     "sn": "AAVEUSDT",
+        //                     "c": "83",
+        //                     "h": "83.4",
+        //                     "l": "82.9",
+        //                     "o": "83.4",
+        //                     "v": "149.368"
+        //                 },
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": "1666771001212"
+        //     }
+        //
+        let result = this.safeValue (response, 'result', {});
+        if ('list' in result) {
+            result = this.safeValue (result, 'list', {});
+        }
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
@@ -1786,9 +2033,6 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        if (since === undefined && limit === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchIndexOHLCV() requires a since argument or a limit argument');
-        }
         const request = {
             'price': 'index',
         };
@@ -1796,9 +2040,6 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchMarkOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        if (since === undefined && limit === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMarkOHLCV() requires a since argument or a limit argument');
-        }
         const request = {
             'price': 'mark',
         };
@@ -1806,9 +2047,6 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchPremiumIndexOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
-        if (since === undefined && limit === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchPremiumIndexOHLCV() requires a since argument or a limit argument');
-        }
         const request = {
             'price': 'premiumIndex',
         };
@@ -1816,15 +2054,87 @@ module.exports = class bybit extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
+        const isSpotTrade = ('isBuyerMaker' in trade) || ('feeTokenId' in trade);
+        if (isSpotTrade) {
+            return this.parseSpotTrade (trade, market);
+        } else {
+            return this.parseContractTrade (trade, market);
+        }
+    }
+
+    parseSpotTrade (trade, market = undefined) {
         //
-        //  public spot
-        //
-        //    {
+        //   public:
+        //     {
         //        "price": "39548.68",
         //        "time": "1651748717850",
         //        "qty": "0.166872",
-        //        "isBuyerMaker": true
-        //    }
+        //        "isBuyerMaker": 0
+        //     }
+        //
+        //   private:
+        //     {
+        //         "orderPrice": "82.5",
+        //         "creatTime": "1666702226326",
+        //         "orderQty": "0.016",
+        //         "isBuyer": "0",
+        //         "isMaker": "0",
+        //         "symbol": "AAVEUSDT",
+        //         "id": "1274785101965716992",
+        //         "orderId": "1274784252359089664",
+        //         "tradeId": "2270000000031365639",
+        //         "execFee": "0",
+        //         "feeTokenId": "AAVE",
+        //         "matchOrderId": "1274785101865076224",
+        //         "makerRebate": "0",
+        //         "executionTime": "1666702226335"
+        //     }
+        //
+        const timestamp = this.safeIntegerN (trade, [ 'time', 'creatTime' ]);
+        let takerOrMaker = undefined;
+        let side = undefined;
+        const isBuyerMaker = this.safeInteger (trade, 'isBuyerMaker');
+        if (isBuyerMaker !== undefined) {
+            // if public response
+            takerOrMaker = 'taker'; // public trades are always taker
+            side = isBuyerMaker === 1 ? 'buy' : 'sell';
+        } else {
+            // if private response
+            const isBuyer = this.safeInteger (trade, 'isBuyer');
+            const isMaker = this.safeInteger (trade, 'isMaker');
+            takerOrMaker = isMaker === 1 ? 'maker' : 'taker';
+            side = isBuyer === 1 ? 'buy' : 'sell';
+        }
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
+        let fee = {};
+        const feeToken = this.safeString (trade, 'feeTokenId');
+        if (feeToken !== undefined) {
+            const feeCurrency = this.safeCurrencyCode (feeToken);
+            const feeCost = this.safeString (trade, 'execFee');
+            fee = {
+                'cost': feeCost,
+                'currency': feeCurrency,
+            };
+        }
+        return this.safeTrade ({
+            'id': this.safeString (trade, 'id'),
+            'info': trade,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'order': this.safeString (trade, 'orderId'),
+            'type': undefined,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
+            'price': this.safeString2 (trade, 'price', 'orderPrice'),
+            'amount': this.safeString2 (trade, 'qty', 'orderQty'),
+            'cost': undefined,
+            'fee': fee,
+        }, market);
+    }
+
+    parseContractTrade (trade, market = undefined) {
         //
         // public linear/inverse swap/future
         //
@@ -1871,31 +2181,6 @@ module.exports = class bybit extends Exchange {
         //          "trade_time": "1638276374",
         //          "trade_time_ms": "1638276374312"
         //      }
-        //
-        // spot
-        //    {
-        //         "id": "1149467000412631552",
-        //         "symbol": "LTCUSDT",
-        //         "symbolName": "LTCUSDT",
-        //         "orderId": "1149467000244912384",
-        //         "ticketId": "2200000000002601358",
-        //         "matchOrderId": "1149465793552007078",
-        //         "price": "100.19",
-        //         "qty": "0.09973",
-        //         "commission": "0.0099919487",
-        //         "commissionAsset": "USDT",
-        //         "time": "1651763144465",
-        //         "isBuyer": false,
-        //         "isMaker": false,
-        //         "fee": {
-        //             "feeTokenId": "USDT",
-        //             "feeTokenName": "USDT",
-        //             "fee": "0.0099919487"
-        //         },
-        //         "feeTokenId": "USDT",
-        //         "feeAmount": "0.0099919487",
-        //         "makerRebate": "0"
-        //     }
         //
         const id = this.safeString2 (trade, 'id', 'exec_id');
         const marketId = this.safeString (trade, 'symbol');
@@ -1980,7 +2265,7 @@ module.exports = class bybit extends Exchange {
         };
         const isUsdcSettled = market['settle'] === 'USDC';
         if (market['type'] === 'spot') {
-            method = 'publicGetSpotQuoteV1Trades';
+            method = 'publicGetSpotV3PublicQuoteTrades';
         } else if (!isUsdcSettled) {
             // inverse perpetual // usdt linear // inverse futures
             method = market['linear'] ? 'publicGetPublicLinearRecentTradingRecords' : 'publicGetV2PublicTradingRecords';
@@ -1993,6 +2278,26 @@ module.exports = class bybit extends Exchange {
             request['limit'] = limit; // default 500, max 1000
         }
         const response = await this[method] (this.extend (request, params));
+        //
+        // spot
+        //
+        //    {
+        //         "retCode": "0",
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "price": "84",
+        //                     "time": "1666768241806",
+        //                     "qty": "0.122",
+        //                     "isBuyerMaker": "1"
+        //                 },
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": "1666770562956"
+        //     }
+        //
         //
         //     {
         //         ret_code: 0,
@@ -2034,7 +2339,7 @@ module.exports = class bybit extends Exchange {
         //
         let trades = this.safeValue (response, 'result', {});
         if (!Array.isArray (trades)) {
-            trades = this.safeValue (trades, 'dataList', []);
+            trades = this.safeValue2 (trades, 'dataList', 'list', []);
         }
         return this.parseTrades (trades, market, since, limit);
     }
@@ -2085,7 +2390,7 @@ module.exports = class bybit extends Exchange {
         const isUsdcSettled = market['settle'] === 'USDC';
         let method = undefined;
         if (market['spot']) {
-            method = 'publicGetSpotQuoteV1Depth';
+            method = 'publicGetSpotV3PublicQuoteDepth';
         } else if (!isUsdcSettled) {
             // inverse perpetual // usdt linear // inverse futures
             method = 'publicGetV2PublicOrderBookL2';
@@ -2099,20 +2404,23 @@ module.exports = class bybit extends Exchange {
         const response = await this[method] (this.extend (request, params));
         //
         // spot
-        //     {
-        //         "ret_code": 0,
-        //         "ret_msg": null,
+        //
+        //    {
+        //         "retCode": "0",
+        //         "retMsg": "OK",
         //         "result": {
-        //             "time": 1620886105740,
+        //             "time": "1620886105740",
         //             "bids": [
-        //                 ["50005.12","403.0416"]
+        //                 [ "84", "7.323" ],
+        //                 [ "83.9", "101.711" ],
         //             ],
         //             "asks": [
-        //                 ["50006.34", "0.2297" ]
+        //                 [ "84.1", "5.898" ],
+        //                 [ "84.2", "350.31" ],
         //             ]
         //         },
-        //         "ext_code": null,
-        //         "ext_info": null
+        //         "retExtInfo": {},
+        //         "time": "1666771624950"
         //     }
         //
         // linear/inverse swap/futures
@@ -2152,7 +2460,7 @@ module.exports = class bybit extends Exchange {
         const result = this.safeValue (response, 'result', []);
         let timestamp = this.safeTimestamp (response, 'time_now');
         if (timestamp === undefined) {
-            timestamp = this.safeInteger (response, 'time');
+            timestamp = this.safeInteger (result, 'time');
         }
         const bidsKey = market['spot'] ? 'bids' : 'Buy';
         const asksKey = market['spot'] ? 'asks' : 'Sell';
@@ -2280,12 +2588,13 @@ module.exports = class bybit extends Exchange {
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
+        await this.loadMarkets ();
         const request = {};
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         let method = undefined;
         if (type === 'spot') {
-            method = 'privateGetSpotV1Account';
+            method = 'privateGetSpotV3PrivateAccount';
         } else {
             let settle = this.safeString (this.options, 'defaultSettle');
             settle = this.safeString2 (params, 'settle', 'defaultSettle', settle);
@@ -2305,7 +2614,6 @@ module.exports = class bybit extends Exchange {
                 method = 'privatePostOptionUsdcOpenapiPrivateV1QueryWalletBalance';
             }
         }
-        await this.loadMarkets ();
         const response = await this[method] (this.extend (request, params));
         //
         //     {
@@ -2382,8 +2690,16 @@ module.exports = class bybit extends Exchange {
     }
 
     parseOrder (order, market = undefined) {
-        //
-        // createOrder
+        const orderCategoryExists = ('orderCategory' in order);
+        if (orderCategoryExists) {
+            return this.parseSpotOrder (order, market);
+        } else {
+            return this.parseContractOrder (order, market);
+        }
+    }
+
+    parseContractOrder (order, market = undefined) {
+        // createOrder - contracts
         //
         //     {
         //         "user_id": 1,
@@ -2489,6 +2805,7 @@ module.exports = class bybit extends Exchange {
         //        "reduce_only":false,
         //        "close_on_trigger":false
         //    }
+        //
         // future
         //    {
         //        "user_id":24478789,
@@ -2515,30 +2832,6 @@ module.exports = class bybit extends Exchange {
         //        "tp_trigger_by":"UNKNOWN",
         //        "sl_trigger_by":"UNKNOWN"
         //    }
-        //
-        // fetchOpenOrder spot
-        //     {
-        //        "accountId":"24478790",
-        //        "exchangeId":"301",
-        //        "symbol":"LTCUSDT",
-        //        "symbolName":"LTCUSDT",
-        //        "orderLinkId":"1652115972506",
-        //        "orderId":"1152426740986003968",
-        //        "price":"50",
-        //        "origQty":"0.2",
-        //        "executedQty":"0",
-        //        "cummulativeQuoteQty":"0",
-        //        "avgPrice":"0",
-        //        "status":"NEW",
-        //        "timeInForce":"GTC",
-        //        "type":"LIMIT",
-        //        "side":"BUY",
-        //        "stopPrice":"0.0",
-        //        "icebergQty":"0.0",
-        //        "time":"1652115973053",
-        //        "updateTime":"1652115973063",
-        //        "isWorking":true
-        //     }
         //
         // create order usdc
         //      {
@@ -2586,7 +2879,7 @@ module.exports = class bybit extends Exchange {
         } else if (lastTradeTimestamp === undefined) {
             lastTradeTimestamp = this.parse8601 (this.safeStringN (order, [ 'updated_time', 'updated_at', 'update_time' ]));
             if (lastTradeTimestamp === undefined) {
-                lastTradeTimestamp = this.safeNumber (order, 'updateTime');
+                lastTradeTimestamp = this.safeNumber (order, 'updateTime'); // todo: trade udpate time is different than update order time
             }
         }
         const raw_status = this.safeStringN (order, [ 'order_status', 'stop_order_status', 'status', 'orderStatus' ]);
@@ -2624,6 +2917,7 @@ module.exports = class bybit extends Exchange {
             'postOnly': postOnly,
             'side': side,
             'price': price,
+            'triggerPrice': stopPrice,
             'stopPrice': stopPrice,
             'amount': amount,
             'cost': cost,
@@ -2633,6 +2927,84 @@ module.exports = class bybit extends Exchange {
             'status': status,
             'fee': fee,
             'trades': undefined,
+        }, market);
+    }
+
+    parseSpotOrder (order, market = undefined) {
+        //
+        //  createOrder, cancelOrer
+        //
+        //     {
+        //         "orderId": "1274754916287346280",
+        //         "orderLinkId": "1666798627015730",
+        //         "symbol": "AAVEUSDT",
+        //         "createTime": "1666698629821",
+        //         "orderPrice": "80",
+        //         "orderQty": "0.11",
+        //         "orderType": "LIMIT",
+        //         "side": "BUY",
+        //         "status": "NEW",
+        //         "timeInForce": "GTC",
+        //         "accountId": "13380434",
+        //         "execQty": "0",
+        //         "orderCategory": "0"
+        //     }
+        //
+        //     fetchOrder, fetchOpenOrders, fetchClosedOrders (and also for conditional orders) there are also present these additional fields:
+        //     {
+        //         "cummulativeQuoteQty": "0",
+        //         "avgPrice": "0",
+        //         "stopPrice": "0.0",
+        //         "icebergQty": "0.0",
+        //         "updateTime": "1666733357444",
+        //         "isWorking": "1",
+        //         "locked": "8.8",
+        //         "executedOrderId": "1279094037543962113", // in conditional order
+        //         "triggerPrice": "0.99", // in conditional order
+        //     }
+        //
+        const marketId = this.safeString (order, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const timestamp = this.safeInteger (order, 'createTime');
+        const type = this.safeStringLower (order, 'orderType');
+        let price = this.safeString (order, 'orderPrice');
+        if (price === '0' && type === 'market') {
+            price = undefined;
+        }
+        const filled = this.safeString (order, 'execQty');
+        const side = this.safeStringLower (order, 'side');
+        const timeInForce = this.parseTimeInForce (this.safeString (order, 'timeInForce'));
+        const triggerPrice = this.safeString (order, 'triggerPrice');
+        const postOnly = (timeInForce === 'PO');
+        let amount = this.safeString (order, 'orderQty');
+        if (amount === undefined || amount === '0') {
+            if (market['spot'] && type === 'market' && side === 'buy') {
+                amount = filled;
+            }
+        }
+        return this.safeOrder ({
+            'id': this.safeString (order, 'orderId'),
+            'clientOrderId': this.safeString (order, 'orderLinkId'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': this.safeInteger (order, 'updateTime'),
+            'symbol': market['symbol'],
+            'type': type,
+            'timeInForce': timeInForce,
+            'postOnly': postOnly,
+            'side': side,
+            'price': price,
+            'triggerPrice': triggerPrice,
+            'stopPrice': triggerPrice, // deprecated field
+            'amount': amount,
+            'cost': this.safeString (order, 'cummulativeQuoteQty'),
+            'average': this.safeString (order, 'avgPrice'),
+            'filled': filled,
+            'remaining': undefined,
+            'status': this.parseOrderStatus (this.safeString (order, 'status')),
+            'fee': undefined,
+            'trades': undefined,
+            'info': order,
         }, market);
     }
 
@@ -2660,9 +3032,40 @@ module.exports = class bybit extends Exchange {
             const request = {
                 'orderId': id,
             };
-            const response = await this.privateGetSpotV1Order (this.extend (params, request));
+            const response = await this.privateGetSpotV3PrivateOrder (this.extend (params, request));
+            //
+            //    {
+            //        "retCode": "0",
+            //        "retMsg": "OK",
+            //        "result": {
+            //            "accountId": "13380434",
+            //            "symbol": "AAVEUSDT",
+            //            "orderLinkId": "1666733357434617",
+            //            "orderId": "1275046248585414144",
+            //            "orderPrice": "80",
+            //            "orderQty": "0.11",
+            //            "execQty": "0",
+            //            "cummulativeQuoteQty": "0",
+            //            "avgPrice": "0",
+            //            "status": "NEW",
+            //            "timeInForce": "GTC",
+            //            "orderType": "LIMIT",
+            //            "side": "BUY",
+            //            "stopPrice": "0.0",
+            //            "icebergQty": "0.0",
+            //            "createTime": "1666733357438",
+            //            "updateTime": "1666733357444",
+            //            "isWorking": "1",
+            //            "locked": "8.8",
+            //            "orderCategory": "0"
+            //        },
+            //        "retExtMap": {},
+            //        "retExtInfo": null,
+            //        "time": "1666733357744"
+            //    }
+            //
             const result = this.safeValue (response, 'result', {});
-            return this.parseOrder (result);
+            return this.parseOrder (result, market);
         }
         const isUsdcSettled = (market['settle'] === 'USDC');
         const stopOrderId = this.safeString (params, 'stop_order_id');
@@ -2676,7 +3079,9 @@ module.exports = class bybit extends Exchange {
             } else {
                 orderKey = isUsdcSettled ? 'orderId' : 'order_id';
             }
-            params[orderKey] = id;
+            if (id !== undefined) { // The user can also use argument params["order_link_id"] and leave this as undefined
+                params[orderKey] = id;
+            }
         }
         if (isUsdcSettled || market['future'] || market['inverse']) {
             throw new NotSupported (this.id + ' fetchOrder() supports spot markets and linear non-USDC perpetual swap markets only');
@@ -2729,7 +3134,10 @@ module.exports = class bybit extends Exchange {
                 if (price === undefined && cost === undefined) {
                     throw new InvalidOrder (this.id + " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the cost in the amount argument (the exchange-specific behaviour)");
                 } else {
-                    amount = (cost !== undefined) ? cost : amount * price;
+                    const amountString = this.numberToString (amount);
+                    const priceString = this.numberToString (price);
+                    const quoteAmount = Precise.stringMul (amountString, priceString);
+                    amount = (cost !== undefined) ? cost : this.parseNumber (quoteAmount);
                 }
             }
         }
@@ -2737,20 +3145,20 @@ module.exports = class bybit extends Exchange {
         const request = {
             'symbol': market['id'],
             'side': this.capitalize (side),
-            'type': upperCaseType, // limit, market or limit_maker
+            'orderType': upperCaseType, // limit, market or limit_maker
             'timeInForce': 'GTC', // FOK, IOC
-            'qty': this.amountToPrecision (symbol, amount),
+            'orderQty': this.amountToPrecision (symbol, amount),
             // 'orderLinkId': 'string', // unique client order id, max 36 characters
         };
         if ((upperCaseType === 'LIMIT') || (upperCaseType === 'LIMIT_MAKER')) {
             if (price === undefined) {
                 throw new InvalidOrder (this.id + ' createOrder requires a price argument for a ' + type + ' order');
             }
-            request['price'] = parseFloat (this.priceToPrecision (symbol, price));
+            request['orderPrice'] = this.priceToPrecision (symbol, price);
         }
         const isPostOnly = this.isPostOnly (upperCaseType === 'MARKET', type === 'LIMIT_MAKER', params);
         if (isPostOnly) {
-            request['type'] = 'LIMIT_MAKER';
+            request['orderType'] = 'LIMIT_MAKER';
         }
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'orderLinkId');
         if (clientOrderId !== undefined) {
@@ -2761,28 +3169,36 @@ module.exports = class bybit extends Exchange {
         if (brokerId !== undefined) {
             request['agentSource'] = brokerId;
         }
-        const response = await this.privatePostSpotV1Order (this.extend (request, params));
+        const triggerPrice = this.safeNumber2 (params, 'triggerPrice', 'stopPrice');
+        if (triggerPrice !== undefined) {
+            params['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+        }
+        params = this.omit (params, 'stopPrice');
+        const response = await this.privatePostSpotV3PrivateOrder (this.extend (request, params));
+        //
         //    {
-        //        "ret_code":0,
-        //        "ret_msg":"",
-        //        "ext_code":null,
-        //        "ext_info":null,
-        //        "result":{
-        //           "accountId":"24478790",
-        //           "symbol":"ETHUSDT",
-        //           "symbolName":"ETHUSDT",
-        //           "orderLinkId":"1652266305358517",
-        //           "orderId":"1153687819821127168",
-        //           "transactTime":"1652266305365",
-        //           "price":"80",
-        //           "origQty":"0.05",
-        //           "executedQty":"0",
-        //           "status":"NEW",
-        //           "timeInForce":"GTC",
-        //           "type":"LIMIT",
-        //           "side":"BUY"
-        //        }
+        //        "retCode": "0",
+        //        "retMsg": "OK",
+        //        "result": {
+        //            "orderId": "1274754916287346280",
+        //            "orderLinkId": "1666798627015730",
+        //            "symbol": "AAVEUSDT",
+        //            "createTime": "1666698629821",
+        //            "orderPrice": "80",
+        //            "orderQty": "0.11",
+        //            "orderType": "LIMIT",
+        //            "side": "BUY",
+        //            "status": "NEW",
+        //            "timeInForce": "GTC",
+        //            "accountId": "13380434",
+        //            "execQty": "0",
+        //            "orderCategory": "0"
+        //        },
+        //        "retExtMap": {},
+        //        "retExtInfo": null,
+        //        "time": "1666698627926"
         //    }
+        //
         const order = this.safeValue (response, 'result', {});
         return this.parseOrder (order);
     }
@@ -2960,8 +3376,6 @@ module.exports = class bybit extends Exchange {
         const isStopLossOrder = stopLossPrice !== undefined;
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         const isTakeProfitOrder = takeProfitPrice !== undefined;
-        const isSlTpOrder = isStopLossOrder || isTakeProfitOrder;
-        const isStopOrder = isSlTpOrder || isTriggerOrder;
         if (isTriggerOrder) {
             request['trigger_by'] = 'LastPrice';
             const preciseStopPrice = this.priceToPrecision (symbol, triggerPrice);
@@ -2984,15 +3398,15 @@ module.exports = class bybit extends Exchange {
         if (clientOrderId !== undefined) {
             request['order_link_id'] = clientOrderId;
         }
-        params = this.omit (params, [ 'stop_px', 'stopPrice', 'basePrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId' ]);
+        params = this.omit (params, [ 'stop_px', 'stopPrice', 'base_price', 'basePrice', 'timeInForce', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'postOnly', 'reduceOnly', 'clientOrderId' ]);
         let method = undefined;
         if (market['future']) {
-            method = isStopOrder ? 'privatePostFuturesPrivateStopOrderCreate' : 'privatePostFuturesPrivateOrderCreate';
+            method = isTriggerOrder ? 'privatePostFuturesPrivateStopOrderCreate' : 'privatePostFuturesPrivateOrderCreate';
         } else if (market['linear']) {
-            method = isStopOrder ? 'privatePostPrivateLinearStopOrderCreate' : 'privatePostPrivateLinearOrderCreate';
+            method = isTriggerOrder ? 'privatePostPrivateLinearStopOrderCreate' : 'privatePostPrivateLinearOrderCreate';
         } else {
             // inverse swaps
-            method = isStopOrder ? 'privatePostV2PrivateStopOrderCreate' : 'privatePostV2PrivateOrderCreate';
+            method = isTriggerOrder ? 'privatePostV2PrivateStopOrderCreate' : 'privatePostV2PrivateOrderCreate';
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -3086,18 +3500,22 @@ module.exports = class bybit extends Exchange {
             // 'stop_order_id': id, // only for conditional orders
             // 'p_r_trigger_price': 123.45, // new trigger price also known as stop_px
         };
-        const orderType = this.safeString (params, 'orderType');
-        const isStop = this.safeValue (params, 'stop', false);
-        const isConditionalOrder = isStop || (orderType === 'stop' || orderType === 'conditional');
-        params = this.omit (params, [ 'orderType', 'stop' ]);
-        const idKey = isConditionalOrder ? 'stop_order_id' : 'order_id';
-        request[idKey] = id;
         if (amount !== undefined) {
             request['p_r_qty'] = this.amountToPrecision (symbol, amount);
         }
         if (price !== undefined) {
             request['p_r_price'] = this.priceToPrecision (symbol, price);
         }
+        let isConditionalOrder = false;
+        let idKey = 'order_id';
+        const triggerPrice = this.safeValueN (params, [ 'stopPrice', 'triggerPrice' ]);
+        if (triggerPrice !== undefined) {
+            isConditionalOrder = true;
+            idKey = 'stop_order_id';
+            request['p_r_trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
+            params = this.omit (params, [ 'stopPrice', 'triggerPrice' ]);
+        }
+        request[idKey] = id;
         let method = undefined;
         if (market['linear']) {
             method = isConditionalOrder ? 'privatePostPrivateLinearStopOrderReplace' : 'privatePostPrivateLinearOrderReplace';
@@ -3105,7 +3523,7 @@ module.exports = class bybit extends Exchange {
             method = isConditionalOrder ? 'privatePostFuturesPrivateStopOrderReplace' : 'privatePostFuturesPrivateOrderReplace';
         } else {
             // inverse swaps
-            method = isConditionalOrder ? 'privatePostV2PrivateSpotOrderReplace' : 'privatePostV2PrivateOrderReplace';
+            method = isConditionalOrder ? 'privatePostV2PrivateStopOrderReplace' : 'privatePostV2PrivateOrderReplace';
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -3169,13 +3587,20 @@ module.exports = class bybit extends Exchange {
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        let market = undefined;
+        const symbolDefined = (symbol !== undefined);
+        if (symbolDefined) {
+            market = this.market (symbol);
+        }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+        if (!symbolDefined) {
+            if (marketType !== 'spot') {
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+            }
         }
         await this.loadMarkets ();
-        const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
             // 'order_link_id': 'string', // one of order_id, stop_order_id or order_link_id is required
             // regular orders ---------------------------------------------
             // 'order_id': id, // one of order_id or order_link_id is required for regular orders
@@ -3184,17 +3609,25 @@ module.exports = class bybit extends Exchange {
             // spot orders
             // 'orderId': id
         };
+        if (symbolDefined) {
+            request['symbol'] = market['id'];
+        }
+        const isSpotMarket = (symbolDefined && market['spot']) || (!symbolDefined && (marketType === 'spot'));
         const orderType = this.safeStringLower (params, 'orderType');
         const isStop = this.safeValue (params, 'stop', false);
         const isConditional = isStop || (orderType === 'stop') || (orderType === 'conditional');
         params = this.omit (params, [ 'orderType', 'stop' ]);
-        const isUsdcSettled = market['settle'] === 'USDC';
+        const isUsdcSettled = symbolDefined && (market['settle'] === 'USDC');
         let method = undefined;
-        if (market['spot']) {
-            method = 'privateDeleteSpotV1Order';
-            request['orderId'] = id;
+        if (isSpotMarket) {
+            method = 'privatePostSpotV3PrivateCancelOrder';
+            if (id !== undefined) { // The user can also use argument params["order_link_id"]
+                request['orderId'] = id;
+            }
         } else if (isUsdcSettled) {
-            request['orderId'] = id;
+            if (id !== undefined) { // The user can also use argument params["order_link_id"]
+                request['orderId'] = id;
+            }
             if (market['option']) {
                 method = 'privatePostOptionUsdcOpenapiPrivateV1CancelOrder';
             } else {
@@ -3211,7 +3644,7 @@ module.exports = class bybit extends Exchange {
             // inverse futures
             method = isConditional ? 'privatePostFuturesPrivateStopOrderCancel' : 'privatePostFuturesPrivateOrderCancel';
         }
-        if (market['contract'] && !isUsdcSettled) {
+        if (symbolDefined && market['contract'] && !isUsdcSettled && (id !== undefined)) { // id === undefined check because the user can also use argument params["order_link_id"]
             if (!isConditional) {
                 request['order_id'] = id;
             } else {
@@ -3219,27 +3652,33 @@ module.exports = class bybit extends Exchange {
             }
         }
         const response = await this[method] (this.extend (request, params));
-        // spot order
-        //    {
-        //        "ret_code":0,
-        //        "ret_msg":"",
-        //        "ext_code":null,
-        //        "ext_info":null,
-        //        "result":{
-        //           "accountId":"24478790",
-        //           "symbol":"LTCUSDT",
-        //           "orderLinkId":"1652192399682",
-        //           "orderId":"1153067855569315072",
-        //           "transactTime":"1652192399866",
-        //           "price":"50",
-        //           "origQty":"0.2",
-        //           "executedQty":"0",
-        //           "status":"NEW",
-        //           "timeInForce":"GTC",
-        //           "type":"LIMIT",
-        //           "side":"BUY"
-        //        }
-        //    }
+        //
+        // spot
+        //
+        //     {
+        //         "retCode": "0",
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "orderId": "1275046248585414144",
+        //             "orderLinkId": "1666733357434617",
+        //             "symbol": "AAVEUSDT",
+        //             "status": "NEW",
+        //             "accountId": "13380434",
+        //             "createTime": "1666733357438",
+        //             "orderPrice": "80",
+        //             "orderQty": "0.11",
+        //             "execQty": "0",
+        //             "timeInForce": "GTC",
+        //             "orderType": "LIMIT",
+        //             "side": "BUY",
+        //             "orderCategory": "0"
+        //         },
+        //         "retExtMap": {},
+        //         "retExtInfo": null,
+        //         "time": "1666733839493"
+        //     }
+        //
+        //
         // linear
         //    {
         //        "ret_code":0,
@@ -3577,7 +4016,7 @@ module.exports = class bybit extends Exchange {
         const request = {};
         let method = undefined;
         if (type === 'spot') {
-            method = 'privateGetSpotV1HistoryOrders';
+            method = 'privateGetSpotV3PrivateHistoryOrders';
         } else {
             // usdc
             method = 'privatePostOptionUsdcOpenapiPrivateV1QueryOrderHistory';
@@ -3585,8 +4024,43 @@ module.exports = class bybit extends Exchange {
         }
         const orders = await this[method] (this.extend (request, params));
         let result = this.safeValue (orders, 'result', []);
+        //
+        // spot
+        //
+        //    {
+        //        "retCode": "0",
+        //        "retMsg": "OK",
+        //        "result": {
+        //            "list": [
+        //                {
+        //                    "accountId": "13380434",
+        //                    "symbol": "AAVEUSDT",
+        //                    "orderLinkId": "1666697847966604",
+        //                    "orderId": "1274748373594828288",
+        //                    "orderPrice": "80",
+        //                    "orderQty": "0.11",
+        //                    "execQty": "0",
+        //                    "cummulativeQuoteQty": "0",
+        //                    "avgPrice": "0",
+        //                    "status": "CANCELED",
+        //                    "timeInForce": "GTC",
+        //                    "orderType": "LIMIT",
+        //                    "side": "BUY",
+        //                    "stopPrice": "0.0",
+        //                    "icebergQty": "0.0",
+        //                    "createTime": "1666697847972",
+        //                    "updateTime": "1666697865809",
+        //                    "isWorking": "1",
+        //                    "orderCategory": "0"
+        //                },
+        //            ]
+        //        },
+        //        "retExtInfo": null,
+        //        "time": "1666732287588"
+        //    }
+        //
         if (!Array.isArray (result)) {
-            result = this.safeValue (result, 'dataList', []);
+            result = this.safeValue2 (result, 'list', 'dataList', []);
         }
         return this.parseOrders (result, market, since, limit);
     }
@@ -3636,22 +4110,54 @@ module.exports = class bybit extends Exchange {
                 method = isConditional ? 'privateGetV2PrivateStopOrder' : 'privateGetV2PrivateOrder';
             }
         } else if (type === 'spot') {
-            method = 'privateGetSpotV1OpenOrders';
+            if (symbol !== undefined) {
+                request['symbol'] = market['id'];
+            }
+            method = 'privateGetSpotV3PrivateOpenOrders';
         } else {
             // usdc
             method = 'privatePostOptionUsdcOpenapiPrivateV1QueryActiveOrders';
             request['category'] = (type === 'swap') ? 'perpetual' : 'option';
         }
         const orders = await this[method] (this.extend (request, params));
-        let result = this.safeValue (orders, 'result', []);
-        if (!Array.isArray (result)) {
-            const dataList = this.safeValue (result, 'dataList');
-            if (dataList === undefined) {
-                return this.parseOrder (result, market);
-            }
-            result = dataList;
-        }
-        // {
+        //
+        // spot
+        //
+        //    {
+        //         "retCode": "0",
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "accountId": "13380434",
+        //                     "symbol": "AAVEUSDT",
+        //                     "orderLinkId": "1666734005300717",
+        //                     "orderId": "1275051683279281664",
+        //                     "orderPrice": "80",
+        //                     "orderQty": "0.11",
+        //                     "execQty": "0",
+        //                     "cummulativeQuoteQty": "0",
+        //                     "avgPrice": "0",
+        //                     "status": "NEW",
+        //                     "timeInForce": "GTC",
+        //                     "orderType": "LIMIT",
+        //                     "side": "BUY",
+        //                     "stopPrice": "0.0",
+        //                     "icebergQty": "0.0",
+        //                     "createTime": "1666734005304",
+        //                     "updateTime": "1666734005309",
+        //                     "isWorking": "1",
+        //                     "orderCategory": "0"
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": null,
+        //         "time": "1666734031592"
+        //     }
+        //
+        // others
+        //
+        //    {
         //     "ret_code":0,
         //     "ret_msg":"",
         //     "ext_code":null,
@@ -3680,7 +4186,20 @@ module.exports = class bybit extends Exchange {
         //           "isWorking":true
         //        }
         //     ]
-        //  }
+        //    }
+        //
+        let result = this.safeValue (orders, 'result', []);
+        if (type === 'spot') {
+            result = this.safeValue (result, 'list', []);
+        } else {
+            if (!Array.isArray (result)) {
+                const dataList = this.safeValue (result, 'dataList');
+                if (dataList === undefined) {
+                    return this.parseOrder (result, market);
+                }
+                result = dataList;
+            }
+        }
         return this.parseOrders (result, market, since, limit);
     }
 
@@ -3744,7 +4263,7 @@ module.exports = class bybit extends Exchange {
         }
         let method = undefined;
         if (market['spot']) {
-            method = 'privateGetSpotV1MyTrades';
+            method = 'privateGetSpotV3PrivateMyTrades';
         } else if (market['future']) {
             method = 'privateGetFuturesPrivateExecutionList';
         } else {
@@ -3754,37 +4273,35 @@ module.exports = class bybit extends Exchange {
         const response = await this[method] (this.extend (request, params));
         //
         // spot
-        //     {
-        //         "ret_code": 0,
-        //         "ret_msg": "",
-        //         "ext_code": null,
-        //         "ext_info": null,
-        //         "result": [
-        //            {
-        //                 "id": "931975237315196160",
-        //                 "symbol": "BTCUSDT",
-        //                 "symbolName": "BTCUSDT",
-        //                 "orderId": "931975236946097408",
-        //                 "ticketId": "1057753175328833537",
-        //                 "matchOrderId": "931975113180558592",
-        //                 "price": "20000.00001",
-        //                 "qty": "0.01",
-        //                 "commission": "0.02000000001",
-        //                 "commissionAsset": "USDT",
-        //                 "time": "1625836105890",
-        //                 "isBuyer": false,
-        //                 "isMaker": false,
-        //                 "fee": {
-        //                     "feeTokenId": "USDT",
-        //                     "feeTokenName": "USDT",
-        //                     "fee": "0.02000000001"
+        //
+        //    {
+        //         "retCode": "0",
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "symbol": "AAVEUSDT",
+        //                     "id": "1274785101965716992",
+        //                     "orderId": "1274784252359089664",
+        //                     "tradeId": "2270000000031365639",
+        //                     "orderPrice": "82.5",
+        //                     "orderQty": "0.016",
+        //                     "execFee": "0",
+        //                     "feeTokenId": "AAVE",
+        //                     "creatTime": "1666702226326",
+        //                     "isBuyer": "0",
+        //                     "isMaker": "0",
+        //                     "matchOrderId": "1274785101865076224",
+        //                     "makerRebate": "0",
+        //                     "executionTime": "1666702226335"
         //                 },
-        //                 "feeTokenId": "USDT",
-        //                 "feeAmount": "0.02000000001",
-        //                 "makerRebate": "0"
-        //            }
-        //         ]
+        //             ]
+        //         },
+        //         "retExtMap": {},
+        //         "retExtInfo": null,
+        //         "time": "1666768215157"
         //     }
+        //
         //
         // inverse
         //
@@ -3869,7 +4386,7 @@ module.exports = class bybit extends Exchange {
         //
         let result = this.safeValue (response, 'result', {});
         if (!Array.isArray (result)) {
-            result = this.safeValue2 (result, 'trade_list', 'data', []);
+            result = this.safeValueN (result, [ 'trade_list', 'data', 'list' ], []);
         }
         return this.parseTrades (result, market, since, limit);
     }
@@ -3877,14 +4394,14 @@ module.exports = class bybit extends Exchange {
     parseDepositAddress (depositAddress, currency = undefined) {
         //
         //     {
-        //         chain_type: 'Arbitrum One',
-        //         address_deposit: '0x83a127952d266A6eA306c40Ac62A4a70668FE3BE',
-        //         tag_deposit: '',
-        //         chain: 'ARBI'
+        //         chainType: 'ERC20',
+        //         addressDeposit: '0xf56297c6717c1d1c42c30324468ed50a9b7402ee',
+        //         tagDeposit: '',
+        //         chain: 'ETH'
         //     }
         //
-        const address = this.safeString (depositAddress, 'address_deposit');
-        const tag = this.safeString (depositAddress, 'tag_deposit');
+        const address = this.safeString (depositAddress, 'addressDeposit');
+        const tag = this.safeString (depositAddress, 'tagDeposit');
         const code = this.safeString (currency, 'code');
         const chain = this.safeString (depositAddress, 'chain');
         this.checkAddress (address);
@@ -3911,25 +4428,30 @@ module.exports = class bybit extends Exchange {
         const request = {
             'coin': currency['id'],
         };
-        const response = await this.privateGetAssetV1PrivateDepositAddress (this.extend (request, params));
+        const response = await this.privateGetAssetV3PrivateDepositAddressQuery (this.extend (request, params));
         //
-        //     {
-        //         ret_code: '0',
-        //         ret_msg: 'OK',
-        //         ext_code: '',
-        //         result: {
-        //             coin: 'ETH',
-        //             chains: [
+        //    {
+        //         "retCode": "0",
+        //         "retMsg": "success",
+        //         "result": {
+        //             "coin": "USDT",
+        //             "chains": [
         //                 {
-        //                     chain_type: 'Arbitrum One',
-        //                     address_deposit: 'bybitisthebest',
-        //                     tag_deposit: '',
-        //                     chain: 'ARBI'
-        //                 }
+        //                     "chainType": "ERC20",
+        //                     "addressDeposit": "0xf56297c6717c1d1c42c30324468ed50a9b7402ee",
+        //                     "tagDeposit": "",
+        //                     "chain": "ETH"
+        //                 },
+        //                 {
+        //                     "chainType": "TRC20",
+        //                     "addressDeposit": "TC6TAC5WSVCCiaD3nWZXyW62ZKKPwm55a",
+        //                     "tagDeposit": "",
+        //                     "chain": "TRX"
+        //                 },
         //             ]
         //         },
-        //         ext_info: null,
-        //         time_now: '1653141635426'
+        //         "retExtInfo": {},
+        //         "time": "1666882145079"
         //     }
         //
         const result = this.safeValue (response, 'result', []);
@@ -3951,36 +4473,57 @@ module.exports = class bybit extends Exchange {
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
-        const rawNetwork = this.safeStringUpper (params, 'network');
-        const networks = this.safeValue (this.options, 'networks', {});
-        const network = this.safeString (networks, rawNetwork, rawNetwork);
-        params = this.omit (params, 'network');
-        const response = await this.fetchDepositAddressesByNetwork (code, params);
-        let result = undefined;
-        if (network === undefined) {
-            result = this.safeValue (response, code);
-            if (result === undefined) {
-                const alias = this.safeString (networks, code, code);
-                result = this.safeValue (response, alias);
-                if (result === undefined) {
-                    const defaultNetwork = this.safeString (this.options, 'defaultNetwork', 'ERC20');
-                    result = this.safeValue (response, defaultNetwork);
-                    if (result === undefined) {
-                        const values = Object.values (response);
-                        result = this.safeValue (values, 0);
-                        if (result === undefined) {
-                            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find deposit address for ' + code);
-                        }
-                    }
+        const [ networkId, query ] = this.handleNetworkCodeAndParams (code, params);
+        const currency = this.currency (code);
+        const request = {
+            'coin': currency['id'],
+        };
+        if (networkId !== undefined) {
+            request['chainType'] = networkId;
+        }
+        const response = await this.privateGetAssetV3PrivateDepositAddressQuery (this.extend (request, query));
+        //
+        //    {
+        //         "retCode": "0",
+        //         "retMsg": "success",
+        //         "result": {
+        //             "coin": "USDT",
+        //             "chains": [
+        //                 {
+        //                     "chainType": "TRC20",
+        //                     "addressDeposit": "TC6NCAC5WSVCCiaD3kWZXyW91ZKKhLm53b",
+        //                     "tagDeposit": "",
+        //                     "chain": "TRX"
+        //                 },
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": "1666895654316"
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const chains = this.safeValue (result, 'chains', []);
+        const chainsLength = chains.length;
+        if (chainsLength === 0) {
+            const errorMessage = (networkId !== undefined) ? ('network ' + networkId + ' was not found for ' + code) : ('no deposit networks were found for ' + code);
+            throw new InvalidAddress (this.id + ' fetchDepositAddress() - ' + errorMessage);
+        } else {
+            const chainsIndexedById = this.indexBy (chains, 'chain');
+            let chosenNetworkId = undefined;
+            if (networkId !== undefined) {
+                if (networkId in chainsIndexedById) {
+                    chosenNetworkId = networkId;
+                } else {
+                    throw new InvalidAddress (this.id + ' fetchDepositAddress() - no deposit networks were found for ' + code);
                 }
+            } else {
+                const ids = Object.keys (chainsIndexedById);
+                const defaultNetwordId = this.defaultNetworkId (code);
+                chosenNetworkId = (defaultNetwordId in chainsIndexedById) ? defaultNetwordId : ids[0];
             }
-            return result;
+            const addressInfo = chainsIndexedById[chosenNetworkId];
+            return this.parseDepositAddress (addressInfo, currency);
         }
-        result = this.safeValue (response, network);
-        if (result === undefined) {
-            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code);
-        }
-        return result;
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -4010,46 +4553,44 @@ module.exports = class bybit extends Exchange {
             request['coin'] = currency['id'];
         }
         if (since !== undefined) {
-            request['start_date'] = this.yyyymmdd (since);
+            request['startTime'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
         // Currently only works for deposits prior to 2021-07-15
         // will be updated soon
-        const response = await this.privateGetV2PrivateWalletFundRecords (this.extend (request, params));
+        const response = await this.privateGetAssetV3PrivateDepositRecordQuery (this.extend (request, params));
         //
-        //     {
-        //         "ret_code": 0,
-        //         "ret_msg": "ok",
-        //         "ext_code": "",
+        //    {
+        //         "retCode": "0",
+        //         "retMsg": "success",
         //         "result": {
-        //             "data": [
+        //             "rows": [
         //                 {
-        //                     "id": 234467,
-        //                     "user_id": 1,
-        //                     "coin": "BTC",
-        //                     "wallet_id": 27913,
-        //                     "type": "Realized P&L",
-        //                     "amount": "-0.00000006",
-        //                     "tx_id": "",
-        //                     "address": "BTCUSD",
-        //                     "wallet_balance": "0.03000330",
-        //                     "exec_time": "2019-12-09T00:00:25.000Z",
-        //                     "cross_seq": 0
-        //                 }
-        //             ]
+        //                     "coin": "USDT",
+        //                     "chain": "TRX",
+        //                     "amount": "44",
+        //                     "txID": "0b038ea12fa1575e2d66693db3c346b700d4b28347afc39f80321cf089acc960",
+        //                     "status": "3",
+        //                     "toAddress": "TC6NCAC5WSVCCiaD3kWZXyW91ZKKhLm53b",
+        //                     "tag": "",
+        //                     "depositFee": "",
+        //                     "successAt": "1665142507000",
+        //                     "confirmations": "100",
+        //                     "txIndex": "0",
+        //                     "blockHash": "0000000002ac3b1064aee94bca1bd0b58c4c09c65813b084b87a2063d961129e"
+        //                 },
+        //             ],
+        //             "nextPageCursor": "eyJtaW5JRCI6MTE5OTUyNjgsIm1heElEIjoxMjI2OTA2OH0="
         //         },
-        //         "ext_info": null,
-        //         "time_now": "1577481867.115552",
-        //         "rate_limit_status": 119,
-        //         "rate_limit_reset_ms": 1577481867122,
-        //         "rate_limit": 120
+        //         "retExtInfo": {},
+        //         "time": "1666883499086"
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const data = this.safeValue (result, 'data', []);
-        return this.parseTransactions (data, currency, since, limit, { 'type': 'deposit' });
+        const data = this.safeValue (result, 'rows', []);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     async fetchWithdrawals (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -4078,56 +4619,64 @@ module.exports = class bybit extends Exchange {
             request['coin'] = currency['id'];
         }
         if (since !== undefined) {
-            request['start_date'] = this.yyyymmdd (since);
+            request['startTime'] = this.yyyymmdd (since);
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetV2PrivateWalletWithdrawList (this.extend (request, params));
+        const response = await this.privateGetAssetV3PrivateWithdrawRecordQuery (this.extend (request, params));
         //
-        //     {
-        //         "ret_code": 0,
-        //         "ret_msg": "ok",
-        //         "ext_code": "",
+        //    {
+        //         "retCode": "0",
+        //         "retMsg": "success",
         //         "result": {
-        //             "data": [
+        //             "rows": [
         //                 {
-        //                     "id": 137,
-        //                     "user_id": 1,
-        //                     "coin": "XRP", // Coin Enum
-        //                     "status": "Pending", // Withdraw Status Enum
-        //                     "amount": "20.00000000",
-        //                     "fee": "0.25000000",
-        //                     "address": "rH7H595XYEVTEHU2FySYsWnmfACBnZS9zM",
-        //                     "tx_id": "",
-        //                     "submited_at": "2019-06-11T02:20:24.000Z",
-        //                     "updated_at": "2019-06-11T02:20:24.000Z"
+        //                     "coin": "USDT",
+        //                     "chain": "TRX",
+        //                     "amount": "12.34",
+        //                     "txID": "de5ea0a2f2e59dc9a714837dd3ddc6d5e151b56ec5d786d351c4f52336f80d3c",
+        //                     "status": "success",
+        //                     "toAddress": "TQdmFKUoe1Lk2iwZuwRJEHJreTUBoN3BAw",
+        //                     "tag": "",
+        //                     "withdrawFee": "0.5",
+        //                     "createTime": "1665144183000",
+        //                     "updateTime": "1665144256000",
+        //                     "withdrawId": "8839035"
         //                 },
         //             ],
-        //             "current_page": 1,
-        //             "last_page": 1
+        //             "nextPageCursor": "eyJtaW5JRCI6ODczMzUyMiwibWF4SUQiOjg4MzkwMzV9"
         //         },
-        //         "ext_info": null,
-        //         "time_now": "1577482295.125488",
-        //         "rate_limit_status": 119,
-        //         "rate_limit_reset_ms": 1577482295132,
-        //         "rate_limit": 120
+        //         "retExtInfo": {},
+        //         "time": "1666887679223"
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const data = this.safeValue (result, 'data', []);
-        return this.parseTransactions (data, currency, since, limit, { 'type': 'withdrawal' });
+        const data = this.safeValue (result, 'rows', []);
+        return this.parseTransactions (data, currency, since, limit);
     }
 
     parseTransactionStatus (status) {
         const statuses = {
+            // v1/v2
             'ToBeConfirmed': 'pending',
             'UnderReview': 'pending',
-            'Pending': 'pending',
             'Success': 'ok',
+            'Expire': 'expired',
+            // v3 deposit status
+            '0': 'unknown',
+            '1': 'pending',
+            '2': 'processing',
+            '3': 'ok',
+            '4': 'fail',
+            // v3 withdrawal status
+            'SecurityCheck': 'pending',
+            'Pending': 'pending',
+            'success': 'ok',
             'CancelByUser': 'canceled',
             'Reject': 'rejected',
-            'Expire': 'expired',
+            'Fail': 'failed',
+            'BlockchainConfirmed': 'ok',
         };
         return this.safeString (statuses, status, status);
     }
@@ -4137,42 +4686,49 @@ module.exports = class bybit extends Exchange {
         // fetchWithdrawals
         //
         //     {
-        //         "id": 137,
-        //         "user_id": 1,
-        //         "coin": "XRP", // Coin Enum
-        //         "status": "Pending", // Withdraw Status Enum
-        //         "amount": "20.00000000",
-        //         "fee": "0.25000000",
-        //         "address": "rH7H595XYEVTEHU2FySYsWnmfACBnZS9zM",
-        //         "tx_id": "",
-        //         "submited_at": "2019-06-11T02:20:24.000Z",
-        //         "updated_at": "2019-06-11T02:20:24.000Z"
+        //         "coin": "USDT",
+        //         "chain": "TRX",
+        //         "amount": "12.34",
+        //         "txID": "de5ea0a2f2e59dc9a714837dd3ddc6d5e151b56ec5d786d351c4f52336f80d3c",
+        //         "status": "success",
+        //         "toAddress": "TQdmFKUoe1Lk2iwZuwRJEHJreTUBoN3BAw",
+        //         "tag": "",
+        //         "withdrawFee": "0.5",
+        //         "createTime": "1665144183000",
+        //         "updateTime": "1665144256000",
+        //         "withdrawId": "8839035"
         //     }
         //
-        // fetchDeposits ledger entries
+        // fetchDeposits
         //
         //     {
-        //         "id": 234467,
-        //         "user_id": 1,
-        //         "coin": "BTC",
-        //         "wallet_id": 27913,
-        //         "type": "Realized P&L",
-        //         "amount": "-0.00000006",
-        //         "tx_id": "",
-        //         "address": "BTCUSD",
-        //         "wallet_balance": "0.03000330",
-        //         "exec_time": "2019-12-09T00:00:25.000Z",
-        //         "cross_seq": 0
+        //         "coin": "USDT",
+        //         "chain": "TRX",
+        //         "amount": "44",
+        //         "txID": "0b038ea12fa1575e2d66693db3c346b700d4b28347afc39f80321cf089acc960",
+        //         "status": "3",
+        //         "toAddress": "TC6NCAC5WSVCCiaD3kWZXyW91ZKKhLm53b",
+        //         "tag": "",
+        //         "depositFee": "",
+        //         "successAt": "1665142507000",
+        //         "confirmations": "100",
+        //         "txIndex": "0",
+        //         "blockHash": "0000000002ac3b1064aee94bca1bd0b58c4c09c65813b084b87a2063d961129e"
+        //     }
+        //
+        // withdraw
+        //
+        //     {
+        //         "id": "9377266"
         //     }
         //
         const currencyId = this.safeString (transaction, 'coin');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const timestamp = this.parse8601 (this.safeString2 (transaction, 'submited_at', 'exec_time'));
-        const updated = this.parse8601 (this.safeString (transaction, 'updated_at'));
+        const timestamp = this.safeInteger2 (transaction, 'createTime', 'successAt');
+        const updated = this.safeInteger (transaction, 'updateTime');
         const status = this.parseTransactionStatus (this.safeString (transaction, 'status'));
-        const address = this.safeString (transaction, 'address');
-        const feeCost = this.safeNumber (transaction, 'fee');
-        const type = this.safeStringLower (transaction, 'type');
+        const feeCost = this.safeNumber2 (transaction, 'depositFee', 'withdrawFee', 0);
+        const type = ('depositFee' in transaction) ? 'deposit' : 'withdrawal';
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
@@ -4180,17 +4736,18 @@ module.exports = class bybit extends Exchange {
                 'currency': code,
             };
         }
+        const toAddress = this.safeString (transaction, 'toAddress');
         return {
             'info': transaction,
-            'id': this.safeString (transaction, 'id'),
-            'txid': this.safeString (transaction, 'tx_id'),
+            'id': this.safeString2 (transaction, 'id', 'withdrawId'),
+            'txid': this.safeString (transaction, 'txID'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': undefined,
-            'address': address,
-            'addressTo': undefined,
+            'network': this.networkIdToCode (this.safeString (transaction, 'chain')),
+            'address': undefined,
+            'addressTo': toAddress,
             'addressFrom': undefined,
-            'tag': undefined,
+            'tag': this.safeString (transaction, 'tag'),
             'tagTo': undefined,
             'tagFrom': undefined,
             'type': type,
@@ -4287,13 +4844,13 @@ module.exports = class bybit extends Exchange {
         //
         const currencyId = this.safeString (item, 'coin');
         const code = this.safeCurrencyCode (currencyId, currency);
-        const amount = this.safeNumber (item, 'amount');
-        const after = this.safeNumber (item, 'wallet_balance');
-        const direction = (amount < 0) ? 'out' : 'in';
+        const amount = this.safeString (item, 'amount');
+        const after = this.safeString (item, 'wallet_balance');
+        const direction = Precise.stringLt (amount, '0') ? 'out' : 'in';
         let before = undefined;
         if (after !== undefined && amount !== undefined) {
-            const difference = (direction === 'out') ? amount : -amount;
-            before = this.sum (after, difference);
+            const difference = (direction === 'out') ? amount : Precise.stringNeg (amount);
+            before = Precise.stringAdd (after, difference);
         }
         const timestamp = this.parse8601 (this.safeString (item, 'exec_time'));
         const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
@@ -4306,9 +4863,9 @@ module.exports = class bybit extends Exchange {
             'referenceAccount': undefined,
             'referenceId': referenceId,
             'status': undefined,
-            'amount': amount,
-            'before': before,
-            'after': after,
+            'amount': this.parseNumber (amount),
+            'before': this.parseNumber (before),
+            'after': this.parseNumber (after),
             'fee': undefined,
             'direction': direction,
             'timestamp': timestamp,
@@ -4356,24 +4913,20 @@ module.exports = class bybit extends Exchange {
         if (tag !== undefined) {
             request['tag'] = tag;
         }
-        const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeStringUpper (networks, network, network); // handle ERC20>ETH alias
-        if (network !== undefined) {
-            request['chain'] = network;
-            params = this.omit (params, 'network');
+        const [ networkId, query ] = this.handleNetworkCodeAndParams (code, params);
+        if (networkId !== undefined) {
+            request['chain'] = networkId;
         }
-        const response = await this.privatePostAssetV1PrivateWithdraw (this.extend (request, params));
+        const response = await this.privatePostAssetV3PrivateWithdrawCreate (this.extend (request, query));
         //
-        //     {
-        //         "ret_code":0,
-        //         "ret_msg":"OK"
-        //         "ext_code":"",
-        //         "result":{
-        //             "id":"bybitistheone"
+        //    {
+        //         "retCode": "0",
+        //         "retMsg": "success",
+        //         "result": {
+        //             "id": "9377266"
         //         },
-        //         "ext_info":null,
-        //         "time_now":1653149296617
+        //         "retExtInfo": {},
+        //         "time": "1666892894902"
         //     }
         //
         const result = this.safeValue (response, 'result', {});
@@ -4602,6 +5155,7 @@ module.exports = class bybit extends Exchange {
         const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
         return {
             'info': position,
+            'id': undefined,
             'symbol': market['symbol'],
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
@@ -4806,65 +5360,131 @@ module.exports = class bybit extends Exchange {
         /**
          * @method
          * @name bybit#fetchOpenInterestHistory
-         * @description Gets the total amount of unsettled contracts. In other words, the total number of contracts held in open positions
+         * @description Gets the total amount of unsettled contracts. The total number of contracts held in open positions
+         * @see https://bybit-exchange.github.io/docs/derivativesV3/contract/#t-dv_marketopeninterest
          * @param {string} symbol Unified market symbol
          * @param {string} timeframe "5m", 15m, 30m, 1h, 4h, 1d
-         * @param {int} since Not used by Bybit
-         * @param {int} limit The number of open interest structures to return. Max 200, default 50
+         * @param {int|undefined} since Start timestamp in milliseconds
+         * @param {int|undefined} limit The number of open interest structures to return. Max 200, default 50
          * @param {object} params Exchange specific parameters
+         * @param {string|undefined} params.category "linear" or "inverse"
          * @returns An array of open interest structures
          */
         if (timeframe === '1m') {
-            throw new BadRequest (this.id + 'fetchOpenInterestHistory cannot use the 1m timeframe');
+            throw new BadRequest (this.id + ' fetchOpenInterestHistory() cannot use the 1m timeframe');
         }
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        let market = this.market (symbol);
+        const subType = market['linear'] ? 'linear' : 'inverse';
+        const category = this.safeString (params, 'category', subType);
         const request = {
             'symbol': market['id'],
-            'period': timeframe,
+            'interval': timeframe,
+            'category': category,
         };
+        if (since !== undefined) {
+            request['since'] = since;
+        }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.publicGetV2PublicOpenInterest (this.extend (request, params));
+        const response = await this.publicGetDerivativesV3PublicOpenInterest (this.extend (request, params));
         //
-        //    {
-        //        "ret_code": 0,
-        //        "ret_msg": "OK",
-        //        "ext_code": "",
-        //        "ext_info": "",
-        //        "result": [
-        //            {
-        //                "open_interest": 805604444,
-        //                "timestamp": 1645056000,
-        //                "symbol": "BTCUSD"
-        //            },
-        //            ...
-        //        ],
-        //        "time_now": "1645085118.727358"
-        //    }
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "symbol": "BTCUSDT",
+        //             "category": "linear",
+        //             "list": [
+        //                 {
+        //                     "openInterest": "64757.62400000",
+        //                     "timestamp": "1665784800000"
+        //                 },
+        //                 ...
+        //             ]
+        //         },
+        //         "retExtInfo": null,
+        //         "time": 1665784849646
+        //     }
         //
-        const result = this.safeValue (response, 'result');
-        return this.parseOpenInterests (result, market, since, limit);
+        const result = this.safeValue (response, 'result', {});
+        const id = this.safeString (result, 'symbol');
+        market = this.safeMarket (id, market);
+        const data = this.safeValue (result, 'list', []);
+        return this.parseOpenInterests (data, market, since, limit);
+    }
+
+    async fetchOpenInterest (symbol, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchOpenInterest
+         * @description Retrieves the open interest of a derivative trading pair
+         * @see https://bybit-exchange.github.io/docs/derivativesV3/contract/#t-dv_marketopeninterest
+         * @param {string} symbol Unified CCXT market symbol
+         * @param {object} params exchange specific parameters
+         * @param {string|undefined} params.interval 5m, 15m, 30m, 1h, 4h, 1d
+         * @param {string|undefined} params.category "linear" or "inverse"
+         * @returns {object} an open interest structure{@link https://docs.ccxt.com/en/latest/manual.html#interest-history-structure}
+         */
+        await this.loadMarkets ();
+        let market = this.market (symbol);
+        if (!market['contract']) {
+            throw new BadRequest (this.id + ' fetchOpenInterest() supports contract markets only');
+        }
+        const timeframe = this.safeString (params, 'interval', '1h');
+        if (timeframe === '1m') {
+            throw new BadRequest (this.id + ' fetchOpenInterest() cannot use the 1m timeframe');
+        }
+        const subType = market['linear'] ? 'linear' : 'inverse';
+        const category = this.safeString (params, 'category', subType);
+        const request = {
+            'symbol': market['id'],
+            'interval': timeframe,
+            'category': category,
+        };
+        const response = await this.publicGetDerivativesV3PublicOpenInterest (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "symbol": "BTCUSDT",
+        //             "category": "linear",
+        //             "list": [
+        //                 {
+        //                     "openInterest": "64757.62400000",
+        //                     "timestamp": "1665784800000"
+        //                 },
+        //                 ...
+        //             ]
+        //         },
+        //         "retExtInfo": null,
+        //         "time": 1665784849646
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const id = this.safeString (result, 'symbol');
+        market = this.safeMarket (id, market);
+        const data = this.safeValue (result, 'list', []);
+        return this.parseOpenInterest (data[0], market);
     }
 
     parseOpenInterest (interest, market = undefined) {
         //
         //    {
-        //        "open_interest": 805604444,
-        //        "timestamp": 1645056000,
-        //        "symbol": "BTCUSD"
+        //        "openInterest": 64757.62400000,
+        //        "timestamp": 1665784800000,
         //    }
         //
-        const id = this.safeString (interest, 'symbol');
-        market = this.safeMarket (id, market);
-        const timestamp = this.safeTimestamp (interest, 'timestamp');
-        const numContracts = this.safeString (interest, 'open_interest');
-        const contractSize = this.safeString (market, 'contractSize');
+        const timestamp = this.safeInteger (interest, 'timestamp');
+        const value = this.safeNumber (interest, 'openInterest');
         return {
-            'symbol': this.safeSymbol (id),
-            'baseVolume': Precise.stringMul (numContracts, contractSize),
-            'quoteVolume': undefined,
+            'symbol': this.safeSymbol (market['id']),
+            'baseVolume': value,  // deprecated
+            'quoteVolume': undefined,  // deprecated
+            'openInterestAmount': undefined,
+            'openInterestValue': value,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'info': interest,
@@ -4876,29 +5496,29 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchBorrowRate
          * @description fetch the rate of interest to borrow a currency for margin trading
-         * @see https://bybit-exchange.github.io/docs/spot/#t-queryinterestquota
-         * @param {str} code unified currency code
-         * @param {dict} params extra parameters specific to the bybit api endpoint
-         * @returns {dict} a [borrow rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
+         * @see https://bybit-exchange.github.io/docs/spot/v3/#t-queryinterestquota
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/en/latest/manual.html#borrow-rate-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
-            'currency': currency['id'],
+            'coin': currency['id'],
         };
-        const response = await this.privateGetSpotV1CrossMarginLoanInfo (this.extend (request, params));
+        const response = await this.privateGetSpotV3PrivateCrossMarginLoanInfo (this.extend (request, params));
         //
-        //     {
-        //         "ret_code": 0,
-        //         "ret_msg": "",
-        //         "ext_code": null,
-        //         "ext_info": null,
+        //    {
+        //         "retCode": "0",
+        //         "retMsg": "success",
         //         "result": {
-        //             "currency": "USDT",
-        //             "interestRate": "0.0001161",
-        //             "maxLoanAmount": "29999.999",
-        //             "loanAbleAmount": "21.236485336363333333"
-        //         }
+        //             "coin": "USDT",
+        //             "interestRate": "0.000107000000",
+        //             "loanAbleAmount": "",
+        //             "maxLoanAmount": "79999.999"
+        //         },
+        //         "retExtInfo": null,
+        //         "time": "1666734490778"
         //     }
         //
         const data = this.safeValue (response, 'result', {});
@@ -4908,14 +5528,14 @@ module.exports = class bybit extends Exchange {
     parseBorrowRate (info, currency = undefined) {
         //
         //     {
-        //         "currency": "USDT",
-        //         "interestRate": "0.0001161",
-        //         "maxLoanAmount": "29999.999",
-        //         "loanAbleAmount": "21.236485336363333333"
+        //         "coin": "USDT",
+        //         "interestRate": "0.000107000000",
+        //         "loanAbleAmount": "",
+        //         "maxLoanAmount": "79999.999"
         //     }
         //
         const timestamp = this.milliseconds ();
-        const currencyId = this.safeString (info, 'currency');
+        const currencyId = this.safeString (info, 'coin');
         return {
             'currency': this.safeCurrencyCode (currencyId, currency),
             'rate': this.safeNumber (info, 'interestRate'),
@@ -4940,7 +5560,7 @@ module.exports = class bybit extends Exchange {
          */
         await this.loadMarkets ();
         const request = {};
-        const response = await this.privateGetSpotV1CrossMarginAccountsBalance (this.extend (request, params));
+        const response = await this.privateGetSpotV3PrivateCrossMarginAccount (this.extend (request, params));
         //
         //     {
         //         "ret_code": 0,
@@ -5002,53 +5622,65 @@ module.exports = class bybit extends Exchange {
          * @name bybit#transfer
          * @description transfer currency internally between wallets on the same account
          * @see https://bybit-exchange.github.io/docs/account_asset/#t-createinternaltransfer
+         * @see https://bybit-exchange.github.io/docs/account_asset/v3/#t-createinternaltransfer
          * @param {string} code unified currency code
          * @param {float} amount amount to transfer
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} params extra parameters specific to the bybit api endpoint
-         * @param {string} params.transfer_id UUID, which is unique across the platform
+         * @param {string} params.transferId UUID, which is unique across the platform
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         await this.loadMarkets ();
-        const transferId = this.safeString (params, 'transfer_id', this.uuid ());
+        const transferId = this.safeString (params, 'transferId', this.uuid ());
         const accountTypes = this.safeValue (this.options, 'accountsByType', {});
         const fromId = this.safeString (accountTypes, fromAccount, fromAccount);
         const toId = this.safeString (accountTypes, toAccount, toAccount);
         const currency = this.currency (code);
         const amountToPrecision = this.currencyToPrecision (code, amount);
-        const request = {
-            'transfer_id': transferId,
-            'from_account_type': fromId,
-            'to_account_type': toId,
-            'coin': currency['id'],
-            'amount': amountToPrecision,
-        };
-        const response = await this.privatePostAssetV1PrivateTransfer (this.extend (request, params));
+        let method = undefined;
+        [ method, params ] = this.handleOptionAndParams (params, 'transfer', 'method', 'privatePostAssetV1PrivateTransfer'); // v1 preferred atm, because it supports funding
+        let request = undefined;
+        if (method === 'privatePostAssetV3PrivateTransferInterTransfer') {
+            request = {
+                'transferId': transferId,
+                'fromAccountType': fromId,
+                'toAccountType': toId,
+                'coin': currency['id'],
+                'amount': amountToPrecision,
+            };
+        } else {
+            request = {
+                'transfer_id': transferId,
+                'from_account_type': fromId,
+                'to_account_type': toId,
+                'coin': currency['id'],
+                'amount': amountToPrecision,
+            };
+        }
+        const response = await this[method] (this.extend (request, params));
         //
-        //     {
-        //         "ret_code": 0,
-        //         "ret_msg": "OK",
-        //         "ext_code": "",
-        //         "result": {
-        //             "transfer_id": "22c2bc11-ed5b-49a4-8647-c4e0f5f6f2b2"
-        //         },
-        //         "ext_info": null,
-        //         "time_now": 1658433382570,
-        //         "rate_limit_status": 19,
-        //         "rate_limit_reset_ms": 1658433382570,
-        //         "rate_limit": 1
-        //     }
+        // {
+        //     "retCode": 0,
+        //     "retMsg": "success",
+        //     "result": {
+        //         "transferId": "4244af44-f3b0-4cf6-a743-b56560e987bc" // transfer_id in v1
+        //     },
+        //     "retExtInfo": {},
+        //     "time": 1666875857205
+        // }
         //
-        const timestamp = this.safeInteger (response, 'time_now');
+        const timestamp = this.safeInteger2 (response, 'time', 'time_now');
         const transfer = this.safeValue (response, 'result', {});
+        const statusRaw = this.safeStringN (response, [ 'retCode', 'retMsg', 'ret_code', 'ret_msg' ]);
+        const status = this.parseTransferStatus (statusRaw);
         return this.extend (this.parseTransfer (transfer, currency), {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'amount': this.parseNumber (amountToPrecision),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
-            'status': this.parseTransferStatus (this.safeString2 (response, 'ret_code', 'ret_msg')),
+            'status': status,
         });
     }
 
@@ -5057,7 +5689,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchTransfers
          * @description fetch a history of internal transfers made on an account
-         * @see https://bybit-exchange.github.io/docs/account_asset/#t-querytransferlist
+         * @see https://bybit-exchange.github.io/docs/account_asset/v3/#t-querytransferlist
          * @param {string|undefined} code unified currency code of the currency transferred
          * @param {int|undefined} since the earliest time in ms to fetch transfers for
          * @param {int|undefined} limit the maximum number of  transfers structures to retrieve
@@ -5072,36 +5704,32 @@ module.exports = class bybit extends Exchange {
             request['coin'] = currency['id'];
         }
         if (since !== undefined) {
-            request['start_time'] = since;
+            request['startTime'] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit;
         }
-        const response = await this.privateGetAssetV1PrivateTransferList (this.extend (request, params));
+        const response = await this.privateGetAssetV3PrivateTransferInterTransferListQuery (this.extend (request, params));
         //
-        //     {
-        //         "ret_code": 0,
-        //         "ret_msg": "OK",
-        //         "ext_code": "",
+        //    {
+        //         "retCode": "0",
+        //         "retMsg": "success",
         //         "result": {
         //             "list": [
         //                 {
-        //                     "transfer_id": "3976014d-f3d2-4843-b3bb-1cd006babcde",
+        //                     "transferId": "e9c421c4-b010-4b16-abd6-106179f27732",
         //                     "coin": "USDT",
-        //                     "amount": "15",
-        //                     "from_account_type": "SPOT",
-        //                     "to_account_type": "CONTRACT",
-        //                     "timestamp": "1658433935",
+        //                     "amount": "8",
+        //                     "fromAccountType": "FUND",
+        //                     "toAccountType": "SPOT",
+        //                     "timestamp": "1666879426000",
         //                     "status": "SUCCESS"
         //                 },
         //             ],
-        //             "cursor": "eyJtaW5JRCI6MjMwNDM0MjIsIm1heElEIjozMTI5Njg4OX0="
+        //             "nextPageCursor": "eyJtaW5JRCI6MTY3NTM4NDcsIm1heElEIjo0OTI0ODc5NX1="
         //         },
-        //         "ext_info": null,
-        //         "time_now": 1658436371045,
-        //         "rate_limit_status": 59,
-        //         "rate_limit_reset_ms": 1658436371045,
-        //         "rate_limit": 1
+        //         "retExtInfo": {},
+        //         "time": "1666880800063"
         //     }
         //
         const data = this.safeValue (response, 'result', {});
@@ -5114,7 +5742,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#borrowMargin
          * @description create a loan to borrow margin
-         * @see https://bybit-exchange.github.io/docs/spot/#t-borrowmarginloan
+         * @see https://bybit-exchange.github.io/docs/spot/v3/#t-borrowmarginloan
          * @param {string} code unified currency code of the currency to borrow
          * @param {float} amount the amount to borrow
          * @param {string|undefined} symbol not used by bybit.borrowMargin ()
@@ -5128,20 +5756,23 @@ module.exports = class bybit extends Exchange {
             throw new NotSupported (this.id + ' borrowMargin () cannot use isolated margin');
         }
         const request = {
-            'currency': currency['id'],
+            'coin': currency['id'],
             'qty': this.currencyToPrecision (code, amount),
         };
-        const response = await this.privatePostSpotV1CrossMarginLoan (this.extend (request, query));
+        const response = await this.privatePostSpotV3PrivateCrossMarginLoan (this.extend (request, query));
         //
-        //    {
-        //        "ret_code": 0,
-        //        "ret_msg": "",
-        //        "ext_code": null,
-        //        "ext_info": null,
-        //        "result": 438
-        //    }
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "success",
+        //         "result": {
+        //             "transactId": "14143"
+        //         },
+        //         "retExtInfo": null,
+        //         "time": 1662617848970
+        //     }
         //
-        const transaction = this.parseMarginLoan (response, currency);
+        const result = this.safeValue (response, 'result', {});
+        const transaction = this.parseMarginLoan (result, currency);
         return this.extend (transaction, {
             'symbol': symbol,
             'amount': amount,
@@ -5153,7 +5784,7 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#repayMargin
          * @description repay borrowed margin and interest
-         * @see https://bybit-exchange.github.io/docs/spot/#t-repaymarginloan
+         * @see https://bybit-exchange.github.io/docs/spot/v3/#t-repaymarginloan
          * @param {string} code unified currency code of the currency to repay
          * @param {float} amount the amount to repay
          * @param {string|undefined} symbol not used by bybit.repayMargin ()
@@ -5167,20 +5798,23 @@ module.exports = class bybit extends Exchange {
             throw new NotSupported (this.id + ' repayMargin () cannot use isolated margin');
         }
         const request = {
-            'currency': currency['id'],
+            'coin': currency['id'],
             'qty': this.currencyToPrecision (code, amount),
         };
-        const response = await this.privatePostSpotV1CrossMarginRepay (this.extend (request, query));
+        const response = await this.privatePostSpotV3PrivateCrossMarginRepay (this.extend (request, query));
         //
-        //    {
-        //        "ret_code": 0,
-        //        "ret_msg": "",
-        //        "ext_code": null,
-        //        "ext_info": null,
-        //        "result": 307
-        //    }
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "success",
+        //         "result": {
+        //            "repayId": "12128"
+        //         },
+        //         "retExtInfo": null,
+        //         "time": 1662618298452
+        //     }
         //
-        const transaction = this.parseMarginLoan (response, currency);
+        const result = this.safeValue (response, 'result', {});
+        const transaction = this.parseMarginLoan (result, currency);
         return this.extend (transaction, {
             'symbol': symbol,
             'amount': amount,
@@ -5189,16 +5823,20 @@ module.exports = class bybit extends Exchange {
 
     parseMarginLoan (info, currency = undefined) {
         //
-        //    {
-        //        "ret_code": 0,
-        //        "ret_msg": "",
-        //        "ext_code": null,
-        //        "ext_info": null,
-        //        "result": 307
-        //    }
+        // borrowMargin
+        //
+        //     {
+        //         "transactId": "14143"
+        //     }
+        //
+        // repayMargin
+        //
+        //     {
+        //         "repayId": "12128"
+        //     }
         //
         return {
-            'id': undefined,
+            'id': this.safeString2 (info, 'transactId', 'repayId'),
             'currency': this.safeString (currency, 'code'),
             'amount': undefined,
             'symbol': undefined,
@@ -5222,31 +5860,31 @@ module.exports = class bybit extends Exchange {
         // transfer
         //
         //     {
-        //         "transfer_id": "22c2bc11-ed5b-49a4-8647-c4e0f5f6f2b2"
-        //     },
+        //         "transferId": "22c2bc11-ed5b-49a4-8647-c4e0f5f6f2b2" // transfer_id in v1
+        //     }
         //
         // fetchTransfers
         //
         //     {
-        //         "transfer_id": "3976014d-f3d2-4843-b3bb-1cd006babcde",
+        //         "transferId": "e9c421c4-b010-4b16-abd6-106179f27702", // transfer_id in v1
         //         "coin": "USDT",
-        //         "amount": "15",
-        //         "from_account_type": "SPOT",
-        //         "to_account_type": "CONTRACT",
-        //         "timestamp": "1658433935",
+        //         "amount": "8",
+        //         "fromAccountType": "FUND", // from_account_type in v1
+        //         "toAccountType": "SPOT", // to_account_type in v1
+        //         "timestamp": "1666879426000",
         //         "status": "SUCCESS"
-        //     },
+        //      }
         //
         const currencyId = this.safeString (transfer, 'coin');
         const timestamp = this.safeTimestamp (transfer, 'timestamp');
-        const fromAccountId = this.safeString (transfer, 'from_account_type');
-        const toAccountId = this.safeString (transfer, 'to_account_type');
+        const fromAccountId = this.safeString2 (transfer, 'fromAccountType', 'from_account_type');
+        const toAccountId = this.safeString2 (transfer, 'toAccountType', 'to_account_type');
         const accountIds = this.safeValue (this.options, 'accountsById', {});
         const fromAccount = this.safeString (accountIds, fromAccountId, fromAccountId);
         const toAccount = this.safeString (accountIds, toAccountId, toAccountId);
         return {
             'info': transfer,
-            'id': this.safeString (transfer, 'transfer_id'),
+            'id': this.safeString2 (transfer, 'transferId', 'transfer_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'currency': this.safeCurrencyCode (currencyId, currency),
@@ -5266,6 +5904,7 @@ module.exports = class bybit extends Exchange {
         } else if (api === 'private') {
             this.checkRequiredCredentials ();
             const isOpenapi = url.indexOf ('openapi') >= 0;
+            const isV3UnifiedMargin = url.indexOf ('unified/v3') >= 0;
             const timestamp = this.nonce ().toString ();
             if (isOpenapi) {
                 if (Object.keys (params).length) {
@@ -5283,6 +5922,31 @@ module.exports = class bybit extends Exchange {
                     'X-BAPI-TIMESTAMP': timestamp,
                     'X-BAPI-SIGN': signature,
                 };
+            } else if (isV3UnifiedMargin) {
+                headers = {
+                    'Content-Type': 'application/json',
+                    'X-BAPI-API-KEY': this.apiKey,
+                    'X-BAPI-SIGN-TYPE': '2',
+                    'X-BAPI-TIMESTAMP': timestamp,
+                    'X-BAPI-RECV-WINDOW': this.options['recvWindow'].toString (),
+                };
+                const query = params;
+                const queryEncoded = this.rawencode (query);
+                const auth_base = timestamp.toString () + this.apiKey + this.options['recvWindow'].toString ();
+                let authFull = undefined;
+                if (method === 'POST') {
+                    body = this.json (query);
+                    authFull = auth_base + body;
+                    const brokerId = this.safeString (this.options, 'brokerId');
+                    if (brokerId !== undefined) {
+                        headers['Referer'] = brokerId;
+                    }
+                } else {
+                    authFull = auth_base + queryEncoded;
+                    url += '?' + this.urlencode (query);
+                }
+                const signature = this.hmac (this.encode (authFull), this.encode (this.secret));
+                headers['X-BAPI-SIGN'] = signature;
             } else {
                 const query = this.extend (params, {
                     'api_key': this.apiKey,

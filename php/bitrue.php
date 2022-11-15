@@ -6,10 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\InvalidOrder;
-use \ccxt\DDoSProtection;
 
 class bitrue extends Exchange {
 
@@ -240,10 +236,9 @@ class bitrue extends Exchange {
                     'limit' => 'FULL', // we change it from 'ACK' by default to 'FULL' (returns immediately if limit is not hit)
                 ),
                 'networks' => array(
-                    'SPL' => 'SOLANA',
-                    'SOL' => 'SOLANA',
-                    'DOGE' => 'dogecoin',
-                    'ADA' => 'Cardano',
+                    'ERC20' => 'ETH',
+                    'TRC20' => 'TRX',
+                    'TRON' => 'TRX',
                 ),
             ),
             'commonCurrencies' => array(
@@ -1799,7 +1794,9 @@ class bitrue extends Exchange {
         $chainName = $this->safe_string($params, 'chainName');
         if ($chainName === null) {
             $networks = $this->safe_value($currency, 'networks', array());
+            $optionsNetworks = $this->safe_value($this->options, 'networks', array());
             $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+            $network = $this->safe_string($optionsNetworks, $network, $network);
             $networkEntry = $this->safe_value($networks, $network, array());
             $chainName = $this->safe_string($networkEntry, 'id'); // handle ERC20>ETH alias
             if ($chainName === null) {

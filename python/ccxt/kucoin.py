@@ -39,7 +39,7 @@ class kucoin(Exchange):
             # 60 requests in 3 seconds = 20 requests per second =>( 1000ms / 20 ) = 50 ms between requests on average
             'rateLimit': 50,
             'version': 'v2',
-            'certified': False,
+            'certified': True,
             'pro': True,
             'comment': 'Platform 2.0',
             'quoteJsonNumbers': False,
@@ -105,7 +105,7 @@ class kucoin(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg',
-                'referral': 'https://www.kucoin.com/?rcode=E5wkqe',
+                'referral': 'https://www.kucoin.com/ucenter/signup?rcode=E5wkqe',
                 'api': {
                     'public': 'https://api.kucoin.com',
                     'private': 'https://api.kucoin.com',
@@ -166,6 +166,8 @@ class kucoin(Exchange):
                         'accounts/transferable': 1,
                         'base-fee': 1,
                         'sub/user': 1,
+                        'user-info': 1,
+                        'sub/api-key': 1,
                         'sub-accounts': 1,
                         'sub-accounts/{subUserId}': 1,
                         'deposit-addresses': 1,
@@ -220,6 +222,9 @@ class kucoin(Exchange):
                         'margin/toggle-auto-lend': 1,
                         'bullet-private': 1,
                         'stop-order': 1,
+                        'sub/user': 1,
+                        'sub/api-key': 1,
+                        'sub/api-key/update': 1,
                     },
                     'delete': {
                         'withdrawals/{withdrawalId}': 1,
@@ -230,6 +235,7 @@ class kucoin(Exchange):
                         'stop-order/cancelOrderByClientOid': 1,
                         'stop-order/{orderId}': 1,
                         'stop-order/cancel': 1,
+                        'sub/api-key': 1,
                     },
                 },
                 'futuresPublic': {
@@ -446,6 +452,7 @@ class kucoin(Exchange):
                         'POST': {
                             'accounts/inner-transfer': 'v2',
                             'accounts/sub-transfer': 'v2',
+                            'accounts': 'v2',
                         },
                     },
                     'futuresPrivate': {
@@ -1015,7 +1022,7 @@ class kucoin(Exchange):
             self.safe_number(ohlcv, 5),
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe='15m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1111,23 +1118,27 @@ class kucoin(Exchange):
         network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
         network = self.safe_string_lower(networks, network, network)  # handle ERC20>ETH alias
         if network is not None:
+            network = network.lower()
             request['chain'] = network
             params = self.omit(params, 'network')
         response = self.privateGetDepositAddresses(self.extend(request, params))
         # BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         # BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         data = self.safe_value(response, 'data', {})
-        address = self.safe_string(data, 'address')
-        tag = self.safe_string(data, 'memo')
+        return self.parse_deposit_address(data, currency)
+
+    def parse_deposit_address(self, depositAddress, currency=None):
+        address = self.safe_string(depositAddress, 'address')
+        code = currency['id']
         if code != 'NIM':
             # contains spaces
             self.check_address(address)
         return {
-            'info': response,
+            'info': depositAddress,
             'currency': code,
             'address': address,
-            'tag': tag,
-            'network': network,
+            'tag': self.safe_string(depositAddress, 'memo'),
+            'network': self.safe_string(depositAddress, 'chain'),
         }
 
     def fetch_order_book(self, symbol, limit=None, params={}):
@@ -1975,6 +1986,7 @@ class kucoin(Exchange):
         #         "amount": 1,
         #         "fee": 0.0001,
         #         "currency": "KCS",
+        #         "chain": "",
         #         "isInner": False,
         #         "walletTxId": "5bbb57386d99522d9f954c5a@test004",
         #         "status": "SUCCESS",
@@ -1990,6 +2002,7 @@ class kucoin(Exchange):
         #         "address": "0x5bedb060b8eb8d823e2414d82acce78d38be7fe9",
         #         "memo": "",
         #         "currency": "ETH",
+        #         "chain": "",
         #         "amount": 1.0000000,
         #         "fee": 0.0100000,
         #         "walletTxId": "3e2414d82acce78d38be7fe9",
@@ -2009,7 +2022,7 @@ class kucoin(Exchange):
         currencyId = self.safe_string(transaction, 'currency')
         code = self.safe_currency_code(currencyId, currency)
         address = self.safe_string(transaction, 'address')
-        amount = self.safe_number(transaction, 'amount')
+        amount = self.safe_string(transaction, 'amount')
         txid = self.safe_string(transaction, 'walletTxId')
         if txid is not None:
             txidParts = txid.split('@')
@@ -2021,21 +2034,18 @@ class kucoin(Exchange):
             txid = txidParts[0]
         type = 'withdrawal' if (txid is None) else 'deposit'
         rawStatus = self.safe_string(transaction, 'status')
-        status = self.parse_transaction_status(rawStatus)
         fee = None
-        feeCost = self.safe_number(transaction, 'fee')
+        feeCost = self.safe_string(transaction, 'fee')
         if feeCost is not None:
             rate = None
             if amount is not None:
-                rate = feeCost / amount
+                rate = Precise.string_div(feeCost, amount)
             fee = {
-                'cost': feeCost,
-                'rate': rate,
+                'cost': self.parse_number(feeCost),
+                'rate': self.parse_number(rate),
                 'currency': code,
             }
-        tag = self.safe_string(transaction, 'memo')
         timestamp = self.safe_integer_2(transaction, 'createdAt', 'createAt')
-        id = self.safe_string_2(transaction, 'id', 'withdrawalId')
         updated = self.safe_integer(transaction, 'updatedAt')
         isV1 = not ('createdAt' in transaction)
         # if it's a v1 structure
@@ -2045,13 +2055,14 @@ class kucoin(Exchange):
                 timestamp = timestamp * 1000
             if updated is not None:
                 updated = updated * 1000
-        comment = self.safe_string(transaction, 'remark')
+        tag = self.safe_string(transaction, 'memo')
+        network = self.safe_string(transaction, 'chain')
         return {
-            'id': id,
             'info': transaction,
+            'id': self.safe_string_2(transaction, 'id', 'withdrawalId'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'network': None,
+            'network': network,
             'address': address,
             'addressTo': address,
             'addressFrom': None,
@@ -2059,11 +2070,11 @@ class kucoin(Exchange):
             'tagTo': tag,
             'tagFrom': None,
             'currency': code,
-            'amount': amount,
+            'amount': self.parse_number(amount),
             'txid': txid,
             'type': type,
-            'status': status,
-            'comment': comment,
+            'status': self.parse_transaction_status(rawStatus),
+            'comment': self.safe_string(transaction, 'remark'),
             'fee': fee,
             'updated': updated,
         }
@@ -2203,31 +2214,98 @@ class kucoin(Exchange):
         responseData = response['data']['items']
         return self.parse_transactions(responseData, currency, since, limit, {'type': 'withdrawal'})
 
+    def fetch_balance_helper(self, entry):
+        account = self.account()
+        account['used'] = self.safe_string(entry, 'holdBalance')
+        account['free'] = self.safe_string(entry, 'availableBalance')
+        account['total'] = self.safe_string(entry, 'totalBalance')
+        return account
+
     def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
+        see https://docs.kucoin.com/#list-accounts
+        see https://docs.kucoin.com/#query-isolated-margin-account-info
         :param dict params: extra parameters specific to the kucoin api endpoint
+        :param dict params['marginMode']: 'cross' or 'isolated', margin type for fetching margin balance
+        :param dict params['type']: extra parameters specific to the kucoin api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         self.load_markets()
+        code = self.safe_string(params, 'code')
+        currency = None
+        if code is not None:
+            currency = self.currency(code)
         defaultType = self.safe_string_2(self.options, 'fetchBalance', 'defaultType', 'spot')
         requestedType = self.safe_string(params, 'type', defaultType)
         accountsByType = self.safe_value(self.options, 'accountsByType')
         type = self.safe_string(accountsByType, requestedType, requestedType)
         params = self.omit(params, 'type')
-        request = {
-            'type': type,
-        }
-        response = self.privateGetAccounts(self.extend(request, params))
+        marginMode, query = self.handle_margin_mode_and_params('fetchBalance', params)
+        method = 'privateGetAccounts'
+        request = {}
+        isolated = (marginMode == 'isolated') or (type == 'isolated')
+        if isolated:
+            method = 'privateGetIsolatedAccounts'
+            if currency is not None:
+                request['balanceCurrency'] = currency['id']
+        else:
+            if currency is not None:
+                request['currency'] = currency['id']
+            request['type'] = type
+        response = getattr(self, method)(self.extend(request, query))
         #
-        #     {
-        #         "code":"200000",
-        #         "data":[
-        #             {"balance":"0.00009788","available":"0.00009788","holds":"0","currency":"BTC","id":"5c6a4fd399a1d81c4f9cc4d0","type":"trade"},
-        #             {"balance":"3.41060034","available":"3.41060034","holds":"0","currency":"SOUL","id":"5c6a4d5d99a1d8182d37046d","type":"trade"},
-        #             {"balance":"0.01562641","available":"0.01562641","holds":"0","currency":"NEO","id":"5c6a4f1199a1d8165a99edb1","type":"trade"},
-        #         ]
-        #     }
+        # Spot and Cross
+        #
+        #    {
+        #        "code": "200000",
+        #        "data": [
+        #            {
+        #                "balance": "0.00009788",
+        #                "available": "0.00009788",
+        #                "holds": "0",
+        #                "currency": "BTC",
+        #                "id": "5c6a4fd399a1d81c4f9cc4d0",
+        #                "type": "trade",
+        #            },
+        #        ]
+        #    }
+        #
+        # Isolated
+        #
+        #    {
+        #        code: '200000',
+        #        data: {
+        #            totalConversionBalance: '0',
+        #            liabilityConversionBalance: '0',
+        #            assets: [
+        #                {
+        #                    symbol: 'MANA-USDT',
+        #                    status: 'CLEAR',
+        #                    debtRatio: '0',
+        #                    baseAsset: {
+        #                        currency: 'MANA',
+        #                        totalBalance: '0',
+        #                        holdBalance: '0',
+        #                        availableBalance: '0',
+        #                        liability: '0',
+        #                        interest: '0',
+        #                        borrowableAmount: '0'
+        #                    },
+        #                    quoteAsset: {
+        #                        currency: 'USDT',
+        #                        totalBalance: '0',
+        #                        holdBalance: '0',
+        #                        availableBalance: '0',
+        #                        liability: '0',
+        #                        interest: '0',
+        #                        borrowableAmount: '0'
+        #                    }
+        #                },
+        #                ...
+        #            ]
+        #        }
+        #    }
         #
         data = self.safe_value(response, 'data', [])
         result = {
@@ -2235,18 +2313,33 @@ class kucoin(Exchange):
             'timestamp': None,
             'datetime': None,
         }
-        for i in range(0, len(data)):
-            balance = data[i]
-            balanceType = self.safe_string(balance, 'type')
-            if balanceType == type:
-                currencyId = self.safe_string(balance, 'currency')
-                code = self.safe_currency_code(currencyId)
-                account = self.account()
-                account['total'] = self.safe_string(balance, 'balance')
-                account['free'] = self.safe_string(balance, 'available')
-                account['used'] = self.safe_string(balance, 'holds')
-                result[code] = account
-        return self.safe_balance(result)
+        if isolated:
+            assets = self.safe_value(data, 'assets', [])
+            for i in range(0, len(assets)):
+                entry = assets[i]
+                marketId = self.safe_string(entry, 'symbol')
+                symbol = self.safe_symbol(marketId, None, '_')
+                base = self.safe_value(entry, 'baseAsset', {})
+                quote = self.safe_value(entry, 'quoteAsset', {})
+                baseCode = self.safe_currency_code(self.safe_string(base, 'currency'))
+                quoteCode = self.safe_currency_code(self.safe_string(quote, 'currency'))
+                subResult = {}
+                subResult[baseCode] = self.fetch_balance_helper(base)
+                subResult[quoteCode] = self.fetch_balance_helper(quote)
+                result[symbol] = self.safe_balance(subResult)
+        else:
+            for i in range(0, len(data)):
+                balance = data[i]
+                balanceType = self.safe_string(balance, 'type')
+                if balanceType == type:
+                    currencyId = self.safe_string(balance, 'currency')
+                    code = self.safe_currency_code(currencyId)
+                    account = self.account()
+                    account['total'] = self.safe_string(balance, 'balance')
+                    account['free'] = self.safe_string(balance, 'available')
+                    account['used'] = self.safe_string(balance, 'holds')
+                    result[code] = account
+        return result if isolated else self.safe_balance(result)
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         """
@@ -2999,6 +3092,10 @@ class kucoin(Exchange):
         query = self.omit(params, self.extract_params(path))
         endpart = ''
         headers = headers if (headers is not None) else {}
+        url = self.urls['api'][api]
+        isSandbox = url.find('sandbox') >= 0
+        if path == 'symbols' and not isSandbox:
+            endpoint = '/api/v2/' + self.implode_params(path, params)
         if query:
             if (method == 'GET') or (method == 'DELETE'):
                 endpoint += '?' + self.rawencode(query)
@@ -3006,7 +3103,7 @@ class kucoin(Exchange):
                 body = self.json(query)
                 endpart = body
                 headers['Content-Type'] = 'application/json'
-        url = self.urls['api'][api] + endpoint
+        url = url + endpoint
         isFuturePrivate = (api == 'futuresPrivate')
         isPrivate = (api == 'private')
         if isPrivate or isFuturePrivate:

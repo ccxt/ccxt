@@ -6,7 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
 
 class zaif extends Exchange {
 
@@ -128,11 +127,11 @@ class zaif extends Exchange {
             'options' => array(
                 // zaif schedule defines several market-specific fees
                 'fees' => array(
-                    'BTC/JPY' => array( 'maker' => 0, 'taker' => 0.1 / 100 ),
-                    'BCH/JPY' => array( 'maker' => 0, 'taker' => 0.3 / 100 ),
-                    'BCH/BTC' => array( 'maker' => 0, 'taker' => 0.3 / 100 ),
-                    'PEPECASH/JPY' => array( 'maker' => 0, 'taker' => 0.01 / 100 ),
-                    'PEPECASH/BT' => array( 'maker' => 0, 'taker' => 0.01 / 100 ),
+                    'BTC/JPY' => array( 'maker' => $this->parse_number('0'), 'taker' => $this->parse_number('0.001') ),
+                    'BCH/JPY' => array( 'maker' => $this->parse_number('0'), 'taker' => $this->parse_number('0.003') ),
+                    'BCH/BTC' => array( 'maker' => $this->parse_number('0'), 'taker' => $this->parse_number('0.003') ),
+                    'PEPECASH/JPY' => array( 'maker' => $this->parse_number('0'), 'taker' => $this->parse_number('0.0001') ),
+                    'PEPECASH/BT' => array( 'maker' => $this->parse_number('0'), 'taker' => $this->parse_number('0.0001') ),
                 ),
             ),
             'precisionMode' => TICK_SIZE,

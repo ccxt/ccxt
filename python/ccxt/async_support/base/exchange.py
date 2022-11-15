@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.92.95'
+__version__ = '2.1.80'
 
 # -----------------------------------------------------------------------------
 
@@ -358,7 +358,7 @@ class Exchange(BaseExchange):
                     }
                     baseCurrencies.append(currency)
                 if 'quote' in market:
-                    currencyPrecision = self.safe_value_2(marketPrecision, 'quote', 'amount', defaultCurrencyPrecision)
+                    currencyPrecision = self.safe_value_2(marketPrecision, 'quote', 'price', defaultCurrencyPrecision)
                     currency = {
                         'id': self.safe_string_2(market, 'quoteId', 'quote'),
                         'numericId': self.safe_string(market, 'quoteNumericId'),
@@ -612,38 +612,48 @@ class Exchange(BaseExchange):
         return self.filter_by_symbol_since_limit(results, symbol, since, limit, tail)
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
+        if type == 'market' and takerOrMaker == 'maker':
+            raise ArgumentsRequired(self.id + ' calculateFee() - you have provided incompatible arguments - "market" type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.')
         market = self.markets[symbol]
         feeSide = self.safe_string(market, 'feeSide', 'quote')
         key = 'quote'
         cost = None
+        amountString = self.number_to_string(amount)
+        priceString = self.number_to_string(price)
         if feeSide == 'quote':
             # the fee is always in quote currency
-            cost = amount * price
+            cost = Precise.string_mul(amountString, priceString)
         elif feeSide == 'base':
             # the fee is always in base currency
-            cost = amount
+            cost = amountString
         elif feeSide == 'get':
             # the fee is always in the currency you get
-            cost = amount
+            cost = amountString
             if side == 'sell':
-                cost *= price
+                cost = Precise.string_mul(cost, priceString)
             else:
                 key = 'base'
         elif feeSide == 'give':
             # the fee is always in the currency you give
-            cost = amount
+            cost = amountString
             if side == 'buy':
-                cost *= price
+                cost = Precise.string_mul(cost, priceString)
             else:
                 key = 'base'
-        rate = market[takerOrMaker]
+        # for derivatives, the fee is in 'settle' currency
+        if not market['spot']:
+            key = 'settle'
+        # even if `takerOrMaker` argument was set to 'maker', for 'market' orders we should forcefully override it to 'taker'
+        if type == 'market':
+            takerOrMaker = 'taker'
+        rate = self.safe_string(market, takerOrMaker)
         if cost is not None:
-            cost *= rate
+            cost = Precise.string_mul(cost, rate)
         return {
             'type': takerOrMaker,
             'currency': market[key],
-            'rate': rate,
-            'cost': cost,
+            'rate': self.parse_number(rate),
+            'cost': self.parse_number(cost),
         }
 
     def safe_trade(self, trade, market=None):
@@ -892,6 +902,14 @@ class Exchange(BaseExchange):
         result = []
         for i in range(0, len(symbols)):
             result.append(self.symbol(symbols[i]))
+        return result
+
+    def market_codes(self, codes):
+        if codes is None:
+            return codes
+        result = []
+        for i in range(0, len(codes)):
+            result.append(self.common_currency_code(codes[i]))
         return result
 
     def parse_bids_asks(self, bidasks, priceKey=0, amountKey=1):
@@ -1165,6 +1183,15 @@ class Exchange(BaseExchange):
     async def fetch_permissions(self, params={}):
         raise NotSupported(self.id + ' fetchPermissions() is not supported yet')
 
+    async def fetch_position(self, symbol, params={}):
+        raise NotSupported(self.id + ' fetchPosition() is not supported yet')
+
+    async def fetch_positions(self, symbols=None, params={}):
+        raise NotSupported(self.id + ' fetchPositions() is not supported yet')
+
+    async def fetch_positions_risk(self, symbols=None, params={}):
+        raise NotSupported(self.id + ' fetchPositionsRisk() is not supported yet')
+
     async def fetch_bids_asks(self, symbols=None, params={}):
         raise NotSupported(self.id + ' fetchBidsAsks() is not supported yet')
 
@@ -1176,7 +1203,7 @@ class Exchange(BaseExchange):
     def safe_currency(self, currencyId, currency=None):
         if (currencyId is None) and (currency is not None):
             return currency
-        if (self.currencies_by_id is not None) and (currencyId in self.currencies_by_id):
+        if (self.currencies_by_id is not None) and (currencyId in self.currencies_by_id) and (self.currencies_by_id[currencyId] is not None):
             return self.currencies_by_id[currencyId]
         code = currencyId
         if currencyId is not None:
@@ -1295,18 +1322,18 @@ class Exchange(BaseExchange):
         warnOnFetchFundingFee = self.safe_value(self.options, 'warnOnFetchFundingFee', True)
         if warnOnFetchFundingFee:
             raise NotSupported(self.id + ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = False to suppress self warning')
-        return self.fetch_transaction_fee(code, params)
+        return await self.fetch_transaction_fee(code, params)
 
     async def fetch_funding_fees(self, codes=None, params={}):
         warnOnFetchFundingFees = self.safe_value(self.options, 'warnOnFetchFundingFees', True)
         if warnOnFetchFundingFees:
             raise NotSupported(self.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = False to suppress self warning')
-        return self.fetch_transaction_fees(codes, params)
+        return await self.fetch_transaction_fees(codes, params)
 
     async def fetch_transaction_fee(self, code, params={}):
         if not self.has['fetchTransactionFees']:
             raise NotSupported(self.id + ' fetchTransactionFee() is not supported yet')
-        return self.fetch_transaction_fees([code], params)
+        return await self.fetch_transaction_fees([code], params)
 
     async def fetch_transaction_fees(self, codes=None, params={}):
         raise NotSupported(self.id + ' fetchTransactionFees() is not supported yet')
@@ -1326,6 +1353,24 @@ class Exchange(BaseExchange):
         if rate is None:
             raise ExchangeError(self.id + ' fetchBorrowRate() could not find the borrow rate for currency code ' + code)
         return rate
+
+    def handle_option_and_params(self, params, methodName, optionName, defaultValue=None):
+        # This method can be used to obtain method specific properties, i.e: self.handleOptionAndParams(params, 'fetchPosition', 'marginMode', 'isolated')
+        defaultOptionName = 'default' + self.capitalize(optionName)  # we also need to check the 'defaultXyzWhatever'
+        # check if params contain the key
+        value = self.safe_string_2(params, optionName, defaultOptionName)
+        if value is not None:
+            params = self.omit(params, [optionName, defaultOptionName])
+        if value is None:
+            # check if exchange-wide method options contain the key
+            exchangeWideMethodOptions = self.safe_value(self.options, methodName)
+            if exchangeWideMethodOptions is not None:
+                value = self.safe_string_2(exchangeWideMethodOptions, optionName, defaultOptionName)
+        if value is None:
+            # check if exchange-wide options contain the key
+            value = self.safe_string_2(self.options, optionName, defaultOptionName)
+        value = value if (value is not None) else defaultValue
+        return [value, params]
 
     def handle_market_type_and_params(self, methodName, market=None, params={}):
         defaultType = self.safe_string_2(self.options, 'defaultType', 'type', 'spot')
@@ -1377,8 +1422,9 @@ class Exchange(BaseExchange):
         keys = list(broad.keys())
         for i in range(0, len(keys)):
             key = keys[i]
-            if string.find(key) >= 0:
-                return key
+            if string is not None:  # #issues/12698
+                if string.find(key) >= 0:
+                    return key
         return None
 
     def handle_errors(self, statusCode, statusText, url, method, responseHeaders, responseBody, response, requestHeaders, requestBody):
@@ -1695,6 +1741,12 @@ class Exchange(BaseExchange):
             result[parsed['symbol']] = parsed
         return result
 
+    def is_trigger_order(self, params):
+        isTrigger = self.safe_value_2(params, 'trigger', 'stop')
+        if isTrigger:
+            params = self.omit(params, ['trigger', 'stop'])
+        return [isTrigger, params]
+
     def is_post_only(self, isMarketOrder, exchangeSpecificParam, params={}):
         """
          * @ignore
@@ -1855,3 +1907,27 @@ class Exchange(BaseExchange):
         if marginMode is not None:
             params = self.omit(params, ['marginMode', 'defaultMarginMode'])
         return [marginMode, params]
+
+    def check_required_argument(self, methodName, argument, argumentName, options=[]):
+        """
+         * @ignore
+        :param str argument: the argument to check
+        :param str argumentName: the name of the argument to check
+        :param str methodName: the name of the method that the argument is being checked for
+        :param [str] options: a list of options that the argument can be
+        :returns None:
+        """
+        if (argument is None) or ((len(options) > 0) and (not(self.in_array(argument, options)))):
+            messageOptions = ', '.join(options)
+            message = self.id + ' ' + methodName + '() requires a ' + argumentName + ' argument'
+            if messageOptions != '':
+                message += ', one of ' + '(' + messageOptions + ')'
+            raise ArgumentsRequired(message)
+
+    def check_required_symbol(self, methodName, symbol):
+        """
+         * @ignore
+        :param str symbol: unified symbol of the market
+        :param str methodName: name of the method that requires a symbol
+        """
+        self.checkRequiredArgument(methodName, symbol, 'symbol')

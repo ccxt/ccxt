@@ -21,7 +21,7 @@ module.exports = class kucoin extends Exchange {
             // 60 requests in 3 seconds = 20 requests per second => ( 1000ms / 20 ) = 50 ms between requests on average
             'rateLimit': 50,
             'version': 'v2',
-            'certified': false,
+            'certified': true,
             'pro': true,
             'comment': 'Platform 2.0',
             'quoteJsonNumbers': false,
@@ -87,7 +87,7 @@ module.exports = class kucoin extends Exchange {
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/51840849/87295558-132aaf80-c50e-11ea-9801-a2fb0c57c799.jpg',
-                'referral': 'https://www.kucoin.com/?rcode=E5wkqe',
+                'referral': 'https://www.kucoin.com/ucenter/signup?rcode=E5wkqe',
                 'api': {
                     'public': 'https://api.kucoin.com',
                     'private': 'https://api.kucoin.com',
@@ -148,6 +148,8 @@ module.exports = class kucoin extends Exchange {
                         'accounts/transferable': 1,
                         'base-fee': 1,
                         'sub/user': 1,
+                        'user-info': 1,
+                        'sub/api-key': 1,
                         'sub-accounts': 1,
                         'sub-accounts/{subUserId}': 1,
                         'deposit-addresses': 1,
@@ -202,6 +204,9 @@ module.exports = class kucoin extends Exchange {
                         'margin/toggle-auto-lend': 1,
                         'bullet-private': 1,
                         'stop-order': 1,
+                        'sub/user': 1,
+                        'sub/api-key': 1,
+                        'sub/api-key/update': 1,
                     },
                     'delete': {
                         'withdrawals/{withdrawalId}': 1,
@@ -212,6 +217,7 @@ module.exports = class kucoin extends Exchange {
                         'stop-order/cancelOrderByClientOid': 1,
                         'stop-order/{orderId}': 1,
                         'stop-order/cancel': 1,
+                        'sub/api-key': 1,
                     },
                 },
                 'futuresPublic': {
@@ -428,6 +434,7 @@ module.exports = class kucoin extends Exchange {
                         'POST': {
                             'accounts/inner-transfer': 'v2',
                             'accounts/sub-transfer': 'v2',
+                            'accounts': 'v2',
                         },
                     },
                     'futuresPrivate': {
@@ -1035,7 +1042,7 @@ module.exports = class kucoin extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '15m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name kucoin#fetchOHLCV
@@ -1143,6 +1150,7 @@ module.exports = class kucoin extends Exchange {
         let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeStringLower (networks, network, network); // handle ERC20>ETH alias
         if (network !== undefined) {
+            network = network.toLowerCase ();
             request['chain'] = network;
             params = this.omit (params, 'network');
         }
@@ -1150,18 +1158,22 @@ module.exports = class kucoin extends Exchange {
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
         const data = this.safeValue (response, 'data', {});
-        const address = this.safeString (data, 'address');
-        const tag = this.safeString (data, 'memo');
+        return this.parseDepositAddress (data, currency);
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        const address = this.safeString (depositAddress, 'address');
+        const code = currency['id'];
         if (code !== 'NIM') {
             // contains spaces
             this.checkAddress (address);
         }
         return {
-            'info': response,
+            'info': depositAddress,
             'currency': code,
             'address': address,
-            'tag': tag,
-            'network': network,
+            'tag': this.safeString (depositAddress, 'memo'),
+            'network': this.safeString (depositAddress, 'chain'),
         };
     }
 
@@ -2091,6 +2103,7 @@ module.exports = class kucoin extends Exchange {
         //         "amount": 1,
         //         "fee": 0.0001,
         //         "currency": "KCS",
+        //         "chain": "",
         //         "isInner": false,
         //         "walletTxId": "5bbb57386d99522d9f954c5a@test004",
         //         "status": "SUCCESS",
@@ -2106,6 +2119,7 @@ module.exports = class kucoin extends Exchange {
         //         "address": "0x5bedb060b8eb8d823e2414d82acce78d38be7fe9",
         //         "memo": "",
         //         "currency": "ETH",
+        //         "chain": "",
         //         "amount": 1.0000000,
         //         "fee": 0.0100000,
         //         "walletTxId": "3e2414d82acce78d38be7fe9",
@@ -2125,7 +2139,7 @@ module.exports = class kucoin extends Exchange {
         const currencyId = this.safeString (transaction, 'currency');
         const code = this.safeCurrencyCode (currencyId, currency);
         let address = this.safeString (transaction, 'address');
-        const amount = this.safeNumber (transaction, 'amount');
+        const amount = this.safeString (transaction, 'amount');
         let txid = this.safeString (transaction, 'walletTxId');
         if (txid !== undefined) {
             const txidParts = txid.split ('@');
@@ -2141,23 +2155,20 @@ module.exports = class kucoin extends Exchange {
         }
         let type = (txid === undefined) ? 'withdrawal' : 'deposit';
         const rawStatus = this.safeString (transaction, 'status');
-        const status = this.parseTransactionStatus (rawStatus);
         let fee = undefined;
-        const feeCost = this.safeNumber (transaction, 'fee');
+        const feeCost = this.safeString (transaction, 'fee');
         if (feeCost !== undefined) {
             let rate = undefined;
             if (amount !== undefined) {
-                rate = feeCost / amount;
+                rate = Precise.stringDiv (feeCost, amount);
             }
             fee = {
-                'cost': feeCost,
-                'rate': rate,
+                'cost': this.parseNumber (feeCost),
+                'rate': this.parseNumber (rate),
                 'currency': code,
             };
         }
-        const tag = this.safeString (transaction, 'memo');
         let timestamp = this.safeInteger2 (transaction, 'createdAt', 'createAt');
-        const id = this.safeString2 (transaction, 'id', 'withdrawalId');
         let updated = this.safeInteger (transaction, 'updatedAt');
         const isV1 = !('createdAt' in transaction);
         // if it's a v1 structure
@@ -2170,13 +2181,14 @@ module.exports = class kucoin extends Exchange {
                 updated = updated * 1000;
             }
         }
-        const comment = this.safeString (transaction, 'remark');
+        const tag = this.safeString (transaction, 'memo');
+        const network = this.safeString (transaction, 'chain');
         return {
-            'id': id,
             'info': transaction,
+            'id': this.safeString2 (transaction, 'id', 'withdrawalId'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': undefined,
+            'network': network,
             'address': address,
             'addressTo': address,
             'addressFrom': undefined,
@@ -2184,11 +2196,11 @@ module.exports = class kucoin extends Exchange {
             'tagTo': tag,
             'tagFrom': undefined,
             'currency': code,
-            'amount': amount,
+            'amount': this.parseNumber (amount),
             'txid': txid,
             'type': type,
-            'status': status,
-            'comment': comment,
+            'status': this.parseTransactionStatus (rawStatus),
+            'comment': this.safeString (transaction, 'remark'),
             'fee': fee,
             'updated': updated,
         };
@@ -2343,33 +2355,105 @@ module.exports = class kucoin extends Exchange {
         return this.parseTransactions (responseData, currency, since, limit, { 'type': 'withdrawal' });
     }
 
+    fetchBalanceHelper (entry) {
+        const account = this.account ();
+        account['used'] = this.safeString (entry, 'holdBalance');
+        account['free'] = this.safeString (entry, 'availableBalance');
+        account['total'] = this.safeString (entry, 'totalBalance');
+        return account;
+    }
+
     async fetchBalance (params = {}) {
         /**
          * @method
          * @name kucoin#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.kucoin.com/#list-accounts
+         * @see https://docs.kucoin.com/#query-isolated-margin-account-info
          * @param {object} params extra parameters specific to the kucoin api endpoint
+         * @param {object} params.marginMode 'cross' or 'isolated', margin type for fetching margin balance
+         * @param {object} params.type extra parameters specific to the kucoin api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
+        const code = this.safeString (params, 'code');
+        let currency = undefined;
+        if (code !== undefined) {
+            currency = this.currency (code);
+        }
         const defaultType = this.safeString2 (this.options, 'fetchBalance', 'defaultType', 'spot');
         const requestedType = this.safeString (params, 'type', defaultType);
         const accountsByType = this.safeValue (this.options, 'accountsByType');
         const type = this.safeString (accountsByType, requestedType, requestedType);
         params = this.omit (params, 'type');
-        const request = {
-            'type': type,
-        };
-        const response = await this.privateGetAccounts (this.extend (request, params));
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
+        let method = 'privateGetAccounts';
+        const request = {};
+        const isolated = (marginMode === 'isolated') || (type === 'isolated');
+        if (isolated) {
+            method = 'privateGetIsolatedAccounts';
+            if (currency !== undefined) {
+                request['balanceCurrency'] = currency['id'];
+            }
+        } else {
+            if (currency !== undefined) {
+                request['currency'] = currency['id'];
+            }
+            request['type'] = type;
+        }
+        const response = await this[method] (this.extend (request, query));
         //
-        //     {
-        //         "code":"200000",
-        //         "data":[
-        //             {"balance":"0.00009788","available":"0.00009788","holds":"0","currency":"BTC","id":"5c6a4fd399a1d81c4f9cc4d0","type":"trade"},
-        //             {"balance":"3.41060034","available":"3.41060034","holds":"0","currency":"SOUL","id":"5c6a4d5d99a1d8182d37046d","type":"trade"},
-        //             {"balance":"0.01562641","available":"0.01562641","holds":"0","currency":"NEO","id":"5c6a4f1199a1d8165a99edb1","type":"trade"},
-        //         ]
-        //     }
+        // Spot and Cross
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": [
+        //            {
+        //                "balance": "0.00009788",
+        //                "available": "0.00009788",
+        //                "holds": "0",
+        //                "currency": "BTC",
+        //                "id": "5c6a4fd399a1d81c4f9cc4d0",
+        //                "type": "trade",
+        //            },
+        //        ]
+        //    }
+        //
+        // Isolated
+        //
+        //    {
+        //        code: '200000',
+        //        data: {
+        //            totalConversionBalance: '0',
+        //            liabilityConversionBalance: '0',
+        //            assets: [
+        //                {
+        //                    symbol: 'MANA-USDT',
+        //                    status: 'CLEAR',
+        //                    debtRatio: '0',
+        //                    baseAsset: {
+        //                        currency: 'MANA',
+        //                        totalBalance: '0',
+        //                        holdBalance: '0',
+        //                        availableBalance: '0',
+        //                        liability: '0',
+        //                        interest: '0',
+        //                        borrowableAmount: '0'
+        //                    },
+        //                    quoteAsset: {
+        //                        currency: 'USDT',
+        //                        totalBalance: '0',
+        //                        holdBalance: '0',
+        //                        availableBalance: '0',
+        //                        liability: '0',
+        //                        interest: '0',
+        //                        borrowableAmount: '0'
+        //                    }
+        //                },
+        //                ...
+        //            ]
+        //        }
+        //    }
         //
         const data = this.safeValue (response, 'data', []);
         const result = {
@@ -2377,20 +2461,37 @@ module.exports = class kucoin extends Exchange {
             'timestamp': undefined,
             'datetime': undefined,
         };
-        for (let i = 0; i < data.length; i++) {
-            const balance = data[i];
-            const balanceType = this.safeString (balance, 'type');
-            if (balanceType === type) {
-                const currencyId = this.safeString (balance, 'currency');
-                const code = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
-                account['total'] = this.safeString (balance, 'balance');
-                account['free'] = this.safeString (balance, 'available');
-                account['used'] = this.safeString (balance, 'holds');
-                result[code] = account;
+        if (isolated) {
+            const assets = this.safeValue (data, 'assets', []);
+            for (let i = 0; i < assets.length; i++) {
+                const entry = assets[i];
+                const marketId = this.safeString (entry, 'symbol');
+                const symbol = this.safeSymbol (marketId, undefined, '_');
+                const base = this.safeValue (entry, 'baseAsset', {});
+                const quote = this.safeValue (entry, 'quoteAsset', {});
+                const baseCode = this.safeCurrencyCode (this.safeString (base, 'currency'));
+                const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'currency'));
+                const subResult = {};
+                subResult[baseCode] = this.fetchBalanceHelper (base);
+                subResult[quoteCode] = this.fetchBalanceHelper (quote);
+                result[symbol] = this.safeBalance (subResult);
+            }
+        } else {
+            for (let i = 0; i < data.length; i++) {
+                const balance = data[i];
+                const balanceType = this.safeString (balance, 'type');
+                if (balanceType === type) {
+                    const currencyId = this.safeString (balance, 'currency');
+                    const code = this.safeCurrencyCode (currencyId);
+                    const account = this.account ();
+                    account['total'] = this.safeString (balance, 'balance');
+                    account['free'] = this.safeString (balance, 'available');
+                    account['used'] = this.safeString (balance, 'holds');
+                    result[code] = account;
+                }
             }
         }
-        return this.safeBalance (result);
+        return isolated ? result : this.safeBalance (result);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
@@ -3198,6 +3299,11 @@ module.exports = class kucoin extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         let endpart = '';
         headers = (headers !== undefined) ? headers : {};
+        let url = this.urls['api'][api];
+        const isSandbox = url.indexOf ('sandbox') >= 0;
+        if (path === 'symbols' && !isSandbox) {
+            endpoint = '/api/v2/' + this.implodeParams (path, params);
+        }
         if (Object.keys (query).length) {
             if ((method === 'GET') || (method === 'DELETE')) {
                 endpoint += '?' + this.rawencode (query);
@@ -3207,7 +3313,7 @@ module.exports = class kucoin extends Exchange {
                 headers['Content-Type'] = 'application/json';
             }
         }
-        const url = this.urls['api'][api] + endpoint;
+        url = url + endpoint;
         const isFuturePrivate = (api === 'futuresPrivate');
         const isPrivate = (api === 'private');
         if (isPrivate || isFuturePrivate) {

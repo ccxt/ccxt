@@ -764,7 +764,7 @@ class stex(Exchange):
             self.safe_number(ohlcv, 'volume'),
         ]
 
-    def fetch_ohlcv(self, symbol, timeframe='1d', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -1060,31 +1060,25 @@ class stex(Exchange):
         marketId = self.safe_string_2(order, 'currency_pair_id', 'currency_pair_name')
         symbol = self.safe_symbol(marketId, market, '_')
         timestamp = self.safe_timestamp(order, 'timestamp')
-        price = self.safe_number(order, 'price')
-        amount = self.safe_number(order, 'initial_amount')
-        filled = self.safe_number(order, 'processed_amount')
+        price = self.safe_string(order, 'price')
+        amount = self.safe_string(order, 'initial_amount')
+        filled = self.safe_string(order, 'processed_amount')
         remaining = None
         cost = None
         if filled is not None:
             if amount is not None:
-                remaining = amount - filled
+                remaining = Precise.string_sub(amount, filled)
                 if self.options['parseOrderToPrecision']:
-                    remaining = float(self.amount_to_precision(symbol, remaining))
-                remaining = max(remaining, 0.0)
+                    remaining = self.amount_to_precision(symbol, remaining)
+                remaining = Precise.string_max(remaining, '0.0')
             if price is not None:
                 if cost is None:
-                    cost = price * filled
+                    cost = Precise.string_mul(price, filled)
         type = self.safe_string(order, 'original_type')
         if (type == 'BUY') or (type == 'SELL'):
             type = None
         side = self.safe_string_lower(order, 'type')
-        rawTrades = self.safe_value(order, 'trades')
-        trades = None
-        if rawTrades is not None:
-            trades = self.parse_trades(rawTrades, market, None, None, {
-                'symbol': symbol,
-                'order': id,
-            })
+        trades = self.safe_value(order, 'trades')
         stopPrice = self.safe_number(order, 'trigger_price')
         result = {
             'info': order,
@@ -1116,7 +1110,7 @@ class stex(Exchange):
             if numFees > 0:
                 result['fees'] = []
                 for i in range(0, len(fees)):
-                    feeCost = self.safe_number(fees[i], 'amount')
+                    feeCost = self.safe_string(fees[i], 'amount')
                     if feeCost is not None:
                         feeCurrencyId = self.safe_string(fees[i], 'currency_id')
                         feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
@@ -1126,7 +1120,7 @@ class stex(Exchange):
                         })
             else:
                 result['fee'] = None
-        return result
+        return self.safe_order(result, market)
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         """
@@ -1869,7 +1863,7 @@ class stex(Exchange):
         #     }
         #
         deposits = self.safe_value(response, 'data', [])
-        return self.parse_transactions(deposits, code, since, limit)
+        return self.parse_transactions(deposits, currency, since, limit)
 
     def fetch_withdrawal(self, id, code=None, params={}):
         """
@@ -1987,7 +1981,7 @@ class stex(Exchange):
         #     }
         #
         withdrawals = self.safe_value(response, 'data', [])
-        return self.parse_transactions(withdrawals, code, since, limit)
+        return self.parse_transactions(withdrawals, currency, since, limit)
 
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         """
@@ -2284,12 +2278,12 @@ class stex(Exchange):
     def fetch_transaction_fees(self, codes=None, params={}):
         """
         fetch transaction fees
-        :param [str]|None codes: not used by stex fetchTransactionFees()
+        see https://apidocs.stex.com/#tag/Public/paths/~1public~1currencies/get
+        :param [str]|None codes: list of unified currency codes
         :param dict params: extra parameters specific to the stex api endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
         """
         self.load_markets()
-        response = self.publicGetCurrencies(params)
         #
         #     {
         #         "success": True,
@@ -2329,19 +2323,20 @@ class stex(Exchange):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
-        withdrawFees = {}
-        depositFees = {}
-        for i in range(0, len(data)):
-            id = self.safe_string(data[i], 'id')
-            code = self.safe_currency_code(id)
-            withdrawFees[code] = self.safe_number(data[i], 'withdrawal_fee_const')
-            depositFees[code] = self.safe_number(data[i], 'deposit_fee_const')
-        return {
-            'withdraw': withdrawFees,
-            'deposit': depositFees,
-            'info': response,
-        }
+        currencyKeys = list(self.currencies.keys())
+        result = {}
+        for i in range(0, len(currencyKeys)):
+            code = currencyKeys[i]
+            currency = self.currencies[code]
+            if codes is not None and not self.in_array(code, codes):
+                continue
+            info = self.safe_value(currency, 'info')
+            result[code] = {
+                'withdraw': self.safe_number(currency, 'fee'),
+                'deposit': self.safe_number(info, 'deposit_fee_const'),
+                'info': info,
+            }
+        return result
 
     def handle_errors(self, httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody):
         if response is None:

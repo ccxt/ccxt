@@ -6,11 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\OrderNotFound;
-use \ccxt\NotSupported;
-use \ccxt\DDoSProtection;
 
 class liquid extends Exchange {
 
@@ -1110,7 +1105,7 @@ class liquid extends Exchange {
         $orderId = $this->safe_string($order, 'id');
         $timestamp = $this->safe_timestamp($order, 'created_at');
         $marketId = $this->safe_string($order, 'product_id');
-        $market = $this->safe_value($this->markets_by_id, $marketId);
+        $market = $this->safe_market($marketId, $market);
         $status = $this->parse_order_status($this->safe_string($order, 'status'));
         $amount = $this->safe_string($order, 'quantity');
         $filled = $this->safe_string($order, 'filled_quantity');

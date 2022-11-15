@@ -6,8 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
 
 class btctradeua extends Exchange {
 
@@ -115,16 +113,8 @@ class btctradeua extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    'maker' => 0.1 / 100,
-                    'taker' => 0.1 / 100,
-                ),
-                'funding' => array(
-                    'withdraw' => array(
-                        'BTC' => 0.0006,
-                        'LTC' => 0.01,
-                        'NVC' => 0.01,
-                        'DOGE' => 10,
-                    ),
+                    'maker' => $this->parse_number('0.001'),
+                    'taker' => $this->parse_number('0.001'),
                 ),
             ),
         ));

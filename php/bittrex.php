@@ -6,15 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\AuthenticationError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\InvalidAddress;
-use \ccxt\AddressPending;
-use \ccxt\InvalidOrder;
-use \ccxt\OrderNotFound;
-use \ccxt\DDoSProtection;
 
 class bittrex extends Exchange {
 
@@ -732,9 +723,17 @@ class bittrex extends Exchange {
         $priceString = $this->safe_string($trade, 'rate');
         $amountString = $this->safe_string($trade, 'quantity');
         $takerOrMaker = null;
+        $side = $this->safe_string_lower_2($trade, 'takerSide', 'direction');
         $isTaker = $this->safe_value($trade, 'isTaker');
         if ($isTaker !== null) {
             $takerOrMaker = $isTaker ? 'taker' : 'maker';
+            if (!$isTaker) { // as noted in PR #15655 this API provides confusing value - when it's 'maker' $trade, then $side value should reversed
+                if ($side === 'buy') {
+                    $side = 'sell';
+                } elseif ($side === 'sell') {
+                    $side = 'buy';
+                }
+            }
         }
         $fee = null;
         $feeCostString = $this->safe_string($trade, 'commission');
@@ -744,7 +743,6 @@ class bittrex extends Exchange {
                 'currency' => $market['quote'],
             );
         }
-        $side = $this->safe_string_lower_2($trade, 'takerSide', 'direction');
         return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -1359,9 +1357,9 @@ class bittrex extends Exchange {
 
     public function fetch_deposit($id, $code = null, $params = array ()) {
         /**
-         * fetch data on a currency deposit via the deposit $id
+         * fetch data on a $currency deposit via the deposit $id
          * @param {string} $id deposit $id
-         * @param {string|null} $code filter by currency $code
+         * @param {string|null} $code filter by $currency $code
          * @param {array} $params extra parameters specific to the bittrex api endpoint
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
          */
@@ -1369,8 +1367,12 @@ class bittrex extends Exchange {
         $request = array(
             'txId' => $id,
         );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
         $response = $this->privateGetDepositsByTxIdTxId (array_merge($request, $params));
-        $transactions = $this->parse_transactions($response, $code, null, null);
+        $transactions = $this->parse_transactions($response, $currency, null, null);
         return $this->safe_value($transactions, 0);
     }
 
@@ -1436,9 +1438,9 @@ class bittrex extends Exchange {
 
     public function fetch_withdrawal($id, $code = null, $params = array ()) {
         /**
-         * fetch data on a currency withdrawal via the withdrawal $id
+         * fetch data on a $currency withdrawal via the withdrawal $id
          * @param {string} $id withdrawal $id
-         * @param {string|null} $code filter by currency $code
+         * @param {string|null} $code filter by $currency $code
          * @param {array} $params extra parameters specific to the bittrex api endpoint
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
          */
@@ -1446,8 +1448,12 @@ class bittrex extends Exchange {
         $request = array(
             'txId' => $id,
         );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
         $response = $this->privateGetWithdrawalsByTxIdTxId (array_merge($request, $params));
-        $transactions = $this->parse_transactions($response, $code, null, null);
+        $transactions = $this->parse_transactions($response, $currency, null, null);
         return $this->safe_value($transactions, 0);
     }
 

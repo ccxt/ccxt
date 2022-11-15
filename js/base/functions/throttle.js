@@ -67,6 +67,7 @@ function throttle (config) {
     const bound = inner.bind (instance);
     // useful for inspecting the tokenBucket
     bound.config = instance.config;
+    bound.queue = instance.queue;
     return bound;
 }
 
