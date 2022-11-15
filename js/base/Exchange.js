@@ -2307,7 +2307,8 @@ module.exports = class Exchange {
             throw new ExchangeError (this.id + ' markets not loaded');
         }
         // TEALSTREET patch for backwards compatability
-        const foundMarket = this.marketHelper (symbol) || this.marketHelper (symbol + ':USDT') || this.marketHelper (symbol + ':BTC');
+        // this.marketHelper (symbol.split (':')[0]);
+        const foundMarket = this.marketHelper (symbol) || this.marketHelper (symbol + ':USDT') || this.marketHelper (symbol + ':BTC') || this.marketHelper (symbol.split (':')[0]);
         if (foundMarket) {
             return foundMarket;
         }

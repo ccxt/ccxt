@@ -2,17 +2,13 @@
 
 //  ---------------------------------------------------------------------------
 
-const { mixin } = require ('../base/functions/tealstreetUtils');
+const { ExchangeError } = require ('../base/errors');
 const kucoinFuturesRest = require ('../kucoinfutures');
-const kucoin = require ('./kucoin');
+const { createKucoinClient } = require ('./kucoin');
 
 //  ---------------------------------------------------------------------------
 
-class kucoinfutures extends mixin (kucoin, kucoinFuturesRest) {
-    constructor (options = {}) {
-        super (options);
-    }
-
+class kucoinfutures extends createKucoinClient (kucoinFuturesRest) {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -29,7 +25,7 @@ class kucoinfutures extends mixin (kucoin, kucoinFuturesRest) {
                     'topic': 'contractMarket/tickerV2',
                 },
                 'watchTrades': {
-                    'topic': 'contractMarket/tickerV2',
+                    'topic': 'contractMarket/match',
                 },
                 'watchOrderBook': {
                     'topic': 'contractMarket/level2',
@@ -78,6 +74,68 @@ class kucoinfutures extends mixin (kucoin, kucoinFuturesRest) {
             // const token = this.safeString (data, 'token');
         }
         return await future;
+    }
+
+    handleOrderBook (client, message) {
+        // {
+        //     "sequence": 1668015155477,
+        //   "change": "0.514,buy,64874",
+        //   "timestamp": 1668480414142
+        // }
+        const messageHash = this.safeString (message, 'topic');
+        const marketId = messageHash.split (':')[1];
+        const symbol = this.safeSymbol (marketId, undefined, '-');
+        const orderbook = this.orderbooks[symbol];
+        if (orderbook['nonce'] === undefined) {
+            const subscription = this.safeValue (client.subscriptions, messageHash);
+            const fetchingOrderBookSnapshot = this.safeValue (subscription, 'fetchingOrderBookSnapshot');
+            if (fetchingOrderBookSnapshot === undefined) {
+                subscription['fetchingOrderBookSnapshot'] = true;
+                client.subscriptions[messageHash] = subscription;
+                const options = this.safeValue (this.options, 'fetchOrderBookSnapshot', {});
+                const delay = this.safeInteger (options, 'delay', this.rateLimit);
+                // fetch the snapshot in a separate async call after a warmup delay
+                this.delay (delay, this.fetchOrderBookSnapshot, client, message, subscription);
+            }
+            // 1. After receiving the websocket Level 2 data flow, cache the data.
+            orderbook.cache.push (message);
+        } else {
+            this.handleOrderBookMessage (client, message, orderbook);
+            client.resolve (orderbook, messageHash);
+        }
+    }
+
+    handleOrderBookMessage (client, message, orderbook) {
+        // {
+        //   "sequence": 1668015155477,
+        //   "change": "0.514,buy,64874",
+        //   "timestamp": 1668480414142
+        // }
+        const data = this.safeValue (message, 'data', {});
+        const sequence = this.safeInteger (data, 'sequence');
+        // 4. Apply the new Level 2 data flow to the local snapshot to ensure that
+        // the sequence of the new Level 2 update lines up with the sequence of
+        // the previous Level 2 data. Discard all the message prior to that
+        // sequence, and then playback the change to snapshot.
+        if (sequence > orderbook['nonce']) {
+            const changeStr = this.safeValue (data, 'change');
+            const changeArr = changeStr.split (',');
+            const side = changeArr[1];
+            const change = [ changeArr[0], changeArr[2], sequence ];
+            // 5. Update the level2 full data based on sequence according to the
+            // size. If the price is 0, ignore the messages and update the sequence.
+            // If the size=0, update the sequence and remove the price of which the
+            // size is 0 out of level 2. For other cases, please update the price.
+            if (side === 'buy') {
+                this.handleDeltas (orderbook['bids'], [ change ], orderbook['nonce']);
+            } else {
+                this.handleDeltas (orderbook['asks'], [ change ], orderbook['nonce']);
+            }
+            orderbook['nonce'] = sequence;
+            orderbook['timestamp'] = undefined;
+            orderbook['datetime'] = undefined;
+        }
+        return orderbook;
     }
 
     handleSubject (client, message) {

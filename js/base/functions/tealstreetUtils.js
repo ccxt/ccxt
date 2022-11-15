@@ -15,12 +15,10 @@ const mixin = (baseClass, ...mixins) => {
     class base extends baseClass {
         constructor (...args) {
             super (...args);
-
             // comment out to allows for diamond inheritance
-
-            // mixins.forEach ((mixin) => {
-            //     copyProps (this, new mixin ());
-            // });
+            mixins.forEach ((mixin) => {
+                copyProps (this, new mixin ());
+            });
         }
     }
     mixins.forEach ((mixin) => {
