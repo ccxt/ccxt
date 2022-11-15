@@ -642,7 +642,7 @@ module.exports = class bibox extends Exchange {
         //
         const id = this.safeString (trade, 'i');
         const marketId = this.safeString (trade, 's');
-        const timestamp = this.safeString (trade, 't');
+        const timestamp = this.safeInteger (trade, 't');
         const fee = this.safeValue (trade, 'f');
         const feeCurrencyId = this.safeString (fee, 'a');
         const amount = this.safeString (trade, 'q');
