@@ -64,9 +64,9 @@ $args = array_values(array_filter($argv, function ($option) { return strstr($opt
 foreach (Exchange::$exchanges as $id) {
     $exchange = '\\ccxt\\async\\' . $id;
     $exchange_instance = new $exchange();
-	if (!$exchange_instance->alias) {
-		$exchanges[$id] = $exchange_instance;
-	}
+    if (!$exchange_instance->alias) {
+        $exchanges[$id] = $exchange_instance;
+    }
 }
 
 $keys_global = './keys.json';
