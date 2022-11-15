@@ -1904,11 +1904,10 @@ module.exports = class bybit extends Exchange {
             [ defaultSettle, params ] = this.handleOptionAndParams (params, 'fetchTickers', 'settle', 'USDT');
             isUsdcSettled = defaultSettle === 'USDC';
         }
-        let enableUnifiedMargin = undefined;
-        [ enableUnifiedMargin, params ] = this.handleOptionAndParamsValue (params, 'fetchTickers', 'enableUnifiedMargin', false);
+        const isV3 = this.version === 'v3';
         if (type === 'spot') {
             return await this.fetchSpotTickers (symbols, params);
-        } else if (enableUnifiedMargin) {
+        } else if (isV3) {
             return await this.fetchDerivativesTickers (symbols, params);
         } else if (!isUsdcSettled) {
             return await this.fetchV2DerivativesTickers (symbols, params);
@@ -2288,11 +2287,10 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const isUsdcSettled = market['settle'] === 'USDC';
-        let enableUnifiedMargin = undefined;
-        [ enableUnifiedMargin, params ] = this.handleOptionAndParamsValue (params, 'fetchOHLCV', 'enableUnifiedMargin', false);
+        const isV3 = this.version === 'v3';
         if (market['spot']) {
             return await this.fetchSpotOHLCV (symbol, timeframe, since, limit, params);
-        } else if (enableUnifiedMargin) {
+        } else if (isV3) {
             return await this.fetchDerivativesOHLCV (symbol, timeframe, since, limit, params);
         } else if (market['contract'] && !isUsdcSettled) {
             return await this.fetchV2DerivativesOHLCV (symbol, timeframe, since, limit, params);
@@ -2860,15 +2858,13 @@ module.exports = class bybit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let enableUnifiedMargin = undefined;
-        [ enableUnifiedMargin, params ] = this.handleOptionAndParamsValue (params, 'fetchTrades', 'enableUnifiedMargin', false);
+        const isV3 = this.version === 'v3';
         const isUsdcSettled = market['settle'] === 'USDC';
         if (market['type'] === 'spot') {
             return await this.fetchSpotTrades (symbol, since, limit, params);
+        } else if (isV3) {
+            return await this.fetchDerivativesTrades (symbol, since, limit, params);
         } else if (!isUsdcSettled) {
-            if (enableUnifiedMargin) {
-                return await this.fetchDerivativesTrades (symbol, since, limit, params);
-            }
             return await this.fetchV2DerivativesTrades (symbol, since, limit, params);
         }
         // usdc option/ swap
@@ -2882,10 +2878,7 @@ module.exports = class bybit extends Exchange {
         }
         let bids = [];
         let asks = [];
-        let enableUnifiedMargin = undefined;
-        let params = undefined;
-        [ enableUnifiedMargin, params ] = this.handleOptionAndParamsValue (params, 'parseOrderBook', 'enableUnifiedMargin', false);
-        if (enableUnifiedMargin) {
+        if (!Array.isArray (orderbook)) {
             bids = this.safeValue (orderbook, 'b');
             asks = this.safeValue (orderbook, 'a');
         } else {
@@ -3076,11 +3069,10 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const isUsdcSettled = market['settle'] === 'USDC';
-        let enableUnifiedMargin = undefined;
-        [ enableUnifiedMargin, params ] = this.handleOptionAndParamsValue (params, 'fetchOrderBook', 'enableUnifiedMargin', false);
+        const isV3 = this.version === 'v3';
         if (market['spot']) {
             return await this.fetchSpotOrderBook (symbol, limit, params);
-        } else if (enableUnifiedMargin) {
+        } else if (isV3) {
             return await this.fetchDerivativesOrderBook (symbol, limit, params);
         } else if (!isUsdcSettled) {
             // inverse perpetual // usdt linear // inverse futures
