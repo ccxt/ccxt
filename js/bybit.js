@@ -898,7 +898,17 @@ module.exports = class bybit extends Exchange {
             const spotMarkets = await this.fetchSpotMarkets (params);
             return spotMarkets;
         }
-        let promises = [ this.fetchSwapAndFutureMarkets (params), this.fetchUSDCMarkets (params) ];
+        const isV3 = this.version === 'v3';
+        let promises = [];
+        if (isV3) {
+            promises = [
+                this.fetchDerivativesMarkets ({ 'category': 'linear' }),
+                this.fetchDerivativesMarkets ({ 'category': 'inverse' }),
+                this.fetchDerivativesMarkets ({ 'category': 'option' }),
+            ];
+        } else {
+            promises = [ this.fetchSwapAndFutureMarkets (params), this.fetchUSDCMarkets (params) ];
+        }
         promises = await Promise.all (promises);
         const contractMarkets = promises[0];
         const usdcMarkets = promises[1];
@@ -1356,6 +1366,187 @@ module.exports = class bybit extends Exchange {
                     'price': {
                         'min': this.safeNumber2 (market, 'minOrderPrice', 'minPrice'),
                         'max': this.safeNumber2 (market, 'maxOrderPrice', 'maxPrice'),
+                    },
+                    'cost': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+                'info': market,
+            });
+        }
+        return result;
+    }
+
+    async fetchDerivativesMarkets (params) {
+        const response = await this.publicGetDerivativesV3PublicInstrumentsInfo (params);
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "category": "linear",
+        //             "list": [
+        //                 {
+        //                     "symbol": "BTCUSDT",
+        //                     "contractType": "LinearPerpetual",
+        //                     "status": "Trading",
+        //                     "baseCoin": "BTC",
+        //                     "quoteCoin": "USDT",
+        //                     "launchTime": "1584230400000",
+        //                     "deliveryTime": "0",
+        //                     "deliveryFeeRate": "",
+        //                     "priceScale": "2",
+        //                     "leverageFilter": {
+        //                         "minLeverage": "1",
+        //                         "maxLeverage": "100",
+        //                         "leverageStep": "0.01"
+        //                     },
+        //                     "priceFilter": {
+        //                         "minPrice": "0.50",
+        //                         "maxPrice": "999999.00",
+        //                         "tickSize": "0.50"
+        //                     },
+        //                     "lotSizeFilter": {
+        //                         "maxTradingQty": "420.000",
+        //                         "minTradingQty": "0.001",
+        //                         "qtyStep": "0.001"
+        //                     }
+        //                 }
+        //             ],
+        //             "nextPageCursor": ""
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1667533491917
+        //     }
+        //
+        // option response
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "success",
+        //         "result": {
+        //             "resultTotalSize": 1,
+        //             "cursor": "",
+        //             "dataList": [
+        //                 {
+        //                     "category": "option",
+        //                     "symbol": "BTC-30SEP22-35000-P",
+        //                     "status": "ONLINE",
+        //                     "baseCoin": "BTC",
+        //                     "quoteCoin": "USD",
+        //                     "settleCoin": "USDC",
+        //                     "optionsType": "Put",
+        //                     "launchTime": "1649923200000",
+        //                     "deliveryTime": "1664524800000",
+        //                     "deliveryFeeRate": "0.00015",
+        //                     "priceFilter": {
+        //                         "minPrice": "5",
+        //                         "maxPrice": "10000000",
+        //                         "tickSize": "5"
+        //                     },
+        //                     "lotSizeFilter": {
+        //                         "maxOrderQty": "200",
+        //                         "minOrderQty": "0.01",
+        //                         "qtyStep": "0.01"
+        //                     }
+        //                 }
+        //             ]
+        //         },
+        //         "time": 1657777124431
+        //     }
+        const data = this.safeValue (response, 'result', {});
+        const markets = this.safeValue2 (data, 'list', 'dataList', []);
+        const result = [];
+        let category = this.safeString (data, 'category');
+        for (let i = 0; i < markets.length; i++) {
+            const market = markets[i];
+            if (category === undefined) {
+                category = this.safeString (market, 'category');
+            }
+            const id = this.safeString (market, 'symbol');
+            const baseId = this.safeString (market, 'baseCoin');
+            const quoteId = this.safeString (market, 'quoteCoin');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const linear = (category === 'linear');
+            let symbol = base + '/' + quote;
+            const type = 'swap';
+            const lotSizeFilter = this.safeValue (market, 'lotSizeFilter', {});
+            const priceFilter = this.safeValue (market, 'priceFilter', {});
+            const leverage = this.safeValue (market, 'leverageFilter', {});
+            const status = this.safeString (market, 'status');
+            let active = undefined;
+            if (status !== undefined) {
+                active = (status === 'Trading');
+            }
+            const swap = (type === 'swap');
+            const future = (type === 'future');
+            const option = (category === 'option');
+            let expiry = undefined;
+            let expiryDatetime = undefined;
+            let strike = undefined;
+            let optionType = undefined;
+            const settleId = linear ? quoteId : baseId;
+            const settle = this.safeCurrencyCode (settleId);
+            symbol = symbol + ':' + settle;
+            const inverse = !linear;
+            if (option) {
+                expiry = this.safeInteger (market, 'deliveryTime');
+                expiryDatetime = this.iso8601 (expiry);
+                const splitId = id.split ('-');
+                strike = this.safeString (splitId, 2);
+                const optionLetter = this.safeString (splitId, 3);
+                symbol = symbol + '-' + this.yymmdd (expiry) + '-' + strike + '-' + optionLetter;
+                if (optionLetter === 'P') {
+                    optionType = 'put';
+                } else if (optionLetter === 'C') {
+                    optionType = 'call';
+                }
+            }
+            const contractSize = inverse ? this.safeNumber2 (lotSizeFilter, 'minTradingQty', 'minOrderQty') : this.parseNumber ('1');
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'base': base,
+                'quote': quote,
+                'settle': settle,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': settleId,
+                'type': type,
+                'spot': false,
+                'margin': undefined,
+                'swap': swap,
+                'future': future,
+                'option': option,
+                'active': active,
+                'contract': true,
+                'linear': linear,
+                'inverse': inverse,
+                'taker': this.safeNumber (market, 'taker_fee'),
+                'maker': this.safeNumber (market, 'maker_fee'),
+                'contractSize': contractSize,
+                'expiry': expiry,
+                'expiryDatetime': expiryDatetime,
+                'strike': strike,
+                'optionType': optionType,
+                'precision': {
+                    'amount': this.safeNumber (lotSizeFilter, 'qtyStep'),
+                    'price': this.safeNumber (priceFilter, 'tickSize'),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': this.safeNumber (leverage, 'minLeverage', 1),
+                        'max': this.safeNumber (leverage, 'maxLeverage', 1),
+                    },
+                    'amount': {
+                        'min': this.safeNumber2 (lotSizeFilter, 'minTradingQty', 'minOrderQty'),
+                        'max': this.safeNumber (lotSizeFilter, 'maxTradingQty', 'maxOrderQty'),
+                    },
+                    'price': {
+                        'min': this.safeNumber (priceFilter, 'minPrice'),
+                        'max': this.safeNumber (priceFilter, 'maxPrice'),
                     },
                     'cost': {
                         'min': undefined,
