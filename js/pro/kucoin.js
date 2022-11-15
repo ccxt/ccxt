@@ -34,7 +34,10 @@ module.exports = class kucoin extends kucoinRest {
                     'topic': 'market/snapshot', // market/ticker
                 },
                 'watchTrades': {
-                    'topic': '/market/match',
+                    'topic': 'market/match',
+                },
+                'watchOrderBook': {
+                    'topic': 'market/level2',
                 },
             },
             'streaming': {
@@ -296,30 +299,14 @@ module.exports = class kucoin extends kucoinRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const options = this.safeValue (this.options, 'watchTrades', {});
-        const channel = this.safeString (options, 'topic', '/market/match');
-        const topic = channel + ':' + market['id'];
+        const channel = this.safeString (options, 'topic', 'market/match');
+        const topic = '/' + channel + ':' + market['id'];
         const messageHash = topic;
         const trades = await this.subscribe (negotiation, topic, messageHash, undefined, symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
-    }
-
-    handleTrade (client, message) {
-        const data = this.safeValue (message, 'data', {});
-        const trade = this.parseTrade (data);
-        const messageHash = this.safeString (message, 'topic');
-        const symbol = trade['symbol'];
-        let trades = this.safeValue (this.trades, symbol);
-        if (trades === undefined) {
-            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            trades = new ArrayCache (limit);
-            this.trades[symbol] = trades;
-        }
-        trades.append (trade);
-        client.resolve (trades, messageHash);
-        return message;
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -356,7 +343,9 @@ module.exports = class kucoin extends kucoinRest {
         const negotiation = await this.negotiate ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const topic = '/market/level2:' + market['id'];
+        const options = this.safeValue (this.options, 'watchOrderBook', {});
+        const channel = this.safeString (options, 'topic', 'market/level2');
+        const topic = '/' + channel + ':' + market['id'];
         const messageHash = topic;
         const orderbook = await this.subscribe (negotiation, topic, messageHash, this.handleOrderBookSubscription, symbol, params);
         return orderbook.limit (limit);
@@ -992,9 +981,19 @@ module.exports = class kucoin extends kucoinRest {
         };
     }
 
+    async watchHeartbeat () {
+        await this.loadMarkets ();
+        const negotiation = await this.negotiate ();
+        const topic = 'ping';
+        const messageHash = topic;
+        const heartbeat = await this.subscribe (negotiation, topic, messageHash);
+        return heartbeat;
+    }
+
     handlePong (client, message) {
         // https://docs.kucoin.com/#ping
         client.lastPong = this.milliseconds ();
+        client.resolve (message, 'ping');
         return message;
     }
 
