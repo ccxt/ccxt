@@ -3426,14 +3426,19 @@ export default class Exchange {
         }
     }
 
-    checkRequiredSymbol (methodName, symbol) {
+    checkRequiredMarginArgument (methodName, symbol, marginMode) {
         /**
          * @ignore
          * @method
          * @param {string} symbol unified symbol of the market
          * @param {string} methodName name of the method that requires a symbol
+         * @param {string} marginMode is either 'isolated' or 'cross'
          */
-        this.checkRequiredArgument (methodName, symbol, 'symbol');
+        if ((marginMode === 'isolated') && (symbol === undefined)) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a symbol argument for isolated margin');
+        } else if ((marginMode === 'cross') && (symbol !== undefined)) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() cannot have a symbol argument for cross margin');
+        }
     }
 }
 

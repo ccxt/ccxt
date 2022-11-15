@@ -91,7 +91,10 @@ export default class cryptocom extends Exchange {
                 },
                 'www': 'https://crypto.com/',
                 'referral': 'https://crypto.com/exch/5835vstech',
-                'doc': 'https://exchange-docs.crypto.com/',
+                'doc': [
+                    'https://exchange-docs.crypto.com/spot/index.html',
+                    'https://exchange-docs.crypto.com/derivatives/index.html',
+                ],
                 'fees': 'https://crypto.com/exchange/document/fees-limits',
             },
             'api': {
@@ -516,13 +519,20 @@ export default class cryptocom extends Exchange {
          * @method
          * @name cryptocom#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://exchange-docs.crypto.com/spot/index.html#public-get-ticker
+         * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the cryptocom api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        let market = undefined;
+        if (symbols !== undefined) {
+            const symbol = this.safeValue (symbols, 0);
+            market = this.market (symbol);
+        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         const method = this.getSupportedMapping (marketType, {
             'spot': 'spotPublicGetPublicGetTicker',
             'future': 'derivativesPublicGetPublicGetTickers',
