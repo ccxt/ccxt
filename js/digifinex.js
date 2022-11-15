@@ -1133,12 +1133,18 @@ module.exports = class digifinex extends Exchange {
         const market = this.market (symbol);
         symbol = market['symbol'];
         let marketType = undefined;
+        let marginMode = undefined;
         [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
-        const method = this.getSupportedMapping (marketType, {
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'privateSpotPostSpotOrderNew',
             'margin': 'privateSpotPostMarginOrderNew',
             'swap': 'privateSwapPostTradeOrderPlace',
         });
+        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+        if (marginMode !== undefined) {
+            method = 'privateSpotPostMarginOrderNew';
+            marketType = 'margin';
+        }
         const request = {};
         const swap = (marketType === 'swap');
         const isMarketOrder = (type === 'market');
@@ -1235,12 +1241,18 @@ module.exports = class digifinex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
-        const method = this.getSupportedMapping (marketType, {
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'privateSpotPostSpotOrderCancel',
             'margin': 'privateSpotPostMarginOrderCancel',
             'swap': 'privateSwapPostTradeCancelOrder',
         });
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelOrder', params);
+        if (marginMode !== undefined) {
+            method = 'privateSpotPostMarginOrderCancel';
+            marketType = 'margin';
+        }
         const request = {
             'order_id': id,
         };
@@ -1479,12 +1491,18 @@ module.exports = class digifinex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
-        const method = this.getSupportedMapping (marketType, {
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'privateSpotGetSpotOrderCurrent',
             'margin': 'privateSpotGetMarginOrderCurrent',
             'swap': 'privateSwapGetTradeOpenOrders',
         });
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
+        if (marginMode !== undefined) {
+            method = 'privateSpotGetMarginOrderCurrent';
+            marketType = 'margin';
+        }
         const request = {};
         const swap = (marketType === 'swap');
         if (swap) {
@@ -1575,12 +1593,18 @@ module.exports = class digifinex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
-        const method = this.getSupportedMapping (marketType, {
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'privateSpotGetSpotOrderHistory',
             'margin': 'privateSpotGetMarginOrderHistory',
             'swap': 'privateSwapGetTradeHistoryOrders',
         });
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrders', params);
+        if (marginMode !== undefined) {
+            method = 'privateSpotGetMarginOrderHistory';
+            marketType = 'margin';
+        }
         const request = {};
         if (marketType === 'swap') {
             if (since !== undefined) {
@@ -1672,12 +1696,18 @@ module.exports = class digifinex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
-        const method = this.getSupportedMapping (marketType, {
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'privateSpotGetSpotOrder',
             'margin': 'privateSpotGetMarginOrder',
             'swap': 'privateSwapGetTradeOrderInfo',
         });
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrder', params);
+        if (marginMode !== undefined) {
+            method = 'privateSpotGetMarginOrder';
+            marketType = 'margin';
+        }
         const request = {
             'order_id': id,
         };
