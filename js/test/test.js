@@ -391,9 +391,9 @@ function checkPassedTestHash (exchange) {
 
 function isEmptyDir(path) {  
     try {
-      const directory = await fs.opendir(path);
-      const entry = await directory.read();
-      await directory.close();
+      const directory = fs.opendirSync(path);
+      const entry = directory.readSync();
+      directory.closeSync();
       return entry === null;
     } catch (error) {
       return false;
