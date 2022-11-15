@@ -47,6 +47,9 @@ const exchange = new (ccxt)[exchangeId] ({
     timeout,
 });
 
+if (exchange.alias) {
+    return;
+}
 //-----------------------------------------------------------------------------
 
 const tests = {};

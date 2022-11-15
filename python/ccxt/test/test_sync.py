@@ -592,7 +592,9 @@ for id in ccxt.exchanges:
         exchange_config.update()
     if id in config:
         exchange_config = ccxt.Exchange.deep_extend(exchange_config, config[id])
-    exchanges[id] = exchange(exchange_config)
+    exchange_instance = exchange(exchange_config)
+    if not exchange_instance.alias:
+        exchanges[id] = exchange_instance
 
 # ------------------------------------------------------------------------------
 
