@@ -612,45 +612,69 @@ export default class bibox extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.safeInteger2 (trade, 'time', 'createdAt');
-        const rawSide = this.safeInteger2 (trade, 'side', 'order_side');
-        const side = (rawSide === 1) ? 'buy' : 'sell';
-        let marketId = this.safeString (trade, 'pair');
-        if (marketId === undefined) {
-            const baseId = this.safeString (trade, 'coin_symbol');
-            const quoteId = this.safeString (trade, 'currency_symbol');
-            if ((baseId !== undefined) && (quoteId !== undefined)) {
-                marketId = baseId + '_' + quoteId;
-            }
-        }
+        //
+        // fetchMyTrades
+        //
+        //    {
+        //        "i": 452361213188,
+        //        "o": 14284855094264759,       // The order id assigned by the exchange
+        //        "s": "ADA_USDT",              // trading pair code
+        //        "T": 1579458,
+        //        "t": 1653676917531,           // transaction time
+        //        "p": 0.45,                    // transaction price
+        //        "q": 10,                      // transaction volume
+        //        "l": "maker",                 // taker/maker
+        //        "f": {
+        //            "a": "ADA",               // transaction fee currency
+        //            "m": 0.010000000          // handling fee
+        //        }
+        //    }
+        //
+        // fetchTrades
+        //
+        //    {
+        //        "i": "17122255",              // transaction id
+        //        "p": "46125.7",               // transaction price
+        //        "q": "0.079045",              // transaction amount
+        //        "s": "buy",                   // taker's transaction direction
+        //        "t": "1628738748319"          // transaction time
+        //    }
+        //
+        const id = this.safeString (trade, 'i');
+        const marketId = this.safeString (trade, 's');
+        const timestamp = this.safeInteger (trade, 't');
+        const fee = this.safeValue (trade, 'f');
+        const feeCurrencyId = this.safeString (fee, 'a');
+        const amount = this.safeString (trade, 'q');
+        let transactionId = this.safeString (trade, 'T');
+        let side = 'buy';
+        const orderId = this.safeString (trade, 'o');
         market = this.safeMarket (marketId, market);
-        const priceString = this.safeString (trade, 'price');
-        const amountString = this.safeString (trade, 'amount');
-        let fee = undefined;
-        const feeCostString = this.safeString (trade, 'fee');
-        if (feeCostString !== undefined) {
-            const feeCurrencyId = this.safeString (trade, 'fee_symbol');
-            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
-            fee = {
-                'cost': Precise.stringNeg (feeCostString),
-                'currency': feeCurrencyCode,
-            };
+        if (marketId === 'buy' || marketId === 'sell') {
+            side = marketId;
+        } else if (Precise.stringLt (amount, '0')) {
+            side = 'sell';
         }
-        const id = this.safeString (trade, 'id');
+        if (Precise.stringLt (id, '9999999999')) {
+            transactionId = id;
+        }
         return this.safeTrade ({
             'info': trade,
-            'id': id,
-            'order': undefined, // Bibox does not have it (documented) yet
+            'id': transactionId,
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'type': 'limit',
-            'takerOrMaker': undefined,
+            'type': undefined,
+            'takerOrMaker': this.safeString (trade, 'l', 'taker'),
             'side': side,
-            'price': priceString,
-            'amount': amountString,
+            'price': this.safeString (trade, 'p'),
+            'amount': amount,
             'cost': undefined,
-            'fee': fee,
+            'fee': {
+                'cost': this.safeString (fee, 'm'),
+                'currency': this.safeCurrencyCode (feeCurrencyId),
+            },
         }, market);
     }
 
@@ -659,23 +683,47 @@ export default class bibox extends Exchange {
          * @method
          * @name bibox#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://biboxcom.github.io/api/spot/v4/en/#get-trades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve, default = 100, max = 1000
          * @param {object} params extra parameters specific to the bibox api endpoint
+         * @param {int|undefined} params.until the earliest time in ms to fetch trades for
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int|undefined} params.after transaction record id, limited to return the minimum id of transaction records
+         * @param {int|undefined} params.before transaction record id, limited to return the maximum id of transaction records
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const until = this.safeInteger (params, 'until');
         const request = {
-            'cmd': 'deals',
-            'pair': market['id'],
+            'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['size'] = limit; // default = 200
+            request['size'] = limit; // default = 100
         }
-        const response = await (this as any).v1PublicGetMdata (this.extend (request, params));
-        return this.parseTrades (response['result'], market, since, limit);
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        if (until !== undefined) {
+            request['end_time'] = until;
+        }
+        const response = await (this as any).v4PublicGetMarketdataTrades (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //          "i": "17122255",        // transaction id
+        //          "p": "46125.7",         // transaction price
+        //          "q": "0.079045",        // transaction amount
+        //          "s": "buy",             // taker's transaction direction
+        //          "t": "1628738748319"    // transaction time
+        //        },
+        //        ...
+        //    ]
+        //
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -1829,63 +1877,64 @@ export default class bibox extends Exchange {
          * @method
          * @name bibox#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {string} symbol unified market symbol
+         * @see https://biboxcom.github.io/api/spot/v4/en/#get-fills
+         * @param {string|undefined} symbol unified market symbol, if not given, please provide params['order_id']
          * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve, default = 100
          * @param {object} params extra parameters specific to the bibox api endpoint
+         * @param {int|undefined} params.until the earliest time in ms to fetch trades for
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string|undefined} params.order_id the order id assigned by the exchange only return the transaction records of the specified order, if this parameter is not specified, please specify symbol
+         * @param {int|undefined} params.after transaction record id, limited to return the minimum id of transaction records
+         * @param {int|undefined} params.before transaction record id, limited to return the maximum id of transaction records
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a `symbol` argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const size = limit ? limit : 200;
-        const request = {
-            'cmd': 'orderpending/orderHistoryList',
-            'body': this.extend ({
-                'pair': market['id'],
-                'account_type': 0, // 0 - regular, 1 - margin
-                'page': 1,
-                'size': size,
-                'coin_symbol': market['baseId'],
-                'currency_symbol': market['quoteId'],
-            }, params),
-        };
-        const response = await (this as any).v1PrivatePostOrderpending (request);
+        let market = undefined;
+        const request = {};
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'until');
+        if (symbol === undefined) {
+            const orderId = this.safeString (params, 'order_id');
+            if (orderId === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchMyTrades requires either a symbol parameter of params["order_id"]');
+            }
+        }
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (until !== undefined) {
+            request['end_time'] = until;
+        }
+        const response = await (this as any).v4PrivateGetUserdataFills (this.extend (request, params));
         //
-        //     {
-        //         "result":[
-        //             {
-        //                 "result":{
-        //                     "count":1,
-        //                     "page":1,
-        //                     "items":[
-        //                         {
-        //                             "id":"100055558128033",
-        //                             "createdAt": 1512756997000,
-        //                             "account_type":0,
-        //                             "coin_symbol":"LTC",
-        //                             "currency_symbol":"BTC",
-        //                             "order_side":2,
-        //                             "order_type":2,
-        //                             "price":"0.00886500",
-        //                             "amount":"1.00000000",
-        //                             "money":"0.00886500",
-        //                             "fee":0
-        //                         }
-        //                     ]
-        //                 },
-        //                 "cmd":"orderpending/orderHistoryList"
-        //             }
-        //         ]
-        //     }
+        //    [
+        //        {
+        //            "i": 452361213188,
+        //            "o": 14284855094264759,
+        //            "s": "ADA_USDT",
+        //            "T": 1579458,
+        //            "t": 1653676917531,
+        //            "p": 0.45,
+        //            "q": 10,
+        //            "l": "maker",
+        //            "f": {
+        //                "a": "ADA",
+        //                "m": 0.010000000
+        //            }
+        //        }
+        //        ...
+        //    ]
         //
-        const outerResults = this.safeValue (response, 'result');
-        const firstResult = this.safeValue (outerResults, 0, {});
-        const innerResult = this.safeValue (firstResult, 'result', {});
-        const trades = this.safeValue (innerResult, 'items', []);
-        return this.parseTrades (trades, market, since, limit);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchDepositAddress (code, params = {}) {

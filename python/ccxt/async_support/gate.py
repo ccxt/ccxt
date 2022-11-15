@@ -4185,32 +4185,28 @@ class gate(Exchange):
         :param str params['id']: '34267567' loan id, extra parameter required for isolated margin
         :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
         """
+        marginMode = self.safe_string(params, 'marginMode')  # cross or isolated
+        params = self.omit(params, 'marginMode')
+        self.check_required_margin_argument('repayMargin', symbol, marginMode)
         await self.load_markets()
         currency = self.currency(code)
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
         request = {
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
-        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
-        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)  # cross or isolated
-        method = 'privateMarginPostCrossRepayments'
-        if marginMode == 'isolated':
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' repayMargin() requires a symbol argument for isolated margin')
-            mode = self.safe_string(params, 'mode')  # 'all' or 'partial'
-            if mode is None:
-                raise ArgumentsRequired(self.id + ' repayMargin() requires a mode parameter for isolated margin')
-            id = self.safe_string_2(params, 'loan_id', 'id')
-            if id is None:
-                raise ArgumentsRequired(self.id + ' repayMargin() requires an id parameter for isolated margin')
+        method = None
+        if symbol is None:
+            method = 'privateMarginPostCrossRepayments'
+        else:
             method = 'privateMarginPostLoansLoanIdRepayment'
+            market = self.market(symbol)
             request['currency_pair'] = market['id']
-            request['mode'] = mode
-            request['loan_id'] = id
-        params = self.omit(params, ['marginMode', 'mode', 'loan_id', 'id'])
+            request['mode'] = 'partial'
+            loanId = self.safe_string_2(params, 'loan_id', 'id')
+            if loanId is None:
+                raise ArgumentsRequired(self.id + ' repayMargin() requires loan_id param for isolated margin')
+            request['loan_id'] = loanId
+        params = self.omit(params, ['marginMode', 'loan_id', 'id'])
         response = await getattr(self, method)(self.extend(request, params))
         #
         # Cross
@@ -4266,28 +4262,26 @@ class gate(Exchange):
         :param str params['rate']: '0.0002' or '0.002' extra parameter required for isolated margin
         :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
         """
+        marginMode = self.safe_string(params, 'marginMode')  # cross or isolated
+        params = self.omit(params, 'marginMode')
+        self.check_required_margin_argument('borrowMargin', symbol, marginMode)
         await self.load_markets()
         currency = self.currency(code)
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            symbol = market['symbol']
         request = {
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
-        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
-        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)  # cross or isolated
-        method = 'privateMarginPostCrossLoans'
-        if marginMode == 'isolated':
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument for isolated margin')
+        method = None
+        if symbol is None:
+            method = 'privateMarginPostCrossLoans'
+        else:
+            market = self.market(symbol)
             request['currency_pair'] = market['id']
-            rate = self.safe_string(params, 'rate')
-            if rate is None:
-                raise ArgumentsRequired(self.id + ' borrowMargin() requires a rate parameter for isolated margin')
-            request['rate'] = rate  # Only rates '0.0002', '0.002' are supported.
             request['side'] = 'borrow'
+            # default it to 0.01% since self is a reasonable limit
+            # as it is the smallest tick size currently offered by gateio
+            request['rate'] = self.safe_string(params, 'rate', '0.0001')
+            request['auto_renew'] = True
             method = 'privateMarginPostLoans'
         params = self.omit(params, ['marginMode', 'rate'])
         response = await getattr(self, method)(self.extend(request, params))
