@@ -1288,7 +1288,7 @@ module.exports = class digifinex extends Exchange {
             const canceledOrders = this.safeValue (response, 'success', []);
             const numCanceledOrders = canceledOrders.length;
             if (numCanceledOrders !== 1) {
-                throw new OrderNotFound (this.id + ' cancelOrder() ' + id + ' not found');
+                throw new OrderNotFound (this.id + ' cancelOrder() ' + id.toString () + ' not found');
             }
         }
         return response;
