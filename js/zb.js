@@ -125,10 +125,6 @@ module.exports = class zb extends Exchange {
                 'www': 'https://www.zb.com',
                 'doc': 'https://www.zb.com/i/developer',
                 'fees': 'https://www.zb.com/i/rate',
-                'referral': {
-                    'url': 'https://www.zbex.club/en/register?ref=4301lera',
-                    'discount': 0.16,
-                },
             },
             'api': {
                 'spot': {
