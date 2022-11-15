@@ -2,14 +2,14 @@
 
 //  ---------------------------------------------------------------------------
 
-const ccxt = require ('ccxt');
 const { ExchangeError, InvalidNonce } = require ('ccxt/js/base/errors');
 const kucoinFuturesRest = require ('../kucoinfutures');
-const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
+const kucoin = require ('./kucoin');
+const { ArrayCache } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class kucoinfutures extends kucoinFuturesRest {
+class kucoinfutures extends kucoin {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -79,12 +79,6 @@ module.exports = class kucoinfutures extends kucoinFuturesRest {
             // const token = this.safeString (data, 'token');
         }
         return await future;
-    }
-
-    requestId () {
-        const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
-        this.options['requestId'] = requestId;
-        return requestId;
     }
 
     async subscribe (negotiation, topic, messageHash, method, symbol, params = {}) {
@@ -316,10 +310,12 @@ module.exports = class kucoinfutures extends kucoinFuturesRest {
     }
 
     handleOrderBook (client, message) {
+        console.log (message);
         const messageHash = this.safeString (message, 'topic');
         const data = this.safeValue (message, 'data');
         const market = this.market (messageHash.split (':')[1]);
         const orderbook = this.orderbooks[market['id']];
+
         // if (orderbook['nonce'] === undefined) {
         //     const subscription = this.safeValue (client.subscriptions, messageHash);
         //     const fetchingOrderBookSnapshot = this.safeValue (subscription, 'fetchingOrderBookSnapshot');
@@ -444,4 +440,20 @@ module.exports = class kucoinfutures extends kucoinFuturesRest {
             }
         }
     }
+}
+const copyProps = (target, source) => {
+    // this function copies all properties and symbols, filtering out some special ones
+    Object.getOwnPropertyNames (source)
+    // @ts-ignore
+        .concat (Object.getOwnPropertySymbols (source))
+        .forEach ((prop) => {
+            if (
+                !prop.match (
+                    /^(?:constructor|prototype|arguments|caller|name|bind|call|apply|toString|length)$/
+                )
+            ) Object.defineProperty (target, prop, Object.getOwnPropertyDescriptor (source, prop));
+        });
 };
+copyProps (kucoinfutures, kucoinFuturesRest);
+
+module.exports = kucoinfutures;
