@@ -3440,6 +3440,16 @@ export default class Exchange {
             throw new ArgumentsRequired (this.id + ' ' + methodName + '() cannot have a symbol argument for cross margin');
         }
     }
+
+    checkRequiredSymbol (methodName, symbol) {
+        /**
+         * @ignore
+         * @method
+         * @param {string} symbol unified symbol of the market
+         * @param {string} methodName name of the method that requires a symbol
+         */
+        this.checkRequiredArgument (methodName, symbol, 'symbol');
+    }
 }
 
 export {
