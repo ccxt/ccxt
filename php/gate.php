@@ -4366,41 +4366,34 @@ class gate extends Exchange {
          * @param {float} $amount the $amount to repay
          * @param {string|null} $symbol unified $market $symbol, required for isolated margin
          * @param {array} $params extra parameters specific to the gate api endpoint
-         * @param {string} $params->mode 'all' or 'partial' payment $mode, extra parameter required for isolated margin
-         * @param {string} $params->id '34267567' loan $id, extra parameter required for isolated margin
+         * @param {string} $params->mode 'all' or 'partial' payment mode, extra parameter required for isolated margin
+         * @param {string} $params->id '34267567' loan id, extra parameter required for isolated margin
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
          */
+        $marginMode = $this->safe_string($params, 'marginMode'); // cross or isolated
+        $params = $this->omit($params, 'marginMode');
+        $this->check_required_margin_argument('repayMargin', $symbol, $marginMode);
         $this->load_markets();
         $currency = $this->currency($code);
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-        }
         $request = array(
             'currency' => $currency['id'],
             'amount' => $this->currency_to_precision($code, $amount),
         );
-        $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
-        $marginMode = $this->safe_string($params, 'marginMode', $defaultMarginMode); // cross or isolated
-        $method = 'privateMarginPostCrossRepayments';
-        if ($marginMode === 'isolated') {
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' repayMargin() requires a $symbol argument for isolated margin');
-            }
-            $mode = $this->safe_string($params, 'mode'); // 'all' or 'partial'
-            if ($mode === null) {
-                throw new ArgumentsRequired($this->id . ' repayMargin() requires a $mode parameter for isolated margin');
-            }
-            $id = $this->safe_string_2($params, 'loan_id', 'id');
-            if ($id === null) {
-                throw new ArgumentsRequired($this->id . ' repayMargin() requires an $id parameter for isolated margin');
-            }
+        $method = null;
+        if ($symbol === null) {
+            $method = 'privateMarginPostCrossRepayments';
+        } else {
             $method = 'privateMarginPostLoansLoanIdRepayment';
+            $market = $this->market($symbol);
             $request['currency_pair'] = $market['id'];
-            $request['mode'] = $mode;
-            $request['loan_id'] = $id;
+            $request['mode'] = 'partial';
+            $loanId = $this->safe_string_2($params, 'loan_id', 'id');
+            if ($loanId === null) {
+                throw new ArgumentsRequired($this->id . ' repayMargin() requires loan_id param for isolated margin');
+            }
+            $request['loan_id'] = $loanId;
         }
-        $params = $this->omit($params, array( 'marginMode', 'mode', 'loan_id', 'id' ));
+        $params = $this->omit($params, array( 'marginMode', 'loan_id', 'id' ));
         $response = $this->$method (array_merge($request, $params));
         //
         // Cross
@@ -4458,31 +4451,26 @@ class gate extends Exchange {
          * @param {string} $params->rate '0.0002' or '0.002' extra parameter required for isolated margin
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
          */
+        $marginMode = $this->safe_string($params, 'marginMode'); // cross or isolated
+        $params = $this->omit($params, 'marginMode');
+        $this->check_required_margin_argument('borrowMargin', $symbol, $marginMode);
         $this->load_markets();
         $currency = $this->currency($code);
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
-            $symbol = $market['symbol'];
-        }
         $request = array(
             'currency' => $currency['id'],
             'amount' => $this->currency_to_precision($code, $amount),
         );
-        $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
-        $marginMode = $this->safe_string($params, 'marginMode', $defaultMarginMode); // cross or isolated
-        $method = 'privateMarginPostCrossLoans';
-        if ($marginMode === 'isolated') {
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' borrowMargin() requires a $symbol argument for isolated margin');
-            }
+        $method = null;
+        if ($symbol === null) {
+            $method = 'privateMarginPostCrossLoans';
+        } else {
+            $market = $this->market($symbol);
             $request['currency_pair'] = $market['id'];
-            $rate = $this->safe_string($params, 'rate');
-            if ($rate === null) {
-                throw new ArgumentsRequired($this->id . ' borrowMargin() requires a $rate parameter for isolated margin');
-            }
-            $request['rate'] = $rate; // Only rates '0.0002', '0.002' are supported.
             $request['side'] = 'borrow';
+            // default it to 0.01% since this is a reasonable limit
+            // as it is the smallest tick size currently offered by gateio
+            $request['rate'] = $this->safe_string($params, 'rate', '0.0001');
+            $request['auto_renew'] = true;
             $method = 'privateMarginPostLoans';
         }
         $params = $this->omit($params, array( 'marginMode', 'rate' ));

@@ -11,7 +11,6 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
@@ -2937,22 +2936,22 @@ class kucoin(Exchange):
         :param str|None params['marginMode']: 'cross' or 'isolated' default is 'cross'
         :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
         """
+        marginMode = self.safe_string(params, 'marginMode')  # cross or isolated
+        params = self.omit(params, 'marginMode')
+        self.check_required_margin_argument('borrowMargin', symbol, marginMode)
         await self.load_markets()
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
             'size': self.currency_to_precision(code, amount),
         }
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('borrowMargin', params)
-        if marginMode is None:
-            marginMode = 'cross'  # cross as default marginMode
-        method = 'privatePostMarginBorrow'
+        method = None
         timeInForce = self.safe_string_n(params, ['timeInForce', 'type', 'borrowStrategy'], 'IOC')
-        timeInForceRequest = 'type'
-        if marginMode == 'isolated':
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument for isolated margin')
+        timeInForceRequest = None
+        if symbol is None:
+            method = 'privatePostMarginBorrow'
+            timeInForceRequest = 'type'
+        else:
             market = self.market(symbol)
             request['symbol'] = market['id']
             timeInForceRequest = 'borrowStrategy'
@@ -2983,11 +2982,7 @@ class kucoin(Exchange):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        transaction = self.parse_margin_loan(data, currency)
-        if marginMode == 'cross':
-            return self.extend(transaction, {'amount': amount})
-        else:
-            return self.extend(transaction, {'symbol': symbol})
+        return self.parse_margin_loan(data, currency)
 
     async def repay_margin(self, code, amount, symbol=None, params={}):
         """
@@ -3003,6 +2998,9 @@ class kucoin(Exchange):
         :param str|None params['marginMode']: 'cross' or 'isolated' default is 'cross'
         :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
         """
+        marginMode = self.safe_string(params, 'marginMode')  # cross or isolated
+        params = self.omit(params, 'marginMode')
+        self.check_required_margin_argument('repayMargin', symbol, marginMode)
         await self.load_markets()
         currency = self.currency(code)
         request = {
@@ -3011,16 +3009,13 @@ class kucoin(Exchange):
             # 'sequence': 'RECENTLY_EXPIRE_FIRST',  # Cross: 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
             # 'seqStrategy': 'RECENTLY_EXPIRE_FIRST',  # Isolated: 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
         }
-        marginMode = None
-        marginMode, params = self.handle_margin_mode_and_params('repayMargin', params)
-        if marginMode is None:
-            marginMode = 'cross'  # cross as default marginMode
-        method = 'privatePostMarginRepayAll'
+        method = None
         sequence = self.safe_string_2(params, 'sequence', 'seqStrategy', 'RECENTLY_EXPIRE_FIRST')
-        sequenceRequest = 'sequence'
-        if marginMode == 'isolated':
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' repayMargin() requires a symbol argument for isolated margin')
+        sequenceRequest = None
+        if symbol is None:
+            method = 'privatePostMarginRepayAll'
+            sequenceRequest = 'sequence'
+        else:
             market = self.market(symbol)
             request['symbol'] = market['id']
             sequenceRequest = 'seqStrategy'
@@ -3034,11 +3029,7 @@ class kucoin(Exchange):
         #         "data": null
         #     }
         #
-        transaction = self.parse_margin_loan(response, currency)
-        return self.extend(transaction, {
-            'amount': amount,
-            'symbol': symbol,
-        })
+        return self.parse_margin_loan(response, currency)
 
     def parse_margin_loan(self, info, currency=None):
         #
