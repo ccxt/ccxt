@@ -157,6 +157,10 @@ module.exports = class coinbase extends Exchange {
         });
     }
 
+    async fetchMarkets (params = {}) {
+        return {};
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let fullPath = '/' + this.version + '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
