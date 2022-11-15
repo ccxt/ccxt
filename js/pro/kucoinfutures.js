@@ -3,8 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const ccxt = require ('ccxt');
-const kucoinFuturesRest = require('../kucoinfutures');
 const { ExchangeError, InvalidNonce } = require ('ccxt/js/base/errors');
+const kucoinFuturesRest = require ('../kucoinfutures');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
@@ -167,7 +167,6 @@ module.exports = class kucoinfutures extends kucoinFuturesRest {
     }
 
     handleTrade (client, message) {
-      
         const data = this.safeValue (message, 'data', {});
         const trade = this.parseTrade (data);
         const messageHash = this.safeString (message, 'topic');
@@ -319,7 +318,7 @@ module.exports = class kucoinfutures extends kucoinFuturesRest {
     handleOrderBook (client, message) {
         const messageHash = this.safeString (message, 'topic');
         const data = this.safeValue (message, 'data');
-        const market = this.market(messageHash.split(':')[1]);
+        const market = this.market (messageHash.split (':')[1]);
         const orderbook = this.orderbooks[market['id']];
         // if (orderbook['nonce'] === undefined) {
         //     const subscription = this.safeValue (client.subscriptions, messageHash);
@@ -371,7 +370,6 @@ module.exports = class kucoinfutures extends kucoinFuturesRest {
     }
 
     handleSubject (client, message) {
-
         const subject = this.safeString (message, 'subject');
         const methods = {
             'level2': this.handleOrderBook,
@@ -406,10 +404,10 @@ module.exports = class kucoinfutures extends kucoinFuturesRest {
             'type': 'ping',
         };
     }
+
     async watchHeartbeat () {
         await this.loadMarkets ();
         const negotiation = await this.negotiate ();
-
         const topic = 'ping';
         const messageHash = topic;
         const heartbeat = await this.subscribe (negotiation, topic, messageHash);
@@ -419,7 +417,7 @@ module.exports = class kucoinfutures extends kucoinFuturesRest {
     handlePong (client, message) {
         // https://docs.kucoin.com/#ping
         client.lastPong = this.milliseconds ();
-        client.resolve('ping', message);
+        client.resolve (message, 'ping');
         return message;
     }
 
