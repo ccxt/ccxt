@@ -1555,10 +1555,23 @@ module.exports = class bybit extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
         let method = undefined;
         const isUsdcSettled = market['settle'] === 'USDC';
+        const isV3 = this.version === 'v3';
         if (market['spot']) {
             method = 'publicGetSpotV3PublicQuoteTicker24hr';
+        } else if (isV3) {
+            method = 'publicGetDerivativesV3PublicTickers';
+            if (market['option']) {
+                request['category'] = 'option';
+            } else if (market['linear']) {
+                request['category'] = 'linear';
+            } else if (market['inverse']) {
+                request['category'] = 'inverse';
+            }
         } else if (!isUsdcSettled) {
             // inverse perpetual // usdt linear // inverse futures
             method = 'publicGetV2PublicTickers';
@@ -1569,9 +1582,6 @@ module.exports = class bybit extends Exchange {
             // usdc swap
             method = 'publicGetPerpetualUsdcOpenapiPublicV1Tick';
         }
-        const request = {
-            'symbol': market['id'],
-        };
         const response = await this[method] (this.extend (request, params));
         //
         // spot
@@ -1662,12 +1672,53 @@ module.exports = class bybit extends Exchange {
         //          }
         //     }
         //
+        // unified margin
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "category": "linear",
+        //             "list": [
+        //                 {
+        //                     "symbol": "BTCUSDT",
+        //                     "bidPrice": "19255",
+        //                     "askPrice": "19255.5",
+        //                     "lastPrice": "19255.50",
+        //                     "lastTickDirection": "ZeroPlusTick",
+        //                     "prevPrice24h": "18634.50",
+        //                     "price24hPcnt": "0.033325",
+        //                     "highPrice24h": "19675.00",
+        //                     "lowPrice24h": "18610.00",
+        //                     "prevPrice1h": "19278.00",
+        //                     "markPrice": "19255.00",
+        //                     "indexPrice": "19260.68",
+        //                     "openInterest": "48069.549",
+        //                     "turnover24h": "4686694853.047006",
+        //                     "volume24h": "243730.252",
+        //                     "fundingRate": "0.0001",
+        //                     "nextFundingTime": "1663689600000",
+        //                     "predictedDeliveryPrice": "",
+        //                     "basisRate": "",
+        //                     "deliveryFeeRate": "",
+        //                     "deliveryTime": "0"
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": null,
+        //         "time": 1663670053454
+        //
         const result = this.safeValue (response, 'result', []);
         let rawTicker = undefined;
         if (Array.isArray (result)) {
             rawTicker = this.safeValue (result, 0);
         } else {
-            rawTicker = result;
+            if (isV3) {
+                const tickers = this.safeValue (result, 'list');
+                rawTicker = this.safeValue (tickers, 0);
+            } else {
+                rawTicker = result;
+            }
         }
         return this.parseTicker (rawTicker, market);
     }
