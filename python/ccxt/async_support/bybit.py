@@ -2034,13 +2034,13 @@ class bybit(Exchange):
         if isBuyerMaker is not None:
             # if public response
             takerOrMaker = 'taker'  # public trades are always taker
-            side = isBuyerMaker == 'buy' if 1 else 'sell'
+            side = 'buy' if (isBuyerMaker == 1) else 'sell'
         else:
             # if private response
             isBuyer = self.safe_integer(trade, 'isBuyer')
             isMaker = self.safe_integer(trade, 'isMaker')
-            takerOrMaker = isMaker == 'maker' if 1 else 'taker'
-            side = isBuyer == 'buy' if 1 else 'sell'
+            takerOrMaker = 'maker' if (isMaker == 1) else 'taker'
+            side = 'buy' if (isBuyer == 1) else 'sell'
         marketId = self.safe_string(trade, 'symbol')
         market = self.safe_market(marketId, market)
         fee = {}
