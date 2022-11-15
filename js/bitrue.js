@@ -1752,7 +1752,7 @@ module.exports = class bitrue extends Exchange {
         //         "addressTo": "0x2edfae3878d7b6db70ce4abed177ab2636f60c83"
         //     }
         //
-        const id = this.safeString (transaction, 'id', 'withdrawId');
+        const id = this.safeString2 (transaction, 'id', 'withdrawId');
         const tagType = this.safeString (transaction, 'tagType');
         let addressTo = this.safeString (transaction, 'addressTo');
         let addressFrom = this.safeString (transaction, 'addressFrom');
