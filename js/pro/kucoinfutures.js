@@ -2,7 +2,6 @@
 
 //  ---------------------------------------------------------------------------
 
-const { ExchangeError } = require ('../base/errors');
 const kucoinFuturesRest = require ('../kucoinfutures');
 const { createKucoinClient } = require ('./kucoin');
 
@@ -25,7 +24,7 @@ class kucoinfutures extends createKucoinClient (kucoinFuturesRest) {
                     'topic': 'contractMarket/tickerV2',
                 },
                 'watchTrades': {
-                    'topic': 'contractMarket/match',
+                    'topic': 'contractMarket/execution',
                 },
                 'watchOrderBook': {
                     'topic': 'contractMarket/level2',

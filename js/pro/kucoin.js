@@ -568,7 +568,6 @@ function createKucoinClient (baseClass) {
 
         handleOrderBookSubscription (client, message, subscription) {
             const symbol = this.safeString (subscription, 'symbol');
-            console.log (symbol);
             const limit = this.safeString (subscription, 'limit');
             if (symbol in this.orderbooks) {
                 delete this.orderbooks[symbol];
