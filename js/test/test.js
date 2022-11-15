@@ -423,6 +423,7 @@ async function tryAllProxies (exchange, proxies) {
             }
 
             await testExchange (exchange);
+
             break;
 
         } catch (e) {
