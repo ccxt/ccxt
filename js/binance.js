@@ -2938,13 +2938,11 @@ module.exports = class binance extends Exchange {
         const marketType = this.safeString (params, 'type', defaultType);
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
         const postOnly = this.safeValue (params, 'postOnly', false);
-        const reduceOnly = this.safeValue (params, 'reduceOnly');
         const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
-        if (reduceOnly !== undefined) {
-            if ((marketType !== 'future') && (marketType !== 'delivery')) {
-                throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for future and delivery markets only');
-            }
-        }
+        const request = {
+            'symbol': market['id'],
+            'side': side.toUpperCase (),
+        };
         let method = 'privatePostOrder';
         if (marketType === 'future') {
             method = 'fapiPrivatePostOrder';
@@ -2952,6 +2950,11 @@ module.exports = class binance extends Exchange {
             method = 'dapiPrivatePostOrder';
         } else if (marketType === 'margin' || marginMode !== undefined) {
             method = 'sapiPostMarginOrder';
+            const reduceOnly = this.safeValue (params, 'reduceOnly');
+            if (reduceOnly) {
+                request['sideEffectType'] = 'AUTO_REPAY';
+                params = this.omit (params, 'reduceOnly');
+            }
         }
         if (market['spot'] || marketType === 'margin') {
             // support for testing orders
@@ -2966,6 +2969,7 @@ module.exports = class binance extends Exchange {
         }
         const initialUppercaseType = type.toUpperCase ();
         let uppercaseType = initialUppercaseType;
+        request['type'] = uppercaseType;
         const stopPrice = this.safeNumber (query, 'stopPrice');
         if (stopPrice !== undefined) {
             if (uppercaseType === 'MARKET') {
@@ -2982,11 +2986,6 @@ module.exports = class binance extends Exchange {
                 throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
             }
         }
-        const request = {
-            'symbol': market['id'],
-            'type': uppercaseType,
-            'side': side.toUpperCase (),
-        };
         if (marginMode === 'isolated') {
             request['isIsolated'] = true;
         }
@@ -6369,25 +6368,18 @@ module.exports = class binance extends Exchange {
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
+        const marginMode = this.safeString (params, 'marginMode'); // cross or isolated
+        this.checkRequiredMarginArgument ('repayMargin', symbol, marginMode);
         await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            symbol = market['symbol'];
-        }
         const currency = this.currency (code);
         const request = {
             'asset': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
-        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
-        if (marginMode === 'isolated') {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument for isolated margin');
-            }
-            request['isIsolated'] = 'TRUE';
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
             request['symbol'] = market['id'];
+            request['isIsolated'] = 'TRUE';
         }
         params = this.omit (params, 'marginMode');
         const response = await this.sapiPostMarginRepay (this.extend (request, params));
@@ -6397,11 +6389,7 @@ module.exports = class binance extends Exchange {
         //         "clientTag":""
         //     }
         //
-        const transaction = this.parseMarginLoan (response, currency);
-        return this.extend (transaction, {
-            'amount': amount,
-            'symbol': symbol,
-        });
+        return this.parseMarginLoan (response, currency);
     }
 
     async borrowMargin (code, amount, symbol = undefined, params = {}) {
@@ -6416,27 +6404,20 @@ module.exports = class binance extends Exchange {
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
+        const marginMode = this.safeString (params, 'marginMode'); // cross or isolated
+        params = this.omit (params, 'marginMode');
+        this.checkRequiredMarginArgument ('borrowMargin', symbol, marginMode);
         await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            symbol = market['symbol'];
-        }
         const currency = this.currency (code);
         const request = {
             'asset': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
-        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
-        if (marginMode === 'isolated') {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument for isolated margin');
-            }
-            request['isIsolated'] = 'TRUE';
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
             request['symbol'] = market['id'];
+            request['isIsolated'] = 'TRUE';
         }
-        params = this.omit (params, 'marginMode');
         const response = await this.sapiPostMarginLoan (this.extend (request, params));
         //
         //     {
@@ -6444,11 +6425,7 @@ module.exports = class binance extends Exchange {
         //         "clientTag":""
         //     }
         //
-        const transaction = this.parseMarginLoan (response, currency);
-        return this.extend (transaction, {
-            'amount': amount,
-            'symbol': symbol,
-        });
+        return this.parseMarginLoan (response, currency);
     }
 
     parseMarginLoan (info, currency = undefined) {
