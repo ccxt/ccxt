@@ -430,6 +430,7 @@ module.exports = class kucoin extends Exchange {
                             'market/orderbook/level2': 'v3',
                             'market/orderbook/level3': 'v3',
                             'market/orderbook/level{level}': 'v3',
+                            'deposit-addresses': 'v2',
                         },
                         'POST': {
                             'accounts/inner-transfer': 'v2',
@@ -477,13 +478,15 @@ module.exports = class kucoin extends Exchange {
                     'mining': 'pool',
                 },
                 'networks': {
-                    'ETH': 'eth',
+                    'Native': 'bech32',
+                    'BTC-Segwit': 'btc',
                     'ERC20': 'eth',
-                    'TRX': 'trx',
                     'TRC20': 'trx',
-                    'KCC': 'kcc',
                     'TERRA': 'luna',
-                    'LTC': 'ltc',
+                    'BNB': 'bsc',
+                    'BEP20': 'bsc',
+                    'HRC20': 'heco',
+                    'HT': 'heco',
                 },
             },
         });
@@ -799,6 +802,7 @@ module.exports = class kucoin extends Exchange {
         let network = this.safeStringUpper (params, 'network');
         network = this.safeStringLower (networks, network, network);
         if (network !== undefined) {
+            network = network.toLowerCase ();
             request['chain'] = network;
             params = this.omit (params, 'network');
         }
@@ -1097,14 +1101,26 @@ module.exports = class kucoin extends Exchange {
         /**
          * @method
          * @name kucoin#createDepositAddress
+         * @see https://docs.kucoin.com/#create-deposit-address
          * @description create a currency deposit address
          * @param {string} code unified currency code of the currency for the deposit address
          * @param {object} params extra parameters specific to the kucoin api endpoint
+         * @param {string|undefined} params.network the blockchain network name
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
-        const request = { 'currency': currency['id'] };
+        const request = {
+            'currency': currency['id'],
+        };
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper2 (params, 'chain', 'network');
+        network = this.safeStringLower (networks, network, network);
+        if (network !== undefined) {
+            network = network.toLowerCase ();
+            request['chain'] = network;
+            params = this.omit (params, [ 'chain', 'network' ]);
+        }
         const response = await this.privatePostDepositAddresses (this.extend (request, params));
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
@@ -1132,49 +1148,61 @@ module.exports = class kucoin extends Exchange {
         /**
          * @method
          * @name kucoin#fetchDepositAddress
+         * @see https://docs.kucoin.com/#get-deposit-addresses-v2
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the kucoin api endpoint
-         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         * @returns {object} an array of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
-            // for USDT - OMNI, ERC20, TRC20, default is ERC20
-            // for BTC - Native, Segwit, TRC20, the parameters are bech32, btc, trx, default is Native
-            // 'chain': 'ERC20', // optional
         };
-        // same as for withdraw
-        const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeStringLower (networks, network, network); // handle ERC20>ETH alias
-        if (network !== undefined) {
-            network = network.toLowerCase ();
-            request['chain'] = network;
-            params = this.omit (params, 'network');
-        }
         const response = await this.privateGetDepositAddresses (this.extend (request, params));
-        // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
-        // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
-        const data = this.safeValue (response, 'data', {});
+        //
+        //     {
+        //         "code": "200000",
+        //         "data": [
+        //             {
+        //                 "address": "fr1qvus7d4d5fgxj5e7zvqe6yhxd7txm95h2and69r",
+        //                 "memo": "",
+        //                 "chain": "BTC-Segwit",
+        //                 "contractAddress": ""
+        //             },
+        //             {"address":"37icNMEWbiF8ZkwUMxmfzMxi2A1MQ44bMn","memo":"","chain":"BTC","contractAddress":""},
+        //             {"address":"Deposit temporarily blocked","memo":"","chain":"TRC20","contractAddress":""}
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
         return this.parseDepositAddress (data, currency);
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
-        const address = this.safeString (depositAddress, 'address');
-        const code = currency['id'];
-        if (code !== 'NIM') {
-            // contains spaces
-            this.checkAddress (address);
+        //
+        //     [
+        //         {
+        //             "address": "fr1qvus7d4d5fgxj5e7zvqe6yhxd7txm95h2and69r",
+        //             "memo": "",
+        //             "chain": "BTC-Segwit",
+        //             "contractAddress": ""
+        //         },
+        //         ...
+        //     ]
+        //
+        const result = [];
+        for (let i = 0; i < depositAddress.length; i++) {
+            const entry = depositAddress[i];
+            result.push ({
+                'info': depositAddress,
+                'currency': this.safeCurrencyCode (currency['id'], currency),
+                'network': this.safeString (entry, 'chain'),
+                'address': this.safeString (entry, 'address'),
+                'tag': this.safeString (entry, 'memo'),
+            });
         }
-        return {
-            'info': depositAddress,
-            'currency': code,
-            'address': address,
-            'tag': this.safeString (depositAddress, 'memo'),
-            'network': this.safeString (depositAddress, 'chain'),
-        };
+        return result;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -2066,6 +2094,7 @@ module.exports = class kucoin extends Exchange {
         let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
         network = this.safeStringLower (networks, network, network); // handle ERC20>ETH alias
         if (network !== undefined) {
+            network = network.toLowerCase ();
             request['chain'] = network;
             params = this.omit (params, 'network');
         }
