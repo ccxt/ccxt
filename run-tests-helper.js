@@ -15,8 +15,15 @@ function isEmptyDir(path) {
       return false;
     }
 }
-
-function getExistingExchangeContentMd5 (lang, exchangeId, isWs) {
+function getExistingExchangeContent (lang, exchangeId, isWs = false) {
+    let folder = lang === 'py' ? 'python/ccxt' : lang;
+    folder = folder + (isWs ? '/pro' : '');
+    // calculate md5 hash of the passed exchange
+    let exchangeFilePath = __dirname + '/' + folder + '/' + exchangeId + '.' + lang;
+    const exchangeFileContent = fs.readFileSync (exchangeFilePath, 'utf8');
+    return exchangeFileContent;
+}
+function getExistingExchangeContentMd5 (lang, exchangeId, isWs = false) {
     let folder = lang === 'py' ? 'python/ccxt' : lang;
     folder = folder + (isWs ? '/pro' : '');
     // calculate md5 hash of the passed exchange
@@ -26,7 +33,7 @@ function getExistingExchangeContentMd5 (lang, exchangeId, isWs) {
     return md5Checksum;
 }
 
-function checkPassedTestHash (lang, exchangeId, isWs) {
+function checkPassedTestHash (lang, exchangeId, isWs = false) {
     const passedTestsHashBaseDir = __dirname + '/.passed-tests-hashes';
     const passedTestsHashLangDir = passedTestsHashBaseDir + '/' + lang + (isWs ? '/pro' : '');
     const passedTestHashFile = passedTestsHashLangDir + '/' + exchangeId;
@@ -39,6 +46,8 @@ function checkPassedTestHash (lang, exchangeId, isWs) {
                 result = md5ChecksumExisting + ' : ' + md5ChecksumCached;
                 if (md5ChecksumExisting === md5ChecksumCached) {
                     result = '4';
+                } else {
+                    console.log(getExistingExchangeContent (lang, exchangeId, isWs));
                 }
                 fs.unlinkSync(passedTestHashFile);
                 // if this was the last (only) tested hash, then delete hash-directory 
