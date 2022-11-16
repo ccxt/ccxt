@@ -232,7 +232,10 @@ async function testExchange (exchange) {
 //-----------------------------------------------------------------------------
 
 async function test () {
-
+    if (exchange.alias) {
+        console.log ('Alias skipped')
+        process.exit ()
+    }
     await exchange.loadMarkets ()
     exchange.verbose = verbose
     await testExchange (exchange, exchangeSymbol)
