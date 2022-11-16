@@ -311,7 +311,6 @@ module.exports = class coinspot extends Exchange {
         const result = {};
         const prices = this.safeValue (response, 'prices');
         const ids = Object.keys (prices);
-        const timestamp = this.milliseconds ();
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
             const market = this.safeMarket (id);
@@ -319,7 +318,6 @@ module.exports = class coinspot extends Exchange {
                 const symbol = market['symbol'];
                 const ticker = prices[id];
                 result[symbol] = this.parseTicker (ticker, market);
-                result[symbol]['timestamp'] = timestamp;
             }
         }
         return this.filterByArray (result, 'symbol', symbols);
