@@ -46,6 +46,7 @@ module.exports = class bigone extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
+                'fetchTransactionFees': false,
                 'fetchWithdrawals': true,
                 'transfer': true,
                 'withdraw': true,
