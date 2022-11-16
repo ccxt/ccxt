@@ -49,7 +49,8 @@ module.exports = class kucoin extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
-                'fetchDepositAddress': true,
+                'fetchDepositAddress': false,
+                'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
@@ -1144,10 +1145,10 @@ module.exports = class kucoin extends Exchange {
         };
     }
 
-    async fetchDepositAddress (code, params = {}) {
+    async fetchDepositAddressesByNetwork (code, params = {}) {
         /**
          * @method
-         * @name kucoin#fetchDepositAddress
+         * @name kucoin#fetchDepositAddressesByNetwork
          * @see https://docs.kucoin.com/#get-deposit-addresses-v2
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
@@ -1176,10 +1177,10 @@ module.exports = class kucoin extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseDepositAddress (data, currency);
+        return this.parseDepositAddresses (data, currency);
     }
 
-    parseDepositAddress (depositAddress, currency = undefined) {
+    parseDepositAddresses (depositAddresses, currency = undefined) {
         //
         //     [
         //         {
@@ -1192,10 +1193,10 @@ module.exports = class kucoin extends Exchange {
         //     ]
         //
         const result = [];
-        for (let i = 0; i < depositAddress.length; i++) {
-            const entry = depositAddress[i];
+        for (let i = 0; i < depositAddresses.length; i++) {
+            const entry = depositAddresses[i];
             result.push ({
-                'info': depositAddress,
+                'info': depositAddresses,
                 'currency': this.safeCurrencyCode (currency['id'], currency),
                 'network': this.safeString (entry, 'chain'),
                 'address': this.safeString (entry, 'address'),
