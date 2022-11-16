@@ -195,6 +195,12 @@ $test = function () use ($id, $config, $verbose) {
         echo "Done.\n";
         exit();
 
+    } else if (@$exchange->alias) {
+
+        echo $exchange->id, " [Alias skipped]\n";
+        echo "Done.\n";
+        exit();
+
     } else {
 
         yield $exchange->load_markets();

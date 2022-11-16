@@ -508,6 +508,11 @@ $main = function() use ($args, $exchanges, $proxies, $config, $common_codes) {
                 dump(red('[Skipped] ' . $id));
                 exit();
             }
+            $alias = $exchange->alias;
+            if ($alias) {
+                dump(red('[Alias skipped] ' . $id));
+                exit();
+            }
 
             dump(green('EXCHANGE:'), green($exchange->id));
 
