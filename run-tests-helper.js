@@ -30,15 +30,13 @@ function checkPassedTestHash (lang, exchangeId, isWs) {
     const passedTestsHashBaseDir = __dirname + '/.passed-tests-hashes';
     const passedTestsHashLangDir = passedTestsHashBaseDir + '/' + lang + (isWs ? '/pro' : '');
     const passedTestHashFile = passedTestsHashLangDir + '/' + exchangeId;
-    let result = '0';
+    let result = '';
     if (fs.existsSync (passedTestsHashBaseDir) ) { 
-        result = '1';
         if (fs.existsSync (passedTestHashFile) ) { 
-            result = '2';
             if (fs.existsSync (passedTestHashFile) ) { 
-                result = '3';
                 const md5ChecksumExisting = getExistingExchangeContentMd5 (lang, exchangeId, isWs);
                 const md5ChecksumCached = fs.readFileSync (passedTestHashFile, 'utf8');
+                result = md5ChecksumExisting + ' : ' + md5ChecksumCached;
                 if (md5ChecksumExisting === md5ChecksumCached) {
                     result = '4';
                 }
