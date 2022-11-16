@@ -233,7 +233,7 @@ async function testExchange (exchange) {
 
 async function test () {
     if (exchange.alias) {
-        console.log ('Alias skipped')
+        console.log ('Skipped alias')
         process.exit ()
     }
     await exchange.loadMarkets ()
