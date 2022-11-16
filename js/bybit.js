@@ -15,7 +15,7 @@ module.exports = class bybit extends Exchange {
             'id': 'bybit',
             'name': 'Bybit',
             'countries': [ 'VG' ], // British Virgin Islands
-            'version': 'v2',
+            'version': 'v3',
             'userAgent': undefined,
             'rateLimit': 20,
             'hostname': 'bybit.com', // bybit.com, bytick.com
@@ -898,20 +898,28 @@ module.exports = class bybit extends Exchange {
         }
         const isV3 = this.version === 'v3';
         let promises = [];
+        let markets = [];
         if (isV3) {
             promises = [
                 this.fetchDerivativesMarkets ({ 'category': 'linear' }),
                 this.fetchDerivativesMarkets ({ 'category': 'inverse' }),
                 this.fetchDerivativesMarkets ({ 'category': 'option' }),
             ];
+            promises = await Promise.all (promises);
+            const linearMarkets = promises[0];
+            const inverseMarkets = promises[1];
+            const optionMarkets = promises[2];
+            markets = linearMarkets;
+            markets = this.arrayConcat (markets, inverseMarkets);
+            markets = this.arrayConcat (markets, optionMarkets);
         } else {
             promises = [ this.fetchSwapAndFutureMarkets (params), this.fetchUSDCMarkets (params) ];
+            promises = await Promise.all (promises);
+            const contractMarkets = promises[0];
+            const usdcMarkets = promises[1];
+            markets = contractMarkets;
+            markets = this.arrayConcat (markets, usdcMarkets);
         }
-        promises = await Promise.all (promises);
-        const contractMarkets = promises[0];
-        const usdcMarkets = promises[1];
-        let markets = contractMarkets;
-        markets = this.arrayConcat (markets, usdcMarkets);
         return markets;
     }
 
