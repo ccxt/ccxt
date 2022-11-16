@@ -49,7 +49,7 @@ module.exports = class kucoin extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
-                'fetchDepositAddress': false,
+                'fetchDepositAddress': true,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
                 'fetchFundingHistory': false,
@@ -431,7 +431,7 @@ module.exports = class kucoin extends Exchange {
                             'market/orderbook/level2': 'v3',
                             'market/orderbook/level3': 'v3',
                             'market/orderbook/level{level}': 'v3',
-                            'deposit-addresses': 'v2',
+                            'deposit-addresses': 'v1', // 'v1' for fetchDepositAddress, 'v2' for fetchDepositAddressesByNetwork
                         },
                         'POST': {
                             'accounts/inner-transfer': 'v2',
@@ -1145,6 +1145,60 @@ module.exports = class kucoin extends Exchange {
         };
     }
 
+    async fetchDepositAddress (code, params = {}) {
+        /**
+         * @method
+         * @name kucoin#fetchDepositAddress
+         * @description fetch the deposit address for a currency associated with this account
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the kucoin api endpoint
+         * @param {string|undefined} params.network the blockchain network name
+         * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
+        await this.loadMarkets ();
+        const version = this.options['versions']['private']['GET']['deposit-addresses'];
+        if (version !== 'v1') {
+            throw new BadRequest (this.id + " fetchDepositAddress() requires options['versions']['private']['GET']['deposit-addresses'] to be set to 'v1'");
+        }
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+            // for USDT - OMNI, ERC20, TRC20, default is ERC20
+            // for BTC - Native, Segwit, TRC20, the parameters are bech32, btc, trx, default is Native
+            // 'chain': 'ERC20', // optional
+        };
+        // same as for withdraw
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper2 (params, 'chain', 'network'); // this line allows the user to specify either ERC20 or ETH
+        network = this.safeStringLower (networks, network, network); // handle ERC20>ETH alias
+        if (network !== undefined) {
+            network = network.toLowerCase ();
+            request['chain'] = network;
+            params = this.omit (params, [ 'chain', 'network' ]);
+        }
+        const response = await this.privateGetDepositAddresses (this.extend (request, params));
+        // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
+        // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
+        const data = this.safeValue (response, 'data', {});
+        return this.parseDepositAddress (data, currency);
+    }
+
+    parseDepositAddress (depositAddress, currency = undefined) {
+        const address = this.safeString (depositAddress, 'address');
+        const code = currency['id'];
+        if (code !== 'NIM') {
+            // contains spaces
+            this.checkAddress (address);
+        }
+        return {
+            'info': depositAddress,
+            'currency': code,
+            'address': address,
+            'tag': this.safeString (depositAddress, 'memo'),
+            'network': this.safeString (depositAddress, 'chain'),
+        };
+    }
+
     async fetchDepositAddressesByNetwork (code, params = {}) {
         /**
          * @method
@@ -1156,6 +1210,10 @@ module.exports = class kucoin extends Exchange {
          * @returns {object} an array of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
+        const version = this.options['versions']['private']['GET']['deposit-addresses'];
+        if (version !== 'v2') {
+            throw new BadRequest (this.id + " fetchDepositAddressesByNetwork() requires options['versions']['private']['GET']['deposit-addresses'] to be set to 'v2'");
+        }
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
