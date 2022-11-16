@@ -263,14 +263,11 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
          *   5. Update the level2 full data based on sequence according to the size. If the price is 0, ignore the messages and update the sequence. If the size=0, update the sequence and remove the price of which the size is 0 out of level 2. For other cases, please update the price.
          *   6. If the sequence of the newly pushed message does not line up to the sequence of the last message, you could pull through REST Level 2 message request to get the updated messages. Please note that the difference between the start and end parameters cannot exceed 500.
          * @see https://docs.kucoin.com/futures/#level-2-market-data
-         * @see https://docs.kucoin.com/futures/#message-channel-for-the-5-best-ask-bid-full-data-of-level-2
-         * @see https://docs.kucoin.com/futures/#message-channel-for-the-50-best-ask-bid-full-data-of-level-2
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the kucoinfutures api endpoint
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
-        // TODO
         if (limit !== undefined) {
             if ((limit !== 20) && (limit !== 100)) {
                 throw new ExchangeError (this.id + " watchOrderBook 'limit' argument must be undefined, 20 or 100");
@@ -280,7 +277,7 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
         const negotiation = await this.negotiate ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const topic = '/market/level2:' + market['id'];
+        const topic = '/contractMarket/level2:' + market['id'];
         const messageHash = topic;
         const orderbook = await this.subscribe (negotiation, topic, messageHash, this.handleOrderBookSubscription, symbol, params);
         return orderbook.limit ();
@@ -379,48 +376,39 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
 
     handleOrderBookMessage (client, message, orderbook) {
         //
-        //     {
-        //         "type":"message",
-        //         "topic":"/market/level2:BTC-USDT",
-        //         "subject":"trade.l2update",
-        //         "data":{
-        //             "sequenceStart":1545896669105,
-        //             "sequenceEnd":1545896669106,
-        //             "symbol":"BTC-USDT",
-        //             "changes": {
-        //                 "asks": [["6","1","1545896669105"]], // price, size, sequence
-        //                 "bids": [["4","1","1545896669106"]]
-        //             }
-        //         }
-        //     }
+        //    {
+        //        type: 'message',
+        //        topic: '/contractMarket/level2:ADAUSDTM',
+        //        subject: 'level2',
+        //        data: {
+        //            sequence: 1668059586457,
+        //            change: '0.34172,sell,456', // price, side, quantity
+        //            timestamp: 1668573023223
+        //        }
+        //    }
         //
-        // TODO
         const data = this.safeValue (message, 'data', {});
-        const sequenceEnd = this.safeInteger (data, 'sequenceEnd');
+        const sequence = this.safeInteger (data, 'sequence');
         // 4. Apply the new Level 2 data flow to the local snapshot to ensure that
         // the sequence of the new Level 2 update lines up with the sequence of
         // the previous Level 2 data. Discard all the message prior to that
         // sequence, and then playback the change to snapshot.
-        if (sequenceEnd > orderbook['nonce']) {
-            const sequenceStart = this.safeInteger (message, 'sequenceStart');
-            if ((sequenceStart !== undefined) && ((sequenceStart - 1) > orderbook['nonce'])) {
-                // todo: client.reject from handleOrderBookMessage properly
-                throw new ExchangeError (this.id + ' handleOrderBook received an out-of-order nonce');
-            }
-            const changes = this.safeValue (data, 'changes', {});
-            let asks = this.safeValue (changes, 'asks', []);
-            let bids = this.safeValue (changes, 'bids', []);
-            asks = this.sortBy (asks, 2); // sort by sequence
-            bids = this.sortBy (bids, 2);
+        if (sequence > orderbook['nonce']) {
+            const change = this.safeValue (data, 'change', {});
+            const splitChange = this.split (change, ',');
+            const price = this.safeNumber (splitChange, 0);
+            const side = this.safeNumber (splitChange, 1);
+            const quantity = this.safeNumber (splitChange, 2);
+            const type = (side === 'buy') ? 'bids' : 'asks';
+            this.handleDeltas (orderbook[type], [ [ price, quantity, sequence ] ], orderbook['nonce']);
             // 5. Update the level2 full data based on sequence according to the
             // size. If the price is 0, ignore the messages and update the sequence.
             // If the size=0, update the sequence and remove the price of which the
             // size is 0 out of level 2. For other cases, please update the price.
-            this.handleDeltas (orderbook['asks'], asks, orderbook['nonce']);
-            this.handleDeltas (orderbook['bids'], bids, orderbook['nonce']);
-            orderbook['nonce'] = sequenceEnd;
-            orderbook['timestamp'] = undefined;
-            orderbook['datetime'] = undefined;
+            const timestamp = this.safeInteger (data, 'timestamp');
+            orderbook['nonce'] = sequence;
+            orderbook['timestamp'] = timestamp;
+            orderbook['datetime'] = this.iso8601 (timestamp);
         }
         return orderbook;
     }
@@ -430,25 +418,19 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
         // initial snapshot is fetched with ccxt's fetchOrderBook
         // the feed does not include a snapshot, just the deltas
         //
-        //     {
-        //         "type":"message",
-        //         "topic":"/market/level2:BTC-USDT",
-        //         "subject":"trade.l2update",
-        //         "data":{
-        //             "sequenceStart":1545896669105,
-        //             "sequenceEnd":1545896669106,
-        //             "symbol":"BTC-USDT",
-        //             "changes": {
-        //                 "asks": [["6","1","1545896669105"]], // price, size, sequence
-        //                 "bids": [["4","1","1545896669106"]]
-        //             }
-        //         }
-        //     }
+        //    {
+        //        type: 'message',
+        //        topic: '/contractMarket/level2:ADAUSDTM',
+        //        subject: 'level2',
+        //        data: {
+        //            sequence: 1668059586457,
+        //            change: '0.34172,sell,456', // type, side, quantity
+        //            timestamp: 1668573023223
+        //        }
+        //    }
         //
-        // TODO
         const messageHash = this.safeString (message, 'topic');
-        const data = this.safeValue (message, 'data');
-        const marketId = this.safeString (data, 'symbol');
+        const marketId = this.safeString (this.split (messageHash, ':'), 1);
         const symbol = this.safeSymbol (marketId, undefined, '-');
         const orderbook = this.orderbooks[symbol];
         if (orderbook['nonce'] === undefined) {
@@ -522,6 +504,7 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
          * @method
          * @name kucoinfutures#watchOrders
          * @description watches information on multiple orders made by the user
+         * @see https://docs.kucoin.com/futures/#trade-orders-according-to-the-market
          * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
@@ -768,58 +751,34 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
 
     handleBalance (client, message) {
         //
-        // {
-        //     "id":"6217a451294b030001e3a26a",
-        //     "type":"message",
-        //     "topic":"/account/balance",
-        //     "userId":"6217707c52f97f00012a67db",
-        //     "channelType":"private",
-        //     "subject":"account.balance",
-        //     "data":{
-        //        "accountId":"62177fe67810720001db2f18",
-        //        "available":"89",
-        //        "availableChange":"-30",
-        //        "currency":"USDT",
-        //        "hold":"0",
-        //        "holdChange":"0",
-        //        "relationContext":{
-        //        },
-        //        "relationEvent":"main.transfer",
-        //        "relationEventId":"6217a451294b030001e3a26a",
-        //        "time":"1645716561816",
-        //        "total":"89"
-        //     }
+        //    {
+        //        id: '6375553193027a0001f6566f',
+        //        type: 'message',
+        //        topic: '/contractAccount/wallet',
+        //        userId: '613a896885d8660006151f01',
+        //        channelType: 'private',
+        //        subject: 'availableBalance.change',
+        //        data: {
+        //            currency: 'USDT',
+        //            holdBalance: '0.0000000000',
+        //            availableBalance: '14.0350281903',
+        //            timestamp: '1668633905657'
+        //        }
+        //    }
         //
-        // TODO
         const data = this.safeValue (message, 'data', {});
         const messageHash = this.safeString (message, 'topic');
         const currencyId = this.safeString (data, 'currency');
-        const relationEvent = this.safeString (data, 'relationEvent');
-        let requestAccountType = undefined;
-        if (relationEvent !== undefined) {
-            const relationEventParts = relationEvent.split ('.');
-            requestAccountType = this.safeString (relationEventParts, 0);
-        }
-        const selectedType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'trade'); // trade, main, margin or other
-        const accountsByType = this.safeValue (this.options, 'accountsByType');
-        const uniformType = this.safeString (accountsByType, requestAccountType, 'trade');
-        if (!(uniformType in this.balance)) {
-            this.balance[uniformType] = {};
-        }
         const code = this.safeCurrencyCode (currencyId);
         const account = this.account ();
-        account['free'] = this.safeString (data, 'available');
-        account['used'] = this.safeString (data, 'hold');
-        account['total'] = this.safeString (data, 'total');
-        this.balance[uniformType][code] = account;
-        this.balance[uniformType] = this.safeBalance (this.balance[uniformType]);
-        if (uniformType === selectedType) {
-            client.resolve (this.balance[uniformType], messageHash);
-        }
+        account['free'] = this.safeString (data, 'availableBalance');
+        account['used'] = this.safeString (data, 'holdBalance');
+        this.balance[code] = account;
+        this.balance = this.safeBalance (this.balance);
+        client.resolve (this.balance, messageHash);
     }
 
     handleBalanceSubscription (client, message, subscription) {
-        // TODO
         this.spawn (this.fetchBalanceSnapshot, client, message);
     }
 
@@ -833,58 +792,46 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
         };
         const snapshot = await this.fetchBalance (params);
         //
-        // {
-        //     "info":{
-        //        "code":"200000",
-        //        "data":[
-        //           {
-        //              "id":"6217a451cbe8910001ed3aa8",
-        //              "currency":"USDT",
-        //              "type":"trade",
-        //              "balance":"10",
-        //              "available":"4.995",
-        //              "holds":"5.005"
-        //           }
-        //        ]
-        //     },
-        //     "USDT":{
-        //        "free":4.995,
-        //        "used":5.005,
-        //        "total":10
-        //     },
-        //     "free":{
-        //        "USDT":4.995
-        //     },
-        //     "used":{
-        //        "USDT":5.005
-        //     },
-        //     "total":{
-        //        "USDT":10
-        //     }
-        //  }
+        //    {
+        //        info: {
+        //            code: '200000',
+        //            data: {
+        //                accountEquity: 0.0350281903,
+        //                unrealisedPNL: 0,
+        //                marginBalance: 0.0350281903,
+        //                positionMargin: 0,
+        //                orderMargin: 0,
+        //                frozenFunds: 0,
+        //                availableBalance: 0.0350281903,
+        //                currency: 'USDT'
+        //            }
+        //        },
+        //        timestamp: undefined,
+        //        datetime: undefined,
+        //        USDT: {
+        //            free: 0.0350281903,
+        //            used: 0,
+        //            total: 0.0350281903
+        //        },
+        //        free: {
+        //            USDT: 0.0350281903
+        //        },
+        //        used: {
+        //            USDT: 0
+        //        },
+        //        total: {
+        //            USDT: 0.0350281903
+        //        }
+        //    }
         //
-        const data = this.safeValue (snapshot['info'], 'data', []);
-        if (data.length > 0) {
-            const selectedType = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'trade'); // trade, main, margin or other
-            for (let i = 0; i < data.length; i++) {
-                const balance = data[i];
-                const type = this.safeString (balance, 'type');
-                const accountsByType = this.safeValue (this.options, 'accountsByType');
-                const uniformType = this.safeString (accountsByType, type, 'trade');
-                if (!(uniformType in this.balance)) {
-                    this.balance[uniformType] = {};
-                }
-                const currencyId = this.safeString (balance, 'currency');
-                const code = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
-                account['free'] = this.safeString (balance, 'available');
-                account['used'] = this.safeString (balance, 'holds');
-                account['total'] = this.safeString (balance, 'total');
-                this.balance[selectedType][code] = account;
-                this.balance[selectedType] = this.safeBalance (this.balance[selectedType]);
+        const keys = Object.keys (snapshot);
+        for (let i = 0; i < keys.length; i++) {
+            const code = keys[i];
+            if (code !== 'free' && code !== 'used' && code !== 'total' && code !== 'timestamp' && code !== 'datetime' && code !== 'info') {
+                this.balance[code] = snapshot[code];
             }
-            client.resolve (this.balance[selectedType], messageHash);
         }
+        client.resolve (this.balance, messageHash);
     }
 
     handleSubject (client, message) {
