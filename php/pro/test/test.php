@@ -197,7 +197,7 @@ $test = function () use ($id, $config, $verbose) {
 
     } else if (@$exchange->alias) {
 
-        echo $exchange->id, " [Alias skipped]\n";
+        echo $exchange->id, " [Skipped alias]\n";
         echo "Done.\n";
         exit();
 

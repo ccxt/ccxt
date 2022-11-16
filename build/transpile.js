@@ -802,6 +802,7 @@ class Transpiler {
             'hashlib': 'hashlib',
             'math': 'math',
             'json.loads': 'json',
+            'json.dumps': 'json',
             'sys': 'sys',
         }
 
@@ -811,8 +812,12 @@ class Transpiler {
 
         for (let library in pythonStandardLibraries) {
             const regex = new RegExp ("[^\\'\\\"a-zA-Z]" + library + "[^\\'\\\"a-zA-Z]")
-            if (bodyAsString.match (regex))
-                libraries.push ('import ' + pythonStandardLibraries[library])
+            if (bodyAsString.match (regex)){
+                const importStatement = 'import ' + pythonStandardLibraries[library];
+                if (!libraries.includes(importStatement)) {
+                    libraries.push (importStatement)
+                }
+            }
         }
 
         if (bodyAsString.match (/numbers\.(Real|Integral)/)) {
