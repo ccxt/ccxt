@@ -1,0 +1,54 @@
+"use strict";
+
+const fs = require ('fs');
+const crypto = require ('crypto');
+
+//  ---------------------------------------------------------------------------
+
+function isEmptyDir(path) {  
+    try {
+      const directory = fs.opendirSync(path);
+      const entry = directory.readSync();
+      directory.closeSync();
+      return entry === null;
+    } catch (error) {
+      return false;
+    }
+}
+
+function getExistingExchangeContentMd5 (lang, exchangeId, isWs) {
+    let folder = lang === 'py' ? 'python/ccxt' : lang;
+    folder = folder + (isWs ? '/pro' : '');
+    // calculate md5 hash of the passed exchange
+    let exchangeFilePath = __dirname + '/' + folder + '/' + exchangeId + '.' + lang;
+    const exchangeFileContent = fs.readFileSync (exchangeFilePath, 'utf8');
+    const md5Checksum = crypto.createHash('md5').update(exchangeFileContent).digest("hex");
+    return md5Checksum;
+}
+
+function checkPassedTestHash (lang, exchangeId, isWs) {
+    const passedTestsHashBaseDir = __dirname + '/.passed-tests-hashes';
+    const passedTestsHashLangDir = passedTestsHashBaseDir + '/' + lang + (isWs ? '/pro' : '');
+    const passedTestHashFile = passedTestsHashLangDir + '/' + exchangeId;
+    if (fs.existsSync (passedTestHashFile) ) { 
+        const md5ChecksumExisting = getExistingExchangeContentMd5 (lang, exchangeId, isWs);
+        const md5ChecksumCached = fs.readFileSync (passedTestHashFile, 'utf8');
+        if (md5ChecksumExisting === md5ChecksumCached) {
+            return true;
+        }
+        fs.unlinkSync(passedTestHashFile);
+        // if this was the last (only) tested hash, then delete hash-directory 
+        if (isEmptyDir(passedTestsHashLangDir)) {
+            fs.rmdirSync(passedTestsHashLangDir, { recursive: true, force: true });
+        }
+        if (isEmptyDir(passedTestsHashBaseDir)) {
+            fs.rmdirSync(passedTestsHashBaseDir, { recursive: true, force: true });
+        }
+    }
+    return false;
+}
+
+module.exports = { 
+    getExistingExchangeContentMd5,
+    checkPassedTestHash
+};
