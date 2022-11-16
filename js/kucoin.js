@@ -1235,10 +1235,10 @@ module.exports = class kucoin extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
-        return this.parseDepositAddresses (data, currency);
+        return this.parseDepositAddressesByNetwork (data, currency);
     }
 
-    parseDepositAddresses (depositAddresses, currency = undefined) {
+    parseDepositAddressesByNetwork (depositAddresses, currency = undefined) {
         //
         //     [
         //         {
