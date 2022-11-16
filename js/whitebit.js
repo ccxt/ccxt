@@ -1089,7 +1089,7 @@ module.exports = class whitebit extends Exchange {
         const postOnly = this.isPostOnly (isMarketOrder, false, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
         if (postOnly) {
-            throw new NotSupported (this.id + ' createOrder() does not support postOnly orders.');
+            request['postOnly'] = true;
         }
         let method = undefined;
         if (isStopOrder) {
@@ -1099,8 +1099,13 @@ module.exports = class whitebit extends Exchange {
                 method = 'v4PrivatePostOrderStopLimit';
                 request['price'] = this.priceToPrecision (symbol, price);
             } else {
-                // stop market order
-                method = 'v4PrivatePostOrderStopMarket';
+                if (marginMode !== undefined) {
+                    // trigger market order
+                    method = 'v4PrivatePostOrderCollateralTriggerMarket';
+                } else {
+                    // stop market order
+                    method = 'v4PrivatePostOrderStopMarket';
+                }
             }
         } else {
             if (isLimitOrder) {
@@ -1124,7 +1129,7 @@ module.exports = class whitebit extends Exchange {
                 }
             }
         }
-        params = this.omit (query, [ 'postOnly', 'triggerPrice', 'stopPrice' ]);
+        params = this.omit (query, [ 'triggerPrice', 'stopPrice' ]);
         const response = await this[method] (this.extend (request, params));
         return this.parseOrder (response);
     }
