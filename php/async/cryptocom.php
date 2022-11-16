@@ -99,7 +99,10 @@ class cryptocom extends Exchange {
                 ),
                 'www' => 'https://crypto.com/',
                 'referral' => 'https://crypto.com/exch/5835vstech',
-                'doc' => 'https://exchange-docs.crypto.com/',
+                'doc' => array(
+                    'https://exchange-docs.crypto.com/spot/index.html',
+                    'https://exchange-docs.crypto.com/derivatives/index.html',
+                ),
                 'fees' => 'https://crypto.com/exchange/document/fees-limits',
             ),
             'api' => array(
@@ -526,14 +529,21 @@ class cryptocom extends Exchange {
     public function fetch_tickers($symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+             * @see https://exchange-docs.crypto.com/spot/index.html#public-get-ticker
+             * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the cryptocom api endpoint
              * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
-            list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', null, $params);
+            $market = null;
+            if ($symbols !== null) {
+                $symbol = $this->safe_value($symbols, 0);
+                $market = $this->market($symbol);
+            }
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
             $method = $this->get_supported_mapping($marketType, array(
                 'spot' => 'spotPublicGetPublicGetTicker',
                 'future' => 'derivativesPublicGetPublicGetTickers',

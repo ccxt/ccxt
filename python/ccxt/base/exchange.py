@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.1.80'
+__version__ = '2.1.87'
 
 # -----------------------------------------------------------------------------
 
@@ -3408,6 +3408,18 @@ class Exchange(object):
             if messageOptions != '':
                 message += ', one of ' + '(' + messageOptions + ')'
             raise ArgumentsRequired(message)
+
+    def check_required_margin_argument(self, methodName, symbol, marginMode):
+        """
+         * @ignore
+        :param str symbol: unified symbol of the market
+        :param str methodName: name of the method that requires a symbol
+        :param str marginMode: is either 'isolated' or 'cross'
+        """
+        if (marginMode == 'isolated') and (symbol is None):
+            raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a symbol argument for isolated margin')
+        elif (marginMode == 'cross') and (symbol is not None):
+            raise ArgumentsRequired(self.id + ' ' + methodName + '() cannot have a symbol argument for cross margin')
 
     def check_required_symbol(self, methodName, symbol):
         """

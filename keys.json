@@ -29,5 +29,6 @@
     "upbit":         { "skipWs": true },
     "zb":            { "skipWs": true },
     "tidebit":       { "skip": true },
-    "tokocrypto":    { "skip": true }
+    "tokocrypto":    { "skip": true },
+    "crex24":        { "skip": true}
 }

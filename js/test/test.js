@@ -106,6 +106,10 @@ if (settings && settings.skip) {
     console.log ('[Skipped]', { 'exchange': exchangeId, 'symbol': exchangeSymbol || 'all' });
     process.exit ();
 }
+if (exchange.alias) {
+    console.log ('[Alias skipped]', { 'exchange': exchangeId, 'symbol': exchangeSymbol || 'all' });
+    process.exit ();
+}
 
 //-----------------------------------------------------------------------------
 

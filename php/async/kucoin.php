@@ -7,7 +7,6 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
-use ccxt\ArgumentsRequired;
 use ccxt\InvalidOrder;
 use ccxt\Precise;
 use React\Async;
@@ -3135,24 +3134,22 @@ class kucoin extends Exchange {
              * @param {string|null} $params->marginMode 'cross' or 'isolated' default is 'cross'
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
              */
+            $marginMode = $this->safe_string($params, 'marginMode'); // cross or isolated
+            $params = $this->omit($params, 'marginMode');
+            $this->check_required_margin_argument('borrowMargin', $symbol, $marginMode);
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             $request = array(
                 'currency' => $currency['id'],
                 'size' => $this->currency_to_precision($code, $amount),
             );
-            $marginMode = null;
-            list($marginMode, $params) = $this->handle_margin_mode_and_params('borrowMargin', $params);
-            if ($marginMode === null) {
-                $marginMode = 'cross'; // cross as default $marginMode
-            }
-            $method = 'privatePostMarginBorrow';
+            $method = null;
             $timeInForce = $this->safe_string_n($params, array( 'timeInForce', 'type', 'borrowStrategy' ), 'IOC');
-            $timeInForceRequest = 'type';
-            if ($marginMode === 'isolated') {
-                if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' borrowMargin() requires a $symbol argument for isolated margin');
-                }
+            $timeInForceRequest = null;
+            if ($symbol === null) {
+                $method = 'privatePostMarginBorrow';
+                $timeInForceRequest = 'type';
+            } else {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
                 $timeInForceRequest = 'borrowStrategy';
@@ -3184,12 +3181,7 @@ class kucoin extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $transaction = $this->parse_margin_loan($data, $currency);
-            if ($marginMode === 'cross') {
-                return array_merge($transaction, array( 'amount' => $amount ));
-            } else {
-                return array_merge($transaction, array( 'symbol' => $symbol ));
-            }
+            return $this->parse_margin_loan($data, $currency);
         }) ();
     }
 
@@ -3208,6 +3200,9 @@ class kucoin extends Exchange {
              * @param {string|null} $params->marginMode 'cross' or 'isolated' default is 'cross'
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
              */
+            $marginMode = $this->safe_string($params, 'marginMode'); // cross or isolated
+            $params = $this->omit($params, 'marginMode');
+            $this->check_required_margin_argument('repayMargin', $symbol, $marginMode);
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             $request = array(
@@ -3216,18 +3211,13 @@ class kucoin extends Exchange {
                 // 'sequence' => 'RECENTLY_EXPIRE_FIRST',  // Cross => 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
                 // 'seqStrategy' => 'RECENTLY_EXPIRE_FIRST',  // Isolated => 'RECENTLY_EXPIRE_FIRST' or 'HIGHEST_RATE_FIRST'
             );
-            $marginMode = null;
-            list($marginMode, $params) = $this->handle_margin_mode_and_params('repayMargin', $params);
-            if ($marginMode === null) {
-                $marginMode = 'cross'; // cross as default $marginMode
-            }
-            $method = 'privatePostMarginRepayAll';
+            $method = null;
             $sequence = $this->safe_string_2($params, 'sequence', 'seqStrategy', 'RECENTLY_EXPIRE_FIRST');
-            $sequenceRequest = 'sequence';
-            if ($marginMode === 'isolated') {
-                if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' repayMargin() requires a $symbol argument for isolated margin');
-                }
+            $sequenceRequest = null;
+            if ($symbol === null) {
+                $method = 'privatePostMarginRepayAll';
+                $sequenceRequest = 'sequence';
+            } else {
                 $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
                 $sequenceRequest = 'seqStrategy';
@@ -3242,11 +3232,7 @@ class kucoin extends Exchange {
             //         "data" => null
             //     }
             //
-            $transaction = $this->parse_margin_loan($response, $currency);
-            return array_merge($transaction, array(
-                'amount' => $amount,
-                'symbol' => $symbol,
-            ));
+            return $this->parse_margin_loan($response, $currency);
         }) ();
     }
 
