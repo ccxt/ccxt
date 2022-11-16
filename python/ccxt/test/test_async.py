@@ -621,9 +621,7 @@ for id in ccxt.exchanges:
         exchange_config.update()
     if id in config:
         exchange_config = ccxt.Exchange.deep_extend(exchange_config, config[id])
-    exchange_instance = exchange(exchange_config)
-    if not exchange_instance.alias:
-        exchanges[id] = exchange_instance
+    exchanges[id] = exchange(exchange_config)
 
 # ------------------------------------------------------------------------------
 
@@ -639,6 +637,8 @@ async def main():
 
             if hasattr(exchange, 'skip') and exchange.skip:
                 dump(green(exchange.id), 'skipped')
+            elif hasattr(exchange, 'alias') and exchange.alias:
+                dump(green(exchange.id), 'alias skipped')
             else:
                 if symbol:
                     await load_exchange(exchange)
