@@ -63,10 +63,7 @@ $args = array_values(array_filter($argv, function ($option) { return strstr($opt
 
 foreach (Exchange::$exchanges as $id) {
     $exchange = '\\ccxt\\async\\' . $id;
-    $exchange_instance = new $exchange();
-    if (!$exchange_instance->alias) {
-        $exchanges[$id] = $exchange_instance;
-    }
+    $exchanges[$id] = new $exchange();
 }
 
 $keys_global = './keys.json';
@@ -509,6 +506,11 @@ $main = function() use ($args, $exchanges, $proxies, $config, $common_codes) {
             $skip = $exchange->safe_value($exchange_config, 'skip', false);
             if ($skip) {
                 dump(red('[Skipped] ' . $id));
+                exit();
+            }
+            $alias = $exchange->alias;
+            if ($alias) {
+                dump(red('[Skipped alias] ' . $id));
                 exit();
             }
 
