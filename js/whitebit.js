@@ -21,7 +21,7 @@ module.exports = class whitebit extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': true,
-                'swap': false,
+                'swap': true,
                 'future': false,
                 'option': false,
                 'borrowMargin': false,
@@ -214,7 +214,7 @@ module.exports = class whitebit extends Exchange {
                 },
             },
             'options': {
-                'fiatCurrencies': [ 'EUR', 'USD', 'RUB', 'UAH' ],
+                'fiatCurrencies': [ 'EUR', 'USD', 'UAH', 'TRY', 'KZT' ],
                 'accountsByType': {
                     'main': 'main',
                     'spot': 'spot',
@@ -284,18 +284,18 @@ module.exports = class whitebit extends Exchange {
         //            },
         //            ...
         //        ]
-        //    }
+        // }
         //
-        //
-        // Margin
-        //
-        //     [
-        //         "ADA_BTC",
-        //         "ADA_USDT",
-        //         "APE_USDT",
-        //         ...
+        // Margin assets
+        // {
+        //     "success": true,
+        //     "message": null,
+        //     "result": [
+        //       "ADA_PERP",
+        //       "BTC_USDT",
+        //       "ETH_BTC",
         //     ]
-        //
+        // }
         promises = await Promise.all (promises);
         const marginMarketsResponse = promises[0];
         const response = promises[1];
@@ -324,7 +324,7 @@ module.exports = class whitebit extends Exchange {
                 'type': 'spot',
                 'spot': true,
                 'margin': isMargin,
-                'swap': false,
+                'swap': quote === 'PERP',
                 'future': false,
                 'option': false,
                 'active': active,
@@ -344,7 +344,7 @@ module.exports = class whitebit extends Exchange {
                 },
                 'limits': {
                     'leverage': {
-                        'min': undefined,
+                        'min': isMargin ? this.parseNumber ('1') : undefined,
                         'max': undefined,
                     },
                     'amount': {
@@ -375,42 +375,106 @@ module.exports = class whitebit extends Exchange {
          * @param {object} params extra parameters specific to the whitebit api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.v4PublicGetAssets (params);
+        const currencies = await this.v4PublicGetAssets (params);
         //
         //      "BTC": {
-        //          "name": "Bitcoin",
-        //          "unified_cryptoasset_id": 1,
+        //          "name": "1inch",
+        //          "unified_cryptoasset_id": 8104,
         //          "can_withdraw": true,
         //          "can_deposit": true,
-        //          "min_withdraw": "0.001",
-        //          "max_withdraw": "2",
+        //          "min_withdraw": "25",
+        //          "max_withdraw": "0",
         //          "maker_fee": "0.1",
         //          "taker_fee": "0.1",
-        //          "min_deposit": "0.0001",
-        //           "max_deposit": "0",
+        //          "min_deposit": "15",
+        //          "max_deposit": "0",
+        //          "networks": {
+        //            "deposits": [
+        //              "ERC20"
+        //            ],
+        //            "withdraws": [
+        //              "ERC20"
+        //            ],
+        //            "default": "ERC20"
+        //          },
+        //          "confirmations": {
+        //            "ERC20": 65
+        //          },
+        //          "limits": {
+        //            "deposit": {
+        //              "ERC20": {
+        //                "min": "15"
+        //              }
+        //            },
+        //            "withdraw": {
+        //              "ERC20": {
+        //                "min": "25"
+        //              }
+        //            }
+        //          },
+        //          "currency_precision": 18,
+        //          "is_memo": false
         //       },
         //
-        const ids = Object.keys (response);
+        const tickers = Object.keys (currencies);
         const result = {};
-        for (let i = 0; i < ids.length; i++) {
-            const id = ids[i];
-            const currency = response[id];
-            // breaks down in Python due to utf8 encoding issues on the exchange side
-            // const name = this.safeString (currency, 'name');
+        for (let i = 0; i < tickers.length; i++) {
+            const id = tickers[i];
+            const currency = currencies[id];
+            const name = this.safeString (currency, 'name');
             const canDeposit = this.safeValue (currency, 'can_deposit', true);
             const canWithdraw = this.safeValue (currency, 'can_withdraw', true);
             const active = canDeposit && canWithdraw;
             const code = this.safeCurrencyCode (id);
+            const currencyNetworks = this.safeValue (currency, 'networks', {});
+            const clampedNetworks = [];
+            const availableDepositNetworks = this.safeValue (currencyNetworks, 'deposits', []);
+            const availableWithdrawNetworks = this.safeValue (currencyNetworks, 'withdraws', []);
+            const availableNetworks = this.arrayConcat (availableDepositNetworks, availableWithdrawNetworks);
+            for (let i = 0; i < availableNetworks.length; i++) {
+                if (this.inArray (availableNetworks[i], clampedNetworks)) {
+                    continue;
+                }
+                clampedNetworks.push (availableNetworks[i]);
+            }
+            const limits = this.safeValue (currency, 'limits', {});
+            const networks = {};
+            for (let j = 0; j < clampedNetworks.length; j++) {
+                const network = clampedNetworks[j];
+                const depositLimits = this.safeValue (this.safeValue (limits, 'deposit', {}), network, {});
+                const withdrawLimits = this.safeValue (this.safeValue (limits, 'withdraw', {}), network, {});
+                networks[network] = {
+                    'info': network,
+                    'id': network,
+                    'network': network,
+                    'name': undefined,
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (withdrawLimits, 'min', undefined),
+                            'max': this.safeNumber (withdrawLimits, 'max', undefined),
+                        },
+                        'deposit': {
+                            'min': this.safeNumber (depositLimits, 'min', undefined),
+                            'max': this.safeNumber (depositLimits, 'max', undefined),
+                        },
+                    },
+                    'active': active,
+                    'deposit': this.inArray (network, availableDepositNetworks),
+                    'withdraw': this.inArray (network, availableWithdrawNetworks),
+                    'precision': this.safeNumber (currency, 'currency_precision'),
+                };
+            }
             result[code] = {
                 'id': id,
                 'code': code,
-                'info': currency, // the original payload
-                'name': undefined, // see the comment above
+                'info': currency,
+                'name': name,
                 'active': active,
                 'deposit': canDeposit,
                 'withdraw': canWithdraw,
                 'fee': undefined,
-                'precision': undefined,
+                'precision': this.safeNumber (currency, 'currency_precision'),
+                'networks': networks,
                 'limits': {
                     'amount': {
                         'min': undefined,
@@ -419,6 +483,10 @@ module.exports = class whitebit extends Exchange {
                     'withdraw': {
                         'min': this.safeNumber (currency, 'min_withdraw'),
                         'max': this.safeNumber (currency, 'max_withdraw'),
+                    },
+                    'deposit': {
+                        'min': this.safeNumber (currency, 'min_deposit'),
+                        'max': this.safeNumber (currency, 'max_deposit'),
                     },
                 },
             };
