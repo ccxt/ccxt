@@ -1156,10 +1156,6 @@ module.exports = class kucoin extends Exchange {
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
-        const version = this.options['versions']['private']['GET']['deposit-addresses'];
-        if (version !== 'v1') {
-            throw new BadRequest (this.id + " fetchDepositAddress() requires options['versions']['private']['GET']['deposit-addresses'] to be set to 'v1'");
-        }
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
@@ -1176,9 +1172,12 @@ module.exports = class kucoin extends Exchange {
             request['chain'] = network;
             params = this.omit (params, [ 'chain', 'network' ]);
         }
+        const version = this.options['versions']['private']['GET']['deposit-addresses'];
+        this.options['versions']['private']['GET']['deposit-addresses'] = 'v1';
         const response = await this.privateGetDepositAddresses (this.extend (request, params));
         // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
+        this.options['versions']['private']['GET']['deposit-addresses'] = version;
         const data = this.safeValue (response, 'data', {});
         return this.parseDepositAddress (data, currency);
     }
@@ -1210,14 +1209,12 @@ module.exports = class kucoin extends Exchange {
          * @returns {object} an array of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
         await this.loadMarkets ();
-        const version = this.options['versions']['private']['GET']['deposit-addresses'];
-        if (version !== 'v2') {
-            throw new BadRequest (this.id + " fetchDepositAddressesByNetwork() requires options['versions']['private']['GET']['deposit-addresses'] to be set to 'v2'");
-        }
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
         };
+        const version = this.options['versions']['private']['GET']['deposit-addresses'];
+        this.options['versions']['private']['GET']['deposit-addresses'] = 'v2';
         const response = await this.privateGetDepositAddresses (this.extend (request, params));
         //
         //     {
@@ -1234,6 +1231,7 @@ module.exports = class kucoin extends Exchange {
         //         ]
         //     }
         //
+        this.options['versions']['private']['GET']['deposit-addresses'] = version;
         const data = this.safeValue (response, 'data', []);
         return this.parseDepositAddressesByNetwork (data, currency);
     }
