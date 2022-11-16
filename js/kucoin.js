@@ -486,7 +486,6 @@ module.exports = class kucoin extends Exchange {
                     'TRC20': 'trx',
                     'TERRA': 'luna',
                     'BNB': 'bsc',
-                    'BEP20': 'bsc',
                     'HRC20': 'heco',
                     'HT': 'heco',
                 },
