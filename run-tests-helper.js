@@ -30,11 +30,12 @@ function checkPassedTestHash (lang, exchangeId, isWs) {
     const passedTestsHashBaseDir = __dirname + '/.passed-tests-hashes';
     const passedTestsHashLangDir = passedTestsHashBaseDir + '/' + lang + (isWs ? '/pro' : '');
     const passedTestHashFile = passedTestsHashLangDir + '/' + exchangeId;
+    let result = false;
     if (fs.existsSync (passedTestHashFile) ) { 
         const md5ChecksumExisting = getExistingExchangeContentMd5 (lang, exchangeId, isWs);
         const md5ChecksumCached = fs.readFileSync (passedTestHashFile, 'utf8');
         if (md5ChecksumExisting === md5ChecksumCached) {
-            return true;
+            result = true;
         }
         fs.unlinkSync(passedTestHashFile);
         // if this was the last (only) tested hash, then delete hash-directory 
@@ -45,7 +46,7 @@ function checkPassedTestHash (lang, exchangeId, isWs) {
             fs.rmdirSync(passedTestsHashBaseDir, { recursive: true, force: true });
         }
     }
-    return false;
+    return result;
 }
 
 module.exports = { 
