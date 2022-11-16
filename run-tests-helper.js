@@ -30,20 +30,27 @@ function checkPassedTestHash (lang, exchangeId, isWs) {
     const passedTestsHashBaseDir = __dirname + '/.passed-tests-hashes';
     const passedTestsHashLangDir = passedTestsHashBaseDir + '/' + lang + (isWs ? '/pro' : '');
     const passedTestHashFile = passedTestsHashLangDir + '/' + exchangeId;
-    let result = false;
-    if (fs.existsSync (passedTestHashFile) ) { 
-        const md5ChecksumExisting = getExistingExchangeContentMd5 (lang, exchangeId, isWs);
-        const md5ChecksumCached = fs.readFileSync (passedTestHashFile, 'utf8');
-        if (md5ChecksumExisting === md5ChecksumCached) {
-            result = true;
-        }
-        fs.unlinkSync(passedTestHashFile);
-        // if this was the last (only) tested hash, then delete hash-directory 
-        if (isEmptyDir(passedTestsHashLangDir)) {
-            fs.rmdirSync(passedTestsHashLangDir, { recursive: true, force: true });
-        }
-        if (isEmptyDir(passedTestsHashBaseDir)) {
-            fs.rmdirSync(passedTestsHashBaseDir, { recursive: true, force: true });
+    let result = '0';
+    if (fs.existsSync (passedTestsHashBaseDir) ) { 
+        result = '1';
+        if (fs.existsSync (passedTestHashFile) ) { 
+            result = '2';
+            if (fs.existsSync (passedTestHashFile) ) { 
+                result = '3';
+                const md5ChecksumExisting = getExistingExchangeContentMd5 (lang, exchangeId, isWs);
+                const md5ChecksumCached = fs.readFileSync (passedTestHashFile, 'utf8');
+                if (md5ChecksumExisting === md5ChecksumCached) {
+                    result = '4';
+                }
+                fs.unlinkSync(passedTestHashFile);
+                // if this was the last (only) tested hash, then delete hash-directory 
+                if (isEmptyDir(passedTestsHashLangDir)) {
+                    fs.rmdirSync(passedTestsHashLangDir, { recursive: true, force: true });
+                }
+                if (isEmptyDir(passedTestsHashBaseDir)) {
+                    fs.rmdirSync(passedTestsHashBaseDir, { recursive: true, force: true });
+                }
+            }
         }
     }
     return result;
