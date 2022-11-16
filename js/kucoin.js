@@ -801,7 +801,7 @@ module.exports = class kucoin extends Exchange {
         let network = this.safeStringUpper2 (params, 'network', 'chain');
         network = this.safeStringLower (networks, network, network);
         if (network !== undefined) {
-            request['chain'] = network.lower ();
+            request['chain'] = network.toLowerCase ();
             params = this.omit (params, [ 'network', 'chain' ]);
         }
         const response = await this.privateGetWithdrawalsQuotas (this.extend (request, params));
