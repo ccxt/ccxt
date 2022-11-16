@@ -295,8 +295,6 @@ async function testExchange (exchange) {
         await testSymbol (exchange, symbol);
     }
 
-    checkPassedTestHash (exchange);
-
     if (!exchange.privateKey && (!exchange.apiKey || (exchange.apiKey.length < 1))) {
         return true;
     }
@@ -350,55 +348,23 @@ async function testExchange (exchange) {
 
 //-----------------------------------------------------------------------------
 
-const crypto = require('crypto');
-const passedTestsHashDir = __dirname + '/passed-tests-hashes/';
-
-function getExistingExchangeContentMd5 (exchangeId) {
-    // calculate md5 hash of the passed exchange
-    const exchangeFilePath = __dirname + '/../' + exchangeId + '.js';
-    const exchangeFileContent = fs.readFileSync (exchangeFilePath, 'utf8');
-    const md5Checksum = crypto.createHash('md5').update(exchangeFileContent).digest("hex");
-    return md5Checksum;
-}
+const testHelper = require('../../run-tests-helper.js');
 
 function writePassedTestHash (exchange) {
-    const md5Checksum = getExistingExchangeContentMd5 (exchange.id);
+    const md5Checksum = testHelper.getExistingExchangeContentMd5 ('js', exchange.id);
+    
+    const passedTestsHashBaseDir = __dirname + '/../../.passed-tests-hashes';
+    const passedTestsHashLangDir = passedTestsHashBaseDir + '/js';
     // write it in temp-file
-    if (!fs.existsSync (passedTestsHashDir)) {
-        fs.mkdirSync (passedTestsHashDir);
+    if (!fs.existsSync (passedTestsHashLangDir)) {
+        fs.mkdirSync (passedTestsHashLangDir, { recursive: true });
     }
-    const passedTestHashFile = passedTestsHashDir + exchange.id;
+    const passedTestHashFile = passedTestsHashLangDir + '/' + exchange.id;
     const fd = fs.openSync(passedTestHashFile, 'w+');
     fs.writeSync(fd, md5Checksum);
     fs.closeSync(fd);
 }
 
-function checkPassedTestHash (exchange) {
-    const passedTestHashFile = passedTestsHashDir + exchange.id;
-    if (fs.existsSync (passedTestHashFile) ) { 
-        const md5ChecksumExisting = getExistingExchangeContentMd5 (exchange.id);
-        const md5ChecksumCached = fs.readFileSync (passedTestHashFile, 'utf8');
-        if (md5ChecksumExisting === md5ChecksumCached) {
-            console.log ('[JS] Private tests for ' + exchange.id + ' was passed');
-        }
-        fs.unlinkSync(passedTestHashFile);
-        // if this was the last (only) tested hash, then delete hash-directory 
-        if (isEmptyDir(passedTestsHashDir)) {
-            fs.rmdirSync(passedTestsHashDir, { recursive: true, force: true });
-        }
-    }
-}
-
-function isEmptyDir(path) {  
-    try {
-      const directory = fs.opendirSync(path);
-      const entry = directory.readSync();
-      directory.closeSync();
-      return entry === null;
-    } catch (error) {
-      return false;
-    }
-}
 //-----------------------------------------------------------------------------
 
 async function tryAllProxies (exchange, proxies) {
