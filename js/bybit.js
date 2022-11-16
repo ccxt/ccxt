@@ -15,7 +15,7 @@ module.exports = class bybit extends Exchange {
             'id': 'bybit',
             'name': 'Bybit',
             'countries': [ 'VG' ], // British Virgin Islands
-            'version': 'v3',
+            'version': 'v2',
             'userAgent': undefined,
             'rateLimit': 20,
             'hostname': 'bybit.com', // bybit.com, bytick.com
