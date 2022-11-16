@@ -669,23 +669,21 @@ module.exports = class bybit extends Exchange {
     }
 
     handleOptionAndParamsValue (params, methodName, optionName, defaultValue = undefined) {
-        // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
-        const defaultOptionName = 'default' + this.capitalize (optionName); // we also need to check the 'defaultXyzWhatever'
         // check if params contain the key
-        let value = this.safeValue2 (params, optionName, defaultOptionName);
+        let value = this.safeValue (params, optionName);
         if (value !== undefined) {
-            params = this.omit (params, [ optionName, defaultOptionName ]);
+            params = this.omit (params, [ optionName ]);
         }
         if (value === undefined) {
             // check if exchange-wide method options contain the key
             const exchangeWideMethodOptions = this.safeValue (this.options, methodName);
             if (exchangeWideMethodOptions !== undefined) {
-                value = this.safeValue2 (exchangeWideMethodOptions, optionName, defaultOptionName);
+                value = this.safeValue (exchangeWideMethodOptions, optionName);
             }
         }
         if (value === undefined) {
             // check if exchange-wide options contain the key
-            value = this.safeValue2 (this.options, optionName, defaultOptionName);
+            value = this.safeValue (this.options, optionName);
         }
         value = (value !== undefined) ? value : defaultValue;
         return [ value, params ];
@@ -1487,8 +1485,12 @@ module.exports = class bybit extends Exchange {
             let expiryDatetime = undefined;
             let strike = undefined;
             let optionType = undefined;
-            const settleId = linear ? quoteId : baseId;
-            const settle = this.safeCurrencyCode (settleId);
+            let settleId = linear ? quoteId : baseId;
+            let settle = this.safeCurrencyCode (settleId);
+            if (settle === 'USD') {
+                settleId = 'USDC';
+                settle = 'USDC';
+            }
             symbol = symbol + ':' + settle;
             const inverse = !linear;
             if (option) {
@@ -4854,13 +4856,13 @@ module.exports = class bybit extends Exchange {
         let enableUnifiedMargin = undefined;
         [ enableUnifiedMargin, params ] = this.handleOptionAndParamsValue (params, 'cancelOrder', 'enableUnifiedMargin', false);
         if (market['spot']) {
-            return this.cancelSpotOrder (id, symbol, params);
+            return await this.cancelSpotOrder (id, symbol, params);
         } else if (enableUnifiedMargin) {
-            return this.cancelUnifiedMarginOrder (id, symbol, params);
+            return await this.cancelUnifiedMarginOrder (id, symbol, params);
         } else if (isUsdcSettled) {
-            return this.cancelUSDCOrder (id, symbol, params);
+            return await this.cancelUSDCOrder (id, symbol, params);
         }
-        return this.cancelDerivativesOrder (id, symbol, params);
+        return await this.cancelDerivativesOrder (id, symbol, params);
     }
 
     async cancelAllSpotOrders (symbol = undefined, params = {}) {
@@ -5101,13 +5103,13 @@ module.exports = class bybit extends Exchange {
         let enableUnifiedMargin = undefined;
         [ enableUnifiedMargin, params ] = this.handleOptionAndParamsValue (params, 'cancelAllOrders', 'enableUnifiedMargin', false);
         if (type === 'spot') {
-            return this.cancelAllSpotOrders (symbol, params);
+            return await this.cancelAllSpotOrders (symbol, params);
         } else if (enableUnifiedMargin) {
-            return this.cancelAllUnifiedMarginOrders (symbol, params);
+            return await this.cancelAllUnifiedMarginOrders (symbol, params);
         } else if (isUsdcSettled) {
-            return this.cancelAllUSDCOrders (symbol, params);
+            return await this.cancelAllUSDCOrders (symbol, params);
         }
-        return this.cancelAllDerivativesOrders (symbol, params);
+        return await this.cancelAllDerivativesOrders (symbol, params);
     }
 
     async fetchUnifiedMarginOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
