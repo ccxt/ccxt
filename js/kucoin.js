@@ -798,11 +798,11 @@ module.exports = class kucoin extends Exchange {
             'currency': currency['id'],
         };
         const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'chain');
+        let network = this.safeStringUpper (params, 'network');
         network = this.safeStringLower (networks, network, network);
         if (network !== undefined) {
             request['chain'] = this.safeStringLower (network);
-            params = this.omit (params, 'chain');
+            params = this.omit (params, 'network');
         }
         const response = await this.privateGetWithdrawalsQuotas (this.extend (request, params));
         const data = response['data'];
