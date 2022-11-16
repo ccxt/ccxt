@@ -479,6 +479,7 @@ module.exports = class kucoin extends Exchange {
                 'networks': {
                     'ETH': 'eth',
                     'ERC20': 'eth',
+                    'BEP20': 'bsc',
                     'TRX': 'trx',
                     'TRC20': 'trx',
                     'KCC': 'kcc',
@@ -786,6 +787,7 @@ module.exports = class kucoin extends Exchange {
          * @method
          * @name kucoin#fetchTransactionFee
          * @description fetch the fee for a transaction
+         * @see https://docs.kucoin.com/#get-withdrawal-quotas
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the kucoin api endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
@@ -796,11 +798,11 @@ module.exports = class kucoin extends Exchange {
             'currency': currency['id'],
         };
         const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network');
+        let network = this.safeStringUpper (params, 'chain');
         network = this.safeStringLower (networks, network, network);
         if (network !== undefined) {
-            request['chain'] = network;
-            params = this.omit (params, 'network');
+            request['chain'] = this.safeStringLower (network);
+            params = this.omit (params, 'chain');
         }
         const response = await this.privateGetWithdrawalsQuotas (this.extend (request, params));
         const data = response['data'];
