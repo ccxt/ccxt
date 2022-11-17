@@ -7,6 +7,7 @@
 __version__ = '2.0.61'
 
 # -----------------------------------------------------------------------------
+import traceback
 
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NetworkError
@@ -913,7 +914,10 @@ class Exchange(object):
 
     @staticmethod
     def keysort(dictionary):
-        return collections.OrderedDict(sorted(dictionary.items(), key=lambda t: t[0]))
+        try:
+            return collections.OrderedDict(sorted(dictionary.items(), key=lambda t: t[0]))
+        except Exception as e:
+            traceback.print_exc()
 
     @staticmethod
     def extend(*args):

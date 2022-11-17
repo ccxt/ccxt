@@ -1029,7 +1029,7 @@ function createKucoinClient (baseClass) {
         handlePong (client, message) {
             // https://docs.kucoin.com/#ping
             client.lastPong = this.milliseconds ();
-            client.resolve (message, 'ping');
+            client.resolve ('pong', 'ping');
             return message;
         }
 
