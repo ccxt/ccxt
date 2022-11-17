@@ -15,7 +15,7 @@ module.exports = class bybit extends Exchange {
             'id': 'bybit',
             'name': 'Bybit',
             'countries': [ 'VG' ], // British Virgin Islands
-            'version': 'v2',
+            'version': 'v3',
             'userAgent': undefined,
             'rateLimit': 20,
             'hostname': 'bybit.com', // bybit.com, bytick.com
@@ -906,13 +906,11 @@ module.exports = class bybit extends Exchange {
         if (this.options['adjustForTimeDifference']) {
             await this.loadTimeDifference ();
         }
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchMarkets', undefined, params);
         if (type === 'spot') {
             // spot and swap ids are equal
             // so they can't be loaded together
-            const spotMarkets = await this.fetchSpotMarkets (params);
-            return spotMarkets;
+            return await this.fetchSpotMarkets (query);
         }
         const isV3 = this.version === 'v3';
         let promises = [];
@@ -1565,12 +1563,12 @@ module.exports = class bybit extends Exchange {
                 },
                 'limits': {
                     'leverage': {
-                        'min': this.safeNumber (leverage, 'minLeverage', 1),
-                        'max': this.safeNumber (leverage, 'maxLeverage', 1),
+                        'min': this.safeNumber (leverage, 'minLeverage'),
+                        'max': this.safeNumber (leverage, 'maxLeverage'),
                     },
                     'amount': {
                         'min': this.safeNumber2 (lotSizeFilter, 'minTradingQty', 'minOrderQty'),
-                        'max': this.safeNumber (lotSizeFilter, 'maxTradingQty', 'maxOrderQty'),
+                        'max': this.safeNumber2 (lotSizeFilter, 'maxTradingQty', 'maxOrderQty'),
                     },
                     'price': {
                         'min': this.safeNumber (priceFilter, 'minPrice'),
@@ -2299,38 +2297,34 @@ module.exports = class bybit extends Exchange {
     async fetchDerivativesOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (market['option']) {
+            throw new NotSupported (this.id + ' fetchOHLCV() is not supported for option markets');
+        }
         const request = {
             'symbol': market['id'],
         };
         const duration = this.parseTimeframe (timeframe);
-        const now = this.seconds ();
-        let sinceTimestamp = undefined;
+        const now = this.milliseconds ();
         if (limit === undefined) {
             limit = 200; // default is 200 when requested with `since`
+        } else {
+            request['limit'] = limit;
         }
         if (since === undefined) {
-            sinceTimestamp = now - limit * duration;
-        } else {
-            sinceTimestamp = parseInt (since / 1000);
+            since = now - limit * duration * 1000;
         }
-        if (limit !== undefined) {
-            request['limit'] = limit; // max 200, default 200
-        }
-        sinceTimestamp = sinceTimestamp * 1000;
         // end is required parameter
-        let endTimestamp = this.safeInteger (params, 'end');
-        if (endTimestamp === undefined) {
-            endTimestamp = this.sum (sinceTimestamp, limit * duration * 1000);
+        let end = this.safeInteger (params, 'end');
+        if (end === undefined) {
+            end = this.sum (since, limit * duration * 1000);
         }
-        request['end'] = endTimestamp;
-        if (market['option']) {
-            request['category'] = 'option';
-        } else if (market['linear']) {
+        if (market['linear']) {
             request['category'] = 'linear';
         } else if (market['inverse']) {
             request['category'] = 'inverse';
         }
-        request['start'] = sinceTimestamp;
+        request['start'] = since;
+        request['end'] = end;
         request['interval'] = this.timeframes[timeframe];
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
@@ -2990,7 +2984,13 @@ module.exports = class bybit extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // Limit for data size per page, max size is 1000. Default as showing 500 pieces of data per page
         }
-        request['category'] = market['inverse'] ? 'inverse' : 'linear';
+        if (market['option']) {
+            request['category'] = 'option';
+        } else if (market['linear']) {
+            request['category'] = 'linear';
+        } else if (market['inverse']) {
+            request['category'] = 'inverse';
+        }
         const response = await this.publicGetDerivativesV3PublicRecentTrade (this.extend (request, params));
         //
         //     {
@@ -3115,39 +3115,6 @@ module.exports = class bybit extends Exchange {
         return await this.fetchUSDCTrades (symbol, since, limit, params);
     }
 
-    parseOrderBook (orderbook, symbol, timestamp = undefined, bidsKey = 'bids', asksKey = 'asks', priceKey = 0, amountKey = 1) {
-        const market = this.market (symbol);
-        if (market['spot']) {
-            return super.parseOrderBook (orderbook, symbol, timestamp, bidsKey, asksKey, priceKey, amountKey);
-        }
-        let bids = [];
-        let asks = [];
-        if (!Array.isArray (orderbook)) {
-            bids = this.safeValue (orderbook, 'b');
-            asks = this.safeValue (orderbook, 'a');
-        } else {
-            for (let i = 0; i < orderbook.length; i++) {
-                const bidask = orderbook[i];
-                const side = this.safeString (bidask, 'side');
-                if (side === 'Buy') {
-                    bids.push (this.parseBidAsk (bidask, priceKey, amountKey));
-                } else if (side === 'Sell') {
-                    asks.push (this.parseBidAsk (bidask, priceKey, amountKey));
-                } else {
-                    throw new ExchangeError (this.id + ' parseOrderBook() encountered an unrecognized bidask format: ' + this.json (bidask));
-                }
-            }
-        }
-        return {
-            'symbol': symbol,
-            'bids': this.sortBy (bids, 0, true),
-            'asks': this.sortBy (asks, 0),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'nonce': undefined,
-        };
-    }
-
     async fetchSpotOrderBook (symbol, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -3234,7 +3201,7 @@ module.exports = class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result', []);
         const timestamp = this.safeInteger (result, 'ts');
-        return this.parseOrderBook (result, symbol, timestamp);
+        return this.parseOrderBook (result, symbol, timestamp, 'b', 'a');
     }
 
     async fetchV2DerivativesOrderBook (symbol, limit = undefined, params = {}) {
@@ -3263,7 +3230,8 @@ module.exports = class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result', []);
         const timestamp = this.safeTimestamp (response, 'time_now');
-        return this.parseOrderBook (result, symbol, timestamp, 'Buy', 'Sell', 'price', 'size');
+        const book = this.groupBy (result, 'side');
+        return this.parseOrderBook (book, symbol, timestamp, 'Buy', 'Sell', 'price', 'size');
     }
 
     async fetchUSDCOrderBook (symbol, limit = undefined, params = {}) {
