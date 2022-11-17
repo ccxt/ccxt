@@ -70,7 +70,7 @@ module.exports = class bybit extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFee': false,
+                'fetchTradingFee': true,
                 'fetchTradingFees': false,
                 'fetchTransactions': undefined,
                 'fetchTransfers': true,
@@ -8544,5 +8544,67 @@ module.exports = class bybit extends Exchange {
             minNotional = maxNotional;
         }
         return tiers;
+    }
+
+    parseTradingFee (fee, market = undefined) {
+        //
+        //     {
+        //         "symbol": "ETHUSDT",
+        //         "makerFeeRate": 0.001,
+        //         "takerFeeRate": 0.001
+        //     }
+        //
+        const marketId = this.safeString (fee, 'symbol');
+        const symbol = this.safeSymbol (marketId);
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': this.safeNumber (fee, 'makerFeeRate'),
+            'taker': this.safeNumber (fee, 'takerFeeRate'),
+        };
+    }
+
+    async fetchTradingFee (symbol, params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchTradingFee
+         * @description fetch the trading fees for a market
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        if (this.version !== 'v3') {
+            throw new NotSupported (this.id + ' fetchTradingFee() is only support for v3');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['spot']) {
+            throw new NotSupported (this.id + ' fetchTradingFee() is not supported for spot market');
+        }
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.privateGetContractV3PrivateAccountFeeRate (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "symbol": "ETHUSDT",
+        //                     "takerFeeRate": "0.0006",
+        //                     "makerFeeRate": "0.0001"
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1658739027301
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const fees = this.safeValue (result, 'list', []);
+        const first = this.safeValue (fees, 0, {});
+        return this.parseTradingFee (first);
     }
 };
