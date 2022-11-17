@@ -46,4 +46,4 @@ function myFunc ($exchange, $symbol) {
         echo "### Custom async function : {$ticker['symbol']} {$ticker['close']}\n";
     });
 }
-myFunc($exchange, $symbols[0]);
+await(myFunc($exchange, $symbols[0])());
