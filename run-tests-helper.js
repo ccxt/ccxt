@@ -44,7 +44,7 @@ function checkPassedTestHash (lang, exchangeId, isWs = false) {
                     result = true;
                 } else {
                     // temp debug for travis
-                    console.log ("MD5 failure:" + md5ChecksumExisting + ' : ' + md5ChecksumCached + "\n" +  getExistingExchangeContent ('js', exchangeId ) + ' XXXXXXXXX ' + fs.readFileSync (passedTestHashFile + '.js', 'utf8') );
+                    console.log ("MD5 failure:" + md5ChecksumExisting + ' : ' + md5ChecksumCached); //  + "\n" +  getExistingExchangeContent ('js', exchangeId ) + ' XXXXXXXXX ' + fs.readFileSync (passedTestHashFile + '.js', 'utf8') 
                 }
                 fs.unlinkSync(passedTestHashFile);
                 // if this was the last (only) tested hash, then delete hash-directory 

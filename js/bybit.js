@@ -4475,8 +4475,9 @@ module.exports = class bybit extends Exchange {
          */
         const [ networkId, query ] = this.handleNetworkCodeAndParams (code, params);
         const currency = this.currency (code);
+        const currencyId = currency['id'];
         const request = {
-            'coin': currency['id'],
+            'coin': currencyId,
         };
         if (networkId !== undefined) {
             request['chainType'] = networkId;
