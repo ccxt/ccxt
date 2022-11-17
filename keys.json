@@ -30,5 +30,7 @@
     "zb":            { "skipWs": true },
     "tidebit":       { "skip": true },
     "tokocrypto":    { "skip": true },
-    "crex24":        { "skip": true}
+    "crex24":        { "skip": true },
+    "cex":           { "skip": true },
+    "ascendex":      { "skip": true }
 }
