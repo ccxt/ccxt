@@ -7303,6 +7303,54 @@ module.exports = class bybit extends Exchange {
         };
     }
 
+    async setContractV3MarginMode (marginMode, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setContractV3MarginMode() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (market['settle'] === 'USDC') {
+            throw new NotSupported (this.id + ' setContractV3MarginMode() does not support market ' + symbol + '');
+        }
+        marginMode = marginMode.toUpperCase ();
+        if ((marginMode !== 'ISOLATED') && (marginMode !== 'CROSS')) {
+            throw new BadRequest (this.id + ' setContractV3MarginMode() marginMode must be either isolated or cross');
+        }
+        const leverage = this.safeString (params, 'leverage');
+        let sellLeverage = undefined;
+        let buyLeverage = undefined;
+        if (leverage === undefined) {
+            sellLeverage = this.safeNumber2 (params, 'sell_leverage', 'sellLeverage');
+            buyLeverage = this.safeNumber2 (params, 'buy_leverage', 'buyLeverage');
+            if (sellLeverage === undefined || buyLeverage === undefined) {
+                throw new ArgumentsRequired (this.id + ' setMarginMode() requires a leverage parameter or sell_leverage and buy_leverage parameters');
+            }
+            params = this.omit (params, [ 'buy_leverage', 'sell_leverage', 'sellLeverage', 'buyLeverage' ]);
+        } else {
+            params = this.omit (params, 'leverage');
+            sellLeverage = leverage;
+            buyLeverage = leverage;
+        }
+        const tradeMode = (marginMode === 'ISOLATED') ? 1 : 0;
+        const request = {
+            'symbol': market['id'],
+            'tradeMode': tradeMode,
+            'buyLeverage': leverage,
+            'sellLeverage': leverage,
+        };
+        const response = await this.privatePostContractV3PrivatePositionSwitchIsolated (this.extend (request, params));
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {},
+        //         "retExtInfo": null,
+        //         "time": 1658908532580
+        //     }
+        //
+        return response;
+    }
+
     async setMarginMode (marginMode, symbol = undefined, params = {}) {
         /**
          * @method
@@ -7313,6 +7361,10 @@ module.exports = class bybit extends Exchange {
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} response from the exchange
          */
+        const isV3 = (this.version === 'v3');
+        if (isV3) {
+            return await this.setContractV3MarginMode (marginMode, symbol, params);
+        }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
