@@ -67,6 +67,7 @@ class kucoin(Exchange):
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDepositAddressesByNetwork': True,
                 'fetchDeposits': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
@@ -447,6 +448,7 @@ class kucoin(Exchange):
                             'market/orderbook/level2': 'v3',
                             'market/orderbook/level3': 'v3',
                             'market/orderbook/level{level}': 'v3',
+                            'deposit-addresses': 'v1',  # 'v1' for fetchDepositAddress, 'v2' for fetchDepositAddressesByNetwork
                         },
                         'POST': {
                             'accounts/inner-transfer': 'v2',
@@ -494,13 +496,15 @@ class kucoin(Exchange):
                     'mining': 'pool',
                 },
                 'networks': {
-                    'ETH': 'eth',
+                    'Native': 'bech32',
+                    'BTC-Segwit': 'btc',
                     'ERC20': 'eth',
-                    'TRX': 'trx',
+                    'BEP20': 'bsc',
                     'TRC20': 'trx',
-                    'KCC': 'kcc',
                     'TERRA': 'luna',
-                    'LTC': 'ltc',
+                    'BNB': 'bsc',
+                    'HRC20': 'heco',
+                    'HT': 'heco',
                 },
             },
         })
@@ -780,6 +784,7 @@ class kucoin(Exchange):
     async def fetch_transaction_fee(self, code, params={}):
         """
         fetch the fee for a transaction
+        see https://docs.kucoin.com/#get-withdrawal-quotas
         :param str code: unified currency code
         :param dict params: extra parameters specific to the kucoin api endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
@@ -790,11 +795,12 @@ class kucoin(Exchange):
             'currency': currency['id'],
         }
         networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string_upper(params, 'network')
+        network = self.safe_string_upper_2(params, 'network', 'chain')
         network = self.safe_string_lower(networks, network, network)
         if network is not None:
-            request['chain'] = network
-            params = self.omit(params, 'network')
+            network = network.lower()
+            request['chain'] = network.lower()
+            params = self.omit(params, ['network', 'chain'])
         response = await self.privateGetWithdrawalsQuotas(self.extend(request, params))
         data = response['data']
         withdrawFees = {}
@@ -1069,14 +1075,25 @@ class kucoin(Exchange):
 
     async def create_deposit_address(self, code, params={}):
         """
+        see https://docs.kucoin.com/#create-deposit-address
         create a currency deposit address
         :param str code: unified currency code of the currency for the deposit address
         :param dict params: extra parameters specific to the kucoin api endpoint
+        :param str|None params['network']: the blockchain network name
         :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
         """
         await self.load_markets()
         currency = self.currency(code)
-        request = {'currency': currency['id']}
+        request = {
+            'currency': currency['id'],
+        }
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper_2(params, 'chain', 'network')
+        network = self.safe_string_lower(networks, network, network)
+        if network is not None:
+            network = network.lower()
+            request['chain'] = network
+            params = self.omit(params, ['chain', 'network'])
         response = await self.privatePostDepositAddresses(self.extend(request, params))
         # BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         # BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
@@ -1102,6 +1119,7 @@ class kucoin(Exchange):
         fetch the deposit address for a currency associated with self account
         :param str code: unified currency code
         :param dict params: extra parameters specific to the kucoin api endpoint
+        :param str|None params['network']: the blockchain network name
         :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
         """
         await self.load_markets()
@@ -1114,15 +1132,18 @@ class kucoin(Exchange):
         }
         # same as for withdraw
         networks = self.safe_value(self.options, 'networks', {})
-        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string_upper_2(params, 'chain', 'network')  # self line allows the user to specify either ERC20 or ETH
         network = self.safe_string_lower(networks, network, network)  # handle ERC20>ETH alias
         if network is not None:
             network = network.lower()
             request['chain'] = network
-            params = self.omit(params, 'network')
+            params = self.omit(params, ['chain', 'network'])
+        version = self.options['versions']['private']['GET']['deposit-addresses']
+        self.options['versions']['private']['GET']['deposit-addresses'] = 'v1'
         response = await self.privateGetDepositAddresses(self.extend(request, params))
         # BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
         # BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
+        self.options['versions']['private']['GET']['deposit-addresses'] = version
         data = self.safe_value(response, 'data', {})
         return self.parse_deposit_address(data, currency)
 
@@ -1139,6 +1160,65 @@ class kucoin(Exchange):
             'tag': self.safe_string(depositAddress, 'memo'),
             'network': self.safe_string(depositAddress, 'chain'),
         }
+
+    async def fetch_deposit_addresses_by_network(self, code, params={}):
+        """
+        see https://docs.kucoin.com/#get-deposit-addresses-v2
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the kucoin api endpoint
+        :returns dict: an array of `address structures <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        version = self.options['versions']['private']['GET']['deposit-addresses']
+        self.options['versions']['private']['GET']['deposit-addresses'] = 'v2'
+        response = await self.privateGetDepositAddresses(self.extend(request, params))
+        #
+        #     {
+        #         "code": "200000",
+        #         "data": [
+        #             {
+        #                 "address": "fr1qvus7d4d5fgxj5e7zvqe6yhxd7txm95h2and69r",
+        #                 "memo": "",
+        #                 "chain": "BTC-Segwit",
+        #                 "contractAddress": ""
+        #             },
+        #             {"address":"37icNMEWbiF8ZkwUMxmfzMxi2A1MQ44bMn","memo":"","chain":"BTC","contractAddress":""},
+        #             {"address":"Deposit temporarily blocked","memo":"","chain":"TRC20","contractAddress":""}
+        #         ]
+        #     }
+        #
+        self.options['versions']['private']['GET']['deposit-addresses'] = version
+        data = self.safe_value(response, 'data', [])
+        return self.parse_deposit_addresses_by_network(data, currency)
+
+    def parse_deposit_addresses_by_network(self, depositAddresses, currency=None):
+        #
+        #     [
+        #         {
+        #             "address": "fr1qvus7d4d5fgxj5e7zvqe6yhxd7txm95h2and69r",
+        #             "memo": "",
+        #             "chain": "BTC-Segwit",
+        #             "contractAddress": ""
+        #         },
+        #         ...
+        #     ]
+        #
+        result = []
+        for i in range(0, len(depositAddresses)):
+            entry = depositAddresses[i]
+            result.append({
+                'info': depositAddresses,
+                'currency': self.safe_currency_code(currency['id'], currency),
+                'network': self.safe_string(entry, 'chain'),
+                'address': self.safe_string(entry, 'address'),
+                'tag': self.safe_string(entry, 'memo'),
+            })
+        return result
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         """
@@ -1951,6 +2031,7 @@ class kucoin(Exchange):
         network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
         network = self.safe_string_lower(networks, network, network)  # handle ERC20>ETH alias
         if network is not None:
+            network = network.lower()
             request['chain'] = network
             params = self.omit(params, 'network')
         response = await self.privatePostWithdrawals(self.extend(request, params))
