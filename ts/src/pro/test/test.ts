@@ -18,7 +18,7 @@ const __dirname = dirname (fileURLToPath (import.meta.url));
 
 if (!exchangeId) {
     console.log ('Exchange id not specified');
-    process.exit ();
+    process.exit (0);
 }
 
 const symbol = exchangeSymbol || 'all';
@@ -242,13 +242,13 @@ async function testExchange (exchange) {
 async function test () {
     if (exchange.alias) {
         console.log ('Skipped alias');
-        process.exit ();
+        process.exit (0);
     }
     await exchange.loadMarkets ();
     exchange.verbose = verbose;
     await testExchange (exchange);
     console.log (new Date (), 'Done.');
-    process.exit ();
+    process.exit (0);
 }
 
 test ();
