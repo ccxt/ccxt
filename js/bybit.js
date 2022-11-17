@@ -7497,7 +7497,15 @@ module.exports = class bybit extends Exchange {
         }
         let method = undefined;
         let mode = undefined;
-        if (market['future']) {
+        const isV3 = (this.version === 'v3');
+        if (isV3) {
+            method = 'privatePostContractV3PrivatePositionSwitchMode';
+            if (hedged) {
+                mode = 3;
+            } else {
+                mode = 0;
+            }
+        } else if (market['future']) {
             method = 'privatePostFuturesPrivatePositionSwitchMode';
             if (hedged) {
                 mode = '3';
