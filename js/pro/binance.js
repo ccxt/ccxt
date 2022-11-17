@@ -42,6 +42,13 @@ module.exports = class binance extends binanceRest {
                 },
             },
             'options': {
+                'streamLimits': {
+                    'spot': 1024,
+                    'margin': 1024,
+                    'future': 200,
+                    'delivery': 200,
+                },
+                'lastStream': {},
                 // get updates every 1000ms or 100ms
                 // or every 0ms in real-time for futures
                 'watchOrderBookRate': 100,
@@ -63,7 +70,7 @@ module.exports = class binance extends binanceRest {
                 'wallet': 'wb', // wb = wallet balance, cw = cross balance
                 'listenKeyRefreshRate': 1200000, // 20 mins
                 'ws': {
-                    'cost': 5,
+                    'cost': 0,
                 },
             },
         });
@@ -75,6 +82,14 @@ module.exports = class binance extends binanceRest {
         const newValue = this.sum (previousValue, 1);
         this.options['requestId'][url] = newValue;
         return newValue;
+    }
+
+    stream (type, subscriptionHash) {
+        const streamLimits = this.safeValue (this.options, 'streamLimits');
+        const streamLimit = this.safeInteger (streamLimits, type);
+        const hash = this.hash (subscriptionHash, 'md5', 'hex' )
+        const streamHash = parseInt(hash.slice (0, 5), 16) % streamLimit;
+        return this.numberToString (streamHash);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -137,7 +152,7 @@ module.exports = class binance extends binanceRest {
         //
         const name = 'depth';
         const messageHash = market['lowercaseId'] + '@' + name;
-        const url = this.urls['api']['ws'][type]; // + '/' + messageHash;
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
         const requestId = this.requestId (url);
         const watchOrderBookRate = this.safeString (this.options, 'watchOrderBookRate', '100');
         const request = {
@@ -376,7 +391,7 @@ module.exports = class binance extends binanceRest {
         const watchTradesType = this.safeString2 (options, 'type', 'defaultType', defaultType);
         const type = this.safeString (params, 'type', watchTradesType);
         const query = this.omit (params, 'type');
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws'][type] + '/' + this.stream(type, messageHash);
         const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
@@ -600,7 +615,7 @@ module.exports = class binance extends binanceRest {
         const watchOHLCVType = this.safeString2 (options, 'type', 'defaultType', defaultType);
         const type = this.safeString (params, 'type', watchOHLCVType);
         const query = this.omit (params, 'type');
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
         const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
@@ -693,7 +708,7 @@ module.exports = class binance extends binanceRest {
         const watchTickerType = this.safeString2 (options, 'type', 'defaultType', defaultType);
         const type = this.safeString (params, 'type', watchTickerType);
         const query = this.omit (params, 'type');
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
         const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
