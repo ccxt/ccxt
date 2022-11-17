@@ -745,17 +745,14 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
         //         }
         //     }
         //
-        // TODO
         const subject = this.safeString (message, 'subject');
         const methods = {
             'trade.l2update': this.handleOrderBook,
-            'trade.ticker': this.handleTicker,
-            'trade.snapshot': this.handleTicker,
-            'trade.l3match': this.handleTrade,
-            'trade.candles.update': this.handleOHLCV,
-            'account.balance': this.handleBalance,
-            '/spot/tradeFills': this.handleMyTrade,
+            'tickerV2': this.handleTicker,
+            'availableBalance.change': this.handleBalance,
+            'match': this.handleTrade,
             'orderChange': this.handleOrder,
+            'orderUpdated': this.handleOrder,
         };
         const method = this.safeValue (methods, subject);
         if (method === undefined) {
