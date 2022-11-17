@@ -5132,24 +5132,29 @@ module.exports = class bybit extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('cancelAllDerivativesOrders', market, params);
         const request = {
             'symbol': market['id'],
         };
-        const orderType = this.safeStringLower (params, 'orderType');
-        const isStop = this.safeValue (params, 'stop', false);
-        const isConditional = isStop || (orderType === 'stop') || (orderType === 'conditional');
-        params = this.omit (params, [ 'stop', 'orderType' ]);
         let method = undefined;
-        if (type === 'future') {
-            method = isConditional ? 'privatePostFuturesPrivateStopOrderCancelAll' : 'privatePostFuturesPrivateOrderCancelAll';
-        } else if (market['linear']) {
-            // linear swap
-            method = isConditional ? 'privatePostPrivateLinearStopOrderCancelAll' : 'privatePostPrivateLinearOrderCancelAll';
+        const isV3 = (this.version === 'v3');
+        if (isV3) {
+            method = 'privatePostContractV3PrivateOrderCancelAll';
         } else {
-            // inverse swap
-            method = isConditional ? 'privatePostV2PrivateStopOrderCancelAll' : 'privatePostV2PrivateOrderCancelAll';
+            let type = undefined;
+            [ type, params ] = this.handleMarketTypeAndParams ('cancelAllDerivativesOrders', market, params);
+            const orderType = this.safeStringLower (params, 'orderType');
+            const isStop = this.safeValue (params, 'stop', false);
+            const isConditional = isStop || (orderType === 'stop') || (orderType === 'conditional');
+            params = this.omit (params, [ 'stop', 'orderType' ]);
+            if (type === 'future') {
+                method = isConditional ? 'privatePostFuturesPrivateStopOrderCancelAll' : 'privatePostFuturesPrivateOrderCancelAll';
+            } else if (market['linear']) {
+                // linear swap
+                method = isConditional ? 'privatePostPrivateLinearStopOrderCancelAll' : 'privatePostPrivateLinearOrderCancelAll';
+            } else {
+                // inverse swap
+                method = isConditional ? 'privatePostV2PrivateStopOrderCancelAll' : 'privatePostV2PrivateOrderCancelAll';
+            }
         }
         const response = await this[method] (this.extend (request, params));
         // linear swap
@@ -5204,9 +5209,26 @@ module.exports = class bybit extends Exchange {
         //        "rate_limit":100
         //    }
         //
-        const result = this.safeValue (response, 'result', []);
+        // contract v3
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "orderId": "4030430d-1dba-4134-ac77-3d81c14aaa00",
+        //                     "orderLinkId": "x001"
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1658901359225
+        //     }
+        //
+        let result = this.safeValue (response, 'result', []);
         if (!Array.isArray (result)) {
-            return response;
+            result = this.safeValue (result, 'list', []);
         }
         return this.parseOrders (result, market);
     }
