@@ -346,6 +346,27 @@ async function testExchange (exchange) {
         await test ('InvalidOrder', exchange, symbol);
         await test ('InsufficientFunds', exchange, symbol, balance); // danger zone - won't execute with non-empty balance
     }
+
+    writePassedTestHash (exchange);
+}
+
+//-----------------------------------------------------------------------------
+
+const testHelper = require('../../run-tests-helper.js');
+
+function writePassedTestHash (exchange) {
+    const md5Checksum = testHelper.getExistingExchangeContentMd5 ('js', exchange.id);
+    
+    const passedTestsHashBaseDir = __dirname + '/../../.passed-tests-hashes';
+    const passedTestsHashLangDir = passedTestsHashBaseDir + '/js';
+    // write it in temp-file
+    if (!fs.existsSync (passedTestsHashLangDir)) {
+        fs.mkdirSync (passedTestsHashLangDir, { recursive: true });
+    }
+    const passedTestHashFile = passedTestsHashLangDir + '/' + exchange.id;
+    const fd = fs.openSync(passedTestHashFile, 'w+');
+    fs.writeSync(fd, md5Checksum);
+    fs.closeSync(fd);
 }
 
 //-----------------------------------------------------------------------------
