@@ -515,6 +515,7 @@ module.exports = class bybit extends Exchange {
                     '10020': PermissionDenied, // {"retCode":10020,"retMsg":"your account is not a unified margin account, please update your account","result":null,"retExtInfo":null,"time":1664783731123}
                     '12201': BadRequest, // {"retCode":12201,"retMsg":"Invalid orderCategory parameter.","result":{},"retExtInfo":null,"time":1666699391220}
                     '131001': InsufficientFunds, // {"retCode":131001,"retMsg":"the available balance is not sufficient to cover the handling fee","result":{},"retExtInfo":{},"time":1666892821245}
+                    '140025': BadRequest, // {"retCode":140025,"retMsg":"position mode not modified","result":{},"retExtInfo":{},"time":1668693678336}
                     '20001': OrderNotFound, // Order not exists
                     '20003': InvalidOrder, // missing parameter side
                     '20004': InvalidOrder, // invalid parameter side
@@ -4122,13 +4123,12 @@ module.exports = class bybit extends Exchange {
             return await this.createSpotOrder (symbol, type, side, amount, price, params);
         } else if (enableUnifiedMargin) {
             return await this.createUnifiedMarginOrder (symbol, type, side, amount, price, params);
-        } else if (isV3) {
-            return await this.createContractV3Order (symbol, type, side, amount, price, params);
         } else if (isUsdcSettled) {
             return await this.createUsdcOrder (symbol, type, side, amount, price, params);
-        } else {
-            return await this.createContractOrder (symbol, type, side, amount, price, params);
+        } else if (isV3) {
+            return await this.createContractV3Order (symbol, type, side, amount, price, params);
         }
+        return await this.createContractOrder (symbol, type, side, amount, price, params);
     }
 
     async createSpotOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -4309,11 +4309,8 @@ module.exports = class bybit extends Exchange {
     async createContractV3Order (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (!market['linear'] && !market['option']) {
-            throw new NotSupported (this.id + ' createOrder does not allow inverse market orders for ' + symbol + ' markets');
-        }
         if (price === undefined && type === 'limit') {
-            throw new ArgumentsRequired (this.id + ' createOrder requires a price argument for limit orders');
+            throw new ArgumentsRequired (this.id + ' createContractV3Order requires a price argument for limit orders');
         }
         const lowerCaseType = type.toLowerCase ();
         const request = {
@@ -4336,10 +4333,10 @@ module.exports = class bybit extends Exchange {
             // 'positionIdx': 0, // Position mode. unified margin account is only available in One-Way mode, which is 0
             // 'triggerDirection': 1, // Trigger direction. Mainly used in conditional order. Trigger the order when market price rises to triggerPrice or falls to triggerPrice. 1: rise; 2: fall
         };
-        if (market['linear']) {
-            request['category'] = 'linear';
-        } else {
-            request['category'] = 'option';
+        if (market['future']) {
+            const positionIdx = this.safeInteger (params, 'position_idx', 0); // 0 One-Way Mode, 1 Buy-side, 2 Sell-side
+            request['position_idx'] = positionIdx;
+            params = this.omit (params, 'position_idx');
         }
         const isMarket = lowerCaseType === 'market';
         const isLimit = lowerCaseType === 'limit';
@@ -4913,26 +4910,34 @@ module.exports = class bybit extends Exchange {
             // conditional orders ---------------------------------------------
             // 'stop_order_id': id, // one of stop_order_id or order_link_id is required for conditional orders
         };
-        const orderType = this.safeStringLower (params, 'orderType');
-        const isStop = this.safeValue (params, 'stop', false);
-        const isConditional = isStop || (orderType === 'stop') || (orderType === 'conditional');
-        params = this.omit (params, [ 'orderType', 'stop' ]);
         let method = undefined;
-        if (market['linear']) {
-            // linear futures and linear swaps
-            method = isConditional ? 'privatePostPrivateLinearStopOrderCancel' : 'privatePostPrivateLinearOrderCancel';
-        } else if (market['swap']) {
-            // inverse swaps
-            method = isConditional ? 'privatePostV2PrivateStopOrderCancel' : 'privatePostV2PrivateOrderCancel';
+        const isV3 = (this.version === 'v3');
+        if (isV3) {
+            method = 'privatePostContractV3PrivateOrderCancel';
+            if (id !== undefined) {
+                request['orderId'] = id;
+            }
         } else {
-            // inverse futures
-            method = isConditional ? 'privatePostFuturesPrivateStopOrderCancel' : 'privatePostFuturesPrivateOrderCancel';
-        }
-        if (market['contract'] && (id !== undefined)) { // id === undefined check because the user can also use argument params["order_link_id"]
-            if (!isConditional) {
-                request['order_id'] = id;
+            const orderType = this.safeStringLower (params, 'orderType');
+            const isStop = this.safeValue (params, 'stop', false);
+            const isConditional = isStop || (orderType === 'stop') || (orderType === 'conditional');
+            params = this.omit (params, [ 'orderType', 'stop' ]);
+            if (market['linear']) {
+                // linear futures and linear swaps
+                method = isConditional ? 'privatePostPrivateLinearStopOrderCancel' : 'privatePostPrivateLinearOrderCancel';
+            } else if (market['swap']) {
+                // inverse swaps
+                method = isConditional ? 'privatePostV2PrivateStopOrderCancel' : 'privatePostV2PrivateOrderCancel';
             } else {
-                request['stop_order_id'] = id;
+                // inverse futures
+                method = isConditional ? 'privatePostFuturesPrivateStopOrderCancel' : 'privatePostFuturesPrivateOrderCancel';
+            }
+            if (market['contract'] && (id !== undefined)) { // id === undefined check because the user can also use argument params["order_link_id"]
+                if (!isConditional) {
+                    request['order_id'] = id;
+                } else {
+                    request['stop_order_id'] = id;
+                }
             }
         }
         const response = await this[method] (this.extend (request, params));
@@ -4949,6 +4954,19 @@ module.exports = class bybit extends Exchange {
         //        "rate_limit_status":99,
         //        "rate_limit_reset_ms":1652192814876,
         //        "rate_limit":100
+        //     }
+        //
+        // contract v3
+        //
+        //     {
+        //         "retCode":0,
+        //         "retMsg":"OK",
+        //         "result":{
+        //             "orderId": "4030430d-1dba-4134-ac77-3d81c14aaa00",
+        //             "orderLinkId": ""
+        //         },
+        //         "retExtInfo":null,
+        //         "time":1658850321861
         //     }
         //
         const result = this.safeValue (response, 'result', {});
@@ -7554,12 +7572,12 @@ module.exports = class bybit extends Exchange {
         if (enableUnifiedMargin) {
             return await this.setUnifiedMarginLeverage (leverage, symbol, params);
         }
+        if (isUsdcSettled) {
+            return await this.setUSDCLeverage (leverage, symbol, params);
+        }
         const isV3 = (this.version === 'v3');
         if (isV3) {
             return await this.setContractV3Leverage (leverage, symbol, params);
-        }
-        if (isUsdcSettled) {
-            return await this.setUSDCLeverage (leverage, symbol, params);
         }
         return await this.setDerivativesLeverage (leverage, symbol, params);
     }
