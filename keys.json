@@ -32,5 +32,6 @@
     "tokocrypto":    { "skip": true },
     "crex24":        { "skip": true },
     "cex":           { "skip": true },
-    "ascendex":      { "skip": true }
+    "ascendex":      { "skip": true },
+    "btcex":         { "skip": true }
 }
