@@ -1553,13 +1553,14 @@ module.exports = class cex extends Exchange {
             chosenNetworkId = (defaultNetwordId in chainsIndexedById) ? defaultNetwordId : ids[0];
         }
         const addressObject = chainsIndexedById[chosenNetworkId];
+        const networkCode = this.networkIdToCode (chosenNetworkId);
         const address = this.safeString (addressObject, 'address');
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
             'tag': undefined,
-            'network': undefined,
+            'network': networkCode,
             'info': addressObject,
         };
     }
