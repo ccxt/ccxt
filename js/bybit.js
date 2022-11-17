@@ -2297,38 +2297,34 @@ module.exports = class bybit extends Exchange {
     async fetchDerivativesOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (market['option']) {
+            throw new NotSupported (this.id + ' fetchOHLCV() is not supported for option markets');
+        }
         const request = {
             'symbol': market['id'],
         };
         const duration = this.parseTimeframe (timeframe);
-        const now = this.seconds ();
-        let sinceTimestamp = undefined;
+        const now = this.milliseconds ();
         if (limit === undefined) {
             limit = 200; // default is 200 when requested with `since`
+        } else {
+            request['limit'] = limit;
         }
         if (since === undefined) {
-            sinceTimestamp = now - limit * duration;
-        } else {
-            sinceTimestamp = parseInt (since / 1000);
+            since = now - limit * duration * 1000;
         }
-        if (limit !== undefined) {
-            request['limit'] = limit; // max 200, default 200
-        }
-        sinceTimestamp = sinceTimestamp * 1000;
         // end is required parameter
-        let endTimestamp = this.safeInteger (params, 'end');
-        if (endTimestamp === undefined) {
-            endTimestamp = this.sum (sinceTimestamp, limit * duration * 1000);
+        let end = this.safeInteger (params, 'end');
+        if (end === undefined) {
+            end = this.sum (since, limit * duration * 1000);
         }
-        request['end'] = endTimestamp;
-        if (market['option']) {
-            request['category'] = 'option';
-        } else if (market['linear']) {
+        if (market['linear']) {
             request['category'] = 'linear';
         } else if (market['inverse']) {
             request['category'] = 'inverse';
         }
-        request['start'] = sinceTimestamp;
+        request['start'] = since;
+        request['end'] = end;
         request['interval'] = this.timeframes[timeframe];
         const price = this.safeString (params, 'price');
         params = this.omit (params, 'price');
