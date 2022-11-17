@@ -115,8 +115,6 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
             // 'connectId': nonce, // user-defined id is supported, received by handleSystemStatus
         };
         const url = endpoint + '?' + this.urlencode (query);
-        // const topic = '/market/snapshot'; // '/market/ticker';
-        // const messageHash = topic + ':' + market['id'];
         const subscribe = {
             'id': nonce,
             'type': 'subscribe',
@@ -626,107 +624,6 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
         }
     }
 
-    async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        /**
-         * @method
-         * @name kucoinfutures#watchMyTrades
-         * @description watches information on multiple trades made by the user
-         * @see https://docs.kucoin.com/futures/#trade-orders-according-to-the-market
-         * @see https://docs.kucoin.com/futures/#trade-orders
-         * @see https://docs.kucoin.com/futures/#stop-order-lifecycle-event
-         * @param {string} symbol unified market symbol of the market orders were made in
-         * @param {int|undefined} since the earliest time in ms to fetch orders for
-         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
-         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
-         */
-        // TODO
-        await this.loadMarkets ();
-        const negotiation = await this.negotiate ();
-        const topic = '/spot/tradeFills';
-        const request = {
-            'privateChannel': true,
-        };
-        let messageHash = topic;
-        if (symbol !== undefined) {
-            const market = this.market (symbol);
-            symbol = market['symbol'];
-            messageHash = messageHash + ':' + market['symbol'];
-        }
-        const trades = await this.subscribe (negotiation, topic, messageHash, undefined, undefined, this.extend (request, params));
-        if (this.newUpdates) {
-            limit = trades.getLimit (symbol, limit);
-        }
-        return this.filterBySymbolSinceLimit (trades, symbol, since, limit);
-    }
-
-    handleMyTrade (client, message) {
-        // TODO
-        let trades = this.myTrades;
-        if (trades === undefined) {
-            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
-            trades = new ArrayCacheBySymbolById (limit);
-        }
-        const data = this.safeValue (message, 'data');
-        const parsed = this.parseWsTrade (data);
-        trades.append (parsed);
-        const messageHash = '/spot/tradeFills';
-        client.resolve (trades, messageHash);
-        const symbolSpecificMessageHash = messageHash + ':' + parsed['symbol'];
-        client.resolve (trades, symbolSpecificMessageHash);
-    }
-
-    parseWsTrade (trade, market = undefined) {
-        //
-        // {
-        //     fee: 0.00262148,
-        //     feeCurrency: 'USDT',
-        //     feeRate: 0.001,
-        //     orderId: '62417436b29df8000183df2f',
-        //     orderType: 'market',
-        //     price: 131.074,
-        //     side: 'sell',
-        //     size: 0.02,
-        //     symbol: 'LTC-USDT',
-        //     time: '1648456758734571745',
-        //     tradeId: '624174362e113d2f467b3043'
-        //   }
-        //
-        // TODO
-        const marketId = this.safeString (trade, 'symbol');
-        market = this.safeMarket (marketId, market, '-');
-        const symbol = market['symbol'];
-        const type = this.safeString (trade, 'orderType');
-        const side = this.safeString (trade, 'side');
-        const tradeId = this.safeString (trade, 'tradeId');
-        const price = this.safeString (trade, 'price');
-        const amount = this.safeString (trade, 'size');
-        const order = this.safeString (trade, 'orderId');
-        const timestamp = this.safeIntegerProduct (trade, 'time', 0.000001);
-        const feeCurrency = market['quote'];
-        const feeRate = this.safeString (trade, 'feeRate');
-        const fee = {
-            'cost': undefined,
-            'rate': feeRate,
-            'currency': feeCurrency,
-        };
-        return this.safeTrade ({
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': symbol,
-            'id': tradeId,
-            'order': order,
-            'type': type,
-            'takerOrMaker': undefined,
-            'side': side,
-            'price': price,
-            'amount': amount,
-            'cost': undefined,
-            'fee': fee,
-        }, market);
-    }
-
     async watchBalance (params = {}) {
         /**
          * @method
@@ -887,7 +784,6 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
     }
 
     handleErrorMessage (client, message) {
-        // TODO
         return message;
     }
 
