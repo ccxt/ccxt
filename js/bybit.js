@@ -71,7 +71,7 @@ module.exports = class bybit extends Exchange {
                 'fetchTime': true,
                 'fetchTrades': true,
                 'fetchTradingFee': true,
-                'fetchTradingFees': false,
+                'fetchTradingFees': true,
                 'fetchTransactions': undefined,
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
@@ -8606,5 +8606,51 @@ module.exports = class bybit extends Exchange {
         const fees = this.safeValue (result, 'list', []);
         const first = this.safeValue (fees, 0, {});
         return this.parseTradingFee (first);
+    }
+
+    async fetchTradingFees (params = {}) {
+        /**
+         * @method
+         * @name bybit#fetchTradingFees
+         * @description fetch the trading fees for multiple markets
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
+         */
+        if (this.version !== 'v3') {
+            throw new NotSupported (this.id + ' fetchTradingFees() is only support for v3');
+        }
+        await this.loadMarkets ();
+        let type = undefined;
+        [ type, params ] = this.handleOptionAndParams (params, 'fetchTradingFees', 'type', 'future');
+        if (type === 'spot') {
+            throw new NotSupported (this.id + ' fetchTradingFees() is not supported for spot market');
+        }
+        const response = await this.privateGetContractV3PrivateAccountFeeRate (params);
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "symbol": "ETHUSDT",
+        //                     "takerFeeRate": "0.0006",
+        //                     "makerFeeRate": "0.0001"
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1658739027301
+        //     }
+        //
+        let fees = this.safeValue (response, 'result', {});
+        fees = this.safeValue (fees, 'list', []);
+        const result = {};
+        for (let i = 0; i < fees.length; i++) {
+            const fee = this.parseTradingFee (fees[i]);
+            const symbol = fee['symbol'];
+            result[symbol] = fee;
+        }
+        return result;
     }
 };
