@@ -288,7 +288,7 @@ export default class coinspot extends Exchange {
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const response = await this.publicGetLatest (params);
+        const response = await (this as any).publicGetLatest (params);
         //
         //    {
         //        "status": "ok",
