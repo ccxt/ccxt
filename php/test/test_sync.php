@@ -84,7 +84,7 @@ foreach ($config as $id => $params) {
     }
 }
 
-$exchanges['coinbasepro']->urls['api'] = $exchanges['coinbasepro']->urls['test'];
+//$exchanges['coinbasepro']->urls['api'] = $exchanges['coinbasepro']->urls['test'];
 
 function test_ticker($exchange, $symbol) {
     $method = 'fetchTicker';
