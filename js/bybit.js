@@ -7402,6 +7402,31 @@ module.exports = class bybit extends Exchange {
         return await this.privatePostUnifiedV3PrivatePositionSetLeverage (this.extend (request, params));
     }
 
+    async setContractV3Leverage (leverage, symbol = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' setContractV3Leverage() requires a symbol argument');
+        }
+        if ((leverage < 1) || (leverage > 100)) {
+            throw new BadRequest (this.id + ' setContractV3Leverage() leverage should be between 1 and 100');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const buyLeverage = this.safeNumber2 (params, 'buy_leverage', 'buyLeverage');
+        const sellLeverage = this.safeNumber2 (params, 'sell_leverage', 'sellLeverage');
+        if (buyLeverage !== undefined && sellLeverage !== undefined) {
+            if ((buyLeverage < 1) || (buyLeverage > 100) || (sellLeverage < 1) || (sellLeverage > 100)) {
+                throw new BadRequest (this.id + ' setDerivativesLeverage() leverage should be between 1 and 100');
+            }
+        } else {
+            request['buyLeverage'] = this.numberToString (leverage);
+            request['sellLeverage'] = this.numberToString (leverage);
+        }
+        return await this.privatePostContractV3PrivatePositionSetLeverage (this.extend (request, params));
+    }
+
     async setUSDCLeverage (leverage, symbol = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' setUSDCLeverage() requires a symbol argument');
@@ -7476,6 +7501,10 @@ module.exports = class bybit extends Exchange {
         [ enableUnifiedMargin, params ] = this.handleOptionAndParamsValue (params, 'setLeverage', 'enableUnifiedMargin', false);
         if (enableUnifiedMargin) {
             return await this.setUnifiedMarginLeverage (leverage, symbol, params);
+        }
+        const isV3 = (this.version === 'v3');
+        if (isV3) {
+            return await this.setContractV3Leverage (leverage, symbol, params);
         }
         if (isUsdcSettled) {
             return await this.setUSDCLeverage (leverage, symbol, params);
