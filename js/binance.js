@@ -1155,7 +1155,7 @@ module.exports = class binance extends Exchange {
                     '-4002': BadRequest, // {"code":-4002 ,"msg":"Invalid get."}
                     '-4003': BadRequest, // {"code":-4003 ,"msg":"Your input email is invalid."}
                     '-4004': AuthenticationError, // {"code":-4004,"msg":"You don't login or auth."}
-                    '-4005': RateLimitExceeded, // {"code":-4005 ,"msg":"Too many new requests."}
+                    '-4005': InvalidOrder, // {"code":-4005,"msg":"Quantity greater than max quantity."}
                     '-4006': BadRequest, // {"code":-4006 ,"msg":"Support main account only."}
                     '-4007': BadRequest, // {"code":-4007 ,"msg":"Address validation is not passed."}
                     '-4008': BadRequest, // {"code":-4008 ,"msg":"Address tag validation is not passed."}
