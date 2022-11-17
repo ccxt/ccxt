@@ -12,7 +12,6 @@
 const fs = require ('fs')
 const log = require ('ololog')//.configure ({ indent: { pattern: '  ' }})
 const ansi = require ('ansicolor').nice
-const testHelper = require('./run-tests-helper.js');
 
 /*  --------------------------------------------------------------------------- */
 
@@ -148,8 +147,6 @@ const testExchange = async (exchange) => {
 
 /*  Run tests for all/selected languages (in parallel)     */
 
-    const existingPassedFlag = testHelper.checkPassedTestHash ('js', exchange);// ? ' ✓user' : '*';
-
     const args = [exchange, ...symbol === 'all' ? [] : symbol]
         , allTests = [
 
@@ -174,7 +171,7 @@ const testExchange = async (exchange) => {
 
     log.bright (('[' + percentsDone + ']').dim, 'Testing', exchange.cyan, (failed      ? 'FAIL'.red :
                                                                           (hasWarnings ? (warnings.length ? warnings.join (' ') : 'WARN').yellow
-                                                                                       : 'OK'.green)) + existingPassedFlag)
+                                                                                       : 'OK'.green)))
 
 /*  Return collected data to main loop     */
 

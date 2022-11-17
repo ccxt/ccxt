@@ -451,13 +451,245 @@ declare module 'ccxt' {
     
     /* tslint:disable */
 
+    export class aax extends Exchange {}
+    export class alpaca extends Exchange {}
+    export class ascendex extends Exchange {}
+    export class bequant extends hitbtc {}
+    export class bibox extends Exchange {}
+    export class bigone extends Exchange {}
+    export class binance extends Exchange {}
+    export class binancecoinm extends binance {}
+    export class binanceus extends binance {}
+    export class binanceusdm extends binance {}
+    export class bit2c extends Exchange {}
+    export class bitbank extends Exchange {}
+    export class bitbay extends zonda {}
+    export class bitbns extends Exchange {}
+    export class bitcoincom extends fmfwio {}
+    export class bitfinex extends Exchange {}
+    export class bitfinex2 extends Exchange {}
+    export class bitflyer extends Exchange {}
+    export class bitforex extends Exchange {}
+    export class bitget extends Exchange {}
+    export class bithumb extends Exchange {}
+    export class bitmart extends Exchange {}
+    export class bitmex extends Exchange {}
+    export class bitopro extends Exchange {}
+    export class bitpanda extends Exchange {}
+    export class bitrue extends Exchange {}
+    export class bitso extends Exchange {}
+    export class bitstamp extends Exchange {}
+    export class bitstamp1 extends Exchange {}
+    export class bittrex extends Exchange {}
+    export class bitvavo extends Exchange {}
+    export class bkex extends Exchange {}
+    export class bl3p extends Exchange {}
+    export class blockchaincom extends Exchange {}
+    export class btcalpha extends Exchange {}
+    export class btcbox extends Exchange {}
+    export class btcex extends Exchange {}
+    export class btcmarkets extends Exchange {}
+    export class btctradeua extends Exchange {}
+    export class btcturk extends Exchange {}
+    export class buda extends Exchange {}
+    export class bw extends Exchange {}
     export class bybit extends Exchange {}
+    export class bytetrade extends Exchange {}
+    export class cex extends Exchange {}
+    export class coinbase extends Exchange {}
+    export class coinbaseprime extends coinbasepro {}
+    export class coinbasepro extends Exchange {}
+    export class coincheck extends Exchange {}
+    export class coinex extends Exchange {}
+    export class coinfalcon extends Exchange {}
+    export class coinmate extends Exchange {}
+    export class coinone extends Exchange {}
+    export class coinspot extends Exchange {}
+    export class crex24 extends Exchange {}
+    export class cryptocom extends Exchange {}
+    export class currencycom extends Exchange {}
+    export class delta extends Exchange {}
+    export class deribit extends Exchange {}
+    export class digifinex extends Exchange {}
+    export class exmo extends Exchange {}
+    export class flowbtc extends ndax {}
+    export class fmfwio extends hitbtc {}
+    export class gate extends Exchange {}
+    export class gateio extends gate {}
+    export class gemini extends Exchange {}
+    export class hitbtc extends Exchange {}
+    export class hitbtc3 extends Exchange {}
+    export class hollaex extends Exchange {}
+    export class huobi extends Exchange {}
+    export class huobijp extends Exchange {}
+    export class huobipro extends huobi {}
+    export class idex extends Exchange {}
+    export class independentreserve extends Exchange {}
+    export class indodax extends Exchange {}
+    export class itbit extends Exchange {}
+    export class kraken extends Exchange {}
+    export class kucoin extends Exchange {}
+    export class kucoinfutures extends kucoin {}
+    export class kuna extends Exchange {}
+    export class latoken extends Exchange {}
+    export class lbank extends Exchange {}
+    export class lbank2 extends Exchange {}
+    export class liquid extends Exchange {}
+    export class luno extends Exchange {}
+    export class lykke extends Exchange {}
+    export class mercado extends Exchange {}
+    export class mexc extends Exchange {}
+    export class mexc3 extends Exchange {}
+    export class ndax extends Exchange {}
+    export class novadax extends Exchange {}
+    export class oceanex extends Exchange {}
+    export class okcoin extends Exchange {}
+    export class okex extends okx {}
+    export class okex5 extends okex {}
+    export class okx extends Exchange {}
+    export class paymium extends Exchange {}
+    export class phemex extends Exchange {}
+    export class poloniex extends Exchange {}
+    export class probit extends Exchange {}
+    export class qtrade extends Exchange {}
+    export class ripio extends Exchange {}
+    export class stex extends Exchange {}
+    export class therock extends Exchange {}
+    export class tidex extends Exchange {}
+    export class timex extends Exchange {}
+    export class tokocrypto extends Exchange {}
+    export class upbit extends Exchange {}
+    export class wavesexchange extends Exchange {}
+    export class wazirx extends Exchange {}
+    export class whitebit extends Exchange {}
+    export class woo extends Exchange {}
+    export class yobit extends Exchange {}
+    export class zaif extends Exchange {}
+    export class zb extends Exchange {}
+    export class zipmex extends ndax {}
+    export class zonda extends Exchange {}
 
     
     /* tslint:enable */
 
     export type ExchangeId =
+        | 'aax'
+        | 'alpaca'
+        | 'ascendex'
+        | 'bequant'
+        | 'bibox'
+        | 'bigone'
+        | 'binance'
+        | 'binancecoinm'
+        | 'binanceus'
+        | 'binanceusdm'
+        | 'bit2c'
+        | 'bitbank'
+        | 'bitbay'
+        | 'bitbns'
+        | 'bitcoincom'
+        | 'bitfinex'
+        | 'bitfinex2'
+        | 'bitflyer'
+        | 'bitforex'
+        | 'bitget'
+        | 'bithumb'
+        | 'bitmart'
+        | 'bitmex'
+        | 'bitopro'
+        | 'bitpanda'
+        | 'bitrue'
+        | 'bitso'
+        | 'bitstamp'
+        | 'bitstamp1'
+        | 'bittrex'
+        | 'bitvavo'
+        | 'bkex'
+        | 'bl3p'
+        | 'blockchaincom'
+        | 'btcalpha'
+        | 'btcbox'
+        | 'btcex'
+        | 'btcmarkets'
+        | 'btctradeua'
+        | 'btcturk'
+        | 'buda'
+        | 'bw'
         | 'bybit'
+        | 'bytetrade'
+        | 'cex'
+        | 'coinbase'
+        | 'coinbaseprime'
+        | 'coinbasepro'
+        | 'coincheck'
+        | 'coinex'
+        | 'coinfalcon'
+        | 'coinmate'
+        | 'coinone'
+        | 'coinspot'
+        | 'crex24'
+        | 'cryptocom'
+        | 'currencycom'
+        | 'delta'
+        | 'deribit'
+        | 'digifinex'
+        | 'exmo'
+        | 'flowbtc'
+        | 'fmfwio'
+        | 'gate'
+        | 'gateio'
+        | 'gemini'
+        | 'hitbtc'
+        | 'hitbtc3'
+        | 'hollaex'
+        | 'huobi'
+        | 'huobijp'
+        | 'huobipro'
+        | 'idex'
+        | 'independentreserve'
+        | 'indodax'
+        | 'itbit'
+        | 'kraken'
+        | 'kucoin'
+        | 'kucoinfutures'
+        | 'kuna'
+        | 'latoken'
+        | 'lbank'
+        | 'lbank2'
+        | 'liquid'
+        | 'luno'
+        | 'lykke'
+        | 'mercado'
+        | 'mexc'
+        | 'mexc3'
+        | 'ndax'
+        | 'novadax'
+        | 'oceanex'
+        | 'okcoin'
+        | 'okex'
+        | 'okex5'
+        | 'okx'
+        | 'paymium'
+        | 'phemex'
+        | 'poloniex'
+        | 'probit'
+        | 'qtrade'
+        | 'ripio'
+        | 'stex'
+        | 'therock'
+        | 'tidex'
+        | 'timex'
+        | 'tokocrypto'
+        | 'upbit'
+        | 'wavesexchange'
+        | 'wazirx'
+        | 'whitebit'
+        | 'woo'
+        | 'yobit'
+        | 'zaif'
+        | 'zb'
+        | 'zipmex'
+        | 'zonda'
         
 
     // Pro related exports
@@ -478,6 +710,50 @@ declare module 'ccxt' {
     export namespace pro {
         export const exchanges: string[]
         class Exchange  extends ExchangePro {}
+        class aax extends Exchange {}
+        class ascendex extends Exchange {}
+        class bequant extends Exchange {}
+        class binance extends Exchange {}
+        class binancecoinm extends Exchange {}
+        class binanceus extends Exchange {}
+        class binanceusdm extends Exchange {}
+        class bitcoincom extends Exchange {}
+        class bitfinex extends Exchange {}
+        class bitfinex2 extends Exchange {}
+        class bitmart extends Exchange {}
+        class bitmex extends Exchange {}
+        class bitopro extends Exchange {}
+        class bitstamp extends Exchange {}
+        class bittrex extends Exchange {}
+        class bitvavo extends Exchange {}
         class bybit extends Exchange {}
+        class coinbaseprime extends Exchange {}
+        class coinbasepro extends Exchange {}
+        class coinex extends Exchange {}
+        class cryptocom extends Exchange {}
+        class currencycom extends Exchange {}
+        class deribit extends Exchange {}
+        class exmo extends Exchange {}
+        class gate extends Exchange {}
+        class gateio extends Exchange {}
+        class hitbtc extends Exchange {}
+        class hollaex extends Exchange {}
+        class huobi extends Exchange {}
+        class huobijp extends Exchange {}
+        class huobipro extends Exchange {}
+        class idex extends Exchange {}
+        class kraken extends Exchange {}
+        class kucoin extends Exchange {}
+        class mexc extends Exchange {}
+        class ndax extends Exchange {}
+        class okcoin extends Exchange {}
+        class okex extends Exchange {}
+        class okx extends Exchange {}
+        class phemex extends Exchange {}
+        class ripio extends Exchange {}
+        class upbit extends Exchange {}
+        class whitebit extends Exchange {}
+        class zb extends Exchange {}
+        class zipmex extends Exchange {}
     }
 }
