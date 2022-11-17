@@ -44,7 +44,7 @@ function checkPassedTestHash (lang, exchangeId, isWs = false) {
                 if (md5ChecksumExisting === md5ChecksumCached) {
                     result = true;
                 } else {
-                    result += getExistingExchangeContent ('js', exchangeId + '.js') + ' XXXXXXXXX ' + fs.readFileSync (passedTestHashFile + '.js', 'utf8');
+                    result += getExistingExchangeContent ('js', exchangeId ) + ' XXXXXXXXX ' + fs.readFileSync (passedTestHashFile + '.js', 'utf8');
                 }
                 fs.unlinkSync(passedTestHashFile);
                 // if this was the last (only) tested hash, then delete hash-directory 

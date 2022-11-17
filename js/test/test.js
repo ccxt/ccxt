@@ -367,8 +367,8 @@ function writePassedTestHash (exchange) {
     const fd = fs.openSync(passedTestHashFile, 'w+');
     fs.writeSync(fd, md5Checksum);
     fs.closeSync(fd);
-    const fd2 = fs.openSync(passedTestHashFile, 'w+');
-    fs.writeSync(fd2, testHelper.getExistingExchangeContent ('js', exchange.id + '.js'));
+    const fd2 = fs.openSync(passedTestHashFile + '.js', 'w+');
+    fs.writeSync(fd2, testHelper.getExistingExchangeContent ('js', exchange.id));
     fs.closeSync(fd2);
 }
 
