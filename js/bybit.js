@@ -4694,30 +4694,42 @@ module.exports = class bybit extends Exchange {
             // 'p_r_trigger_price': 123.45, // new trigger price also known as stop_px
         };
         if (amount !== undefined) {
-            request['p_r_qty'] = this.amountToPrecision (symbol, amount);
+            amount = this.amountToPrecision (symbol, amount);
         }
         if (price !== undefined) {
-            request['p_r_price'] = this.priceToPrecision (symbol, price);
+            price = this.priceToPrecision (symbol, price);
         }
         let isConditionalOrder = false;
         let idKey = 'order_id';
-        const triggerPrice = this.safeValueN (params, [ 'stopPrice', 'triggerPrice' ]);
-        if (triggerPrice !== undefined) {
-            isConditionalOrder = true;
-            idKey = 'stop_order_id';
-            request['p_r_trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
-            params = this.omit (params, [ 'stopPrice', 'triggerPrice' ]);
+        let qtyKey = 'p_r_qty';
+        let priceKey = 'p_r_price';
+        let method = undefined;
+        const isV3 = (this.version === 'v3');
+        if (isV3) {
+            idKey = 'orderId';
+            qtyKey = 'qty';
+            priceKey = 'price';
+            method = 'privatePostContractV3PrivateOrderReplace';
+        } else {
+            const triggerPrice = this.safeValueN (params, [ 'stopPrice', 'triggerPrice' ]);
+            if (triggerPrice !== undefined) {
+                isConditionalOrder = true;
+                idKey = 'stop_order_id';
+                request['p_r_trigger_price'] = this.priceToPrecision (symbol, triggerPrice);
+                params = this.omit (params, [ 'stopPrice', 'triggerPrice' ]);
+            }
+            if (market['linear']) {
+                method = isConditionalOrder ? 'privatePostPrivateLinearStopOrderReplace' : 'privatePostPrivateLinearOrderReplace';
+            } else if (market['future']) {
+                method = isConditionalOrder ? 'privatePostFuturesPrivateStopOrderReplace' : 'privatePostFuturesPrivateOrderReplace';
+            } else {
+                // inverse swaps
+                method = isConditionalOrder ? 'privatePostV2PrivateStopOrderReplace' : 'privatePostV2PrivateOrderReplace';
+            }
         }
         request[idKey] = id;
-        let method = undefined;
-        if (market['linear']) {
-            method = isConditionalOrder ? 'privatePostPrivateLinearStopOrderReplace' : 'privatePostPrivateLinearOrderReplace';
-        } else if (market['future']) {
-            method = isConditionalOrder ? 'privatePostFuturesPrivateStopOrderReplace' : 'privatePostFuturesPrivateOrderReplace';
-        } else {
-            // inverse swaps
-            method = isConditionalOrder ? 'privatePostV2PrivateStopOrderReplace' : 'privatePostV2PrivateOrderReplace';
-        }
+        request[qtyKey] = amount;
+        request[priceKey] = price;
         const response = await this[method] (this.extend (request, params));
         //
         //     {
@@ -4745,11 +4757,24 @@ module.exports = class bybit extends Exchange {
         //         "rate_limit": "100"
         //     }
         //
+        // contract v3
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "orderId": "db8b74b3-72d3-4264-bf3f-52d39b41956e",
+        //             "orderLinkId": "x002"
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1658902610749
+        //     }
+        //
         const result = this.safeValue (response, 'result', {});
         return {
             'info': response,
-            'id': this.safeString2 (result, 'order_id', 'stop_order_id'),
-            'order_id': this.safeString (result, 'order_id'),
+            'id': this.safeStringN (result, [ 'order_id', 'stop_order_id', 'orderId' ]),
+            'order_id': this.safeString2 (result, 'order_id', 'orderId'),
             'stop_order_id': this.safeString (result, 'stop_order_id'),
         };
     }
@@ -4765,9 +4790,8 @@ module.exports = class bybit extends Exchange {
             throw new NotSupported (this.id + ' editOrder() does not support spot markets');
         } else if (isUsdcSettled) {
             return await this.editUsdcOrder (id, symbol, type, side, amount, price, params);
-        } else {
-            return await this.editContractOrder (id, symbol, type, side, amount, price, params);
         }
+        return await this.editContractOrder (id, symbol, type, side, amount, price, params);
     }
 
     async cancelSpotOrder (id, symbol = undefined, params = {}) {
