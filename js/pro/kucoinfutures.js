@@ -13,14 +13,11 @@ module.exports = class kucoinfutures extends kucoinfuturesRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                // 'watchOrderBook': true,
-                // 'watchOrders': true,
-                // 'watchMyTrades': true,
-                // 'watchTickers': false, // for now
                 'watchTicker': true,
                 'watchTrades': true,
-                // 'watchBalance': true,
-                // 'watchOHLCV': true,
+                'watchOrderBook': true,
+                'watchOrders': true,
+                'watchBalance': true,
             },
             'options': {
                 'accountsByType': {
