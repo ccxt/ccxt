@@ -5404,16 +5404,24 @@ module.exports = class bybit extends Exchange {
         const stopOrderId = this.safeString (params, 'stop_order_id'); // might want to filter by id
         const isConditionalOrder = isStop || (stopOrderId !== undefined) || (orderType === 'stop' || orderType === 'conditional');
         params = this.omit (params, [ 'orderType', 'stop', 'orderType' ]);
-        if (market['linear']) {
-            method = isConditionalOrder ? 'privateGetPrivateLinearStopOrderList' : 'privateGetPrivateLinearOrderList';
-        } else if (market['future']) {
-            method = isConditionalOrder ? 'privateGetFuturesPrivateStopOrderList' : 'privateGetFuturesPrivateOrderList';
+        const isV3 = (this.version === 'v3');
+        if (isV3) {
+            method = 'privateGetContractV3PrivateOrderList';
+            if (isConditionalOrder) {
+                request['orderFilter'] = 'StopOrder';
+            }
         } else {
-            // inverse swap
-            method = isConditionalOrder ? 'privateGetV2PrivateStopOrderList' : 'privateGetV2PrivateOrderList';
-        }
-        if (limit !== undefined) {
-            request['limit'] = limit;
+            if (market['linear']) {
+                method = isConditionalOrder ? 'privateGetPrivateLinearStopOrderList' : 'privateGetPrivateLinearOrderList';
+            } else if (market['future']) {
+                method = isConditionalOrder ? 'privateGetFuturesPrivateStopOrderList' : 'privateGetFuturesPrivateOrderList';
+            } else {
+                // inverse swap
+                method = isConditionalOrder ? 'privateGetV2PrivateStopOrderList' : 'privateGetV2PrivateOrderList';
+            }
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -5502,8 +5510,51 @@ module.exports = class bybit extends Exchange {
         //         "rate_limit":"600"
         //     }
         //
+        // contract v3
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "symbol": "XRPUSDT",
+        //                     "side": "Buy",
+        //                     "orderType": "Market",
+        //                     "price": "0.3431",
+        //                     "qty": "65",
+        //                     "reduceOnly": true,
+        //                     "timeInForce": "ImmediateOrCancel",
+        //                     "orderStatus": "Filled",
+        //                     "leavesQty": "0",
+        //                     "leavesValue": "0",
+        //                     "cumExecQty": "65",
+        //                     "cumExecValue": "21.3265",
+        //                     "cumExecFee": "0.0127959",
+        //                     "lastPriceOnCreated": "0.0000",
+        //                     "rejectReason": "EC_NoError",
+        //                     "orderLinkId": "",
+        //                     "createdTime": "1657526321499",
+        //                     "updatedTime": "1657526321504",
+        //                     "orderId": "ac0a8134-acb3-4ee1-a2d4-41891c9c46d7",
+        //                     "stopOrderType": "UNKNOWN",
+        //                     "takeProfit": "0.0000",
+        //                     "stopLoss": "0.0000",
+        //                     "tpTriggerBy": "UNKNOWN",
+        //                     "slTriggerBy": "UNKNOWN",
+        //                     "triggerPrice": "0.0000",
+        //                     "closeOnTrigger": true,
+        //                     "triggerDirection": 0,
+        //                     "positionIdx": 2
+        //             ],
+        //             "nextPageCursor": "K0crQkZRL0MyQVpiN0tVSDFTS0RlMk9DemNCWHZaRHp3aFZ4Y1Yza2MyWT0="
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1658899014975
+        //     }
+        //
         const result = this.safeValue (response, 'result', {});
-        const data = this.safeValue (result, 'data', []);
+        const data = this.safeValue2 (result, 'data', 'list', []);
         return this.parseOrders (data, market, since, limit);
     }
 
@@ -5711,7 +5762,8 @@ module.exports = class bybit extends Exchange {
             params = this.omit (params, [ 'order_status', 'status' ]);
             let enableUnifiedMargin = undefined;
             [ enableUnifiedMargin, params ] = this.handleOptionAndParamsValue (params, 'fetchClosedOrders', 'enableUnifiedMargin', false);
-            if (enableUnifiedMargin) {
+            const isV3 = (this.version === 'v3');
+            if (enableUnifiedMargin || isV3) {
                 params['orderStatus'] = status;
             } else {
                 params['order_status'] = status;
