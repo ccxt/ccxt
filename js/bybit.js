@@ -3435,11 +3435,38 @@ module.exports = class bybit extends Exchange {
         //         "time": 1657716037033
         //     }
         //
+        // contract v3
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "coin": "BTC",
+        //                     "equity": "0.80319649",
+        //                     "walletBalance": "0.80319649",
+        //                     "positionMargin": "0",
+        //                     "availableBalance": "0.80319649",
+        //                     "orderMargin": "0",
+        //                     "occClosingFee": "0",
+        //                     "occFundingFee": "0",
+        //                     "unrealisedPnl": "0",
+        //                     "cumRealisedPnl": "0.00120039",
+        //                     "givenCash": "0",
+        //                     "serviceCash": "0"
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1658736635763
+        //     }
+        //
         const result = {
             'info': response,
         };
         const data = this.safeValue (response, 'result', {});
-        const balances = this.safeValue2 (data, 'balances', 'coin');
+        const balances = this.safeValueN (data, [ 'balances', 'coin', 'list' ]);
         if (Array.isArray (balances)) {
             // spot balances
             for (let i = 0; i < balances.length; i++) {
@@ -3449,7 +3476,7 @@ module.exports = class bybit extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeString (balance, 'availableBalance');
                 account['used'] = this.safeString (balance, 'locked');
-                account['total'] = this.safeString (balance, 'total');
+                account['total'] = this.safeString2 (balance, 'total', 'walletBalance');
                 result[code] = account;
             }
         } else {
@@ -3566,7 +3593,8 @@ module.exports = class bybit extends Exchange {
             const currency = this.currency (coin);
             request['coin'] = currency['id'];
         }
-        const response = await this.privateGetV2PrivateWalletBalance (this.extend (request, params));
+        const method = (this.version === 'v3') ? 'privateGetContractV3PrivateAccountWalletBalance' : 'privateGetV2PrivateWalletBalance';
+        const response = await this[method] (this.extend (request, params));
         //
         //    {
         //        "ret_code": "0",
