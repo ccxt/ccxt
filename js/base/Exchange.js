@@ -2865,4 +2865,18 @@ module.exports = class Exchange {
         }
         return transactionFees;
     }
+
+    depositWithdrawFee () {
+        return {
+            'withdraw': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+        };
+    }
 };
