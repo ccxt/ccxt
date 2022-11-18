@@ -48,7 +48,8 @@ module.exports = class binance extends binanceRest {
                     'future': 200,
                     'delivery': 200,
                 },
-                'lastStream': {},
+                'streamBySubscriptionsHash': {},
+                'streamIndex': -1,
                 // get updates every 1000ms or 100ms
                 // or every 0ms in real-time for futures
                 'watchOrderBookRate': 100,
@@ -85,11 +86,21 @@ module.exports = class binance extends binanceRest {
     }
 
     stream (type, subscriptionHash) {
-        const streamLimits = this.safeValue (this.options, 'streamLimits');
-        const streamLimit = this.safeInteger (streamLimits, type);
-        const hash = this.hash (subscriptionHash, 'md5', 'hex' )
-        const streamHash = parseInt(hash.slice (0, 5), 16) % streamLimit;
-        return this.numberToString (streamHash);
+        const streamBySubscriptionsHash = this.safeValue (this.options, 'streamBySubscriptionsHash', {});
+        let stream = this.safeString (streamBySubscriptionsHash, subscriptionHash);
+        if (stream === undefined) {
+            let streamIndex = this.safeInteger (this.options, 'streamIndex', -1);
+            const streamLimits = this.safeValue (this.options, 'streamLimits');
+            const streamLimit = this.safeInteger (streamLimits, type);
+            streamIndex = streamIndex + 1;
+            if (streamIndex === streamLimit) {
+                streamIndex = -1;
+            }
+            this.options['streamIndex'] = streamIndex;
+            stream = this.numberToString (streamIndex);
+        }
+        streamBySubscriptionsHash[subscriptionHash] = stream;
+        return stream;
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -391,7 +402,7 @@ module.exports = class binance extends binanceRest {
         const watchTradesType = this.safeString2 (options, 'type', 'defaultType', defaultType);
         const type = this.safeString (params, 'type', watchTradesType);
         const query = this.omit (params, 'type');
-        const url = this.urls['api']['ws'][type] + '/' + this.stream(type, messageHash);
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
         const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
