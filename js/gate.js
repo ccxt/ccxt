@@ -408,6 +408,7 @@ module.exports = class gate extends Exchange {
                 'HIT': 'HitChain',
                 'MM': 'Million', // conflict with MilliMeter
                 'MPH': 'Morpher', // conflict with 88MPH
+                'POINT': 'GatePoint',
                 'RAI': 'Rai Reflex Index', // conflict with RAI Finance
                 'SBTC': 'Super Bitcoin',
                 'TNC': 'Trinity Network Credit',
@@ -2738,7 +2739,7 @@ module.exports = class gate extends Exchange {
         if (pointFee !== undefined) {
             fees.push ({
                 'cost': pointFee,
-                'currency': 'POINT',
+                'currency': 'GatePoint',
             });
         }
         const takerOrMaker = this.safeString (trade, 'role');
@@ -4439,37 +4440,30 @@ module.exports = class gate extends Exchange {
          * @param {string} params.id '34267567' loan id, extra parameter required for isolated margin
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
+        const marginMode = this.safeString (params, 'marginMode'); // cross or isolated
+        params = this.omit (params, 'marginMode');
+        this.checkRequiredMarginArgument ('repayMargin', symbol, marginMode);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
         const request = {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
-        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
-        let method = 'privateMarginPostCrossRepayments';
-        if (marginMode === 'isolated') {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument for isolated margin');
-            }
-            const mode = this.safeString (params, 'mode'); // 'all' or 'partial'
-            if (mode === undefined) {
-                throw new ArgumentsRequired (this.id + ' repayMargin() requires a mode parameter for isolated margin');
-            }
-            const id = this.safeString2 (params, 'loan_id', 'id');
-            if (id === undefined) {
-                throw new ArgumentsRequired (this.id + ' repayMargin() requires an id parameter for isolated margin');
-            }
+        let method = undefined;
+        if (symbol === undefined) {
+            method = 'privateMarginPostCrossRepayments';
+        } else {
             method = 'privateMarginPostLoansLoanIdRepayment';
+            const market = this.market (symbol);
             request['currency_pair'] = market['id'];
-            request['mode'] = mode;
-            request['loan_id'] = id;
+            request['mode'] = 'partial';
+            const loanId = this.safeString2 (params, 'loan_id', 'id');
+            if (loanId === undefined) {
+                throw new ArgumentsRequired (this.id + ' repayMargin() requires loan_id param for isolated margin');
+            }
+            request['loan_id'] = loanId;
         }
-        params = this.omit (params, [ 'marginMode', 'mode', 'loan_id', 'id' ]);
+        params = this.omit (params, [ 'marginMode', 'loan_id', 'id' ]);
         let response = await this[method] (this.extend (request, params));
         //
         // Cross
@@ -4529,31 +4523,26 @@ module.exports = class gate extends Exchange {
          * @param {string} params.rate '0.0002' or '0.002' extra parameter required for isolated margin
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
+        const marginMode = this.safeString (params, 'marginMode'); // cross or isolated
+        params = this.omit (params, 'marginMode');
+        this.checkRequiredMarginArgument ('borrowMargin', symbol, marginMode);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            symbol = market['symbol'];
-        }
         const request = {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
-        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
-        let method = 'privateMarginPostCrossLoans';
-        if (marginMode === 'isolated') {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument for isolated margin');
-            }
+        let method = undefined;
+        if (symbol === undefined) {
+            method = 'privateMarginPostCrossLoans';
+        } else {
+            const market = this.market (symbol);
             request['currency_pair'] = market['id'];
-            const rate = this.safeString (params, 'rate');
-            if (rate === undefined) {
-                throw new ArgumentsRequired (this.id + ' borrowMargin() requires a rate parameter for isolated margin');
-            }
-            request['rate'] = rate; // Only rates '0.0002', '0.002' are supported.
             request['side'] = 'borrow';
+            // default it to 0.01% since this is a reasonable limit
+            // as it is the smallest tick size currently offered by gateio
+            request['rate'] = this.safeString (params, 'rate', '0.0001');
+            request['auto_renew'] = true;
             method = 'privateMarginPostLoans';
         }
         params = this.omit (params, [ 'marginMode', 'rate' ]);

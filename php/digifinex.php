@@ -26,6 +26,8 @@ class digifinex extends Exchange {
                 'cancelOrder' => true,
                 'cancelOrders' => true,
                 'createOrder' => true,
+                'createPostOnlyOrder' => true,
+                'createReduceOnlyOrder' => true,
                 'createStopLimitOrder' => false,
                 'createStopMarketOrder' => false,
                 'createStopOrder' => false,
@@ -55,7 +57,7 @@ class digifinex extends Exchange {
                 'fetchTickers' => true,
                 'fetchTime' => true,
                 'fetchTrades' => true,
-                'fetchTradingFee' => false,
+                'fetchTradingFee' => true,
                 'fetchTradingFees' => false,
                 'fetchWithdrawals' => true,
                 'setMarginMode' => false,
@@ -242,6 +244,7 @@ class digifinex extends Exchange {
                     '20040' => array( '\\ccxt\\RateLimitExceeded', 'Withdraw too frequently; limitation => 3 times a minute, 100 times a day' ),
                     '20041' => array( '\\ccxt\\PermissionDenied', 'Beyond the daily withdrawal limit' ),
                     '20042' => array( '\\ccxt\\BadSymbol', 'Current trading pair does not support API trading' ),
+                    '400002' => array( '\\ccxt\\BadRequest', 'Invalid Parameter' ),
                 ),
                 'broad' => array(
                 ),
@@ -1090,44 +1093,109 @@ class digifinex extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade order
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#create-new-order
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#orderplace
          * @param {string} $symbol unified $symbol of the $market to create an order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} $params extra parameters specific to the digifinex api endpoint
+         * @param {string} $params->timeInForce "GTC", "IOC", "FOK", or "PO"
+         * @param {bool} $params->postOnly true or false
+         * @param {bool} $params->reduceOnly true or false
          * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
-        $orderType = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit($params, 'type');
-        $request = array(
-            'market' => $orderType,
-            'symbol' => $market['id'],
-            'amount' => $this->amount_to_precision($market['symbol'], $amount),
-            // 'post_only' => 0, // 0 by default, if set to 1 the order will be canceled if it can be executed immediately, making sure there will be no $market taking
-        );
-        $suffix = '';
-        if ($type === 'market') {
-            $suffix = '_market';
-        } else {
-            $request['price'] = $this->price_to_precision($market['symbol'], $price);
+        $symbol = $market['symbol'];
+        $marketType = null;
+        $marginMode = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('createOrder', $market, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateSpotPostSpotOrderNew',
+            'margin' => 'privateSpotPostMarginOrderNew',
+            'swap' => 'privateSwapPostTradeOrderPlace',
+        ));
+        list($marginMode, $params) = $this->handle_margin_mode_and_params('createOrder', $params);
+        if ($marginMode !== null) {
+            $method = 'privateSpotPostMarginOrderNew';
+            $marketType = 'margin';
         }
-        $request['type'] = $side . $suffix;
-        $response = $this->privateSpotPostMarketOrderNew (array_merge($request, $params));
+        $request = array();
+        $swap = ($marketType === 'swap');
+        $isMarketOrder = ($type === 'market');
+        $isLimitOrder = ($type === 'limit');
+        $marketIdRequest = $swap ? 'instrument_id' : 'symbol';
+        $request[$marketIdRequest] = $market['id'];
+        $postOnly = $this->is_post_only($isMarketOrder, false, $params);
+        if ($swap) {
+            $reduceOnly = $this->safe_value($params, 'reduceOnly', false);
+            $timeInForce = $this->safe_string($params, 'timeInForce');
+            $orderType = null;
+            if ($side === 'buy') {
+                $requestType = ($reduceOnly) ? 4 : 1;
+                $request['type'] = $requestType;
+            } else {
+                $requestType = ($reduceOnly) ? 3 : 2;
+                $request['type'] = $requestType;
+            }
+            if ($isLimitOrder) {
+                $orderType = 0;
+            }
+            if ($timeInForce === 'FOK') {
+                $orderType = $isMarketOrder ? 15 : 9;
+            } elseif ($timeInForce === 'IOC') {
+                $orderType = $isMarketOrder ? 13 : 4;
+            } elseif (($timeInForce === 'GTC') || ($isMarketOrder)) {
+                $orderType = 14;
+            } elseif ($timeInForce === 'PO') {
+                $postOnly = true;
+            }
+            if ($price !== null) {
+                $request['price'] = $this->price_to_precision($symbol, $price);
+            }
+            $request['order_type'] = $orderType;
+            $request['size'] = $amount;  // $swap orders require the $amount to be the number of contracts
+            $params = $this->omit($params, array( 'reduceOnly', 'timeInForce' ));
+        } else {
+            $postOnly = ($postOnly === true) ? 1 : 2;
+            $request['market'] = $marketType;
+            $suffix = '';
+            if ($type === 'market') {
+                $suffix = '_market';
+            } else {
+                $request['price'] = $this->price_to_precision($symbol, $price);
+            }
+            $request['type'] = $side . $suffix;
+            // limit orders require the $amount in the base currency, $market orders require the $amount in the quote currency
+            $request['amount'] = $this->amount_to_precision($symbol, $amount);
+        }
+        if ($postOnly) {
+            $request['postOnly'] = $postOnly;
+        }
+        $query = $this->omit($params, array( 'postOnly', 'post_only' ));
+        $response = $this->$method (array_merge($request, $query));
+        //
+        // spot
         //
         //     {
         //         "code" => 0,
         //         "order_id" => "198361cecdc65f9c8c9bb2fa68faec40"
         //     }
         //
+        // $swap
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => "1590873693003714560"
+        //     }
+        //
         $result = $this->parse_order($response, $market);
         return array_merge($result, array(
-            'symbol' => $market['symbol'],
-            'side' => $side,
+            'symbol' => $symbol,
             'type' => $type,
+            'side' => $side,
             'amount' => $amount,
             'price' => $price,
         ));
@@ -1136,20 +1204,43 @@ class digifinex extends Exchange {
     public function cancel_order($id, $symbol = null, $params = array ()) {
         /**
          * cancels an open order
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#cancelorder
          * @param {string} $id order $id
          * @param {string|null} $symbol not used by digifinex cancelOrder ()
          * @param {array} $params extra parameters specific to the digifinex api endpoint
          * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
          */
         $this->load_markets();
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
-        $orderType = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit($params, 'type');
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('cancelOrder', $market, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateSpotPostSpotOrderCancel',
+            'margin' => 'privateSpotPostMarginOrderCancel',
+            'swap' => 'privateSwapPostTradeCancelOrder',
+        ));
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('cancelOrder', $params);
+        if ($marginMode !== null) {
+            $method = 'privateSpotPostMarginOrderCancel';
+            $marketType = 'margin';
+        }
+        $id = (string) $id;
         $request = array(
-            'market' => $orderType,
             'order_id' => $id,
         );
-        $response = $this->privateSpotPostMarketOrderCancel (array_merge($request, $params));
+        if ($marketType === 'swap') {
+            $this->check_required_symbol('cancelOrder', $symbol);
+            $request['instrument_id'] = $market['id'];
+        } else {
+            $request['market'] = $marketType;
+        }
+        $response = $this->$method (array_merge($request, $query));
+        //
+        // spot
         //
         //     {
         //         "code" => 0,
@@ -1162,10 +1253,19 @@ class digifinex extends Exchange {
         //         )
         //     }
         //
-        $canceledOrders = $this->safe_value($response, 'success', array());
-        $numCanceledOrders = count($canceledOrders);
-        if ($numCanceledOrders !== 1) {
-            throw new OrderNotFound($this->id . ' cancelOrder() ' . $id . ' not found');
+        // swap
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => "1590923061186531328"
+        //     }
+        //
+        if (($marketType === 'spot') || ($marketType === 'margin')) {
+            $canceledOrders = $this->safe_value($response, 'success', array());
+            $numCanceledOrders = count($canceledOrders);
+            if ($numCanceledOrders !== 1) {
+                throw new OrderNotFound($this->id . ' cancelOrder() ' . $id . ' not found');
+            }
         }
         return $response;
     }
@@ -1220,14 +1320,21 @@ class digifinex extends Exchange {
 
     public function parse_order($order, $market = null) {
         //
-        // createOrder
+        // spot => createOrder
         //
         //     {
         //         "code" => 0,
         //         "order_id" => "198361cecdc65f9c8c9bb2fa68faec40"
         //     }
         //
-        // fetchOrder, fetchOpenOrders, fetchOrders
+        // swap => createOrder
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => "1590873693003714560"
+        //     }
+        //
+        // spot => fetchOrder, fetchOpenOrders, fetchOrders
         //
         //     {
         //         "symbol" => "BTC_USDT",
@@ -1244,49 +1351,98 @@ class digifinex extends Exchange {
         //         "kind" => "margin"
         //     }
         //
-        $id = $this->safe_string($order, 'order_id');
-        $timestamp = $this->safe_timestamp($order, 'created_date');
-        $lastTradeTimestamp = $this->safe_timestamp($order, 'finished_date');
-        $side = $this->safe_string($order, 'type');
+        // swap => fetchOrder, fetchOpenOrders, fetchOrders
+        //
+        //     {
+        //         "order_id" => "1590898207657824256",
+        //         "instrument_id" => "BTCUSDTPERP",
+        //         "margin_mode" => "crossed",
+        //         "contract_val" => "0.001",
+        //         "type" => 1,
+        //         "order_type" => 0,
+        //         "price" => "14000",
+        //         "size" => "6",
+        //         "filled_qty" => "0",
+        //         "price_avg" => "0",
+        //         "fee" => "0",
+        //         "state" => 0,
+        //         "leverage" => "20",
+        //         "turnover" => "0",
+        //         "has_stop" => 0,
+        //         "insert_time" => 1668134664828,
+        //         "time_stamp" => 1668134664828
+        //     }
+        //
+        $timestamp = null;
+        $lastTradeTimestamp = null;
+        $timeInForce = null;
         $type = null;
-        if ($side !== null) {
-            $parts = explode('_', $side);
-            $numParts = count($parts);
-            if ($numParts > 1) {
-                $side = $parts[0];
-                $type = $parts[1];
-            } else {
+        $side = $this->safe_string($order, 'type');
+        $marketId = $this->safe_string_2($order, 'symbol', 'instrument_id');
+        $symbol = $this->safe_symbol($marketId, $market, '_');
+        $market = $this->market($symbol);
+        if ($market['type'] === 'swap') {
+            $orderType = $this->safe_integer($order, 'order_type');
+            if (($orderType === 9) || ($orderType === 10) || ($orderType === 11) || ($orderType === 12) || ($orderType === 15)) {
+                $timeInForce = 'FOK';
+            } elseif (($orderType === 1) || ($orderType === 2) || ($orderType === 3) || ($orderType === 4) || ($orderType === 13)) {
+                $timeInForce = 'IOC';
+            } elseif (($orderType === 6) || ($orderType === 7) || ($orderType === 8) || ($orderType === 14)) {
+                $timeInForce = 'GTC';
+            }
+            if (($orderType === 0) || ($orderType === 1) || ($orderType === 4) || ($orderType === 5) || ($orderType === 9) || ($orderType === 10)) {
                 $type = 'limit';
+            } else {
+                $type = 'market';
+            }
+            if ($side === '1') {
+                $side = 'open long';
+            } elseif ($side === '2') {
+                $side = 'open short';
+            } elseif ($side === '3') {
+                $side = 'close long';
+            } elseif ($side === '4') {
+                $side = 'close short';
+            }
+            $timestamp = $this->safe_integer($order, 'insert_time');
+            $lastTradeTimestamp = $this->safe_integer($order, 'time_stamp');
+        } else {
+            $timestamp = $this->safe_timestamp($order, 'created_date');
+            $lastTradeTimestamp = $this->safe_timestamp($order, 'finished_date');
+            if ($side !== null) {
+                $parts = explode('_', $side);
+                $numParts = count($parts);
+                if ($numParts > 1) {
+                    $side = $parts[0];
+                    $type = $parts[1];
+                } else {
+                    $type = 'limit';
+                }
             }
         }
-        $status = $this->parse_order_status($this->safe_string($order, 'status'));
-        $marketId = $this->safe_string($order, 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market, '_');
-        $amountString = $this->safe_string($order, 'amount');
-        $filledString = $this->safe_string($order, 'executed_amount');
-        $priceString = $this->safe_string($order, 'price');
-        $averageString = $this->safe_string($order, 'avg_price');
         return $this->safe_order(array(
             'info' => $order,
-            'id' => $id,
+            'id' => $this->safe_string_2($order, 'order_id', 'data'),
             'clientOrderId' => null,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => $lastTradeTimestamp,
             'symbol' => $symbol,
             'type' => $type,
-            'timeInForce' => null,
+            'timeInForce' => $timeInForce,
             'postOnly' => null,
             'side' => $side,
-            'price' => $priceString,
+            'price' => $this->safe_number($order, 'price'),
             'stopPrice' => null,
-            'amount' => $amountString,
-            'filled' => $filledString,
+            'amount' => $this->safe_number_2($order, 'amount', 'size'),
+            'filled' => $this->safe_number_2($order, 'executed_amount', 'filled_qty'),
             'remaining' => null,
             'cost' => null,
-            'average' => $averageString,
-            'status' => $status,
-            'fee' => null,
+            'average' => $this->safe_number_2($order, 'avg_price', 'price_avg'),
+            'status' => $this->parse_order_status($this->safe_string_2($order, 'status', 'state')),
+            'fee' => array(
+                'cost' => $this->safe_number($order, 'fee'),
+            ),
             'trades' => null,
         ), $market);
     }
@@ -1294,25 +1450,50 @@ class digifinex extends Exchange {
     public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetch all unfilled currently open orders
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#current-active-orders
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#openorder
          * @param {string|null} $symbol unified $market $symbol
          * @param {int|null} $since the earliest time in ms to fetch open orders for
          * @param {int|null} $limit the maximum number of  open orders structures to retrieve
          * @param {array} $params extra parameters specific to the digifinex api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
-        $orderType = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit($params, 'type');
         $this->load_markets();
         $market = null;
-        $request = array(
-            'market' => $orderType,
-        );
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
         }
-        $response = $this->privateSpotGetMarketOrderCurrent (array_merge($request, $params));
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchOpenOrders', $market, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateSpotGetSpotOrderCurrent',
+            'margin' => 'privateSpotGetMarginOrderCurrent',
+            'swap' => 'privateSwapGetTradeOpenOrders',
+        ));
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOpenOrders', $params);
+        if ($marginMode !== null) {
+            $method = 'privateSpotGetMarginOrderCurrent';
+            $marketType = 'margin';
+        }
+        $request = array();
+        $swap = ($marketType === 'swap');
+        if ($swap) {
+            if ($since !== null) {
+                $request['start_timestamp'] = $since;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+        } else {
+            $request['market'] = $marketType;
+        }
+        if ($market !== null) {
+            $marketIdRequest = $swap ? 'instrument_id' : 'symbol';
+            $request[$marketIdRequest] = $market['id'];
+        }
+        $response = $this->$method (array_merge($request, $query));
+        //
+        // spot
         //
         //     {
         //         "code" => 0,
@@ -1331,6 +1512,34 @@ class digifinex extends Exchange {
         //                 "type" => "buy",
         //                 "kind" => "margin"
         //             }
+        //         )
+        //     }
+        //
+        // $swap
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => array(
+        //             array(
+        //                 "order_id" => "1590898207657824256",
+        //                 "instrument_id" => "BTCUSDTPERP",
+        //                 "margin_mode" => "crossed",
+        //                 "contract_val" => "0.001",
+        //                 "type" => 1,
+        //                 "order_type" => 0,
+        //                 "price" => "14000",
+        //                 "size" => "6",
+        //                 "filled_qty" => "0",
+        //                 "price_avg" => "0",
+        //                 "fee" => "0",
+        //                 "state" => 0,
+        //                 "leverage" => "20",
+        //                 "turnover" => "0",
+        //                 "has_stop" => 0,
+        //                 "insert_time" => 1668134664828,
+        //                 "time_stamp" => 1668134664828
+        //             ),
+        //             ...
         //         )
         //     }
         //
@@ -1341,31 +1550,52 @@ class digifinex extends Exchange {
     public function fetch_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         /**
          * fetches information on multiple orders made by the user
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-all-orders-including-history-orders
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#historyorder
          * @param {string|null} $symbol unified $market $symbol of the $market orders were made in
          * @param {int|null} $since the earliest time in ms to fetch orders for
          * @param {int|null} $limit the maximum number of  orde structures to retrieve
          * @param {array} $params extra parameters specific to the digifinex api endpoint
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
-        $orderType = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit($params, 'type');
         $this->load_markets();
         $market = null;
-        $request = array(
-            'market' => $orderType,
-        );
         if ($symbol !== null) {
             $market = $this->market($symbol);
-            $request['symbol'] = $market['id'];
         }
-        if ($since !== null) {
-            $request['start_time'] = intval($since / 1000); // default 3 days from now, max 30 days
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchOrders', $market, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateSpotGetSpotOrderHistory',
+            'margin' => 'privateSpotGetMarginOrderHistory',
+            'swap' => 'privateSwapGetTradeHistoryOrders',
+        ));
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOrders', $params);
+        if ($marginMode !== null) {
+            $method = 'privateSpotGetMarginOrderHistory';
+            $marketType = 'margin';
+        }
+        $request = array();
+        if ($marketType === 'swap') {
+            if ($since !== null) {
+                $request['start_timestamp'] = $since;
+            }
+        } else {
+            $request['market'] = $marketType;
+            if ($since !== null) {
+                $request['start_time'] = intval($since / 1000); // default 3 days from now, max 30 days
+            }
+        }
+        if ($market !== null) {
+            $marketIdRequest = ($marketType === 'swap') ? 'instrument_id' : 'symbol';
+            $request[$marketIdRequest] = $market['id'];
         }
         if ($limit !== null) {
-            $request['limit'] = $limit; // default 10, max 100
+            $request['limit'] = $limit;
         }
-        $response = $this->privateSpotGetMarketOrderHistory (array_merge($request, $params));
+        $response = $this->$method (array_merge($request, $query));
+        //
+        // spot
         //
         //     {
         //         "code" => 0,
@@ -1384,6 +1614,34 @@ class digifinex extends Exchange {
         //                 "type" => "buy",
         //                 "kind" => "margin"
         //             }
+        //         )
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => array(
+        //             array(
+        //                 "order_id" => "1590136768156405760",
+        //                 "instrument_id" => "BTCUSDTPERP",
+        //                 "margin_mode" => "crossed",
+        //                 "contract_val" => "0.001",
+        //                 "type" => 1,
+        //                 "order_type" => 8,
+        //                 "price" => "18660.2",
+        //                 "size" => "1",
+        //                 "filled_qty" => "1",
+        //                 "price_avg" => "18514.5",
+        //                 "fee" => "0.00925725",
+        //                 "state" => 2,
+        //                 "leverage" => "20",
+        //                 "turnover" => "18.5145",
+        //                 "has_stop" => 0,
+        //                 "insert_time" => 1667953123526,
+        //                 "time_stamp" => 1667953123596
+        //             ),
+        //             ...
         //         )
         //     }
         //
@@ -1394,23 +1652,43 @@ class digifinex extends Exchange {
     public function fetch_order($id, $symbol = null, $params = array ()) {
         /**
          * fetches information on an $order made by the user
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-$order-status
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#orderinfo
+         * @param {string} $id $order $id
          * @param {string|null} $symbol unified $symbol of the $market the $order was made in
          * @param {array} $params extra parameters specific to the digifinex api endpoint
          * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
          */
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
-        $orderType = $this->safe_string($params, 'type', $defaultType);
-        $params = $this->omit($params, 'type');
         $this->load_markets();
         $market = null;
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchOrder', $market, $params);
+        $method = $this->get_supported_mapping($marketType, array(
+            'spot' => 'privateSpotGetSpotOrder',
+            'margin' => 'privateSpotGetMarginOrder',
+            'swap' => 'privateSwapGetTradeOrderInfo',
+        ));
+        list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchOrder', $params);
+        if ($marginMode !== null) {
+            $method = 'privateSpotGetMarginOrder';
+            $marketType = 'margin';
+        }
         $request = array(
-            'market' => $orderType,
             'order_id' => $id,
         );
-        $response = $this->privateSpotGetMarketOrder (array_merge($request, $params));
+        if ($marketType === 'swap') {
+            if ($market !== null) {
+                $request['instrument_id'] = $market['id'];
+            }
+        } else {
+            $request['market'] = $marketType;
+        }
+        $response = $this->$method (array_merge($request, $query));
+        //
+        // spot
         //
         //     {
         //         "code" => 0,
@@ -1432,10 +1710,35 @@ class digifinex extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
-        $order = $this->safe_value($data, 0);
+        // swap
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => {
+        //             "order_id" => "1590923061186531328",
+        //             "instrument_id" => "ETHUSDTPERP",
+        //             "margin_mode" => "crossed",
+        //             "contract_val" => "0.01",
+        //             "type" => 1,
+        //             "order_type" => 0,
+        //             "price" => "900",
+        //             "size" => "6",
+        //             "filled_qty" => "0",
+        //             "price_avg" => "0",
+        //             "fee" => "0",
+        //             "state" => 0,
+        //             "leverage" => "20",
+        //             "turnover" => "0",
+        //             "has_stop" => 0,
+        //             "insert_time" => 1668140590372,
+        //             "time_stamp" => 1668140590372
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data');
+        $order = ($marketType === 'swap') ? $data : $this->safe_value($data, 0);
         if ($order === null) {
-            throw new OrderNotFound($this->id . ' fetchOrder() $order ' . $id . ' not found');
+            throw new OrderNotFound($this->id . ' fetchOrder() $order ' . (string) $id . ' not found');
         }
         return $this->parse_order($order, $market);
     }
@@ -2173,6 +2476,55 @@ class digifinex extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $symbol, $since, $limit);
     }
 
+    public function fetch_trading_fee($symbol, $params = array ()) {
+        /**
+         * fetch the trading fees for a $market
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#tradingfee
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the digifinex api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['swap']) {
+            throw new BadRequest($this->id . ' fetchTradingFee() supports swap markets only');
+        }
+        $request = array(
+            'instrument_id' => $market['id'],
+        );
+        $response = $this->privateSwapGetAccountTradingFeeRate (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => {
+        //             "instrument_id" => "BTCUSDTPERP",
+        //             "taker_fee_rate" => "0.0005",
+        //             "maker_fee_rate" => "0.0003"
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_trading_fee($data, $market);
+    }
+
+    public function parse_trading_fee($fee, $market = null) {
+        //
+        //     {
+        //         "instrument_id" => "BTCUSDTPERP",
+        //         "taker_fee_rate" => "0.0005",
+        //         "maker_fee_rate" => "0.0003"
+        //     }
+        //
+        $marketId = $this->safe_string($fee, 'instrument_id');
+        $symbol = $this->safe_symbol($marketId, $market);
+        return array(
+            'info' => $fee,
+            'symbol' => $symbol,
+            'maker' => $this->safe_number($fee, 'maker_fee_rate'),
+            'taker' => $this->safe_number($fee, 'taker_fee_rate'),
+        );
+    }
+
     public function handle_margin_mode_and_params($methodName, $params = array ()) {
         /**
          * @ignore
@@ -2206,9 +2558,24 @@ class digifinex extends Exchange {
         $query = $this->omit($params, $this->extract_params($path));
         $urlencoded = $this->urlencode($this->keysort($query));
         if ($signed) {
-            $nonce = (string) $this->nonce();
-            $auth = $urlencoded;
-            // the $signature is not time-limited :\
+            $auth = null;
+            $nonce = null;
+            if ($pathPart === '/swap/v2') {
+                $nonce = (string) $this->milliseconds();
+                $auth = $nonce . $method . $payload;
+                if ($method === 'GET') {
+                    if ($urlencoded) {
+                        $auth .= '?' . $urlencoded;
+                    }
+                } elseif ($method === 'POST') {
+                    $swapPostParams = json_encode ($params);
+                    $urlencoded = $swapPostParams;
+                    $auth .= $swapPostParams;
+                }
+            } else {
+                $nonce = (string) $this->nonce();
+                $auth = $urlencoded;
+            }
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
             if ($method === 'GET') {
                 if ($urlencoded) {

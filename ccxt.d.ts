@@ -514,8 +514,6 @@ declare module 'ccxt' {
     export class exmo extends Exchange {}
     export class flowbtc extends ndax {}
     export class fmfwio extends hitbtc {}
-    export class ftx extends Exchange {}
-    export class ftxus extends ftx {}
     export class gate extends Exchange {}
     export class gateio extends gate {}
     export class gemini extends Exchange {}
@@ -557,7 +555,6 @@ declare module 'ccxt' {
     export class ripio extends Exchange {}
     export class stex extends Exchange {}
     export class therock extends Exchange {}
-    export class tidebit extends Exchange {}
     export class tidex extends Exchange {}
     export class timex extends Exchange {}
     export class tokocrypto extends Exchange {}
@@ -639,8 +636,6 @@ declare module 'ccxt' {
         | 'exmo'
         | 'flowbtc'
         | 'fmfwio'
-        | 'ftx'
-        | 'ftxus'
         | 'gate'
         | 'gateio'
         | 'gemini'
@@ -682,7 +677,6 @@ declare module 'ccxt' {
         | 'ripio'
         | 'stex'
         | 'therock'
-        | 'tidebit'
         | 'tidex'
         | 'timex'
         | 'tokocrypto'
@@ -740,8 +734,6 @@ declare module 'ccxt' {
         class currencycom extends Exchange {}
         class deribit extends Exchange {}
         class exmo extends Exchange {}
-        class ftx extends Exchange {}
-        class ftxus extends Exchange {}
         class gate extends Exchange {}
         class gateio extends Exchange {}
         class hitbtc extends Exchange {}

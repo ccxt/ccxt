@@ -27,6 +27,8 @@ module.exports = class digifinex extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
+                'createReduceOnlyOrder': true,
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
@@ -58,7 +60,7 @@ module.exports = class digifinex extends Exchange {
                 'fetchTickers': true,
                 'fetchTime': true,
                 'fetchTrades': true,
-                'fetchTradingFee': false,
+                'fetchTradingFee': true,
                 'fetchTradingFees': false,
                 'fetchWithdrawals': true,
                 'setMarginMode': false,
@@ -245,6 +247,7 @@ module.exports = class digifinex extends Exchange {
                     '20040': [ RateLimitExceeded, 'Withdraw too frequently; limitation: 3 times a minute, 100 times a day' ],
                     '20041': [ PermissionDenied, 'Beyond the daily withdrawal limit' ],
                     '20042': [ BadSymbol, 'Current trading pair does not support API trading' ],
+                    '400002': [ BadRequest, 'Invalid Parameter' ],
                 },
                 'broad': {
                 },
@@ -1116,44 +1119,109 @@ module.exports = class digifinex extends Exchange {
          * @method
          * @name digifinex#createOrder
          * @description create a trade order
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#create-new-order
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#orderplace
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
          * @param {float} amount how much of currency you want to trade in units of base currency
          * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
          * @param {object} params extra parameters specific to the digifinex api endpoint
+         * @param {string} params.timeInForce "GTC", "IOC", "FOK", or "PO"
+         * @param {bool} params.postOnly true or false
+         * @param {bool} params.reduceOnly true or false
          * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        const orderType = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
-        const request = {
-            'market': orderType,
-            'symbol': market['id'],
-            'amount': this.amountToPrecision (market['symbol'], amount),
-            // 'post_only': 0, // 0 by default, if set to 1 the order will be canceled if it can be executed immediately, making sure there will be no market taking
-        };
-        let suffix = '';
-        if (type === 'market') {
-            suffix = '_market';
-        } else {
-            request['price'] = this.priceToPrecision (market['symbol'], price);
+        symbol = market['symbol'];
+        let marketType = undefined;
+        let marginMode = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('createOrder', market, params);
+        let method = this.getSupportedMapping (marketType, {
+            'spot': 'privateSpotPostSpotOrderNew',
+            'margin': 'privateSpotPostMarginOrderNew',
+            'swap': 'privateSwapPostTradeOrderPlace',
+        });
+        [ marginMode, params ] = this.handleMarginModeAndParams ('createOrder', params);
+        if (marginMode !== undefined) {
+            method = 'privateSpotPostMarginOrderNew';
+            marketType = 'margin';
         }
-        request['type'] = side + suffix;
-        const response = await this.privateSpotPostMarketOrderNew (this.extend (request, params));
+        const request = {};
+        const swap = (marketType === 'swap');
+        const isMarketOrder = (type === 'market');
+        const isLimitOrder = (type === 'limit');
+        const marketIdRequest = swap ? 'instrument_id' : 'symbol';
+        request[marketIdRequest] = market['id'];
+        let postOnly = this.isPostOnly (isMarketOrder, false, params);
+        if (swap) {
+            const reduceOnly = this.safeValue (params, 'reduceOnly', false);
+            const timeInForce = this.safeString (params, 'timeInForce');
+            let orderType = undefined;
+            if (side === 'buy') {
+                const requestType = (reduceOnly) ? 4 : 1;
+                request['type'] = requestType;
+            } else {
+                const requestType = (reduceOnly) ? 3 : 2;
+                request['type'] = requestType;
+            }
+            if (isLimitOrder) {
+                orderType = 0;
+            }
+            if (timeInForce === 'FOK') {
+                orderType = isMarketOrder ? 15 : 9;
+            } else if (timeInForce === 'IOC') {
+                orderType = isMarketOrder ? 13 : 4;
+            } else if ((timeInForce === 'GTC') || (isMarketOrder)) {
+                orderType = 14;
+            } else if (timeInForce === 'PO') {
+                postOnly = true;
+            }
+            if (price !== undefined) {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+            request['order_type'] = orderType;
+            request['size'] = amount;  // swap orders require the amount to be the number of contracts
+            params = this.omit (params, [ 'reduceOnly', 'timeInForce' ]);
+        } else {
+            postOnly = (postOnly === true) ? 1 : 2;
+            request['market'] = marketType;
+            let suffix = '';
+            if (type === 'market') {
+                suffix = '_market';
+            } else {
+                request['price'] = this.priceToPrecision (symbol, price);
+            }
+            request['type'] = side + suffix;
+            // limit orders require the amount in the base currency, market orders require the amount in the quote currency
+            request['amount'] = this.amountToPrecision (symbol, amount);
+        }
+        if (postOnly) {
+            request['postOnly'] = postOnly;
+        }
+        const query = this.omit (params, [ 'postOnly', 'post_only' ]);
+        const response = await this[method] (this.extend (request, query));
+        //
+        // spot
         //
         //     {
         //         "code": 0,
         //         "order_id": "198361cecdc65f9c8c9bb2fa68faec40"
         //     }
         //
+        // swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": "1590873693003714560"
+        //     }
+        //
         const result = this.parseOrder (response, market);
         return this.extend (result, {
-            'symbol': market['symbol'],
-            'side': side,
+            'symbol': symbol,
             'type': type,
+            'side': side,
             'amount': amount,
             'price': price,
         });
@@ -1164,20 +1232,43 @@ module.exports = class digifinex extends Exchange {
          * @method
          * @name digifinex#cancelOrder
          * @description cancels an open order
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#cancel-order
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#cancelorder
          * @param {string} id order id
          * @param {string|undefined} symbol not used by digifinex cancelOrder ()
          * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        const orderType = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('cancelOrder', market, params);
+        let method = this.getSupportedMapping (marketType, {
+            'spot': 'privateSpotPostSpotOrderCancel',
+            'margin': 'privateSpotPostMarginOrderCancel',
+            'swap': 'privateSwapPostTradeCancelOrder',
+        });
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('cancelOrder', params);
+        if (marginMode !== undefined) {
+            method = 'privateSpotPostMarginOrderCancel';
+            marketType = 'margin';
+        }
+        id = id.toString ();
         const request = {
-            'market': orderType,
             'order_id': id,
         };
-        const response = await this.privateSpotPostMarketOrderCancel (this.extend (request, params));
+        if (marketType === 'swap') {
+            this.checkRequiredSymbol ('cancelOrder', symbol);
+            request['instrument_id'] = market['id'];
+        } else {
+            request['market'] = marketType;
+        }
+        const response = await this[method] (this.extend (request, query));
+        //
+        // spot
         //
         //     {
         //         "code": 0,
@@ -1190,10 +1281,19 @@ module.exports = class digifinex extends Exchange {
         //         ]
         //     }
         //
-        const canceledOrders = this.safeValue (response, 'success', []);
-        const numCanceledOrders = canceledOrders.length;
-        if (numCanceledOrders !== 1) {
-            throw new OrderNotFound (this.id + ' cancelOrder() ' + id + ' not found');
+        // swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": "1590923061186531328"
+        //     }
+        //
+        if ((marketType === 'spot') || (marketType === 'margin')) {
+            const canceledOrders = this.safeValue (response, 'success', []);
+            const numCanceledOrders = canceledOrders.length;
+            if (numCanceledOrders !== 1) {
+                throw new OrderNotFound (this.id + ' cancelOrder() ' + id + ' not found');
+            }
         }
         return response;
     }
@@ -1250,14 +1350,21 @@ module.exports = class digifinex extends Exchange {
 
     parseOrder (order, market = undefined) {
         //
-        // createOrder
+        // spot: createOrder
         //
         //     {
         //         "code": 0,
         //         "order_id": "198361cecdc65f9c8c9bb2fa68faec40"
         //     }
         //
-        // fetchOrder, fetchOpenOrders, fetchOrders
+        // swap: createOrder
+        //
+        //     {
+        //         "code": 0,
+        //         "data": "1590873693003714560"
+        //     }
+        //
+        // spot: fetchOrder, fetchOpenOrders, fetchOrders
         //
         //     {
         //         "symbol": "BTC_USDT",
@@ -1274,49 +1381,98 @@ module.exports = class digifinex extends Exchange {
         //         "kind": "margin"
         //     }
         //
-        const id = this.safeString (order, 'order_id');
-        const timestamp = this.safeTimestamp (order, 'created_date');
-        const lastTradeTimestamp = this.safeTimestamp (order, 'finished_date');
-        let side = this.safeString (order, 'type');
+        // swap: fetchOrder, fetchOpenOrders, fetchOrders
+        //
+        //     {
+        //         "order_id": "1590898207657824256",
+        //         "instrument_id": "BTCUSDTPERP",
+        //         "margin_mode": "crossed",
+        //         "contract_val": "0.001",
+        //         "type": 1,
+        //         "order_type": 0,
+        //         "price": "14000",
+        //         "size": "6",
+        //         "filled_qty": "0",
+        //         "price_avg": "0",
+        //         "fee": "0",
+        //         "state": 0,
+        //         "leverage": "20",
+        //         "turnover": "0",
+        //         "has_stop": 0,
+        //         "insert_time": 1668134664828,
+        //         "time_stamp": 1668134664828
+        //     }
+        //
+        let timestamp = undefined;
+        let lastTradeTimestamp = undefined;
+        let timeInForce = undefined;
         let type = undefined;
-        if (side !== undefined) {
-            const parts = side.split ('_');
-            const numParts = parts.length;
-            if (numParts > 1) {
-                side = parts[0];
-                type = parts[1];
-            } else {
+        let side = this.safeString (order, 'type');
+        const marketId = this.safeString2 (order, 'symbol', 'instrument_id');
+        const symbol = this.safeSymbol (marketId, market, '_');
+        market = this.market (symbol);
+        if (market['type'] === 'swap') {
+            const orderType = this.safeInteger (order, 'order_type');
+            if ((orderType === 9) || (orderType === 10) || (orderType === 11) || (orderType === 12) || (orderType === 15)) {
+                timeInForce = 'FOK';
+            } else if ((orderType === 1) || (orderType === 2) || (orderType === 3) || (orderType === 4) || (orderType === 13)) {
+                timeInForce = 'IOC';
+            } else if ((orderType === 6) || (orderType === 7) || (orderType === 8) || (orderType === 14)) {
+                timeInForce = 'GTC';
+            }
+            if ((orderType === 0) || (orderType === 1) || (orderType === 4) || (orderType === 5) || (orderType === 9) || (orderType === 10)) {
                 type = 'limit';
+            } else {
+                type = 'market';
+            }
+            if (side === '1') {
+                side = 'open long';
+            } else if (side === '2') {
+                side = 'open short';
+            } else if (side === '3') {
+                side = 'close long';
+            } else if (side === '4') {
+                side = 'close short';
+            }
+            timestamp = this.safeInteger (order, 'insert_time');
+            lastTradeTimestamp = this.safeInteger (order, 'time_stamp');
+        } else {
+            timestamp = this.safeTimestamp (order, 'created_date');
+            lastTradeTimestamp = this.safeTimestamp (order, 'finished_date');
+            if (side !== undefined) {
+                const parts = side.split ('_');
+                const numParts = parts.length;
+                if (numParts > 1) {
+                    side = parts[0];
+                    type = parts[1];
+                } else {
+                    type = 'limit';
+                }
             }
         }
-        const status = this.parseOrderStatus (this.safeString (order, 'status'));
-        const marketId = this.safeString (order, 'symbol');
-        const symbol = this.safeSymbol (marketId, market, '_');
-        const amountString = this.safeString (order, 'amount');
-        const filledString = this.safeString (order, 'executed_amount');
-        const priceString = this.safeString (order, 'price');
-        const averageString = this.safeString (order, 'avg_price');
         return this.safeOrder ({
             'info': order,
-            'id': id,
+            'id': this.safeString2 (order, 'order_id', 'data'),
             'clientOrderId': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
             'symbol': symbol,
             'type': type,
-            'timeInForce': undefined,
+            'timeInForce': timeInForce,
             'postOnly': undefined,
             'side': side,
-            'price': priceString,
+            'price': this.safeNumber (order, 'price'),
             'stopPrice': undefined,
-            'amount': amountString,
-            'filled': filledString,
+            'amount': this.safeNumber2 (order, 'amount', 'size'),
+            'filled': this.safeNumber2 (order, 'executed_amount', 'filled_qty'),
             'remaining': undefined,
             'cost': undefined,
-            'average': averageString,
-            'status': status,
-            'fee': undefined,
+            'average': this.safeNumber2 (order, 'avg_price', 'price_avg'),
+            'status': this.parseOrderStatus (this.safeString2 (order, 'status', 'state')),
+            'fee': {
+                'cost': this.safeNumber (order, 'fee'),
+            },
             'trades': undefined,
         }, market);
     }
@@ -1326,25 +1482,50 @@ module.exports = class digifinex extends Exchange {
          * @method
          * @name digifinex#fetchOpenOrders
          * @description fetch all unfilled currently open orders
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#current-active-orders
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#openorder
          * @param {string|undefined} symbol unified market symbol
          * @param {int|undefined} since the earliest time in ms to fetch open orders for
          * @param {int|undefined} limit the maximum number of  open orders structures to retrieve
          * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        const orderType = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
         await this.loadMarkets ();
         let market = undefined;
-        const request = {
-            'market': orderType,
-        };
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['symbol'] = market['id'];
         }
-        const response = await this.privateSpotGetMarketOrderCurrent (this.extend (request, params));
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
+        let method = this.getSupportedMapping (marketType, {
+            'spot': 'privateSpotGetSpotOrderCurrent',
+            'margin': 'privateSpotGetMarginOrderCurrent',
+            'swap': 'privateSwapGetTradeOpenOrders',
+        });
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOpenOrders', params);
+        if (marginMode !== undefined) {
+            method = 'privateSpotGetMarginOrderCurrent';
+            marketType = 'margin';
+        }
+        const request = {};
+        const swap = (marketType === 'swap');
+        if (swap) {
+            if (since !== undefined) {
+                request['start_timestamp'] = since;
+            }
+            if (limit !== undefined) {
+                request['limit'] = limit;
+            }
+        } else {
+            request['market'] = marketType;
+        }
+        if (market !== undefined) {
+            const marketIdRequest = swap ? 'instrument_id' : 'symbol';
+            request[marketIdRequest] = market['id'];
+        }
+        const response = await this[method] (this.extend (request, query));
+        //
+        // spot
         //
         //     {
         //         "code": 0,
@@ -1363,6 +1544,34 @@ module.exports = class digifinex extends Exchange {
         //                 "type": "buy",
         //                 "kind": "margin"
         //             }
+        //         ]
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "order_id": "1590898207657824256",
+        //                 "instrument_id": "BTCUSDTPERP",
+        //                 "margin_mode": "crossed",
+        //                 "contract_val": "0.001",
+        //                 "type": 1,
+        //                 "order_type": 0,
+        //                 "price": "14000",
+        //                 "size": "6",
+        //                 "filled_qty": "0",
+        //                 "price_avg": "0",
+        //                 "fee": "0",
+        //                 "state": 0,
+        //                 "leverage": "20",
+        //                 "turnover": "0",
+        //                 "has_stop": 0,
+        //                 "insert_time": 1668134664828,
+        //                 "time_stamp": 1668134664828
+        //             },
+        //             ...
         //         ]
         //     }
         //
@@ -1375,31 +1584,52 @@ module.exports = class digifinex extends Exchange {
          * @method
          * @name digifinex#fetchOrders
          * @description fetches information on multiple orders made by the user
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-all-orders-including-history-orders
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#historyorder
          * @param {string|undefined} symbol unified market symbol of the market orders were made in
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        const orderType = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
         await this.loadMarkets ();
         let market = undefined;
-        const request = {
-            'market': orderType,
-        };
         if (symbol !== undefined) {
             market = this.market (symbol);
-            request['symbol'] = market['id'];
         }
-        if (since !== undefined) {
-            request['start_time'] = parseInt (since / 1000); // default 3 days from now, max 30 days
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
+        let method = this.getSupportedMapping (marketType, {
+            'spot': 'privateSpotGetSpotOrderHistory',
+            'margin': 'privateSpotGetMarginOrderHistory',
+            'swap': 'privateSwapGetTradeHistoryOrders',
+        });
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrders', params);
+        if (marginMode !== undefined) {
+            method = 'privateSpotGetMarginOrderHistory';
+            marketType = 'margin';
+        }
+        const request = {};
+        if (marketType === 'swap') {
+            if (since !== undefined) {
+                request['start_timestamp'] = since;
+            }
+        } else {
+            request['market'] = marketType;
+            if (since !== undefined) {
+                request['start_time'] = parseInt (since / 1000); // default 3 days from now, max 30 days
+            }
+        }
+        if (market !== undefined) {
+            const marketIdRequest = (marketType === 'swap') ? 'instrument_id' : 'symbol';
+            request[marketIdRequest] = market['id'];
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default 10, max 100
+            request['limit'] = limit;
         }
-        const response = await this.privateSpotGetMarketOrderHistory (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
+        //
+        // spot
         //
         //     {
         //         "code": 0,
@@ -1418,6 +1648,34 @@ module.exports = class digifinex extends Exchange {
         //                 "type": "buy",
         //                 "kind": "margin"
         //             }
+        //         ]
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "order_id": "1590136768156405760",
+        //                 "instrument_id": "BTCUSDTPERP",
+        //                 "margin_mode": "crossed",
+        //                 "contract_val": "0.001",
+        //                 "type": 1,
+        //                 "order_type": 8,
+        //                 "price": "18660.2",
+        //                 "size": "1",
+        //                 "filled_qty": "1",
+        //                 "price_avg": "18514.5",
+        //                 "fee": "0.00925725",
+        //                 "state": 2,
+        //                 "leverage": "20",
+        //                 "turnover": "18.5145",
+        //                 "has_stop": 0,
+        //                 "insert_time": 1667953123526,
+        //                 "time_stamp": 1667953123596
+        //             },
+        //             ...
         //         ]
         //     }
         //
@@ -1430,23 +1688,43 @@ module.exports = class digifinex extends Exchange {
          * @method
          * @name digifinex#fetchOrder
          * @description fetches information on an order made by the user
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-order-status
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#orderinfo
+         * @param {string} id order id
          * @param {string|undefined} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        const orderType = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchOrder', market, params);
+        let method = this.getSupportedMapping (marketType, {
+            'spot': 'privateSpotGetSpotOrder',
+            'margin': 'privateSpotGetMarginOrder',
+            'swap': 'privateSwapGetTradeOrderInfo',
+        });
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchOrder', params);
+        if (marginMode !== undefined) {
+            method = 'privateSpotGetMarginOrder';
+            marketType = 'margin';
+        }
         const request = {
-            'market': orderType,
             'order_id': id,
         };
-        const response = await this.privateSpotGetMarketOrder (this.extend (request, params));
+        if (marketType === 'swap') {
+            if (market !== undefined) {
+                request['instrument_id'] = market['id'];
+            }
+        } else {
+            request['market'] = marketType;
+        }
+        const response = await this[method] (this.extend (request, query));
+        //
+        // spot
         //
         //     {
         //         "code": 0,
@@ -1468,10 +1746,35 @@ module.exports = class digifinex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        const order = this.safeValue (data, 0);
+        // swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "order_id": "1590923061186531328",
+        //             "instrument_id": "ETHUSDTPERP",
+        //             "margin_mode": "crossed",
+        //             "contract_val": "0.01",
+        //             "type": 1,
+        //             "order_type": 0,
+        //             "price": "900",
+        //             "size": "6",
+        //             "filled_qty": "0",
+        //             "price_avg": "0",
+        //             "fee": "0",
+        //             "state": 0,
+        //             "leverage": "20",
+        //             "turnover": "0",
+        //             "has_stop": 0,
+        //             "insert_time": 1668140590372,
+        //             "time_stamp": 1668140590372
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        const order = (marketType === 'swap') ? data : this.safeValue (data, 0);
         if (order === undefined) {
-            throw new OrderNotFound (this.id + ' fetchOrder() order ' + id + ' not found');
+            throw new OrderNotFound (this.id + ' fetchOrder() order ' + id.toString () + ' not found');
         }
         return this.parseOrder (order, market);
     }

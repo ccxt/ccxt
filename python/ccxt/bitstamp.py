@@ -1082,31 +1082,59 @@ class bitstamp(Exchange):
         response = self.privatePostBalance(params)
         return self.parse_trading_fees(response)
 
-    def parse_transaction_fees(self, balance):
-        withdraw = {}
-        ids = list(balance.keys())
-        for i in range(0, len(ids)):
-            id = ids[i]
-            if id.find('_withdrawal_fee') >= 0:
-                currencyId = id.split('_')[0]
-                code = self.safe_currency_code(currencyId)
-                withdraw[code] = self.safe_number(balance, id)
-        return {
-            'info': balance,
-            'withdraw': withdraw,
-            'deposit': {},
-        }
-
     def fetch_transaction_fees(self, codes=None, params={}):
         """
         fetch transaction fees
-        :param [str]|None codes: not used by bitstamp fetchTransactionFees()
+        see https://www.bitstamp.net/api/#balance
+        :param [str]|None codes: list of unified currency codes
         :param dict params: extra parameters specific to the bitstamp api endpoint
         :returns [dict]: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
         """
         self.load_markets()
-        balance = self.privatePostBalance(params)
-        return self.parse_transaction_fees(balance)
+        response = self.privatePostBalance(params)
+        return self.parse_transaction_fees(response, codes)
+
+    def parse_transaction_fees(self, response, codes=None):
+        #
+        #  {
+        #     yfi_available: '0.00000000',
+        #     yfi_balance: '0.00000000',
+        #     yfi_reserved: '0.00000000',
+        #     yfi_withdrawal_fee: '0.00070000',
+        #     yfieur_fee: '0.000',
+        #     yfiusd_fee: '0.000',
+        #     zrx_available: '0.00000000',
+        #     zrx_balance: '0.00000000',
+        #     zrx_reserved: '0.00000000',
+        #     zrx_withdrawal_fee: '12.00000000',
+        #     zrxeur_fee: '0.000',
+        #     zrxusd_fee: '0.000',
+        #     ...
+        #  }
+        #
+        if codes is None:
+            codes = list(self.currencies.keys())
+        result = {}
+        mainCurrencyId = None
+        ids = list(response.keys())
+        for i in range(0, len(ids)):
+            id = ids[i]
+            currencyId = id.split('_')[0]
+            code = self.safe_currency_code(currencyId)
+            if codes is not None and not self.in_array(code, codes):
+                continue
+            if id.find('_available') >= 0:
+                mainCurrencyId = currencyId
+                result[code] = {
+                    'deposit': None,
+                    'withdraw': None,
+                    'info': {},
+                }
+            if currencyId == mainCurrencyId:
+                result[code]['info'][id] = self.safe_number(response, id)
+            if id.find('_withdrawal_fee') >= 0:
+                result[code]['withdraw'] = self.safe_number(response, id)
+        return result
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         """

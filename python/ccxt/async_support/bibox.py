@@ -94,14 +94,13 @@ class bibox(Exchange):
                 'api': {
                     'rest': 'https://api.{hostname}',
                 },
-                'www': 'https://www.bibox365.com',
+                'www': 'https://www.{hostname}',
                 'doc': [
                     'https://biboxcom.github.io/en/',
                     'https://biboxcom.github.io/v3/spot/en/',
                     'https://biboxcom.github.io/api/spot/v4',
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/360002336133',
-                'referral': 'https://w2.bibox365.com/login/register?invite_code=05Kj3I',
             },
             'api': {
                 'v1': {
@@ -615,63 +614,110 @@ class bibox(Exchange):
         return self.filter_by_array(result, 'symbol', symbols)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer_2(trade, 'time', 'createdAt')
-        side = self.safe_integer_2(trade, 'side', 'order_side')
-        side = 'buy' if (side == 1) else 'sell'
-        marketId = self.safe_string(trade, 'pair')
-        if marketId is None:
-            baseId = self.safe_string(trade, 'coin_symbol')
-            quoteId = self.safe_string(trade, 'currency_symbol')
-            if (baseId is not None) and (quoteId is not None):
-                marketId = baseId + '_' + quoteId
+        #
+        # fetchMyTrades
+        #
+        #    {
+        #        "i": 452361213188,
+        #        "o": 14284855094264759,       # The order id assigned by the exchange
+        #        "s": "ADA_USDT",              # trading pair code
+        #        "T": 1579458,
+        #        "t": 1653676917531,           # transaction time
+        #        "p": 0.45,                    # transaction price
+        #        "q": 10,                      # transaction volume
+        #        "l": "maker",                 # taker/maker
+        #        "f": {
+        #            "a": "ADA",               # transaction fee currency
+        #            "m": 0.010000000          # handling fee
+        #        }
+        #    }
+        #
+        # fetchTrades
+        #
+        #    {
+        #        "i": "17122255",              # transaction id
+        #        "p": "46125.7",               # transaction price
+        #        "q": "0.079045",              # transaction amount
+        #        "s": "buy",                   # taker's transaction direction
+        #        "t": "1628738748319"          # transaction time
+        #    }
+        #
+        id = self.safe_string(trade, 'i')
+        marketId = self.safe_string(trade, 's')
+        timestamp = self.safe_integer(trade, 't')
+        fee = self.safe_value(trade, 'f')
+        feeCurrencyId = self.safe_string(fee, 'a')
+        amount = self.safe_string(trade, 'q')
+        transactionId = self.safe_string(trade, 'T')
+        side = 'buy'
+        orderId = self.safe_string(trade, 'o')
         market = self.safe_market(marketId, market)
-        priceString = self.safe_string(trade, 'price')
-        amountString = self.safe_string(trade, 'amount')
-        fee = None
-        feeCostString = self.safe_string(trade, 'fee')
-        if feeCostString is not None:
-            feeCurrencyId = self.safe_string(trade, 'fee_symbol')
-            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
-            fee = {
-                'cost': Precise.string_neg(feeCostString),
-                'currency': feeCurrencyCode,
-            }
-        id = self.safe_string(trade, 'id')
+        if marketId == 'buy' or marketId == 'sell':
+            side = marketId
+        elif Precise.string_lt(amount, '0'):
+            side = 'sell'
+        if Precise.string_lt(id, '9999999999'):
+            transactionId = id
         return self.safe_trade({
             'info': trade,
-            'id': id,
-            'order': None,  # Bibox does not have it(documented) yet
+            'id': transactionId,
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
-            'type': 'limit',
-            'takerOrMaker': None,
+            'type': None,
+            'takerOrMaker': self.safe_string(trade, 'l', 'taker'),
             'side': side,
-            'price': priceString,
-            'amount': amountString,
+            'price': self.safe_string(trade, 'p'),
+            'amount': amount,
             'cost': None,
-            'fee': fee,
+            'fee': {
+                'cost': self.safe_string(fee, 'm'),
+                'currency': self.safe_currency_code(feeCurrencyId),
+            },
         }, market)
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         """
         get the list of most recent trades for a particular symbol
+        see https://biboxcom.github.io/api/spot/v4/en/#get-trades
         :param str symbol: unified symbol of the market to fetch trades for
         :param int|None since: timestamp in ms of the earliest trade to fetch
-        :param int|None limit: the maximum amount of trades to fetch
+        :param int|None limit: the maximum number of trades structures to retrieve, default = 100, max = 1000
         :param dict params: extra parameters specific to the bibox api endpoint
+        :param int|None params['until']: the earliest time in ms to fetch trades for
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param int|None params['after']: transaction record id, limited to return the minimum id of transaction records
+        :param int|None params['before']: transaction record id, limited to return the maximum id of transaction records
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
         await self.load_markets()
         market = self.market(symbol)
+        until = self.safe_integer(params, 'until')
         request = {
-            'cmd': 'deals',
-            'pair': market['id'],
+            'symbol': market['id'],
         }
         if limit is not None:
-            request['size'] = limit  # default = 200
-        response = await self.v1PublicGetMdata(self.extend(request, params))
-        return self.parse_trades(response['result'], market, since, limit)
+            request['size'] = limit  # default = 100
+        if since is not None:
+            request['start_time'] = since
+        if until is not None:
+            request['end_time'] = until
+        response = await self.v4PublicGetMarketdataTrades(self.extend(request, params))
+        #
+        #    [
+        #        {
+        #          "i": "17122255",        # transaction id
+        #          "p": "46125.7",         # transaction price
+        #          "q": "0.079045",        # transaction amount
+        #          "s": "buy",             # taker's transaction direction
+        #          "t": "1628738748319"    # transaction time
+        #        },
+        #        ...
+        #    ]
+        #
+        return self.parse_trades(response, market, since, limit)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         """
@@ -1734,62 +1780,58 @@ class bibox(Exchange):
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         """
         fetch all trades made by the user
-        :param str symbol: unified market symbol
+        see https://biboxcom.github.io/api/spot/v4/en/#get-fills
+        :param str|None symbol: unified market symbol, if not given, please provide params['order_id']
         :param int|None since: the earliest time in ms to fetch trades for
-        :param int|None limit: the maximum number of trades structures to retrieve
+        :param int|None limit: the maximum number of trades structures to retrieve, default = 100
         :param dict params: extra parameters specific to the bibox api endpoint
+        :param int|None params['until']: the earliest time in ms to fetch trades for
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+        :param str|None params['order_id']: the order id assigned by the exchange only return the transaction records of the specified order, if self parameter is not specified, please specify symbol
+        :param int|None params['after']: transaction record id, limited to return the minimum id of transaction records
+        :param int|None params['before']: transaction record id, limited to return the maximum id of transaction records
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
-        if symbol is None:
-            raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a `symbol` argument')
         await self.load_markets()
-        market = self.market(symbol)
-        size = limit if limit else 200
-        request = {
-            'cmd': 'orderpending/orderHistoryList',
-            'body': self.extend({
-                'pair': market['id'],
-                'account_type': 0,  # 0 - regular, 1 - margin
-                'page': 1,
-                'size': size,
-                'coin_symbol': market['baseId'],
-                'currency_symbol': market['quoteId'],
-            }, params),
-        }
-        response = await self.v1PrivatePostOrderpending(request)
+        market = None
+        request = {}
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, 'until')
+        if symbol is None:
+            orderId = self.safe_string(params, 'order_id')
+            if orderId is None:
+                raise ArgumentsRequired(self.id + ' fetchMyTrades requires either a symbol parameter of params["order_id"]')
+        if symbol is not None:
+            market = self.market(symbol)
+            request['symbol'] = market['id']
+        if since is not None:
+            request['start_time'] = since
+        if limit is not None:
+            request['limit'] = limit
+        if until is not None:
+            request['end_time'] = until
+        response = await self.v4PrivateGetUserdataFills(self.extend(request, params))
         #
-        #     {
-        #         "result":[
-        #             {
-        #                 "result":{
-        #                     "count":1,
-        #                     "page":1,
-        #                     "items":[
-        #                         {
-        #                             "id":"100055558128033",
-        #                             "createdAt": 1512756997000,
-        #                             "account_type":0,
-        #                             "coin_symbol":"LTC",
-        #                             "currency_symbol":"BTC",
-        #                             "order_side":2,
-        #                             "order_type":2,
-        #                             "price":"0.00886500",
-        #                             "amount":"1.00000000",
-        #                             "money":"0.00886500",
-        #                             "fee":0
-        #                         }
-        #                     ]
-        #                 },
-        #                 "cmd":"orderpending/orderHistoryList"
-        #             }
-        #         ]
-        #     }
+        #    [
+        #        {
+        #            "i": 452361213188,
+        #            "o": 14284855094264759,
+        #            "s": "ADA_USDT",
+        #            "T": 1579458,
+        #            "t": 1653676917531,
+        #            "p": 0.45,
+        #            "q": 10,
+        #            "l": "maker",
+        #            "f": {
+        #                "a": "ADA",
+        #                "m": 0.010000000
+        #            }
+        #        }
+        #        ...
+        #    ]
         #
-        outerResults = self.safe_value(response, 'result')
-        firstResult = self.safe_value(outerResults, 0, {})
-        innerResult = self.safe_value(firstResult, 'result', {})
-        trades = self.safe_value(innerResult, 'items', [])
-        return self.parse_trades(trades, market, since, limit)
+        return self.parse_trades(response, market, since, limit)
 
     async def fetch_deposit_address(self, code, params={}):
         """

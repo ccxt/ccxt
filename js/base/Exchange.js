@@ -1539,6 +1539,17 @@ module.exports = class Exchange {
         return result;
     }
 
+    marketCodes (codes) {
+        if (codes === undefined) {
+            return codes;
+        }
+        const result = [];
+        for (let i = 0; i < codes.length; i++) {
+            result.push (this.commonCurrencyCode (codes[i]));
+        }
+        return result;
+    }
+
     parseBidsAsks (bidasks, priceKey = 0, amountKey = 1) {
         bidasks = this.toArray (bidasks);
         const result = [];
@@ -1897,7 +1908,7 @@ module.exports = class Exchange {
         if ((currencyId === undefined) && (currency !== undefined)) {
             return currency;
         }
-        if ((this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id)) {
+        if ((this.currencies_by_id !== undefined) && (currencyId in this.currencies_by_id) && (this.currencies_by_id[currencyId] !== undefined)) {
             return this.currencies_by_id[currencyId];
         }
         let code = currencyId;
@@ -2799,6 +2810,21 @@ module.exports = class Exchange {
                 message += ', one of ' + '(' + messageOptions + ')';
             }
             throw new ArgumentsRequired (message);
+        }
+    }
+
+    checkRequiredMarginArgument (methodName, symbol, marginMode) {
+        /**
+         * @ignore
+         * @method
+         * @param {string} symbol unified symbol of the market
+         * @param {string} methodName name of the method that requires a symbol
+         * @param {string} marginMode is either 'isolated' or 'cross'
+         */
+        if ((marginMode === 'isolated') && (symbol === undefined)) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() requires a symbol argument for isolated margin');
+        } else if ((marginMode === 'cross') && (symbol !== undefined)) {
+            throw new ArgumentsRequired (this.id + ' ' + methodName + '() cannot have a symbol argument for cross margin');
         }
     }
 

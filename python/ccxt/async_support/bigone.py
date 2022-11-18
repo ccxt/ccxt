@@ -55,6 +55,7 @@ class bigone(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
+                'fetchTransactionFees': False,
                 'fetchWithdrawals': True,
                 'transfer': True,
                 'withdraw': True,

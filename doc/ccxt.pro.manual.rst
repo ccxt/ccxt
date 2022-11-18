@@ -54,7 +54,7 @@ The CCXT Pro heavily relies on the transpiler of CCXT for `multilanguage support
 Exchanges
 ---------
 
-The CCXT Pro library currently supports the following 43 cryptocurrency exchange markets and WebSocket trading APIs:
+The CCXT Pro library currently supports the following 41 cryptocurrency exchange markets and WebSocket trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -360,7 +360,7 @@ The CCXT Pro library currently supports the following 43 cryptocurrency exchange
      - cryptocom
      - `Crypto.com <https://crypto.com/exch/5835vstech>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://exchange-docs.crypto.com/
+          :target: https://exchange-docs.crypto.com/spot/index.html
           :alt: API Version 2
      
      - 
@@ -422,36 +422,6 @@ The CCXT Pro library currently supports the following 43 cryptocurrency exchange
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://api.fmfw.io/api/2/explore/
           :alt: API Version 2
-     
-     - 
-     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
-          :target: https://ccxt.pro
-          :alt: CCXT Pro
-     
-   * - .. image:: https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg
-          :target: https://ftx.com/referrals#a=1623029
-          :alt: ftx
-     
-     - ftx
-     - `FTX <https://ftx.com/referrals#a=1623029>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://github.com/ftexchange/ftx
-          :alt: API Version *
-     
-     - 
-     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
-          :target: https://ccxt.pro
-          :alt: CCXT Pro
-     
-   * - .. image:: https://user-images.githubusercontent.com/1294454/141506670-12f6115f-f425-4cd8-b892-b51d157ca01f.jpg
-          :target: https://ftx.com/referrals#a=1623029
-          :alt: ftxus
-     
-     - ftxus
-     - `FTX US <https://ftx.com/referrals#a=1623029>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://github.com/ftexchange/ftx
-          :alt: API Version *
      
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
@@ -597,7 +567,10 @@ The CCXT Pro library currently supports the following 43 cryptocurrency exchange
           :target: https://docs.kucoin.com
           :alt: API Version 2
      
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
           :alt: CCXT Pro
@@ -714,11 +687,11 @@ The CCXT Pro library currently supports the following 43 cryptocurrency exchange
           :alt: CCXT Pro
      
    * - .. image:: https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg
-          :target: https://www.zbex.club/en/register?ref=4301lera
+          :target: https://www.zb.com/en/register?ref=4301lera
           :alt: zb
      
      - zb
-     - `ZB <https://www.zbex.club/en/register?ref=4301lera>`__
+     - `ZB <https://www.zb.com/en/register?ref=4301lera>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://www.zb.com/i/developer
           :alt: API Version 1

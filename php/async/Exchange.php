@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.1.55';
+$version = '2.1.92';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.1.55';
+    const VERSION = '2.1.92';
 
     public $browser;
     public $marketsLoading = null;
@@ -985,6 +985,17 @@ class Exchange extends \ccxt\Exchange {
         return $result;
     }
 
+    public function market_codes($codes) {
+        if ($codes === null) {
+            return $codes;
+        }
+        $result = array();
+        for ($i = 0; $i < count($codes); $i++) {
+            $result[] = $this->common_currency_code($codes[$i]);
+        }
+        return $result;
+    }
+
     public function parse_bids_asks($bidasks, $priceKey = 0, $amountKey = 1) {
         $bidasks = $this->to_array($bidasks);
         $result = array();
@@ -1363,7 +1374,7 @@ class Exchange extends \ccxt\Exchange {
         if (($currencyId === null) && ($currency !== null)) {
             return $currency;
         }
-        if (($this->currencies_by_id !== null) && (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id))) {
+        if (($this->currencies_by_id !== null) && (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) && ($this->currencies_by_id[$currencyId] !== null)) {
             return $this->currencies_by_id[$currencyId];
         }
         $code = $currencyId;
@@ -2316,6 +2327,20 @@ class Exchange extends \ccxt\Exchange {
                 $message .= ', one of ' . '(' . $messageOptions . ')';
             }
             throw new ArgumentsRequired($message);
+        }
+    }
+
+    public function check_required_margin_argument($methodName, $symbol, $marginMode) {
+        /**
+         * @ignore
+         * @param {string} $symbol unified $symbol of the market
+         * @param {string} $methodName name of the method that requires a $symbol
+         * @param {string} $marginMode is either 'isolated' or 'cross'
+         */
+        if (($marginMode === 'isolated') && ($symbol === null)) {
+            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $symbol argument for isolated margin');
+        } elseif (($marginMode === 'cross') && ($symbol !== null)) {
+            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() cannot have a $symbol argument for cross margin');
         }
     }
 

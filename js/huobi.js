@@ -4173,7 +4173,7 @@ module.exports = class huobi extends Exchange {
         }
         const market = this.market (symbol);
         const request = {
-            // 'symbol': 'BTC', // optional, case-insenstive, both uppercase and lowercase are supported, "BTC", "ETH", ...
+            // 'symbol': 'BTC', // optional, case-insensitive, both uppercase and lowercase are supported, "BTC", "ETH", ...
             // 'contract_type': 'this_week', // optional, this_week, next_week, quarter, next_quarter
             'contract_code': market['id'], // optional BTC180914
             // 'client_order_id': clientOrderId, // optional, must be less than 9223372036854775807
