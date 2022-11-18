@@ -1212,7 +1212,7 @@ class kucoin(Exchange):
         for i in range(0, len(depositAddresses)):
             entry = depositAddresses[i]
             result.append({
-                'info': depositAddresses,
+                'info': entry,
                 'currency': self.safe_currency_code(currency['id'], currency),
                 'network': self.safe_string(entry, 'chain'),
                 'address': self.safe_string(entry, 'address'),

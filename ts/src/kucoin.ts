@@ -1252,7 +1252,7 @@ export default class kucoin extends Exchange {
         for (let i = 0; i < depositAddresses.length; i++) {
             const entry = depositAddresses[i];
             result.push ({
-                'info': depositAddresses,
+                'info': entry,
                 'currency': this.safeCurrencyCode (currency['id'], currency),
                 'network': this.safeString (entry, 'chain'),
                 'address': this.safeString (entry, 'address'),

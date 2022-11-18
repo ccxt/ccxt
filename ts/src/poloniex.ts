@@ -471,7 +471,7 @@ export default class poloniex extends Exchange {
         //
         const timestamp = this.safeInteger (ticker, 'ts');
         const marketId = this.safeString (ticker, 'symbol');
-        market = this.market (marketId);
+        market = this.safeMarket (marketId);
         const close = this.safeString (ticker, 'close');
         const relativeChange = this.safeString (ticker, 'percentChange');
         const percentage = Precise.stringMul (relativeChange, '100');
