@@ -1373,10 +1373,55 @@ module.exports = class bitso extends Exchange {
     }
 
     parseTransactionFee (fee, currency = undefined) {
+        //
+        //    {
+        //        success: true,
+        //        payload: {
+        //            fees: [
+        //                {
+        //                    book: 'btc_mxn',
+        //                    fee_percent: '0.6500',
+        //                    fee_decimal: '0.00650000',
+        //                    taker_fee_percent: '0.6500',
+        //                    taker_fee_decimal: '0.00650000',
+        //                    maker_fee_percent: '0.5000',
+        //                    maker_fee_decimal: '0.00500000',
+        //                    volume_currency: 'mxn',
+        //                    current_volume: '0.00',
+        //                    next_volume: '1500000.00',
+        //                    next_maker_fee_percent: '0.490',
+        //                    next_taker_fee_percent: '0.637',
+        //                    nextVolume: '1500000.00',
+        //                    nextFee: '0.490',
+        //                    nextTakerFee: '0.637'
+        //                },
+        //                ...
+        //            ],
+        //            deposit_fees: [
+        //                {
+        //                    currency: 'btc',
+        //                    method: 'rewards',
+        //                    fee: '0.00',
+        //                    is_fixed: false
+        //                },
+        //                ...
+        //            ],
+        //            withdrawal_fees: {
+        //                ada: '0.20958100',
+        //                bch: '0.00009437',
+        //                ars: '0',
+        //                btc: '0.00001209',
+        //                ...
+        //            }
+        //        }
+        //    }
+        //
         const id = this.safeString (currency, 'id');
         return {
-            'deposit': this.safeValue (fee, 'deposit'),
-            'withdraw': this.safeNumber (fee, id),
+            'unknown': {
+                'deposit': this.safeValue (fee, 'deposit'),
+                'withdraw': this.safeNumber (fee, id),
+            },
             'info': fee,
         };
     }
