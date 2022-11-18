@@ -1256,7 +1256,7 @@ class kucoin extends Exchange {
         for ($i = 0; $i < count($depositAddresses); $i++) {
             $entry = $depositAddresses[$i];
             $result[] = array(
-                'info' => $depositAddresses,
+                'info' => $entry,
                 'currency' => $this->safe_currency_code($currency['id'], $currency),
                 'network' => $this->safe_string($entry, 'chain'),
                 'address' => $this->safe_string($entry, 'address'),
