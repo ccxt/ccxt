@@ -418,7 +418,7 @@ module.exports = class bitfinex extends Exchange {
         return {
             'unknown': {
                 'withdraw': fee,
-                'deposit': {},
+                'deposit': undefined,
             },
         };
     }

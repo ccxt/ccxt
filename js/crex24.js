@@ -545,7 +545,7 @@ module.exports = class crex24 extends Exchange {
             const networkId = this.safeString (networkEntry, 'feeCurrency');
             const fee = this.safeNumber (networkEntry, 'amount');
             result[networkId]['withdraw'] = fee;
-            result[networkId]['deposit'] = fee;
+            result[networkId]['deposit'] = undefined;
         }
         return result;
     }

@@ -4492,7 +4492,7 @@ module.exports = class binance extends Exchange {
             const networkCode = this.safeCurrencyCode (networkId);
             const fee = this.safeNumber (networkEntry, 'withdrawFee');
             result[networkCode]['withdraw'] = fee;
-            result[networkCode]['deposit'] = {};
+            result[networkCode]['deposit'] = undefined;
         }
         return result;
     }
