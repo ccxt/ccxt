@@ -2857,8 +2857,8 @@ module.exports = class Exchange {
             const entry = array[i];
             const dictionary = isArray ? entry : response[entry];
             const currencyId = isArray ? this.safeString (dictionary, currencyIdKey) : entry;
-            const currency = this.inArray (currencyId, this.currencies_by_id) ? this.currency (currencyId) : undefined;
-            const code = this.safeString (currency, 'code');
+            const currency = this.safeValue (this.currencies_by_id, currencyId);
+            const code = this.safeString (currency, 'code', currencyId);
             if ((codes === undefined) || (this.inArray (code, codes))) {
                 transactionFees[code] = this.parseTransactionFee (dictionary, currency);
             }
