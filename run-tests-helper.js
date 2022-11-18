@@ -42,10 +42,9 @@ function checkPassedTestHash (lang, exchangeId, isWs = false) {
                 const md5ChecksumCached = fs.readFileSync (passedTestHashFile, 'utf8');
                 if (md5ChecksumExisting === md5ChecksumCached) {
                     result = true;
-                } else {
-                    // temp debug for travis
-                    console.log ("MD5 failure:" + md5ChecksumExisting + ' : ' + md5ChecksumCached); //  + "\n" +  getExistingExchangeContent ('js', exchangeId ) + ' XXXXXXXXX ' + fs.readFileSync (passedTestHashFile + '.js', 'utf8') 
-                }
+                } 
+                // temporary debug for travis
+                //    console.log ("MD5 :" + md5ChecksumExisting + ' : ' + md5ChecksumCached); //  + "\n" +  getExistingExchangeContent ('js', exchangeId ) + ' XXXXXXXXX ' + fs.readFileSync (passedTestHashFile + '.js', 'utf8') 
                 fs.unlinkSync(passedTestHashFile);
                 // if this was the last (only) tested hash, then delete hash-directory 
                 if (isEmptyDir(passedTestsHashLangDir)) {
@@ -61,7 +60,6 @@ function checkPassedTestHash (lang, exchangeId, isWs = false) {
 }
 
 module.exports = { 
-    getExistingExchangeContent,
     getExistingExchangeContentMd5,
     checkPassedTestHash
 };

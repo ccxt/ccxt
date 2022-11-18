@@ -364,9 +364,7 @@ function writePassedTestHash (exchange) {
         fs.mkdirSync (passedTestsHashLangDir, { recursive: true });
     }
     const passedTestHashFile = passedTestsHashLangDir + '/' + exchange.id;
-    const fd = fs.openSync(passedTestHashFile, 'w+');
-    fs.writeSync(fd, md5Checksum);
-    fs.closeSync(fd);
+    fs.writeFileSync(passedTestHashFile, md5Checksum);
 }
 
 //-----------------------------------------------------------------------------
