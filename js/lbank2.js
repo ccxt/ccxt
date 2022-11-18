@@ -1999,18 +1999,18 @@ module.exports = class lbank2 extends Exchange {
         //    {
         //        result: 'true',
         //        data: [
-        //          {
-        //            amountScale: '4',
-        //            chain: 'heco',
-        //            assetCode: 'lbk',
-        //            min: '200',
-        //            transferAmtScale: '4',
-        //            canWithDraw: true,
-        //            fee: '100',
-        //            minTransfer: '0.0001',
-        //            type: '1'
-        //          },
-        //          ...
+        //            {
+        //                amountScale: '4',
+        //                chain: 'heco',
+        //                assetCode: 'lbk',
+        //                min: '200',
+        //                transferAmtScale: '4',
+        //                canWithDraw: true,
+        //                fee: '100',
+        //                minTransfer: '0.0001',
+        //                type: '1'
+        //            },
+        //            ...
         //        ],
         //        error_code: '0',
         //        ts: '1663364435973'
@@ -2020,28 +2020,41 @@ module.exports = class lbank2 extends Exchange {
     }
 
     parseTransactionFee (fee, currency = undefined) {
+        //
+        //    {
+        //        amountScale: '4',
+        //        chain: 'heco',
+        //        assetCode: 'lbk',
+        //        min: '200',
+        //        transferAmtScale: '4',
+        //        canWithDraw: true,
+        //        fee: '100',
+        //        minTransfer: '0.0001',
+        //        type: '1'
+        //    }
+        //
         const canWithdraw = this.safeString (fee, 'canWithDraw');
         if (canWithdraw !== false) {
             const networkList = this.safeValue (fee, 'networkList', []);
-            const networks = {};
+            const result = {
+                'info': fee,
+            };
             for (let j = 0; j < networkList.length; j++) {
                 const networkEntry = networkList[j];
                 const networkId = this.safeString (networkEntry, 'name');
                 const networkCode = this.safeString (this.options['inverse-networks'], networkId, networkId);
                 const fee = this.safeNumber2 (networkEntry, 'fee', 'withdrawFee');
                 if (fee !== undefined) {
-                    networks[networkCode] = fee;
+                    result[networkCode]['withdraw'] = fee;
+                    result[networkCode]['deposit'] = undefined;
                 }
             }
-            return {
-                'withdraw': networks,
-                'deposit': {},
-                'info': fee,
-            };
         } else {
             return {
-                'withdraw': [],
-                'deposit': {},
+                'unknown': {
+                    'withdraw': undefined,
+                    'deposit': undefined,
+                },
                 'info': fee,
             };
         }
