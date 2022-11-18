@@ -439,41 +439,121 @@ module.exports = class whitebit extends Exchange {
         await this.loadMarkets ();
         const response = await this.v4PublicGetFee (params);
         //
-        //      {
-        //          "1INCH":{
-        //              "is_depositable":true,
-        //              "is_withdrawal":true,
-        //              "ticker":"1INCH",
-        //              "name":"1inch",
-        //              "providers":[
-        //              ],
-        //              "withdraw":{
-        //                   "max_amount":"0",
-        //                  "min_amount":"21.5",
-        //                  "fixed":"17.5",
-        //                  "flex":null
-        //              },
-        //              "deposit":{
-        //                  "max_amount":"0",
-        //                  "min_amount":"19.5",
-        //                  "fixed":null,
-        //                  "flex":null
-        //               }
-        //          },
-        //           {...}
-        //      }
+        //    {
+        //        "1INCH": {
+        //            "is_depositable": true,
+        //            "is_withdrawal": true,
+        //            "ticker": "1INCH",
+        //            "name": "1inch",
+        //            "providers": [],
+        //            "withdraw": {
+        //                "max_amount": "0",
+        //                "min_amount": "21.5",
+        //                "fixed": "17.5",
+        //                "flex": null
+        //            },
+        //            "deposit": {
+        //                "max_amount": "0",
+        //                "min_amount": "19.5",
+        //                "fixed": null,
+        //                "flex": null
+        //            }
+        //        },
+        //        'WBT (ERC20)': {
+        //            is_depositable: true,
+        //            is_withdrawal: true,
+        //            ticker: 'WBT',
+        //            name: 'WhiteBIT Token',
+        //            providers: [],
+        //            withdraw: { max_amount: '0', min_amount: '0.7', fixed: '0.253', flex: null },
+        //            deposit: { max_amount: '0', min_amount: '0.35', fixed: null, flex: null }
+        //        },
+        //        'WBT (TRC20)': {
+        //            is_depositable: true,
+        //            is_withdrawal: true,
+        //            ticker: 'WBT',
+        //            name: 'WhiteBIT Token',
+        //            providers: [],
+        //            withdraw: { max_amount: '0', min_amount: '1.5', fixed: '0.075', flex: null },
+        //            deposit: { max_amount: '0', min_amount: '0.75', fixed: null, flex: null }
+        //        },
+        //        ...
+        //    }
         //
         return this.parseTransactionFees (response, codes);
     }
 
-    parseTransactionFee (fee, currency = undefined) {
-        const withdraw = this.safeValue (fee, 'withdraw', {});
-        const deposit = this.safeValue (fee, 'deposit', {});
-        return {
-            'withdraw': this.safeNumber (withdraw, 'fixed'),
-            'deposit': this.safeNumber (deposit, 'fixed'),
-            'info': fee,
+    parseTransactionFees (response, codes = undefined, currencyIdKey = undefined) {
+        //
+        //    {
+        //        "1INCH": {
+        //            "is_depositable": true,
+        //            "is_withdrawal": true,
+        //            "ticker": "1INCH",
+        //            "name": "1inch",
+        //            "providers": [],
+        //            "withdraw": {
+        //                "max_amount": "0",
+        //                "min_amount": "21.5",
+        //                "fixed": "17.5",
+        //                "flex": null
+        //            },
+        //            "deposit": {
+        //                "max_amount": "0",
+        //                "min_amount": "19.5",
+        //                "fixed": null,
+        //                "flex": null
+        //            }
+        //        },
+        //        'WBT (ERC20)': {
+        //            is_depositable: true,
+        //            is_withdrawal: true,
+        //            ticker: 'WBT',
+        //            name: 'WhiteBIT Token',
+        //            providers: [],
+        //            withdraw: { max_amount: '0', min_amount: '0.7', fixed: '0.253', flex: null },
+        //            deposit: { max_amount: '0', min_amount: '0.35', fixed: null, flex: null }
+        //        },
+        //        'WBT (TRC20)': {
+        //            is_depositable: true,
+        //            is_withdrawal: true,
+        //            ticker: 'WBT',
+        //            name: 'WhiteBIT Token',
+        //            providers: [],
+        //            withdraw: { max_amount: '0', min_amount: '1.5', fixed: '0.075', flex: null },
+        //            deposit: { max_amount: '0', min_amount: '0.75', fixed: null, flex: null }
+        //        },
+        //        ...
+        //    }
+        //
+        const transactionFees = {
+            'info': response,
         };
+        codes = this.marketCodes (codes);
+        const currencyIds = Object.keys (response);
+        for (let i = 0; i < currencyIds.length; i++) {
+            const entry = currencyIds[i];
+            const splitEntry = this.split (entry, ' ');
+            const currencyId = splitEntry[0];
+            const code = this.safeCurrencyCode (currencyId);
+            if ((codes === undefined) || (this.inArray (code, codes))) {
+                let network = this.safeString (splitEntry, 1);
+                if (network !== undefined) {
+                    const networkLength = network.length;
+                    network = network.slice (1, networkLength - 2);
+                } else {
+                    network = code;
+                }
+                const feeInfo = response[entry];
+                const withdraw = this.safeValue (feeInfo, 'withdraw');
+                const deposit = this.safeValue (feeInfo, 'deposit');
+                transactionFees[code][network] = {
+                    'withdraw': this.safeString (withdraw, 'fixed'),
+                    'deposit': this.safeString (deposit, 'fixed'),
+                };
+            }
+        }
+        return transactionFees;
     }
 
     async fetchTradingFees (params = {}) {
