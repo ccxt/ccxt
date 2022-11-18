@@ -2094,10 +2094,25 @@ module.exports = class bibox extends Exchange {
     }
 
     parseTransactionFee (fee, currency = undefined) {
+        //
+        //    {
+        //        "coin_symbol": "ETH",
+        //        "is_active": 1,
+        //        "original_decimals": 18,
+        //        "enable_deposit": 1,
+        //        "enable_withdraw": 1,
+        //        "withdraw_fee": 0.008,
+        //        "withdraw_min": 0.05,
+        //        "deposit_avg_spent": 173700,
+        //        "withdraw_avg_spent": 322600
+        //    }
+        //
         return {
-            'info': 'fee',
-            'withdraw': this.safeNumber (fee, 'withdraw_fee'),
-            'deposit': {},
+            'info': fee,
+            'unknown': {
+                'withdraw': this.safeNumber (fee, 'withdraw_fee'),
+                'deposit': {},
+            },
         };
     }
 
