@@ -57,12 +57,28 @@ class bitfinex(Exchange, ccxt.async_support.bitfinex):
         return await self.watch(url, messageHash, self.deep_extend(request, params), messageHash)
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
+        await self.load_markets()
+        symbol = self.symbol(symbol)
         trades = await self.subscribe('trades', symbol, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
         return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
 
     async def watch_ticker(self, symbol, params={}):
+        """
+        watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         return await self.subscribe('ticker', symbol, params)
 
     def handle_trades(self, client, message, subscription):
@@ -223,6 +239,13 @@ class bitfinex(Exchange, ccxt.async_support.bitfinex):
         client.resolve(result, messageHash)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
+        """
+        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         if limit is not None:
             if (limit != 25) and (limit != 100):
                 raise ExchangeError(self.id + ' watchOrderBook limit argument must be None, 25 or 100')
@@ -238,7 +261,7 @@ class bitfinex(Exchange, ccxt.async_support.bitfinex):
             'len': limit,  # string, number of price points, '25', '100', default = '25'
         }
         orderbook = await self.subscribe('book', symbol, self.deep_extend(request, params))
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_order_book(self, client, message, subscription):
         #
@@ -404,8 +427,18 @@ class bitfinex(Exchange, ccxt.async_support.bitfinex):
         return await self.watch(url, id, None, 1)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        watches information on multiple orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         await self.load_markets()
         await self.authenticate()
+        if symbol is not None:
+            symbol = self.symbol(symbol)
         url = self.urls['api']['ws']['private']
         orders = await self.watch(url, 'os', None, 1)
         if self.newUpdates:

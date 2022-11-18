@@ -12,7 +12,6 @@ async def test_watch_order_book(exchange, symbol):
         'cex',    # CEX requires authentication for watch_order_book
         'ripio',
         'gopax',  # requires authentication for watch_order_book
-        'mexc',   # orderbook is crossing
     ]
     if exchange.id in skipped_exchanges:
         print(exchange.id, method, 'test skipped')

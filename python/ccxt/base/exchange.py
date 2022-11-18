@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '1.95.7'
+__version__ = '2.1.93'
 
 # -----------------------------------------------------------------------------
 
@@ -2097,6 +2097,8 @@ class Exchange(object):
         return self.filter_by_symbol_since_limit(results, symbol, since, limit, tail)
 
     def calculate_fee(self, symbol, type, side, amount, price, takerOrMaker='taker', params={}):
+        if type == 'market' and takerOrMaker == 'maker':
+            raise ArgumentsRequired(self.id + ' calculateFee() - you have provided incompatible arguments - "market" type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.')
         market = self.markets[symbol]
         feeSide = self.safe_string(market, 'feeSide', 'quote')
         key = 'quote'
@@ -2113,7 +2115,7 @@ class Exchange(object):
             # the fee is always in the currency you get
             cost = amountString
             if side == 'sell':
-                cost = priceString
+                cost = Precise.string_mul(cost, priceString)
             else:
                 key = 'base'
         elif feeSide == 'give':
@@ -2123,7 +2125,13 @@ class Exchange(object):
                 cost = Precise.string_mul(cost, priceString)
             else:
                 key = 'base'
-        rate = self.number_to_string(market[takerOrMaker])
+        # for derivatives, the fee is in 'settle' currency
+        if not market['spot']:
+            key = 'settle'
+        # even if `takerOrMaker` argument was set to 'maker', for 'market' orders we should forcefully override it to 'taker'
+        if type == 'market':
+            takerOrMaker = 'taker'
+        rate = self.safe_string(market, takerOrMaker)
         if cost is not None:
             cost = Precise.string_mul(cost, rate)
         return {
@@ -2379,6 +2387,14 @@ class Exchange(object):
         result = []
         for i in range(0, len(symbols)):
             result.append(self.symbol(symbols[i]))
+        return result
+
+    def market_codes(self, codes):
+        if codes is None:
+            return codes
+        result = []
+        for i in range(0, len(codes)):
+            result.append(self.common_currency_code(codes[i]))
         return result
 
     def parse_bids_asks(self, bidasks, priceKey=0, amountKey=1):
@@ -2672,7 +2688,7 @@ class Exchange(object):
     def safe_currency(self, currencyId, currency=None):
         if (currencyId is None) and (currency is not None):
             return currency
-        if (self.currencies_by_id is not None) and (currencyId in self.currencies_by_id):
+        if (self.currencies_by_id is not None) and (currencyId in self.currencies_by_id) and (self.currencies_by_id[currencyId] is not None):
             return self.currencies_by_id[currencyId]
         code = currencyId
         if currencyId is not None:
@@ -3210,6 +3226,12 @@ class Exchange(object):
             result[parsed['symbol']] = parsed
         return result
 
+    def is_trigger_order(self, params):
+        isTrigger = self.safe_value_2(params, 'trigger', 'stop')
+        if isTrigger:
+            params = self.omit(params, ['trigger', 'stop'])
+        return [isTrigger, params]
+
     def is_post_only(self, isMarketOrder, exchangeSpecificParam, params={}):
         """
          * @ignore
@@ -3370,3 +3392,39 @@ class Exchange(object):
         if marginMode is not None:
             params = self.omit(params, ['marginMode', 'defaultMarginMode'])
         return [marginMode, params]
+
+    def check_required_argument(self, methodName, argument, argumentName, options=[]):
+        """
+         * @ignore
+        :param str argument: the argument to check
+        :param str argumentName: the name of the argument to check
+        :param str methodName: the name of the method that the argument is being checked for
+        :param [str] options: a list of options that the argument can be
+        :returns None:
+        """
+        if (argument is None) or ((len(options) > 0) and (not(self.in_array(argument, options)))):
+            messageOptions = ', '.join(options)
+            message = self.id + ' ' + methodName + '() requires a ' + argumentName + ' argument'
+            if messageOptions != '':
+                message += ', one of ' + '(' + messageOptions + ')'
+            raise ArgumentsRequired(message)
+
+    def check_required_margin_argument(self, methodName, symbol, marginMode):
+        """
+         * @ignore
+        :param str symbol: unified symbol of the market
+        :param str methodName: name of the method that requires a symbol
+        :param str marginMode: is either 'isolated' or 'cross'
+        """
+        if (marginMode == 'isolated') and (symbol is None):
+            raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a symbol argument for isolated margin')
+        elif (marginMode == 'cross') and (symbol is not None):
+            raise ArgumentsRequired(self.id + ' ' + methodName + '() cannot have a symbol argument for cross margin')
+
+    def check_required_symbol(self, methodName, symbol):
+        """
+         * @ignore
+        :param str symbol: unified symbol of the market
+        :param str methodName: name of the method that requires a symbol
+        """
+        self.checkRequiredArgument(methodName, symbol, 'symbol')

@@ -227,6 +227,7 @@ class yobit(Exchange):
                 'SBTC': 'Super Bitcoin',
                 'SMC': 'SmartCoin',
                 'SOLO': 'SoloCoin',
+                'SOUL': 'SoulCoin',
                 'STAR': 'StarCoin',
                 'SUPER': 'SuperCoin',
                 'TNS': 'Transcodium',

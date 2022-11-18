@@ -47,6 +47,7 @@ class gate(Exchange):
                         'delivery': 'https://api.gateio.ws/api/v4',
                         'spot': 'https://api.gateio.ws/api/v4',
                         'options': 'https://api.gateio.ws/api/v4',
+                        'sub_accounts': 'https://api.gateio.ws/api/v4',
                     },
                     'private': {
                         'withdrawals': 'https://api.gateio.ws/api/v4',
@@ -56,6 +57,7 @@ class gate(Exchange):
                         'delivery': 'https://api.gateio.ws/api/v4',
                         'spot': 'https://api.gateio.ws/api/v4',
                         'options': 'https://api.gateio.ws/api/v4',
+                        'subAccounts': 'https://api.gateio.ws/api/v4',
                     },
                 },
                 'test': {
@@ -137,7 +139,7 @@ class gate(Exchange):
                 'public': {
                     'wallet': {
                         'get': {
-                            'wallet/currency_chains': 1.5,
+                            'currency_chains': 1.5,
                         },
                     },
                     'spot': {
@@ -206,10 +208,10 @@ class gate(Exchange):
                 'private': {
                     'withdrawals': {
                         'post': {
-                            '': 3000,  # 3000 = 10 seconds
+                            'withdrawals': 3000,  # 3000 = 10 seconds
                         },
                         'delete': {
-                            '{withdrawal_id}': 300,
+                            'withdrawals/{withdrawal_id}': 300,
                         },
                     },
                     'wallet': {
@@ -226,6 +228,26 @@ class gate(Exchange):
                         'post': {
                             'transfers': 300,
                             'sub_account_transfers': 300,
+                        },
+                    },
+                    'subAccounts': {
+                        'get': {
+                            'sub_accounts': 1,
+                            'sub_accounts/{user_id}': 1,
+                            'sub_accounts/{user_id}/keys': 1,
+                            'sub_accounts/{user_id}/keys/{key}': 1,
+                        },
+                        'post': {
+                            'sub_accounts': 1,
+                            'sub_accounts/{user_id}/keys': 1,
+                            'sub_accounts/{user_id}/lock': 1,
+                            'sub_accounts/{user_id}/unlock': 1,
+                        },
+                        'put': {
+                            'sub_accounts/{user_id}/keys/{key}': 1,
+                        },
+                        'delete': {
+                            'sub_accounts/{user_id}/keys/{key}': 1,
                         },
                     },
                     'spot': {
@@ -404,6 +426,7 @@ class gate(Exchange):
                 'HIT': 'HitChain',
                 'MM': 'Million',  # conflict with MilliMeter
                 'MPH': 'Morpher',  # conflict with 88MPH
+                'POINT': 'GatePoint',
                 'RAI': 'Rai Reflex Index',  # conflict with RAI Finance
                 'SBTC': 'Super Bitcoin',
                 'TNC': 'Trinity Network Credit',
@@ -1616,7 +1639,8 @@ class gate(Exchange):
     async def fetch_transaction_fees(self, codes=None, params={}):
         """
         fetch transaction fees
-        :param [str]|None codes: not used by gate fetchTransactionFees()
+        see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
+        :param [str]|None codes: list of unified currency codes
         :param dict params: extra parameters specific to the gate api endpoint
         :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
         """
@@ -1639,25 +1663,29 @@ class gate(Exchange):
         #        }
         #    }
         #
+        result = {}
         withdrawFees = {}
         for i in range(0, len(response)):
+            withdrawFees = {}
             entry = response[i]
             currencyId = self.safe_string(entry, 'currency')
             code = self.safe_currency_code(currencyId)
-            withdrawFees[code] = {}
-            withdrawFix = self.safe_value(entry, 'withdraw_fix_on_chains')
-            if withdrawFix is None:
-                withdrawFix = {}
-                withdrawFix[code] = self.safe_number(entry, 'withdraw_fix')
-            keys = list(withdrawFix.keys())
-            for i in range(0, len(keys)):
-                key = keys[i]
-                withdrawFees[code][key] = self.parse_number(withdrawFix[key])
-        return {
-            'info': response,
-            'withdraw': withdrawFees,
-            'deposit': {},
-        }
+            if (codes is not None) and not self.in_array(code, codes):
+                continue
+            withdrawFixOnChains = self.safe_value(entry, 'withdraw_fix_on_chains')
+            if withdrawFixOnChains is None:
+                withdrawFees = self.safe_number(entry, 'withdraw_fix')
+            else:
+                chainKeys = list(withdrawFixOnChains.keys())
+                for i in range(0, len(chainKeys)):
+                    chainKey = chainKeys[i]
+                    withdrawFees[chainKey] = self.parse_number(withdrawFixOnChains[chainKey])
+            result[code] = {
+                'withdraw': withdrawFees,
+                'deposit': None,
+                'info': entry,
+            }
+        return result
 
     async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
         """
@@ -2575,7 +2603,7 @@ class gate(Exchange):
         if pointFee is not None:
             fees.append({
                 'cost': pointFee,
-                'currency': 'POINT',
+                'currency': 'GatePoint',
             })
         takerOrMaker = self.safe_string(trade, 'role')
         return self.safe_trade({
@@ -2670,7 +2698,7 @@ class gate(Exchange):
         if network is not None:
             request['chain'] = network
             params = self.omit(params, 'network')
-        response = await self.privateWithdrawalsPost(self.extend(request, params))
+        response = await self.privateWithdrawalsPostWithdrawals(self.extend(request, params))
         #
         #    {
         #        "id": "w13389675",
@@ -3863,7 +3891,19 @@ class gate(Exchange):
         :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         await self.load_markets()
-        type, query = self.handle_market_type_and_params('fetchPositions', None, params)
+        market = None
+        if symbols is not None:
+            symbols = self.market_symbols(symbols)
+            symbolsLength = len(symbols)
+            if symbolsLength > 0:
+                market = self.market(symbols[0])
+                for i in range(1, len(symbols)):
+                    checkMarket = self.market(symbols[i])
+                    if checkMarket['type'] != market['type']:
+                        raise BadRequest(self.id + ' fetchPositions() does not support multiple types of positions at the same time')
+        type, query = self.handle_market_type_and_params('fetchPositions', market, params)
+        if type != 'swap' and type != 'future':
+            raise ArgumentsRequired(self.id + ' fetchPositions requires a type parameter, "swap" or "future"')
         request, requestParams = self.prepare_request(None, type, query)
         method = self.get_supported_mapping(type, {
             'swap': 'privateFuturesGetSettlePositions',
@@ -4145,32 +4185,28 @@ class gate(Exchange):
         :param str params['id']: '34267567' loan id, extra parameter required for isolated margin
         :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
         """
+        marginMode = self.safe_string(params, 'marginMode')  # cross or isolated
+        params = self.omit(params, 'marginMode')
+        self.check_required_margin_argument('repayMargin', symbol, marginMode)
         await self.load_markets()
         currency = self.currency(code)
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
         request = {
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
-        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
-        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)  # cross or isolated
-        method = 'privateMarginPostCrossRepayments'
-        if marginMode == 'isolated':
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' repayMargin() requires a symbol argument for isolated margin')
-            mode = self.safe_string(params, 'mode')  # 'all' or 'partial'
-            if mode is None:
-                raise ArgumentsRequired(self.id + ' repayMargin() requires a mode parameter for isolated margin')
-            id = self.safe_string_2(params, 'loan_id', 'id')
-            if id is None:
-                raise ArgumentsRequired(self.id + ' repayMargin() requires an id parameter for isolated margin')
+        method = None
+        if symbol is None:
+            method = 'privateMarginPostCrossRepayments'
+        else:
             method = 'privateMarginPostLoansLoanIdRepayment'
+            market = self.market(symbol)
             request['currency_pair'] = market['id']
-            request['mode'] = mode
-            request['loan_id'] = id
-        params = self.omit(params, ['marginMode', 'mode', 'loan_id', 'id'])
+            request['mode'] = 'partial'
+            loanId = self.safe_string_2(params, 'loan_id', 'id')
+            if loanId is None:
+                raise ArgumentsRequired(self.id + ' repayMargin() requires loan_id param for isolated margin')
+            request['loan_id'] = loanId
+        params = self.omit(params, ['marginMode', 'loan_id', 'id'])
         response = await getattr(self, method)(self.extend(request, params))
         #
         # Cross
@@ -4226,28 +4262,26 @@ class gate(Exchange):
         :param str params['rate']: '0.0002' or '0.002' extra parameter required for isolated margin
         :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
         """
+        marginMode = self.safe_string(params, 'marginMode')  # cross or isolated
+        params = self.omit(params, 'marginMode')
+        self.check_required_margin_argument('borrowMargin', symbol, marginMode)
         await self.load_markets()
         currency = self.currency(code)
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            symbol = market['symbol']
         request = {
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
-        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
-        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)  # cross or isolated
-        method = 'privateMarginPostCrossLoans'
-        if marginMode == 'isolated':
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument for isolated margin')
+        method = None
+        if symbol is None:
+            method = 'privateMarginPostCrossLoans'
+        else:
+            market = self.market(symbol)
             request['currency_pair'] = market['id']
-            rate = self.safe_string(params, 'rate')
-            if rate is None:
-                raise ArgumentsRequired(self.id + ' borrowMargin() requires a rate parameter for isolated margin')
-            request['rate'] = rate  # Only rates '0.0002', '0.002' are supported.
             request['side'] = 'borrow'
+            # default it to 0.01% since self is a reasonable limit
+            # as it is the smallest tick size currently offered by gateio
+            request['rate'] = self.safe_string(params, 'rate', '0.0001')
+            request['auto_renew'] = True
             method = 'privateMarginPostLoans'
         params = self.omit(params, ['marginMode', 'rate'])
         response = await getattr(self, method)(self.extend(request, params))
@@ -4349,6 +4383,8 @@ class gate(Exchange):
         path = self.implode_params(path, params)
         endPart = '' if (path == '') else ('/' + path)
         entirePath = '/' + type + endPart
+        if (type == 'subAccounts') or (type == 'withdrawals'):
+            entirePath = endPart
         url = self.urls['api'][authentication][type]
         if url is None:
             raise NotSupported(self.id + ' does not have a testnet for the ' + type + ' market type.')
@@ -4357,6 +4393,7 @@ class gate(Exchange):
             if query:
                 url += '?' + self.urlencode(query)
         else:
+            self.check_required_credentials()
             queryString = ''
             requiresURLEncoding = False
             if type == 'futures' and method == 'POST':

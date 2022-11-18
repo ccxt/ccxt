@@ -9,6 +9,7 @@ from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import AccountSuspended
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidOrder
@@ -135,6 +136,7 @@ class poloniex(Exchange):
                         'orders': 20,
                         'orders/{id}': 4,
                         'orders/history': 20,
+                        'orders/killSwitchStatus': 4,
                         'smartorders': 20,
                         'smartorders/{id}': 4,
                         'smartorders/history': 20,
@@ -146,6 +148,8 @@ class poloniex(Exchange):
                         'wallets/address': 20,
                         'wallets/withdraw': 20,
                         'orders': 4,
+                        'orders/killSwitch': 4,
+                        'orders/batch': 20,
                         'smartorders': 4,
                     },
                     'delete': {
@@ -203,6 +207,7 @@ class poloniex(Exchange):
             },
             'options': {
                 'networks': {
+                    'BEP20': 'BSC',
                     'ERC20': 'ETH',
                     'TRX': 'TRON',
                     'TRC20': 'TRON',
@@ -467,7 +472,7 @@ class poloniex(Exchange):
         #
         timestamp = self.safe_integer(ticker, 'ts')
         marketId = self.safe_string(ticker, 'symbol')
-        market = self.market(marketId)
+        market = self.safe_market(marketId)
         close = self.safe_string(ticker, 'close')
         relativeChange = self.safe_string(ticker, 'percentChange')
         percentage = Precise.string_mul(relativeChange, '100')
@@ -1305,17 +1310,19 @@ class poloniex(Exchange):
         :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
         """
         await self.load_markets()
-        # USDT, USDTETH, USDTTRON
-        currencyId = None
-        currency = None
-        if code in self.currencies:
-            currency = self.currency(code)
-            currencyId = currency['id']
-        else:
-            currencyId = code
+        currency = self.currency(code)
         request = {
-            'currency': currencyId,
+            'currency': currency['id'],
         }
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['currency'] += network  # when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
+            params = self.omit(params, 'network')
+        else:
+            if currency['id'] == 'USDT':
+                raise ArgumentsRequired(self.id + ' createDepositAddress requires a network parameter for ' + code + '.')
         response = await self.privatePostWalletsAddress(self.extend(request, params))
         #
         #     {
@@ -1334,6 +1341,7 @@ class poloniex(Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
+            'network': network,
             'info': response,
         }
 
@@ -1345,24 +1353,26 @@ class poloniex(Exchange):
         :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
         """
         await self.load_markets()
-        # USDT, USDTETH, USDTTRON
-        currencyId = None
-        currency = None
-        if code in self.currencies:
-            currency = self.currency(code)
-            currencyId = currency['id']
-        else:
-            currencyId = code
+        currency = self.currency(code)
         request = {
-            'currency': currencyId,
+            'currency': currency['id'],
         }
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            request['currency'] += network  # when network the currency need to be changed to currency+network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
+            params = self.omit(params, 'network')
+        else:
+            if currency['id'] == 'USDT':
+                raise ArgumentsRequired(self.id + ' fetchDepositAddress requires a network parameter for ' + code + '.')
         response = await self.privateGetWalletsAddresses(self.extend(request, params))
         #
         #     {
         #         "USDTTRON" : "Txxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxp"
         #     }
         #
-        address = self.safe_string(response, currencyId)
+        address = self.safe_string(response, request['currency'])
         tag = None
         self.check_address(address)
         if currency is not None:
@@ -1374,7 +1384,7 @@ class poloniex(Exchange):
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': None,
+            'network': network,
             'info': response,
         }
 

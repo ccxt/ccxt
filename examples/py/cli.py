@@ -207,7 +207,7 @@ async def main():
                     pprint(result)
                 if not is_ws_method:
                     await exchange.close()
-                    break
+                    return
         else:  # otherwise it's a property, print it
             result = method
         if argv.table:

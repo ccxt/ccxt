@@ -8,6 +8,7 @@ import hashlib
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import AccountSuspended
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import BadSymbol
@@ -348,6 +349,7 @@ class kraken(Exchange):
                 'EFunding:Unknown asset': BadSymbol,  # {"error":["EFunding:Unknown asset"]}
                 'EService:Market in post_only mode': OnMaintenance,  # {"error":["EService:Market in post_only mode"]}
                 'EGeneral:Too many requests': DDoSProtection,  # {"error":["EGeneral:Too many requests"]}
+                'ETrade:User Locked': AccountSuspended,  # {"error":["ETrade:User Locked"]}
             },
         })
 
@@ -751,19 +753,17 @@ class kraken(Exchange):
         :param dict params: extra parameters specific to the kraken api endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
-        if symbols is None:
-            raise ArgumentsRequired(self.id + ' fetchTickers() requires a symbols argument, an array of symbols')
         await self.load_markets()
-        symbols = self.market_symbols(symbols)
-        marketIds = []
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
-            market = self.markets[symbol]
-            if market['active'] and not market['darkpool']:
-                marketIds.append(market['id'])
-        request = {
-            'pair': ','.join(marketIds),
-        }
+        request = {}
+        if symbols is not None:
+            symbols = self.market_symbols(symbols)
+            marketIds = []
+            for i in range(0, len(symbols)):
+                symbol = symbols[i]
+                market = self.markets[symbol]
+                if market['active'] and not market['darkpool']:
+                    marketIds.append(market['id'])
+            request['pair'] = ','.join(marketIds)
         response = await self.publicGetTicker(self.extend(request, params))
         tickers = response['result']
         ids = list(tickers.keys())

@@ -29,6 +29,7 @@ module.exports = class gate extends Exchange {
                         'delivery': 'https://api.gateio.ws/api/v4',
                         'spot': 'https://api.gateio.ws/api/v4',
                         'options': 'https://api.gateio.ws/api/v4',
+                        'sub_accounts': 'https://api.gateio.ws/api/v4',
                     },
                     'private': {
                         'withdrawals': 'https://api.gateio.ws/api/v4',
@@ -38,6 +39,7 @@ module.exports = class gate extends Exchange {
                         'delivery': 'https://api.gateio.ws/api/v4',
                         'spot': 'https://api.gateio.ws/api/v4',
                         'options': 'https://api.gateio.ws/api/v4',
+                        'subAccounts': 'https://api.gateio.ws/api/v4',
                     },
                 },
                 'test': {
@@ -119,7 +121,7 @@ module.exports = class gate extends Exchange {
                 'public': {
                     'wallet': {
                         'get': {
-                            'wallet/currency_chains': 1.5,
+                            'currency_chains': 1.5,
                         },
                     },
                     'spot': {
@@ -188,10 +190,10 @@ module.exports = class gate extends Exchange {
                 'private': {
                     'withdrawals': {
                         'post': {
-                            '': 3000, // 3000 = 10 seconds
+                            'withdrawals': 3000, // 3000 = 10 seconds
                         },
                         'delete': {
-                            '{withdrawal_id}': 300,
+                            'withdrawals/{withdrawal_id}': 300,
                         },
                     },
                     'wallet': {
@@ -208,6 +210,26 @@ module.exports = class gate extends Exchange {
                         'post': {
                             'transfers': 300,
                             'sub_account_transfers': 300,
+                        },
+                    },
+                    'subAccounts': {
+                        'get': {
+                            'sub_accounts': 1,
+                            'sub_accounts/{user_id}': 1,
+                            'sub_accounts/{user_id}/keys': 1,
+                            'sub_accounts/{user_id}/keys/{key}': 1,
+                        },
+                        'post': {
+                            'sub_accounts': 1,
+                            'sub_accounts/{user_id}/keys': 1,
+                            'sub_accounts/{user_id}/lock': 1,
+                            'sub_accounts/{user_id}/unlock': 1,
+                        },
+                        'put': {
+                            'sub_accounts/{user_id}/keys/{key}': 1,
+                        },
+                        'delete': {
+                            'sub_accounts/{user_id}/keys/{key}': 1,
                         },
                     },
                     'spot': {
@@ -386,6 +408,7 @@ module.exports = class gate extends Exchange {
                 'HIT': 'HitChain',
                 'MM': 'Million', // conflict with MilliMeter
                 'MPH': 'Morpher', // conflict with 88MPH
+                'POINT': 'GatePoint',
                 'RAI': 'Rai Reflex Index', // conflict with RAI Finance
                 'SBTC': 'Super Bitcoin',
                 'TNC': 'Trinity Network Credit',
@@ -1677,7 +1700,8 @@ module.exports = class gate extends Exchange {
          * @method
          * @name gate#fetchTransactionFees
          * @description fetch transaction fees
-         * @param {[string]|undefined} codes not used by gate fetchTransactionFees ()
+         * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
+         * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the gate api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
@@ -1700,28 +1724,33 @@ module.exports = class gate extends Exchange {
         //        }
         //    }
         //
-        const withdrawFees = {};
+        const result = {};
+        let withdrawFees = {};
         for (let i = 0; i < response.length; i++) {
+            withdrawFees = {};
             const entry = response[i];
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            withdrawFees[code] = {};
-            let withdrawFix = this.safeValue (entry, 'withdraw_fix_on_chains');
-            if (withdrawFix === undefined) {
-                withdrawFix = {};
-                withdrawFix[code] = this.safeNumber (entry, 'withdraw_fix');
+            if ((codes !== undefined) && !this.inArray (code, codes)) {
+                continue;
             }
-            const keys = Object.keys (withdrawFix);
-            for (let i = 0; i < keys.length; i++) {
-                const key = keys[i];
-                withdrawFees[code][key] = this.parseNumber (withdrawFix[key]);
+            const withdrawFixOnChains = this.safeValue (entry, 'withdraw_fix_on_chains');
+            if (withdrawFixOnChains === undefined) {
+                withdrawFees = this.safeNumber (entry, 'withdraw_fix');
+            } else {
+                const chainKeys = Object.keys (withdrawFixOnChains);
+                for (let i = 0; i < chainKeys.length; i++) {
+                    const chainKey = chainKeys[i];
+                    withdrawFees[chainKey] = this.parseNumber (withdrawFixOnChains[chainKey]);
+                }
             }
+            result[code] = {
+                'withdraw': withdrawFees,
+                'deposit': undefined,
+                'info': entry,
+            };
         }
-        return {
-            'info': response,
-            'withdraw': withdrawFees,
-            'deposit': {},
-        };
+        return result;
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -2710,7 +2739,7 @@ module.exports = class gate extends Exchange {
         if (pointFee !== undefined) {
             fees.push ({
                 'cost': pointFee,
-                'currency': 'POINT',
+                'currency': 'GatePoint',
             });
         }
         const takerOrMaker = this.safeString (trade, 'role');
@@ -2823,7 +2852,7 @@ module.exports = class gate extends Exchange {
             request['chain'] = network;
             params = this.omit (params, 'network');
         }
-        const response = await this.privateWithdrawalsPost (this.extend (request, params));
+        const response = await this.privateWithdrawalsPostWithdrawals (this.extend (request, params));
         //
         //    {
         //        "id": "w13389675",
@@ -2944,7 +2973,7 @@ module.exports = class gate extends Exchange {
          * @param {bool|undefined} params.reduceOnly *contract only* Indicates if this order is to reduce the size of a position
          * @param {bool|undefined} params.close *contract only* Set as true to close the position, with size set to 0
          * @param {bool|undefined} params.auto_size *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
-         * @returns {dict|undefined} [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @returns {object|undefined} [An order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -4102,7 +4131,24 @@ module.exports = class gate extends Exchange {
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
+        let market = undefined;
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols (symbols);
+            const symbolsLength = symbols.length;
+            if (symbolsLength > 0) {
+                market = this.market (symbols[0]);
+                for (let i = 1; i < symbols.length; i++) {
+                    const checkMarket = this.market (symbols[i]);
+                    if (checkMarket['type'] !== market['type']) {
+                        throw new BadRequest (this.id + ' fetchPositions() does not support multiple types of positions at the same time');
+                    }
+                }
+            }
+        }
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchPositions', market, params);
+        if (type !== 'swap' && type !== 'future') {
+            throw new ArgumentsRequired (this.id + ' fetchPositions requires a type parameter, "swap" or "future"');
+        }
         const [ request, requestParams ] = this.prepareRequest (undefined, type, query);
         const method = this.getSupportedMapping (type, {
             'swap': 'privateFuturesGetSettlePositions',
@@ -4394,37 +4440,30 @@ module.exports = class gate extends Exchange {
          * @param {string} params.id '34267567' loan id, extra parameter required for isolated margin
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
+        const marginMode = this.safeString (params, 'marginMode'); // cross or isolated
+        params = this.omit (params, 'marginMode');
+        this.checkRequiredMarginArgument ('repayMargin', symbol, marginMode);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
         const request = {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
-        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
-        let method = 'privateMarginPostCrossRepayments';
-        if (marginMode === 'isolated') {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument for isolated margin');
-            }
-            const mode = this.safeString (params, 'mode'); // 'all' or 'partial'
-            if (mode === undefined) {
-                throw new ArgumentsRequired (this.id + ' repayMargin() requires a mode parameter for isolated margin');
-            }
-            const id = this.safeString2 (params, 'loan_id', 'id');
-            if (id === undefined) {
-                throw new ArgumentsRequired (this.id + ' repayMargin() requires an id parameter for isolated margin');
-            }
+        let method = undefined;
+        if (symbol === undefined) {
+            method = 'privateMarginPostCrossRepayments';
+        } else {
             method = 'privateMarginPostLoansLoanIdRepayment';
+            const market = this.market (symbol);
             request['currency_pair'] = market['id'];
-            request['mode'] = mode;
-            request['loan_id'] = id;
+            request['mode'] = 'partial';
+            const loanId = this.safeString2 (params, 'loan_id', 'id');
+            if (loanId === undefined) {
+                throw new ArgumentsRequired (this.id + ' repayMargin() requires loan_id param for isolated margin');
+            }
+            request['loan_id'] = loanId;
         }
-        params = this.omit (params, [ 'marginMode', 'mode', 'loan_id', 'id' ]);
+        params = this.omit (params, [ 'marginMode', 'loan_id', 'id' ]);
         let response = await this[method] (this.extend (request, params));
         //
         // Cross
@@ -4484,31 +4523,26 @@ module.exports = class gate extends Exchange {
          * @param {string} params.rate '0.0002' or '0.002' extra parameter required for isolated margin
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
+        const marginMode = this.safeString (params, 'marginMode'); // cross or isolated
+        params = this.omit (params, 'marginMode');
+        this.checkRequiredMarginArgument ('borrowMargin', symbol, marginMode);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            symbol = market['symbol'];
-        }
         const request = {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
-        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
-        let method = 'privateMarginPostCrossLoans';
-        if (marginMode === 'isolated') {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument for isolated margin');
-            }
+        let method = undefined;
+        if (symbol === undefined) {
+            method = 'privateMarginPostCrossLoans';
+        } else {
+            const market = this.market (symbol);
             request['currency_pair'] = market['id'];
-            const rate = this.safeString (params, 'rate');
-            if (rate === undefined) {
-                throw new ArgumentsRequired (this.id + ' borrowMargin() requires a rate parameter for isolated margin');
-            }
-            request['rate'] = rate; // Only rates '0.0002', '0.002' are supported.
             request['side'] = 'borrow';
+            // default it to 0.01% since this is a reasonable limit
+            // as it is the smallest tick size currently offered by gateio
+            request['rate'] = this.safeString (params, 'rate', '0.0001');
+            request['auto_renew'] = true;
             method = 'privateMarginPostLoans';
         }
         params = this.omit (params, [ 'marginMode', 'rate' ]);
@@ -4613,7 +4647,10 @@ module.exports = class gate extends Exchange {
         let query = this.omit (params, this.extractParams (path));
         path = this.implodeParams (path, params);
         const endPart = (path === '') ? '' : ('/' + path);
-        const entirePath = '/' + type + endPart;
+        let entirePath = '/' + type + endPart;
+        if ((type === 'subAccounts') || (type === 'withdrawals')) {
+            entirePath = endPart;
+        }
         let url = this.urls['api'][authentication][type];
         if (url === undefined) {
             throw new NotSupported (this.id + ' does not have a testnet for the ' + type + ' market type.');
@@ -4624,6 +4661,7 @@ module.exports = class gate extends Exchange {
                 url += '?' + this.urlencode (query);
             }
         } else {
+            this.checkRequiredCredentials ();
             let queryString = '';
             let requiresURLEncoding = false;
             if (type === 'futures' && method === 'POST') {

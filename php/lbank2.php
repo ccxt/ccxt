@@ -847,6 +847,36 @@ class lbank2 extends Exchange {
             $method = $this->safe_string($options, 'method', 'privatePostSupplementUserInfo');
         }
         $response = $this->$method ();
+        //
+        //    {
+        //        "result" => "true",
+        //        "data" => array(
+        //            {
+        //                "usableAmt" => "14.36",
+        //                "assetAmt" => "14.36",
+        //                "networkList" => array(
+        //                    array(
+        //                        "isDefault" => false,
+        //                        "withdrawFeeRate" => "",
+        //                        "name" => "erc20",
+        //                        "withdrawMin" => 30,
+        //                        "minLimit" => 0.0001,
+        //                        "minDeposit" => 20,
+        //                        "feeAssetCode" => "usdt",
+        //                        "withdrawFee" => "30",
+        //                        "type" => 1,
+        //                        "coin" => "usdt",
+        //                        "network" => "eth"
+        //                    ),
+        //                    ...
+        //                ),
+        //                "freezeAmt" => "0",
+        //                "coin" => "ada"
+        //            }
+        //        ),
+        //        "code" => 0
+        //    }
+        //
         return $this->parse_balance($response);
     }
 
@@ -946,7 +976,10 @@ class lbank2 extends Exchange {
                     if ($price === null) {
                         throw new InvalidOrder($this->id . " createOrder () requires the $price argument with $market buy orders to calculate total order $cost ($amount to spend), where $cost = $amount * $price-> Supply the $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)");
                     } else {
-                        $cost = floatval($amount) * floatval($price);
+                        $amountString = $this->number_to_string($amount);
+                        $priceString = $this->number_to_string($price);
+                        $quoteAmount = Precise::string_mul($amountString, $priceString);
+                        $cost = $this->parse_number($quoteAmount);
                         $request['price'] = $this->price_to_precision($symbol, $cost);
                     }
                 } else {
@@ -1873,6 +1906,36 @@ class lbank2 extends Exchange {
         // incl. for coins which null in public method
         $this->load_markets();
         $response = $this->privatePostSupplementUserInfo ();
+        //
+        //    {
+        //        "result" => "true",
+        //        "data" => array(
+        //            {
+        //                "usableAmt" => "14.36",
+        //                "assetAmt" => "14.36",
+        //                "networkList" => array(
+        //                    array(
+        //                        "isDefault" => false,
+        //                        "withdrawFeeRate" => "",
+        //                        "name" => "erc20",
+        //                        "withdrawMin" => 30,
+        //                        "minLimit" => 0.0001,
+        //                        "minDeposit" => 20,
+        //                        "feeAssetCode" => "usdt",
+        //                        "withdrawFee" => "30",
+        //                        "type" => 1,
+        //                        "coin" => "usdt",
+        //                        "network" => "eth"
+        //                    ),
+        //                    ...
+        //                ),
+        //                "freezeAmt" => "0",
+        //                "coin" => "ada"
+        //            }
+        //        ),
+        //        "code" => 0
+        //    }
+        //
         $result = $this->safe_value($response, 'data', array());
         $withdrawFees = array();
         for ($i = 0; $i < count($result); $i++) {
@@ -1910,6 +1973,27 @@ class lbank2 extends Exchange {
             $request['assetCode'] = $currency['id'];
         }
         $response = $this->publicGetWithdrawConfigs (array_merge($request, $params));
+        //
+        //    {
+        //        $result => 'true',
+        //        data => array(
+        //          array(
+        //            amountScale => '4',
+        //            $chain => 'heco',
+        //            assetCode => 'lbk',
+        //            min => '200',
+        //            transferAmtScale => '4',
+        //            canWithDraw => true,
+        //            $fee => '100',
+        //            minTransfer => '0.0001',
+        //            type => '1'
+        //          ),
+        //          ...
+        //        ),
+        //        error_code => '0',
+        //        ts => '1663364435973'
+        //    }
+        //
         $result = $this->safe_value($response, 'data', array());
         $withdrawFees = array();
         for ($i = 0; $i < count($result); $i++) {

@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '1.95.7';
+$version = '2.1.93';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '1.95.7';
+    const VERSION = '2.1.93';
 
     public $browser;
     public $marketsLoading = null;
@@ -637,6 +637,9 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function calculate_fee($symbol, $type, $side, $amount, $price, $takerOrMaker = 'taker', $params = array ()) {
+        if ($type === 'market' && $takerOrMaker === 'maker') {
+            throw new ArgumentsRequired($this->id . ' calculateFee() - you have provided incompatible arguments - "market" $type order can not be "maker". Change either the "type" or the "takerOrMaker" argument to calculate the fee.');
+        }
         $market = $this->markets[$symbol];
         $feeSide = $this->safe_string($market, 'feeSide', 'quote');
         $key = 'quote';
@@ -653,7 +656,7 @@ class Exchange extends \ccxt\Exchange {
             // the fee is always in the currency you get
             $cost = $amountString;
             if ($side === 'sell') {
-                $cost = $priceString;
+                $cost = Precise::string_mul($cost, $priceString);
             } else {
                 $key = 'base';
             }
@@ -666,7 +669,15 @@ class Exchange extends \ccxt\Exchange {
                 $key = 'base';
             }
         }
-        $rate = $this->number_to_string($market[$takerOrMaker]);
+        // for derivatives, the fee is in 'settle' currency
+        if (!$market['spot']) {
+            $key = 'settle';
+        }
+        // even if `$takerOrMaker` argument was set to 'maker', for 'market' orders we should forcefully override it to 'taker'
+        if ($type === 'market') {
+            $takerOrMaker = 'taker';
+        }
+        $rate = $this->safe_string($market, $takerOrMaker);
         if ($cost !== null) {
             $cost = Precise::string_mul($cost, $rate);
         }
@@ -970,6 +981,17 @@ class Exchange extends \ccxt\Exchange {
         $result = array();
         for ($i = 0; $i < count($symbols); $i++) {
             $result[] = $this->symbol ($symbols[$i]);
+        }
+        return $result;
+    }
+
+    public function market_codes($codes) {
+        if ($codes === null) {
+            return $codes;
+        }
+        $result = array();
+        for ($i = 0; $i < count($codes); $i++) {
+            $result[] = $this->common_currency_code($codes[$i]);
         }
         return $result;
     }
@@ -1352,7 +1374,7 @@ class Exchange extends \ccxt\Exchange {
         if (($currencyId === null) && ($currency !== null)) {
             return $currency;
         }
-        if (($this->currencies_by_id !== null) && (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id))) {
+        if (($this->currencies_by_id !== null) && (is_array($this->currencies_by_id) && array_key_exists($currencyId, $this->currencies_by_id)) && ($this->currencies_by_id[$currencyId] !== null)) {
             return $this->currencies_by_id[$currencyId];
         }
         $code = $currencyId;
@@ -1499,26 +1521,32 @@ class Exchange extends \ccxt\Exchange {
     }
 
     public function fetch_funding_fee($code, $params = array ()) {
-        $warnOnFetchFundingFee = $this->safe_value($this->options, 'warnOnFetchFundingFee', true);
-        if ($warnOnFetchFundingFee) {
-            throw new NotSupported($this->id . ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning');
-        }
-        return $this->fetch_transaction_fee($code, $params);
+        return Async\async(function () use ($code, $params) {
+            $warnOnFetchFundingFee = $this->safe_value($this->options, 'warnOnFetchFundingFee', true);
+            if ($warnOnFetchFundingFee) {
+                throw new NotSupported($this->id . ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning');
+            }
+            return Async\await($this->fetch_transaction_fee($code, $params));
+        }) ();
     }
 
     public function fetch_funding_fees($codes = null, $params = array ()) {
-        $warnOnFetchFundingFees = $this->safe_value($this->options, 'warnOnFetchFundingFees', true);
-        if ($warnOnFetchFundingFees) {
-            throw new NotSupported($this->id . ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');
-        }
-        return $this->fetch_transaction_fees($codes, $params);
+        return Async\async(function () use ($codes, $params) {
+            $warnOnFetchFundingFees = $this->safe_value($this->options, 'warnOnFetchFundingFees', true);
+            if ($warnOnFetchFundingFees) {
+                throw new NotSupported($this->id . ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');
+            }
+            return Async\await($this->fetch_transaction_fees($codes, $params));
+        }) ();
     }
 
     public function fetch_transaction_fee($code, $params = array ()) {
-        if (!$this->has['fetchTransactionFees']) {
-            throw new NotSupported($this->id . ' fetchTransactionFee() is not supported yet');
-        }
-        return $this->fetch_transaction_fees(array( $code ), $params);
+        return Async\async(function () use ($code, $params) {
+            if (!$this->has['fetchTransactionFees']) {
+                throw new NotSupported($this->id . ' fetchTransactionFee() is not supported yet');
+            }
+            return Async\await($this->fetch_transaction_fees(array( $code ), $params));
+        }) ();
     }
 
     public function fetch_transaction_fees($codes = null, $params = array ()) {
@@ -2078,6 +2106,14 @@ class Exchange extends \ccxt\Exchange {
         return $result;
     }
 
+    public function is_trigger_order($params) {
+        $isTrigger = $this->safe_value_2($params, 'trigger', 'stop');
+        if ($isTrigger) {
+            $params = $this->omit ($params, array( 'trigger', 'stop' ));
+        }
+        return array( $isTrigger, $params );
+    }
+
     public function is_post_only($isMarketOrder, $exchangeSpecificParam, $params = array ()) {
         /**
          * @ignore
@@ -2273,5 +2309,47 @@ class Exchange extends \ccxt\Exchange {
             $params = $this->omit ($params, array( 'marginMode', 'defaultMarginMode' ));
         }
         return array( $marginMode, $params );
+    }
+
+    public function check_required_argument($methodName, $argument, $argumentName, $options = []) {
+        /**
+         * @ignore
+         * @param {string} $argument the $argument to check
+         * @param {string} $argumentName the name of the $argument to check
+         * @param {string} $methodName the name of the method that the $argument is being checked for
+         * @param {[string]} $options a list of $options that the $argument can be
+         * @return {null}
+         */
+        if (($argument === null) || ((strlen($options) > 0) && (!($this->in_array($argument, $options))))) {
+            $messageOptions = implode(', ', $options);
+            $message = $this->id . ' ' . $methodName . '() requires a ' . $argumentName . ' argument';
+            if ($messageOptions !== '') {
+                $message .= ', one of ' . '(' . $messageOptions . ')';
+            }
+            throw new ArgumentsRequired($message);
+        }
+    }
+
+    public function check_required_margin_argument($methodName, $symbol, $marginMode) {
+        /**
+         * @ignore
+         * @param {string} $symbol unified $symbol of the market
+         * @param {string} $methodName name of the method that requires a $symbol
+         * @param {string} $marginMode is either 'isolated' or 'cross'
+         */
+        if (($marginMode === 'isolated') && ($symbol === null)) {
+            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $symbol argument for isolated margin');
+        } elseif (($marginMode === 'cross') && ($symbol !== null)) {
+            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() cannot have a $symbol argument for cross margin');
+        }
+    }
+
+    public function check_required_symbol($methodName, $symbol) {
+        /**
+         * @ignore
+         * @param {string} $symbol unified $symbol of the market
+         * @param {string} $methodName name of the method that requires a $symbol
+         */
+        $this->checkRequiredArgument ($methodName, $symbol, 'symbol');
     }
 }

@@ -7,6 +7,7 @@ namespace ccxt\async;
 
 use Exception; // a common import
 use ccxt\ExchangeError;
+use ccxt\ArgumentsRequired;
 use ccxt\Precise;
 use React\Async;
 
@@ -122,6 +123,7 @@ class poloniex extends Exchange {
                         'orders' => 20,
                         'orders/{id}' => 4,
                         'orders/history' => 20,
+                        'orders/killSwitchStatus' => 4,
                         'smartorders' => 20,
                         'smartorders/{id}' => 4,
                         'smartorders/history' => 20,
@@ -133,6 +135,8 @@ class poloniex extends Exchange {
                         'wallets/address' => 20,
                         'wallets/withdraw' => 20,
                         'orders' => 4,
+                        'orders/killSwitch' => 4,
+                        'orders/batch' => 20,
                         'smartorders' => 4,
                     ),
                     'delete' => array(
@@ -190,6 +194,7 @@ class poloniex extends Exchange {
             ),
             'options' => array(
                 'networks' => array(
+                    'BEP20' => 'BSC',
                     'ERC20' => 'ETH',
                     'TRX' => 'TRON',
                     'TRC20' => 'TRON',
@@ -472,7 +477,7 @@ class poloniex extends Exchange {
         //
         $timestamp = $this->safe_integer($ticker, 'ts');
         $marketId = $this->safe_string($ticker, 'symbol');
-        $market = $this->market($marketId);
+        $market = $this->safe_market($marketId);
         $close = $this->safe_string($ticker, 'close');
         $relativeChange = $this->safe_string($ticker, 'percentChange');
         $percentage = Precise::string_mul($relativeChange, '100');
@@ -1390,18 +1395,21 @@ class poloniex extends Exchange {
              * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
              */
             Async\await($this->load_markets());
-            // USDT, USDTETH, USDTTRON
-            $currencyId = null;
-            $currency = null;
-            if (is_array($this->currencies) && array_key_exists($code, $this->currencies)) {
-                $currency = $this->currency($code);
-                $currencyId = $currency['id'];
-            } else {
-                $currencyId = $code;
-            }
+            $currency = $this->currency($code);
             $request = array(
-                'currency' => $currencyId,
+                'currency' => $currency['id'],
             );
+            $networks = $this->safe_value($this->options, 'networks', array());
+            $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+            $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+            if ($network !== null) {
+                $request['currency'] .= $network; // when $network the $currency need to be changed to $currency+$network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
+                $params = $this->omit($params, 'network');
+            } else {
+                if ($currency['id'] === 'USDT') {
+                    throw new ArgumentsRequired($this->id . ' createDepositAddress requires a $network parameter for ' . $code . '.');
+                }
+            }
             $response = Async\await($this->privatePostWalletsAddress (array_merge($request, $params)));
             //
             //     {
@@ -1422,6 +1430,7 @@ class poloniex extends Exchange {
                 'currency' => $code,
                 'address' => $address,
                 'tag' => $tag,
+                'network' => $network,
                 'info' => $response,
             );
         }) ();
@@ -1436,25 +1445,28 @@ class poloniex extends Exchange {
              * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
              */
             Async\await($this->load_markets());
-            // USDT, USDTETH, USDTTRON
-            $currencyId = null;
-            $currency = null;
-            if (is_array($this->currencies) && array_key_exists($code, $this->currencies)) {
-                $currency = $this->currency($code);
-                $currencyId = $currency['id'];
-            } else {
-                $currencyId = $code;
-            }
+            $currency = $this->currency($code);
             $request = array(
-                'currency' => $currencyId,
+                'currency' => $currency['id'],
             );
+            $networks = $this->safe_value($this->options, 'networks', array());
+            $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+            $network = $this->safe_string($networks, $network, $network); // handle ERC20>ETH alias
+            if ($network !== null) {
+                $request['currency'] .= $network; // when $network the $currency need to be changed to $currency+$network https://docs.poloniex.com/#withdraw on MultiChain Currencies section
+                $params = $this->omit($params, 'network');
+            } else {
+                if ($currency['id'] === 'USDT') {
+                    throw new ArgumentsRequired($this->id . ' fetchDepositAddress requires a $network parameter for ' . $code . '.');
+                }
+            }
             $response = Async\await($this->privateGetWalletsAddresses (array_merge($request, $params)));
             //
             //     {
             //         "USDTTRON" : "Txxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxp"
             //     }
             //
-            $address = $this->safe_string($response, $currencyId);
+            $address = $this->safe_string($response, $request['currency']);
             $tag = null;
             $this->check_address($address);
             if ($currency !== null) {
@@ -1468,7 +1480,7 @@ class poloniex extends Exchange {
                 'currency' => $code,
                 'address' => $address,
                 'tag' => $tag,
-                'network' => null,
+                'network' => $network,
                 'info' => $response,
             );
         }) ();

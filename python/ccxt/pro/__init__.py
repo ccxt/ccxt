@@ -2,8 +2,15 @@
 
 """CCXT: CryptoCurrency eXchange Trading Library (Async)"""
 
-# -----------------------------------------------------------------------------
+# ----------------------------------------------------------------------------
 
+__version__ = '2.1.93'
+
+# ----------------------------------------------------------------------------
+
+# Pro Exchange
+
+from ccxt.pro.base.exchange import Exchange  # noqa: F401
 
 # CCXT Pro exchanges (now this is mainly used for importing exchanges in WS tests)
 
@@ -29,9 +36,8 @@ from ccxt.pro.coinbasepro import coinbasepro                              # noqa
 from ccxt.pro.coinex import coinex                                        # noqa: F401
 from ccxt.pro.cryptocom import cryptocom                                  # noqa: F401
 from ccxt.pro.currencycom import currencycom                              # noqa: F401
+from ccxt.pro.deribit import deribit                                      # noqa: F401
 from ccxt.pro.exmo import exmo                                            # noqa: F401
-from ccxt.pro.ftx import ftx                                              # noqa: F401
-from ccxt.pro.ftxus import ftxus                                          # noqa: F401
 from ccxt.pro.gate import gate                                            # noqa: F401
 from ccxt.pro.gateio import gateio                                        # noqa: F401
 from ccxt.pro.hitbtc import hitbtc                                        # noqa: F401
@@ -77,9 +83,8 @@ exchanges = [
     'coinex',
     'cryptocom',
     'currencycom',
+    'deribit',
     'exmo',
-    'ftx',
-    'ftxus',
     'gate',
     'gateio',
     'hitbtc',
