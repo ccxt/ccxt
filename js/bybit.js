@@ -3695,9 +3695,8 @@ module.exports = class bybit extends Exchange {
         const orderCategoryExists = ('orderCategory' in order);
         if (orderCategoryExists) {
             return this.parseSpotOrder (order, market);
-        } else {
-            return this.parseContractOrder (order, market);
         }
+        return this.parseContractOrder (order, market);
     }
 
     parseContractOrder (order, market = undefined) {
@@ -3857,12 +3856,45 @@ module.exports = class bybit extends Exchange {
         //            "tpTriggerBy":"UNKNOWN"
         //     }
         //
+        // contract v3
+        //
+        //     {
+        //         "symbol": "XRPUSDT",
+        //         "side": "Buy",
+        //         "orderType": "Market",
+        //         "price": "0.3431",
+        //         "qty": "65",
+        //         "reduceOnly": true,
+        //         "timeInForce": "ImmediateOrCancel",
+        //         "orderStatus": "Filled",
+        //         "leavesQty": "0",
+        //         "leavesValue": "0",
+        //         "cumExecQty": "65",
+        //         "cumExecValue": "21.3265",
+        //         "cumExecFee": "0.0127959",
+        //         "lastPriceOnCreated": "0.0000",
+        //         "rejectReason": "EC_NoError",
+        //         "orderLinkId": "",
+        //         "createdTime": "1657526321499",
+        //         "updatedTime": "1657526321504",
+        //         "orderId": "ac0a8134-acb3-4ee1-a2d4-41891c9c46d7",
+        //         "stopOrderType": "UNKNOWN",
+        //         "takeProfit": "0.0000",
+        //         "stopLoss": "0.0000",
+        //         "tpTriggerBy": "UNKNOWN",
+        //         "slTriggerBy": "UNKNOWN",
+        //         "triggerPrice": "0.0000",
+        //         "closeOnTrigger": true,
+        //         "triggerDirection": 0,
+        //         "positionIdx": 2
+        //     }
+        //
         const marketId = this.safeString (order, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
         let timestamp = this.parse8601 (this.safeStringN (order, [ 'created_at', 'created_time', 'create_time', 'timestamp' ]));
         if (timestamp === undefined) {
-            timestamp = this.safeNumber2 (order, 'time', 'transactTime');
+            timestamp = this.safeNumberN (order, [ 'time', 'transactTime', 'createdTime' ]);
             if (timestamp === undefined) {
                 timestamp = this.safeIntegerProduct (order, 'createdAt', 0.001);
             }
@@ -5763,8 +5795,16 @@ module.exports = class bybit extends Exchange {
             let enableUnifiedMargin = undefined;
             [ enableUnifiedMargin, params ] = this.handleOptionAndParamsValue (params, 'fetchClosedOrders', 'enableUnifiedMargin', false);
             const isV3 = (this.version === 'v3');
-            if (enableUnifiedMargin || isV3) {
+            if (enableUnifiedMargin) {
                 params['orderStatus'] = status;
+            } else if (isV3) {
+                // bybit remove support for multiple status
+                const firstCommaIndex = status.indexOf (',');
+                if (firstCommaIndex > 0) {
+                    params['orderStatus'] = status.substr (0, firstCommaIndex);
+                } else {
+                    params['orderStatus'] = status;
+                }
             } else {
                 params['order_status'] = status;
             }
@@ -8377,7 +8417,12 @@ module.exports = class bybit extends Exchange {
                         }
                     }
                 } else {
-                    url += '?' + this.urlencode (sortedQuery) + '&sign=' + signature;
+                    if (path === 'contract/v3/private/order/list') {
+                        url += '?' + this.rawencode (sortedQuery);
+                    } else {
+                        url += '?' + this.urlencode (sortedQuery);
+                    }
+                    url += '&sign=' + signature;
                 }
             }
         }
