@@ -818,7 +818,7 @@ module.exports = class cex extends cexRest {
     }
 
     currencyFromPrecision (currency, amount) {
-        const scale = this.currencies[currency]['precision'];
+        const scale = this.safeInteger (this.currencies[currency], 'precision', 0);
         return this.fromPrecision (amount, scale);
     }
 
@@ -847,8 +847,8 @@ module.exports = class cex extends cexRest {
         }
         for (let i = 0; i < rawOrders.length; i++) {
             const rawOrder = rawOrders[i];
-            const order = this.parseOrder (rawOrder);
-            order['symbol'] = symbol;
+            const market = this.safeMarket (symbol);
+            const order = this.parseOrder (rawOrder, market);
             order['status'] = 'open';
             myOrders.append (order);
         }
