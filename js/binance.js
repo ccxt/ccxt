@@ -4400,99 +4400,107 @@ module.exports = class binance extends Exchange {
         await this.loadMarkets ();
         const response = await this.sapiGetCapitalConfigGetall (params);
         //
-        //  [
-        //     {
-        //       coin: 'BAT',
-        //       depositAllEnable: true,
-        //       withdrawAllEnable: true,
-        //       name: 'Basic Attention Token',
-        //       free: '0',
-        //       locked: '0',
-        //       freeze: '0',
-        //       withdrawing: '0',
-        //       ipoing: '0',
-        //       ipoable: '0',
-        //       storage: '0',
-        //       isLegalMoney: false,
-        //       trading: true,
-        //       networkList: [
-        //         {
-        //           network: 'BNB',
-        //           coin: 'BAT',
-        //           withdrawIntegerMultiple: '0.00000001',
-        //           isDefault: false,
-        //           depositEnable: true,
-        //           withdrawEnable: true,
-        //           depositDesc: '',
-        //           withdrawDesc: '',
-        //           specialTips: 'The name of this asset is Basic Attention Token (BAT). Both a MEMO and an Address are required to successfully deposit your BEP2 tokens to Binance.',
-        //           name: 'BEP2',
-        //           resetAddressStatus: false,
-        //           addressRegex: '^(bnb1)[0-9a-z]{38}$',
-        //           memoRegex: '^[0-9A-Za-z\\-_]{1,120}$',
-        //           withdrawFee: '0.27',
-        //           withdrawMin: '0.54',
-        //           withdrawMax: '10000000000',
-        //           minConfirm: '1',
-        //           unLockConfirm: '0'
-        //         },
-        //         {
-        //           network: 'BSC',
-        //           coin: 'BAT',
-        //           withdrawIntegerMultiple: '0.00000001',
-        //           isDefault: false,
-        //           depositEnable: true,
-        //           withdrawEnable: true,
-        //           depositDesc: '',
-        //           withdrawDesc: '',
-        //           specialTips: 'The name of this asset is Basic Attention Token. Please ensure you are depositing Basic Attention Token (BAT) tokens under the contract address ending in 9766e.',
-        //           name: 'BEP20 (BSC)',
-        //           resetAddressStatus: false,
-        //           addressRegex: '^(0x)[0-9A-Fa-f]{40}$',
-        //           memoRegex: '',
-        //           withdrawFee: '0.27',
-        //           withdrawMin: '0.54',
-        //           withdrawMax: '10000000000',
-        //           minConfirm: '15',
-        //           unLockConfirm: '0'
-        //         },
-        //         {
-        //           network: 'ETH',
-        //           coin: 'BAT',
-        //           withdrawIntegerMultiple: '0.00000001',
-        //           isDefault: true,
-        //           depositEnable: true,
-        //           withdrawEnable: true,
-        //           depositDesc: '',
-        //           withdrawDesc: '',
-        //           specialTips: 'The name of this asset is Basic Attention Token. Please ensure you are depositing Basic Attention Token (BAT) tokens under the contract address ending in 887ef.',
-        //           name: 'ERC20',
-        //           resetAddressStatus: false,
-        //           addressRegex: '^(0x)[0-9A-Fa-f]{40}$',
-        //           memoRegex: '',
-        //           withdrawFee: '27',
-        //           withdrawMin: '54',
-        //           withdrawMax: '10000000000',
-        //           minConfirm: '12',
-        //           unLockConfirm: '0'
-        //         }
-        //       ]
-        //     }
-        //  ]
+        //    [
+        //        {
+        //            coin: 'BAT',
+        //            depositAllEnable: true,
+        //            withdrawAllEnable: true,
+        //            name: 'Basic Attention Token',
+        //            free: '0',
+        //            locked: '0',
+        //            freeze: '0',
+        //            withdrawing: '0',
+        //            ipoing: '0',
+        //            ipoable: '0',
+        //            storage: '0',
+        //            isLegalMoney: false,
+        //            trading: true,
+        //            networkList: [
+        //                {
+        //                    network: 'BNB',
+        //                    coin: 'BAT',
+        //                    withdrawIntegerMultiple: '0.00000001',
+        //                    isDefault: false,
+        //                    depositEnable: true,
+        //                    withdrawEnable: true,
+        //                    depositDesc: '',
+        //                    withdrawDesc: '',
+        //                    specialTips: 'The name of this asset is Basic Attention Token (BAT). Both a MEMO and an Address are required to successfully deposit your BEP2 tokens to Binance.',
+        //                    name: 'BEP2',
+        //                    resetAddressStatus: false,
+        //                    addressRegex: '^(bnb1)[0-9a-z]{38}$',
+        //                    memoRegex: '^[0-9A-Za-z\\-_]{1,120}$',
+        //                    withdrawFee: '0.27',
+        //                    withdrawMin: '0.54',
+        //                    withdrawMax: '10000000000',
+        //                    minConfirm: '1',
+        //                    unLockConfirm: '0'
+        //                },
+        //                ...
+        //            ]
+        //        }
+        //    ]
         //
         return this.parseTransactionFees (response, codes, 'coin');
     }
 
     parseTransactionFee (fee, currency = undefined) {
+        //
+        //    {
+        //        coin: 'BAT',
+        //        depositAllEnable: true,
+        //        withdrawAllEnable: true,
+        //        name: 'Basic Attention Token',
+        //        free: '0',
+        //        locked: '0',
+        //        freeze: '0',
+        //        withdrawing: '0',
+        //        ipoing: '0',
+        //        ipoable: '0',
+        //        storage: '0',
+        //        isLegalMoney: false,
+        //        trading: true,
+        //        networkList: [
+        //            {
+        //                network: 'BNB',
+        //                coin: 'BAT',
+        //                withdrawIntegerMultiple: '0.00000001',
+        //                isDefault: false,
+        //                depositEnable: true,
+        //                withdrawEnable: true,
+        //                depositDesc: '',
+        //                withdrawDesc: '',
+        //                specialTips: 'The name of this asset is Basic Attention Token (BAT). Both a MEMO and an Address are required to successfully deposit your BEP2 tokens to Binance.',
+        //                name: 'BEP2',
+        //                resetAddressStatus: false,
+        //                addressRegex: '^(bnb1)[0-9a-z]{38}$',
+        //                memoRegex: '^[0-9A-Za-z\\-_]{1,120}$',
+        //                withdrawFee: '0.27',
+        //                withdrawMin: '0.54',
+        //                withdrawMax: '10000000000',
+        //                minConfirm: '1',
+        //                unLockConfirm: '0'
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
         const networkList = this.safeValue (fee, 'networkList', []);
-        const result = {};
+        const result = this.depositWithdrawFee ();
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
             const networkId = this.safeString (networkEntry, 'network');
             const networkCode = this.safeCurrencyCode (networkId);
-            const fee = this.safeNumber (networkEntry, 'withdrawFee');
-            result[networkCode]['withdraw'] = fee;
-            result[networkCode]['deposit'] = undefined;
+            result['networks'][networkCode] = {
+                'withdraw': {
+                    'fee': this.safeNumber (networkEntry, 'withdrawFee'),
+                    'percentage': undefined,
+                },
+                'deposit': {
+                    'fee': undefined,
+                    'percentage': undefined,
+                },
+            };
         }
         return result;
     }
