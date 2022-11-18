@@ -6282,9 +6282,9 @@ module.exports = class bybit extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchMyDerivativesV2Trades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyContractTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyDerivativesV2Trades() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' fetchMyContractTrades() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -6295,23 +6295,32 @@ module.exports = class bybit extends Exchange {
             // 'page': 1,
             // 'limit' 20, // max 50
         };
+        const isV3 = (this.version === 'v3');
+        let idKey = 'order_id';
+        let startKey = 'start_time';
+        let method = undefined;
+        if (isV3) {
+            idKey = 'orderId';
+            startKey = 'startTime';
+            method = 'privateGetContractV3PrivateExecutionList';
+        } else {
+            if (market['future']) {
+                method = 'privateGetFuturesPrivateExecutionList';
+            } else {
+                // linear and inverse swaps
+                method = market['linear'] ? 'privateGetPrivateLinearTradeExecutionList' : 'privateGetV2PrivateExecutionList';
+            }
+        }
         const orderId = this.safeString (params, 'order_id');
         if (orderId !== undefined) {
-            request['order_id'] = orderId;
+            request[idKey] = orderId;
             params = this.omit (params, 'order_id');
         }
         if (since !== undefined) {
-            request['start_time'] = since;
+            request[startKey] = since;
         }
         if (limit !== undefined) {
             request['limit'] = limit; // default 20, max 50
-        }
-        let method = undefined;
-        if (market['future']) {
-            method = 'privateGetFuturesPrivateExecutionList';
-        } else {
-            // linear and inverse swaps
-            method = market['linear'] ? 'privateGetPrivateLinearTradeExecutionList' : 'privateGetV2PrivateExecutionList';
         }
         const response = await this[method] (this.extend (request, params));
         //
@@ -6396,6 +6405,62 @@ module.exports = class bybit extends Exchange {
         //         "rate_limit":120
         //     }
         //
+        // contract v3
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "symbol": "BITUSDT",
+        //                     "execFee": "0.001356",
+        //                     "execId": "499e1a2a-c664-55db-bbf0-78ad31b7b033",
+        //                     "execPrice": "0.452",
+        //                     "execQty": "5.0",
+        //                     "execType": "Trade",
+        //                     "execValue": "2.26",
+        //                     "feeRate": "0.0006",
+        //                     "lastLiquidityInd": "RemovedLiquidity",
+        //                     "leavesQty": "0.0",
+        //                     "orderId": "1d40db82-b1f6-4340-9190-650eeddd440b",
+        //                     "orderLinkId": "",
+        //                     "orderPrice": "0.430",
+        //                     "orderQty": "5.0",
+        //                     "orderType": "Market",
+        //                     "stopOrderType": "UNKNOWN",
+        //                     "side": "Sell",
+        //                     "execTime": "1657269236943",
+        //                     "closedSize": "5.0"
+        //                 },
+        //                 {
+        //                     "symbol": "BITUSDT",
+        //                     "execFee": "0.004068",
+        //                     "execId": "ed090e6a-afc0-5cb5-b51d-039592a44ec5",
+        //                     "execPrice": "0.452",
+        //                     "execQty": "15.0",
+        //                     "execType": "Trade",
+        //                     "execValue": "6.78",
+        //                     "feeRate": "0.0006",
+        //                     "lastLiquidityInd": "RemovedLiquidity",
+        //                     "leavesQty": "0.0",
+        //                     "orderId": "d34d40a1-2475-4552-9e54-347a27282ec0",
+        //                     "orderLinkId": "",
+        //                     "orderPrice": "0.429",
+        //                     "orderQty": "15.0",
+        //                     "orderType": "Market",
+        //                     "stopOrderType": "UNKNOWN",
+        //                     "side": "Sell",
+        //                     "execTime": "1657268340170",
+        //                     "closedSize": "15.0"
+        //                 }
+        //             ],
+        //             "nextPageCursor": ""
+        //         },
+        //         "retExtInfo": null,
+        //         "time": 1658911518442
+        //     }
+        //
         let result = this.safeValue (response, 'result', {});
         if (!Array.isArray (result)) {
             result = this.safeValueN (result, [ 'trade_list', 'data', 'list' ], []);
@@ -6431,7 +6496,7 @@ module.exports = class bybit extends Exchange {
         } else if (enableUnifiedMargin) {
             return await this.fetchMyDerivativesTrades (symbol, since, limit, params);
         }
-        return await this.fetchMyDerivativesV2Trades (symbol, since, limit, params);
+        return await this.fetchMyContractTrades (symbol, since, limit, params);
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
