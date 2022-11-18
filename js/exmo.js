@@ -488,13 +488,26 @@ module.exports = class exmo extends Exchange {
         //        ...
         //    ]
         //
-        const result = {};
+        const result = this.depositWithdrawFee ();
         for (let i = 0; i < fee.length; i++) {
             const provider = fee[i];
             const type = this.safeString (provider, 'type');
             const name = this.safeString (provider, 'name');
             const commissionDesc = this.safeString (provider, 'commission_desc');
-            result[name][type] = this.parseFixedFloatValue (commissionDesc);
+            result['networks'][name] = {
+                'withdraw': {
+                    'fee': undefined,
+                    'percentage': undefined,
+                },
+                'deposit': {
+                    'fee': undefined,
+                    'percentage': true,
+                },
+            };
+            result['networks'][name][type] = {
+                'fee': this.parseFixedFloatValue (commissionDesc),
+                'percentage': true,
+            };
         }
         return result;
     }
