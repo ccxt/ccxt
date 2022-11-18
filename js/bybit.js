@@ -5950,13 +5950,21 @@ module.exports = class bybit extends Exchange {
         const isStop = this.safeValue (params, 'stop', false);
         const isConditional = isStop || (type === 'stop') || (type === 'conditional');
         params = this.omit (params, [ 'stop', 'orderType' ]);
-        if (market['future']) {
-            method = isConditional ? 'privateGetFuturesPrivateStopOrder' : 'privateGetFuturesPrivateOrder';
-        } else if (market['linear']) {
-            method = isConditional ? 'privateGetPrivateLinearStopOrderSearch' : 'privateGetPrivateLinearOrderSearch';
+        const isV3 = (this.version === 'v3');
+        if (isV3) {
+            method = 'privateGetContractV3PrivateOrderUnfilledOrders';
+            if (isConditional) {
+                request['orderFilter'] = 'StopOrder';
+            }
         } else {
-            // inverse swap
-            method = isConditional ? 'privateGetV2PrivateStopOrder' : 'privateGetV2PrivateOrder';
+            if (market['future']) {
+                method = isConditional ? 'privateGetFuturesPrivateStopOrder' : 'privateGetFuturesPrivateOrder';
+            } else if (market['linear']) {
+                method = isConditional ? 'privateGetPrivateLinearStopOrderSearch' : 'privateGetPrivateLinearOrderSearch';
+            } else {
+                // inverse swap
+                method = isConditional ? 'privateGetV2PrivateStopOrder' : 'privateGetV2PrivateOrder';
+            }
         }
         request['symbol'] = market['id'];
         const response = await this[method] (this.extend (request, params));
@@ -5992,6 +6000,47 @@ module.exports = class bybit extends Exchange {
         //        }
         //     ]
         //  }
+        //
+        // contract v3
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "symbol": "XRPUSDT",
+        //                     "orderId": "db8b74b3-72d3-4264-bf3f-52d39b41956e",
+        //                     "side": "Sell",
+        //                     "orderType": "Limit",
+        //                     "stopOrderType": "Stop",
+        //                     "price": "0.4000",
+        //                     "qty": "15",
+        //                     "timeInForce": "GoodTillCancel",
+        //                     "orderStatus": "UnTriggered",
+        //                     "triggerPrice": "0.1000",
+        //                     "orderLinkId": "x002",
+        //                     "createdTime": "1658901865082",
+        //                     "updatedTime": "1658902610748",
+        //                     "takeProfit": "0.2000",
+        //                     "stopLoss": "1.6000",
+        //                     "tpTriggerBy": "UNKNOWN",
+        //                     "slTriggerBy": "UNKNOWN",
+        //                     "triggerBy": "MarkPrice",
+        //                     "reduceOnly": false,
+        //                     "leavesQty": "15",
+        //                     "leavesValue": "6",
+        //                     "cumExecQty": "0",
+        //                     "cumExecValue": "0",
+        //                     "cumExecFee": "0",
+        //                     "triggerDirection": 2
+        //                 }
+        //             ],
+        //             "nextPageCursor": ""
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1658902847238
+        //     }
         //
         if (!Array.isArray (orders)) {
             const dataList = this.safeValue2 (orders, 'dataList', 'list');
