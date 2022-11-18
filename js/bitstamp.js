@@ -1153,26 +1153,43 @@ module.exports = class bitstamp extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.privatePostBalance (params);
+        //
+        //    {
+        //        yfi_available: '0.00000000',
+        //        yfi_balance: '0.00000000',
+        //        yfi_reserved: '0.00000000',
+        //        yfi_withdrawal_fee: '0.00070000',
+        //        yfieur_fee: '0.000',
+        //        yfiusd_fee: '0.000',
+        //        zrx_available: '0.00000000',
+        //        zrx_balance: '0.00000000',
+        //        zrx_reserved: '0.00000000',
+        //        zrx_withdrawal_fee: '12.00000000',
+        //        zrxeur_fee: '0.000',
+        //        zrxusd_fee: '0.000',
+        //        ...
+        //    }
+        //
         return this.parseTransactionFees (response, codes);
     }
 
     parseTransactionFees (response, codes = undefined) {
         //
-        //  {
-        //     yfi_available: '0.00000000',
-        //     yfi_balance: '0.00000000',
-        //     yfi_reserved: '0.00000000',
-        //     yfi_withdrawal_fee: '0.00070000',
-        //     yfieur_fee: '0.000',
-        //     yfiusd_fee: '0.000',
-        //     zrx_available: '0.00000000',
-        //     zrx_balance: '0.00000000',
-        //     zrx_reserved: '0.00000000',
-        //     zrx_withdrawal_fee: '12.00000000',
-        //     zrxeur_fee: '0.000',
-        //     zrxusd_fee: '0.000',
-        //     ...
-        //  }
+        //    {
+        //        yfi_available: '0.00000000',
+        //        yfi_balance: '0.00000000',
+        //        yfi_reserved: '0.00000000',
+        //        yfi_withdrawal_fee: '0.00070000',
+        //        yfieur_fee: '0.000',
+        //        yfiusd_fee: '0.000',
+        //        zrx_available: '0.00000000',
+        //        zrx_balance: '0.00000000',
+        //        zrx_reserved: '0.00000000',
+        //        zrx_withdrawal_fee: '12.00000000',
+        //        zrxeur_fee: '0.000',
+        //        zrxusd_fee: '0.000',
+        //        ...
+        //    }
         //
         const result = {};
         let mainCurrencyId = undefined;
@@ -1187,16 +1204,17 @@ module.exports = class bitstamp extends Exchange {
             if (id.indexOf ('_available') >= 0) {
                 mainCurrencyId = currencyId;
                 result[code] = {
-                    'deposit': undefined,
-                    'withdraw': undefined,
-                    'info': {},
+                    'unknown': {
+                        'deposit': undefined,
+                        'withdraw': undefined,
+                    },
                 };
             }
             if (currencyId === mainCurrencyId) {
                 result[code]['info'][id] = this.safeNumber (response, id);
             }
             if (id.indexOf ('_withdrawal_fee') >= 0) {
-                result[code]['withdraw'] = this.safeNumber (response, id);
+                result[code]['unknown']['withdraw'] = this.safeNumber (response, id);
             }
         }
         return result;
