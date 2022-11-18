@@ -397,41 +397,6 @@ module.exports = class buda extends Exchange {
         return result;
     }
 
-    async fetchTransactionFees (codes = undefined, params = {}) {
-        /**
-         * @method
-         * @name buda#fetchTransactionFees
-         * @description fetch transaction fees
-         * @param {[string]|undefined} codes list of unified currency codes
-         * @param {object} params extra parameters specific to the buda api endpoint
-         * @returns {object} a list of [fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
-         */
-        //  by default it will try load withdrawal fees of all currencies (with separate requests)
-        //  however if you define codes = [ 'ETH', 'BTC' ] in args it will only load those
-        await this.loadMarkets ();
-        const withdrawFees = {};
-        const depositFees = {};
-        const info = {};
-        if (codes === undefined) {
-            codes = Object.keys (this.currencies);
-        }
-        for (let i = 0; i < codes.length; i++) {
-            
-            const depositResponse = await this.publicGetCurrenciesCurrencyFeesDeposit (request);
-            withdrawFees[code] = this.parseTransactionFee (withdrawResponse['fee']);
-            depositFees[code] = this.parseTransactionFee (depositResponse['fee']);
-            info[code] = {
-                'withdraw': withdrawResponse,
-                'deposit': depositResponse,
-            };
-        }
-        return {
-            'withdraw': withdrawFees,
-            'deposit': depositFees,
-            'info': info,
-        };
-    }
-
     async fetchTransactionFee (code, params = {}) {
         this.loadMarkets ();
         const currency = this.currency (code);
