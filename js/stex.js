@@ -2500,9 +2500,7 @@ module.exports = class stex extends Exchange {
         //        ]
         //    }
         //
-        const result = {
-            'info': fee,
-        };
+        const result = {};
         const networks = this.safeValue (fee, 'protocol_specific_settings');
         for (let i = 0; i < networks.length; i++) {
             const network = networks[i];

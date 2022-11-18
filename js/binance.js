@@ -4485,9 +4485,7 @@ module.exports = class binance extends Exchange {
 
     parseTransactionFee (fee, currency = undefined) {
         const networkList = this.safeValue (fee, 'networkList', []);
-        const result = {
-            'info': fee,
-        };
+        const result = {};
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
             const networkId = this.safeString (networkEntry, 'network');

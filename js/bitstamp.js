@@ -1192,7 +1192,6 @@ module.exports = class bitstamp extends Exchange {
         //    }
         //
         const result = {};
-        let mainCurrencyId = undefined;
         const ids = Object.keys (response);
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
@@ -1202,16 +1201,12 @@ module.exports = class bitstamp extends Exchange {
                 continue;
             }
             if (id.indexOf ('_available') >= 0) {
-                mainCurrencyId = currencyId;
                 result[code] = {
                     'unknown': {
                         'deposit': undefined,
                         'withdraw': undefined,
                     },
                 };
-            }
-            if (currencyId === mainCurrencyId) {
-                result[code]['info'][id] = this.safeNumber (response, id);
             }
             if (id.indexOf ('_withdrawal_fee') >= 0) {
                 result[code]['unknown']['withdraw'] = this.safeNumber (response, id);

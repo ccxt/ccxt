@@ -420,7 +420,6 @@ module.exports = class bitfinex extends Exchange {
                 'withdraw': fee,
                 'deposit': {},
             },
-            'info': fee,
         };
     }
 

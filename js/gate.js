@@ -1750,9 +1750,7 @@ module.exports = class gate extends Exchange {
         //
         const withdrawFixOnChains = this.safeValue (fee, 'withdraw_fix_on_chains');
         const depositFee = this.safeNumber (fee, 'deposit');
-        const result = {
-            'info': fee,
-        };
+        const result = {};
         if (withdrawFixOnChains === undefined) {
             result['unknown'] = {
                 'withdraw': this.safeNumber (fee, 'withdraw_fix'),

@@ -538,9 +538,7 @@ module.exports = class crex24 extends Exchange {
         //         }
         //     ]
         //
-        const result = {
-            'info': fee,
-        };
+        const result = {};
         const networkList = this.safeValue (fee, 'fees');
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];

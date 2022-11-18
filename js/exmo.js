@@ -488,9 +488,7 @@ module.exports = class exmo extends Exchange {
         //        ...
         //    ]
         //
-        const result = {
-            'info': fee,
-        };
+        const result = {};
         for (let i = 0; i < fee.length; i++) {
             const provider = fee[i];
             const type = this.safeString (provider, 'type');

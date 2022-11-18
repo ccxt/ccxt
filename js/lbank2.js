@@ -2036,9 +2036,7 @@ module.exports = class lbank2 extends Exchange {
         const canWithdraw = this.safeString (fee, 'canWithDraw');
         if (canWithdraw !== false) {
             const networkList = this.safeValue (fee, 'networkList', []);
-            const result = {
-                'info': fee,
-            };
+            const result = {};
             for (let j = 0; j < networkList.length; j++) {
                 const networkEntry = networkList[j];
                 const networkId = this.safeString (networkEntry, 'name');
@@ -2055,7 +2053,6 @@ module.exports = class lbank2 extends Exchange {
                     'withdraw': undefined,
                     'deposit': undefined,
                 },
-                'info': fee,
             };
         }
     }

@@ -1422,7 +1422,6 @@ module.exports = class bitso extends Exchange {
                 'deposit': this.safeValue (fee, 'deposit'),
                 'withdraw': this.safeNumber (fee, id),
             },
-            'info': fee,
         };
     }
 

@@ -1440,7 +1440,6 @@ module.exports = class bkex extends Exchange {
                         'withdraw': this.parseTransactionFee (entry),
                         'deposit': undefined,
                     },
-                    'info': entry,
                 };
             }
         }
