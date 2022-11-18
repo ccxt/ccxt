@@ -2847,7 +2847,9 @@ module.exports = class Exchange {
          * @param {str|undefined} currencyIdKey *should only be undefined when response is a dictionary* the object key that corresponds to the currency id
          * @returns {object} objects with withdraw and deposit fees, indexed by currency codes
          */
-        const transactionFees = {};
+        const transactionFees = {
+            'info': response,
+        };
         codes = this.marketCodes (codes);
         const isArray = Array.isArray (response);
         const array = isArray ? response : Object.keys (response);
