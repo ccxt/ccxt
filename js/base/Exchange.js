@@ -1679,7 +1679,7 @@ module.exports = class Exchange {
             if (networkId in networkEntriesIndexed) {
                 chosenNetworkId = networkId;
             } else {
-                throw new InvalidAddress (this.id + ' detectDefaultNetworkId() : ' + networkId + ' network was not found for ' + currencyCode + ', use one of ' + availableNetworkIds.join (', '));
+                throw new NotSupported (this.id + ' detectDefaultNetworkId() : ' + networkId + ' network was not found for ' + currencyCode + ', use one of ' + availableNetworkIds.join (', '));
             }
         } else {
             // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
