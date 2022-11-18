@@ -2458,6 +2458,7 @@ module.exports = class stex extends Exchange {
         //                     }
         //                 ]
         //             }
+        //             ...
         //         ]
         //     }
         //
@@ -2465,11 +2466,51 @@ module.exports = class stex extends Exchange {
     }
 
     parseTransactionFee (fee, currency = undefined) {
-        return {
-            'withdraw': this.safeNumber (fee, 'withdraw_fee_const'),
-            'deposit': this.safeNumber (fee, 'deposit_fee_const'),
+        //
+        //    {
+        //        "id": 1,
+        //        "code": "BTC",
+        //        "name": "Bitcoin",
+        //        "active": true,
+        //        "delisted": false,
+        //        "precision": 8,
+        //        "minimum_tx_confirmations": 24,
+        //        "minimum_withdrawal_amount": "0.009",
+        //        "minimum_deposit_amount": "0.000003",
+        //        "deposit_fee_currency_id": 1,
+        //        "deposit_fee_currency_code": "ETH",
+        //        "deposit_fee_const": "0.00001",
+        //        "deposit_fee_percent": "0",
+        //        "withdrawal_fee_currency_id": 1,
+        //        "withdrawal_fee_currency_code": "ETH",
+        //        "withdrawal_fee_const": "0.0015",
+        //        "withdrawal_fee_percent": "0",
+        //        "withdrawal_limit": "string",
+        //        "block_explorer_url": "https://blockchain.info/tx/",
+        //        "protocol_specific_settings": [
+        //            {
+        //                "protocol_name": "Tether OMNI",
+        //                "protocol_id": 10,
+        //                "active": true,
+        //                "withdrawal_fee_currency_id": 1,
+        //                "withdrawal_fee_const": 0.002,
+        //                "withdrawal_fee_percent": 0,
+        //                "block_explorer_url": "https://omniexplorer.info/search/"
+        //            }
+        //        ]
+        //    }
+        //
+        const result = {
             'info': fee,
         };
+        const networks = this.safeValue (fee, 'protocol_specific_settings');
+        for (let i = 0; i < networks.length; i++) {
+            const network = networks[i];
+            const name = this.safeString (network, 'protocol_name');
+            result[name]['withdraw'] = this.safeNumber (network, 'withdrawal_fee_const');
+            result[name]['deposit'] = undefined;
+        }
+        return result;
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
