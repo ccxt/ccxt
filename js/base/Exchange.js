@@ -2837,4 +2837,46 @@ module.exports = class Exchange {
          */
         this.checkRequiredArgument (methodName, symbol, 'symbol');
     }
+
+    parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
+        /**
+         * @ignore
+         * @method
+         * @param {[object]|object} response unparsed response from the exchange
+         * @param {[string]|undefined} codes the unified currency codes to fetch transactions fees for, returns all currencies when undefined
+         * @param {str|undefined} currencyIdKey *should only be undefined when response is a dictionary* the object key that corresponds to the currency id
+         * @returns {object} objects with withdraw and deposit fees, indexed by currency codes
+         */
+        const depositWithdrawFees = {
+            'info': response,
+        };
+        codes = this.marketCodes (codes);
+        const isArray = Array.isArray (response);
+        const array = isArray ? response : Object.keys (response);
+        for (let i = 0; i < array.length; i++) {
+            const entry = array[i];
+            const dictionary = isArray ? entry : response[entry];
+            const currencyId = isArray ? this.safeString (dictionary, currencyIdKey) : entry;
+            const currency = this.safeValue (this.currencies_by_id, currencyId);
+            const code = this.safeString (currency, 'code', currencyId);
+            if ((codes === undefined) || (this.inArray (code, codes))) {
+                depositWithdrawFees[code] = this.parseDepositWithdrawFee (dictionary, currency);
+            }
+        }
+        return depositWithdrawFees;
+    }
+
+    depositWithdrawFee () {
+        return {
+            'withdraw': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+        };
+    }
 };
