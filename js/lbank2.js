@@ -2034,27 +2034,29 @@ module.exports = class lbank2 extends Exchange {
         //    }
         //
         const canWithdraw = this.safeString (fee, 'canWithDraw');
+        const result = this.depositWithdrawFee ();
         if (canWithdraw !== false) {
             const networkList = this.safeValue (fee, 'networkList', []);
-            const result = {};
             for (let j = 0; j < networkList.length; j++) {
                 const networkEntry = networkList[j];
                 const networkId = this.safeString (networkEntry, 'name');
                 const networkCode = this.safeString (this.options['inverse-networks'], networkId, networkId);
                 const fee = this.safeNumber2 (networkEntry, 'fee', 'withdrawFee');
                 if (fee !== undefined) {
-                    result[networkCode]['withdraw'] = fee;
-                    result[networkCode]['deposit'] = undefined;
+                    result['networks'][networkCode] = {
+                        'withdraw': {
+                            'fee': fee,
+                            'percentage': undefined,
+                        },
+                        'deposit': {
+                            'fee': undefined,
+                            'percentage': undefined,
+                        },
+                    };
                 }
             }
-        } else {
-            return {
-                'unknown': {
-                    'withdraw': undefined,
-                    'deposit': undefined,
-                },
-            };
         }
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
