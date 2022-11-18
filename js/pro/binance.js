@@ -98,8 +98,8 @@ module.exports = class binance extends binanceRest {
             }
             this.options['streamIndex'] = streamIndex;
             stream = this.numberToString (streamIndex);
+            streamBySubscriptionsHash[subscriptionHash] = stream;
         }
-        streamBySubscriptionsHash[subscriptionHash] = stream;
         return stream;
     }
 
