@@ -1644,15 +1644,6 @@ module.exports = class Exchange {
         return this.safeString (networksById, networkId, networkId);
     }
 
-    handleNetworkCodeAndParams (params) {
-        const networkCodeOrIdInParams = this.safeString2 (params, 'networkCode', 'network');
-        if (networkCodeOrIdInParams !== undefined) {
-            params = this.omit (params, [ 'networkCode', 'network' ]);
-        }
-        // if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
-        return [ networkCodeOrIdInParams, params ];
-    }
-
     defaultNetworkCode (currencyCode) {
         let defaultNetworkCode = undefined;
         const defaultNetworks = this.safeValue (this.options, 'defaultNetworks', {});

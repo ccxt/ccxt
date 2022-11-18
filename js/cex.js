@@ -1559,6 +1559,15 @@ module.exports = class cex extends Exchange {
         };
     }
 
+    handleNetworkCodeAndParams (params) {
+        const networkCodeOrIdInParams = this.safeString2 (params, 'networkCode', 'network');
+        if (networkCodeOrIdInParams !== undefined) {
+            params = this.omit (params, [ 'networkCode', 'network' ]);
+        }
+        // if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
+        return [ networkCodeOrIdInParams, params ];
+    }
+
     nonce () {
         return this.milliseconds ();
     }
