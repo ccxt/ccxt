@@ -2500,13 +2500,31 @@ module.exports = class stex extends Exchange {
         //        ]
         //    }
         //
-        const result = {};
+        const result = {
+            'withdraw': {
+                'fee': this.safeNumber (fee, 'withdrawal_fee_const'),
+                'percentage': false,
+            },
+            'deposit': {
+                'fee': this.safeNumber (fee, 'deposit_fee_const'),
+                'percentage': false,
+            },
+            'networks': {},
+        };
         const networks = this.safeValue (fee, 'protocol_specific_settings');
         for (let i = 0; i < networks.length; i++) {
             const network = networks[i];
-            const name = this.safeString (network, 'protocol_name');
-            result[name]['withdraw'] = this.safeNumber (network, 'withdrawal_fee_const');
-            result[name]['deposit'] = undefined;
+            const networkName = this.safeString (network, 'protocol_name');
+            result['networks'][networkName] = {
+                'withdraw': {
+                    'fee': this.safeNumber (network, 'withdrawal_fee_const'),
+                    'percentage': false,
+                },
+                'deposit': {
+                    'fee': undefined,
+                    'percentage': undefined,
+                },
+            };
         }
         return result;
     }
