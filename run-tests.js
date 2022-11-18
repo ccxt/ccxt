@@ -148,7 +148,7 @@ const testExchange = async (exchange) => {
 
 /*  Run tests for all/selected languages (in parallel)     */
 
-    const existingPassedFlag = testHelper.checkPassedTestHash ('js', exchange) ? ' ✓user' : '*';
+    const existingPassedFlag = testHelper.checkPassedTestHash ('js', exchange) ? ' ✓user' : '';
 
     const args = [exchange, ...symbol === 'all' ? [] : symbol]
         , allTests = [
