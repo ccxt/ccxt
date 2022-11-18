@@ -6988,24 +6988,30 @@ module.exports = class bybit extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchPosition() requires a symbol argument');
         }
-        let enableUnifiedMargin = undefined;
-        [ enableUnifiedMargin, params ] = this.handleOptionAndParamsValue (params, 'fetchPosition', 'enableUnifiedMargin', false);
-        if (!enableUnifiedMargin) {
-            throw new NotSupported (this.id + ' fetchPosition() only support unified margin account');
-        }
         await this.loadMarkets ();
         const market = this.market (symbol);
         const request = {
             'symbol': market['id'],
         };
-        if (market['option']) {
-            request['category'] = 'option';
-        } else if (market['linear']) {
-            request['category'] = 'linear';
-        } else {
-            throw new NotSupported (this.id + ' fetchPosition() does not allow inverse market orders for ' + symbol + ' markets');
+        let method = undefined;
+        let enableUnifiedMargin = undefined;
+        [ enableUnifiedMargin, params ] = this.handleOptionAndParamsValue (params, 'fetchPosition', 'enableUnifiedMargin', false);
+        const isV3 = (this.version === 'v3');
+        if (enableUnifiedMargin) {
+            method = 'privateGetUnifiedV3PrivatePositionList';
+            if (market['option']) {
+                request['category'] = 'option';
+            } else if (market['linear']) {
+                request['category'] = 'linear';
+            } else {
+                throw new NotSupported (this.id + ' fetchPosition() does not allow inverse market orders for ' + symbol + ' markets');
+            }
+        } else if (isV3) {
+            method = 'privateGetContractV3PrivatePositionList';
         }
-        const response = await this.privateGetUnifiedV3PrivatePositionList (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
+        //
+        // unified margin
         //
         //     {
         //         "retCode": 0,
@@ -7039,6 +7045,67 @@ module.exports = class bybit extends Exchange {
         //             ]
         //         },
         //         "time": 1657713693182
+        //     }
+        //
+        // contract v3
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "positionIdx": 1,
+        //                     "riskId": "41",
+        //                     "symbol": "XRPUSDT",
+        //                     "side": "Buy",
+        //                     "size": "0",
+        //                     "positionValue": "0",
+        //                     "entryPrice": "0",
+        //                     "tradeMode": 0,
+        //                     "autoAddMargin": 0,
+        //                     "leverage": "10",
+        //                     "positionBalance": "0",
+        //                     "liqPrice": "0.0000",
+        //                     "bustPrice": "0.0000",
+        //                     "takeProfit": "0.0000",
+        //                     "stopLoss": "0.0000",
+        //                     "trailingStop": "0.0000",
+        //                     "unrealisedPnl": "0",
+        //                     "createdTime": "1658827444328",
+        //                     "updatedTime": "1658904863412",
+        //                     "tpSlMode": "Full",
+        //                     "riskLimitValue": "200000",
+        //                     "activePrice": "0.0000"
+        //                 },
+        //                 {
+        //                     "positionIdx": 2,
+        //                     "riskId": "41",
+        //                     "symbol": "XRPUSDT",
+        //                     "side": "Sell",
+        //                     "size": "50",
+        //                     "positionValue": "16.68",
+        //                     "entryPrice": "0.3336",
+        //                     "tradeMode": 0,
+        //                     "autoAddMargin": 0,
+        //                     "leverage": "10",
+        //                     "positionBalance": "1.6790088",
+        //                     "liqPrice": "12.4835",
+        //                     "bustPrice": "12.4869",
+        //                     "takeProfit": "0.0000",
+        //                     "stopLoss": "0.0000",
+        //                     "trailingStop": "0.0000",
+        //                     "unrealisedPnl": "0",
+        //                     "createdTime": "1658827444328",
+        //                     "updatedTime": "1658904863412",
+        //                     "tpSlMode": "Full",
+        //                     "riskLimitValue": "200000",
+        //                     "activePrice": "0.0000"
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": null,
+        //         "time": 1658904877942
         //     }
         //
         const result = this.safeValue (response, 'result', {});
