@@ -4424,24 +4424,6 @@ module.exports = class mexc3 extends Exchange {
         return this.parseTransactionFees (response, codes);
     }
 
-    parseTransactionFees (response, codes = undefined) {
-        const withdrawFees = {};
-        for (let i = 0; i < response.length; i++) {
-            const entry = response[i];
-            const currencyId = this.safeString (entry, 'coin');
-            const currency = this.safeCurrency (currencyId);
-            const code = this.safeString (currency, 'code');
-            if ((codes === undefined) || (this.inArray (code, codes))) {
-                withdrawFees[code] = this.parseTransactionFee (entry, currency);
-            }
-        }
-        return {
-            'withdraw': withdrawFees,
-            'deposit': {},
-            'info': response,
-        };
-    }
-
     parseTransactionFee (fee, currency = undefined) {
         //
         //    {
@@ -4470,13 +4452,16 @@ module.exports = class mexc3 extends Exchange {
         //    }
         //
         const networkList = this.safeValue (fee, 'networkList', []);
-        const result = {};
+        const result = {
+            'info': fee,
+        };
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
             const networkId = this.safeString (networkEntry, 'network');
             const networkCode = this.safeString (this.options['networks'], networkId, networkId);
             const fee = this.safeNumber (networkEntry, 'withdrawFee');
-            result[networkCode] = fee;
+            result[networkCode]['withdraw'] = fee;
+            result[networkCode]['deposit'] = undefined;
         }
         return result;
     }
