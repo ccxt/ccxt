@@ -2229,6 +2229,57 @@ module.exports = class digifinex extends Exchange {
         return this.filterBySymbolSinceLimit (sorted, symbol, since, limit);
     }
 
+    async fetchTradingFee (symbol, params = {}) {
+        /**
+         * @method
+         * @name digifinex#fetchTradingFee
+         * @description fetch the trading fees for a market
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#tradingfee
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the digifinex api endpoint
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadRequest (this.id + ' fetchTradingFee() supports swap markets only');
+        }
+        const request = {
+            'instrument_id': market['id'],
+        };
+        const response = await this.privateSwapGetAccountTradingFeeRate (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "instrument_id": "BTCUSDTPERP",
+        //             "taker_fee_rate": "0.0005",
+        //             "maker_fee_rate": "0.0003"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseTradingFee (data, market);
+    }
+
+    parseTradingFee (fee, market = undefined) {
+        //
+        //     {
+        //         "instrument_id": "BTCUSDTPERP",
+        //         "taker_fee_rate": "0.0005",
+        //         "maker_fee_rate": "0.0003"
+        //     }
+        //
+        const marketId = this.safeString (fee, 'instrument_id');
+        const symbol = this.safeSymbol (marketId, market);
+        return {
+            'info': fee,
+            'symbol': symbol,
+            'maker': this.safeNumber (fee, 'maker_fee_rate'),
+            'taker': this.safeNumber (fee, 'taker_fee_rate'),
+        };
+    }
+
     async fetchPositions (symbols = undefined, params = {}) {
         /**
          * @method
@@ -2238,7 +2289,7 @@ module.exports = class digifinex extends Exchange {
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#positions
          * @param {[string]|undefined} symbols list of unified market symbols
          * @param {object} params extra parameters specific to the digifinex api endpoint
-         * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
+         * @returns {[object]} a list of [position structures]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
@@ -2259,16 +2310,19 @@ module.exports = class digifinex extends Exchange {
             market = this.market (symbol);
         }
         [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPositions', market, params);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchPositions', params);
+        if (marginMode !== undefined) {
+            marketType = 'margin';
+        }
         if (market !== undefined) {
-            const marketIdRequest = (marketType === 'spot' || marketType === 'margin') ? 'symbol' : 'instrument_id';
+            const marketIdRequest = (marketType === 'swap') ? 'instrument_id' : 'symbol';
             request[marketIdRequest] = market['id'];
         }
         const method = this.getSupportedMapping (marketType, {
-            'spot': 'privateSpotGetMarginPositions',
             'margin': 'privateSpotGetMarginPositions',
             'swap': 'privateSwapGetAccountPositions',
         });
-        const response = await this[method] (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
         //
         // swap
         //
@@ -2322,7 +2376,7 @@ module.exports = class digifinex extends Exchange {
         //         "unrealized_pnl": "-0.10681600018999979"
         //     }
         //
-        const positionRequest = (marketType === 'spot' || marketType === 'margin') ? 'positions' : 'data';
+        const positionRequest = (marketType === 'swap') ? 'data' : 'positions';
         const positions = this.safeValue (response, positionRequest, []);
         const result = [];
         for (let i = 0; i < positions.length; i++) {
@@ -2338,19 +2392,23 @@ module.exports = class digifinex extends Exchange {
          * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-positions
          * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#positions
          * @description fetch data on a single open contract trade position
-         * @param {string} symbol unified market symbol of the market the position is held in, default is undefined
+         * @param {string} symbol unified market symbol of the market the position is held in
          * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {object} a [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchPosition', market, params);
+        const request = {};
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchPosition', market, params);
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchPosition', params);
+        if (marginMode !== undefined) {
+            marketType = 'margin';
+        }
         const method = this.getSupportedMapping (marketType, {
-            'spot': 'privateSpotGetMarginPositions',
             'margin': 'privateSpotGetMarginPositions',
             'swap': 'privateSwapGetAccountPositions',
         });
-        const request = {};
         const marketIdRequest = (marketType === 'swap') ? 'instrument_id' : 'symbol';
         request[marketIdRequest] = market['id'];
         const response = await this[method] (this.extend (request, query));
