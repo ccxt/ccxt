@@ -4452,14 +4452,21 @@ module.exports = class mexc3 extends Exchange {
         //    }
         //
         const networkList = this.safeValue (fee, 'networkList', []);
-        const result = {};
+        const result = this.depositWithdrawFee ();
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
             const networkId = this.safeString (networkEntry, 'network');
             const networkCode = this.safeString (this.options['networks'], networkId, networkId);
-            const fee = this.safeNumber (networkEntry, 'withdrawFee');
-            result[networkCode]['withdraw'] = fee;
-            result[networkCode]['deposit'] = undefined;
+            result['networks'][networkCode] = {
+                'withdraw': {
+                    'fee': this.safeNumber (networkEntry, 'withdrawFee'),
+                    'percentage': undefined,
+                },
+                'deposit': {
+                    'fee': undefined,
+                    'percentage': undefined,
+                },
+            };
         }
         return result;
     }
