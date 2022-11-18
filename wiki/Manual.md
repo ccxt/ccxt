@@ -5106,21 +5106,39 @@ Parameters
 
 Returns
 
-- An array of [transaction fee structures](#transaction-fee-structure)
+- An dictionary of [transaction fee structures](#transaction-fee-structure), indexed by the currency code
 
 ##### Transaction Fee Structure
 
 ```JavaScript
 {
-    'withdraw': {
-        'BTC': 0.00001,
-        'ETH': 0.001,
-        'LTC': 0.0003,
+    'BTC': {                // network name
+        'withdraw': 40,     // withdraw fee
+        'deposit': 0        // deposit fee
     },
-    'deposit': {
-        'BTC': 0,
+    'ETH': {
+        'withdraw': 19,
+        'deposit': 0
     },
-    'info': { ... },
+    'TRX': {
+        'withdraw': 0.5,
+        'deposit': 0
+    },
+    ...
+}
+```
+
+### Notes On Transaction Fee Structure
+
+- when the network is not provided by the exchange, the string `'unknown'` is used as the key for the network, e.g.
+
+```
+{
+    'unknown': {            // network name
+        'withdraw': 40,     // withdraw fee
+        'deposit': 0        // deposit fee
+    },
+    ...
 }
 ```
 
