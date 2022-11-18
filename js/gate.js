@@ -1760,8 +1760,10 @@ module.exports = class gate extends Exchange {
             const chainKeys = Object.keys (withdrawFixOnChains);
             for (let i = 0; i < chainKeys.length; i++) {
                 const chainKey = chainKeys[i];
-                result[chainKey]['withdraw'] = this.parseNumber (withdrawFixOnChains[chainKey]);
-                result[chainKey]['deposit'] = depositFee;
+                result[chainKey] = {
+                    'withdraw': this.parseNumber (withdrawFixOnChains[chainKey]),
+                    'deposit': depositFee,
+                };
             }
         }
         return result;
