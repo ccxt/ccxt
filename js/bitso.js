@@ -1418,24 +1418,29 @@ module.exports = class bitso extends Exchange {
             const entry = depositResponse[i];
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            result[code] = {
-                'unknown': {
-                    'deposit': this.safeNumber (entry, 'fee'),
-                    'withdraw': undefined,
-                },
-            };
+            if (codes === undefined || code in codes) {
+                result[code] = {
+                    'deposit': {
+                        'fee': this.safeNumber (entry, 'fee'),
+                        'percentage': !this.safeValue (entry, 'is_fixed'),
+                    },
+                    'withdraw': {
+                        'fee': undefined,
+                        'percentage': undefined,
+                    },
+                    'networks': {},
+                };
+            }
         }
         const withdrawalKeys = Object.keys (withdrawalResponse);
-        const defaultValue = {
-            'unknown': {
-                'deposit': undefined,
-            },
-        };
+        const defaultValue = this.depositWithdrawFee ();
         for (let i = 0; i < withdrawalKeys.length; i++) {
             const currencyId = withdrawalKeys[i];
             const code = this.safeCurrencyCode (currencyId);
-            result[code] = result[code] === undefined ? defaultValue : result[code];
-            result[code]['unknown']['withdraw'] = this.parseNumber (withdrawalResponse[currencyId]);
+            if (codes === undefined || code in codes) {
+                result[code] = result[code] === undefined ? defaultValue : result[code];
+                result[code]['withdraw']['fee'] = this.parseNumber (withdrawalResponse[currencyId]);
+            }
         }
         return result;
     }
