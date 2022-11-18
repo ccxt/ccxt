@@ -1377,37 +1377,56 @@ module.exports = class bkex extends Exchange {
         await this.loadMarkets ();
         const response = await this.publicGetCommonCurrencys (params);
         //
-        //      {
-        //          "msg": "success",
-        //          "code": "0",
-        //          "data": [
+        //    {
+        //        "msg": "success",
+        //        "code": "0",
+        //        "data": [
         //            {
-        //              "currency": "ETH",
-        //              "maxWithdrawOneDay": 2000,
-        //              "maxWithdrawSingle": 2000,
-        //              "minWithdrawSingle": 0.1,
-        //              "supportDeposit": true,
-        //              "supportTrade": true,
-        //              "supportWithdraw": true,
-        //              "withdrawFee": 0.008
+        //                "currency": "ETH",
+        //                "maxWithdrawOneDay": 2000,
+        //                "maxWithdrawSingle": 2000,
+        //                "minWithdrawSingle": 0.1,
+        //                "supportDeposit": true,
+        //                "supportTrade": true,
+        //                "supportWithdraw": true,
+        //                "withdrawFee": 0.008
         //            },
         //            {
-        //              "currency": "BTC",
-        //              "maxWithdrawOneDay": 100,
-        //              "maxWithdrawSingle": 100,
-        //              "minWithdrawSingle": 0.01,
-        //              "supportDeposit": true,
-        //              "supportTrade": true,
-        //              "supportWithdraw": true,
-        //              "withdrawFee": 0.008
+        //                "currency": "BTC",
+        //                "maxWithdrawOneDay": 100,
+        //                "maxWithdrawSingle": 100,
+        //                "minWithdrawSingle": 0.01,
+        //                "supportDeposit": true,
+        //                "supportTrade": true,
+        //                "supportWithdraw": true,
+        //                "withdrawFee": 0.008
         //            }
-        //          ]
-        //      }
+        //        ]
+        //    }
         //
         return this.parseTransactionFees (response, codes);
     }
 
     parseTransactionFees (response, codes = undefined) {
+        //
+        //    {
+        //        "msg": "success",
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "currency": "ETH",
+        //                "maxWithdrawOneDay": 2000,
+        //                "maxWithdrawSingle": 2000,
+        //                "minWithdrawSingle": 0.1,
+        //                "supportDeposit": true,
+        //                "supportTrade": true,
+        //                "supportWithdraw": true,
+        //                "withdrawFee": 0.008
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
         const data = this.safeValue (response, 'data');
         const result = {};
         for (let i = 0; i < data.length; i++) {
@@ -1417,8 +1436,10 @@ module.exports = class bkex extends Exchange {
             const code = this.safeString (currency, 'code');
             if ((codes === undefined) || (this.inArray (code, codes))) {
                 result[code] = {
-                    'withdraw': this.parseTransactionFee (entry),
-                    'deposit': undefined,
+                    'unknown': {
+                        'withdraw': this.parseTransactionFee (entry),
+                        'deposit': undefined,
+                    },
                     'info': entry,
                 };
             }
