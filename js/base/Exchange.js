@@ -2838,7 +2838,7 @@ module.exports = class Exchange {
         this.checkRequiredArgument (methodName, symbol, 'symbol');
     }
 
-    parseTransactionFees (response, codes = undefined, currencyIdKey = undefined) {
+    parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
         /**
          * @ignore
          * @method
@@ -2847,7 +2847,7 @@ module.exports = class Exchange {
          * @param {str|undefined} currencyIdKey *should only be undefined when response is a dictionary* the object key that corresponds to the currency id
          * @returns {object} objects with withdraw and deposit fees, indexed by currency codes
          */
-        const transactionFees = {
+        const depositWithdrawFees = {
             'info': response,
         };
         codes = this.marketCodes (codes);
@@ -2860,10 +2860,10 @@ module.exports = class Exchange {
             const currency = this.safeValue (this.currencies_by_id, currencyId);
             const code = this.safeString (currency, 'code', currencyId);
             if ((codes === undefined) || (this.inArray (code, codes))) {
-                transactionFees[code] = this.parseTransactionFee (dictionary, currency);
+                depositWithdrawFees[code] = this.parseDepositWithdrawFee (dictionary, currency);
             }
         }
-        return transactionFees;
+        return depositWithdrawFees;
     }
 
     depositWithdrawFee () {
