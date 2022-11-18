@@ -4485,19 +4485,18 @@ module.exports = class binance extends Exchange {
 
     parseTransactionFee (fee, currency = undefined) {
         const networkList = this.safeValue (fee, 'networkList', []);
-        const networks = {};
+        const result = {
+            'info': fee,
+        };
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
             const networkId = this.safeString (networkEntry, 'network');
             const networkCode = this.safeCurrencyCode (networkId);
             const fee = this.safeNumber (networkEntry, 'withdrawFee');
-            networks[networkCode] = fee;
+            result[networkCode]['withdraw'] = fee;
+            result[networkCode]['deposit'] = {};
         }
-        return {
-            'withdraw': networks,
-            'deposit': {},
-            'info': fee,
-        };
+        return result;
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
