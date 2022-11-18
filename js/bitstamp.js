@@ -1201,15 +1201,10 @@ module.exports = class bitstamp extends Exchange {
                 continue;
             }
             if (id.indexOf ('_available') >= 0) {
-                result[code] = {
-                    'unknown': {
-                        'deposit': undefined,
-                        'withdraw': undefined,
-                    },
-                };
+                result[code] = this.depositWithdrawFee ();
             }
             if (id.indexOf ('_withdrawal_fee') >= 0) {
-                result[code]['unknown']['withdraw'] = this.safeNumber (response, id);
+                result[code]['withdraw']['fee'] = this.safeNumber (response, id);
             }
         }
         return result;
