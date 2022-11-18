@@ -1244,7 +1244,7 @@ export default class Exchange {
 
     handleMessage (client, message) {} // stub to override
 
-    ping (client) {} // stub to override
+    // ping (client) {} // stub to override
 
     client (url): WsClient {
         this.clients = this.clients || {};
@@ -1257,7 +1257,7 @@ export default class Exchange {
             const wsOptions = this.safeValue (this.options, 'ws', {});
             const options = this.extend (this.streaming, {
                 'log': this.log ? this.log.bind (this) : this.log,
-                'ping': this.ping ? this.ping.bind (this) : this.ping,
+                'ping': (this as any).ping ? (this as any).ping.bind (this) : (this as any).ping,
                 'verbose': this.verbose,
                 'throttle': throttle (this.tokenBucket),
             }, wsOptions);
