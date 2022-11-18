@@ -2110,7 +2110,7 @@ module.exports = class bibox extends Exchange {
         return {
             'unknown': {
                 'withdraw': this.safeNumber (fee, 'withdraw_fee'),
-                'deposit': {},
+                'deposit': undefined,
             },
         };
     }
