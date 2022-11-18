@@ -1436,10 +1436,15 @@ module.exports = class bkex extends Exchange {
             const code = this.safeString (currency, 'code');
             if ((codes === undefined) || (this.inArray (code, codes))) {
                 result[code] = {
-                    'unknown': {
-                        'withdraw': this.parseTransactionFee (entry),
-                        'deposit': undefined,
+                    'withdraw': {
+                        'fee': this.parseTransactionFee (entry),
+                        'percentage': undefined,
                     },
+                    'deposit': {
+                        'fee': undefined,
+                        'percentage': undefined,
+                    },
+                    'networks': {},
                 };
             }
         }
