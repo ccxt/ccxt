@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError, InvalidAddress, ArgumentsRequired, AuthenticationError, NullResponse, InvalidOrder, NotSupported, InsufficientFunds, InvalidNonce, OrderNotFound, RateLimitExceeded, DDoSProtection, BadSymbol } = require ('./base/errors');
+const { ExchangeError, InvalidAddress, ArgumentsRequired, AuthenticationError, NullResponse, InvalidOrder, InsufficientFunds, InvalidNonce, OrderNotFound, RateLimitExceeded, DDoSProtection, BadSymbol } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
 const Precise = require ('./base/Precise');
 
@@ -187,17 +187,21 @@ module.exports = class cex extends Exchange {
                         'a': 'open',
                     },
                 },
+                'defaultNetwork': 'ERC20',
+                'defaultNetworks': {
+                    'USDT': 'TRC20',
+                },
                 'networks': {
                     'ERC20': 'Ethereum',
                     'BTC': 'BTC',
+                    'BEP20': 'Binance Smart Chain',
+                    'TRC20': 'Tron',
                 },
                 'networksById': {
                     'Ethereum': 'ERC20',
                     'BTC': 'BTC',
-                },
-                'defaultNetwork': 'ERC20',
-                'defaultNetworks': {
-                    'USDT': 'TRC20',
+                    'Binance Smart Chain': 'BEP20',
+                    'Tron': 'TRC20',
                 },
             },
         });
@@ -1511,16 +1515,13 @@ module.exports = class cex extends Exchange {
          * @param {object} params extra parameters specific to the cex api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
-        if (code === 'XRP' || code === 'XLM') {
-            // https://github.com/ccxt/ccxt/pull/2327#issuecomment-375204856
-            throw new NotSupported (this.id + ' fetchDepositAddress() does not support XRP and XLM addresses yet (awaiting docs from CEX.io)');
-        }
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
         };
-        const [ networkId, query ] = this.handleNetworkCodeAndParams (code, params);
+        const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
+        // atm, cex doesn't support network in the request
         const response = await this.privatePostGetCryptoAddress (this.extend (request, query));
         //
         //    {
@@ -1531,7 +1532,12 @@ module.exports = class cex extends Exchange {
         //             "addresses": [
         //                 {
         //                     "blockchain": "Bitcoin",
-        //                     "address": "2BvKwd7UwrdTjx2nzhscFYXwqCjCaaHJmW"
+        //                     "address": "2BvKwe1UwrdTjq2nzhscFYXwqCjCaaHCeq"
+        //
+        //                     // for others coins (i.e. XRP, XLM) other keys are present:
+        //                     //     "destination": "rF1sdh25BJX3qFwneeTBwaq3zPEWYcwjp2",
+        //                     //     "destinationTag": "7519113655",
+        //                     //     "memo": "XLM-memo12345",
         //                 }
         //             ]
         //         }
@@ -1539,68 +1545,18 @@ module.exports = class cex extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         const addresses = this.safeValue (data, 'addresses', []);
-        let chosenNetworkId = undefined;
         const chainsIndexedById = this.indexBy (addresses, 'blockchain');
-        if (networkId !== undefined) {
-            if (networkId in chainsIndexedById) {
-                chosenNetworkId = networkId;
-            } else {
-                throw new InvalidAddress (this.id + ' fetchDepositAddress() - ' + code + ' no deposit networks were found for ' + networkId);
-            }
-        } else {
-            const ids = Object.keys (chainsIndexedById);
-            const defaultNetwordId = this.defaultNetworkId (code);
-            chosenNetworkId = (defaultNetwordId in chainsIndexedById) ? defaultNetwordId : ids[0];
-        }
-        const addressObject = chainsIndexedById[chosenNetworkId];
-        const networkCode = this.networkIdToCode (chosenNetworkId);
-        const address = this.safeString (addressObject, 'address');
+        const selectedNetworkId = this.selectDefaultNetworkId (chainsIndexedById, networkCode, code);
+        const addressObject = this.safeValue (chainsIndexedById, selectedNetworkId, {});
+        const address = this.safeString2 (addressObject, 'address', 'destination');
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
-            'tag': undefined,
-            'network': networkCode,
+            'tag': this.safeString2 (addressObject, 'destinationTag', 'memo'),
+            'network': this.networkIdToCode (selectedNetworkId),
             'info': addressObject,
         };
-    }
-
-    networkIdToCode (networkId) {
-        const networksById = this.safeValue (this.options, 'networksById', {});
-        return this.safeString (networksById, networkId, networkId);
-    }
-
-    networkCodeToId (networkCode) {
-        const networks = this.safeValue (this.options, 'networks', {});
-        return this.safeString (networks, networkCode, networkCode);
-    }
-
-    handleNetworkCodeAndParams (code, params) {
-        const networks = this.safeValue (this.options, 'networks', {});
-        const networkCodeOrIdInParams = this.safeString2 (params, 'networkCode', 'network');
-        let networkId = undefined;
-        if (networkCodeOrIdInParams !== undefined) {
-            params = this.omit (params, [ 'networkCode', 'network' ]);
-            networkId = this.safeString (networks, networkCodeOrIdInParams, networkCodeOrIdInParams);
-        }
-        // if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for 'request'-side only and thus we do not fill it with anything. We can only use defaults after response is received
-        return [ networkId, params ];
-    }
-
-    defaultNetworkId (code) {
-        let targetNetworkCode = undefined;
-        const defaultNetworks = this.safeValue (this.options, 'defaultNetworks', {});
-        if (code in defaultNetworks) {
-            targetNetworkCode = defaultNetworks[code];
-        } else {
-            const defaultNetwork = this.safeValue (this.options, 'defaultNetwork');
-            if (defaultNetwork !== undefined) {
-                targetNetworkCode = defaultNetwork;
-            }
-        }
-        const networks = this.safeValue (this.options, 'networks', {});
-        const networkId = this.safeString (networks, targetNetworkCode, targetNetworkCode);
-        return networkId;
     }
 
     nonce () {
