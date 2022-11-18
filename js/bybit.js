@@ -7306,13 +7306,18 @@ module.exports = class bybit extends Exchange {
         }
         params = this.omit (params, [ 'subType' ]);
         let method = undefined;
-        if (type === 'future') {
-            method = 'privateGetFuturesPrivatePositionList';
-        } else if (isLinear) {
-            method = 'privateGetPrivateLinearPositionList';
+        const isV3 = (this.version === 'v3');
+        if (isV3) {
+            method = 'privateGetContractV3PrivatePositionList';
         } else {
-            // inverse swaps
-            method = 'privateGetV2PrivatePositionList';
+            if (type === 'future') {
+                method = 'privateGetFuturesPrivatePositionList';
+            } else if (isLinear) {
+                method = 'privateGetPrivateLinearPositionList';
+            } else {
+                // inverse swaps
+                method = 'privateGetV2PrivatePositionList';
+            }
         }
         let response = await this[method] (this.extend (request, params));
         if ((typeof response === 'string') && this.isJsonEncodedObject (response)) {
@@ -7327,13 +7332,69 @@ module.exports = class bybit extends Exchange {
         //         result: [] or {} depending on the request
         //     }
         //
+        // contract v3
+        //
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "positionIdx": 1,
+        //                     "riskId": "41",
+        //                     "symbol": "XRPUSDT",
+        //                     "side": "Buy",
+        //                     "size": "0",
+        //                     "positionValue": "0",
+        //                     "entryPrice": "0",
+        //                     "tradeMode": 0,
+        //                     "autoAddMargin": 0,
+        //                     "leverage": "10",
+        //                     "positionBalance": "0",
+        //                     "liqPrice": "0.0000",
+        //                     "bustPrice": "0.0000",
+        //                     "takeProfit": "0.0000",
+        //                     "stopLoss": "0.0000",
+        //                     "trailingStop": "0.0000",
+        //                     "unrealisedPnl": "0",
+        //                     "createdTime": "1658827444328",
+        //                     "updatedTime": "1658904863412",
+        //                     "tpSlMode": "Full",
+        //                     "riskLimitValue": "200000",
+        //                     "activePrice": "0.0000"
+        //                 },
+        //                 {
+        //                     "positionIdx": 2,
+        //                     "riskId": "41",
+        //                     "symbol": "XRPUSDT",
+        //                     "side": "Sell",
+        //                     "size": "50",
+        //                     "positionValue": "16.68",
+        //                     "entryPrice": "0.3336",
+        //                     "tradeMode": 0,
+        //                     "autoAddMargin": 0,
+        //                     "leverage": "10",
+        //                     "positionBalance": "1.6790088",
+        //                     "liqPrice": "12.4835",
+        //                     "bustPrice": "12.4869",
+        //                     "takeProfit": "0.0000",
+        //                     "stopLoss": "0.0000",
+        //                     "trailingStop": "0.0000",
+        //                     "unrealisedPnl": "0",
+        //                     "createdTime": "1658827444328",
+        //                     "updatedTime": "1658904863412",
+        //                     "tpSlMode": "Full",
+        //                     "riskLimitValue": "200000",
+        //                     "activePrice": "0.0000"
+        //                 }
+        //             ]
+        //         },
+        //         "retExtInfo": null,
+        //         "time": 1658904877942
+        //     }
+        //
         let result = this.safeValue (response, 'result', {});
-        // usdc contracts
-        if ('dataList' in result) {
-            result = this.safeValue (result, 'dataList', []);
-        } else if ('list' in result) {
-            result = this.safeValue (result, 'list', []);
-        }
+        result = this.safeValue2 (result, 'dataList', 'list', []);
         let positions = undefined;
         if (!Array.isArray (result)) {
             positions = [ result ];
