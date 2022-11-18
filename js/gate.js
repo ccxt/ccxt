@@ -1749,20 +1749,30 @@ module.exports = class gate extends Exchange {
         //    }
         //
         const withdrawFixOnChains = this.safeValue (fee, 'withdraw_fix_on_chains');
-        const depositFee = this.safeNumber (fee, 'deposit');
-        const result = {};
-        if (withdrawFixOnChains === undefined) {
-            result['unknown'] = {
-                'withdraw': this.safeNumber (fee, 'withdraw_fix'),
-                'deposit': depositFee,
-            };
-        } else {
+        const result = {
+            'withdraw': {
+                'fee': this.safeNumber (fee, 'withdraw_fix'),
+                'percentage': false,
+            },
+            'deposit': {
+                'fee': this.safeNumber (fee, 'deposit'),
+                'percentage': false,
+            },
+            'networks': {},
+        };
+        if (withdrawFixOnChains !== undefined) {
             const chainKeys = Object.keys (withdrawFixOnChains);
             for (let i = 0; i < chainKeys.length; i++) {
                 const chainKey = chainKeys[i];
-                result[chainKey] = {
-                    'withdraw': this.parseNumber (withdrawFixOnChains[chainKey]),
-                    'deposit': depositFee,
+                result['networks'][chainKey] = {
+                    'withdraw': {
+                        'fee': this.parseNumber (withdrawFixOnChains[chainKey]),
+                        'percentage': false,
+                    },
+                    'deposit': {
+                        'fee': undefined,
+                        'percentage': undefined,
+                    },
                 };
             }
         }
