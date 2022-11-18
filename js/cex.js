@@ -1546,7 +1546,7 @@ module.exports = class cex extends Exchange {
         const data = this.safeValue (response, 'data', {});
         const addresses = this.safeValue (data, 'addresses', []);
         const chainsIndexedById = this.indexBy (addresses, 'blockchain');
-        const selectedNetworkId = this.selectDefaultNetworkId (chainsIndexedById, networkCode, code);
+        const selectedNetworkId = this.selectDefaultNetworkId (code, networkCode, chainsIndexedById);
         const addressObject = this.safeValue (chainsIndexedById, selectedNetworkId, {});
         const address = this.safeString2 (addressObject, 'address', 'destination');
         this.checkAddress (address);
@@ -1557,15 +1557,6 @@ module.exports = class cex extends Exchange {
             'network': this.networkIdToCode (selectedNetworkId),
             'info': addressObject,
         };
-    }
-
-    handleNetworkCodeAndParams (params) {
-        const networkCodeOrIdInParams = this.safeString2 (params, 'networkCode', 'network');
-        if (networkCodeOrIdInParams !== undefined) {
-            params = this.omit (params, [ 'networkCode', 'network' ]);
-        }
-        // if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
-        return [ networkCodeOrIdInParams, params ];
     }
 
     nonce () {
