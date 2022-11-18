@@ -1749,21 +1749,24 @@ module.exports = class gate extends Exchange {
         //    }
         //
         const withdrawFixOnChains = this.safeValue (fee, 'withdraw_fix_on_chains');
-        let withdrawFees = undefined;
+        const depositFee = this.safeNumber (fee, 'deposit');
+        const result = {
+            'info': fee,
+        };
         if (withdrawFixOnChains === undefined) {
-            withdrawFees = this.safeNumber (fee, 'withdraw_fix');
+            result['unknown'] = {
+                'withdraw': this.safeNumber (fee, 'withdraw_fix'),
+                'deposit': depositFee,
+            };
         } else {
             const chainKeys = Object.keys (withdrawFixOnChains);
             for (let i = 0; i < chainKeys.length; i++) {
                 const chainKey = chainKeys[i];
-                withdrawFees[chainKey] = this.parseNumber (withdrawFixOnChains[chainKey]);
+                result[chainKey]['withdraw'] = this.parseNumber (withdrawFixOnChains[chainKey]);
+                result[chainKey]['deposit'] = depositFee;
             }
         }
-        return {
-            'withdraw': withdrawFees,
-            'deposit': undefined,
-            'info': fee,
-        };
+        return result;
     }
 
     async fetchFundingHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
