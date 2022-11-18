@@ -537,20 +537,27 @@ module.exports = class whitebit extends Exchange {
             const currencyId = splitEntry[0];
             const code = this.safeCurrencyCode (currencyId);
             if ((codes === undefined) || (this.inArray (code, codes))) {
-                let network = this.safeString (splitEntry, 1);
-                if (network !== undefined) {
-                    const networkLength = network.length;
-                    network = network.slice (1, networkLength - 2);
-                } else {
-                    network = code;
+                const transactionFee = this.safeValue (transactionFees, code);
+                if (transactionFee === undefined) {
+                    transactionFees[code] = this.depositWithdrawFee ();
                 }
+                let network = this.safeString (splitEntry, 1);
                 const feeInfo = response[entry];
                 const withdraw = this.safeValue (feeInfo, 'withdraw');
                 const deposit = this.safeValue (feeInfo, 'deposit');
-                transactionFees[code][network] = {
-                    'withdraw': this.safeString (withdraw, 'fixed'),
-                    'deposit': this.safeString (deposit, 'fixed'),
-                };
+                const withdrawFee = this.safeString (withdraw, 'fixed');
+                const depositFee = this.safeString (deposit, 'fixed');
+                if (network !== undefined) {
+                    const networkLength = network.length;
+                    network = network.slice (1, networkLength - 2);
+                    transactionFees[code]['networks'][network] = {
+                        'withdraw': withdrawFee,
+                        'deposit': depositFee,
+                    };
+                } else {
+                    transactionFees[code]['withdraw'] = withdrawFee;
+                    transactionFees[code]['deposit'] = depositFee;
+                }
             }
         }
         return transactionFees;
