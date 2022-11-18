@@ -472,18 +472,32 @@ module.exports = class exmo extends Exchange {
     }
 
     parseTransactionFee (fee, currency = undefined) {
+        //
+        //    [
+        //        {
+        //            "type": "deposit", // or "withdraw"
+        //            "name": "BTC",
+        //            "currency_name": "BTC",
+        //            "min": "0.001",
+        //            "max": "0",
+        //            "enabled": true,
+        //            "comment": "Minimum deposit amount is 0.001 BTC. We do not support BSC and BEP20 network, please consider this when sending funds",
+        //            "commission_desc": "0%",
+        //            "currency_confirmations": 1
+        //        },
+        //        ...
+        //    ]
+        //
         const result = {
-            'withdraw': {},
-            'deposit': {},
+            'info': fee,
         };
         for (let i = 0; i < fee.length; i++) {
             const provider = fee[i];
             const type = this.safeString (provider, 'type');
             const name = this.safeString (provider, 'name');
             const commissionDesc = this.safeString (provider, 'commission_desc');
-            result[type][name] = this.parseFixedFloatValue (commissionDesc);
+            result[name][type] = this.parseFixedFloatValue (commissionDesc);
         }
-        result['info'] = fee;
         return result;
     }
 
