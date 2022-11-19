@@ -53,8 +53,8 @@ module.exports = class digifinex extends Exchange {
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchPosition': true,
-                'fetchPositions': true,
                 'fetchPositionMode': false,
+                'fetchPositions': true,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -2622,6 +2622,7 @@ module.exports = class digifinex extends Exchange {
             request[marketIdRequest] = market['id'];
         }
         const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateSpotGetMarginPositions',
             'margin': 'privateSpotGetMarginPositions',
             'swap': 'privateSwapGetAccountPositions',
         });
@@ -2709,6 +2710,7 @@ module.exports = class digifinex extends Exchange {
             marketType = 'margin';
         }
         const method = this.getSupportedMapping (marketType, {
+            'spot': 'privateSpotGetMarginPositions',
             'margin': 'privateSpotGetMarginPositions',
             'swap': 'privateSwapGetAccountPositions',
         });
@@ -2824,6 +2826,8 @@ module.exports = class digifinex extends Exchange {
         let marginMode = this.safeString (position, 'margin_mode');
         if (marginMode !== undefined) {
             marginMode = (marginMode === 'crossed') ? 'cross' : 'isolated';
+        } else {
+            marginMode = 'crossed';
         }
         const timestamp = this.safeInteger (position, 'timestamp');
         let side = this.safeString (position, 'side');
@@ -2836,7 +2840,7 @@ module.exports = class digifinex extends Exchange {
             'info': position,
             'id': undefined,
             'symbol': symbol,
-            'notional': undefined,
+            'notional': this.safeNumber (position, 'amount'),
             'marginMode': marginMode,
             'liquidationPrice': this.safeNumber (position, 'liquidation_price'),
             'entryPrice': this.safeNumber2 (position, 'avg_cost', 'entry_price'),
