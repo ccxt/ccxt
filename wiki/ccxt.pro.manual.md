@@ -264,7 +264,7 @@ The unified methods returning arrays like `watchOHLCV`, `watchTrades`, `watchMyT
 The cache is a fixed-size deque aka array/list with two ends. The CCXT Pro library has a reasonable limit on the number of objects stored in memory. By default the caching array structures will store up to 1000 entries of each type (1000 most recent trades, 1000 most recent candles, 1000 most recent orders). The allowed maximum number can be configured by the user upon instantiation or later:
 
 ```Python
-ccxtpro.ftx({
+ccxtpro.binance({
     'options': {
         'tradesLimit': 1000,
         'OHLCVLimit': 1000,
@@ -690,7 +690,7 @@ When developers say _"real-time"_, that usually means pseudo real-time, or, put 
 
 The 2nd-order data is **always** calculated from the 1st-order data. OHLCVs are calculated from aggregated trades. Tickers are calculated from trades and orderbooks.
 
-Some exchanges do the calculation of OHLCVs (2nd order data) for you on the exchange side and send you updates over WS (Binance). Other exchanges don't really think that is necessary, for a reason (FTX).
+Some exchanges do the calculation of OHLCVs (2nd order data) for you on the exchange side and send you updates over WS (Binance). Other exchanges don't really think that is necessary, for a reason.
 
 Obviously, it takes time to calculate 2nd-order OHLCV candles from trades. Apart from that sending the calculated candle back to all connected users also takes time. Additional delays can happen during periods of high volatility if an exchange is traded very actively under high load.
 
