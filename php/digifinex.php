@@ -62,6 +62,7 @@ class digifinex extends Exchange {
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => false,
                 'fetchWithdrawals' => true,
+                'setLeverage' => true,
                 'setMarginMode' => false,
                 'transfer' => true,
                 'withdraw' => true,
@@ -2801,6 +2802,60 @@ class digifinex extends Exchange {
             'marginRatio' => $this->safe_number($position, 'margin_ratio'),
             'percentage' => null,
         );
+    }
+
+    public function set_leverage($leverage, $symbol = null, $params = array ()) {
+        /**
+         * set the level of $leverage for a $market
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#setleverage
+         * @param {float} $leverage the rate of $leverage
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} $params extra parameters specific to the digifinex api endpoint
+         * @param {string|null} $params->marginMode either 'cross' or 'isolated', default is cross
+         * @param {string|null} $params->side either 'long' or 'short', required for isolated markets only
+         * @return {array} response from the exchange
+         */
+        $this->load_markets();
+        $this->check_required_symbol('setLeverage', $symbol);
+        $market = $this->market($symbol);
+        if ($market['type'] !== 'swap') {
+            throw new BadSymbol($this->id . ' setLeverage() supports swap contracts only');
+        }
+        if (($leverage < 1) || ($leverage > 100)) {
+            throw new BadRequest($this->id . ' $leverage should be between 1 and 100');
+        }
+        $request = array(
+            'instrument_id' => $market['id'],
+            'leverage' => $leverage,
+        );
+        $defaultMarginMode = $this->safe_string_2($this->options, 'marginMode', 'defaultMarginMode');
+        $marginMode = $this->safe_string_lower_2($params, 'marginMode', 'defaultMarginMode', $defaultMarginMode);
+        if ($marginMode !== null) {
+            $marginMode = ($marginMode === 'cross') ? 'crossed' : 'isolated';
+            $request['margin_mode'] = $marginMode;
+            $params = $this->omit($params, array( 'marginMode', 'defaultMarginMode' ));
+        }
+        if ($marginMode === 'isolated') {
+            $side = $this->safe_string($params, 'side');
+            if ($side !== null) {
+                $request['side'] = $side;
+                $params = $this->omit($params, 'side');
+            } else {
+                $this->check_required_argument('setLeverage', $side, 'side', array( 'long', 'short' ));
+            }
+        }
+        return $this->privateSwapPostAccountLeverage (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => 0,
+        //         "data" => {
+        //             "instrument_id" => "BTCUSDTPERP",
+        //             "leverage" => 30,
+        //             "margin_mode" => "crossed",
+        //             "side" => "both"
+        //         }
+        //     }
+        //
     }
 
     public function handle_margin_mode_and_params($methodName, $params = array ()) {

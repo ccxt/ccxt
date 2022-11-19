@@ -81,6 +81,7 @@ class digifinex(Exchange):
                 'fetchTradingFee': True,
                 'fetchTradingFees': False,
                 'fetchWithdrawals': True,
+                'setLeverage': True,
                 'setMarginMode': False,
                 'transfer': True,
                 'withdraw': True,
@@ -2680,6 +2681,54 @@ class digifinex(Exchange):
             'marginRatio': self.safe_number(position, 'margin_ratio'),
             'percentage': None,
         }
+
+    async def set_leverage(self, leverage, symbol=None, params={}):
+        """
+        set the level of leverage for a market
+        see https://docs.digifinex.com/en-ww/swap/v2/rest.html#setleverage
+        :param float leverage: the rate of leverage
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the digifinex api endpoint
+        :param str|None params['marginMode']: either 'cross' or 'isolated', default is cross
+        :param str|None params['side']: either 'long' or 'short', required for isolated markets only
+        :returns dict: response from the exchange
+        """
+        await self.load_markets()
+        self.check_required_symbol('setLeverage', symbol)
+        market = self.market(symbol)
+        if market['type'] != 'swap':
+            raise BadSymbol(self.id + ' setLeverage() supports swap contracts only')
+        if (leverage < 1) or (leverage > 100):
+            raise BadRequest(self.id + ' leverage should be between 1 and 100')
+        request = {
+            'instrument_id': market['id'],
+            'leverage': leverage,
+        }
+        defaultMarginMode = self.safe_string_2(self.options, 'marginMode', 'defaultMarginMode')
+        marginMode = self.safe_string_lower_2(params, 'marginMode', 'defaultMarginMode', defaultMarginMode)
+        if marginMode is not None:
+            marginMode = 'crossed' if (marginMode == 'cross') else 'isolated'
+            request['margin_mode'] = marginMode
+            params = self.omit(params, ['marginMode', 'defaultMarginMode'])
+        if marginMode == 'isolated':
+            side = self.safe_string(params, 'side')
+            if side is not None:
+                request['side'] = side
+                params = self.omit(params, 'side')
+            else:
+                self.check_required_argument('setLeverage', side, 'side', ['long', 'short'])
+        return await self.privateSwapPostAccountLeverage(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "instrument_id": "BTCUSDTPERP",
+        #             "leverage": 30,
+        #             "margin_mode": "crossed",
+        #             "side": "both"
+        #         }
+        #     }
+        #
 
     def handle_margin_mode_and_params(self, methodName, params={}):
         """
