@@ -67,8 +67,9 @@ module.exports = class lbank2 extends Exchange {
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFees': true,
-                'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -192,6 +193,9 @@ module.exports = class lbank2 extends Exchange {
                     'method': 'publicGetTrades', // or 'publicGetTradesSupplement'
                 },
                 'fetchTransactionFees': {
+                    'method': 'fetchPrivateTransactionFees', // or 'fetchPublicTransactionFees'
+                },
+                'fetchDepositWithdrawFees': {
                     'method': 'fetchPrivateTransactionFees', // or 'fetchPublicTransactionFees'
                 },
                 'fetchDepositAddress': {
@@ -1659,14 +1663,14 @@ module.exports = class lbank2 extends Exchange {
         const fee = this.safeString (params, 'fee');
         params = this.omit (params, 'fee');
         if (fee === undefined) {
-            throw new ArgumentsRequired (this.id + ' withdraw () requires a fee argument to be supplied in params, the relevant coin network fee can be found by calling fetchTransactionFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchTransactionFees ()');
+            throw new ArgumentsRequired (this.id + ' withdraw () requires a fee argument to be supplied in params, the relevant coin network fee can be found by calling fetchDepositWithdrawFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchDepositWithdrawFees ()');
         }
         const currency = this.currency (code);
         const request = {
             'address': address,
             'coin': currency['id'],
             'amount': amount,
-            'fee': fee, // the correct coin-network fee must be supplied, which can be found by calling fetchTransactionFees (private)
+            'fee': fee, // the correct coin-network fee must be supplied, which can be found by calling fetchDepositWithdrawFees (private)
             // 'networkName': defaults to the defaultNetwork of the coin which can be found in the /supplement/user_info endpoint
             // 'memo': memo: memo word of bts and dct
             // 'mark': Withdrawal Notes
@@ -1922,8 +1926,35 @@ module.exports = class lbank2 extends Exchange {
         /**
          * @method
          * @name lbank2#fetchTransactionFees
-         * @description fetch transaction fees
+         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
          * @param {[string]|undefined} codes not used by lbank2 fetchTransactionFees ()
+         * @param {object} params extra parameters specific to the lbank2 api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        // private only returns information for currencies with non-zero balance
+        await this.loadMarkets ();
+        const isAuthorized = this.checkRequiredCredentials (false);
+        let result = undefined;
+        if (isAuthorized === true) {
+            let method = this.safeString (params, 'method');
+            params = this.omit (params, 'method');
+            if (method === undefined) {
+                const options = this.safeValue (this.options, 'fetchTransactionFees', {});
+                method = this.safeString (options, 'method', 'fetchPrivateTransactionFees');
+            }
+            result = await this[method] (params);
+        } else {
+            result = await this.fetchPublicTransactionFees (params);
+        }
+        return result;
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name lbank2#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @param {[string]|undefined} codes not used by lbank2 fetchDepositWithdrawFees ()
          * @param {object} params extra parameters specific to the lbank2 api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
@@ -1935,22 +1966,22 @@ module.exports = class lbank2 extends Exchange {
             method = this.safeString (params, 'method');
             params = this.omit (params, 'method');
             if (method === undefined) {
-                const options = this.safeValue (this.options, 'fetchTransactionFees', {});
+                const options = this.safeValue (this.options, 'fetchDepositWithdrawFees', {});
                 method = this.safeString (options, 'method', 'fetchPrivateTransactionFees');
             }
         } else {
             method = 'fetchPublicTransactionFees';
         }
         const response = await this[method] (params);
-        return this.parseTransactionFees (response, codes, !isAuthorized ? 'assetCode' : 'coin');
+        return this.parseDepositWithdrawFees (response, codes, !isAuthorized ? 'assetCode' : 'coin');
     }
 
     async fetchPrivateTransactionFees (params = {}) {
+        // TODO
         // complete response
         // incl. for coins which undefined in public method
         await this.loadMarkets ();
         const response = await this.privatePostSupplementUserInfo ();
-        return this.safeValue (response, 'data', []);
         //
         //    {
         //        "result": "true",
@@ -1981,9 +2012,33 @@ module.exports = class lbank2 extends Exchange {
         //        "code": 0
         //    }
         //
+        const result = this.safeValue (response, 'data', []);
+        const withdrawFees = {};
+        for (let i = 0; i < result.length; i++) {
+            const entry = result[i];
+            const currencyId = this.safeString (entry, 'coin');
+            const code = this.safeCurrencyCode (currencyId);
+            const networkList = this.safeValue (entry, 'networkList', []);
+            withdrawFees[code] = {};
+            for (let j = 0; j < networkList.length; j++) {
+                const networkEntry = networkList[j];
+                const networkId = this.safeString (networkEntry, 'name');
+                const networkCode = this.safeString (this.options['inverse-networks'], networkId, networkId);
+                const fee = this.safeNumber (networkEntry, 'withdrawFee');
+                if (fee !== undefined) {
+                    withdrawFees[code][networkCode] = fee;
+                }
+            }
+        }
+        return {
+            'withdraw': withdrawFees,
+            'deposit': {},
+            'info': response,
+        };
     }
 
     async fetchPublicTransactionFees (params = {}) {
+        // TODO
         // extremely incomplete response
         // vast majority fees undefined
         await this.loadMarkets ();
@@ -1999,27 +2054,51 @@ module.exports = class lbank2 extends Exchange {
         //    {
         //        result: 'true',
         //        data: [
-        //            {
-        //                amountScale: '4',
-        //                chain: 'heco',
-        //                assetCode: 'lbk',
-        //                min: '200',
-        //                transferAmtScale: '4',
-        //                canWithDraw: true,
-        //                fee: '100',
-        //                minTransfer: '0.0001',
-        //                type: '1'
-        //            },
-        //            ...
+        //          {
+        //            amountScale: '4',
+        //            chain: 'heco',
+        //            assetCode: 'lbk',
+        //            min: '200',
+        //            transferAmtScale: '4',
+        //            canWithDraw: true,
+        //            fee: '100',
+        //            minTransfer: '0.0001',
+        //            type: '1'
+        //          },
+        //          ...
         //        ],
         //        error_code: '0',
         //        ts: '1663364435973'
         //    }
         //
-        return this.safeValue (response, 'data', []);
+        const result = this.safeValue (response, 'data', []);
+        const withdrawFees = {};
+        for (let i = 0; i < result.length; i++) {
+            const item = result[i];
+            const canWithdraw = this.safeString (item, 'canWithDraw');
+            if (canWithdraw === 'true') {
+                const currencyId = this.safeString (item, 'assetCode');
+                const code = this.safeCurrencyCode (currencyId);
+                const chain = this.safeString (item, 'chain');
+                let network = this.safeString (this.options['inverse-networks'], chain, chain);
+                if (network === undefined) {
+                    network = code;
+                }
+                const fee = this.safeString (item, 'fee');
+                if (withdrawFees[code] === undefined) {
+                    withdrawFees[code] = {};
+                }
+                withdrawFees[code][network] = this.parseNumber (fee);
+            }
+        }
+        return {
+            'withdraw': withdrawFees,
+            'deposit': {},
+            'info': response,
+        };
     }
 
-    parseTransactionFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency = undefined) {
         //
         //    {
         //        amountScale: '4',

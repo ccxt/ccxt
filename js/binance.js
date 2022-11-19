@@ -89,7 +89,7 @@ module.exports = class binance extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTradingLimits': undefined,
-                'fetchTransactionFee': 'emulated',
+                'fetchTransactionFee': undefined,
                 'fetchTransactionFees': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
@@ -4386,6 +4386,120 @@ module.exports = class binance extends Exchange {
             'address': address,
             'tag': tag,
             'network': impliedNetwork,
+            'info': response,
+        };
+    }
+
+    async fetchTransactionFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchTransactionFees
+         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
+         * @param {[string]|undefined} codes not used by binance fetchTransactionFees ()
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.sapiGetCapitalConfigGetall (params);
+        //
+        //  [
+        //     {
+        //       coin: 'BAT',
+        //       depositAllEnable: true,
+        //       withdrawAllEnable: true,
+        //       name: 'Basic Attention Token',
+        //       free: '0',
+        //       locked: '0',
+        //       freeze: '0',
+        //       withdrawing: '0',
+        //       ipoing: '0',
+        //       ipoable: '0',
+        //       storage: '0',
+        //       isLegalMoney: false,
+        //       trading: true,
+        //       networkList: [
+        //         {
+        //           network: 'BNB',
+        //           coin: 'BAT',
+        //           withdrawIntegerMultiple: '0.00000001',
+        //           isDefault: false,
+        //           depositEnable: true,
+        //           withdrawEnable: true,
+        //           depositDesc: '',
+        //           withdrawDesc: '',
+        //           specialTips: 'The name of this asset is Basic Attention Token (BAT). Both a MEMO and an Address are required to successfully deposit your BEP2 tokens to Binance.',
+        //           name: 'BEP2',
+        //           resetAddressStatus: false,
+        //           addressRegex: '^(bnb1)[0-9a-z]{38}$',
+        //           memoRegex: '^[0-9A-Za-z\\-_]{1,120}$',
+        //           withdrawFee: '0.27',
+        //           withdrawMin: '0.54',
+        //           withdrawMax: '10000000000',
+        //           minConfirm: '1',
+        //           unLockConfirm: '0'
+        //         },
+        //         {
+        //           network: 'BSC',
+        //           coin: 'BAT',
+        //           withdrawIntegerMultiple: '0.00000001',
+        //           isDefault: false,
+        //           depositEnable: true,
+        //           withdrawEnable: true,
+        //           depositDesc: '',
+        //           withdrawDesc: '',
+        //           specialTips: 'The name of this asset is Basic Attention Token. Please ensure you are depositing Basic Attention Token (BAT) tokens under the contract address ending in 9766e.',
+        //           name: 'BEP20 (BSC)',
+        //           resetAddressStatus: false,
+        //           addressRegex: '^(0x)[0-9A-Fa-f]{40}$',
+        //           memoRegex: '',
+        //           withdrawFee: '0.27',
+        //           withdrawMin: '0.54',
+        //           withdrawMax: '10000000000',
+        //           minConfirm: '15',
+        //           unLockConfirm: '0'
+        //         },
+        //         {
+        //           network: 'ETH',
+        //           coin: 'BAT',
+        //           withdrawIntegerMultiple: '0.00000001',
+        //           isDefault: true,
+        //           depositEnable: true,
+        //           withdrawEnable: true,
+        //           depositDesc: '',
+        //           withdrawDesc: '',
+        //           specialTips: 'The name of this asset is Basic Attention Token. Please ensure you are depositing Basic Attention Token (BAT) tokens under the contract address ending in 887ef.',
+        //           name: 'ERC20',
+        //           resetAddressStatus: false,
+        //           addressRegex: '^(0x)[0-9A-Fa-f]{40}$',
+        //           memoRegex: '',
+        //           withdrawFee: '27',
+        //           withdrawMin: '54',
+        //           withdrawMax: '10000000000',
+        //           minConfirm: '12',
+        //           unLockConfirm: '0'
+        //         }
+        //       ]
+        //     }
+        //  ]
+        //
+        const withdrawFees = {};
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const currencyId = this.safeString (entry, 'coin');
+            const code = this.safeCurrencyCode (currencyId);
+            const networkList = this.safeValue (entry, 'networkList', []);
+            withdrawFees[code] = {};
+            for (let j = 0; j < networkList.length; j++) {
+                const networkEntry = networkList[j];
+                const networkId = this.safeString (networkEntry, 'network');
+                const networkCode = this.safeCurrencyCode (networkId);
+                const fee = this.safeNumber (networkEntry, 'withdrawFee');
+                withdrawFees[code][networkCode] = fee;
+            }
+        }
+        return {
+            'withdraw': withdrawFees,
+            'deposit': {},
             'info': response,
         };
     }

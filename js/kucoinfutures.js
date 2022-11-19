@@ -1994,6 +1994,18 @@ module.exports = class kucoinfutures extends kucoin {
         return this.parseTransactions (responseData, currency, since, limit, { 'type': 'withdrawal' });
     }
 
+    async fetchTransactionFee (code, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#fetchTransactionFee
+         * @description *DEPRECATED* please use fetchDepositWithdrawFee instead
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        throw new BadRequest (this.id + ' fetchTransactionFee() is not supported');
+    }
+
     async fetchDepositWithdrawFee (code, params = {}) {
         /**
          * @method
@@ -2003,7 +2015,7 @@ module.exports = class kucoinfutures extends kucoin {
          * @param {object} params extra parameters specific to the kucoinfutures api endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
-        throw new BadRequest (this.id + ' fetchTransactionFee() is not supported yet');
+        throw new BadRequest (this.id + ' fetchDepositWithdrawFee() is not supported yet');
     }
 
     async fetchLedger (code = undefined, since = undefined, limit = undefined, params = {}) {

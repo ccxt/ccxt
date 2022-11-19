@@ -733,6 +733,40 @@ module.exports = class indodax extends Exchange {
         return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
+    async fetchTransactionFee (code, params = {}) {
+        /**
+         * @method
+         * @name indodax#fetchTransactionFee
+         * @description *DEPRECATED* please use fetchDepositWithdrawFee instead
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the indodax api endpoint
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privatePostWithdrawFee (this.extend (request, params));
+        //
+        //     {
+        //         "success": 1,
+        //         "return": {
+        //             "server_time": 1607923272,
+        //             "withdraw_fee": 0.005,
+        //             "currency": "eth"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'return', {});
+        const currencyId = this.safeString (data, 'currency');
+        return {
+            'info': response,
+            'rate': this.safeNumber (data, 'withdraw_fee'),
+            'currency': this.safeCurrencyCode (currencyId, currency),
+        };
+    }
+
     async fetchDepositWithdrawFee (code, params = {}) {
         // TODO
         /**

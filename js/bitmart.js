@@ -726,6 +726,44 @@ module.exports = class bitmart extends Exchange {
         return result;
     }
 
+    async fetchTransactionFee (code, params = {}) {
+        /**
+         * @method
+         * @name bitmart#fetchTransactionFee
+         * @description *DEPRECATED* please use fetchDepositWithdrawFee instead
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the bitmart api endpoint
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privateGetAccountV1WithdrawCharge (this.extend (request, params));
+        //
+        //     {
+        //         message: 'OK',
+        //         code: '1000',
+        //         trace: '3ecc0adf-91bd-4de7-aca1-886c1122f54f',
+        //         data: {
+        //             today_available_withdraw_BTC: '100.0000',
+        //             min_withdraw: '0.005',
+        //             withdraw_precision: '8',
+        //             withdraw_fee: '0.000500000000000000000000000000'
+        //         }
+        //     }
+        //
+        const data = response['data'];
+        const withdrawFees = {};
+        withdrawFees[code] = this.safeNumber (data, 'withdraw_fee');
+        return {
+            'info': response,
+            'withdraw': withdrawFees,
+            'deposit': {},
+        };
+    }
+
     async fetchDepositWithdrawFee (code, params = {}) {
         // TODO
         /**

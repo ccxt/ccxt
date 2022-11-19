@@ -109,8 +109,9 @@ module.exports = class gate extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
-                'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchWithdrawals': true,
                 'repayMargin': true,
                 'setLeverage': true,
@@ -1700,7 +1701,65 @@ module.exports = class gate extends Exchange {
         /**
          * @method
          * @name gate#fetchTransactionFees
-         * @description fetch transaction fees
+         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
+         * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the gate api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privateWalletGetWithdrawStatus (params);
+        //
+        //    {
+        //        "currency": "MTN",
+        //        "name": "Medicalchain",
+        //        "name_cn": "Medicalchain",
+        //        "deposit": "0",
+        //        "withdraw_percent": "0%",
+        //        "withdraw_fix": "900",
+        //        "withdraw_day_limit": "500000",
+        //        "withdraw_day_limit_remain": "500000",
+        //        "withdraw_amount_mini": "900.1",
+        //        "withdraw_eachtime_limit": "90000000000",
+        //        "withdraw_fix_on_chains": {
+        //            "ETH": "900"
+        //        }
+        //    }
+        //
+        const result = {};
+        let withdrawFees = {};
+        for (let i = 0; i < response.length; i++) {
+            withdrawFees = {};
+            const entry = response[i];
+            const currencyId = this.safeString (entry, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            if ((codes !== undefined) && !this.inArray (code, codes)) {
+                continue;
+            }
+            const withdrawFixOnChains = this.safeValue (entry, 'withdraw_fix_on_chains');
+            if (withdrawFixOnChains === undefined) {
+                withdrawFees = this.safeNumber (entry, 'withdraw_fix');
+            } else {
+                const chainKeys = Object.keys (withdrawFixOnChains);
+                for (let i = 0; i < chainKeys.length; i++) {
+                    const chainKey = chainKeys[i];
+                    withdrawFees[chainKey] = this.parseNumber (withdrawFixOnChains[chainKey]);
+                }
+            }
+            result[code] = {
+                'withdraw': withdrawFees,
+                'deposit': undefined,
+                'info': entry,
+            };
+        }
+        return result;
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
          * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
          * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the gate api endpoint
@@ -1727,10 +1786,10 @@ module.exports = class gate extends Exchange {
         //        }
         //    ]
         //
-        return this.parseTransactionFees (response, codes, 'currency');
+        return this.parseDepositWithdrawFees (response, codes, 'currency');
     }
 
-    parseTransactionFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency = undefined) {
         //
         //    {
         //        "currency": "MTN",

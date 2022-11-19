@@ -786,6 +786,40 @@ module.exports = class kucoin extends Exchange {
         return result;
     }
 
+    async fetchTransactionFee (code, params = {}) {
+        /**
+         * @method
+         * @name kucoin#fetchTransactionFee
+         * @description *DEPRECATED* please use fetchDepositWithdrawFee instead
+         * @see https://docs.kucoin.com/#get-withdrawal-quotas
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the kucoin api endpoint
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const networks = this.safeValue (this.options, 'networks', {});
+        let network = this.safeStringUpper2 (params, 'network', 'chain');
+        network = this.safeStringLower (networks, network, network);
+        if (network !== undefined) {
+            network = network.toLowerCase ();
+            request['chain'] = network.toLowerCase ();
+            params = this.omit (params, [ 'network', 'chain' ]);
+        }
+        const response = await this.privateGetWithdrawalsQuotas (this.extend (request, params));
+        const data = response['data'];
+        const withdrawFees = {};
+        withdrawFees[code] = this.safeNumber (data, 'withdrawMinFee');
+        return {
+            'info': response,
+            'withdraw': withdrawFees,
+            'deposit': {},
+        };
+    }
+
     async fetchDepositWithdrawFee (code, params = {}) {
         // TODO
         /**

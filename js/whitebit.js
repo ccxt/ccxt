@@ -68,6 +68,7 @@ module.exports = class whitebit extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTransactionFees': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'repayMargin': false,
@@ -425,6 +426,61 @@ module.exports = class whitebit extends Exchange {
             };
         }
         return result;
+    }
+
+    async fetchTransactionFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name whitebit#fetchTransactionFees
+         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
+         * @param {[string]|undefined} codes not used by fetchTransactionFees ()
+         * @param {object} params extra parameters specific to the whitebit api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.v4PublicGetFee (params);
+        //
+        //      {
+        //          "1INCH":{
+        //              "is_depositable":true,
+        //              "is_withdrawal":true,
+        //              "ticker":"1INCH",
+        //              "name":"1inch",
+        //              "providers":[
+        //              ],
+        //              "withdraw":{
+        //                   "max_amount":"0",
+        //                  "min_amount":"21.5",
+        //                  "fixed":"17.5",
+        //                  "flex":null
+        //              },
+        //              "deposit":{
+        //                  "max_amount":"0",
+        //                  "min_amount":"19.5",
+        //                  "fixed":null,
+        //                  "flex":null
+        //               }
+        //          },
+        //           {...}
+        //      }
+        //
+        const currenciesIds = Object.keys (response);
+        const withdrawFees = {};
+        const depositFees = {};
+        for (let i = 0; i < currenciesIds.length; i++) {
+            const currency = currenciesIds[i];
+            const data = response[currency];
+            const code = this.safeCurrencyCode (currency);
+            const withdraw = this.safeValue (data, 'withdraw', {});
+            withdrawFees[code] = this.safeString (withdraw, 'fixed');
+            const deposit = this.safeValue (data, 'deposit', {});
+            depositFees[code] = this.safeString (deposit, 'fixed');
+        }
+        return {
+            'withdraw': withdrawFees,
+            'deposit': depositFees,
+            'info': response,
+        };
     }
 
     async fetchDepositWithdrawFees (codes = undefined, params = {}) {

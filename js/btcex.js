@@ -80,7 +80,7 @@ module.exports = class btcex extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
-                'fetchTransactionFees': undefined,
+                'fetchDepositWithdrawFees': undefined,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'signIn': true,

@@ -73,8 +73,9 @@ module.exports = class crex24 extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
-                'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
@@ -486,7 +487,7 @@ module.exports = class crex24 extends Exchange {
         /**
          * @method
          * @name crex24#fetchTransactionFees
-         * @description fetch transaction fees
+         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
          * @see https://docs.crex24.com/trade-api/v2/#currencies-withdrawal-fees
          * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the crex24 api endpoint
@@ -516,10 +517,95 @@ module.exports = class crex24 extends Exchange {
         //         }
         //     ]
         //
-        return this.parseTransactionFees (response, codes, 'currency');
+        return this.parseTransactionFees (response, codes);
     }
 
-    parseTransactionFee (fee, currency = undefined) {
+    parseTransactionFees (response, codes = undefined) {
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const currencyId = this.safeString (entry, 'currency');
+            const code = this.safeCurrencyCode (currencyId);
+            if (codes !== undefined && !this.inArray (code, codes)) {
+                continue;
+            }
+            result[code] = this.parseTransactionFee (entry);
+        }
+        return result;
+    }
+
+    parseTransactionFee (transaction) {
+        //
+        //     [
+        //         {
+        //             currency: '1INCH',
+        //             fees: [
+        //                 { feeCurrency: 'BTC', amount: 0.00032 },
+        //                 { feeCurrency: 'ETH', amount: 0.0054 },
+        //                 { feeCurrency: 'DOGE', amount: 63.06669 },
+        //                 { feeCurrency: 'LTC', amount: 0.0912 },
+        //                 { feeCurrency: 'BCH', amount: 0.02364 },
+        //                 { feeCurrency: 'USDT', amount: 12.717 },
+        //                 { feeCurrency: 'USDC', amount: 12.7367 },
+        //                 { feeCurrency: 'TRX', amount: 205.99108 },
+        //                 { feeCurrency: 'EOS', amount: 3.30141 }
+        //             ]
+        //         }
+        //     ]
+        //
+        const result = {
+            'withdraw': {},
+            'deposit': {},
+            'info': transaction,
+        };
+        const networkList = this.safeValue (transaction, 'fees');
+        for (let j = 0; j < networkList.length; j++) {
+            const networkEntry = networkList[j];
+            const networkId = this.safeString (networkEntry, 'feeCurrency');
+            const fee = this.safeNumber (networkEntry, 'amount');
+            result['withdraw'][networkId] = fee;
+        }
+        return result;
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name crex24#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://docs.crex24.com/trade-api/v2/#currencies-withdrawal-fees
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the crex24 api endpoint
+         * @returns {object} a list of [transaction fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const request = {};
+        if (codes !== undefined) {
+            request['filter'] = codes.join (',');
+        }
+        const response = await this.publicGetCurrenciesWithdrawalFees (this.extend (request, params));
+        //
+        //     [
+        //         {
+        //             currency: '1INCH',
+        //             fees: [
+        //                 { feeCurrency: 'BTC', amount: 0.00032 },
+        //                 { feeCurrency: 'ETH', amount: 0.0054 },
+        //                 { feeCurrency: 'DOGE', amount: 63.06669 },
+        //                 { feeCurrency: 'LTC', amount: 0.0912 },
+        //                 { feeCurrency: 'BCH', amount: 0.02364 },
+        //                 { feeCurrency: 'USDT', amount: 12.717 },
+        //                 { feeCurrency: 'USDC', amount: 12.7367 },
+        //                 { feeCurrency: 'TRX', amount: 205.99108 },
+        //                 { feeCurrency: 'EOS', amount: 3.30141 }
+        //             ]
+        //         }
+        //     ]
+        //
+        return this.parseDepositWithdrawFees (response, codes, 'currency');
+    }
+
+    parseDepositWithdrawFee (fee, currency = undefined) {
         //
         //     [
         //         {

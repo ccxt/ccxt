@@ -62,6 +62,7 @@ module.exports = class exmo extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
+                'fetchTransactionFees': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
                 'fetchTransactions': true,
@@ -416,6 +417,80 @@ module.exports = class exmo extends Exchange {
         if ((result > 0) && isPercentage) {
             throw new ExchangeError (this.id + ' parseFixedFloatValue() detected an unsupported non-zero percentage-based fee ' + input);
         }
+        return result;
+    }
+
+    async fetchTransactionFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name exmo#fetchTransactionFees
+         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the exmo api endpoint
+         * @returns {object} a list of [transaction fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fees-structure}
+         */
+        await this.loadMarkets ();
+        const cryptoList = await this.publicGetPaymentsProvidersCryptoList (params);
+        //
+        //     {
+        //         "BTC":[
+        //             { "type":"deposit", "name":"BTC", "currency_name":"BTC", "min":"0.001", "max":"0", "enabled":true,"comment":"Minimum deposit amount is 0.001 BTC. We do not support BSC and BEP20 network, please consider this when sending funds", "commission_desc":"0%", "currency_confirmations":1 },
+        //             { "type":"withdraw", "name":"BTC", "currency_name":"BTC", "min":"0.001", "max":"350", "enabled":true,"comment":"Do not withdraw directly to the Crowdfunding or ICO address as your account will not be credited with tokens from such sales.", "commission_desc":"0.0005 BTC", "currency_confirmations":6 }
+        //         ],
+        //         "ETH":[
+        //             { "type":"withdraw", "name":"ETH", "currency_name":"ETH", "min":"0.01", "max":"500", "enabled":true,"comment":"Do not withdraw directly to the Crowdfunding or ICO address as your account will not be credited with tokens from such sales.", "commission_desc":"0.004 ETH", "currency_confirmations":4 },
+        //             { "type":"deposit", "name":"ETH", "currency_name":"ETH", "min":"0.01", "max":"0", "enabled":true,"comment":"Minimum deposit amount is 0.01 ETH. We do not support BSC and BEP20 network, please consider this when sending funds", "commission_desc":"0%", "currency_confirmations":1 }
+        //         ],
+        //         "USDT":[
+        //             { "type":"deposit", "name":"USDT (OMNI)", "currency_name":"USDT", "min":"10", "max":"0", "enabled":false,"comment":"Minimum deposit amount is 10 USDT", "commission_desc":"0%", "currency_confirmations":2 },
+        //             { "type":"withdraw", "name":"USDT (OMNI)", "currency_name":"USDT", "min":"10", "max":"100000", "enabled":false,"comment":"Do not withdraw directly to the Crowdfunding or ICO address as your account will not be credited with tokens from such sales.", "commission_desc":"5 USDT", "currency_confirmations":6 },
+        //             { "type":"deposit", "name":"USDT (ERC20)", "currency_name":"USDT", "min":"10", "max":"0", "enabled":true,"comment":"Minimum deposit amount is 10 USDT", "commission_desc":"0%", "currency_confirmations":2 },
+        //             {
+        //                 "type":"withdraw",
+        //                 "name":"USDT (ERC20)",
+        //                 "currency_name":"USDT",
+        //                 "min":"55",
+        //                 "max":"200000",
+        //                 "enabled":true,
+        //                 "comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, as your account will not be credited with tokens from such sales. Recommendation: Due to the high load of ERC20 network, using TRC20 address for withdrawal is recommended.",
+        //                 "commission_desc":"10 USDT",
+        //                 "currency_confirmations":6
+        //             },
+        //             { "type":"deposit", "name":"USDT (TRC20)", "currency_name":"USDT", "min":"10", "max":"100000", "enabled":true,"comment":"Minimum deposit amount is 10 USDT. Only TRON main network supported", "commission_desc":"0%", "currency_confirmations":2 },
+        //             { "type":"withdraw", "name":"USDT (TRC20)", "currency_name":"USDT", "min":"10", "max":"150000", "enabled":true,"comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, as your account will not be credited with tokens from such sales. Only TRON main network supported.", "commission_desc":"1 USDT", "currency_confirmations":6 }
+        //         ],
+        //         "XLM":[
+        //             { "type":"deposit", "name":"XLM", "currency_name":"XLM", "min":"1", "max":"1000000", "enabled":true,"comment":"Attention! A deposit without memo(invoice) will not be credited. Minimum deposit amount is 1 XLM. We do not support BSC and BEP20 network, please consider this when sending funds", "commission_desc":"0%", "currency_confirmations":1 },
+        //             { "type":"withdraw", "name":"XLM", "currency_name":"XLM", "min":"21", "max":"1000000", "enabled":true,"comment":"Caution! Do not withdraw directly to a crowdfund or ICO address, as your account will not be credited with tokens from such sales.", "commission_desc":"0.01 XLM", "currency_confirmations":1 }
+        //         ],
+        //     }
+        //
+        const result = {};
+        const cryptoListKeys = Object.keys (cryptoList);
+        for (let i = 0; i < cryptoListKeys.length; i++) {
+            const code = cryptoListKeys[i];
+            if (codes !== undefined && !this.inArray (code, codes)) {
+                continue;
+            }
+            result[code] = {
+                'deposit': undefined,
+                'withdraw': undefined,
+            };
+            const currency = this.currency (code);
+            const currencyId = this.safeString (currency, 'id');
+            const providers = this.safeValue (cryptoList, currencyId, []);
+            for (let j = 0; j < providers.length; j++) {
+                const provider = providers[j];
+                const type = this.safeString (provider, 'type');
+                const commissionDesc = this.safeString (provider, 'commission_desc');
+                const fee = this.parseFixedFloatValue (commissionDesc);
+                result[code][type] = fee;
+            }
+            result[code]['info'] = providers;
+        }
+        // cache them for later use
+        this.options['transactionFees'] = result;
         return result;
     }
 

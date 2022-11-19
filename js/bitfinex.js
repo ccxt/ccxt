@@ -55,7 +55,6 @@ module.exports = class bitfinex extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
-                'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': true,
                 'fetchDepositWithdrawFee': 'emulated',
                 'fetchDepositWithdrawFees': true,
@@ -390,6 +389,43 @@ module.exports = class bitfinex extends Exchange {
                 },
             },
         });
+    }
+
+    async fetchTransactionFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitfinex#fetchTransactionFees
+         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
+         * @see https://docs.bitfinex.com/v1/reference/rest-auth-fees
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the bitfinex api endpoint
+         * @returns {[object]} a list of [fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const result = {};
+        const response = await this.privatePostAccountFees (params);
+        //
+        // {
+        //     'withdraw': {
+        //         'BTC': '0.0004',
+        //     }
+        // }
+        //
+        const fees = this.safeValue (response, 'withdraw');
+        const ids = Object.keys (fees);
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const code = this.safeCurrencyCode (id);
+            if ((codes !== undefined) && !this.inArray (code, codes)) {
+                continue;
+            }
+            result[code] = {
+                'withdraw': this.safeNumber (fees, id),
+                'deposit': {},
+                'info': this.safeNumber (fees, id),
+            };
+        }
+        return result;
     }
 
     async fetchDepositWithdrawFees (codes = undefined, params = {}) {

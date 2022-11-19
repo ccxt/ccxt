@@ -71,8 +71,9 @@ module.exports = class stex extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
-                'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
@@ -2414,7 +2415,75 @@ module.exports = class stex extends Exchange {
         /**
          * @method
          * @name stex#fetchTransactionFees
-         * @description fetch transaction fees
+         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
+         * @see https://apidocs.stex.com/#tag/Public/paths/~1public~1currencies/get
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the stex api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        //
+        //     {
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "id": 1,
+        //                 "code": "BTC",
+        //                 "name": "Bitcoin",
+        //                 "active": true,
+        //                 "delisted": false,
+        //                 "precision": 8,
+        //                 "minimum_tx_confirmations": 24,
+        //                 "minimum_withdrawal_amount": "0.009",
+        //                 "minimum_deposit_amount": "0.000003",
+        //                 "deposit_fee_currency_id": 1,
+        //                 "deposit_fee_currency_code": "ETH",
+        //                 "deposit_fee_const": "0.00001",
+        //                 "deposit_fee_percent": "0",
+        //                 "withdrawal_fee_currency_id": 1,
+        //                 "withdrawal_fee_currency_code": "ETH",
+        //                 "withdrawal_fee_const": "0.0015",
+        //                 "withdrawal_fee_percent": "0",
+        //                 "withdrawal_limit": "string",
+        //                 "block_explorer_url": "https://blockchain.info/tx/",
+        //                 "protocol_specific_settings": [
+        //                     {
+        //                         "protocol_name": "Tether OMNI",
+        //                         "protocol_id": 10,
+        //                         "active": true,
+        //                         "withdrawal_fee_currency_id": 1,
+        //                         "withdrawal_fee_const": 0.002,
+        //                         "withdrawal_fee_percent": 0,
+        //                         "block_explorer_url": "https://omniexplorer.info/search/"
+        //                     }
+        //                 ]
+        //             }
+        //         ]
+        //     }
+        //
+        const currencyKeys = Object.keys (this.currencies);
+        const result = {};
+        for (let i = 0; i < currencyKeys.length; i++) {
+            const code = currencyKeys[i];
+            const currency = this.currencies[code];
+            if (codes !== undefined && !this.inArray (code, codes)) {
+                continue;
+            }
+            const info = this.safeValue (currency, 'info');
+            result[code] = {
+                'withdraw': this.safeNumber (currency, 'fee'),
+                'deposit': this.safeNumber (info, 'deposit_fee_const'),
+                'info': info,
+            };
+        }
+        return result;
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name stex#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
          * @see https://apidocs.stex.com/#tag/Public/paths/~1public~1currencies/get
          * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the stex api endpoint
@@ -2462,10 +2531,10 @@ module.exports = class stex extends Exchange {
         //         ]
         //     }
         //
-        return this.parseTransactionFees (response, codes, 'code');
+        return this.parseDepositWithdrawFees (response, codes, 'code');
     }
 
-    parseTransactionFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency = undefined) {
         //
         //    {
         //        "id": 1,

@@ -2049,7 +2049,7 @@ module.exports = class Exchange {
     async fetchFundingFee (code, params = {}) {
         const warnOnFetchFundingFee = this.safeValue (this.options, 'warnOnFetchFundingFee', true);
         if (warnOnFetchFundingFee) {
-            throw new NotSupported (this.id + ' fetchDepositWithdrawFee() method is deprecated, it will be removed in July 2022, please, use fetchDepositWithdrawFee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning');
+            throw new NotSupported (this.id + ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchDepositWithdrawFee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning');
         }
         return await this.fetchDepositWithdrawFee (code, params);
     }
@@ -2057,7 +2057,7 @@ module.exports = class Exchange {
     async fetchFundingFees (codes = undefined, params = {}) {
         const warnOnFetchFundingFees = this.safeValue (this.options, 'warnOnFetchFundingFees', true);
         if (warnOnFetchFundingFees) {
-            throw new NotSupported (this.id + ' fetchDepositWithdrawFees() method is deprecated, it will be removed in July 2022. Please, use fetchDepositWithdrawFees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');
+            throw new NotSupported (this.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchDepositWithdrawFees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');
         }
         return await this.fetchDepositWithdrawFees (codes, params);
     }
