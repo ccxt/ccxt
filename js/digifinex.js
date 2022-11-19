@@ -63,6 +63,7 @@ module.exports = class digifinex extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
                 'fetchWithdrawals': true,
+                'setLeverage': true,
                 'setMarginMode': false,
                 'transfer': true,
                 'withdraw': true,
@@ -2861,6 +2862,62 @@ module.exports = class digifinex extends Exchange {
             'marginRatio': this.safeNumber (position, 'margin_ratio'),
             'percentage': undefined,
         };
+    }
+
+    async setLeverage (leverage, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name digifinex#setLeverage
+         * @description set the level of leverage for a market
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#setleverage
+         * @param {float} leverage the rate of leverage
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the digifinex api endpoint
+         * @param {string|undefined} params.marginMode either 'cross' or 'isolated', default is cross
+         * @param {string|undefined} params.side either 'long' or 'short', required for isolated markets only
+         * @returns {object} response from the exchange
+         */
+        await this.loadMarkets ();
+        this.checkRequiredSymbol ('setLeverage', symbol);
+        const market = this.market (symbol);
+        if (market['type'] !== 'swap') {
+            throw new BadSymbol (this.id + ' setLeverage() supports swap contracts only');
+        }
+        if ((leverage < 1) || (leverage > 100)) {
+            throw new BadRequest (this.id + ' leverage should be between 1 and 100');
+        }
+        const request = {
+            'instrument_id': market['id'],
+            'leverage': leverage,
+        };
+        const defaultMarginMode = this.safeString2 (this.options, 'marginMode', 'defaultMarginMode');
+        let marginMode = this.safeStringLower2 (params, 'marginMode', 'defaultMarginMode', defaultMarginMode);
+        if (marginMode !== undefined) {
+            marginMode = (marginMode === 'cross') ? 'crossed' : 'isolated';
+            request['margin_mode'] = marginMode;
+            params = this.omit (params, [ 'marginMode', 'defaultMarginMode' ]);
+        }
+        if (marginMode === 'isolated') {
+            const side = this.safeString (params, 'side');
+            if (side !== undefined) {
+                request['side'] = side;
+                params = this.omit (params, 'side');
+            } else {
+                this.checkRequiredArgument ('setLeverage', side, 'side', [ 'long', 'short' ]);
+            }
+        }
+        return await this.privateSwapPostAccountLeverage (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "instrument_id": "BTCUSDTPERP",
+        //             "leverage": 30,
+        //             "margin_mode": "crossed",
+        //             "side": "both"
+        //         }
+        //     }
+        //
     }
 
     handleMarginModeAndParams (methodName, params = {}) {
