@@ -86,6 +86,8 @@ module.exports = class bkex extends Exchange {
                 'fetchTradingLimits': undefined,
                 'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchTransactions': undefined,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
@@ -1364,11 +1366,11 @@ module.exports = class bkex extends Exchange {
         return this.safeString (statuses, status, status);
     }
 
-    async fetchTransactionFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
         /**
          * @method
-         * @name bkex#fetchTransactionFees
-         * @description fetch transaction fees
+         * @name bkex#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
          * @see https://bkexapi.github.io/docs/api_en.htm?shell#basicInformation-2
          * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the bkex api endpoint
@@ -1404,10 +1406,10 @@ module.exports = class bkex extends Exchange {
         //        ]
         //    }
         //
-        return this.parseTransactionFees (response, codes);
+        return this.parseDepositWithdrawFees (response, codes);
     }
 
-    parseTransactionFees (response, codes = undefined) {
+    parseDepositWithdrawFees (response, codes = undefined) {
         //
         //    {
         //        "msg": "success",
@@ -1437,7 +1439,7 @@ module.exports = class bkex extends Exchange {
             if ((codes === undefined) || (this.inArray (code, codes))) {
                 result[code] = {
                     'withdraw': {
-                        'fee': this.parseTransactionFee (entry),
+                        'fee': this.parseDepositWithdrawFee (entry),
                         'percentage': undefined,
                     },
                     'deposit': {
@@ -1451,7 +1453,8 @@ module.exports = class bkex extends Exchange {
         return result;
     }
 
-    parseTransactionFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        // TODO: delete
         //
         //      {
         //          "currency": "ETH",

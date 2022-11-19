@@ -60,6 +60,7 @@ module.exports = class cryptocom extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransactionFees': false,
+                'fetchDepositWithdrawFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,

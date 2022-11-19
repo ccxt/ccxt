@@ -58,6 +58,7 @@ module.exports = class bitfinex2 extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': undefined,
+                'fetchDepositWithdrawFees': undefined,
                 'fetchTransactions': true,
                 'withdraw': true,
             },

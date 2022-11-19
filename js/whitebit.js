@@ -68,8 +68,8 @@ module.exports = class whitebit extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
-                'fetchTransactionFee': 'emulated',
-                'fetchTransactionFees': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'repayMargin': false,
                 'setLeverage': true,
                 'transfer': true,
@@ -427,12 +427,12 @@ module.exports = class whitebit extends Exchange {
         return result;
     }
 
-    async fetchTransactionFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
         /**
          * @method
-         * @name whitebit#fetchTransactionFees
-         * @description fetch transaction fees
-         * @param {[string]|undefined} codes not used by fetchTransactionFees ()
+         * @name whitebit#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @param {[string]|undefined} codes not used by fetchDepositWithdrawFees ()
          * @param {object} params extra parameters specific to the whitebit api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
@@ -480,10 +480,10 @@ module.exports = class whitebit extends Exchange {
         //        ...
         //    }
         //
-        return this.parseTransactionFees (response, codes);
+        return this.parseDepositWithdrawFees (response, codes);
     }
 
-    parseTransactionFees (response, codes = undefined, currencyIdKey = undefined) {
+    parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
         //
         //    {
         //        "1INCH": {
@@ -526,7 +526,7 @@ module.exports = class whitebit extends Exchange {
         //        ...
         //    }
         //
-        const transactionFees = {
+        const depositWithdrawFees = {
             'info': response,
         };
         codes = this.marketCodes (codes);
@@ -537,9 +537,9 @@ module.exports = class whitebit extends Exchange {
             const currencyId = splitEntry[0];
             const code = this.safeCurrencyCode (currencyId);
             if ((codes === undefined) || (this.inArray (code, codes))) {
-                const transactionFee = this.safeValue (transactionFees, code);
-                if (transactionFee === undefined) {
-                    transactionFees[code] = this.depositWithdrawFee ();
+                const depositWithdrawFee = this.safeValue (depositWithdrawFees, code);
+                if (depositWithdrawFee === undefined) {
+                    depositWithdrawFees[code] = this.depositWithdrawFee ();
                 }
                 let network = this.safeString (splitEntry, 1);
                 const feeInfo = response[entry];
@@ -550,17 +550,17 @@ module.exports = class whitebit extends Exchange {
                 if (network !== undefined) {
                     const networkLength = network.length;
                     network = network.slice (1, networkLength - 2);
-                    transactionFees[code]['networks'][network] = {
+                    depositWithdrawFees[code]['networks'][network] = {
                         'withdraw': withdrawFee,
                         'deposit': depositFee,
                     };
                 } else {
-                    transactionFees[code]['withdraw'] = withdrawFee;
-                    transactionFees[code]['deposit'] = depositFee;
+                    depositWithdrawFees[code]['withdraw'] = withdrawFee;
+                    depositWithdrawFees[code]['deposit'] = depositFee;
                 }
             }
         }
-        return transactionFees;
+        return depositWithdrawFees;
     }
 
     async fetchTradingFees (params = {}) {

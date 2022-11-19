@@ -91,6 +91,8 @@ module.exports = class binance extends Exchange {
                 'fetchTradingLimits': undefined,
                 'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchTransactions': false,
                 'fetchTransfers': true,
                 'fetchWithdrawal': false,
@@ -4388,12 +4390,12 @@ module.exports = class binance extends Exchange {
         };
     }
 
-    async fetchTransactionFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
         /**
          * @method
-         * @name binance#fetchTransactionFees
-         * @description fetch transaction fees
-         * @param {[string]|undefined} codes not used by binance fetchTransactionFees ()
+         * @name binance#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @param {[string]|undefined} codes not used by binance fetchDepositWithdrawFees ()
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
@@ -4441,10 +4443,10 @@ module.exports = class binance extends Exchange {
         //        }
         //    ]
         //
-        return this.parseTransactionFees (response, codes, 'coin');
+        return this.parseDepositWithdrawFees (response, codes, 'coin');
     }
 
-    parseTransactionFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency = undefined) {
         //
         //    {
         //        coin: 'BAT',

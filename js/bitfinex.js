@@ -57,6 +57,8 @@ module.exports = class bitfinex extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': undefined,
                 'transfer': true,
@@ -390,11 +392,11 @@ module.exports = class bitfinex extends Exchange {
         });
     }
 
-    async fetchTransactionFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
         /**
          * @method
-         * @name bitfinex#fetchTransactionFees
-         * @description fetch transaction fees
+         * @name bitfinex#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
          * @see https://docs.bitfinex.com/v1/reference/rest-auth-fees
          * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the bitfinex api endpoint
@@ -411,10 +413,10 @@ module.exports = class bitfinex extends Exchange {
         //    }
         //
         const withdraw = this.safeValue (response, 'withdraw');
-        return this.parseTransactionFees (withdraw, codes);
+        return this.parseDepositWithdrawFees (withdraw, codes);
     }
 
-    parseTransactionFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency = undefined) {
         //
         //    '0.0004'
         //

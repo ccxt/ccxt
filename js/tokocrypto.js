@@ -91,6 +91,8 @@ module.exports = class tokocrypto extends Exchange {
                 'fetchTradingLimits': false,
                 'fetchTransactionFee': false,
                 'fetchTransactionFees': false,
+                'fetchDepositWithdrawFee': false,
+                'fetchDepositWithdrawFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,

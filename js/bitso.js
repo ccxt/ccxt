@@ -72,6 +72,8 @@ module.exports = class bitso extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchTransactions': false,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
@@ -1309,11 +1311,11 @@ module.exports = class bitso extends Exchange {
         };
     }
 
-    async fetchTransactionFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
         /**
          * @method
-         * @name bitso#fetchTransactionFees
-         * @description fetch transaction fees
+         * @name bitso#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
          * @see https://bitso.com/api_info#fees
          * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the bitso api endpoint
@@ -1365,10 +1367,10 @@ module.exports = class bitso extends Exchange {
         //    }
         //
         const payload = this.safeValue (response, 'payload', {});
-        return this.parseTransactionFees (payload);
+        return this.parseDepositWithdrawFees (payload);
     }
 
-    parseTransactionFees (response, codes = undefined, currencyIdKey = undefined) {
+    parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
         //
         //    {
         //        fees: [

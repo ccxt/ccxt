@@ -71,6 +71,8 @@ module.exports = class bitmart extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransactionFee': true,
                 'fetchTransactionFees': false,
+                'fetchDepositWithdrawFee': true,
+                'fetchDepositWithdrawFees': false,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawAddressesByNetwork': false,
@@ -724,11 +726,12 @@ module.exports = class bitmart extends Exchange {
         return result;
     }
 
-    async fetchTransactionFee (code, params = {}) {
+    async fetchDepositWithdrawFee (code, params = {}) {
+        // TODO
         /**
          * @method
-         * @name bitmart#fetchTransactionFee
-         * @description fetch the fee for a transaction
+         * @name bitmart#fetchDepositWithdrawFee
+         * @description fetch the fee for deposits and withdrawals
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the bitmart api endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}

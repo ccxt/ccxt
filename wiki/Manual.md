@@ -4904,8 +4904,8 @@ Because the fee structure can depend on the actual volume of currencies traded b
 fetchFees (params = {})
 fetchTradingFee (symbol, params = {})
 fetchTradingFees (params = {})
-fetchTransactionFee (code, params = {})
-fetchTransactionFees (codes  = undefined, params = {})
+fetchDepositWithdrawFee (code, params = {})
+fetchDepositWithdrawFees (codes  = undefined, params = {})
 ```
 
 The fee methods will return a unified fee structure, which is often present with orders and trades as well. The fee structure is a common format for representing the fee info throughout the library. Fee structures are usually indexed by market or currency.
@@ -4914,7 +4914,7 @@ Because this is still a work in progress, some or all of methods and info descri
 
 **DO NOT use the `.fees` property of the exchange instance as most often it contains the predefined/hardcoded info. Actual fees should only be accessed from markets and currencies.**
 
-`fetchFees` will automatically call both `fetchTradingFees` and `fetchTransactionFees` to get all the fee information. You can call `fetchTradingFees` or `fetchTransactionFees` for more precise control over what endpoint on the exchange is requested.
+`fetchFees` will automatically call both `fetchTradingFees` and `fetchDepositWithdrawFees` to get all the fee information. You can call `fetchTradingFees` or `fetchDepositWithdrawFees` for more precise control over what endpoint on the exchange is requested.
 
 ### Fee Structure
 
@@ -5075,15 +5075,15 @@ exchange.currencies['ETH']['fee'] // tx/withdrawal fee rate for ETH
 exchange.currencies['BTC']['fee'] // tx/withdrawal fee rate for BTC
 ```
 
-#### Transaction Fee Schedule
+#### Deposit and Withdraw Fee Schedule
 
 Some exchanges have an endpoint for fetching the transaction fee schedule, this is mapped to the unified methods
 
-- `fetchTransactionFee ()` for a single transaction fee schedule
-- `fetchTransactionFees ()` for all transaction fee schedules
+- `fetchDepositWithdrawFee ()` for a single transaction fee schedule
+- `fetchDepositWithdrawFees ()` for all transaction fee schedules
 
 ```Javascript
-fetchTransactionFee (code, params = {})
+fetchDepositWithdrawFee (code, params = {})
 ```
 
 Parameters
@@ -5094,10 +5094,10 @@ Parameters
 
 Returns
 
-- A [transaction fee structure](#transaction-fee-structure)
+- A [deposit and withdraw fee structure](#deposit-and-withdraw-fee-structure)
 
 ```Javascript
-fetchTransactionFees (codes = undefined, params = {})
+fetchDepositWithdrawFees (codes = undefined, params = {})
 ```
 
 Parameters
@@ -5106,39 +5106,32 @@ Parameters
 
 Returns
 
-- An dictionary of [transaction fee structures](#transaction-fee-structure), indexed by the currency code
+- An dictionary of [deposit and withdraw fee structures](#deposit-and-withdraw-fee-structure), indexed by the currency code
 
-##### Transaction Fee Structure
+##### Deposit and Withdraw Fee Structure
 
 ```JavaScript
 {
-    'BTC': {                // network name
-        'withdraw': 40,     // withdraw fee
-        'deposit': 0        // deposit fee
-    },
-    'ETH': {
-        'withdraw': 19,
-        'deposit': 0
-    },
-    'TRX': {
-        'withdraw': 0.5,
-        'deposit': 0
-    },
-    ...
-}
-```
-
-### Notes On Transaction Fee Structure
-
-- when the network is not provided by the exchange, the string `'unknown'` is used as the key for the network, e.g.
-
-```
-{
-    'unknown': {            // network name
-        'withdraw': 40,     // withdraw fee
-        'deposit': 0        // deposit fee
-    },
-    ...
+    USDT: {
+        withdraw: { 
+            fee: 40,
+            percentage: false                                       // true if the fee is expressed as a percentage
+        },
+        deposit: {
+            fee: 0,
+            percentage: false
+        },
+        networks: {
+            BTC: {
+                withdraw: { fee: 40, percentage: false },
+                deposit: { fee: undefined, percentage: undefined }
+            },
+            ETH: {
+                withdraw: { fee: 19, percentage: false },
+                deposit: { fee: undefined, percentage: undefined }
+            },
+        }
+    }
 }
 ```
 

@@ -59,6 +59,7 @@ module.exports = class oceanex extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTradingLimits': undefined,
                 'fetchTransactionFees': undefined,
+                'fetchDepositWithdrawFees': undefined,
             },
             'timeframes': {
                 '1m': '1',

@@ -73,6 +73,8 @@ module.exports = class indodax extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransactionFee': true,
                 'fetchTransactionFees': false,
+                'fetchDepositWithdrawFee': true,
+                'fetchDepositWithdrawFees': false,
                 'fetchTransactions': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
@@ -731,11 +733,12 @@ module.exports = class indodax extends Exchange {
         return await this.privatePostCancelOrder (this.extend (request, params));
     }
 
-    async fetchTransactionFee (code, params = {}) {
+    async fetchDepositWithdrawFee (code, params = {}) {
+        // TODO
         /**
          * @method
-         * @name indodax#fetchTransactionFee
-         * @description fetch the fee for a transaction
+         * @name indodax#fetchDepositWithdrawFee
+         * @description fetch the fee for deposits and withdrawals
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the indodax api endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}

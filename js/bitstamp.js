@@ -70,6 +70,8 @@ module.exports = class bitstamp extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactionFee': 'emulated',
                 'fetchTransactionFees': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': true,
                 'reduceMargin': false,
@@ -1141,11 +1143,11 @@ module.exports = class bitstamp extends Exchange {
         return this.parseTradingFees (response);
     }
 
-    async fetchTransactionFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
         /**
          * @method
-         * @name bitstamp#fetchTransactionFees
-         * @description fetch transaction fees
+         * @name bitstamp#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
          * @see https://www.bitstamp.net/api/#balance
          * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the bitstamp api endpoint
@@ -1170,10 +1172,10 @@ module.exports = class bitstamp extends Exchange {
         //        ...
         //    }
         //
-        return this.parseTransactionFees (response, codes);
+        return this.parseDepositWithdrawFees (response, codes);
     }
 
-    parseTransactionFees (response, codes = undefined) {
+    parseDepositWithdrawFees (response, codes = undefined) {
         //
         //    {
         //        yfi_available: '0.00000000',

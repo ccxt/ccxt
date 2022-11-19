@@ -66,6 +66,8 @@ module.exports = class buda extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransactionFee': true,
                 'fetchTransactionFees': false,
+                'fetchDepositWithdrawFee': true,
+                'fetchDepositWithdrawFees': false,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
                 'fetchWithdrawal': false,
@@ -397,15 +399,15 @@ module.exports = class buda extends Exchange {
         return result;
     }
 
-    async fetchTransactionFee (code, params = {}) {
+    async fetchDepositWithdrawFee (code, params = {}) {
         this.loadMarkets ();
         const currency = this.currency (code);
         const request = { 'currency': currency['id'] };
         const response = await this.publicGetCurrenciesCurrencyFeesWithdrawal (this.extend (request, params));
-        return this.parseTransactionFee (response);
+        return this.parseDepositWithdrawFee (response);
     }
 
-    parseTransactionFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency = undefined) {
         let type = this.safeString (fee, 'name');
         if (type === 'withdrawal') {
             type = 'withdraw';

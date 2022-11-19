@@ -71,6 +71,8 @@ module.exports = class zonda extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransactionFee': false,
                 'fetchTransactionFees': false,
+                'fetchDepositWithdrawFee': false,
+                'fetchDepositWithdrawFees': false,
                 'fetchTransactions': undefined,
                 'fetchTransfer': false,
                 'fetchWithdrawal': false,

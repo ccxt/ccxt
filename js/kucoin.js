@@ -80,6 +80,7 @@ module.exports = class kucoin extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
                 'fetchTransactionFee': true,
+                'fetchDepositWithdrawFee': true,
                 'fetchWithdrawals': true,
                 'repayMargin': true,
                 'setMarginMode': false,
@@ -785,11 +786,12 @@ module.exports = class kucoin extends Exchange {
         return result;
     }
 
-    async fetchTransactionFee (code, params = {}) {
+    async fetchDepositWithdrawFee (code, params = {}) {
+        // TODO
         /**
          * @method
-         * @name kucoin#fetchTransactionFee
-         * @description fetch the fee for a transaction
+         * @name kucoin#fetchDepositWithdrawFee
+         * @description fetch the fee for deposits and withdrawals
          * @see https://docs.kucoin.com/#get-withdrawal-quotas
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the kucoin api endpoint

@@ -62,8 +62,8 @@ module.exports = class exmo extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
-                'fetchTransactionFee': 'emulated',
-                'fetchTransactionFees': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchTransactions': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
@@ -177,7 +177,7 @@ module.exports = class exmo extends Exchange {
                 },
                 'transaction': {
                     'tierBased': false,
-                    'percentage': false, // fixed transaction fees for crypto, see fetchTransactionFees below
+                    'percentage': false, // fixed transaction fees for crypto, see fetchDepositWithdrawFees below
                 },
             },
             'options': {
@@ -419,11 +419,11 @@ module.exports = class exmo extends Exchange {
         return result;
     }
 
-    async fetchTransactionFees (codes = undefined, params = {}) {
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
         /**
          * @method
-         * @name exmo#fetchTransactionFees
-         * @description fetch transaction fees
+         * @name exmo#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
          * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the exmo api endpoint
@@ -465,13 +465,13 @@ module.exports = class exmo extends Exchange {
         //         ],
         //     }
         //
-        const result = this.parseTransactionFees (response, codes);
+        const result = this.parseDepositWithdrawFees (response, codes);
         // cache them for later use
         this.options['transactionFees'] = result;
         return result;
     }
 
-    parseTransactionFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency = undefined) {
         //
         //    [
         //        {

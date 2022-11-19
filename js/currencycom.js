@@ -91,6 +91,8 @@ module.exports = class currencycom extends Exchange {
                 'fetchTradingLimits': undefined,
                 'fetchTransactionFee': undefined,
                 'fetchTransactionFees': undefined,
+                'fetchDepositWithdrawFee': undefined,
+                'fetchDepositWithdrawFees': undefined,
                 'fetchTransactions': true,
                 'fetchTransfers': undefined,
                 'fetchWithdrawal': undefined,

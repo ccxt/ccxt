@@ -90,6 +90,8 @@ module.exports = class Exchange {
                 'fetchDeposits': undefined,
                 'fetchTransactionFee': undefined,
                 'fetchTransactionFees': undefined,
+                'fetchDepositWithdrawFee': undefined,
+                'fetchDepositWithdrawFees': undefined,
                 'fetchFundingHistory': undefined,
                 'fetchFundingRate': undefined,
                 'fetchFundingRateHistory': undefined,
@@ -2047,28 +2049,28 @@ module.exports = class Exchange {
     async fetchFundingFee (code, params = {}) {
         const warnOnFetchFundingFee = this.safeValue (this.options, 'warnOnFetchFundingFee', true);
         if (warnOnFetchFundingFee) {
-            throw new NotSupported (this.id + ' fetchFundingFee() method is deprecated, it will be removed in July 2022, please, use fetchTransactionFee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning');
+            throw new NotSupported (this.id + ' fetchDepositWithdrawFee() method is deprecated, it will be removed in July 2022, please, use fetchDepositWithdrawFee() or set exchange.options["warnOnFetchFundingFee"] = false to suppress this warning');
         }
-        return await this.fetchTransactionFee (code, params);
+        return await this.fetchDepositWithdrawFee (code, params);
     }
 
     async fetchFundingFees (codes = undefined, params = {}) {
         const warnOnFetchFundingFees = this.safeValue (this.options, 'warnOnFetchFundingFees', true);
         if (warnOnFetchFundingFees) {
-            throw new NotSupported (this.id + ' fetchFundingFees() method is deprecated, it will be removed in July 2022. Please, use fetchTransactionFees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');
+            throw new NotSupported (this.id + ' fetchDepositWithdrawFees() method is deprecated, it will be removed in July 2022. Please, use fetchDepositWithdrawFees() or set exchange.options["warnOnFetchFundingFees"] = false to suppress this warning');
         }
-        return await this.fetchTransactionFees (codes, params);
+        return await this.fetchDepositWithdrawFees (codes, params);
     }
 
-    async fetchTransactionFee (code, params = {}) {
-        if (!this.has['fetchTransactionFees']) {
-            throw new NotSupported (this.id + ' fetchTransactionFee() is not supported yet');
+    async fetchDepositWithdrawFee (code, params = {}) {
+        if (!this.has['fetchDepositWithdrawFees']) {
+            throw new NotSupported (this.id + ' fetchDepositWithdrawFee() is not supported yet');
         }
-        return await this.fetchTransactionFees ([ code ], params);
+        return await this.fetchDepositWithdrawFees ([ code ], params);
     }
 
-    async fetchTransactionFees (codes = undefined, params = {}) {
-        throw new NotSupported (this.id + ' fetchTransactionFees() is not supported yet');
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        throw new NotSupported (this.id + ' fetchDepositWithdrawFees() is not supported yet');
     }
 
     getSupportedMapping (key, mapping = {}) {

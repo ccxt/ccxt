@@ -55,6 +55,8 @@ module.exports = class bibox extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransactionFee': true,
                 'fetchTransactionFees': false,
+                'fetchDepositWithdrawFee': true,
+                'fetchDepositWithdrawFees': false,
                 'fetchWithdrawals': true,
                 'transfer': true,
                 'withdraw': true,
@@ -2046,10 +2048,10 @@ module.exports = class bibox extends Exchange {
         return this.parseTransaction (firstResult, currency);
     }
 
-    async fetchTransactionFee (code, params = {}) {
+    async fetchDepositWithdrawFee (code, params = {}) {
         /**
          * @method
-         * @name bibox#fetchTransactionFee
+         * @name bibox#fetchDepositWithdrawFee
          * @description fetch withdrawal fees for currencies
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the bibox api endpoint
@@ -2090,10 +2092,10 @@ module.exports = class bibox extends Exchange {
         const firstOuterResult = this.safeValue (outerResults, 0, {});
         const innerResults = this.safeValue (firstOuterResult, 'result', []);
         const firstInnerResult = this.safeValue (innerResults, 0, {});
-        return this.parseTransactionFee (firstInnerResult, currency);
+        return this.parseDepositWithdrawFee (firstInnerResult, currency);
     }
 
-    parseTransactionFee (fee, currency = undefined) {
+    parseDepositWithdrawFee (fee, currency = undefined) {
         //
         //    {
         //        "coin_symbol": "ETH",

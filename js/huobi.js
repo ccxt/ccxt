@@ -98,6 +98,8 @@ module.exports = class huobi extends Exchange {
                 'fetchTradingLimits': true,
                 'fetchTransactionFee': false,
                 'fetchTransactionFees': false,
+                'fetchDepositWithdrawFee': false,
+                'fetchDepositWithdrawFees': false,
                 'fetchTransactions': undefined,
                 'fetchTransfers': undefined,
                 'fetchWithdrawAddressesByNetwork': true,

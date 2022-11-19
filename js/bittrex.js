@@ -77,6 +77,7 @@ module.exports = class bittrex extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': undefined,
+                'fetchDepositWithdrawFees': undefined,
                 'fetchTransactions': undefined,
                 'fetchWithdrawal': true,
                 'fetchWithdrawals': true,
