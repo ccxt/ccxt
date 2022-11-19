@@ -4387,21 +4387,18 @@ module.exports = class bybit extends Exchange {
         } else if (timeInForce === 'ioc') {
             request['timeInForce'] = 'ImmediateOrCancel';
         }
-        if (market['swap']) {
-            const triggerPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
-            const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
-            const isStopLossOrder = stopLossPrice !== undefined;
-            const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
-            const isTakeProfitOrder = takeProfitPrice !== undefined;
-            const isStopOrder = isStopLossOrder || isTakeProfitOrder;
-            if (isStopOrder) {
-                request['triggerBy'] = 'LastPrice';
-                const stopPx = isStopLossOrder ? stopLossPrice : takeProfitPrice;
-                const preciseStopPrice = this.priceToPrecision (symbol, stopPx);
-                request['triggerPrice'] = preciseStopPrice;
-                const delta = this.numberToString (market['precision']['price']);
-                request['basePrice'] = isStopLossOrder ? Precise.stringSub (preciseStopPrice, delta) : Precise.stringAdd (preciseStopPrice, delta);
-            }
+        const triggerPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
+        const isStopLossOrder = stopLossPrice !== undefined;
+        const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
+        const isTakeProfitOrder = takeProfitPrice !== undefined;
+        const isStopOrder = isStopLossOrder || isTakeProfitOrder;
+        if (isStopOrder) {
+            request['triggerBy'] = 'LastPrice';
+            const stopPx = isStopLossOrder ? stopLossPrice : takeProfitPrice;
+            const preciseStopPrice = this.priceToPrecision (symbol, stopPx);
+            request['triggerPrice'] = preciseStopPrice;
+            request['triggerDirection'] = isStopLossOrder ? 2 : 1;
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
