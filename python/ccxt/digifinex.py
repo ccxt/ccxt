@@ -69,7 +69,9 @@ class digifinex(Exchange):
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': True,
                 'fetchPositionMode': False,
+                'fetchPositions': True,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -2412,6 +2414,269 @@ class digifinex(Exchange):
             'symbol': symbol,
             'maker': self.safe_number(fee, 'maker_fee_rate'),
             'taker': self.safe_number(fee, 'taker_fee_rate'),
+        }
+
+    def fetch_positions(self, symbols=None, params={}):
+        """
+        fetch all open positions
+        see https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-positions
+        see https://docs.digifinex.com/en-ww/swap/v2/rest.html#positions
+        :param [str]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the digifinex api endpoint
+        :returns [dict]: a list of `position structures <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
+        self.load_markets()
+        symbols = self.market_symbols(symbols)
+        request = {}
+        market = None
+        marketType = None
+        if symbols is not None:
+            symbol = None
+            if isinstance(symbols, list):
+                symbolsLength = len(symbols)
+                if symbolsLength > 1:
+                    raise BadRequest(self.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol')
+                symbol = symbols[0]
+            else:
+                symbol = symbols
+            market = self.market(symbol)
+        marketType, params = self.handle_market_type_and_params('fetchPositions', market, params)
+        marginMode, query = self.handle_margin_mode_and_params('fetchPositions', params)
+        if marginMode is not None:
+            marketType = 'margin'
+        if market is not None:
+            marketIdRequest = 'instrument_id' if (marketType == 'swap') else 'symbol'
+            request[marketIdRequest] = market['id']
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateSpotGetMarginPositions',
+            'margin': 'privateSpotGetMarginPositions',
+            'swap': 'privateSwapGetAccountPositions',
+        })
+        response = getattr(self, method)(self.extend(request, query))
+        #
+        # swap
+        #
+        #     {
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "instrument_id": "BTCUSDTPERP",
+        #                 "margin_mode": "crossed",
+        #                 "avail_position": "1",
+        #                 "avg_cost": "18369.3",
+        #                 "last": "18404.7",
+        #                 "leverage": "20",
+        #                 "liquidation_price": "451.12820512820264",
+        #                 "maint_margin_ratio": "0.005",
+        #                 "margin": "0.918465",
+        #                 "position": "1",
+        #                 "realized_pnl": "0",
+        #                 "unrealized_pnl": "0.03410000000000224",
+        #                 "unrealized_pnl_rate": "0.03712716325608732",
+        #                 "side": "long",
+        #                 "open_outstanding": "0",
+        #                 "risk_score": "0.495049504950495",
+        #                 "margin_ratio": "0.4029464788983229",
+        #                 "timestamp": 1667960497145
+        #             },
+        #             ...
+        #         ]
+        #     }
+        #
+        # margin
+        #
+        #     {
+        #         "margin": "77.71534772983289",
+        #         "code": 0,
+        #         "margin_rate": "10.284503769497306",
+        #         "positions": [
+        #             {
+        #                 "amount": 0.0010605,
+        #                 "side": "go_long",
+        #                 "entry_price": 18321.39,
+        #                 "liquidation_rate": 0.3,
+        #                 "liquidation_price": -52754.371758471,
+        #                 "unrealized_roe": -0.002784390267332,
+        #                 "symbol": "BTC_USDT",
+        #                 "unrealized_pnl": -0.010820048189999,
+        #                 "leverage_ratio": 5
+        #             },
+        #             ...
+        #         ],
+        #         "unrealized_pnl": "-0.10681600018999979"
+        #     }
+        #
+        positionRequest = 'data' if (marketType == 'swap') else 'positions'
+        positions = self.safe_value(response, positionRequest, [])
+        result = []
+        for i in range(0, len(positions)):
+            result.append(self.parse_position(positions[i], market))
+        return self.filter_by_array(result, 'symbol', symbols, False)
+
+    def fetch_position(self, symbol, params={}):
+        """
+        see https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-positions
+        see https://docs.digifinex.com/en-ww/swap/v2/rest.html#positions
+        fetch data on a single open contract trade position
+        :param str symbol: unified market symbol of the market the position is held in
+        :param dict params: extra parameters specific to the digifinex api endpoint
+        :returns dict: a `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
+        self.load_markets()
+        market = self.market(symbol)
+        request = {}
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchPosition', market, params)
+        marginMode, query = self.handle_margin_mode_and_params('fetchPosition', params)
+        if marginMode is not None:
+            marketType = 'margin'
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateSpotGetMarginPositions',
+            'margin': 'privateSpotGetMarginPositions',
+            'swap': 'privateSwapGetAccountPositions',
+        })
+        marketIdRequest = 'instrument_id' if (marketType == 'swap') else 'symbol'
+        request[marketIdRequest] = market['id']
+        response = getattr(self, method)(self.extend(request, query))
+        #
+        # swap
+        #
+        #     {
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "instrument_id": "BTCUSDTPERP",
+        #                 "margin_mode": "crossed",
+        #                 "avail_position": "1",
+        #                 "avg_cost": "18369.3",
+        #                 "last": "18388.9",
+        #                 "leverage": "20",
+        #                 "liquidation_price": "383.38712921065553",
+        #                 "maint_margin_ratio": "0.005",
+        #                 "margin": "0.918465",
+        #                 "position": "1",
+        #                 "realized_pnl": "0",
+        #                 "unrealized_pnl": "0.021100000000004115",
+        #                 "unrealized_pnl_rate": "0.02297311274790451",
+        #                 "side": "long",
+        #                 "open_outstanding": "0",
+        #                 "risk_score": "0.4901960784313725",
+        #                 "margin_ratio": "0.40486964045976204",
+        #                 "timestamp": 1667960241758
+        #             }
+        #         ]
+        #     }
+        #
+        # margin
+        #
+        #     {
+        #         "margin": "77.71534772983289",
+        #         "code": 0,
+        #         "margin_rate": "10.284503769497306",
+        #         "positions": [
+        #             {
+        #                 "amount": 0.0010605,
+        #                 "side": "go_long",
+        #                 "entry_price": 18321.39,
+        #                 "liquidation_rate": 0.3,
+        #                 "liquidation_price": -52754.371758471,
+        #                 "unrealized_roe": -0.002784390267332,
+        #                 "symbol": "BTC_USDT",
+        #                 "unrealized_pnl": -0.010820048189999,
+        #                 "leverage_ratio": 5
+        #             }
+        #         ],
+        #         "unrealized_pnl": "-0.10681600018999979"
+        #     }
+        #
+        dataRequest = 'data' if (marketType == 'swap') else 'positions'
+        data = self.safe_value(response, dataRequest, [])
+        position = self.parse_position(data[0], market)
+        if marketType == 'swap':
+            return position
+        else:
+            return self.extend(position, {
+                'collateral': self.safe_number(response, 'margin'),
+                'marginRatio': self.safe_number(response, 'margin_rate'),
+            })
+
+    def parse_position(self, position, market=None):
+        #
+        # swap
+        #
+        #     {
+        #         "instrument_id": "BTCUSDTPERP",
+        #         "margin_mode": "crossed",
+        #         "avail_position": "1",
+        #         "avg_cost": "18369.3",
+        #         "last": "18388.9",
+        #         "leverage": "20",
+        #         "liquidation_price": "383.38712921065553",
+        #         "maint_margin_ratio": "0.005",
+        #         "margin": "0.918465",
+        #         "position": "1",
+        #         "realized_pnl": "0",
+        #         "unrealized_pnl": "0.021100000000004115",
+        #         "unrealized_pnl_rate": "0.02297311274790451",
+        #         "side": "long",
+        #         "open_outstanding": "0",
+        #         "risk_score": "0.4901960784313725",
+        #         "margin_ratio": "0.40486964045976204",
+        #         "timestamp": 1667960241758
+        #     }
+        #
+        # margin
+        #
+        #     {
+        #         "amount": 0.0010605,
+        #         "side": "go_long",
+        #         "entry_price": 18321.39,
+        #         "liquidation_rate": 0.3,
+        #         "liquidation_price": -52754.371758471,
+        #         "unrealized_roe": -0.002784390267332,
+        #         "symbol": "BTC_USDT",
+        #         "unrealized_pnl": -0.010820048189999,
+        #         "leverage_ratio": 5
+        #     }
+        #
+        marketId = self.safe_string_2(position, 'instrument_id', 'symbol')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        marginMode = self.safe_string(position, 'margin_mode')
+        if marginMode is not None:
+            marginMode = 'cross' if (marginMode == 'crossed') else 'isolated'
+        else:
+            marginMode = 'crossed'
+        timestamp = self.safe_integer(position, 'timestamp')
+        side = self.safe_string(position, 'side')
+        if side == 'go_long':
+            side = 'long'
+        elif side == 'go_short':
+            side = 'short'
+        return {
+            'info': position,
+            'id': None,
+            'symbol': symbol,
+            'notional': self.safe_number(position, 'amount'),
+            'marginMode': marginMode,
+            'liquidationPrice': self.safe_number(position, 'liquidation_price'),
+            'entryPrice': self.safe_number_2(position, 'avg_cost', 'entry_price'),
+            'unrealizedPnl': self.safe_number(position, 'unrealized_pnl'),
+            'contracts': self.safe_number(position, 'avail_position'),
+            'contractSize': self.safe_number(market, 'contractSize'),
+            'markPrice': self.safe_number(position, 'last'),
+            'side': side,
+            'hedged': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'maintenanceMargin': self.safe_number(position, 'margin'),
+            'maintenanceMarginPercentage': self.safe_number(position, 'maint_margin_ratio'),
+            'collateral': None,
+            'initialMargin': None,
+            'initialMarginPercentage': None,
+            'leverage': self.safe_number_2(position, 'leverage', 'leverage_ratio'),
+            'marginRatio': self.safe_number(position, 'margin_ratio'),
+            'percentage': None,
         }
 
     def handle_margin_mode_and_params(self, methodName, params={}):
