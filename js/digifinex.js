@@ -2608,11 +2608,13 @@ module.exports = class digifinex extends Exchange {
             'instrument_id': market['id'],
             'leverage': leverage,
         };
-        let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('setLeverage', params);
-        marginMode = (marginMode === 'isolated') ? 'isolated' : 'crossed';
-        request['margin_mode'] = marginMode;
-        params = this.omit (params, [ 'marginMode', 'defaultMarginMode' ]);
+        const defaultMarginMode = this.safeString2 (this.options, 'marginMode', 'defaultMarginMode');
+        let marginMode = this.safeStringLower2 (params, 'marginMode', 'defaultMarginMode', defaultMarginMode);
+        if (marginMode !== undefined) {
+            marginMode = (marginMode === 'cross') ? 'crossed' : 'isolated';
+            request['margin_mode'] = marginMode;
+            params = this.omit (params, [ 'marginMode', 'defaultMarginMode' ]);
+        }
         if (marginMode === 'isolated') {
             const side = this.safeString (params, 'side');
             if (side !== undefined) {
