@@ -699,7 +699,7 @@ class bibox(Exchange):
             'symbol': market['id'],
         }
         if limit is not None:
-            request['size'] = limit  # default = 100
+            request['limit'] = limit  # default = 100
         if since is not None:
             request['start_time'] = since
         if until is not None:
