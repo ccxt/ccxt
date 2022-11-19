@@ -2910,7 +2910,7 @@ export default class digifinex extends Exchange {
                 this.checkRequiredArgument ('setLeverage', side, 'side', [ 'long', 'short' ]);
             }
         }
-        return await this.privateSwapPostAccountLeverage (this.extend (request, params));
+        return await (this as any).privateSwapPostAccountLeverage (this.extend (request, params));
         //
         //     {
         //         "code": 0,
