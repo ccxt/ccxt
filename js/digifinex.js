@@ -2634,7 +2634,7 @@ module.exports = class digifinex extends Exchange {
         //         "data": [
         //             {
         //                 "instrument_id": "BTCUSDTPERP",
-        //                 "margin_mode": "fixed",
+        //                 "margin_mode": "crossed",
         //                 "avail_position": "1",
         //                 "avg_cost": "18369.3",
         //                 "last": "18404.7",
@@ -2723,7 +2723,7 @@ module.exports = class digifinex extends Exchange {
         //         "data": [
         //             {
         //                 "instrument_id": "BTCUSDTPERP",
-        //                 "margin_mode": "fixed",
+        //                 "margin_mode": "crossed",
         //                 "avail_position": "1",
         //                 "avg_cost": "18369.3",
         //                 "last": "18388.9",
@@ -2785,7 +2785,7 @@ module.exports = class digifinex extends Exchange {
         //
         //     {
         //         "instrument_id": "BTCUSDTPERP",
-        //         "margin_mode": "fixed",
+        //         "margin_mode": "crossed",
         //         "avail_position": "1",
         //         "avg_cost": "18369.3",
         //         "last": "18388.9",
@@ -2823,7 +2823,7 @@ module.exports = class digifinex extends Exchange {
         const symbol = market['symbol'];
         let marginMode = this.safeString (position, 'margin_mode');
         if (marginMode !== undefined) {
-            marginMode = (marginMode === 'fixed') ? 'cross' : 'isolated';
+            marginMode = (marginMode === 'crossed') ? 'cross' : 'isolated';
         }
         const timestamp = this.safeInteger (position, 'timestamp');
         let side = this.safeString (position, 'side');
