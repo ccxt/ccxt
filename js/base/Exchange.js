@@ -951,9 +951,11 @@ module.exports = class Exchange {
             balance['used'][code] = balance[code]['used'];
             balance['total'][code] = balance[code]['total'];
             if (debt !== undefined) {
-                balance['debt'] = debtBalance;
                 debtBalance[code] = balance[code]['debt'];
             }
+        }
+        if (debtBalance.length) {
+            balance['debt'] = debtBalance;
         }
         return balance;
     }
