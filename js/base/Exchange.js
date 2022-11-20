@@ -927,11 +927,13 @@ module.exports = class Exchange {
         balance['free'] = {};
         balance['used'] = {};
         balance['total'] = {};
+        const debtBalance = {};
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
             let total = this.safeString (balance[code], 'total');
             let free = this.safeString (balance[code], 'free');
             let used = this.safeString (balance[code], 'used');
+            const debt = this.safeString (balance[code], 'debt');
             if ((total === undefined) && (free !== undefined) && (used !== undefined)) {
                 total = Precise.stringAdd (free, used);
             }
@@ -941,12 +943,17 @@ module.exports = class Exchange {
             if ((used === undefined) && (total !== undefined) && (free !== undefined)) {
                 used = Precise.stringSub (total, free);
             }
+            balance[code]['debt'] = this.parseNumber (debt);
             balance[code]['free'] = this.parseNumber (free);
             balance[code]['used'] = this.parseNumber (used);
             balance[code]['total'] = this.parseNumber (total);
             balance['free'][code] = balance[code]['free'];
             balance['used'][code] = balance[code]['used'];
             balance['total'][code] = balance[code]['total'];
+            if (debt !== undefined) {
+                balance['debt'] = debtBalance;
+                debtBalance[code] = balance[code]['debt'];
+            }
         }
         return balance;
     }
