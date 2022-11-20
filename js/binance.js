@@ -4196,8 +4196,14 @@ module.exports = class binance extends Exchange {
                     toId = this.marketId (symbol);
                 }
             }
-            const fromIsolated = this.inArray (fromId, this.ids);
-            const toIsolated = this.inArray (toId, this.ids);
+            const fromIsolated = (fromId in this.markets_by_id) || (fromId in this.markets);
+            const toIsolated = (toId in this.markets_by_id) || (fromId in this.markets);
+            if (fromIsolated) {
+                fromId = this.marketId (fromId);
+            }
+            if (toIsolated) {
+                toId = this.marketId (toId);
+            }
             if (fromIsolated || toIsolated) { // Isolated margin transfer
                 const fromFuture = fromId === 'UMFUTURE' || fromId === 'CMFUTURE';
                 const toFuture = toId === 'UMFUTURE' || toId === 'CMFUTURE';
@@ -4208,7 +4214,7 @@ module.exports = class binance extends Exchange {
                 const prohibitedWithIsolated = fromFuture || toFuture || mining || funding;
                 if ((fromIsolated || toIsolated) && prohibitedWithIsolated) {
                     throw new BadRequest (this.id + ' transfer () does not allow transfers between ' + fromAccount + ' and ' + toAccount);
-                } else if (fromIsolated && toSpot) {
+                } else if (toSpot && fromIsolated) {
                     method = 'sapiPostMarginIsolatedTransfer';
                     request['transFrom'] = 'ISOLATED_MARGIN';
                     request['transTo'] = 'SPOT';
@@ -4219,11 +4225,11 @@ module.exports = class binance extends Exchange {
                     request['transTo'] = 'ISOLATED_MARGIN';
                     request['symbol'] = toId;
                 } else {
-                    if (this.inArray (fromId, this.ids)) {
+                    if (fromIsolated) {
                         request['fromSymbol'] = fromId;
                         fromId = 'ISOLATEDMARGIN';
                     }
-                    if (this.inArray (toId, this.ids)) {
+                    if (toIsolated) {
                         request['toSymbol'] = toId;
                         toId = 'ISOLATEDMARGIN';
                     }
