@@ -4435,12 +4435,12 @@ module.exports = class bybit extends Exchange {
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
+        const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
+        const networkId = this.networkCodeToId (networkCode);
         const currency = this.currency (code);
         const request = {
             'coin': currency['id'],
         };
-        const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
-        const networkId = this.networkCodeToId (networkCode);
         if (networkId !== undefined) {
             request['chainType'] = networkId;
         }
@@ -4467,7 +4467,7 @@ module.exports = class bybit extends Exchange {
         const result = this.safeValue (response, 'result', {});
         const chains = this.safeValue (result, 'chains', []);
         const chainsIndexedById = this.indexBy (chains, 'chain');
-        const selectedNetworkId = this.selectDefaultNetworkId (code, networkCode, chainsIndexedById);
+        const selectedNetworkId = this.getDefaultNetworkIdFromRawNetworks (code, networkCode, chainsIndexedById);
         const addressObject = this.safeValue (chainsIndexedById, selectedNetworkId, {});
         return this.parseDepositAddress (addressObject, currency);
     }

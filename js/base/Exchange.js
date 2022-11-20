@@ -1669,7 +1669,7 @@ module.exports = class Exchange {
         return defaultNetworkCode;
     }
 
-    selectDefaultNetworkId (currencyCode, networkCode, networkEntriesIndexed) {
+    getDefaultNetworkIdFromRawNetworks (currencyCode, networkCode, networkEntriesIndexed) {
         // this method is used against raw & unparse network entries, which are just indexed by network id
         let chosenNetworkId = undefined;
         const availableNetworkIds = Object.keys (networkEntriesIndexed);
