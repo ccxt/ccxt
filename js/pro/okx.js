@@ -643,7 +643,8 @@ module.exports = class okx extends okxRest {
         // By default, receive order updates from any instrument type
         let type = this.safeString (options, 'type', 'ANY');
         type = this.safeString (params, 'type', type);
-        params = this.omit (params, 'type');
+        const isStop = this.safeValue ('params', 'stop', false);
+        params = this.omit (params, [ 'type', 'stop' ]);
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -657,7 +658,8 @@ module.exports = class okx extends okxRest {
         const request = {
             'instType': uppercaseType,
         };
-        const orders = await this.subscribe ('private', 'orders', symbol, this.extend (request, params));
+        const channel = isStop ? 'orders-algo' : 'orders';
+        const orders = await this.subscribe ('private', channel, symbol, this.extend (request, params));
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
