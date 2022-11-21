@@ -880,6 +880,7 @@ module.exports = class okx extends okxRest {
                 'account': this.handleBalance,
                 // 'margin_account': this.handleBalance,
                 'orders': this.handleOrders,
+                'orders-algo': this.handleOrders,
             };
             const method = this.safeValue (methods, channel);
             if (method === undefined) {
