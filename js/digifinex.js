@@ -777,7 +777,10 @@ module.exports = class digifinex extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const first = this.safeString (symbols, 0);
-        const market = this.market (first);
+        let market = undefined;
+        if (first !== undefined) {
+            market = this.market (first);
+        }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         let method = 'publicSpotGetTicker';
