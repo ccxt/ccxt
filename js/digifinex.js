@@ -776,10 +776,13 @@ module.exports = class digifinex extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const defaultType = this.safeString (this.options, 'defaultType');
+        const first = this.safeString (symbols, 0);
+        const market = this.market (first);
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         let method = 'publicSpotGetTicker';
         const request = {};
-        if (defaultType === 'swap') {
+        if (type === 'swap') {
             method = 'publicSwapGetPublicTickers';
         }
         const response = await this[method] (this.extend (request, params));
@@ -858,11 +861,9 @@ module.exports = class digifinex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const type = (market['swap']) ? 'swap' : 'spot';
-        const defaultType = this.safeString (this.options, 'defaultType', type);
         let method = 'publicSpotGetTicker';
         const request = {};
-        if (defaultType === 'swap') {
+        if (market['swap']) {
             method = 'publicSwapGetPublicTicker';
             request['instrument_id'] = market['id'];
         } else {
@@ -919,7 +920,7 @@ module.exports = class digifinex extends Exchange {
         const data = this.safeValue (response, 'data', {});
         const firstTicker = this.safeValue (tickers, 0, {});
         let result = undefined;
-        if (defaultType === 'swap') {
+        if (market['swap']) {
             result = data;
         } else {
             result = this.extend ({ 'date': date }, firstTicker);
