@@ -37,7 +37,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '2.1.41'
+const version = '2.1.99'
 
 Exchange.ccxtVersion = version
 
@@ -107,8 +107,6 @@ const exchanges = {
     'exmo':                    require ('./js/exmo.js'),
     'flowbtc':                 require ('./js/flowbtc.js'),
     'fmfwio':                  require ('./js/fmfwio.js'),
-    'ftx':                     require ('./js/ftx.js'),
-    'ftxus':                   require ('./js/ftxus.js'),
     'gate':                    require ('./js/gate.js'),
     'gateio':                  require ('./js/gateio.js'),
     'gemini':                  require ('./js/gemini.js'),
@@ -150,7 +148,6 @@ const exchanges = {
     'ripio':                   require ('./js/ripio.js'),
     'stex':                    require ('./js/stex.js'),
     'therock':                 require ('./js/therock.js'),
-    'tidebit':                 require ('./js/tidebit.js'),
     'tidex':                   require ('./js/tidex.js'),
     'timex':                   require ('./js/timex.js'),
     'tokocrypto':              require ('./js/tokocrypto.js'),
@@ -191,8 +188,6 @@ const pro = {
     'currencycom':             require ('./js/pro/currencycom.js'),
     'deribit':                 require ('./js/pro/deribit.js'),
     'exmo':                    require ('./js/pro/exmo.js'),
-    'ftx':                     require ('./js/pro/ftx.js'),
-    'ftxus':                   require ('./js/pro/ftxus.js'),
     'gate':                    require ('./js/pro/gate.js'),
     'gateio':                  require ('./js/pro/gateio.js'),
     'hitbtc':                  require ('./js/pro/hitbtc.js'),

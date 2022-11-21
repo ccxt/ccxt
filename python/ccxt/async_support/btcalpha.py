@@ -49,7 +49,7 @@ class btcalpha(Exchange):
                 'fetchFundingRateHistory': False,
                 'fetchFundingRates': False,
                 'fetchIndexOHLCV': False,
-                'fetchL2OrderBook': None,  # same as above
+                'fetchL2OrderBook': True,
                 'fetchLeverage': False,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
@@ -59,7 +59,7 @@ class btcalpha(Exchange):
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
-                'fetchOrderBook': None,  # their api doesn't work atm for orderbook
+                'fetchOrderBook': True,
                 'fetchOrders': True,
                 'fetchPosition': False,
                 'fetchPositionMode': False,
@@ -104,7 +104,7 @@ class btcalpha(Exchange):
                     'get': [
                         'currencies/',
                         'pairs/',
-                        'orderbook/{pair_name}/',
+                        'orderbook/{pair_name}',
                         'exchanges/',
                         'charts/{pair}/{type}/chart/',
                     ],

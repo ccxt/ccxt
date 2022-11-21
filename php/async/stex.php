@@ -1122,14 +1122,7 @@ class stex extends Exchange {
             $type = null;
         }
         $side = $this->safe_string_lower($order, 'type');
-        $rawTrades = $this->safe_value($order, 'trades');
-        $trades = null;
-        if ($rawTrades !== null) {
-            $trades = $this->parse_trades($rawTrades, $market, null, null, array(
-                'symbol' => $symbol,
-                'order' => $id,
-            ));
-        }
+        $trades = $this->safe_value($order, 'trades');
         $stopPrice = $this->safe_number($order, 'trigger_price');
         $result = array(
             'info' => $order,

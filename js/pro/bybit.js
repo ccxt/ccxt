@@ -438,7 +438,7 @@ module.exports = class bybit extends bybitRest {
         }
         const marketId = this.safeString2 (ticker, 'symbol', 's');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeStringN (ticker, [ 'l', 'last_price', 'lastPrice' ]);
+        const last = this.safeStringN (ticker, [ 'c', 'last_price', 'lastPrice' ]);
         const open = this.safeStringN (ticker, [ 'prev_price_24h', 'o', 'prevPrice24h' ]);
         let quoteVolume = this.safeStringN (ticker, [ 'v', 'turnover24h' ]);
         if (quoteVolume === undefined) {
@@ -1267,11 +1267,17 @@ module.exports = class bybit extends bybitRest {
         const symbols = Object.keys (marketSymbols);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            const messageHash = 'usertrade:' + symbol + ':' + topic;
+            let messageHash = 'usertrade:' + symbol;
+            if (topic) {
+                messageHash += ':' + topic;
+            }
             client.resolve (trades, messageHash);
         }
         // non-symbol specific
-        const messageHash = 'usertrade:' + topic;
+        let messageHash = 'usertrade';
+        if (topic) {
+            messageHash += ':' + topic;
+        }
         client.resolve (trades, messageHash);
     }
 
@@ -1484,10 +1490,16 @@ module.exports = class bybit extends bybitRest {
         const symbols = Object.keys (marketSymbols);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            const messageHash = 'order:' + symbol + ':' + topic;
+            let messageHash = 'order:' + symbol;
+            if (topic) {
+                messageHash += ':' + topic;
+            }
             client.resolve (orders, messageHash);
         }
-        const messageHash = 'order:' + topic;
+        let messageHash = 'order';
+        if (topic) {
+            messageHash += ':' + topic;
+        }
         // non-symbol specific
         client.resolve (orders, messageHash);
     }

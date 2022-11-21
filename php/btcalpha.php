@@ -43,7 +43,7 @@ class btcalpha extends Exchange {
                 'fetchFundingRateHistory' => false,
                 'fetchFundingRates' => false,
                 'fetchIndexOHLCV' => false,
-                'fetchL2OrderBook' => null, // same as above
+                'fetchL2OrderBook' => true,
                 'fetchLeverage' => false,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
@@ -53,7 +53,7 @@ class btcalpha extends Exchange {
                 'fetchOpenInterestHistory' => false,
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
-                'fetchOrderBook' => null, // their api doesn't work atm for orderbook
+                'fetchOrderBook' => true,
                 'fetchOrders' => true,
                 'fetchPosition' => false,
                 'fetchPositionMode' => false,
@@ -98,7 +98,7 @@ class btcalpha extends Exchange {
                     'get' => array(
                         'currencies/',
                         'pairs/',
-                        'orderbook/{pair_name}/',
+                        'orderbook/{pair_name}',
                         'exchanges/',
                         'charts/{pair}/{type}/chart/',
                     ),

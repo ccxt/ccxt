@@ -227,6 +227,8 @@ module.exports = class binance extends Exchange {
                         'loan/loanable/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/collateral/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/repay/collateral/rate': 600, // Weight(IP): 6000 => cost = 0.1 * 6000 = 600
+                        'loan/vip/ongoing/orders': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/vip/repay/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'fiat/orders': 600.03, // Weight(UID): 90000 => cost = 0.006667 * 90000 = 600.03
                         'fiat/payments': 0.1,
                         'futures/transfer': 1,
@@ -437,6 +439,7 @@ module.exports = class binance extends Exchange {
                         'loan/repay': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'loan/adjust/ltv': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'loan/customize/margin_call': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
+                        'loan/vip/repay': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                     },
                     'put': {
                         'userDataStream': 0.1,
@@ -1759,7 +1762,9 @@ module.exports = class binance extends Exchange {
         const account = this.account ();
         account['used'] = this.safeString (entry, 'locked');
         account['free'] = this.safeString (entry, 'free');
-        account['total'] = this.safeString (entry, 'totalAsset');
+        const interest = this.safeString (entry, 'interest');
+        const debt = this.safeString (entry, 'borrowed');
+        account['debt'] = Precise.stringAdd (debt, interest);
         return account;
     }
 
@@ -1769,7 +1774,8 @@ module.exports = class binance extends Exchange {
         };
         let timestamp = undefined;
         const isolated = marginMode === 'isolated';
-        if (((type === 'spot') || (type === 'margin') || (marginMode === 'cross')) && !isolated) {
+        const cross = (type === 'margin') || (marginMode === 'cross');
+        if (!isolated && ((type === 'spot') || cross)) {
             timestamp = this.safeInteger (response, 'updateTime');
             const balances = this.safeValue2 (response, 'balances', 'userAssets', []);
             for (let i = 0; i < balances.length; i++) {
@@ -1779,6 +1785,11 @@ module.exports = class binance extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeString (balance, 'free');
                 account['used'] = this.safeString (balance, 'locked');
+                if (cross) {
+                    const debt = this.safeString (balance, 'borrowed');
+                    const interest = this.safeString (balance, 'interest');
+                    account['debt'] = Precise.stringAdd (debt, interest);
+                }
                 result[code] = account;
             }
         } else if (isolated) {
@@ -1867,7 +1878,7 @@ module.exports = class binance extends Exchange {
             const options = this.safeValue (this.options, type, {});
             const fetchBalanceOptions = this.safeValue (options, 'fetchBalance', {});
             method = this.safeString (fetchBalanceOptions, 'method', 'dapiPrivateGetAccount');
-        } else if (type === 'margin' || marginMode === 'cross') {
+        } else if ((type === 'margin') || (marginMode === 'cross')) {
             method = 'sapiGetMarginAccount';
         } else if (type === 'savings') {
             method = 'sapiGetLendingUnionAccount';
@@ -2938,13 +2949,11 @@ module.exports = class binance extends Exchange {
         const marketType = this.safeString (params, 'type', defaultType);
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
         const postOnly = this.safeValue (params, 'postOnly', false);
-        const reduceOnly = this.safeValue (params, 'reduceOnly');
         const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
-        if (reduceOnly !== undefined) {
-            if ((marketType !== 'future') && (marketType !== 'delivery')) {
-                throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for future and delivery markets only');
-            }
-        }
+        const request = {
+            'symbol': market['id'],
+            'side': side.toUpperCase (),
+        };
         let method = 'privatePostOrder';
         if (marketType === 'future') {
             method = 'fapiPrivatePostOrder';
@@ -2952,6 +2961,11 @@ module.exports = class binance extends Exchange {
             method = 'dapiPrivatePostOrder';
         } else if (marketType === 'margin' || marginMode !== undefined) {
             method = 'sapiPostMarginOrder';
+            const reduceOnly = this.safeValue (params, 'reduceOnly');
+            if (reduceOnly) {
+                request['sideEffectType'] = 'AUTO_REPAY';
+                params = this.omit (params, 'reduceOnly');
+            }
         }
         if (market['spot'] || marketType === 'margin') {
             // support for testing orders
@@ -2966,6 +2980,7 @@ module.exports = class binance extends Exchange {
         }
         const initialUppercaseType = type.toUpperCase ();
         let uppercaseType = initialUppercaseType;
+        request['type'] = uppercaseType;
         const stopPrice = this.safeNumber (query, 'stopPrice');
         if (stopPrice !== undefined) {
             if (uppercaseType === 'MARKET') {
@@ -2982,11 +2997,6 @@ module.exports = class binance extends Exchange {
                 throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
             }
         }
-        const request = {
-            'symbol': market['id'],
-            'type': uppercaseType,
-            'side': side.toUpperCase (),
-        };
         if (marginMode === 'isolated') {
             request['isIsolated'] = true;
         }
@@ -4194,8 +4204,9 @@ module.exports = class binance extends Exchange {
                     toId = this.marketId (symbol);
                 }
             }
-            const fromIsolated = this.inArray (fromId, this.ids);
-            const toIsolated = this.inArray (toId, this.ids);
+            const accountsById = this.safeValue (this.options, 'accountsById', {});
+            const fromIsolated = !(fromId in accountsById);
+            const toIsolated = !(toId in accountsById);
             if (fromIsolated || toIsolated) { // Isolated margin transfer
                 const fromFuture = fromId === 'UMFUTURE' || fromId === 'CMFUTURE';
                 const toFuture = toId === 'UMFUTURE' || toId === 'CMFUTURE';
@@ -4206,7 +4217,7 @@ module.exports = class binance extends Exchange {
                 const prohibitedWithIsolated = fromFuture || toFuture || mining || funding;
                 if ((fromIsolated || toIsolated) && prohibitedWithIsolated) {
                     throw new BadRequest (this.id + ' transfer () does not allow transfers between ' + fromAccount + ' and ' + toAccount);
-                } else if (fromIsolated && toSpot) {
+                } else if (toSpot && fromIsolated) {
                     method = 'sapiPostMarginIsolatedTransfer';
                     request['transFrom'] = 'ISOLATED_MARGIN';
                     request['transTo'] = 'SPOT';
@@ -4217,11 +4228,11 @@ module.exports = class binance extends Exchange {
                     request['transTo'] = 'ISOLATED_MARGIN';
                     request['symbol'] = toId;
                 } else {
-                    if (this.inArray (fromId, this.ids)) {
+                    if (fromIsolated) {
                         request['fromSymbol'] = fromId;
                         fromId = 'ISOLATEDMARGIN';
                     }
-                    if (this.inArray (toId, this.ids)) {
+                    if (toIsolated) {
                         request['toSymbol'] = toId;
                         toId = 'ISOLATEDMARGIN';
                     }
@@ -6369,25 +6380,18 @@ module.exports = class binance extends Exchange {
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
+        const marginMode = this.safeString (params, 'marginMode'); // cross or isolated
+        this.checkRequiredMarginArgument ('repayMargin', symbol, marginMode);
         await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            symbol = market['symbol'];
-        }
         const currency = this.currency (code);
         const request = {
             'asset': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
-        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
-        if (marginMode === 'isolated') {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument for isolated margin');
-            }
-            request['isIsolated'] = 'TRUE';
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
             request['symbol'] = market['id'];
+            request['isIsolated'] = 'TRUE';
         }
         params = this.omit (params, 'marginMode');
         const response = await this.sapiPostMarginRepay (this.extend (request, params));
@@ -6397,11 +6401,7 @@ module.exports = class binance extends Exchange {
         //         "clientTag":""
         //     }
         //
-        const transaction = this.parseMarginLoan (response, currency);
-        return this.extend (transaction, {
-            'amount': amount,
-            'symbol': symbol,
-        });
+        return this.parseMarginLoan (response, currency);
     }
 
     async borrowMargin (code, amount, symbol = undefined, params = {}) {
@@ -6416,27 +6416,20 @@ module.exports = class binance extends Exchange {
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
+        const marginMode = this.safeString (params, 'marginMode'); // cross or isolated
+        params = this.omit (params, 'marginMode');
+        this.checkRequiredMarginArgument ('borrowMargin', symbol, marginMode);
         await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            symbol = market['symbol'];
-        }
         const currency = this.currency (code);
         const request = {
             'asset': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
-        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
-        if (marginMode === 'isolated') {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument for isolated margin');
-            }
-            request['isIsolated'] = 'TRUE';
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
             request['symbol'] = market['id'];
+            request['isIsolated'] = 'TRUE';
         }
-        params = this.omit (params, 'marginMode');
         const response = await this.sapiPostMarginLoan (this.extend (request, params));
         //
         //     {
@@ -6444,11 +6437,7 @@ module.exports = class binance extends Exchange {
         //         "clientTag":""
         //     }
         //
-        const transaction = this.parseMarginLoan (response, currency);
-        return this.extend (transaction, {
-            'amount': amount,
-            'symbol': symbol,
-        });
+        return this.parseMarginLoan (response, currency);
     }
 
     parseMarginLoan (info, currency = undefined) {
