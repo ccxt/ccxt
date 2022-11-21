@@ -2775,11 +2775,10 @@ module.exports = class Exchange {
          * @returns the exchange specific account name or the isolated margin id for transfers
          */
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const symbols = this.symbols;
         const lowercaseAccount = account.toLowerCase ();
         if (lowercaseAccount in accountsByType) {
             return accountsByType[lowercaseAccount];
-        } else if (this.inArray (account, symbols)) {
+        } else if ((account in this.markets) || (account in this.markets_by_id)) {
             const market = this.market (account);
             return market['id'];
         } else {
