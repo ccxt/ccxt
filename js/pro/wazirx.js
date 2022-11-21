@@ -160,7 +160,7 @@ module.exports = class wazirx extends wazirxRest {
         const subscribeHash = 'tickers';
         const subscribe = {
             'event': 'subscribe',
-            'streams': [ '!ticker@arr' ],
+            'streams': [ '!' + 'ticker@arr' ],
         };
         const request = this.deepExtend (subscribe, params);
         return await this.watch (url, messageHash, request, subscribeHash);
@@ -320,10 +320,10 @@ module.exports = class wazirx extends wazirxRest {
         const subscribe = {
             'event': 'subscribe',
             'streams': [ stream ],
-        }; // TODO check if replaces all streams
+        };
         const request = this.deepExtend (subscribe, params);
         const orderbook = await this.watch (url, messageHash, request, messageHash);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleDelta (bookside, delta) {
@@ -354,7 +354,7 @@ module.exports = class wazirx extends wazirxRest {
         //     }
         //
         const data = this.safeValue (message, 'data', {});
-        const timestamp = this.safeNumber (data, 'E');
+        const timestamp = this.safeInteger (data, 'E');
         const marketId = this.safeString (data, 's');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
@@ -567,16 +567,17 @@ module.exports = class wazirx extends wazirxRest {
             return eventHandler.call (this, client, message);
         }
         const stream = this.safeString (message, 'stream', '');
+        const tickerKey = '!' + 'ticker@arr';
         const streamHandlers = {
-            '!ticker@arr': this.handleTicker,
             '@depth': this.handleOrderBook,
             'outboundAccountPosition': this.handleBalance,
             'orderUpdate': this.handleOrder,
             'ownTrade': this.handleMyTrades,
         };
+        streamHandlers[tickerKey] = this.handleTicker;
         const streams = Object.keys (streamHandlers);
         for (let i = 0; i < streams.length; i++) {
-            if (stream.includes (streams[i])) {
+            if (this.inArray (streams[i], stream)) {
                 const handler = streamHandlers[streams[i]];
                 return handler.call (this, client, message);
             }
