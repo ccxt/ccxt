@@ -191,6 +191,7 @@ export default class binance extends Exchange {
                         'asset/transfer': 0.1,
                         'asset/assetDetail': 0.1,
                         'asset/tradeFee': 0.1,
+                        'asset/ledger-transfer/cloud-mining/queryByPage': 4,
                         'margin/loan': 1,
                         'margin/repay': 1,
                         'margin/account': 1,
@@ -262,6 +263,7 @@ export default class binance extends Exchange {
                         'sub-account/sub/transfer/history': 0.1,
                         'sub-account/transfer/subUserHistory': 0.1,
                         'sub-account/universalTransfer': 0.1,
+                        'sub-account/apiRestrictions/ipRestriction/thirdPartyList': 1,
                         'managed-subaccount/asset': 0.1,
                         'managed-subaccount/accountSnapshot': 240,
                         // lending endpoints
@@ -382,6 +384,8 @@ export default class binance extends Exchange {
                         'sub-account/transfer/subToSub': 0.1,
                         'sub-account/transfer/subToMaster': 0.1,
                         'sub-account/universalTransfer': 0.1,
+                        // v2 not supported yet
+                        // 'sub-account/subAccountApi/ipRestriction': 20,
                         'managed-subaccount/deposit': 0.1,
                         'managed-subaccount/withdraw': 0.1,
                         'userDataStream': 0.1,
@@ -673,6 +677,7 @@ export default class binance extends Exchange {
                         'trades': 5,
                         'historicalTrades': 20,
                         'exerciseHistory': 3,
+                        'openInterest': 3,
                     },
                 },
                 'eapiPrivate': {
@@ -1761,7 +1766,9 @@ export default class binance extends Exchange {
         const account = this.account ();
         account['used'] = this.safeString (entry, 'locked');
         account['free'] = this.safeString (entry, 'free');
-        account['total'] = this.safeString (entry, 'totalAsset');
+        const interest = this.safeString (entry, 'interest');
+        const debt = this.safeString (entry, 'borrowed');
+        account['debt'] = Precise.stringAdd (debt, interest);
         return account;
     }
 
@@ -1771,7 +1778,8 @@ export default class binance extends Exchange {
         };
         let timestamp = undefined;
         const isolated = marginMode === 'isolated';
-        if (((type === 'spot') || (type === 'margin') || (marginMode === 'cross')) && !isolated) {
+        const cross = (type === 'margin') || (marginMode === 'cross');
+        if (!isolated && ((type === 'spot') || cross)) {
             timestamp = this.safeInteger (response, 'updateTime');
             const balances = this.safeValue2 (response, 'balances', 'userAssets', []);
             for (let i = 0; i < balances.length; i++) {
@@ -1781,6 +1789,11 @@ export default class binance extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeString (balance, 'free');
                 account['used'] = this.safeString (balance, 'locked');
+                if (cross) {
+                    const debt = this.safeString (balance, 'borrowed');
+                    const interest = this.safeString (balance, 'interest');
+                    account['debt'] = Precise.stringAdd (debt, interest);
+                }
                 result[code] = account;
             }
         } else if (isolated) {
@@ -1869,7 +1882,7 @@ export default class binance extends Exchange {
             const options = this.safeValue (this.options, type, {});
             const fetchBalanceOptions = this.safeValue (options, 'fetchBalance', {});
             method = this.safeString (fetchBalanceOptions, 'method', 'dapiPrivateGetAccount');
-        } else if (type === 'margin' || marginMode === 'cross') {
+        } else if ((type === 'margin') || (marginMode === 'cross')) {
             method = 'sapiGetMarginAccount';
         } else if (type === 'savings') {
             method = 'sapiGetLendingUnionAccount';
@@ -4195,8 +4208,9 @@ export default class binance extends Exchange {
                     toId = this.marketId (symbol);
                 }
             }
-            const fromIsolated = this.inArray (fromId, this.ids);
-            const toIsolated = this.inArray (toId, this.ids);
+            const accountsById = this.safeValue (this.options, 'accountsById', {});
+            const fromIsolated = !(fromId in accountsById);
+            const toIsolated = !(toId in accountsById);
             if (fromIsolated || toIsolated) { // Isolated margin transfer
                 const fromFuture = fromId === 'UMFUTURE' || fromId === 'CMFUTURE';
                 const toFuture = toId === 'UMFUTURE' || toId === 'CMFUTURE';
@@ -4207,7 +4221,7 @@ export default class binance extends Exchange {
                 const prohibitedWithIsolated = fromFuture || toFuture || mining || funding;
                 if ((fromIsolated || toIsolated) && prohibitedWithIsolated) {
                     throw new BadRequest (this.id + ' transfer () does not allow transfers between ' + fromAccount + ' and ' + toAccount);
-                } else if (fromIsolated && toSpot) {
+                } else if (toSpot && fromIsolated) {
                     method = 'sapiPostMarginIsolatedTransfer';
                     request['transFrom'] = 'ISOLATED_MARGIN';
                     request['transTo'] = 'SPOT';
@@ -4218,11 +4232,11 @@ export default class binance extends Exchange {
                     request['transTo'] = 'ISOLATED_MARGIN';
                     request['symbol'] = toId;
                 } else {
-                    if (this.inArray (fromId, this.ids)) {
+                    if (fromIsolated) {
                         request['fromSymbol'] = fromId;
                         fromId = 'ISOLATEDMARGIN';
                     }
-                    if (this.inArray (toId, this.ids)) {
+                    if (toIsolated) {
                         request['toSymbol'] = toId;
                         toId = 'ISOLATEDMARGIN';
                     }

@@ -726,6 +726,7 @@ export default class gemini extends Exchange {
          * @method
          * @name gemini#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.gemini.com/rest-api/#trade-history
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
@@ -737,6 +738,12 @@ export default class gemini extends Exchange {
         const request = {
             'symbol': market['id'],
         };
+        if (limit !== undefined) {
+            request['limit_trades'] = limit;
+        }
+        if (since !== undefined) {
+            request['timestamp'] = since;
+        }
         const response = await (this as any).publicGetV1TradesSymbol (this.extend (request, params));
         //
         //     [

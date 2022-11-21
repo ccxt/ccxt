@@ -2063,11 +2063,14 @@ export default class gate extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    fetchBalanceHelper (entry) {
+    parseBalanceHelper (entry) {
         const account = this.account ();
         account['used'] = this.safeString2 (entry, 'freeze', 'locked');
         account['free'] = this.safeString (entry, 'available');
         account['total'] = this.safeString (entry, 'total');
+        if ('borrowed' in entry) {
+            account['debt'] = this.safeString (entry, 'borrowed');
+        }
         return account;
     }
 
@@ -2216,8 +2219,7 @@ export default class gate extends Exchange {
         const result = {
             'info': response,
         };
-        const crossMargin = marginMode === 'cross_margin';
-        const margin = marginMode === 'margin';
+        const isolated = marginMode === 'margin';
         let data = response;
         if ('balances' in data) { // True for cross_margin
             const flatBalances = [];
@@ -2235,7 +2237,7 @@ export default class gate extends Exchange {
         }
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
-            if (margin && !crossMargin) {
+            if (isolated) {
                 const marketId = this.safeString (entry, 'currency_pair');
                 const symbol = this.safeSymbol (marketId, undefined, '_');
                 const base = this.safeValue (entry, 'base', {});
@@ -2243,15 +2245,15 @@ export default class gate extends Exchange {
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'currency'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'currency'));
                 const subResult = {};
-                subResult[baseCode] = this.fetchBalanceHelper (base);
-                subResult[quoteCode] = this.fetchBalanceHelper (quote);
+                subResult[baseCode] = this.parseBalanceHelper (base);
+                subResult[quoteCode] = this.parseBalanceHelper (quote);
                 result[symbol] = this.safeBalance (subResult);
             } else {
                 const code = this.safeCurrencyCode (this.safeString (entry, 'currency'));
-                result[code] = this.fetchBalanceHelper (entry);
+                result[code] = this.parseBalanceHelper (entry);
             }
         }
-        return (margin && !crossMargin) ? result : this.safeBalance (result);
+        return isolated ? result : this.safeBalance (result);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {

@@ -36,11 +36,11 @@ use \ccxt\pro\ClientTrait;
 
 include 'Throttle.php';
 
-$version = '2.1.96';
+$version = '2.1.102';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.1.96';
+    const VERSION = '2.1.102';
 
     public $streaming = array(
         'keepAlive' => 30000,
@@ -442,11 +442,13 @@ class Exchange extends \ccxt\Exchange {
         $balance['free'] = array();
         $balance['used'] = array();
         $balance['total'] = array();
+        $debtBalance = array();
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
             $total = $this->safe_string($balance[$code], 'total');
             $free = $this->safe_string($balance[$code], 'free');
             $used = $this->safe_string($balance[$code], 'used');
+            $debt = $this->safe_string($balance[$code], 'debt');
             if (($total === null) && ($free !== null) && ($used !== null)) {
                 $total = Precise::string_add($free, $used);
             }
@@ -462,6 +464,15 @@ class Exchange extends \ccxt\Exchange {
             $balance['free'][$code] = $balance[$code]['free'];
             $balance['used'][$code] = $balance[$code]['used'];
             $balance['total'][$code] = $balance[$code]['total'];
+            if ($debt !== null) {
+                $balance[$code]['debt'] = $this->parse_number($debt);
+                $debtBalance[$code] = $balance[$code]['debt'];
+            }
+        }
+        $debtBalanceArray = is_array($debtBalance) ? array_keys($debtBalance) : array();
+        $length = count($debtBalanceArray);
+        if ($length) {
+            $balance['debt'] = $debtBalance;
         }
         return $balance;
     }
@@ -2353,11 +2364,10 @@ class Exchange extends \ccxt\Exchange {
          * @return the exchange specific $account name or the isolated margin id for transfers
          */
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
-        $symbols = $this->symbols;
         $lowercaseAccount = strtolower($account);
         if (is_array($accountsByType) && array_key_exists($lowercaseAccount, $accountsByType)) {
             return $accountsByType[$lowercaseAccount];
-        } elseif ($this->in_array($account, $symbols)) {
+        } elseif ((is_array($this->markets) && array_key_exists($account, $this->markets)) || (is_array($this->markets_by_id) && array_key_exists($account, $this->markets_by_id))) {
             $market = $this->market ($account);
             return $market['id'];
         } else {

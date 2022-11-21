@@ -191,6 +191,7 @@ class binance extends Exchange {
                         'asset/transfer' => 0.1,
                         'asset/assetDetail' => 0.1,
                         'asset/tradeFee' => 0.1,
+                        'asset/ledger-transfer/cloud-mining/queryByPage' => 4,
                         'margin/loan' => 1,
                         'margin/repay' => 1,
                         'margin/account' => 1,
@@ -262,6 +263,7 @@ class binance extends Exchange {
                         'sub-account/sub/transfer/history' => 0.1,
                         'sub-account/transfer/subUserHistory' => 0.1,
                         'sub-account/universalTransfer' => 0.1,
+                        'sub-account/apiRestrictions/ipRestriction/thirdPartyList' => 1,
                         'managed-subaccount/asset' => 0.1,
                         'managed-subaccount/accountSnapshot' => 240,
                         // lending endpoints
@@ -382,6 +384,8 @@ class binance extends Exchange {
                         'sub-account/transfer/subToSub' => 0.1,
                         'sub-account/transfer/subToMaster' => 0.1,
                         'sub-account/universalTransfer' => 0.1,
+                        // v2 not supported yet
+                        // 'sub-account/subAccountApi/ipRestriction' => 20,
                         'managed-subaccount/deposit' => 0.1,
                         'managed-subaccount/withdraw' => 0.1,
                         'userDataStream' => 0.1,
@@ -673,6 +677,7 @@ class binance extends Exchange {
                         'trades' => 5,
                         'historicalTrades' => 20,
                         'exerciseHistory' => 3,
+                        'openInterest' => 3,
                     ),
                 ),
                 'eapiPrivate' => array(
@@ -1755,7 +1760,9 @@ class binance extends Exchange {
         $account = $this->account();
         $account['used'] = $this->safe_string($entry, 'locked');
         $account['free'] = $this->safe_string($entry, 'free');
-        $account['total'] = $this->safe_string($entry, 'totalAsset');
+        $interest = $this->safe_string($entry, 'interest');
+        $debt = $this->safe_string($entry, 'borrowed');
+        $account['debt'] = Precise::string_add($debt, $interest);
         return $account;
     }
 
@@ -1765,7 +1772,8 @@ class binance extends Exchange {
         );
         $timestamp = null;
         $isolated = $marginMode === 'isolated';
-        if ((($type === 'spot') || ($type === 'margin') || ($marginMode === 'cross')) && !$isolated) {
+        $cross = ($type === 'margin') || ($marginMode === 'cross');
+        if (!$isolated && (($type === 'spot') || $cross)) {
             $timestamp = $this->safe_integer($response, 'updateTime');
             $balances = $this->safe_value_2($response, 'balances', 'userAssets', array());
             for ($i = 0; $i < count($balances); $i++) {
@@ -1775,6 +1783,11 @@ class binance extends Exchange {
                 $account = $this->account();
                 $account['free'] = $this->safe_string($balance, 'free');
                 $account['used'] = $this->safe_string($balance, 'locked');
+                if ($cross) {
+                    $debt = $this->safe_string($balance, 'borrowed');
+                    $interest = $this->safe_string($balance, 'interest');
+                    $account['debt'] = Precise::string_add($debt, $interest);
+                }
                 $result[$code] = $account;
             }
         } elseif ($isolated) {
@@ -1861,7 +1874,7 @@ class binance extends Exchange {
             $options = $this->safe_value($this->options, $type, array());
             $fetchBalanceOptions = $this->safe_value($options, 'fetchBalance', array());
             $method = $this->safe_string($fetchBalanceOptions, 'method', 'dapiPrivateGetAccount');
-        } elseif ($type === 'margin' || $marginMode === 'cross') {
+        } elseif (($type === 'margin') || ($marginMode === 'cross')) {
             $method = 'sapiGetMarginAccount';
         } elseif ($type === 'savings') {
             $method = 'sapiGetLendingUnionAccount';
@@ -4147,8 +4160,9 @@ class binance extends Exchange {
                     $toId = $this->market_id($symbol);
                 }
             }
-            $fromIsolated = $this->in_array($fromId, $this->ids);
-            $toIsolated = $this->in_array($toId, $this->ids);
+            $accountsById = $this->safe_value($this->options, 'accountsById', array());
+            $fromIsolated = !(is_array($accountsById) && array_key_exists($fromId, $accountsById));
+            $toIsolated = !(is_array($accountsById) && array_key_exists($toId, $accountsById));
             if ($fromIsolated || $toIsolated) { // Isolated margin $transfer
                 $fromFuture = $fromId === 'UMFUTURE' || $fromId === 'CMFUTURE';
                 $toFuture = $toId === 'UMFUTURE' || $toId === 'CMFUTURE';
@@ -4159,7 +4173,7 @@ class binance extends Exchange {
                 $prohibitedWithIsolated = $fromFuture || $toFuture || $mining || $funding;
                 if (($fromIsolated || $toIsolated) && $prohibitedWithIsolated) {
                     throw new BadRequest($this->id . ' $transfer () does not allow transfers between ' . $fromAccount . ' and ' . $toAccount);
-                } elseif ($fromIsolated && $toSpot) {
+                } elseif ($toSpot && $fromIsolated) {
                     $method = 'sapiPostMarginIsolatedTransfer';
                     $request['transFrom'] = 'ISOLATED_MARGIN';
                     $request['transTo'] = 'SPOT';
@@ -4170,11 +4184,11 @@ class binance extends Exchange {
                     $request['transTo'] = 'ISOLATED_MARGIN';
                     $request['symbol'] = $toId;
                 } else {
-                    if ($this->in_array($fromId, $this->ids)) {
+                    if ($fromIsolated) {
                         $request['fromSymbol'] = $fromId;
                         $fromId = 'ISOLATEDMARGIN';
                     }
-                    if ($this->in_array($toId, $this->ids)) {
+                    if ($toIsolated) {
                         $request['toSymbol'] = $toId;
                         $toId = 'ISOLATEDMARGIN';
                     }

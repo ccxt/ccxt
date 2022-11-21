@@ -2441,11 +2441,14 @@ export default class kucoin extends Exchange {
         return this.parseTransactions (responseData, currency, since, limit, { 'type': 'withdrawal' });
     }
 
-    fetchBalanceHelper (entry) {
+    parseBalanceHelper (entry) {
         const account = this.account ();
         account['used'] = this.safeString (entry, 'holdBalance');
         account['free'] = this.safeString (entry, 'availableBalance');
         account['total'] = this.safeString (entry, 'totalBalance');
+        const debt = this.safeString (entry, 'liability');
+        const interest = this.safeString (entry, 'interest');
+        account['debt'] = Precise.stringAdd (debt, interest);
         return account;
     }
 
@@ -2476,11 +2479,14 @@ export default class kucoin extends Exchange {
         let method = 'privateGetAccounts';
         const request = {};
         const isolated = (marginMode === 'isolated') || (type === 'isolated');
+        const cross = (marginMode === 'cross') || (type === 'cross');
         if (isolated) {
             method = 'privateGetIsolatedAccounts';
             if (currency !== undefined) {
                 request['balanceCurrency'] = currency['id'];
             }
+        } else if (cross) {
+            method = 'privateGetMarginAccount';
         } else {
             if (currency !== undefined) {
                 request['currency'] = currency['id'];
@@ -2558,9 +2564,17 @@ export default class kucoin extends Exchange {
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'currency'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'currency'));
                 const subResult = {};
-                subResult[baseCode] = this.fetchBalanceHelper (base);
-                subResult[quoteCode] = this.fetchBalanceHelper (quote);
+                subResult[baseCode] = this.parseBalanceHelper (base);
+                subResult[quoteCode] = this.parseBalanceHelper (quote);
                 result[symbol] = this.safeBalance (subResult);
+            }
+        } else if (cross) {
+            const accounts = this.safeValue (data, 'accounts', []);
+            for (let i = 0; i < accounts.length; i++) {
+                const balance = accounts[i];
+                const currencyId = this.safeString (balance, 'currency');
+                const code = this.safeCurrencyCode (currencyId);
+                result[code] = this.parseBalanceHelper (balance);
             }
         } else {
             for (let i = 0; i < data.length; i++) {

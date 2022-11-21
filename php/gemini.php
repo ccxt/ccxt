@@ -716,6 +716,7 @@ class gemini extends Exchange {
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         /**
          * get the list of most recent trades for a particular $symbol
+         * @see https://docs.gemini.com/rest-api/#trade-history
          * @param {string} $symbol unified $symbol of the $market to fetch trades for
          * @param {int|null} $since timestamp in ms of the earliest trade to fetch
          * @param {int|null} $limit the maximum amount of trades to fetch
@@ -727,6 +728,12 @@ class gemini extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
+        if ($limit !== null) {
+            $request['limit_trades'] = $limit;
+        }
+        if ($since !== null) {
+            $request['timestamp'] = $since;
+        }
         $response = $this->publicGetV1TradesSymbol (array_merge($request, $params));
         //
         //     array(

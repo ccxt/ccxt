@@ -2294,11 +2294,14 @@ class kucoin(Exchange):
         responseData = response['data']['items']
         return self.parse_transactions(responseData, currency, since, limit, {'type': 'withdrawal'})
 
-    def fetch_balance_helper(self, entry):
+    def parse_balance_helper(self, entry):
         account = self.account()
         account['used'] = self.safe_string(entry, 'holdBalance')
         account['free'] = self.safe_string(entry, 'availableBalance')
         account['total'] = self.safe_string(entry, 'totalBalance')
+        debt = self.safe_string(entry, 'liability')
+        interest = self.safe_string(entry, 'interest')
+        account['debt'] = Precise.string_add(debt, interest)
         return account
 
     async def fetch_balance(self, params={}):
@@ -2325,10 +2328,13 @@ class kucoin(Exchange):
         method = 'privateGetAccounts'
         request = {}
         isolated = (marginMode == 'isolated') or (type == 'isolated')
+        cross = (marginMode == 'cross') or (type == 'cross')
         if isolated:
             method = 'privateGetIsolatedAccounts'
             if currency is not None:
                 request['balanceCurrency'] = currency['id']
+        elif cross:
+            method = 'privateGetMarginAccount'
         else:
             if currency is not None:
                 request['currency'] = currency['id']
@@ -2404,9 +2410,16 @@ class kucoin(Exchange):
                 baseCode = self.safe_currency_code(self.safe_string(base, 'currency'))
                 quoteCode = self.safe_currency_code(self.safe_string(quote, 'currency'))
                 subResult = {}
-                subResult[baseCode] = self.fetch_balance_helper(base)
-                subResult[quoteCode] = self.fetch_balance_helper(quote)
+                subResult[baseCode] = self.parse_balance_helper(base)
+                subResult[quoteCode] = self.parse_balance_helper(quote)
                 result[symbol] = self.safe_balance(subResult)
+        elif cross:
+            accounts = self.safe_value(data, 'accounts', [])
+            for i in range(0, len(accounts)):
+                balance = accounts[i]
+                currencyId = self.safe_string(balance, 'currency')
+                code = self.safe_currency_code(currencyId)
+                result[code] = self.parse_balance_helper(balance)
         else:
             for i in range(0, len(data)):
                 balance = data[i]
