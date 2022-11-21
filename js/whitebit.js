@@ -13,8 +13,8 @@ module.exports = class whitebit extends Exchange {
     describe () {
         return this.deepExtend (super.describe (), {
             'id': 'whitebit',
-            'name': 'WhiteBit',
-            'version': 'v2',
+            'name': 'WhiteBIT',
+            'version': 'v4',
             'countries': [ 'EE' ],
             'rateLimit': 500,
             'has': {
@@ -92,14 +92,11 @@ module.exports = class whitebit extends Exchange {
                 '1M': '1M',
             },
             'urls': {
-                'logo': 'https://user-images.githubusercontent.com/1294454/66732963-8eb7dd00-ee66-11e9-849b-10d9282bb9e0.jpg',
+                'logo': 'https://user-images.githubusercontent.com/41241944/202240287-2c85091f-66e9-4bce-9a94-6a620e6aad0f.jpg',
                 'api': {
                     'v1': {
                         'public': 'https://whitebit.com/api/v1/public',
                         'private': 'https://whitebit.com/api/v1',
-                    },
-                    'v2': {
-                        'public': 'https://whitebit.com/api/v2/public',
                     },
                     'v4': {
                         'public': 'https://whitebit.com/api/v4/public',
@@ -108,60 +105,26 @@ module.exports = class whitebit extends Exchange {
                 },
                 'www': 'https://www.whitebit.com',
                 'doc': 'https://github.com/whitebit-exchange/api-docs',
-                'fees': 'https://whitebit.com/fee-schedule',
+                'fees': 'https://whitebit.com/fees',
                 'referral': 'https://whitebit.com/referral/d9bdf40e-28f2-4b52-b2f9-cd1415d82963',
             },
             'api': {
-                'web': {
-                    'get': [
-                        'v1/healthcheck',
-                    ],
-                },
                 'v1': {
                     'public': {
                         'get': [
-                            'markets',
-                            'tickers',
-                            'ticker',
-                            'symbols',
-                            'depth/result',
-                            'history',
+                            'ticker', // single market activity
                             'kline',
-                        ],
-                    },
-                    'private': {
-                        'post': [
-                            'account/balance',
-                            'order/new',
-                            'order/cancel',
-                            'orders',
-                            'account/order_history',
-                            'account/executed_history',
-                            'account/executed_history/all',
-                            'account/order',
-                        ],
-                    },
-                },
-                'v2': {
-                    'public': {
-                        'get': [
-                            'markets',
-                            'ticker',
-                            'assets',
-                            'fee',
-                            'depth/{market}',
-                            'trades/{market}',
                         ],
                     },
                 },
                 'v4': {
                     'public': {
                         'get': [
-                            'assets',
-                            'collateral/markets',
+                            'ticker', // available markets and activity
+                            'assets', // currencies configs
+                            'collateral/markets', // array of market symbols
                             'fee',
                             'orderbook/{market}',
-                            'ticker',
                             'trades/{market}',
                             'time',
                             'ping',
@@ -209,8 +172,8 @@ module.exports = class whitebit extends Exchange {
                 'trading': {
                     'tierBased': false,
                     'percentage': true,
-                    'taker': this.parseNumber ('0.001'),
-                    'maker': this.parseNumber ('0.001'),
+                    'taker': this.parseNumber ('0.1'),
+                    'maker': this.parseNumber ('0.1'),
                 },
             },
             'options': {
@@ -1030,11 +993,7 @@ module.exports = class whitebit extends Exchange {
          * @returns {object} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
          */
         const response = await this.v4PublicGetPing (params);
-        //
-        //      [
-        //          "pong"
-        //      ]
-        //
+        // [ "pong" ]
         const status = this.safeString (response, 0);
         return {
             'status': (status === 'pong') ? 'ok' : status,
@@ -1054,11 +1013,7 @@ module.exports = class whitebit extends Exchange {
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
         const response = await this.v4PublicGetTime (params);
-        //
-        //     {
-        //         "time":1635467280514
-        //     }
-        //
+        // { "time":1635467280514 }
         return this.safeInteger (response, 'time');
     }
 
