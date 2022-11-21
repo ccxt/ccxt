@@ -68,7 +68,7 @@ module.exports = class liquid extends Exchange {
                         'products/{id}/price_levels',
                         'executions',
                         'ir_ladders/{currency}',
-                        'fees', // add fetchFees, fetchTradingFees, fetchTransactionFees
+                        'fees', // add fetchFees, fetchTradingFees, fetchDepositWithdrawFees
                     ],
                 },
                 'private': {

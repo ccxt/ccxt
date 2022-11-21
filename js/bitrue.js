@@ -60,6 +60,7 @@ module.exports = class bitrue extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTransactionFees': false,
+                'fetchDepositWithdrawFees': false,
                 'fetchTransactions': false,
                 'fetchTransfers': false,
                 'fetchWithdrawals': true,

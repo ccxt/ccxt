@@ -90,6 +90,8 @@ module.exports = class Exchange {
                 'fetchDeposits': undefined,
                 'fetchTransactionFee': undefined,
                 'fetchTransactionFees': undefined,
+                'fetchDepositWithdrawFee': undefined,
+                'fetchDepositWithdrawFees': undefined,
                 'fetchFundingHistory': undefined,
                 'fetchFundingRate': undefined,
                 'fetchFundingRateHistory': undefined,

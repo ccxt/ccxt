@@ -76,6 +76,8 @@ module.exports = class bitpanda extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactionFee': false,
                 'fetchTransactionFees': false,
+                'fetchDepositWithdrawFee': false,
+                'fetchDepositWithdrawFees': false,
                 'fetchTransactions': false,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
