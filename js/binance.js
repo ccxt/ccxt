@@ -1762,8 +1762,9 @@ module.exports = class binance extends Exchange {
         const account = this.account ();
         account['used'] = this.safeString (entry, 'locked');
         account['free'] = this.safeString (entry, 'free');
-        account['total'] = this.safeString (entry, 'netAsset');
-        account['debt'] = this.safeString (entry, 'borrowed');
+        const interest = this.safeString (entry, 'interest');
+        const debt = this.safeString (entry, 'borrowed');
+        account['debt'] = Precise.stringAdd (debt, interest);
         return account;
     }
 
@@ -1785,8 +1786,9 @@ module.exports = class binance extends Exchange {
                 account['free'] = this.safeString (balance, 'free');
                 account['used'] = this.safeString (balance, 'locked');
                 if (cross) {
-                    account['total'] = this.safeString (balance, 'netAsset');
-                    account['debt'] = this.safeString (balance, 'borrowed');
+                    const debt = this.safeString (balance, 'borrowed');
+                    const interest = this.safeString (balance, 'interest');
+                    account['debt'] = Precise.stringAdd (debt, interest);
                 }
                 result[code] = account;
             }
@@ -4202,14 +4204,9 @@ module.exports = class binance extends Exchange {
                     toId = this.marketId (symbol);
                 }
             }
-            const fromIsolated = (fromId in this.markets_by_id) || (fromId in this.markets);
-            const toIsolated = (toId in this.markets_by_id) || (fromId in this.markets);
-            if (fromIsolated) {
-                fromId = this.marketId (fromId);
-            }
-            if (toIsolated) {
-                toId = this.marketId (toId);
-            }
+            const accountsById = this.safeValue (this.options, 'accountsById', {});
+            const fromIsolated = !(fromId in accountsById);
+            const toIsolated = !(toId in accountsById);
             if (fromIsolated || toIsolated) { // Isolated margin transfer
                 const fromFuture = fromId === 'UMFUTURE' || fromId === 'CMFUTURE';
                 const toFuture = toId === 'UMFUTURE' || toId === 'CMFUTURE';
