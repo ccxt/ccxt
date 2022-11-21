@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.1.97';
+$version = '2.1.98';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.1.97';
+    const VERSION = '2.1.98';
 
     public $browser;
     public $marketsLoading = null;
@@ -2294,11 +2294,10 @@ class Exchange extends \ccxt\Exchange {
          * @return the exchange specific $account name or the isolated margin id for transfers
          */
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
-        $symbols = $this->symbols;
         $lowercaseAccount = strtolower($account);
         if (is_array($accountsByType) && array_key_exists($lowercaseAccount, $accountsByType)) {
             return $accountsByType[$lowercaseAccount];
-        } elseif ($this->in_array($account, $symbols)) {
+        } elseif ((is_array($this->markets) && array_key_exists($account, $this->markets)) || (is_array($this->markets_by_id) && array_key_exists($account, $this->markets_by_id))) {
             $market = $this->market ($account);
             return $market['id'];
         } else {

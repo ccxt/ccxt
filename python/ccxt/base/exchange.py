@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.1.97'
+__version__ = '2.1.98'
 
 # -----------------------------------------------------------------------------
 
@@ -3378,11 +3378,10 @@ class Exchange(object):
         :returns: the exchange specific account name or the isolated margin id for transfers
         """
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
-        symbols = self.symbols
         lowercaseAccount = account.lower()
         if lowercaseAccount in accountsByType:
             return accountsByType[lowercaseAccount]
-        elif self.in_array(account, symbols):
+        elif (account in self.markets) or (account in self.markets_by_id):
             market = self.market(account)
             return market['id']
         else:

@@ -1751,8 +1751,9 @@ class binance(Exchange):
         account = self.account()
         account['used'] = self.safe_string(entry, 'locked')
         account['free'] = self.safe_string(entry, 'free')
-        account['total'] = self.safe_string(entry, 'netAsset')
-        account['debt'] = self.safe_string(entry, 'borrowed')
+        interest = self.safe_string(entry, 'interest')
+        debt = self.safe_string(entry, 'borrowed')
+        account['debt'] = Precise.string_add(debt, interest)
         return account
 
     def parse_balance(self, response, type=None, marginMode=None):
@@ -1773,8 +1774,9 @@ class binance(Exchange):
                 account['free'] = self.safe_string(balance, 'free')
                 account['used'] = self.safe_string(balance, 'locked')
                 if cross:
-                    account['total'] = self.safe_string(balance, 'netAsset')
-                    account['debt'] = self.safe_string(balance, 'borrowed')
+                    debt = self.safe_string(balance, 'borrowed')
+                    interest = self.safe_string(balance, 'interest')
+                    account['debt'] = Precise.string_add(debt, interest)
                 result[code] = account
         elif isolated:
             assets = self.safe_value(response, 'assets')
@@ -3972,12 +3974,9 @@ class binance(Exchange):
                     raise ArgumentsRequired(self.id + ' transfer() requires params["symbol"] when toAccount is ' + toAccount)
                 else:
                     toId = self.market_id(symbol)
-            fromIsolated = (fromId in self.markets_by_id) or (fromId in self.markets)
-            toIsolated = (toId in self.markets_by_id) or (fromId in self.markets)
-            if fromIsolated:
-                fromId = self.market_id(fromId)
-            if toIsolated:
-                toId = self.market_id(toId)
+            accountsById = self.safe_value(self.options, 'accountsById', {})
+            fromIsolated = not (fromId in accountsById)
+            toIsolated = not (toId in accountsById)
             if fromIsolated or toIsolated:  # Isolated margin transfer
                 fromFuture = fromId == 'UMFUTURE' or fromId == 'CMFUTURE'
                 toFuture = toId == 'UMFUTURE' or toId == 'CMFUTURE'

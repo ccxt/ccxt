@@ -1771,8 +1771,9 @@ class binance extends Exchange {
         $account = $this->account();
         $account['used'] = $this->safe_string($entry, 'locked');
         $account['free'] = $this->safe_string($entry, 'free');
-        $account['total'] = $this->safe_string($entry, 'netAsset');
-        $account['debt'] = $this->safe_string($entry, 'borrowed');
+        $interest = $this->safe_string($entry, 'interest');
+        $debt = $this->safe_string($entry, 'borrowed');
+        $account['debt'] = Precise::string_add($debt, $interest);
         return $account;
     }
 
@@ -1794,8 +1795,9 @@ class binance extends Exchange {
                 $account['free'] = $this->safe_string($balance, 'free');
                 $account['used'] = $this->safe_string($balance, 'locked');
                 if ($cross) {
-                    $account['total'] = $this->safe_string($balance, 'netAsset');
-                    $account['debt'] = $this->safe_string($balance, 'borrowed');
+                    $debt = $this->safe_string($balance, 'borrowed');
+                    $interest = $this->safe_string($balance, 'interest');
+                    $account['debt'] = Precise::string_add($debt, $interest);
                 }
                 $result[$code] = $account;
             }
@@ -4210,14 +4212,9 @@ class binance extends Exchange {
                         $toId = $this->market_id($symbol);
                     }
                 }
-                $fromIsolated = (is_array($this->markets_by_id) && array_key_exists($fromId, $this->markets_by_id)) || (is_array($this->markets) && array_key_exists($fromId, $this->markets));
-                $toIsolated = (is_array($this->markets_by_id) && array_key_exists($toId, $this->markets_by_id)) || (is_array($this->markets) && array_key_exists($fromId, $this->markets));
-                if ($fromIsolated) {
-                    $fromId = $this->market_id($fromId);
-                }
-                if ($toIsolated) {
-                    $toId = $this->market_id($toId);
-                }
+                $accountsById = $this->safe_value($this->options, 'accountsById', array());
+                $fromIsolated = !(is_array($accountsById) && array_key_exists($fromId, $accountsById));
+                $toIsolated = !(is_array($accountsById) && array_key_exists($toId, $accountsById));
                 if ($fromIsolated || $toIsolated) { // Isolated margin $transfer
                     $fromFuture = $fromId === 'UMFUTURE' || $fromId === 'CMFUTURE';
                     $toFuture = $toId === 'UMFUTURE' || $toId === 'CMFUTURE';
