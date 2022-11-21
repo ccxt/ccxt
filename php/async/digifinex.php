@@ -778,14 +778,30 @@ class digifinex extends Exchange {
     public function fetch_tickers($symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
+             * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+             * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#$ticker-price
+             * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#$tickers
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the digifinex api endpoint
              * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
-            $response = Async\await($this->publicSpotGetTicker ($params));
+            $first = $this->safe_string($symbols, 0);
+            $market = null;
+            if ($first !== null) {
+                $market = $this->market($first);
+            }
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
+            $method = 'publicSpotGetTicker';
+            $request = array();
+            if ($type === 'swap') {
+                $method = 'publicSwapGetPublicTickers';
+            }
+            $response = Async\await($this->$method (array_merge($request, $params)));
+            //
+            // spot
             //
             //    {
             //        "ticker" => [array(
@@ -803,8 +819,37 @@ class digifinex extends Exchange {
             //        "code" => 0
             //    }
             //
+            // swap
+            //
+            //     {
+            //         "code" => 0,
+            //         "data" => array(
+            //             array(
+            //                 "instrument_id" => "SUSHIUSDTPERP",
+            //                 "index_price" => "1.1297",
+            //                 "mark_price" => "1.1289",
+            //                 "max_buy_price" => "1.1856",
+            //                 "min_sell_price" => "1.0726",
+            //                 "best_bid" => "1.1278",
+            //                 "best_bid_size" => "500",
+            //                 "best_ask" => "1.1302",
+            //                 "best_ask_size" => "471",
+            //                 "high_24h" => "1.2064",
+            //                 "open_24h" => "1.1938",
+            //                 "low_24h" => "1.1239",
+            //                 "last" => "1.1302",
+            //                 "last_qty" => "29",
+            //                 "volume_24h" => "4946163",
+            //                 "price_change_percent" => "-0.053275255486681085",
+            //                 "open_interest" => "-",
+            //                 "timestamp" => 1663222782100
+            //             ),
+            //             ...
+            //         )
+            //     }
+            //
             $result = array();
-            $tickers = $this->safe_value($response, 'ticker', array());
+            $tickers = $this->safe_value_2($response, 'ticker', 'data', array());
             $date = $this->safe_integer($response, 'date');
             for ($i = 0; $i < count($tickers); $i++) {
                 $rawTicker = array_merge(array(
@@ -822,16 +867,25 @@ class digifinex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#ticker-price
+             * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#ticker
              * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
              * @param {array} $params extra parameters specific to the digifinex api endpoint
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structure}
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
-            $request = array(
-                'symbol' => $market['id'],
-            );
-            $response = Async\await($this->publicSpotGetTicker (array_merge($request, $params)));
+            $method = 'publicSpotGetTicker';
+            $request = array();
+            if ($market['swap']) {
+                $method = 'publicSwapGetPublicTicker';
+                $request['instrument_id'] = $market['id'];
+            } else {
+                $request['symbol'] = $market['id'];
+            }
+            $response = Async\await($this->$method (array_merge($request, $params)));
+            //
+            // spot
             //
             //    {
             //        "ticker" => [array(
@@ -849,17 +903,49 @@ class digifinex extends Exchange {
             //        "code" => 0
             //    }
             //
+            // swap
+            //
+            //     {
+            //         "code" => 0,
+            //         "data" => {
+            //             "instrument_id" => "BTCUSDTPERP",
+            //             "index_price" => "20141.9967",
+            //             "mark_price" => "20139.3404",
+            //             "max_buy_price" => "21146.4838",
+            //             "min_sell_price" => "19132.2725",
+            //             "best_bid" => "20140.0998",
+            //             "best_bid_size" => "3116",
+            //             "best_ask" => "20140.0999",
+            //             "best_ask_size" => "9004",
+            //             "high_24h" => "20410.6496",
+            //             "open_24h" => "20308.6998",
+            //             "low_24h" => "19600",
+            //             "last" => "20140.0999",
+            //             "last_qty" => "2",
+            //             "volume_24h" => "49382816",
+            //             "price_change_percent" => "-0.008301855936636448",
+            //             "open_interest" => "-",
+            //             "timestamp" => 1663221614998
+            //         }
+            //     }
+            //
             $date = $this->safe_integer($response, 'date');
             $tickers = $this->safe_value($response, 'ticker', array());
+            $data = $this->safe_value($response, 'data', array());
             $firstTicker = $this->safe_value($tickers, 0, array());
-            $result = array_merge(array( 'date' => $date ), $firstTicker);
+            $result = null;
+            if ($market['swap']) {
+                $result = $data;
+            } else {
+                $result = array_merge(array( 'date' => $date ), $firstTicker);
+            }
             return $this->parse_ticker($result, $market);
         }) ();
     }
 
     public function parse_ticker($ticker, $market = null) {
         //
-        // fetchTicker, fetchTickers
+        // spot => fetchTicker, fetchTickers
         //
         //     {
         //         "last":0.021957,
@@ -874,31 +960,57 @@ class digifinex extends Exchange {
         //         "date"1564518452, // injected from fetchTicker/fetchTickers
         //     }
         //
-        $marketId = $this->safe_string_upper($ticker, 'symbol');
-        $symbol = $this->safe_symbol($marketId, $market, '_');
+        // swap => fetchTicker, fetchTickers
+        //
+        //     {
+        //         "instrument_id" => "BTCUSDTPERP",
+        //         "index_price" => "20141.9967",
+        //         "mark_price" => "20139.3404",
+        //         "max_buy_price" => "21146.4838",
+        //         "min_sell_price" => "19132.2725",
+        //         "best_bid" => "20140.0998",
+        //         "best_bid_size" => "3116",
+        //         "best_ask" => "20140.0999",
+        //         "best_ask_size" => "9004",
+        //         "high_24h" => "20410.6496",
+        //         "open_24h" => "20308.6998",
+        //         "low_24h" => "19600",
+        //         "last" => "20140.0999",
+        //         "last_qty" => "2",
+        //         "volume_24h" => "49382816",
+        //         "price_change_percent" => "-0.008301855936636448",
+        //         "open_interest" => "-",
+        //         "timestamp" => 1663221614998
+        //     }
+        //
+        $marketId = $this->safe_string_upper_2($ticker, 'symbol', 'instrument_id');
+        $symbol = $this->safe_symbol($marketId, $market);
+        $market = $this->safe_market($marketId);
         $timestamp = $this->safe_timestamp($ticker, 'date');
+        if ($market['swap']) {
+            $timestamp = $this->safe_integer($ticker, 'timestamp');
+        }
         $last = $this->safe_string($ticker, 'last');
-        $percentage = $this->safe_string($ticker, 'change');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'high' => $this->safe_string($ticker, 'high'),
-            'low' => $this->safe_string($ticker, 'low'),
-            'bid' => $this->safe_string($ticker, 'buy'),
-            'bidVolume' => null,
-            'ask' => $this->safe_string($ticker, 'sell'),
-            'askVolume' => null,
+            'high' => $this->safe_string_2($ticker, 'high', 'high_24h'),
+            'low' => $this->safe_string_2($ticker, 'low', 'low_24h'),
+            'bid' => $this->safe_string_2($ticker, 'buy', 'best_bid'),
+            'bidVolume' => $this->safe_string($ticker, 'best_bid_size'),
+            'ask' => $this->safe_string_2($ticker, 'sell', 'best_ask'),
+            'askVolume' => $this->safe_string($ticker, 'best_ask_size'),
             'vwap' => null,
-            'open' => null,
+            'open' => $this->safe_string($ticker, 'open_24h'),
             'close' => $last,
             'last' => $last,
             'previousClose' => null,
             'change' => null,
-            'percentage' => $percentage,
+            'percentage' => $this->safe_string_2($ticker, 'change', 'price_change_percent'),
             'average' => null,
-            'baseVolume' => $this->safe_string($ticker, 'vol'),
-            'quoteVolume' => $this->safe_string($ticker, 'base_vol'),
+            'baseVolume' => $this->safe_string($ticker, 'base_vol'),
+            'quoteVolume' => $this->safe_string_2($ticker, 'vol', 'volume_24h'),
             'info' => $ticker,
         ), $market);
     }
