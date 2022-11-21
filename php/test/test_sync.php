@@ -510,7 +510,7 @@ $main = function() use ($args, $exchanges, $proxies, $config, $common_codes) {
             }
             $alias = $exchange->alias;
             if ($alias) {
-                dump(red('[Alias skipped] ' . $id));
+                dump(red('[Skipped alias] ' . $id));
                 exit();
             }
 

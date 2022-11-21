@@ -92,7 +92,10 @@ class cryptocom extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/147792121-38ed5e36-c229-48d6-b49a-48d05fc19ed4.jpeg',
-                'test' => 'https://uat-api.3ona.co/v2',
+                'test' => array(
+                    'spot' => 'https://uat-api.3ona.co/v2',
+                    'derivatives' => 'https://uat-api.3ona.co/v2',
+                ),
                 'api' => array(
                     'spot' => 'https://api.crypto.com/v2',
                     'derivatives' => 'https://deriv-api.crypto.com/v1',
@@ -133,6 +136,7 @@ class cryptocom extends Exchange {
                             'private/create-order' => 2 / 3,
                             'private/cancel-order' => 2 / 3,
                             'private/cancel-all-orders' => 2 / 3,
+                            'private/create-order-list' => 10 / 3,
                             'private/get-order-history' => 10 / 3,
                             'private/get-open-orders' => 10 / 3,
                             'private/get-order-detail' => 1 / 3,
@@ -157,9 +161,9 @@ class cryptocom extends Exchange {
                             'private/margin/get-trades' => 100,
                             'private/deriv/transfer' => 10 / 3,
                             'private/deriv/get-transfer-history' => 10 / 3,
-                            'private/subaccount/get-sub-accounts' => 10 / 3,
-                            'private/subaccount/get-transfer-history' => 10 / 3,
-                            'private/subaccount/transfer' => 10 / 3,
+                            'private/get-accounts' => 10 / 3,
+                            'private/get-subaccount-balances' => 10 / 3,
+                            'private/create-subaccount-transfer' => 10 / 3,
                             'private/otc/get-otc-user' => 10 / 3,
                             'private/otc/get-instruments' => 10 / 3,
                             'private/otc/request-quote' => 100,

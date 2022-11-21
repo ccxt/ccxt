@@ -638,7 +638,7 @@ async def main():
             if hasattr(exchange, 'skip') and exchange.skip:
                 dump(green(exchange.id), 'skipped')
             elif hasattr(exchange, 'alias') and exchange.alias:
-                dump(green(exchange.id), 'alias skipped')
+                dump(green(exchange.id), 'Skipped alias')
             else:
                 if symbol:
                     await load_exchange(exchange)

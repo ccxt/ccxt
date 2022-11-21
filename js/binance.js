@@ -1762,7 +1762,9 @@ module.exports = class binance extends Exchange {
         const account = this.account ();
         account['used'] = this.safeString (entry, 'locked');
         account['free'] = this.safeString (entry, 'free');
-        account['total'] = this.safeString (entry, 'totalAsset');
+        const interest = this.safeString (entry, 'interest');
+        const debt = this.safeString (entry, 'borrowed');
+        account['debt'] = Precise.stringAdd (debt, interest);
         return account;
     }
 
@@ -1772,7 +1774,8 @@ module.exports = class binance extends Exchange {
         };
         let timestamp = undefined;
         const isolated = marginMode === 'isolated';
-        if (((type === 'spot') || (type === 'margin') || (marginMode === 'cross')) && !isolated) {
+        const cross = (type === 'margin') || (marginMode === 'cross');
+        if (!isolated && ((type === 'spot') || cross)) {
             timestamp = this.safeInteger (response, 'updateTime');
             const balances = this.safeValue2 (response, 'balances', 'userAssets', []);
             for (let i = 0; i < balances.length; i++) {
@@ -1782,6 +1785,11 @@ module.exports = class binance extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeString (balance, 'free');
                 account['used'] = this.safeString (balance, 'locked');
+                if (cross) {
+                    const debt = this.safeString (balance, 'borrowed');
+                    const interest = this.safeString (balance, 'interest');
+                    account['debt'] = Precise.stringAdd (debt, interest);
+                }
                 result[code] = account;
             }
         } else if (isolated) {
@@ -1870,7 +1878,7 @@ module.exports = class binance extends Exchange {
             const options = this.safeValue (this.options, type, {});
             const fetchBalanceOptions = this.safeValue (options, 'fetchBalance', {});
             method = this.safeString (fetchBalanceOptions, 'method', 'dapiPrivateGetAccount');
-        } else if (type === 'margin' || marginMode === 'cross') {
+        } else if ((type === 'margin') || (marginMode === 'cross')) {
             method = 'sapiGetMarginAccount';
         } else if (type === 'savings') {
             method = 'sapiGetLendingUnionAccount';
@@ -4196,8 +4204,9 @@ module.exports = class binance extends Exchange {
                     toId = this.marketId (symbol);
                 }
             }
-            const fromIsolated = this.inArray (fromId, this.ids);
-            const toIsolated = this.inArray (toId, this.ids);
+            const accountsById = this.safeValue (this.options, 'accountsById', {});
+            const fromIsolated = !(fromId in accountsById);
+            const toIsolated = !(toId in accountsById);
             if (fromIsolated || toIsolated) { // Isolated margin transfer
                 const fromFuture = fromId === 'UMFUTURE' || fromId === 'CMFUTURE';
                 const toFuture = toId === 'UMFUTURE' || toId === 'CMFUTURE';
@@ -4208,7 +4217,7 @@ module.exports = class binance extends Exchange {
                 const prohibitedWithIsolated = fromFuture || toFuture || mining || funding;
                 if ((fromIsolated || toIsolated) && prohibitedWithIsolated) {
                     throw new BadRequest (this.id + ' transfer () does not allow transfers between ' + fromAccount + ' and ' + toAccount);
-                } else if (fromIsolated && toSpot) {
+                } else if (toSpot && fromIsolated) {
                     method = 'sapiPostMarginIsolatedTransfer';
                     request['transFrom'] = 'ISOLATED_MARGIN';
                     request['transTo'] = 'SPOT';
@@ -4219,11 +4228,11 @@ module.exports = class binance extends Exchange {
                     request['transTo'] = 'ISOLATED_MARGIN';
                     request['symbol'] = toId;
                 } else {
-                    if (this.inArray (fromId, this.ids)) {
+                    if (fromIsolated) {
                         request['fromSymbol'] = fromId;
                         fromId = 'ISOLATEDMARGIN';
                     }
-                    if (this.inArray (toId, this.ids)) {
+                    if (toIsolated) {
                         request['toSymbol'] = toId;
                         toId = 'ISOLATEDMARGIN';
                     }

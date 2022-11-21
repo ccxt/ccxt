@@ -702,7 +702,7 @@ module.exports = class bibox extends Exchange {
             'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['size'] = limit; // default = 100
+            request['limit'] = limit; // default = 100
         }
         if (since !== undefined) {
             request['start_time'] = since;

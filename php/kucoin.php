@@ -49,6 +49,7 @@ class kucoin extends Exchange {
                 'fetchClosedOrders' => true,
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
+                'fetchDepositAddressesByNetwork' => true,
                 'fetchDeposits' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
@@ -429,6 +430,7 @@ class kucoin extends Exchange {
                             'market/orderbook/level2' => 'v3',
                             'market/orderbook/level3' => 'v3',
                             'market/orderbook/level{level}' => 'v3',
+                            'deposit-addresses' => 'v1', // 'v1' for fetchDepositAddress, 'v2' for fetchDepositAddressesByNetwork
                         ),
                         'POST' => array(
                             'accounts/inner-transfer' => 'v2',
@@ -476,13 +478,15 @@ class kucoin extends Exchange {
                     'mining' => 'pool',
                 ),
                 'networks' => array(
-                    'ETH' => 'eth',
+                    'Native' => 'bech32',
+                    'BTC-Segwit' => 'btc',
                     'ERC20' => 'eth',
-                    'TRX' => 'trx',
+                    'BEP20' => 'bsc',
                     'TRC20' => 'trx',
-                    'KCC' => 'kcc',
                     'TERRA' => 'luna',
-                    'LTC' => 'ltc',
+                    'BNB' => 'bsc',
+                    'HRC20' => 'heco',
+                    'HT' => 'heco',
                 ),
             ),
         ));
@@ -773,6 +777,7 @@ class kucoin extends Exchange {
     public function fetch_transaction_fee($code, $params = array ()) {
         /**
          * fetch the fee for a transaction
+         * @see https://docs.kucoin.com/#get-withdrawal-quotas
          * @param {string} $code unified $currency $code
          * @param {array} $params extra parameters specific to the kucoin api endpoint
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
@@ -783,11 +788,12 @@ class kucoin extends Exchange {
             'currency' => $currency['id'],
         );
         $networks = $this->safe_value($this->options, 'networks', array());
-        $network = $this->safe_string_upper($params, 'network');
+        $network = $this->safe_string_upper_2($params, 'network', 'chain');
         $network = $this->safe_string_lower($networks, $network, $network);
         if ($network !== null) {
-            $request['chain'] = $network;
-            $params = $this->omit($params, 'network');
+            $network = strtolower($network);
+            $request['chain'] = strtolower($network);
+            $params = $this->omit($params, array( 'network', 'chain' ));
         }
         $response = $this->privateGetWithdrawalsQuotas (array_merge($request, $params));
         $data = $response['data'];
@@ -1076,14 +1082,26 @@ class kucoin extends Exchange {
 
     public function create_deposit_address($code, $params = array ()) {
         /**
+         * @see https://docs.kucoin.com/#create-deposit-$address
          * create a $currency deposit $address
          * @param {string} $code unified $currency $code of the $currency for the deposit $address
          * @param {array} $params extra parameters specific to the kucoin api endpoint
+         * @param {string|null} $params->network the blockchain $network name
          * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
          */
         $this->load_markets();
         $currency = $this->currency($code);
-        $request = array( 'currency' => $currency['id'] );
+        $request = array(
+            'currency' => $currency['id'],
+        );
+        $networks = $this->safe_value($this->options, 'networks', array());
+        $network = $this->safe_string_upper_2($params, 'chain', 'network');
+        $network = $this->safe_string_lower($networks, $network, $network);
+        if ($network !== null) {
+            $network = strtolower($network);
+            $request['chain'] = $network;
+            $params = $this->omit($params, array( 'chain', 'network' ));
+        }
         $response = $this->privatePostDepositAddresses (array_merge($request, $params));
         // BCH array("code":"200000","data":array("address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""))
         // BTC array("code":"200000","data":array("address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""))
@@ -1112,6 +1130,7 @@ class kucoin extends Exchange {
          * fetch the deposit address for a $currency associated with this account
          * @param {string} $code unified $currency $code
          * @param {array} $params extra parameters specific to the kucoin api endpoint
+         * @param {string|null} $params->network the blockchain $network name
          * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
          */
         $this->load_markets();
@@ -1124,16 +1143,19 @@ class kucoin extends Exchange {
         );
         // same as for withdraw
         $networks = $this->safe_value($this->options, 'networks', array());
-        $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
+        $network = $this->safe_string_upper_2($params, 'chain', 'network'); // this line allows the user to specify either ERC20 or ETH
         $network = $this->safe_string_lower($networks, $network, $network); // handle ERC20>ETH alias
         if ($network !== null) {
             $network = strtolower($network);
             $request['chain'] = $network;
-            $params = $this->omit($params, 'network');
+            $params = $this->omit($params, array( 'chain', 'network' ));
         }
+        $version = $this->options['versions']['private']['GET']['deposit-addresses'];
+        $this->options['versions']['private']['GET']['deposit-addresses'] = 'v1';
         $response = $this->privateGetDepositAddresses (array_merge($request, $params));
         // BCH array("code":"200000","data":array("address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""))
         // BTC array("code":"200000","data":array("address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""))
+        $this->options['versions']['private']['GET']['deposit-addresses'] = $version;
         $data = $this->safe_value($response, 'data', array());
         return $this->parse_deposit_address($data, $currency);
     }
@@ -1152,6 +1174,68 @@ class kucoin extends Exchange {
             'tag' => $this->safe_string($depositAddress, 'memo'),
             'network' => $this->safe_string($depositAddress, 'chain'),
         );
+    }
+
+    public function fetch_deposit_addresses_by_network($code, $params = array ()) {
+        /**
+         * @see https://docs.kucoin.com/#get-deposit-addresses-v2
+         * fetch the deposit address for a $currency associated with this account
+         * @param {string} $code unified $currency $code
+         * @param {array} $params extra parameters specific to the kucoin api endpoint
+         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structures}
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
+        $version = $this->options['versions']['private']['GET']['deposit-addresses'];
+        $this->options['versions']['private']['GET']['deposit-addresses'] = 'v2';
+        $response = $this->privateGetDepositAddresses (array_merge($request, $params));
+        //
+        //     {
+        //         "code" => "200000",
+        //         "data" => array(
+        //             array(
+        //                 "address" => "fr1qvus7d4d5fgxj5e7zvqe6yhxd7txm95h2and69r",
+        //                 "memo" => "",
+        //                 "chain" => "BTC-Segwit",
+        //                 "contractAddress" => ""
+        //             ),
+        //             array("address":"37icNMEWbiF8ZkwUMxmfzMxi2A1MQ44bMn","memo":"","chain":"BTC","contractAddress":""),
+        //             array("address":"Deposit temporarily blocked","memo":"","chain":"TRC20","contractAddress":"")
+        //         )
+        //     }
+        //
+        $this->options['versions']['private']['GET']['deposit-addresses'] = $version;
+        $data = $this->safe_value($response, 'data', array());
+        return $this->parse_deposit_addresses_by_network($data, $currency);
+    }
+
+    public function parse_deposit_addresses_by_network($depositAddresses, $currency = null) {
+        //
+        //     array(
+        //         array(
+        //             "address" => "fr1qvus7d4d5fgxj5e7zvqe6yhxd7txm95h2and69r",
+        //             "memo" => "",
+        //             "chain" => "BTC-Segwit",
+        //             "contractAddress" => ""
+        //         ),
+        //         ...
+        //     )
+        //
+        $result = array();
+        for ($i = 0; $i < count($depositAddresses); $i++) {
+            $entry = $depositAddresses[$i];
+            $result[] = array(
+                'info' => $entry,
+                'currency' => $this->safe_currency_code($currency['id'], $currency),
+                'network' => $this->safe_string($entry, 'chain'),
+                'address' => $this->safe_string($entry, 'address'),
+                'tag' => $this->safe_string($entry, 'memo'),
+            );
+        }
+        return $result;
     }
 
     public function fetch_order_book($symbol, $limit = null, $params = array ()) {
@@ -2017,6 +2101,7 @@ class kucoin extends Exchange {
         $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
         $network = $this->safe_string_lower($networks, $network, $network); // handle ERC20>ETH alias
         if ($network !== null) {
+            $network = strtolower($network);
             $request['chain'] = $network;
             $params = $this->omit($params, 'network');
         }
@@ -2302,18 +2387,21 @@ class kucoin extends Exchange {
         return $this->parse_transactions($responseData, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function fetch_balance_helper($entry) {
+    public function parse_balance_helper($entry) {
         $account = $this->account();
         $account['used'] = $this->safe_string($entry, 'holdBalance');
         $account['free'] = $this->safe_string($entry, 'availableBalance');
         $account['total'] = $this->safe_string($entry, 'totalBalance');
+        $debt = $this->safe_string($entry, 'liability');
+        $interest = $this->safe_string($entry, 'interest');
+        $account['debt'] = Precise::string_add($debt, $interest);
         return $account;
     }
 
     public function fetch_balance($params = array ()) {
         /**
          * $query for $balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://docs.kucoin.com/#list-accounts
+         * @see https://docs.kucoin.com/#list-$accounts
          * @see https://docs.kucoin.com/#$query-$isolated-margin-$account-info
          * @param {array} $params extra parameters specific to the kucoin api endpoint
          * @param {array} $params->marginMode 'cross' or 'isolated', margin $type for fetching margin $balance
@@ -2335,11 +2423,14 @@ class kucoin extends Exchange {
         $method = 'privateGetAccounts';
         $request = array();
         $isolated = ($marginMode === 'isolated') || ($type === 'isolated');
+        $cross = ($marginMode === 'cross') || ($type === 'cross');
         if ($isolated) {
             $method = 'privateGetIsolatedAccounts';
             if ($currency !== null) {
                 $request['balanceCurrency'] = $currency['id'];
             }
+        } elseif ($cross) {
+            $method = 'privateGetMarginAccount';
         } else {
             if ($currency !== null) {
                 $request['currency'] = $currency['id'];
@@ -2417,9 +2508,17 @@ class kucoin extends Exchange {
                 $baseCode = $this->safe_currency_code($this->safe_string($base, 'currency'));
                 $quoteCode = $this->safe_currency_code($this->safe_string($quote, 'currency'));
                 $subResult = array();
-                $subResult[$baseCode] = $this->fetch_balance_helper($base);
-                $subResult[$quoteCode] = $this->fetch_balance_helper($quote);
+                $subResult[$baseCode] = $this->parse_balance_helper($base);
+                $subResult[$quoteCode] = $this->parse_balance_helper($quote);
                 $result[$symbol] = $this->safe_balance($subResult);
+            }
+        } elseif ($cross) {
+            $accounts = $this->safe_value($data, 'accounts', array());
+            for ($i = 0; $i < count($accounts); $i++) {
+                $balance = $accounts[$i];
+                $currencyId = $this->safe_string($balance, 'currency');
+                $code = $this->safe_currency_code($currencyId);
+                $result[$code] = $this->parse_balance_helper($balance);
             }
         } else {
             for ($i = 0; $i < count($data); $i++) {

@@ -56,6 +56,7 @@ class coinspot(Exchange):
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
+                'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
@@ -212,12 +213,11 @@ class coinspot(Exchange):
         #     }
         #
         symbol = self.safe_symbol(None, market)
-        timestamp = self.milliseconds()
         last = self.safe_string(ticker, 'last')
         return self.safe_ticker({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'high': None,
             'low': None,
             'bid': self.safe_string(ticker, 'bid'),
@@ -264,6 +264,45 @@ class coinspot(Exchange):
         #
         ticker = self.safe_value(prices, id)
         return self.parse_ticker(ticker, market)
+
+    def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        see https://www.coinspot.com.au/api#latestprices
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the coinspot api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
+        self.load_markets()
+        response = self.publicGetLatest(params)
+        #
+        #    {
+        #        "status": "ok",
+        #        "prices": {
+        #        "btc": {
+        #        "bid": "25050",
+        #        "ask": "25370",
+        #        "last": "25234"
+        #        },
+        #        "ltc": {
+        #        "bid": "79.39192993",
+        #        "ask": "87.98",
+        #        "last": "87.95"
+        #        }
+        #      }
+        #    }
+        #
+        result = {}
+        prices = self.safe_value(response, 'prices')
+        ids = list(prices.keys())
+        for i in range(0, len(ids)):
+            id = ids[i]
+            market = self.safe_market(id)
+            if market['spot']:
+                symbol = market['symbol']
+                ticker = prices[id]
+                result[symbol] = self.parse_ticker(ticker, market)
+        return self.filter_by_array(result, 'symbol', symbols)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         """
