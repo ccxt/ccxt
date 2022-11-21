@@ -4,7 +4,8 @@
 
 const wooRest = require ('../woo');
 const { ExchangeError, AuthenticationError } = require ('../base/errors');
-const { ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
+const { ArrayCacheByTimestamp, ArrayCacheBySymbolById, ArrayCache } = require ('./base/Cache');
+const Precise = require ('../base/Precise');
 
 // ----------------------------------------------------------------------------
 
@@ -20,7 +21,7 @@ module.exports = class woo extends wooRest {
                 'watchOrders': true,
                 'watchTicker': true,
                 'watchTickers': true,
-                'watchTrades': false,
+                'watchTrades': true,
             },
             'urls': {
                 'api': {
@@ -123,6 +124,19 @@ module.exports = class woo extends wooRest {
         client.resolve (orderbook, topic);
     }
 
+    async watchTicker (symbol, params = {}) {
+        await this.loadMarkets ();
+        const name = 'ticker';
+        const market = this.market (symbol);
+        const topic = market['id'] + '@' + name;
+        const request = {
+            'event': 'subscribe',
+            'topic': topic,
+        };
+        const message = this.extend (request, params);
+        return await this.watchPublic (topic, message);
+    }
+
     parseTicker (ticker, market = undefined) {
         //
         //     {
@@ -159,19 +173,6 @@ module.exports = class woo extends wooRest {
             'quoteVolume': undefined,
             'info': ticker,
         }, market);
-    }
-
-    async watchTicker (symbol, params = {}) {
-        await this.loadMarkets ();
-        const name = 'ticker';
-        const market = this.market (symbol);
-        const topic = market['id'] + '@' + name;
-        const request = {
-            'event': 'subscribe',
-            'topic': topic,
-        };
-        const message = this.extend (request, params);
-        return await this.watchPublic (topic, message);
     }
 
     handleTicker (client, message) {
@@ -325,6 +326,89 @@ module.exports = class woo extends wooRest {
         }
         stored.append (parsed);
         client.resolve (stored, topic);
+    }
+
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const topic = market['id'] + '@trade';
+        const request = {
+            'event': 'subscribe',
+            'topic': topic,
+        };
+        const message = this.extend (request, params);
+        const trades = await this.watchPublic (topic, message);
+        if (this.newUpdates) {
+            limit = trades.getLimit (market['symbol'], limit);
+        }
+        return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
+    handleTrade (client, message) {
+        //
+        // {
+        //     "topic":"SPOT_ADA_USDT@trade",
+        //     "ts":1618820361552,
+        //     "data":{
+        //         "symbol":"SPOT_ADA_USDT",
+        //         "price":1.27988,
+        //         "size":300,
+        //         "side":"BUY",
+        //         "source":0
+        //     }
+        // }
+        //
+        const topic = this.safeString (message, 'topic');
+        const timestamp = this.safeInteger (message, 'ts');
+        const data = this.safeValue (message, 'data');
+        const marketId = this.safeString (data, 'symbol');
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const trade = this.parseWsTrade (this.extend (data, { timestamp }), market);
+        let tradesArray = this.safeValue (this.trades, symbol);
+        if (tradesArray === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            tradesArray = new ArrayCache (limit);
+        }
+        tradesArray.append (trade);
+        this.trades[symbol] = tradesArray;
+        client.resolve (tradesArray, topic);
+    }
+
+    parseWsTrade (trade, market = undefined) {
+        //
+        //     {
+        //         "symbol":"SPOT_ADA_USDT",
+        //         "timestamp":1618820361552,
+        //         "price":1.27988,
+        //         "size":300,
+        //         "side":"BUY",
+        //         "source":0
+        //     }
+        //
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString (trade, 'size');
+        const cost = Precise.stringMul (price, amount);
+        const side = this.safeStringLower (trade, 'side');
+        const timestamp = this.safeInteger (trade, 'timestamp');
+        return this.safeTrade ({
+            'id': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': symbol,
+            'side': side,
+            'price': price,
+            'amount': amount,
+            'cost': cost,
+            'order': undefined,
+            'takerOrMaker': undefined,
+            'type': undefined,
+            'fee': undefined,
+            'info': trade,
+        }, market);
     }
 
     checkRequiredUid (error = true) {
@@ -549,6 +633,7 @@ module.exports = class woo extends wooRest {
             'kline': this.handleOHLCV,
             'auth': this.handleAuth,
             'executionreport': this.handleOrderUpdate,
+            'trade': this.handleTrade,
         };
         const event = this.safeString (message, 'event');
         let method = this.safeValue (methods, event);
