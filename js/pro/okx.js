@@ -643,7 +643,7 @@ module.exports = class okx extends okxRest {
         // By default, receive order updates from any instrument type
         let type = this.safeString (options, 'type', 'ANY');
         type = this.safeString (params, 'type', type);
-        const isStop = this.safeValue ('params', 'stop', false);
+        const isStop = this.safeValue (params, 'stop', false);
         params = this.omit (params, [ 'type', 'stop' ]);
         let market = undefined;
         if (symbol !== undefined) {
