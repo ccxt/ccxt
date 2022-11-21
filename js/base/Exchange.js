@@ -955,7 +955,8 @@ module.exports = class Exchange {
             }
         }
         const debtBalanceArray = Object.keys (debtBalance);
-        if (debtBalanceArray.length) {
+        const length = debtBalanceArray.length;
+        if (length) {
             balance['debt'] = debtBalance;
         }
         return balance;
