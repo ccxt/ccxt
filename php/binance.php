@@ -1755,7 +1755,8 @@ class binance extends Exchange {
         $account = $this->account();
         $account['used'] = $this->safe_string($entry, 'locked');
         $account['free'] = $this->safe_string($entry, 'free');
-        $account['total'] = $this->safe_string($entry, 'totalAsset');
+        $account['total'] = $this->safe_string($entry, 'netAsset');
+        $account['debt'] = $this->safe_string($entry, 'borrowed');
         return $account;
     }
 
@@ -1765,7 +1766,8 @@ class binance extends Exchange {
         );
         $timestamp = null;
         $isolated = $marginMode === 'isolated';
-        if ((($type === 'spot') || ($type === 'margin') || ($marginMode === 'cross')) && !$isolated) {
+        $cross = ($type === 'margin') || ($marginMode === 'cross');
+        if (!$isolated && (($type === 'spot') || $cross)) {
             $timestamp = $this->safe_integer($response, 'updateTime');
             $balances = $this->safe_value_2($response, 'balances', 'userAssets', array());
             for ($i = 0; $i < count($balances); $i++) {
@@ -1775,6 +1777,10 @@ class binance extends Exchange {
                 $account = $this->account();
                 $account['free'] = $this->safe_string($balance, 'free');
                 $account['used'] = $this->safe_string($balance, 'locked');
+                if ($cross) {
+                    $account['total'] = $this->safe_string($balance, 'netAsset');
+                    $account['debt'] = $this->safe_string($balance, 'borrowed');
+                }
                 $result[$code] = $account;
             }
         } elseif ($isolated) {
@@ -1861,7 +1867,7 @@ class binance extends Exchange {
             $options = $this->safe_value($this->options, $type, array());
             $fetchBalanceOptions = $this->safe_value($options, 'fetchBalance', array());
             $method = $this->safe_string($fetchBalanceOptions, 'method', 'dapiPrivateGetAccount');
-        } elseif ($type === 'margin' || $marginMode === 'cross') {
+        } elseif (($type === 'margin') || ($marginMode === 'cross')) {
             $method = 'sapiGetMarginAccount';
         } elseif ($type === 'savings') {
             $method = 'sapiGetLendingUnionAccount';
@@ -4147,8 +4153,14 @@ class binance extends Exchange {
                     $toId = $this->market_id($symbol);
                 }
             }
-            $fromIsolated = $this->in_array($fromId, $this->ids);
-            $toIsolated = $this->in_array($toId, $this->ids);
+            $fromIsolated = (is_array($this->markets_by_id) && array_key_exists($fromId, $this->markets_by_id)) || (is_array($this->markets) && array_key_exists($fromId, $this->markets));
+            $toIsolated = (is_array($this->markets_by_id) && array_key_exists($toId, $this->markets_by_id)) || (is_array($this->markets) && array_key_exists($fromId, $this->markets));
+            if ($fromIsolated) {
+                $fromId = $this->market_id($fromId);
+            }
+            if ($toIsolated) {
+                $toId = $this->market_id($toId);
+            }
             if ($fromIsolated || $toIsolated) { // Isolated margin $transfer
                 $fromFuture = $fromId === 'UMFUTURE' || $fromId === 'CMFUTURE';
                 $toFuture = $toId === 'UMFUTURE' || $toId === 'CMFUTURE';
@@ -4159,7 +4171,7 @@ class binance extends Exchange {
                 $prohibitedWithIsolated = $fromFuture || $toFuture || $mining || $funding;
                 if (($fromIsolated || $toIsolated) && $prohibitedWithIsolated) {
                     throw new BadRequest($this->id . ' $transfer () does not allow transfers between ' . $fromAccount . ' and ' . $toAccount);
-                } elseif ($fromIsolated && $toSpot) {
+                } elseif ($toSpot && $fromIsolated) {
                     $method = 'sapiPostMarginIsolatedTransfer';
                     $request['transFrom'] = 'ISOLATED_MARGIN';
                     $request['transTo'] = 'SPOT';
@@ -4170,11 +4182,11 @@ class binance extends Exchange {
                     $request['transTo'] = 'ISOLATED_MARGIN';
                     $request['symbol'] = $toId;
                 } else {
-                    if ($this->in_array($fromId, $this->ids)) {
+                    if ($fromIsolated) {
                         $request['fromSymbol'] = $fromId;
                         $fromId = 'ISOLATEDMARGIN';
                     }
-                    if ($this->in_array($toId, $this->ids)) {
+                    if ($toIsolated) {
                         $request['toSymbol'] = $toId;
                         $toId = 'ISOLATEDMARGIN';
                     }

@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.1.96';
+$version = '2.1.97';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.1.96';
+    const VERSION = '2.1.97';
 
     public $browser;
     public $marketsLoading = null;
@@ -371,11 +371,13 @@ class Exchange extends \ccxt\Exchange {
         $balance['free'] = array();
         $balance['used'] = array();
         $balance['total'] = array();
+        $debtBalance = array();
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
             $total = $this->safe_string($balance[$code], 'total');
             $free = $this->safe_string($balance[$code], 'free');
             $used = $this->safe_string($balance[$code], 'used');
+            $debt = $this->safe_string($balance[$code], 'debt');
             if (($total === null) && ($free !== null) && ($used !== null)) {
                 $total = Precise::string_add($free, $used);
             }
@@ -391,6 +393,15 @@ class Exchange extends \ccxt\Exchange {
             $balance['free'][$code] = $balance[$code]['free'];
             $balance['used'][$code] = $balance[$code]['used'];
             $balance['total'][$code] = $balance[$code]['total'];
+            if ($debt !== null) {
+                $balance[$code]['debt'] = $this->parse_number($debt);
+                $debtBalance[$code] = $balance[$code]['debt'];
+            }
+        }
+        $debtBalanceArray = is_array($debtBalance) ? array_keys($debtBalance) : array();
+        $length = count($debtBalanceArray);
+        if ($length) {
+            $balance['debt'] = $debtBalance;
         }
         return $balance;
     }

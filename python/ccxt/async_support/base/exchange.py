@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.1.96'
+__version__ = '2.1.97'
 
 # -----------------------------------------------------------------------------
 
@@ -398,11 +398,13 @@ class Exchange(BaseExchange):
         balance['free'] = {}
         balance['used'] = {}
         balance['total'] = {}
+        debtBalance = {}
         for i in range(0, len(codes)):
             code = codes[i]
             total = self.safe_string(balance[code], 'total')
             free = self.safe_string(balance[code], 'free')
             used = self.safe_string(balance[code], 'used')
+            debt = self.safe_string(balance[code], 'debt')
             if (total is None) and (free is not None) and (used is not None):
                 total = Precise.string_add(free, used)
             if (free is None) and (total is not None) and (used is not None):
@@ -415,6 +417,13 @@ class Exchange(BaseExchange):
             balance['free'][code] = balance[code]['free']
             balance['used'][code] = balance[code]['used']
             balance['total'][code] = balance[code]['total']
+            if debt is not None:
+                balance[code]['debt'] = self.parse_number(debt)
+                debtBalance[code] = balance[code]['debt']
+        debtBalanceArray = list(debtBalance.keys())
+        length = len(debtBalanceArray)
+        if length:
+            balance['debt'] = debtBalance
         return balance
 
     def safe_order(self, order, market=None):

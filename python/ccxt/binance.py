@@ -1751,7 +1751,8 @@ class binance(Exchange):
         account = self.account()
         account['used'] = self.safe_string(entry, 'locked')
         account['free'] = self.safe_string(entry, 'free')
-        account['total'] = self.safe_string(entry, 'totalAsset')
+        account['total'] = self.safe_string(entry, 'netAsset')
+        account['debt'] = self.safe_string(entry, 'borrowed')
         return account
 
     def parse_balance(self, response, type=None, marginMode=None):
@@ -1760,7 +1761,8 @@ class binance(Exchange):
         }
         timestamp = None
         isolated = marginMode == 'isolated'
-        if ((type == 'spot') or (type == 'margin') or (marginMode == 'cross')) and not isolated:
+        cross = (type == 'margin') or (marginMode == 'cross')
+        if not isolated and ((type == 'spot') or cross):
             timestamp = self.safe_integer(response, 'updateTime')
             balances = self.safe_value_2(response, 'balances', 'userAssets', [])
             for i in range(0, len(balances)):
@@ -1770,6 +1772,9 @@ class binance(Exchange):
                 account = self.account()
                 account['free'] = self.safe_string(balance, 'free')
                 account['used'] = self.safe_string(balance, 'locked')
+                if cross:
+                    account['total'] = self.safe_string(balance, 'netAsset')
+                    account['debt'] = self.safe_string(balance, 'borrowed')
                 result[code] = account
         elif isolated:
             assets = self.safe_value(response, 'assets')
@@ -1848,7 +1853,7 @@ class binance(Exchange):
             options = self.safe_value(self.options, type, {})
             fetchBalanceOptions = self.safe_value(options, 'fetchBalance', {})
             method = self.safe_string(fetchBalanceOptions, 'method', 'dapiPrivateGetAccount')
-        elif type == 'margin' or marginMode == 'cross':
+        elif (type == 'margin') or (marginMode == 'cross'):
             method = 'sapiGetMarginAccount'
         elif type == 'savings':
             method = 'sapiGetLendingUnionAccount'
@@ -3967,8 +3972,12 @@ class binance(Exchange):
                     raise ArgumentsRequired(self.id + ' transfer() requires params["symbol"] when toAccount is ' + toAccount)
                 else:
                     toId = self.market_id(symbol)
-            fromIsolated = self.in_array(fromId, self.ids)
-            toIsolated = self.in_array(toId, self.ids)
+            fromIsolated = (fromId in self.markets_by_id) or (fromId in self.markets)
+            toIsolated = (toId in self.markets_by_id) or (fromId in self.markets)
+            if fromIsolated:
+                fromId = self.market_id(fromId)
+            if toIsolated:
+                toId = self.market_id(toId)
             if fromIsolated or toIsolated:  # Isolated margin transfer
                 fromFuture = fromId == 'UMFUTURE' or fromId == 'CMFUTURE'
                 toFuture = toId == 'UMFUTURE' or toId == 'CMFUTURE'
@@ -3979,7 +3988,7 @@ class binance(Exchange):
                 prohibitedWithIsolated = fromFuture or toFuture or mining or funding
                 if (fromIsolated or toIsolated) and prohibitedWithIsolated:
                     raise BadRequest(self.id + ' transfer() does not allow transfers between ' + fromAccount + ' and ' + toAccount)
-                elif fromIsolated and toSpot:
+                elif toSpot and fromIsolated:
                     method = 'sapiPostMarginIsolatedTransfer'
                     request['transFrom'] = 'ISOLATED_MARGIN'
                     request['transTo'] = 'SPOT'
@@ -3990,10 +3999,10 @@ class binance(Exchange):
                     request['transTo'] = 'ISOLATED_MARGIN'
                     request['symbol'] = toId
                 else:
-                    if self.in_array(fromId, self.ids):
+                    if fromIsolated:
                         request['fromSymbol'] = fromId
                         fromId = 'ISOLATEDMARGIN'
-                    if self.in_array(toId, self.ids):
+                    if toIsolated:
                         request['toSymbol'] = toId
                         toId = 'ISOLATEDMARGIN'
                     request['type'] = fromId + '_' + toId
