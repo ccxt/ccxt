@@ -3,9 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const lunoRest = require ('../luno');
-const { ExchangeError } = require ('../base/errors');
 const { ArrayCache } = require ('./base/Cache');
-const Precise = require("../base/Precise");
 
 //  ---------------------------------------------------------------------------
 
