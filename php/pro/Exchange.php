@@ -43,8 +43,6 @@ Exchange::$exchanges = array(
     'currencycom',
     'deribit',
     'exmo',
-    'ftx',
-    'ftxus',
     'gate',
     'gateio',
     'hitbtc',

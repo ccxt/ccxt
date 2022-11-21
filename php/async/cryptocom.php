@@ -92,14 +92,20 @@ class cryptocom extends Exchange {
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/147792121-38ed5e36-c229-48d6-b49a-48d05fc19ed4.jpeg',
-                'test' => 'https://uat-api.3ona.co/v2',
+                'test' => array(
+                    'spot' => 'https://uat-api.3ona.co/v2',
+                    'derivatives' => 'https://uat-api.3ona.co/v2',
+                ),
                 'api' => array(
                     'spot' => 'https://api.crypto.com/v2',
                     'derivatives' => 'https://deriv-api.crypto.com/v1',
                 ),
                 'www' => 'https://crypto.com/',
                 'referral' => 'https://crypto.com/exch/5835vstech',
-                'doc' => 'https://exchange-docs.crypto.com/',
+                'doc' => array(
+                    'https://exchange-docs.crypto.com/spot/index.html',
+                    'https://exchange-docs.crypto.com/derivatives/index.html',
+                ),
                 'fees' => 'https://crypto.com/exchange/document/fees-limits',
             ),
             'api' => array(
@@ -130,6 +136,7 @@ class cryptocom extends Exchange {
                             'private/create-order' => 2 / 3,
                             'private/cancel-order' => 2 / 3,
                             'private/cancel-all-orders' => 2 / 3,
+                            'private/create-order-list' => 10 / 3,
                             'private/get-order-history' => 10 / 3,
                             'private/get-open-orders' => 10 / 3,
                             'private/get-order-detail' => 1 / 3,
@@ -154,9 +161,9 @@ class cryptocom extends Exchange {
                             'private/margin/get-trades' => 100,
                             'private/deriv/transfer' => 10 / 3,
                             'private/deriv/get-transfer-history' => 10 / 3,
-                            'private/subaccount/get-sub-accounts' => 10 / 3,
-                            'private/subaccount/get-transfer-history' => 10 / 3,
-                            'private/subaccount/transfer' => 10 / 3,
+                            'private/get-accounts' => 10 / 3,
+                            'private/get-subaccount-balances' => 10 / 3,
+                            'private/create-subaccount-transfer' => 10 / 3,
                             'private/otc/get-otc-user' => 10 / 3,
                             'private/otc/get-instruments' => 10 / 3,
                             'private/otc/request-quote' => 100,
@@ -526,14 +533,21 @@ class cryptocom extends Exchange {
     public function fetch_tickers($symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+             * @see https://exchange-docs.crypto.com/spot/index.html#public-get-ticker
+             * @see https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the cryptocom api endpoint
              * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
-            list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', null, $params);
+            $market = null;
+            if ($symbols !== null) {
+                $symbol = $this->safe_value($symbols, 0);
+                $market = $this->market($symbol);
+            }
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
             $method = $this->get_supported_mapping($marketType, array(
                 'spot' => 'spotPublicGetPublicGetTicker',
                 'future' => 'derivativesPublicGetPublicGetTickers',

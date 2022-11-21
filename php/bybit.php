@@ -2081,13 +2081,13 @@ class bybit extends Exchange {
         if ($isBuyerMaker !== null) {
             // if public response
             $takerOrMaker = 'taker'; // public trades are always taker
-            $side = $isBuyerMaker === 1 ? 'buy' : 'sell';
+            $side = ($isBuyerMaker === 1) ? 'buy' : 'sell';
         } else {
             // if private response
             $isBuyer = $this->safe_integer($trade, 'isBuyer');
             $isMaker = $this->safe_integer($trade, 'isMaker');
-            $takerOrMaker = $isMaker === 1 ? 'maker' : 'taker';
-            $side = $isBuyer === 1 ? 'buy' : 'sell';
+            $takerOrMaker = ($isMaker === 1) ? 'maker' : 'taker';
+            $side = ($isBuyer === 1) ? 'buy' : 'sell';
         }
         $marketId = $this->safe_string($trade, 'symbol');
         $market = $this->safe_market($marketId, $market);

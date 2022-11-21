@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.1.73';
+$version = '2.1.102';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.1.73';
+    const VERSION = '2.1.102';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -125,8 +125,6 @@ class Exchange {
         'exmo',
         'flowbtc',
         'fmfwio',
-        'ftx',
-        'ftxus',
         'gate',
         'gateio',
         'gemini',
@@ -168,7 +166,6 @@ class Exchange {
         'ripio',
         'stex',
         'therock',
-        'tidebit',
         'tidex',
         'timex',
         'tokocrypto',
@@ -426,6 +423,7 @@ class Exchange {
         'convertTypeToAccount' => 'convert_type_to_account',
         'handleMarginModeAndParams' => 'handle_margin_mode_and_params',
         'checkRequiredArgument' => 'check_required_argument',
+        'checkRequiredMarginArgument' => 'check_required_margin_argument',
         'checkRequiredSymbol' => 'check_required_symbol',
     );
 
@@ -2573,11 +2571,13 @@ class Exchange {
         $balance['free'] = array();
         $balance['used'] = array();
         $balance['total'] = array();
+        $debtBalance = array();
         for ($i = 0; $i < count($codes); $i++) {
             $code = $codes[$i];
             $total = $this->safe_string($balance[$code], 'total');
             $free = $this->safe_string($balance[$code], 'free');
             $used = $this->safe_string($balance[$code], 'used');
+            $debt = $this->safe_string($balance[$code], 'debt');
             if (($total === null) && ($free !== null) && ($used !== null)) {
                 $total = Precise::string_add($free, $used);
             }
@@ -2593,6 +2593,15 @@ class Exchange {
             $balance['free'][$code] = $balance[$code]['free'];
             $balance['used'][$code] = $balance[$code]['used'];
             $balance['total'][$code] = $balance[$code]['total'];
+            if ($debt !== null) {
+                $balance[$code]['debt'] = $this->parse_number($debt);
+                $debtBalance[$code] = $balance[$code]['debt'];
+            }
+        }
+        $debtBalanceArray = is_array($debtBalance) ? array_keys($debtBalance) : array();
+        $length = count($debtBalanceArray);
+        if ($length) {
+            $balance['debt'] = $debtBalance;
         }
         return $balance;
     }
@@ -4401,11 +4410,10 @@ class Exchange {
          * @return the exchange specific $account name or the isolated margin id for transfers
          */
         $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
-        $symbols = $this->symbols;
         $lowercaseAccount = strtolower($account);
         if (is_array($accountsByType) && array_key_exists($lowercaseAccount, $accountsByType)) {
             return $accountsByType[$lowercaseAccount];
-        } elseif ($this->in_array($account, $symbols)) {
+        } elseif ((is_array($this->markets) && array_key_exists($account, $this->markets)) || (is_array($this->markets_by_id) && array_key_exists($account, $this->markets_by_id))) {
             $market = $this->market ($account);
             return $market['id'];
         } else {
@@ -4445,6 +4453,20 @@ class Exchange {
                 $message .= ', one of ' . '(' . $messageOptions . ')';
             }
             throw new ArgumentsRequired($message);
+        }
+    }
+
+    public function check_required_margin_argument($methodName, $symbol, $marginMode) {
+        /**
+         * @ignore
+         * @param {string} $symbol unified $symbol of the market
+         * @param {string} $methodName name of the method that requires a $symbol
+         * @param {string} $marginMode is either 'isolated' or 'cross'
+         */
+        if (($marginMode === 'isolated') && ($symbol === null)) {
+            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() requires a $symbol argument for isolated margin');
+        } elseif (($marginMode === 'cross') && ($symbol !== null)) {
+            throw new ArgumentsRequired($this->id . ' ' . $methodName . '() cannot have a $symbol argument for cross margin');
         }
     }
 

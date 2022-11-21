@@ -465,7 +465,7 @@ class poloniex extends Exchange {
         //
         $timestamp = $this->safe_integer($ticker, 'ts');
         $marketId = $this->safe_string($ticker, 'symbol');
-        $market = $this->market($marketId);
+        $market = $this->safe_market($marketId);
         $close = $this->safe_string($ticker, 'close');
         $relativeChange = $this->safe_string($ticker, 'percentChange');
         $percentage = Precise::string_mul($relativeChange, '100');

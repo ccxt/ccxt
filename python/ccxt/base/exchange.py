@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.1.73'
+__version__ = '2.1.102'
 
 # -----------------------------------------------------------------------------
 
@@ -1883,11 +1883,13 @@ class Exchange(object):
         balance['free'] = {}
         balance['used'] = {}
         balance['total'] = {}
+        debtBalance = {}
         for i in range(0, len(codes)):
             code = codes[i]
             total = self.safe_string(balance[code], 'total')
             free = self.safe_string(balance[code], 'free')
             used = self.safe_string(balance[code], 'used')
+            debt = self.safe_string(balance[code], 'debt')
             if (total is None) and (free is not None) and (used is not None):
                 total = Precise.string_add(free, used)
             if (free is None) and (total is not None) and (used is not None):
@@ -1900,6 +1902,13 @@ class Exchange(object):
             balance['free'][code] = balance[code]['free']
             balance['used'][code] = balance[code]['used']
             balance['total'][code] = balance[code]['total']
+            if debt is not None:
+                balance[code]['debt'] = self.parse_number(debt)
+                debtBalance[code] = balance[code]['debt']
+        debtBalanceArray = list(debtBalance.keys())
+        length = len(debtBalanceArray)
+        if length:
+            balance['debt'] = debtBalance
         return balance
 
     def safe_order(self, order, market=None):
@@ -3369,11 +3378,10 @@ class Exchange(object):
         :returns: the exchange specific account name or the isolated margin id for transfers
         """
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
-        symbols = self.symbols
         lowercaseAccount = account.lower()
         if lowercaseAccount in accountsByType:
             return accountsByType[lowercaseAccount]
-        elif self.in_array(account, symbols):
+        elif (account in self.markets) or (account in self.markets_by_id):
             market = self.market(account)
             return market['id']
         else:
@@ -3408,6 +3416,18 @@ class Exchange(object):
             if messageOptions != '':
                 message += ', one of ' + '(' + messageOptions + ')'
             raise ArgumentsRequired(message)
+
+    def check_required_margin_argument(self, methodName, symbol, marginMode):
+        """
+         * @ignore
+        :param str symbol: unified symbol of the market
+        :param str methodName: name of the method that requires a symbol
+        :param str marginMode: is either 'isolated' or 'cross'
+        """
+        if (marginMode == 'isolated') and (symbol is None):
+            raise ArgumentsRequired(self.id + ' ' + methodName + '() requires a symbol argument for isolated margin')
+        elif (marginMode == 'cross') and (symbol is not None):
+            raise ArgumentsRequired(self.id + ' ' + methodName + '() cannot have a symbol argument for cross margin')
 
     def check_required_symbol(self, methodName, symbol):
         """
