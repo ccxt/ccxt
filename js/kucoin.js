@@ -2447,7 +2447,9 @@ module.exports = class kucoin extends Exchange {
         account['used'] = this.safeString (entry, 'holdBalance');
         account['free'] = this.safeString (entry, 'availableBalance');
         account['total'] = this.safeString (entry, 'totalBalance');
-        account['debt'] = this.safeString (entry, 'liability');
+        const debt = this.safeString (entry, 'liability');
+        const interest = this.safeString (entry, 'interest');
+        account['debt'] = Precise.stringAdd (debt, interest);
         return account;
     }
 
