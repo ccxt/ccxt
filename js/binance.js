@@ -2613,7 +2613,6 @@ module.exports = class binance extends Exchange {
         let takerOrMaker = undefined;
         if (buyerMaker !== undefined) {
             side = buyerMaker ? 'sell' : 'buy'; // this is reversed intentionally
-            takerOrMaker = 'taker';
         } else if ('side' in trade) {
             side = this.safeStringLower (trade, 'side');
         } else {
