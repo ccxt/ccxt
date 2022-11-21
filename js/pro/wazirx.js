@@ -4,7 +4,7 @@
 
 const wazirxRest = require ('../wazirx');
 const { NotSupported, ExchangeError } = require ('../base/errors');
-const { ArrayCacheBySymbolById } = require ('./base/Cache');
+const { ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -20,7 +20,7 @@ module.exports = class wazirx extends wazirxRest {
                 'watchMyTrades': true,
                 'watchOrders': true,
                 'watchOrderBook': true,
-                'watchOHLCV': false,
+                'watchOHLCV': true,
             },
             'urls': {
                 'api': {
@@ -158,9 +158,10 @@ module.exports = class wazirx extends wazirxRest {
         const url = this.urls['api']['ws'];
         const messageHash = 'ticker:' + market['symbol'];
         const subscribeHash = 'tickers';
+        const stream = '!' + 'ticker@arr';
         const subscribe = {
             'event': 'subscribe',
-            'streams': [ '!' + 'ticker@arr' ],
+            'streams': [ stream ],
         };
         const request = this.deepExtend (subscribe, params);
         return await this.watch (url, messageHash, request, subscribeHash);
@@ -180,9 +181,10 @@ module.exports = class wazirx extends wazirxRest {
         symbols = this.marketSymbols (symbols);
         const url = this.urls['api']['ws'];
         const messageHash = 'tickers';
+        const stream = '!' + 'ticker@arr';
         const subscribe = {
             'event': 'subscribe',
-            'streams': [ '!ticker@arr' ],
+            'streams': [ stream ],
         };
         const request = this.deepExtend (subscribe, params);
         const tickers = await this.watch (url, messageHash, request, messageHash);
@@ -298,6 +300,97 @@ module.exports = class wazirx extends wazirxRest {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySymbolSinceLimit (trades, symbol, since, limit, true);
+    }
+
+    async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name wazirx#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the wazirx api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const url = this.urls['api']['ws'];
+        const messageHash = 'ohlcv:' + symbol + ':' + timeframe;
+        const stream = market['id'] + '@kline_' + timeframe;
+        const message = {
+            'event': 'subscribe',
+            'streams': [ stream ],
+        };
+        const request = this.deepExtend (message, params);
+        const ohlcv = await this.watch (url, messageHash, request, messageHash);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
+    handleOHLCV (client, message) {
+        //
+        //     {
+        //         "data": {
+        //           "E":1631683058904,      Event time
+        //           "s": "btcinr",          Symbol
+        //           "t": 1638747660000,     Kline start time
+        //           "T": 1638747719999,     Kline close time
+        //           "i": "1m",              Interval
+        //           "o": "0.0010",          Open price
+        //           "c": "0.0020",          Close price
+        //           "h": "0.0025",          High price
+        //           "l": "0.0015",          Low price
+        //           "v": "1000",            Base asset volume
+        //         },
+        //         "stream": "btcinr@kline_1m"
+        //     }
+        //
+        const data = this.safeValue (message, 'data', {});
+        const marketId = this.safeString (data, 's');
+        const market = this.safeMarket (marketId);
+        const symbol = this.safeSymbol (marketId, market);
+        const timeframe = this.safeString (data, 'i');
+        this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+        let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+        if (stored === undefined) {
+            const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+            stored = new ArrayCacheByTimestamp (limit);
+            this.ohlcvs[symbol][timeframe] = stored;
+        }
+        const parsed = this.parseWsOHLCV (data, market);
+        stored.append (parsed);
+        const messageHash = 'ohlcv:' + symbol + ':' + timeframe;
+        client.resolve (stored, messageHash);
+    }
+
+    parseWsOHLCV (ohlcv, market = undefined) {
+        //
+        //    {
+        //        "E":1631683058904,      Event time
+        //        "s": "btcinr",          Symbol
+        //        "t": 1638747660000,     Kline start time
+        //        "T": 1638747719999,     Kline close time
+        //        "i": "1m",              Interval
+        //        "o": "0.0010",          Open price
+        //        "c": "0.0020",          Close price
+        //        "h": "0.0025",          High price
+        //        "l": "0.0015",          Low price
+        //        "v": "1000",            Base asset volume
+        //    }
+        //
+        return [
+            this.safeInteger (ohlcv, 't'),
+            this.safeNumber (ohlcv, 'o'),
+            this.safeNumber (ohlcv, 'c'),
+            this.safeNumber (ohlcv, 'h'),
+            this.safeNumber (ohlcv, 'l'),
+            this.safeNumber (ohlcv, 'v'),
+        ];
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -567,14 +660,14 @@ module.exports = class wazirx extends wazirxRest {
             return eventHandler.call (this, client, message);
         }
         const stream = this.safeString (message, 'stream', '');
-        const tickerKey = '!' + 'ticker@arr';
         const streamHandlers = {
+            'ticker@arr': this.handleTicker,
             '@depth': this.handleOrderBook,
+            '@kline': this.handleOHLCV,
             'outboundAccountPosition': this.handleBalance,
             'orderUpdate': this.handleOrder,
             'ownTrade': this.handleMyTrades,
         };
-        streamHandlers[tickerKey] = this.handleTicker;
         const streams = Object.keys (streamHandlers);
         for (let i = 0; i < streams.length; i++) {
             if (this.inArray (streams[i], stream)) {
