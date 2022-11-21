@@ -943,7 +943,6 @@ module.exports = class Exchange {
             if ((used === undefined) && (total !== undefined) && (free !== undefined)) {
                 used = Precise.stringSub (total, free);
             }
-            balance[code]['debt'] = this.parseNumber (debt);
             balance[code]['free'] = this.parseNumber (free);
             balance[code]['used'] = this.parseNumber (used);
             balance[code]['total'] = this.parseNumber (total);
@@ -951,10 +950,12 @@ module.exports = class Exchange {
             balance['used'][code] = balance[code]['used'];
             balance['total'][code] = balance[code]['total'];
             if (debt !== undefined) {
+                balance[code]['debt'] = this.parseNumber (debt);
                 debtBalance[code] = balance[code]['debt'];
             }
         }
-        if (debtBalance.length) {
+        const debtBalanceArray = Object.keys (debtBalance);
+        if (debtBalanceArray.length) {
             balance['debt'] = debtBalance;
         }
         return balance;
