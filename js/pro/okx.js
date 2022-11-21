@@ -622,6 +622,7 @@ module.exports = class okx extends okxRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the okx api endpoint
+         * @param {bool} params.stop True if fetching trigger or conditional orders
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
