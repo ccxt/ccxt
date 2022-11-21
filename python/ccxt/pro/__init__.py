@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '2.2.3'
+__version__ = '2.2.4'
 
 # ----------------------------------------------------------------------------
 
@@ -48,6 +48,7 @@ from ccxt.pro.huobipro import huobipro                                    # noqa
 from ccxt.pro.idex import idex                                            # noqa: F401
 from ccxt.pro.kraken import kraken                                        # noqa: F401
 from ccxt.pro.kucoin import kucoin                                        # noqa: F401
+from ccxt.pro.luno import luno                                            # noqa: F401
 from ccxt.pro.mexc import mexc                                            # noqa: F401
 from ccxt.pro.ndax import ndax                                            # noqa: F401
 from ccxt.pro.okcoin import okcoin                                        # noqa: F401
@@ -95,6 +96,7 @@ exchanges = [
     'idex',
     'kraken',
     'kucoin',
+    'luno',
     'mexc',
     'ndax',
     'okcoin',
