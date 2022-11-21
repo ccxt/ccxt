@@ -192,6 +192,7 @@ module.exports = class binance extends Exchange {
                         'asset/transfer': 0.1,
                         'asset/assetDetail': 0.1,
                         'asset/tradeFee': 0.1,
+                        'asset/ledger-transfer/cloud-mining/queryByPage': 4,
                         'margin/loan': 1,
                         'margin/repay': 1,
                         'margin/account': 1,
@@ -263,6 +264,7 @@ module.exports = class binance extends Exchange {
                         'sub-account/sub/transfer/history': 0.1,
                         'sub-account/transfer/subUserHistory': 0.1,
                         'sub-account/universalTransfer': 0.1,
+                        'sub-account/apiRestrictions/ipRestriction/thirdPartyList': 1,
                         'managed-subaccount/asset': 0.1,
                         'managed-subaccount/accountSnapshot': 240,
                         // lending endpoints
@@ -383,6 +385,8 @@ module.exports = class binance extends Exchange {
                         'sub-account/transfer/subToSub': 0.1,
                         'sub-account/transfer/subToMaster': 0.1,
                         'sub-account/universalTransfer': 0.1,
+                        // v2 not supported yet
+                        // 'sub-account/subAccountApi/ipRestriction': 20,
                         'managed-subaccount/deposit': 0.1,
                         'managed-subaccount/withdraw': 0.1,
                         'userDataStream': 0.1,
@@ -674,6 +678,7 @@ module.exports = class binance extends Exchange {
                         'trades': 5,
                         'historicalTrades': 20,
                         'exerciseHistory': 3,
+                        'openInterest': 3,
                     },
                 },
                 'eapiPrivate': {
