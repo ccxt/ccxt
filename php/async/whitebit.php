@@ -1027,7 +1027,7 @@ class whitebit extends Exchange {
             $postOnly = $this->is_post_only($isMarketOrder, false, $params);
             list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
             if ($postOnly) {
-                throw new NotSupported($this->id . ' createOrder() does not support $postOnly orders.');
+                $request['postOnly'] = true;
             }
             $method = null;
             if ($isStopOrder) {
