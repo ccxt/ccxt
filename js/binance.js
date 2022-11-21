@@ -91,6 +91,8 @@ module.exports = class binance extends Exchange {
                 'fetchTradingLimits': undefined,
                 'fetchTransactionFee': undefined,
                 'fetchTransactionFees': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchTransactions': false,
                 'fetchTransfers': true,
                 'fetchWithdrawal': false,
@@ -4406,7 +4408,7 @@ module.exports = class binance extends Exchange {
         /**
          * @method
          * @name binance#fetchTransactionFees
-         * @description fetch transaction fees
+         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
          * @param {[string]|undefined} codes not used by binance fetchTransactionFees ()
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
@@ -4514,6 +4516,123 @@ module.exports = class binance extends Exchange {
             'deposit': {},
             'info': response,
         };
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @param {[string]|undefined} codes not used by binance fetchDepositWithdrawFees ()
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.sapiGetCapitalConfigGetall (params);
+        //
+        //    [
+        //        {
+        //            coin: 'BAT',
+        //            depositAllEnable: true,
+        //            withdrawAllEnable: true,
+        //            name: 'Basic Attention Token',
+        //            free: '0',
+        //            locked: '0',
+        //            freeze: '0',
+        //            withdrawing: '0',
+        //            ipoing: '0',
+        //            ipoable: '0',
+        //            storage: '0',
+        //            isLegalMoney: false,
+        //            trading: true,
+        //            networkList: [
+        //                {
+        //                    network: 'BNB',
+        //                    coin: 'BAT',
+        //                    withdrawIntegerMultiple: '0.00000001',
+        //                    isDefault: false,
+        //                    depositEnable: true,
+        //                    withdrawEnable: true,
+        //                    depositDesc: '',
+        //                    withdrawDesc: '',
+        //                    specialTips: 'The name of this asset is Basic Attention Token (BAT). Both a MEMO and an Address are required to successfully deposit your BEP2 tokens to Binance.',
+        //                    name: 'BEP2',
+        //                    resetAddressStatus: false,
+        //                    addressRegex: '^(bnb1)[0-9a-z]{38}$',
+        //                    memoRegex: '^[0-9A-Za-z\\-_]{1,120}$',
+        //                    withdrawFee: '0.27',
+        //                    withdrawMin: '0.54',
+        //                    withdrawMax: '10000000000',
+        //                    minConfirm: '1',
+        //                    unLockConfirm: '0'
+        //                },
+        //                ...
+        //            ]
+        //        }
+        //    ]
+        //
+        return this.parseDepositWithdrawFees (response, codes, 'coin');
+    }
+
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        //
+        //    {
+        //        coin: 'BAT',
+        //        depositAllEnable: true,
+        //        withdrawAllEnable: true,
+        //        name: 'Basic Attention Token',
+        //        free: '0',
+        //        locked: '0',
+        //        freeze: '0',
+        //        withdrawing: '0',
+        //        ipoing: '0',
+        //        ipoable: '0',
+        //        storage: '0',
+        //        isLegalMoney: false,
+        //        trading: true,
+        //        networkList: [
+        //            {
+        //                network: 'BNB',
+        //                coin: 'BAT',
+        //                withdrawIntegerMultiple: '0.00000001',
+        //                isDefault: false,
+        //                depositEnable: true,
+        //                withdrawEnable: true,
+        //                depositDesc: '',
+        //                withdrawDesc: '',
+        //                specialTips: 'The name of this asset is Basic Attention Token (BAT). Both a MEMO and an Address are required to successfully deposit your BEP2 tokens to Binance.',
+        //                name: 'BEP2',
+        //                resetAddressStatus: false,
+        //                addressRegex: '^(bnb1)[0-9a-z]{38}$',
+        //                memoRegex: '^[0-9A-Za-z\\-_]{1,120}$',
+        //                withdrawFee: '0.27',
+        //                withdrawMin: '0.54',
+        //                withdrawMax: '10000000000',
+        //                minConfirm: '1',
+        //                unLockConfirm: '0'
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        const networkList = this.safeValue (fee, 'networkList', []);
+        const result = this.depositWithdrawFee ();
+        for (let j = 0; j < networkList.length; j++) {
+            const networkEntry = networkList[j];
+            const networkId = this.safeString (networkEntry, 'network');
+            const networkCode = this.safeCurrencyCode (networkId);
+            result['networks'][networkCode] = {
+                'withdraw': {
+                    'fee': this.safeNumber (networkEntry, 'withdrawFee'),
+                    'percentage': undefined,
+                },
+                'deposit': {
+                    'fee': undefined,
+                    'percentage': undefined,
+                },
+            };
+        }
+        return result;
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
