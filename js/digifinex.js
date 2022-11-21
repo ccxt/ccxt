@@ -969,8 +969,8 @@ module.exports = class digifinex extends Exchange {
         //     }
         //
         const marketId = this.safeStringUpper2 (ticker, 'symbol', 'instrument_id');
-        const symbol = this.safeSymbol (marketId, market, '_');
-        market = this.safeMarket (symbol);
+        const symbol = this.safeSymbol (marketId, market);
+        market = this.safeMarket (marketId);
         let timestamp = this.safeTimestamp (ticker, 'date');
         if (market['swap']) {
             timestamp = this.safeInteger (ticker, 'timestamp');
