@@ -962,7 +962,10 @@ module.exports = class Exchange {
         return balance;
     }
 
-    safeOrder (order, market = undefined) {
+    safeOrder (order, market = undefined, parseTrade = undefined) {
+        if (parseTrade === undefined) {
+            parseTrade = this.parseTrade
+        }
         // parses numbers as strings
         // it is important pass the trades as unparsed rawTrades
         let amount = this.omitZero (this.safeString (order, 'amount'));
@@ -991,7 +994,7 @@ module.exports = class Exchange {
                 'side': order['side'],
                 'type': order['type'],
                 'order': order['id'],
-            });
+            }, parseTrade);
             this.number = oldNumber;
             let tradesLength = 0;
             const isArray = Array.isArray (trades);
@@ -1725,11 +1728,14 @@ module.exports = class Exchange {
         return result;
     }
 
-    parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}) {
+    parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}, parseTrade = undefined) {
+        if (parseTrade === undefined) {
+            parseTrade = this.parseTrade;
+        }
         trades = this.toArray (trades);
         let result = [];
         for (let i = 0; i < trades.length; i++) {
-            const trade = this.extend (this.parseTrade (trades[i], market), params);
+            const trade = this.extend (parseTrade (trades[i], market), params);
             result.push (trade);
         }
         result = this.sortBy2 (result, 'timestamp', 'id');
