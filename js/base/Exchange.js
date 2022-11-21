@@ -964,7 +964,7 @@ module.exports = class Exchange {
 
     safeOrder (order, market = undefined, parseTrade = undefined) {
         if (parseTrade === undefined) {
-            parseTrade = this.parseTrade
+            parseTrade = this.parseTrade;
         }
         // parses numbers as strings
         // it is important pass the trades as unparsed rawTrades
