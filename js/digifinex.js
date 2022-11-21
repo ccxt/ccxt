@@ -27,6 +27,8 @@ module.exports = class digifinex extends Exchange {
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
+                'createPostOnlyOrder': true,
+                'createReduceOnlyOrder': true,
                 'createStopLimitOrder': false,
                 'createStopMarketOrder': false,
                 'createStopOrder': false,
@@ -778,9 +780,9 @@ module.exports = class digifinex extends Exchange {
         }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         const method = this.getSupportedMapping (marketType, {
-            'spot': 'spotPublicGetPublicGetTicker',
-            'future': 'derivativesPublicGetPublicGetTickers',
-            'swap': 'derivativesPublicGetPublicGetTickers',
+            'spot': 'publicSpotGetTicker',
+            'future': 'publicSwapGetPublicTickers',
+            'swap': 'publicSwapGetPublicTickers',
         });
         const response = await this[method] (query);
         // spot
@@ -827,18 +829,22 @@ module.exports = class digifinex extends Exchange {
         //      }]
         //     }
         //
-        const result = {};
-        const tickers = this.safeValue (response, 'ticker', []);
-        const date = this.safeInteger (response, 'date');
-        for (let i = 0; i < tickers.length; i++) {
-            const rawTicker = this.extend ({
-                'date': date,
-            }, tickers[i]);
-            const ticker = this.parseTicker (rawTicker);
-            const symbol = ticker['symbol'];
-            result[symbol] = ticker;
+        let result = {};
+        if (marketType === 'spot') {
+            const tickers = this.safeValue (response, 'ticker', []);
+            const date = this.safeInteger (response, 'date');
+            for (let i = 0; i < tickers.length; i++) {
+                const rawTicker = this.extend ({
+                    'date': date,
+                }, tickers[i]);
+                const ticker = this.parseTicker (rawTicker);
+                const symbol = ticker['symbol'];
+                result[symbol] = ticker;
+            }
+            return this.filterByArray (result, 'symbol', symbols);
         }
-        return this.filterByArray (result, 'symbol', symbols);
+        result = this.safeValue (response, 'data');
+        return this.parseTickers (result, symbols);
     }
 
     async fetchTicker (symbol, params = {}) {
@@ -867,8 +873,8 @@ module.exports = class digifinex extends Exchange {
         }
         const method = this.getSupportedMapping (marketType, {
             'spot': 'publicSpotGetTicker',
-            'future': 'publicSpotGetTicker',
-            'swap': 'publicSpotGetTicker',
+            'future': 'publicSwapGetPublicTicker',
+            'swap': 'publicSwapGetPublicTicker',
         });
         const response = await this[method] (this.extend (request, query));
         //
@@ -914,10 +920,15 @@ module.exports = class digifinex extends Exchange {
         //         }
         //     }
         //
-        const date = this.safeInteger (response, 'date');
-        const tickers = this.safeValue (response, 'ticker', []);
-        const firstTicker = this.safeValue (tickers, 0, {});
-        const result = this.extend ({ 'date': date }, firstTicker);
+        let result = undefined;
+        if (marketType === 'spot') {
+            const date = this.safeInteger (response, 'date');
+            const tickers = this.safeValue (response, 'ticker', []);
+            const firstTicker = this.safeValue (tickers, 0, {});
+            result = this.extend ({ 'date': date }, firstTicker);
+        } else {
+            result = this.safeValue (response, 'data');
+        }
         return this.parseTicker (result, market);
     }
 
@@ -961,18 +972,21 @@ module.exports = class digifinex extends Exchange {
         //         "timestamp": 1668440426119
         //     }
         //
-        const marketId = this.safeStringUpper (ticker, 'symbol');
-        // TODO: If '_' in symbolId
+        let timestamp = undefined;
+        const marketId = this.safeStringUpper2 (ticker, 'symbol', 'instrument_id');
         const symbol = this.safeSymbol (marketId, market, '_');
-        const timestamp = this.safeTimestamp (ticker, 'date', '');
+        timestamp = this.safeInteger (ticker, 'timestamp');
+        if (timestamp === undefined) {
+            timestamp = this.safeTimestamp (ticker, 'date');
+        }
         const last = this.safeString (ticker, 'last');
         const percentage = this.safeString2 (ticker, 'change', 'price_change_percent');
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'high': this.safeString2 (ticker, 'high'),
-            'low': this.safeString2 (ticker, 'low'),
+            'high': this.safeString2 (ticker, 'high', 'high_24h'),
+            'low': this.safeString2 (ticker, 'low', 'low_24h'),
             'bid': this.safeString2 (ticker, 'buy', 'best_bid'),
             'bidVolume': this.safeString (ticker, 'best_bid_size'),
             'ask': this.safeString2 (ticker, 'sell', 'best_ask'),
@@ -982,11 +996,11 @@ module.exports = class digifinex extends Exchange {
             'close': last,
             'last': last,
             'previousClose': undefined,
-            'change': undefined,
+            'change': this.safeString (ticker, 'price_change_percent'),
             'percentage': percentage,
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'vol'),
-            'quoteVolume': this.safeString (ticker, 'base_vol'),
+            'quoteVolume': this.safeString2 (ticker, 'base_vol', 'volume_24h'),
             'info': ticker,
         }, market);
     }
