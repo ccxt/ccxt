@@ -2852,9 +2852,12 @@ module.exports = class Exchange {
         };
         codes = this.marketCodes (codes);
         const isArray = Array.isArray (response);
-        const array = isArray ? response : Object.keys (response);
-        for (let i = 0; i < array.length; i++) {
-            const entry = array[i];
+        let responseKeys = response;
+        if (!isArray) {
+            responseKeys = Object.keys (response);
+        }
+        for (let i = 0; i < responseKeys.length; i++) {
+            const entry = responseKeys[i];
             const dictionary = isArray ? entry : response[entry];
             const currencyId = isArray ? this.safeString (dictionary, currencyIdKey) : entry;
             const currency = this.safeValue (this.currencies_by_id, currencyId);
