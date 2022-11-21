@@ -17,7 +17,8 @@ module.exports = async (exchange, symbol) => {
     // we have to skip some exchanges here due to the frequency of trading
     const skippedExchanges = [
         'ripio',
-        'mexc'
+        'mexc',
+        'woo'
     ]
 
     if (skippedExchanges.includes (exchange.id)) {

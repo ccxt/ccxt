@@ -24,7 +24,8 @@ module.exports = async (exchange, symbol) => {
         'idex2', // rinkeby testnet, trades too rare
         'ripio',
         'zipmex',
-        'coinflex' // to illiquid
+        'coinflex', // to illiquid
+        'woo'
     ]
 
     if (skippedExchanges.includes (exchange.id)) {
