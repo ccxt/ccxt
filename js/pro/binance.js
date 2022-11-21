@@ -94,13 +94,25 @@ module.exports = class binance extends binanceRest {
             const streamLimit = this.safeInteger (streamLimits, type);
             streamIndex = streamIndex + 1;
             if (streamIndex === streamLimit) {
-                streamIndex = -1;
+                streamIndex = 0;
             }
             this.options['streamIndex'] = streamIndex;
             stream = this.numberToString (streamIndex);
             streamBySubscriptionsHash[subscriptionHash] = stream;
         }
         return stream;
+    }
+
+    onError (client, error) {
+        this.options['streamBySubscriptionsHash'] = {};
+        this.options['streamIndex'] = -1;
+        super.onError (client, error);
+    }
+
+    onClose (client, error) {
+        this.options['streamBySubscriptionsHash'] = {};
+        this.options['streamIndex'] = -1;
+        super.onClose (client, error);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
