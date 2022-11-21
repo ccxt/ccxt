@@ -2867,8 +2867,9 @@ module.exports = class Exchange {
         return depositWithdrawFees;
     }
 
-    depositWithdrawFee () {
+    depositWithdrawFee (info) {
         return {
+            'info': info,
             'withdraw': {
                 'fee': undefined,
                 'percentage': undefined,
