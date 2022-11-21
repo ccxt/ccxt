@@ -5,6 +5,7 @@
 const lunoRest = require ('../luno');
 const { ExchangeError } = require ('../base/errors');
 const { ArrayCache } = require ('./base/Cache');
+const Precise = require("../base/Precise");
 
 //  ---------------------------------------------------------------------------
 
@@ -13,7 +14,6 @@ module.exports = class luno extends lunoRest {
         return this.deepExtend (super.describe (), {
             'has': {
                 'ws': true,
-                'watchBalance': undefined, // is in beta
                 'watchTicker': false,
                 'watchTickers': false,
                 'watchTrades': true,
@@ -54,6 +54,7 @@ module.exports = class luno extends lunoRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const subscriptionHash = '/stream/' + market['id'];
+        const subscription = { 'symbol': symbol };
         const url = this.urls['api']['ws'] + subscriptionHash;
         const messageHash = 'trades:' + symbol;
         const subscribe = {
@@ -61,14 +62,14 @@ module.exports = class luno extends lunoRest {
             'api_key_secret': this.secret,
         };
         const request = this.deepExtend (subscribe, params);
-        const trades = await this.watch (url, messageHash, request, subscriptionHash);
+        const trades = await this.watch (url, messageHash, request, subscriptionHash, subscription);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
         }
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    handleTrades (client, message) {
+    handleTrades (client, message, subscription) {
         //
         //     {
         //         sequence: '110980825',
@@ -84,13 +85,13 @@ module.exports = class luno extends lunoRest {
         //         timestamp: 1660598775360
         //     }
         //
-        const rawTrades = this.safeValue (message, 'trade_updates');
-        if (rawTrades === undefined) {
+        const rawTrades = this.safeValue (message, 'trade_updates', []);
+        const length = rawTrades.length;
+        if (length === 0) {
             return;
         }
-        const url = client['url'];
-        const marketId = url.slice (31);
-        const symbol = this.safeSymbol (marketId);
+        const symbol = subscription['symbol'];
+        const market = this.market (symbol);
         const messageHash = 'trades:' + symbol;
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
@@ -100,12 +101,41 @@ module.exports = class luno extends lunoRest {
         }
         for (let i = 0; i < rawTrades.length; i++) {
             const rawTrade = rawTrades[i];
-            const market = this.safeMarket (marketId);
             const trade = this.parseTrade (rawTrade, market);
             stored.append (trade);
         }
         this.trades[symbol] = stored;
         client.resolve (this.trades[symbol], messageHash);
+    }
+
+    parseTrade (trade, market) {
+        //
+        // watchTrades (public)
+        //
+        //     {
+        //       "base": "69.00000000",
+        //       "counter": "113.6499000000000000",
+        //       "maker_order_id": "BXEEU4S2BWF5WRB",
+        //       "taker_order_id": "BXKNCSF7JDHXY3H",
+        //       "order_id": "BXEEU4S2BWF5WRB"
+        //     }
+        //
+        return this.safeTrade ({
+            'info': trade,
+            'id': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'symbol': market['symbol'],
+            'order': undefined,
+            'type': undefined,
+            'side': undefined,
+            // takerOrMaker has no meaning for public trades
+            'takerOrMaker': undefined,
+            'price': undefined,
+            'amount': this.safeString (trade, 'base'),
+            'cost': this.safeString (trade, 'counter'),
+            'fee': undefined,
+        }, market);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -124,6 +154,7 @@ module.exports = class luno extends lunoRest {
         const market = this.market (symbol);
         symbol = market['symbol'];
         const subscriptionHash = '/stream/' + market['id'];
+        const subscription = { 'symbol': symbol };
         const url = this.urls['api']['ws'] + subscriptionHash;
         const messageHash = 'orderbook:' + symbol;
         const subscribe = {
@@ -131,11 +162,11 @@ module.exports = class luno extends lunoRest {
             'api_key_secret': this.secret,
         };
         const request = this.deepExtend (subscribe, params);
-        const orderbook = await this.watch (url, messageHash, request, subscriptionHash);
+        const orderbook = await this.watch (url, messageHash, request, subscriptionHash, subscription);
         return orderbook.limit (limit);
     }
 
-    handleOrderBook (client, message) {
+    handleOrderBook (client, message, subscription) {
         //
         //     {
         //         "sequence": "24352",
@@ -168,9 +199,7 @@ module.exports = class luno extends lunoRest {
         //         timestamp: 1660598775360
         //     }
         //
-        const url = client['url'];
-        const marketId = url.slice (31);
-        const symbol = this.safeSymbol (marketId);
+        const symbol = subscription['symbol'];
         const messageHash = 'orderbook:' + symbol;
         const timestamp = this.safeString (message, 'timestamp');
         let storedOrderBook = this.safeValue (this.orderbooks, symbol);
@@ -187,6 +216,8 @@ module.exports = class luno extends lunoRest {
             storedOrderBook['timestamp'] = timestamp;
             storedOrderBook['datetime'] = this.iso8601 (timestamp);
         }
+        const nonce = this.safeInteger (message, 'sequence');
+        storedOrderBook['nonce'] = nonce;
         client.resolve (storedOrderBook, messageHash);
     }
 
@@ -288,38 +319,15 @@ module.exports = class luno extends lunoRest {
         return message;
     }
 
-    checkSequenceNumber (client, message) {
-        const currentNumber = this.safeNumber (message, 'sequence', 0);
-        const url = client['url'];
-        const sequenceNumbers = this.options['sequenceNumbers'];
-        const lastSequenceNumber = this.safeNumber (sequenceNumbers, url);
-        if (lastSequenceNumber !== undefined && currentNumber !== lastSequenceNumber + 1) {
-            throw new ExchangeError (this.id + ' receieved an invalid sequence number');
-        }
-        this.options['sequenceNumbers'][url] = currentNumber;
-        return message;
-    }
-
     handleMessage (client, message) {
         if (message === '') {
             return;
         }
-        this.checkSequenceNumber (client, message);
-        const url = client['url'];
-        const handlers = {
-            '/stream': [ this.handleOrderBook, this.handleTrades ],
-        };
-        const keys = Object.keys (handlers);
-        for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            const index = url.indexOf (key);
-            if (index > 0) {
-                const handlerArray = handlers[key];
-                for (let j = 0; j < handlerArray.length; j++) {
-                    const handler = handlerArray[j];
-                    handler.call (this, client, message);
-                }
-            }
+        const subscriptions = Object.values (client.subscriptions);
+        const handlers = [ this.handleOrderBook, this.handleTrades ];
+        for (let j = 0; j < handlers.length; j++) {
+            const handler = handlers[j];
+            handler.call (this, client, message, subscriptions[0]);
         }
         return message;
     }
