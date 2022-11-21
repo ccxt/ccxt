@@ -356,15 +356,8 @@ const testHelper = require('../../run-tests-helper.js');
 
 function writePassedTestHash (exchange) {
     const md5Checksum = testHelper.getExistingExchangeContentMd5 ('js', exchange.id);
-    
-    const passedTestsHashBaseDir = __dirname + '/../../.passed-tests-hashes';
-    const passedTestsHashLangDir = passedTestsHashBaseDir + '/js';
-    // write it in temp-file
-    if (!fs.existsSync (passedTestsHashLangDir)) {
-        fs.mkdirSync (passedTestsHashLangDir, { recursive: true });
-    }
-    const passedTestHashFile = passedTestsHashLangDir + '/' + exchange.id;
-    fs.writeFileSync(passedTestHashFile, md5Checksum);
+    const hashFilePath = testHelper.getExchangeHashFilePath ('js', exchange.id);
+    fs.writeFileSync(hashFilePath, md5Checksum);
 }
 
 //-----------------------------------------------------------------------------
