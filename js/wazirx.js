@@ -127,6 +127,18 @@ module.exports = class wazirx extends Exchange {
                     '94001': InvalidOrder, // {"code":94001,"message":"Stop price not found."}
                 },
             },
+            'timeframes': {
+                '1m': '1m',
+                '5m': '5m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '1d',
+                '1w': '1w',
+            },
             'options': {
                 // 'fetchTradesMethod': 'privateGetHistoricalTrades',
                 'recvWindow': 10000,
@@ -263,21 +275,17 @@ module.exports = class wazirx extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const maxLimit = 2000;
-        const defaultLimit = 500;
-        if (limit > maxLimit) {
-            throw new BadRequest (this.id + ' fetchOHLCV limit argument must be <= ' + maxLimit);
-        }
         const request = {
             'symbol': market['id'],
-            'limit': limit,
-            'interval': timeframe,
+            'interval': this.timeframes[timeframe],
         };
-        limit = (limit === undefined) ? defaultLimit : Math.min (limit, maxLimit);
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, [ 'until' ]);
         if (since !== undefined) {
-            request['startTime'] = since * 1000;
+            request['startTime'] = parseInt (since / 1000);
         }
         if (until !== undefined) {
             request['endTime'] = until;
