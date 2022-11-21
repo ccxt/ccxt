@@ -2779,7 +2779,7 @@ class Exchange(object):
                 if error:
                     raise AuthenticationError(self.id + ' requires "' + key + '" credential')
                 else:
-                    return error
+                    return False
         return True
 
     def oath(self):

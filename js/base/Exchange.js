@@ -2009,7 +2009,7 @@ module.exports = class Exchange {
                 if (error) {
                     throw new AuthenticationError (this.id + ' requires "' + key + '" credential');
                 } else {
-                    return error;
+                    return false;
                 }
             }
         }
