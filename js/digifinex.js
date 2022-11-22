@@ -1109,7 +1109,7 @@ module.exports = class digifinex extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
-        // fetchTrades (public)
+        // fetchTrades (spot)
         //
         //     {
         //         "date":1564520003,
@@ -1119,7 +1119,18 @@ module.exports = class digifinex extends Exchange {
         //         "price":0.02193,
         //     }
         //
-        // fetchMyTrades (private)
+        // fetchTrades (swap)
+        //
+        //     {
+        //         "instrument_id": "BTCUSDTPERP",
+        //         "trade_id": "1595190773677035521",
+        //         "direction": "4",
+        //         "volume": "4",
+        //         "price": "16188.3",
+        //         "trade_time": 1669158092314
+        //     }
+        //
+        // fetchMyTrades (spot)
         //
         //     {
         //         "symbol": "BTC_USDT",
@@ -1134,27 +1145,46 @@ module.exports = class digifinex extends Exchange {
         //         "is_maker": true
         //     }
         //
-        const id = this.safeString (trade, 'id');
+        const id = this.safeString2 (trade, 'id', 'trade_id');
         const orderId = this.safeString (trade, 'order_id');
-        const timestamp = this.safeTimestamp2 (trade, 'date', 'timestamp');
-        let side = this.safeString2 (trade, 'type', 'side');
-        const parts = side.split ('_');
-        side = this.safeString (parts, 0);
-        const type = this.safeString (parts, 1);
         const priceString = this.safeString (trade, 'price');
-        const amountString = this.safeString (trade, 'amount');
-        const marketId = this.safeString (trade, 'symbol');
-        const symbol = this.safeSymbol (marketId, market, '_');
-        const takerOrMaker = this.safeValue (trade, 'is_maker');
-        const feeCostString = this.safeString (trade, 'fee');
+        const amountString = this.safeString2 (trade, 'amount', 'volume');
+        const marketId = this.safeStringUpper2 (trade, 'symbol', 'instrument_id');
+        const symbol = this.safeSymbol (marketId, market);
+        if (market === undefined) {
+            market = this.safeMarket (marketId);
+        }
+        let timestamp = this.safeTimestamp2 (trade, 'date', 'timestamp');
+        let side = this.safeString2 (trade, 'type', 'side');
+        let type = undefined;
+        let takerOrMaker = undefined;
         let fee = undefined;
-        if (feeCostString !== undefined) {
-            const feeCurrencyId = this.safeString (trade, 'fee_currency');
-            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
-            fee = {
-                'cost': feeCostString,
-                'currency': feeCurrencyCode,
-            };
+        if (market['type'] === 'swap') {
+            timestamp = this.safeInteger (trade, 'trade_time');
+            const direction = this.safeInteger (trade, 'direction');
+            if (direction === 1) {
+                side = 'open long';
+            } else if (direction === 2) {
+                side = 'open short';
+            } else if (direction === 3) {
+                side = 'close long';
+            } else if (direction === 4) {
+                side = 'close short';
+            }
+        } else {
+            const parts = side.split ('_');
+            side = this.safeString (parts, 0);
+            type = this.safeString (parts, 1);
+            takerOrMaker = this.safeValue (trade, 'is_maker');
+            const feeCostString = this.safeString (trade, 'fee');
+            if (feeCostString !== undefined) {
+                const feeCurrencyId = this.safeString (trade, 'fee_currency');
+                const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
+                fee = {
+                    'cost': feeCostString,
+                    'currency': feeCurrencyCode,
+                };
+            }
         }
         return this.safeTrade ({
             'id': id,
@@ -1222,6 +1252,8 @@ module.exports = class digifinex extends Exchange {
          * @method
          * @name digifinex#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-recent-trades
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#recenttrades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
@@ -1230,13 +1262,20 @@ module.exports = class digifinex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit; // default 100, max 500
+        let method = 'publicSpotGetTrades';
+        const request = {};
+        if (market['swap']) {
+            method = 'publicSwapGetPublicTrades';
+            request['instrument_id'] = market['id'];
+        } else {
+            request['symbol'] = market['id'];
         }
-        const response = await this.publicSpotGetTrades (this.extend (request, params));
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
         //
         //     {
         //         "data":[
@@ -1257,6 +1296,23 @@ module.exports = class digifinex extends Exchange {
         //         ],
         //         "code": 0,
         //         "date": 1564520003,
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "instrument_id": "BTCUSDTPERP",
+        //                 "trade_id": "1595190773677035521",
+        //                 "direction": "4",
+        //                 "volume": "4",
+        //                 "price": "16188.3",
+        //                 "trade_time": 1669158092314
+        //             },
+        //             ...
+        //         ]
         //     }
         //
         const data = this.safeValue (response, 'data', []);
