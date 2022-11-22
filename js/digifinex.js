@@ -794,6 +794,8 @@ module.exports = class digifinex extends Exchange {
          * @method
          * @name digifinex#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-orderbook
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#orderbook
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the digifinex api endpoint
@@ -801,13 +803,22 @@ module.exports = class digifinex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit; // default 10, max 150
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchOrderBook', market, params);
+        const request = {};
+        let method = undefined;
+        if (marketType === 'swap') {
+            method = 'publicSwapGetPublicDepth';
+            request['instrument_id'] = market['id'];
+        } else {
+            method = 'publicSpotGetOrderBook';
+            request['symbol'] = market['id'];
         }
-        const response = await this.publicSpotGetOrderBook (this.extend (request, params));
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const response = await this[method] (this.extend (request, query));
+        //
+        // spot
         //
         //     {
         //         "bids": [
@@ -824,8 +835,36 @@ module.exports = class digifinex extends Exchange {
         //         "code":0
         //     }
         //
-        const timestamp = this.safeTimestamp (response, 'date');
-        return this.parseOrderBook (response, market['symbol'], timestamp);
+        // swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "instrument_id": "BTCUSDTPERP",
+        //             "timestamp": 1667975290425,
+        //             "asks": [
+        //                 ["18384.7",3492],
+        //                 ["18402.7",5000],
+        //                 ["18406.7",5000],
+        //             ],
+        //             "bids": [
+        //                 ["18366.2",4395],
+        //                 ["18364.3",3070],
+        //                 ["18359.4",5000],
+        //             ]
+        //         }
+        //     }
+        //
+        let timestamp = undefined;
+        let orderBook = undefined;
+        if (marketType === 'swap') {
+            orderBook = this.safeValue (response, 'data', {});
+            timestamp = this.safeInteger (orderBook, 'timestamp');
+        } else {
+            orderBook = response;
+            timestamp = this.safeTimestamp (response, 'date');
+        }
+        return this.parseOrderBook (orderBook, market['symbol'], timestamp);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
