@@ -2102,11 +2102,11 @@ module.exports = class Exchange {
     handleSubTypeAndParams (methodName, market = undefined, params = {}) {
         let subType = undefined;
         // if set in params, it takes precedence
-        const subTypeInParams = this.safeString2 (params, 'subType', 'defaultSubType');
-        // if it was present, set it as final value
+        const subTypeInParams = this.safeString2 (params, 'subType', 'subType');
+        // avoid omitting if it's not present
         if (subTypeInParams !== undefined) {
             subType = subTypeInParams;
-            params = this.omit (params, [ 'subType', 'defaultSubType' ]);
+            params = this.omit (params, [ 'defaultSubType', 'subType' ]);
         } else {
             // at first, check from market object
             if (market !== undefined) {
