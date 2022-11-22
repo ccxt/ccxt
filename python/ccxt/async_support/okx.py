@@ -2351,7 +2351,7 @@ class okx(Exchange):
         clientOrderId = self.safe_string(order, 'clOrdId')
         if (clientOrderId is not None) and (len(clientOrderId) < 1):
             clientOrderId = None  # fix empty clientOrderId string
-        stopPrice = self.safe_number_n(order, ['triggerPx', 'slTriggerPx', 'tpTriggerPx'])
+        stopPrice = self.safe_number_n(order, ['tpTriggerPx', 'triggerPx', 'slTriggerPx'])
         reduceOnly = self.safe_string(order, 'reduceOnly')
         if reduceOnly is not None:
             reduceOnly = (reduceOnly == 'true')
