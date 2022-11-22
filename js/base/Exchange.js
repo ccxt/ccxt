@@ -2118,8 +2118,9 @@ module.exports = class Exchange {
             }
             // if it was not defined in market object
             if (subType === undefined) {
-                const values = this.handleOptionAndParams (undefined, methodName, 'subType', 'linear');
-                subType = values[0];
+                const exchangeWideValue = this.safeString2 (this.options, 'defaultSubType', 'subType', 'linear');
+                const methodOptions = this.safeValue (this.options, methodName, {});
+                subType = this.safeString2 (methodOptions, 'defaultSubType', 'subType', exchangeWideValue);
             }
         }
         return [ subType, params ];
