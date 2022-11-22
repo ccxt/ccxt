@@ -5918,7 +5918,7 @@ class binance(Exchange):
         :param dict params: extra parameters specific to the binance api endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
         """
-        marginMode = self.safe_string(params, 'marginMode')  # cross or isolated
+        marginMode, query = self.handle_margin_mode_and_params('repayMargin', params)  # cross or isolated
         self.check_required_margin_argument('repayMargin', symbol, marginMode)
         self.load_markets()
         currency = self.currency(code)
@@ -5930,8 +5930,7 @@ class binance(Exchange):
             market = self.market(symbol)
             request['symbol'] = market['id']
             request['isIsolated'] = 'TRUE'
-        params = self.omit(params, 'marginMode')
-        response = self.sapiPostMarginRepay(self.extend(request, params))
+        response = self.sapiPostMarginRepay(self.extend(request, query))
         #
         #     {
         #         "tranId": 108988250265,
@@ -5950,8 +5949,7 @@ class binance(Exchange):
         :param dict params: extra parameters specific to the binance api endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
         """
-        marginMode = self.safe_string(params, 'marginMode')  # cross or isolated
-        params = self.omit(params, 'marginMode')
+        marginMode, query = self.handle_margin_mode_and_params('borrowMargin', params)  # cross or isolated
         self.check_required_margin_argument('borrowMargin', symbol, marginMode)
         self.load_markets()
         currency = self.currency(code)
@@ -5963,7 +5961,7 @@ class binance(Exchange):
             market = self.market(symbol)
             request['symbol'] = market['id']
             request['isIsolated'] = 'TRUE'
-        response = self.sapiPostMarginLoan(self.extend(request, params))
+        response = self.sapiPostMarginLoan(self.extend(request, query))
         #
         #     {
         #         "tranId": 108988250265,
