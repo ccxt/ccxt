@@ -15,6 +15,7 @@ class cex extends Exchange {
             'name' => 'CEX.IO',
             'countries' => array( 'GB', 'EU', 'CY', 'RU' ),
             'rateLimit' => 1500,
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
@@ -293,7 +294,7 @@ class cex extends Exchange {
                 'active' => $active,
                 'deposit' => null,
                 'withdraw' => null,
-                'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'precision'))),
+                'precision' => $this->parse_number($this->safe_string($currency, 'precision')),
                 'fee' => null,
                 'limits' => array(
                     'amount' => array(

@@ -423,7 +423,7 @@ class bybit(Exchange, ccxt.async_support.bybit):
                 timestamp = int(timestamp) if (timestamp is not None) else None
         marketId = self.safe_string_2(ticker, 'symbol', 's')
         symbol = self.safe_symbol(marketId, market)
-        last = self.safe_string_n(ticker, ['l', 'last_price', 'lastPrice'])
+        last = self.safe_string_n(ticker, ['c', 'last_price', 'lastPrice'])
         open = self.safe_string_n(ticker, ['prev_price_24h', 'o', 'prevPrice24h'])
         quoteVolume = self.safe_string_n(ticker, ['v', 'turnover24h'])
         if quoteVolume is None:

@@ -2752,13 +2752,13 @@ module.exports = class bybit extends Exchange {
         if (isBuyerMaker !== undefined) {
             // if public response
             takerOrMaker = 'taker'; // public trades are always taker
-            side = isBuyerMaker === 1 ? 'buy' : 'sell';
+            side = (isBuyerMaker === 1) ? 'buy' : 'sell';
         } else {
             // if private response
             const isBuyer = this.safeInteger (trade, 'isBuyer');
             const isMaker = this.safeInteger (trade, 'isMaker');
-            takerOrMaker = isMaker === 1 ? 'maker' : 'taker';
-            side = isBuyer === 1 ? 'buy' : 'sell';
+            takerOrMaker = (isMaker === 1) ? 'maker' : 'taker';
+            side = (isBuyer === 1) ? 'buy' : 'sell';
         }
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);

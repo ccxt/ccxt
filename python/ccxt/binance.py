@@ -215,6 +215,7 @@ class binance(Exchange):
                         'asset/transfer': 0.1,
                         'asset/assetDetail': 0.1,
                         'asset/tradeFee': 0.1,
+                        'asset/ledger-transfer/cloud-mining/queryByPage': 4,
                         'margin/loan': 1,
                         'margin/repay': 1,
                         'margin/account': 1,
@@ -250,6 +251,8 @@ class binance(Exchange):
                         'loan/loanable/data': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/collateral/data': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/repay/collateral/rate': 600,  # Weight(IP): 6000 => cost = 0.1 * 6000 = 600
+                        'loan/vip/ongoing/orders': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/vip/repay/history': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'fiat/orders': 600.03,  # Weight(UID): 90000 => cost = 0.006667 * 90000 = 600.03
                         'fiat/payments': 0.1,
                         'futures/transfer': 1,
@@ -284,6 +287,7 @@ class binance(Exchange):
                         'sub-account/sub/transfer/history': 0.1,
                         'sub-account/transfer/subUserHistory': 0.1,
                         'sub-account/universalTransfer': 0.1,
+                        'sub-account/apiRestrictions/ipRestriction/thirdPartyList': 1,
                         'managed-subaccount/asset': 0.1,
                         'managed-subaccount/accountSnapshot': 240,
                         # lending endpoints
@@ -404,6 +408,8 @@ class binance(Exchange):
                         'sub-account/transfer/subToSub': 0.1,
                         'sub-account/transfer/subToMaster': 0.1,
                         'sub-account/universalTransfer': 0.1,
+                        # v2 not supported yet
+                        # 'sub-account/subAccountApi/ipRestriction': 20,
                         'managed-subaccount/deposit': 0.1,
                         'managed-subaccount/withdraw': 0.1,
                         'userDataStream': 0.1,
@@ -460,6 +466,7 @@ class binance(Exchange):
                         'loan/repay': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'loan/adjust/ltv': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'loan/customize/margin_call': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
+                        'loan/vip/repay': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                     },
                     'put': {
                         'userDataStream': 0.1,
@@ -694,6 +701,7 @@ class binance(Exchange):
                         'trades': 5,
                         'historicalTrades': 20,
                         'exerciseHistory': 3,
+                        'openInterest': 3,
                     },
                 },
                 'eapiPrivate': {
@@ -1748,7 +1756,9 @@ class binance(Exchange):
         account = self.account()
         account['used'] = self.safe_string(entry, 'locked')
         account['free'] = self.safe_string(entry, 'free')
-        account['total'] = self.safe_string(entry, 'totalAsset')
+        interest = self.safe_string(entry, 'interest')
+        debt = self.safe_string(entry, 'borrowed')
+        account['debt'] = Precise.string_add(debt, interest)
         return account
 
     def parse_balance(self, response, type=None, marginMode=None):
@@ -1757,7 +1767,8 @@ class binance(Exchange):
         }
         timestamp = None
         isolated = marginMode == 'isolated'
-        if ((type == 'spot') or (type == 'margin') or (marginMode == 'cross')) and not isolated:
+        cross = (type == 'margin') or (marginMode == 'cross')
+        if not isolated and ((type == 'spot') or cross):
             timestamp = self.safe_integer(response, 'updateTime')
             balances = self.safe_value_2(response, 'balances', 'userAssets', [])
             for i in range(0, len(balances)):
@@ -1767,6 +1778,10 @@ class binance(Exchange):
                 account = self.account()
                 account['free'] = self.safe_string(balance, 'free')
                 account['used'] = self.safe_string(balance, 'locked')
+                if cross:
+                    debt = self.safe_string(balance, 'borrowed')
+                    interest = self.safe_string(balance, 'interest')
+                    account['debt'] = Precise.string_add(debt, interest)
                 result[code] = account
         elif isolated:
             assets = self.safe_value(response, 'assets')
@@ -1845,7 +1860,7 @@ class binance(Exchange):
             options = self.safe_value(self.options, type, {})
             fetchBalanceOptions = self.safe_value(options, 'fetchBalance', {})
             method = self.safe_string(fetchBalanceOptions, 'method', 'dapiPrivateGetAccount')
-        elif type == 'margin' or marginMode == 'cross':
+        elif (type == 'margin') or (marginMode == 'cross'):
             method = 'sapiGetMarginAccount'
         elif type == 'savings':
             method = 'sapiGetLendingUnionAccount'
@@ -2534,7 +2549,6 @@ class binance(Exchange):
         takerOrMaker = None
         if buyerMaker is not None:
             side = 'sell' if buyerMaker else 'buy'  # self is reversed intentionally
-            takerOrMaker = 'taker'
         elif 'side' in trade:
             side = self.safe_string_lower(trade, 'side')
         else:
@@ -2848,11 +2862,11 @@ class binance(Exchange):
         marketType = self.safe_string(params, 'type', defaultType)
         clientOrderId = self.safe_string_2(params, 'newClientOrderId', 'clientOrderId')
         postOnly = self.safe_value(params, 'postOnly', False)
-        reduceOnly = self.safe_value(params, 'reduceOnly')
         marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
-        if reduceOnly is not None:
-            if (marketType != 'future') and (marketType != 'delivery'):
-                raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for future and delivery markets only')
+        request = {
+            'symbol': market['id'],
+            'side': side.upper(),
+        }
         method = 'privatePostOrder'
         if marketType == 'future':
             method = 'fapiPrivatePostOrder'
@@ -2860,6 +2874,10 @@ class binance(Exchange):
             method = 'dapiPrivatePostOrder'
         elif marketType == 'margin' or marginMode is not None:
             method = 'sapiPostMarginOrder'
+            reduceOnly = self.safe_value(params, 'reduceOnly')
+            if reduceOnly:
+                request['sideEffectType'] = 'AUTO_REPAY'
+                params = self.omit(params, 'reduceOnly')
         if market['spot'] or marketType == 'margin':
             # support for testing orders
             test = self.safe_value(query, 'test', False)
@@ -2870,6 +2888,7 @@ class binance(Exchange):
                 type = 'LIMIT_MAKER'
         initialUppercaseType = type.upper()
         uppercaseType = initialUppercaseType
+        request['type'] = uppercaseType
         stopPrice = self.safe_number(query, 'stopPrice')
         if stopPrice is not None:
             if uppercaseType == 'MARKET':
@@ -2882,11 +2901,6 @@ class binance(Exchange):
                 raise InvalidOrder(self.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders')
             else:
                 raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
-        request = {
-            'symbol': market['id'],
-            'type': uppercaseType,
-            'side': side.upper(),
-        }
         if marginMode == 'isolated':
             request['isIsolated'] = True
         if clientOrderId is None:
@@ -3964,8 +3978,9 @@ class binance(Exchange):
                     raise ArgumentsRequired(self.id + ' transfer() requires params["symbol"] when toAccount is ' + toAccount)
                 else:
                     toId = self.market_id(symbol)
-            fromIsolated = self.in_array(fromId, self.ids)
-            toIsolated = self.in_array(toId, self.ids)
+            accountsById = self.safe_value(self.options, 'accountsById', {})
+            fromIsolated = not (fromId in accountsById)
+            toIsolated = not (toId in accountsById)
             if fromIsolated or toIsolated:  # Isolated margin transfer
                 fromFuture = fromId == 'UMFUTURE' or fromId == 'CMFUTURE'
                 toFuture = toId == 'UMFUTURE' or toId == 'CMFUTURE'
@@ -3976,7 +3991,7 @@ class binance(Exchange):
                 prohibitedWithIsolated = fromFuture or toFuture or mining or funding
                 if (fromIsolated or toIsolated) and prohibitedWithIsolated:
                     raise BadRequest(self.id + ' transfer() does not allow transfers between ' + fromAccount + ' and ' + toAccount)
-                elif fromIsolated and toSpot:
+                elif toSpot and fromIsolated:
                     method = 'sapiPostMarginIsolatedTransfer'
                     request['transFrom'] = 'ISOLATED_MARGIN'
                     request['transTo'] = 'SPOT'
@@ -3987,10 +4002,10 @@ class binance(Exchange):
                     request['transTo'] = 'ISOLATED_MARGIN'
                     request['symbol'] = toId
                 else:
-                    if self.in_array(fromId, self.ids):
+                    if fromIsolated:
                         request['fromSymbol'] = fromId
                         fromId = 'ISOLATEDMARGIN'
-                    if self.in_array(toId, self.ids):
+                    if toIsolated:
                         request['toSymbol'] = toId
                         toId = 'ISOLATEDMARGIN'
                     request['type'] = fromId + '_' + toId
@@ -5903,36 +5918,26 @@ class binance(Exchange):
         :param dict params: extra parameters specific to the binance api endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
         """
+        marginMode, query = self.handle_margin_mode_and_params('repayMargin', params)  # cross or isolated
+        self.check_required_margin_argument('repayMargin', symbol, marginMode)
         self.load_markets()
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            symbol = market['symbol']
         currency = self.currency(code)
         request = {
             'asset': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
-        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
-        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)  # cross or isolated
-        if marginMode == 'isolated':
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' repayMargin() requires a symbol argument for isolated margin')
-            request['isIsolated'] = 'TRUE'
+        if symbol is not None:
+            market = self.market(symbol)
             request['symbol'] = market['id']
-        params = self.omit(params, 'marginMode')
-        response = self.sapiPostMarginRepay(self.extend(request, params))
+            request['isIsolated'] = 'TRUE'
+        response = self.sapiPostMarginRepay(self.extend(request, query))
         #
         #     {
         #         "tranId": 108988250265,
         #         "clientTag":""
         #     }
         #
-        transaction = self.parse_margin_loan(response, currency)
-        return self.extend(transaction, {
-            'amount': amount,
-            'symbol': symbol,
-        })
+        return self.parse_margin_loan(response, currency)
 
     def borrow_margin(self, code, amount, symbol=None, params={}):
         """
@@ -5944,36 +5949,26 @@ class binance(Exchange):
         :param dict params: extra parameters specific to the binance api endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
         """
+        marginMode, query = self.handle_margin_mode_and_params('borrowMargin', params)  # cross or isolated
+        self.check_required_margin_argument('borrowMargin', symbol, marginMode)
         self.load_markets()
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            symbol = market['symbol']
         currency = self.currency(code)
         request = {
             'asset': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
-        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
-        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)  # cross or isolated
-        if marginMode == 'isolated':
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument for isolated margin')
-            request['isIsolated'] = 'TRUE'
+        if symbol is not None:
+            market = self.market(symbol)
             request['symbol'] = market['id']
-        params = self.omit(params, 'marginMode')
-        response = self.sapiPostMarginLoan(self.extend(request, params))
+            request['isIsolated'] = 'TRUE'
+        response = self.sapiPostMarginLoan(self.extend(request, query))
         #
         #     {
         #         "tranId": 108988250265,
         #         "clientTag":""
         #     }
         #
-        transaction = self.parse_margin_loan(response, currency)
-        return self.extend(transaction, {
-            'amount': amount,
-            'symbol': symbol,
-        })
+        return self.parse_margin_loan(response, currency)
 
     def parse_margin_loan(self, info, currency=None):
         #

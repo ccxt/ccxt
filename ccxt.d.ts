@@ -406,7 +406,7 @@ declare module 'ccxt' {
         fetchFundingFees (...args: any): Promise<any>; // TODO: add function signatures
         fetchL2OrderBook (...args: any): Promise<any>; // TODO: add function signatures
         fetchLedger (...args: any): Promise<any>; // TODO: add function signatures
-        fetchMarkets (): Promise<Market[]>;
+        fetchMarkets (params?: Params): Promise<Market[]>;
         fetchMyTrades (symbol?: string, since?: any, limit?: any, params?: Params): Promise<Trade[]>;
         fetchOHLCV (symbol: string, timeframe?: string, since?: number, limit?: number, params?: Params): Promise<OHLCV[]>;
         fetchOpenOrders (symbol?: string, since?: number, limit?: number, params?: Params): Promise<Order[]>;
@@ -492,7 +492,6 @@ declare module 'ccxt' {
     export class btctradeua extends Exchange {}
     export class btcturk extends Exchange {}
     export class buda extends Exchange {}
-    export class bw extends Exchange {}
     export class bybit extends Exchange {}
     export class bytetrade extends Exchange {}
     export class cex extends Exchange {}
@@ -514,8 +513,6 @@ declare module 'ccxt' {
     export class exmo extends Exchange {}
     export class flowbtc extends ndax {}
     export class fmfwio extends hitbtc {}
-    export class ftx extends Exchange {}
-    export class ftxus extends ftx {}
     export class gate extends Exchange {}
     export class gateio extends gate {}
     export class gemini extends Exchange {}
@@ -557,7 +554,6 @@ declare module 'ccxt' {
     export class ripio extends Exchange {}
     export class stex extends Exchange {}
     export class therock extends Exchange {}
-    export class tidebit extends Exchange {}
     export class tidex extends Exchange {}
     export class timex extends Exchange {}
     export class tokocrypto extends Exchange {}
@@ -617,7 +613,6 @@ declare module 'ccxt' {
         | 'btctradeua'
         | 'btcturk'
         | 'buda'
-        | 'bw'
         | 'bybit'
         | 'bytetrade'
         | 'cex'
@@ -639,8 +634,6 @@ declare module 'ccxt' {
         | 'exmo'
         | 'flowbtc'
         | 'fmfwio'
-        | 'ftx'
-        | 'ftxus'
         | 'gate'
         | 'gateio'
         | 'gemini'
@@ -682,7 +675,6 @@ declare module 'ccxt' {
         | 'ripio'
         | 'stex'
         | 'therock'
-        | 'tidebit'
         | 'tidex'
         | 'timex'
         | 'tokocrypto'
@@ -733,6 +725,7 @@ declare module 'ccxt' {
         class bittrex extends Exchange {}
         class bitvavo extends Exchange {}
         class bybit extends Exchange {}
+        class cex extends Exchange {}
         class coinbaseprime extends Exchange {}
         class coinbasepro extends Exchange {}
         class coinex extends Exchange {}
@@ -740,8 +733,6 @@ declare module 'ccxt' {
         class currencycom extends Exchange {}
         class deribit extends Exchange {}
         class exmo extends Exchange {}
-        class ftx extends Exchange {}
-        class ftxus extends Exchange {}
         class gate extends Exchange {}
         class gateio extends Exchange {}
         class hitbtc extends Exchange {}
@@ -752,6 +743,7 @@ declare module 'ccxt' {
         class idex extends Exchange {}
         class kraken extends Exchange {}
         class kucoin extends Exchange {}
+        class luno extends Exchange {}
         class mexc extends Exchange {}
         class ndax extends Exchange {}
         class okcoin extends Exchange {}
