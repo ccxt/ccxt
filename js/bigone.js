@@ -1155,9 +1155,7 @@ module.exports = class bigone extends Exchange {
                 // 'recv_window': '30', // default 30
             };
             const jwt = this.jwt (request, this.encode (this.secret));
-            headers = {
-                'Authorization': 'Bearer ' + jwt,
-            };
+            headers['Authorization'] = 'Bearer ' + jwt;
             if (method === 'GET') {
                 if (Object.keys (query).length) {
                     url += '?' + this.urlencode (query);
