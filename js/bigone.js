@@ -129,6 +129,7 @@ module.exports = class bigone extends Exchange {
                 'transfer': {
                     'fillResponseFromRequest': true,
                 },
+                'exchangeMillisecondsCorrection': -100,
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -1133,7 +1134,8 @@ module.exports = class bigone extends Exchange {
     }
 
     nonce () {
-        return this.microseconds () * 1000;
+        const exchangeTimeCorrection = this.safeInteger (this.options, 'exchangeMillisecondsCorrection', 0) * 1000000;
+        return this.microseconds () * 1000 + exchangeTimeCorrection;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
@@ -1165,7 +1167,7 @@ module.exports = class bigone extends Exchange {
                 body = this.json (query);
             }
         }
-        headers['User-Agent'] = 'ccxt/' + Exchange.ccxtVersion;
+        headers['User-Agent'] = 'ccxt/' + this.id + '-' + this.version;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
