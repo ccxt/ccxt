@@ -454,7 +454,7 @@ module.exports = class wazirx extends wazirxRest {
         const messageHash = 'orderbook:' + symbol;
         const currentOrderBook = this.safeValue (this.orderbooks, symbol);
         if (currentOrderBook === undefined) {
-            const snapshot = this.parseOrderBook (data, symbol, timestamp, 'a', 'b');
+            const snapshot = this.parseOrderBook (data, symbol, timestamp, 'b', 'a');
             const orderBook = this.orderBook (snapshot);
             this.orderbooks[symbol] = orderBook;
         } else {
