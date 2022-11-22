@@ -2071,6 +2071,14 @@ module.exports = class Exchange {
         throw new NotSupported (this.id + ' fetchTransactionFees() is not supported yet');
     }
 
+    async fetchDepositWithdrawFee (code, params = {}) {
+        if (!this.has['fetchDepositWithdrawFees']) {
+            throw new NotSupported (this.id + ' fetchDepositWithdrawFee() is not supported yet');
+        }
+        const fees = await this.fetchDepositWithdrawFees ([ code ], params);
+        return this.safeValue (fees, code);
+    }
+
     getSupportedMapping (key, mapping = {}) {
         if (key in mapping) {
             return mapping[key];
