@@ -683,16 +683,41 @@ module.exports = class digifinex extends Exchange {
     }
 
     parseBalance (response) {
-        const balances = this.safeValue (response, 'list', []);
+        //
+        // spot and margin
+        //
+        //     {
+        //         "currency": "BTC",
+        //         "free": 4723846.89208129,
+        //         "total": 0
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "equity": "0",
+        //         "currency": "BTC",
+        //         "margin": "0",
+        //         "frozen_margin": "0",
+        //         "frozen_money": "0",
+        //         "margin_ratio": "0",
+        //         "realized_pnl": "0",
+        //         "avail_balance": "0",
+        //         "unrealized_pnl": "0",
+        //         "time_stamp": 1661487402396
+        //     }
+        //
         const result = { 'info': response };
-        for (let i = 0; i < balances.length; i++) {
-            const balance = balances[i];
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
             const currencyId = this.safeString (balance, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['used'] = this.safeString (balance, 'frozen');
-            account['free'] = this.safeString (balance, 'free');
-            account['total'] = this.safeString (balance, 'total');
+            const free = this.safeString2 (balance, 'free', 'avail_balance');
+            const total = this.safeString2 (balance, 'total', 'equity');
+            account['free'] = free;
+            account['used'] = Precise.stringSub (total, free);
+            account['total'] = total;
             result[code] = account;
         }
         return this.safeBalance (result);
@@ -703,14 +728,28 @@ module.exports = class digifinex extends Exchange {
          * @method
          * @name digifinex#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#spot-account-assets
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-assets
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#accountbalance
          * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
-        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
-        const method = 'privateSpotGet' + this.capitalize (type) + 'Assets';
-        const response = await this[method] (params);
+        await this.loadMarkets ();
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        let method = this.getSupportedMapping (marketType, {
+            'spot': 'privateSpotGetSpotAssets',
+            'margin': 'privateSpotGetMarginAssets',
+            'swap': 'privateSwapGetAccountBalance',
+        });
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
+        if (marginMode !== undefined) {
+            method = 'privateSpotGetMarginAssets';
+            marketType = 'margin';
+        }
+        const response = await this[method] (query);
+        //
+        // spot and margin
         //
         //     {
         //         "code": 0,
@@ -719,10 +758,35 @@ module.exports = class digifinex extends Exchange {
         //                 "currency": "BTC",
         //                 "free": 4723846.89208129,
         //                 "total": 0
-        //             }
+        //             },
+        //             ...
         //         ]
         //     }
-        return this.parseBalance (response);
+        //
+        // swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "equity": "0",
+        //                 "currency": "BTC",
+        //                 "margin": "0",
+        //                 "frozen_margin": "0",
+        //                 "frozen_money": "0",
+        //                 "margin_ratio": "0",
+        //                 "realized_pnl": "0",
+        //                 "avail_balance": "0",
+        //                 "unrealized_pnl": "0",
+        //                 "time_stamp": 1661487402396
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const balanceRequest = (marketType === 'swap') ? 'data' : 'list';
+        const balances = this.safeValue (response, balanceRequest, []);
+        return this.parseBalance (balances);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
