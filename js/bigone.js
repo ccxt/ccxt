@@ -1140,6 +1140,7 @@ module.exports = class bigone extends Exchange {
         const query = this.omit (params, this.extractParams (path));
         const baseUrl = this.implodeHostname (this.urls['api'][api]);
         let url = baseUrl + '/' + this.implodeParams (path, params);
+        headers = {};
         if (api === 'public') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
@@ -1166,6 +1167,7 @@ module.exports = class bigone extends Exchange {
                 body = this.json (query);
             }
         }
+        headers['User-Agent'] = 'ccxt/' + Exchange.ccxtVersion;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 
