@@ -2612,7 +2612,6 @@ export default class binance extends Exchange {
         let takerOrMaker = undefined;
         if (buyerMaker !== undefined) {
             side = buyerMaker ? 'sell' : 'buy'; // this is reversed intentionally
-            takerOrMaker = 'taker';
         } else if ('side' in trade) {
             side = this.safeStringLower (trade, 'side');
         } else {
@@ -6384,7 +6383,7 @@ export default class binance extends Exchange {
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
-        const marginMode = this.safeString (params, 'marginMode'); // cross or isolated
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('repayMargin', params); // cross or isolated
         this.checkRequiredMarginArgument ('repayMargin', symbol, marginMode);
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -6397,8 +6396,7 @@ export default class binance extends Exchange {
             request['symbol'] = market['id'];
             request['isIsolated'] = 'TRUE';
         }
-        params = this.omit (params, 'marginMode');
-        const response = await (this as any).sapiPostMarginRepay (this.extend (request, params));
+        const response = await (this as any).sapiPostMarginRepay (this.extend (request, query));
         //
         //     {
         //         "tranId": 108988250265,
@@ -6420,8 +6418,7 @@ export default class binance extends Exchange {
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
-        const marginMode = this.safeString (params, 'marginMode'); // cross or isolated
-        params = this.omit (params, 'marginMode');
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('borrowMargin', params); // cross or isolated
         this.checkRequiredMarginArgument ('borrowMargin', symbol, marginMode);
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -6434,7 +6431,7 @@ export default class binance extends Exchange {
             request['symbol'] = market['id'];
             request['isIsolated'] = 'TRUE';
         }
-        const response = await (this as any).sapiPostMarginLoan (this.extend (request, params));
+        const response = await (this as any).sapiPostMarginLoan (this.extend (request, query));
         //
         //     {
         //         "tranId": 108988250265,

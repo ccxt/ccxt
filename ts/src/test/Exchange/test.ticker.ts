@@ -55,6 +55,7 @@ export default (exchange, ticker, method, symbol) => {
     // }
     if (![
         'bigone',
+        'bitbns', // https://app.travis-ci.com/github/ccxt/ccxt/builds/257987182#L2919
         'bitmart',
         'bitrue',
         'btcbox',

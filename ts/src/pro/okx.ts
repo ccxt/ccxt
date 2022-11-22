@@ -621,6 +621,7 @@ export default class okx extends okxRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the okx api endpoint
+         * @param {bool} params.stop true if fetching trigger or conditional orders
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -642,7 +643,8 @@ export default class okx extends okxRest {
         // By default, receive order updates from any instrument type
         let type = this.safeString (options, 'type', 'ANY');
         type = this.safeString (params, 'type', type);
-        params = this.omit (params, 'type');
+        const isStop = this.safeValue (params, 'stop', false);
+        params = this.omit (params, [ 'type', 'stop' ]);
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -656,7 +658,8 @@ export default class okx extends okxRest {
         const request = {
             'instType': uppercaseType,
         };
-        const orders = await this.subscribe ('private', 'orders', symbol, this.extend (request, params));
+        const channel = isStop ? 'orders-algo' : 'orders';
+        const orders = await this.subscribe ('private', channel, symbol, this.extend (request, params));
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -877,6 +880,7 @@ export default class okx extends okxRest {
                 'account': this.handleBalance,
                 // 'margin_account': this.handleBalance,
                 'orders': this.handleOrders,
+                'orders-algo': this.handleOrders,
             };
             const method = this.safeValue (methods, channel);
             if (method === undefined) {

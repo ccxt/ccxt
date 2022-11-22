@@ -2438,7 +2438,7 @@ class okx extends Exchange {
         if (($clientOrderId !== null) && (strlen($clientOrderId) < 1)) {
             $clientOrderId = null; // fix empty $clientOrderId string
         }
-        $stopPrice = $this->safe_number_n($order, array( 'triggerPx', 'slTriggerPx', 'tpTriggerPx' ));
+        $stopPrice = $this->safe_number_n($order, array( 'tpTriggerPx', 'triggerPx', 'slTriggerPx' ));
         $reduceOnly = $this->safe_string($order, 'reduceOnly');
         if ($reduceOnly !== null) {
             $reduceOnly = ($reduceOnly === 'true');

@@ -41,7 +41,7 @@ export default class wazirx extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': true,
                 'fetchOrder': true,
@@ -84,6 +84,7 @@ export default class wazirx extends Exchange {
                         'ticker/24hr': 1,
                         'time': 1,
                         'trades': 1,
+                        'klines': 1,
                     },
                 },
                 'private': {
@@ -124,6 +125,18 @@ export default class wazirx extends Exchange {
                     '2136': RateLimitExceeded, // {"code":2136,"message":"Too many api request"}
                     '94001': InvalidOrder, // {"code":94001,"message":"Stop price not found."}
                 },
+            },
+            'timeframes': {
+                '1m': '1m',
+                '5m': '5m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '1d',
+                '1w': '1w',
             },
             'options': {
                 // 'fetchTradesMethod': 'privateGetHistoricalTrades',
@@ -244,6 +257,60 @@ export default class wazirx extends Exchange {
             });
         }
         return result;
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name wazirx#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents. Available values [1m,5m,15m,30m,1h,2h,4h,6h,12h,1d,1w]
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the wazirx api endpoint
+         * @param {int|undefined} params.until timestamp in s of the latest candle to fetch
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'interval': this.timeframes[timeframe],
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, [ 'until' ]);
+        if (since !== undefined) {
+            request['startTime'] = parseInt (since / 1000);
+        }
+        if (until !== undefined) {
+            request['endTime'] = until;
+        }
+        const response = await this.publicGetKlines (this.extend (request, params));
+        //
+        //    [
+        //        [1669014360,1402001,1402001,1402001,1402001,0],
+        //        ...
+        //    ]
+        //
+        return this.parseOHLCVs (response, market, timeframe, since, limit);
+    }
+
+    parseOHLCV (ohlcv, market = undefined) {
+        //
+        //    [1669014300,1402001,1402001,1402001,1402001,0],
+        //
+        return [
+            this.safeTimestamp (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
+        ];
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {

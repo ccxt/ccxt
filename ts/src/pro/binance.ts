@@ -41,6 +41,14 @@ export default class binance extends binanceRest {
                 },
             },
             'options': {
+                'streamLimits': {
+                    'spot': 1024,
+                    'margin': 1024,
+                    'future': 200,
+                    'delivery': 200,
+                },
+                'streamBySubscriptionsHash': {},
+                'streamIndex': -1,
                 // get updates every 1000ms or 100ms
                 // or every 0ms in real-time for futures
                 'watchOrderBookRate': 100,
@@ -74,6 +82,36 @@ export default class binance extends binanceRest {
         const newValue = this.sum (previousValue, 1);
         this.options['requestId'][url] = newValue;
         return newValue;
+    }
+
+    stream (type, subscriptionHash) {
+        const streamBySubscriptionsHash = this.safeValue (this.options, 'streamBySubscriptionsHash', {});
+        let stream = this.safeString (streamBySubscriptionsHash, subscriptionHash);
+        if (stream === undefined) {
+            let streamIndex = this.safeInteger (this.options, 'streamIndex', -1);
+            const streamLimits = this.safeValue (this.options, 'streamLimits');
+            const streamLimit = this.safeInteger (streamLimits, type);
+            streamIndex = streamIndex + 1;
+            if (streamIndex === streamLimit) {
+                streamIndex = 0;
+            }
+            this.options['streamIndex'] = streamIndex;
+            stream = this.numberToString (streamIndex);
+            streamBySubscriptionsHash[subscriptionHash] = stream;
+        }
+        return stream;
+    }
+
+    onError (client, error) {
+        this.options['streamBySubscriptionsHash'] = {};
+        this.options['streamIndex'] = -1;
+        super.onError (client, error);
+    }
+
+    onClose (client, error) {
+        this.options['streamBySubscriptionsHash'] = {};
+        this.options['streamIndex'] = -1;
+        super.onClose (client, error);
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -136,7 +174,7 @@ export default class binance extends binanceRest {
         //
         const name = 'depth';
         const messageHash = market['lowercaseId'] + '@' + name;
-        const url = this.urls['api']['ws'][type]; // + '/' + messageHash;
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
         const requestId = this.requestId (url);
         const watchOrderBookRate = this.safeString (this.options, 'watchOrderBookRate', '100');
         const request = {
@@ -375,7 +413,7 @@ export default class binance extends binanceRest {
         const watchTradesType = this.safeString2 (options, 'type', 'defaultType', defaultType);
         const type = this.safeString (params, 'type', watchTradesType);
         const query = this.omit (params, 'type');
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
         const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
@@ -599,7 +637,7 @@ export default class binance extends binanceRest {
         const watchOHLCVType = this.safeString2 (options, 'type', 'defaultType', defaultType);
         const type = this.safeString (params, 'type', watchOHLCVType);
         const query = this.omit (params, 'type');
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
         const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
@@ -692,7 +730,7 @@ export default class binance extends binanceRest {
         const watchTickerType = this.safeString2 (options, 'type', 'defaultType', defaultType);
         const type = this.safeString (params, 'type', watchTickerType);
         const query = this.omit (params, 'type');
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
         const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
