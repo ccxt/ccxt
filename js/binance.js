@@ -1438,15 +1438,15 @@ module.exports = class binance extends Exchange {
             }
             const trading = this.safeValue (entry, 'trading');
             const active = (isWithdrawEnabled && isDepositEnabled && trading);
-            let finalPrecisionDigit = undefined;
+            let maxDecimalPlaces = undefined;
             if (minPrecision !== undefined) {
-                finalPrecisionDigit = this.parseNumber (this.numberToString (this.precisionFromString (minPrecision)));
+                maxDecimalPlaces = this.parseNumber (this.numberToString (this.precisionFromString (minPrecision)));
             }
             result[code] = {
                 'id': id,
                 'name': name,
                 'code': code,
-                'precision': finalPrecisionDigit,
+                'precision': maxDecimalPlaces,
                 'info': entry,
                 'active': active,
                 'deposit': isDepositEnabled,
