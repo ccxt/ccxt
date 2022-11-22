@@ -284,12 +284,12 @@ export default class wazirx extends Exchange {
         const until = this.safeInteger (params, 'until');
         params = this.omit (params, [ 'until' ]);
         if (since !== undefined) {
-            request['startTime'] = parseInt (since / 1000);
+            request['startTime'] = this.parseToInt (since / 1000);
         }
         if (until !== undefined) {
             request['endTime'] = until;
         }
-        const response = await this.publicGetKlines (this.extend (request, params));
+        const response = await (this as any).publicGetKlines (this.extend (request, params));
         //
         //    [
         //        [1669014360,1402001,1402001,1402001,1402001,0],
