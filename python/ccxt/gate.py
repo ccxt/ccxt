@@ -1976,11 +1976,13 @@ class gate(Exchange):
         response = getattr(self, method)(self.extend(request, requestParams))
         return self.parse_tickers(response, symbols)
 
-    def fetch_balance_helper(self, entry):
+    def parse_balance_helper(self, entry):
         account = self.account()
         account['used'] = self.safe_string_2(entry, 'freeze', 'locked')
         account['free'] = self.safe_string(entry, 'available')
         account['total'] = self.safe_string(entry, 'total')
+        if 'borrowed' in entry:
+            account['debt'] = self.safe_string(entry, 'borrowed')
         return account
 
     def fetch_balance(self, params={}):
@@ -2126,8 +2128,7 @@ class gate(Exchange):
         result = {
             'info': response,
         }
-        crossMargin = marginMode == 'cross_margin'
-        margin = marginMode == 'margin'
+        isolated = marginMode == 'margin'
         data = response
         if 'balances' in data:  # True for cross_margin
             flatBalances = []
@@ -2143,7 +2144,7 @@ class gate(Exchange):
             data = flatBalances
         for i in range(0, len(data)):
             entry = data[i]
-            if margin and not crossMargin:
+            if isolated:
                 marketId = self.safe_string(entry, 'currency_pair')
                 symbol = self.safe_symbol(marketId, None, '_')
                 base = self.safe_value(entry, 'base', {})
@@ -2151,13 +2152,13 @@ class gate(Exchange):
                 baseCode = self.safe_currency_code(self.safe_string(base, 'currency'))
                 quoteCode = self.safe_currency_code(self.safe_string(quote, 'currency'))
                 subResult = {}
-                subResult[baseCode] = self.fetch_balance_helper(base)
-                subResult[quoteCode] = self.fetch_balance_helper(quote)
+                subResult[baseCode] = self.parse_balance_helper(base)
+                subResult[quoteCode] = self.parse_balance_helper(quote)
                 result[symbol] = self.safe_balance(subResult)
             else:
                 code = self.safe_currency_code(self.safe_string(entry, 'currency'))
-                result[code] = self.fetch_balance_helper(entry)
-        return result if (margin and not crossMargin) else self.safe_balance(result)
+                result[code] = self.parse_balance_helper(entry)
+        return result if isolated else self.safe_balance(result)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """

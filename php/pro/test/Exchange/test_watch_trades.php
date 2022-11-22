@@ -13,7 +13,8 @@ function test_watch_trades($exchange, $symbol) {
         'currencycom',
         'idex2', // rinkeby testnet, trades too rare
         'ripio',
-        'gopax', // requires authentication for watch_order_book
+        'gopax', // requires authentication for watch_trades
+        'luno', // requires authentication for watch_trades
         'coinflex' // too illiquid
     );
 

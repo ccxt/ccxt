@@ -927,11 +927,13 @@ module.exports = class Exchange {
         balance['free'] = {};
         balance['used'] = {};
         balance['total'] = {};
+        const debtBalance = {};
         for (let i = 0; i < codes.length; i++) {
             const code = codes[i];
             let total = this.safeString (balance[code], 'total');
             let free = this.safeString (balance[code], 'free');
             let used = this.safeString (balance[code], 'used');
+            const debt = this.safeString (balance[code], 'debt');
             if ((total === undefined) && (free !== undefined) && (used !== undefined)) {
                 total = Precise.stringAdd (free, used);
             }
@@ -947,6 +949,15 @@ module.exports = class Exchange {
             balance['free'][code] = balance[code]['free'];
             balance['used'][code] = balance[code]['used'];
             balance['total'][code] = balance[code]['total'];
+            if (debt !== undefined) {
+                balance[code]['debt'] = this.parseNumber (debt);
+                debtBalance[code] = balance[code]['debt'];
+            }
+        }
+        const debtBalanceArray = Object.keys (debtBalance);
+        const length = debtBalanceArray.length;
+        if (length) {
+            balance['debt'] = debtBalance;
         }
         return balance;
     }
@@ -2764,11 +2775,10 @@ module.exports = class Exchange {
          * @returns the exchange specific account name or the isolated margin id for transfers
          */
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
-        const symbols = this.symbols;
         const lowercaseAccount = account.toLowerCase ();
         if (lowercaseAccount in accountsByType) {
             return accountsByType[lowercaseAccount];
-        } else if (this.inArray (account, symbols)) {
+        } else if ((account in this.markets) || (account in this.markets_by_id)) {
             const market = this.market (account);
             return market['id'];
         } else {

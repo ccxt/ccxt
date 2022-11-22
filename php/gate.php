@@ -2034,21 +2034,24 @@ class gate extends Exchange {
         return $this->parse_tickers($response, $symbols);
     }
 
-    public function fetch_balance_helper($entry) {
+    public function parse_balance_helper($entry) {
         $account = $this->account();
         $account['used'] = $this->safe_string_2($entry, 'freeze', 'locked');
         $account['free'] = $this->safe_string($entry, 'available');
         $account['total'] = $this->safe_string($entry, 'total');
+        if (is_array($entry) && array_key_exists('borrowed', $entry)) {
+            $account['debt'] = $this->safe_string($entry, 'borrowed');
+        }
         return $account;
     }
 
     public function fetch_balance($params = array ()) {
         /**
          * @param {array} $params exchange specific parameters
-         * @param {string} $params->type spot, $margin, swap or future, if not provided $this->options['defaultType'] is used
+         * @param {string} $params->type spot, margin, swap or future, if not provided $this->options['defaultType'] is used
          * @param {string} $params->settle 'btc' or 'usdt' - settle currency for perpetual swap and future - default="usdt" for swap and "btc" for future
-         * @param {string} $params->marginMode 'cross' or 'isolated' - $marginMode for $margin trading if not provided $this->options['defaultMarginMode'] is used
-         * @param {string} $params->symbol $margin only - unified ccxt $symbol
+         * @param {string} $params->marginMode 'cross' or 'isolated' - $marginMode for margin trading if not provided $this->options['defaultMarginMode'] is used
+         * @param {string} $params->symbol margin only - unified ccxt $symbol
          */
         $this->load_markets();
         $symbol = $this->safe_string($params, 'symbol');
@@ -2076,15 +2079,15 @@ class gate extends Exchange {
             $response = array( $response );
         }
         //
-        // Spot / $margin funding
+        // Spot / margin funding
         //
         //     array(
         //         array(
         //             "currency" => "DBC",
         //             "available" => "0",
         //             "locked" => "0"
-        //             "lent" => "0", // $margin funding only
-        //             "total_lent" => "0" // $margin funding only
+        //             "lent" => "0", // margin funding only
+        //             "total_lent" => "0" // margin funding only
         //         ),
         //         ...
         //     )
@@ -2114,7 +2117,7 @@ class gate extends Exchange {
         //        ...
         //    )
         //
-        // Cross $margin
+        // Cross margin
         //
         //    {
         //        "user_id" => 10406147,
@@ -2187,8 +2190,7 @@ class gate extends Exchange {
         $result = array(
             'info' => $response,
         );
-        $crossMargin = $marginMode === 'cross_margin';
-        $margin = $marginMode === 'margin';
+        $isolated = $marginMode === 'margin';
         $data = $response;
         if (is_array($data) && array_key_exists('balances', $data)) { // True for cross_margin
             $flatBalances = array();
@@ -2206,7 +2208,7 @@ class gate extends Exchange {
         }
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
-            if ($margin && !$crossMargin) {
+            if ($isolated) {
                 $marketId = $this->safe_string($entry, 'currency_pair');
                 $symbol = $this->safe_symbol($marketId, null, '_');
                 $base = $this->safe_value($entry, 'base', array());
@@ -2214,15 +2216,15 @@ class gate extends Exchange {
                 $baseCode = $this->safe_currency_code($this->safe_string($base, 'currency'));
                 $quoteCode = $this->safe_currency_code($this->safe_string($quote, 'currency'));
                 $subResult = array();
-                $subResult[$baseCode] = $this->fetch_balance_helper($base);
-                $subResult[$quoteCode] = $this->fetch_balance_helper($quote);
+                $subResult[$baseCode] = $this->parse_balance_helper($base);
+                $subResult[$quoteCode] = $this->parse_balance_helper($quote);
                 $result[$symbol] = $this->safe_balance($subResult);
             } else {
                 $code = $this->safe_currency_code($this->safe_string($entry, 'currency'));
-                $result[$code] = $this->fetch_balance_helper($entry);
+                $result[$code] = $this->parse_balance_helper($entry);
             }
         }
-        return ($margin && !$crossMargin) ? $result : $this->safe_balance($result);
+        return $isolated ? $result : $this->safe_balance($result);
     }
 
     public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {

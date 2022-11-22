@@ -42,5 +42,5 @@
     "upbit":         { "skipWs": true },
     "whitebit":      { "skipWs": true },
     "zb":            { "skipWs": true },
-    "zipmex":        { "skipWs": true },
+    "zipmex":        { "skipWs": true }
 }

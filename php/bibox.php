@@ -694,7 +694,7 @@ class bibox extends Exchange {
             'symbol' => $market['id'],
         );
         if ($limit !== null) {
-            $request['size'] = $limit; // default = 100
+            $request['limit'] = $limit; // default = 100
         }
         if ($since !== null) {
             $request['start_time'] = $since;

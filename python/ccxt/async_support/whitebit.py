@@ -979,7 +979,7 @@ class whitebit(Exchange):
         postOnly = self.is_post_only(isMarketOrder, False, params)
         marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
         if postOnly:
-            raise NotSupported(self.id + ' createOrder() does not support postOnly orders.')
+            request['postOnly'] = True
         method = None
         if isStopOrder:
             request['activation_price'] = self.price_to_precision(symbol, stopPrice)
