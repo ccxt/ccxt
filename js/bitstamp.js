@@ -1262,14 +1262,19 @@ module.exports = class bitstamp extends Exchange {
             const id = ids[i];
             const currencyId = id.split ('_')[0];
             const code = this.safeCurrencyCode (currencyId);
+            const dictValue = this.safeNumber (response, id);
             if (codes !== undefined && !this.inArray (code, codes)) {
                 continue;
             }
             if (id.indexOf ('_available') >= 0) {
-                result[code] = this.depositWithdrawFee ();
+                result[code] = this.depositWithdrawFee ({});
             }
             if (id.indexOf ('_withdrawal_fee') >= 0) {
-                result[code]['withdraw']['fee'] = this.safeNumber (response, id);
+                result[code]['withdraw']['fee'] = dictValue;
+            }
+            const resultValue = this.safeValue (result, code);
+            if (resultValue !== undefined) {
+                result[code]['info'][id] = dictValue;
             }
         }
         return result;
