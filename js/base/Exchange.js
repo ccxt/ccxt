@@ -2075,9 +2075,7 @@ module.exports = class Exchange {
                 value = this.safeString2 (this.options, optionName, defaultOptionName);
             }
             // if it's still undefined, use the default value
-            if (value === undefined) {
-                value = defaultValue;
-            }
+            value = (value !== undefined) ? value : defaultValue;
         }
         return [ value, params ];
     }
