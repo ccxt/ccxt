@@ -26,7 +26,7 @@ CCXT – CryptoCurrency eXchange Trading Library
      :target: https://discord.gg/ccxt
      :alt: Discord
  
-.. image:: https://img.shields.io/badge/exchanges-117-blue.svg
+.. image:: https://img.shields.io/badge/exchanges-116-blue.svg
      :target: https://github.com/ccxt/ccxt/wiki/Exchange-Markets
      :alt: Supported Exchanges
  
@@ -356,7 +356,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The CCXT library currently supports the following 111 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 110 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -892,18 +892,6 @@ The CCXT library currently supports the following 111 cryptocurrency exchange ma
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://api.buda.com
           :alt: API Version 2
-     
-     - 
-     - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/69436317-31128c80-0d52-11ea-91d1-eb7bb5818812.jpg
-          :target: https://www.bw.com/regGetCommission/N3JuT1R3bWxKTE0
-          :alt: bw
-     
-     - bw
-     - `BW <https://www.bw.com/regGetCommission/N3JuT1R3bWxKTE0>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://github.com/bw-exchange/api_docs_en/wiki
-          :alt: API Version 1
      
      - 
      - 
@@ -1924,14 +1912,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@2.2.8/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@2.2.8/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@2.2.9/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@2.2.9/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@2.2.8/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@2.2.9/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

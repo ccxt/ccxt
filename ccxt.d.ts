@@ -492,7 +492,6 @@ declare module 'ccxt' {
     export class btctradeua extends Exchange {}
     export class btcturk extends Exchange {}
     export class buda extends Exchange {}
-    export class bw extends Exchange {}
     export class bybit extends Exchange {}
     export class bytetrade extends Exchange {}
     export class cex extends Exchange {}
@@ -614,7 +613,6 @@ declare module 'ccxt' {
         | 'btctradeua'
         | 'btcturk'
         | 'buda'
-        | 'bw'
         | 'bybit'
         | 'bytetrade'
         | 'cex'
