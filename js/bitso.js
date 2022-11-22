@@ -1528,15 +1528,14 @@ module.exports = class bitso extends Exchange {
             }
         }
         const withdrawalKeys = Object.keys (withdrawalResponse);
-        const defaultValue = this.depositWithdrawFee ();
         for (let i = 0; i < withdrawalKeys.length; i++) {
             const currencyId = withdrawalKeys[i];
             const code = this.safeCurrencyCode (currencyId);
             if (codes === undefined || code in codes) {
                 const withdrawFee = this.parseNumber (withdrawalResponse[currencyId]);
-                result[code] = result[code] === undefined ? defaultValue : result[code];
+                result[code] = result[code] === undefined ? this.depositWithdrawFee ({}) : result[code];
                 result[code]['withdraw']['fee'] = withdrawFee;
-                result[code]['withdraw']['info'][code] = withdrawFee;
+                result[code]['info'][code] = withdrawFee;
             }
         }
         return result;
