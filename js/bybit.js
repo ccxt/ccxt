@@ -5897,6 +5897,8 @@ module.exports = class bybit extends Exchange {
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = this.implodeHostname (this.urls['api'][api]) + '/' + path;
+        const isSpot = url.indexOf ('spot/') >= 0;
+        const isV3 = url.indexOf ('/v3/') >= 0;
         if (api === 'public') {
             if (Object.keys (params).length) {
                 url += '?' + this.rawencode (params);
@@ -5957,11 +5959,10 @@ module.exports = class bybit extends Exchange {
                 const auth = this.rawencode (sortedQuery);
                 const signature = this.hmac (this.encode (auth), this.encode (this.secret));
                 if (method === 'POST') {
-                    const isSpot = url.indexOf ('spot') >= 0;
                     const extendedQuery = this.extend (query, {
                         'sign': signature,
                     });
-                    if (isSpot) {
+                    if (isSpot && !isV3) {
                         body = this.urlencode (extendedQuery);
                         headers = {
                             'Content-Type': 'application/x-www-form-urlencoded',
@@ -5971,6 +5972,8 @@ module.exports = class bybit extends Exchange {
                         headers = {
                             'Content-Type': 'application/json',
                         };
+                    }
+                    if (!isSpot) {
                         const brokerId = this.safeString (this.options, 'brokerId');
                         if (brokerId !== undefined) {
                             headers['Referer'] = brokerId;
