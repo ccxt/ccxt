@@ -42,6 +42,8 @@ module.exports = class bitso extends Exchange {
                 'fetchDepositAddress': true,
                 'fetchDepositAddresses': false,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -72,8 +74,6 @@ module.exports = class bitso extends Exchange {
                 'fetchTradingFees': true,
                 'fetchTransactionFee': false,
                 'fetchTransactionFees': true,
-                'fetchDepositWithdrawFee': 'emulated',
-                'fetchDepositWithdrawFees': true,
                 'fetchTransactions': false,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
@@ -1512,7 +1512,7 @@ module.exports = class bitso extends Exchange {
             const entry = depositResponse[i];
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            if (codes === undefined || code in codes) {
+            if ((codes === undefined) || (code in codes)) {
                 result[code] = {
                     'deposit': {
                         'fee': this.safeNumber (entry, 'fee'),
@@ -1531,7 +1531,7 @@ module.exports = class bitso extends Exchange {
         for (let i = 0; i < withdrawalKeys.length; i++) {
             const currencyId = withdrawalKeys[i];
             const code = this.safeCurrencyCode (currencyId);
-            if (codes === undefined || code in codes) {
+            if ((codes === undefined) || (code in codes)) {
                 const withdrawFee = this.parseNumber (withdrawalResponse[currencyId]);
                 result[code] = result[code] === undefined ? this.depositWithdrawFee ({}) : result[code];
                 result[code]['withdraw']['fee'] = withdrawFee;
