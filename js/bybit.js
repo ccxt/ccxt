@@ -687,15 +687,22 @@ module.exports = class bybit extends Exchange {
         return this.milliseconds () - this.options['timeDifference'];
     }
 
-    async isUnifiedMarginEnabled () {
+    async isUnifiedMarginEnabled (params = {}) {
         const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
         if (enableUnifiedMargin === undefined) {
-            const response = await this.privateGetUserV3PrivateQueryApi ();
+            const response = await this.privateGetUserV3PrivateQueryApi (params);
             const result = this.safeValue (response, 'result', {});
             const permissions = this.safeValue (result, 'permissions', {});
             this.options['enableUnifiedMargin'] = this.safeInteger (permissions, 'unified') === 0;
         }
         return this.options['enableUnifiedMargin'];
+    }
+
+    async upgradeUnifiedAccount (params = {}) {
+        // warning this method can only be called once
+        // it is not reverseable and you will be stuck with a unified margin account
+        // you also need at least 5000 USDT in your bybit account to do this
+        return await this.privatePostUnifiedV3PrivateAccountUpgradeUnifiedAccount (params);
     }
 
     async fetchTime (params = {}) {
@@ -2540,6 +2547,13 @@ module.exports = class bybit extends Exchange {
         };
         if (limit !== undefined) {
             request['limit'] = limit;
+        }
+        if (market['option']) {
+            request['category'] = 'option';
+        } else if (market['linear']) {
+            request['category'] = 'linear';
+        } else if (market['inverse']) {
+            request['category'] = 'inverse';
         }
         const response = await this.publicGetDerivativesV3PublicOrderBookL2 (this.extend (request, params));
         //
