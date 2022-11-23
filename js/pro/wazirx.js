@@ -244,7 +244,7 @@ module.exports = class wazirx extends wazirxRest {
         //     }
         //
         const marketId = this.safeString (ticker, 's');
-        const timestamp = this.safeNumber (ticker, 'E');
+        const timestamp = this.safeInteger (ticker, 'E');
         return this.safeTicker ({
             'symbol': this.safeSymbol (marketId, market),
             'timestamp': timestamp,
