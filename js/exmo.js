@@ -552,21 +552,31 @@ module.exports = class exmo extends Exchange {
         for (let i = 0; i < fee.length; i++) {
             const provider = fee[i];
             const type = this.safeString (provider, 'type');
-            const name = this.safeString (provider, 'name');
+            const networkName = this.safeString (provider, 'name');
             const commissionDesc = this.safeString (provider, 'commission_desc');
-            result['networks'][name] = {
-                'withdraw': {
-                    'fee': undefined,
-                    'percentage': undefined,
-                },
-                'deposit': {
-                    'fee': undefined,
-                    'percentage': true,
-                },
-            };
-            result['networks'][name][type] = {
-                'fee': this.parseFixedFloatValue (commissionDesc),
-                'percentage': true,
+            let splitCommissionDesc = [];
+            let percentage = undefined;
+            if (commissionDesc !== undefined) {
+                splitCommissionDesc = commissionDesc.split ('%');
+                const splitCommissionDescLength = splitCommissionDesc.length;
+                percentage = splitCommissionDescLength >= 2;
+            }
+            const network = this.safeValue (result['networks'], networkName);
+            if (network === undefined) {
+                result['networks'][networkName] = {
+                    'withdraw': {
+                        'fee': undefined,
+                        'percentage': undefined,
+                    },
+                    'deposit': {
+                        'fee': undefined,
+                        'percentage': undefined,
+                    },
+                };
+            }
+            result['networks'][networkName][type] = {
+                'fee': this.parseFixedFloatValue (this.safeString (splitCommissionDesc, 0)),
+                'percentage': percentage,
             };
         }
         return result;
