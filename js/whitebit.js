@@ -25,7 +25,6 @@ module.exports = class whitebit extends Exchange {
                 'future': false,
                 'option': false,
                 'borrowMargin': false,
-                'postOnly': true,
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'cancelOrders': false,
@@ -70,6 +69,7 @@ module.exports = class whitebit extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': true,
+                'postOnly': true,
                 'repayMargin': false,
                 'setLeverage': true,
                 'transfer': true,
@@ -1973,7 +1973,7 @@ module.exports = class whitebit extends Exchange {
             const nonce = this.nonce ().toString ();
             const secret = this.stringToBinary (this.encode (this.secret));
             const request = '/' + 'api' + '/' + version + pathWithParams;
-            body = this.json (this.extend ({ 'request': request, 'nonce': nonce }, params));
+            body = this.json (this.extend ({ 'request': request, 'nonce': nonce, 'nonceWindow': true }, params));
             const payload = this.stringToBase64 (body);
             const signature = this.hmac (payload, secret, 'sha512');
             headers = {
