@@ -2238,35 +2238,46 @@ module.exports = class digifinex extends Exchange {
 
     parseLedgerEntry (item, currency = undefined) {
         //
+        // spot and margin
+        //
         //     {
         //         "currency_mark": "BTC",
         //         "type": 100234,
-        //         "num": 28457,
+        //         "num": -10,
         //         "balance": 0.1,
         //         "time": 1546272000
         //     }
         //
-        const id = this.safeString (item, 'num');
-        const account = undefined;
-        const type = this.parseLedgerEntryType (this.safeString (item, 'type'));
-        const code = this.safeCurrencyCode (this.safeString (item, 'currency_mark'), currency);
-        const timestamp = this.safeTimestamp (item, 'time');
-        const before = undefined;
+        // swap
+        //
+        //     {
+        //         "currency": "USDT",
+        //         "finance_type": 17,
+        //         "change": "-3.01",
+        //         "timestamp": 1650809432000
+        //     }
+        //
+        const type = this.parseLedgerEntryType (this.safeString2 (item, 'type', 'finance_type'));
+        const code = this.safeCurrencyCode (this.safeString2 (item, 'currency_mark', 'currency'), currency);
+        const amount = this.safeNumber2 (item, 'num', 'change');
         const after = this.safeNumber (item, 'balance');
-        const status = 'ok';
+        let timestamp = this.safeTimestamp (item, 'time');
+        if (timestamp === undefined) {
+            timestamp = this.safeInteger (item, 'timestamp');
+        }
         return {
             'info': item,
-            'id': id,
+            'id': undefined,
             'direction': undefined,
-            'account': account,
+            'account': undefined,
             'referenceId': undefined,
             'referenceAccount': undefined,
             'type': type,
             'currency': code,
-            'amount': undefined,
-            'before': before,
+            'amount': amount,
+            'before': undefined,
             'after': after,
-            'status': status,
+            'status': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'fee': undefined,
@@ -2278,31 +2289,50 @@ module.exports = class digifinex extends Exchange {
          * @method
          * @name digifinex#fetchLedger
          * @description fetch the history of changes, actions done by the user or operations that altered balance of the user
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#spot-margin-otc-financial-logs
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#bills
          * @param {string|undefined} code unified currency code, default is undefined
          * @param {int|undefined} since timestamp in ms of the earliest ledger entry, default is undefined
          * @param {int|undefined} limit max number of ledger entrys to return, default is undefined
          * @param {object} params extra parameters specific to the digifinex api endpoint
          * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/en/latest/manual.html#ledger-structure}
          */
-        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        const orderType = this.safeString (params, 'type', defaultType);
-        params = this.omit (params, 'type');
         await this.loadMarkets ();
-        const request = {
-            'market': orderType,
-        };
+        const request = {};
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchLedger', undefined, params);
+        let method = this.getSupportedMapping (marketType, {
+            'spot': 'privateSpotGetSpotFinancelog',
+            'margin': 'privateSpotGetMarginFinancelog',
+            'swap': 'privateSwapGetAccountFinanceRecord',
+        });
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchLedger', params);
+        if (marginMode !== undefined) {
+            method = 'privateSpotGetMarginFinancelog';
+            marketType = 'margin';
+        }
+        if (marketType === 'swap') {
+            if (since !== undefined) {
+                request['start_timestamp'] = since;
+            }
+        } else {
+            request['market'] = marketType;
+            if (since !== undefined) {
+                request['start_time'] = parseInt (since / 1000); // default 3 days from now, max 30 days
+            }
+        }
+        const currencyIdRequest = (marketType === 'swap') ? 'currency' : 'currency_mark';
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['currency_mark'] = currency['id'];
-        }
-        if (since !== undefined) {
-            request['start_time'] = parseInt (since / 1000);
+            request[currencyIdRequest] = currency['id'];
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // default 100, max 1000
+            request['limit'] = limit;
         }
-        const response = await this.privateSpotGetMarketFinancelog (this.extend (request, params));
+        const response = await this[method] (this.extend (request, query));
+        //
+        // spot and margin
         //
         //     {
         //         "code": 0,
@@ -2320,9 +2350,28 @@ module.exports = class digifinex extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'data', {});
-        const items = this.safeValue (data, 'finance', []);
-        return this.parseLedger (items, currency, since, limit);
+        // swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "currency": "USDT",
+        //                 "finance_type": 17,
+        //                 "change": "3.01",
+        //                 "timestamp": 1650809432000
+        //             },
+        //         ]
+        //     }
+        //
+        let ledger = undefined;
+        if (marketType === 'swap') {
+            ledger = this.safeValue (response, 'data', []);
+        } else {
+            const data = this.safeValue (response, 'data', {});
+            ledger = this.safeValue (data, 'finance', []);
+        }
+        return this.parseLedger (ledger, currency, since, limit);
     }
 
     parseDepositAddress (depositAddress, currency = undefined) {
