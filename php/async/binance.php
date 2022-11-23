@@ -6397,7 +6397,7 @@ class binance extends Exchange {
              * @param {array} $params extra parameters specific to the binance api endpoint
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
              */
-            $marginMode = $this->safe_string($params, 'marginMode'); // cross or isolated
+            list($marginMode, $query) = $this->handle_margin_mode_and_params('repayMargin', $params); // cross or isolated
             $this->check_required_margin_argument('repayMargin', $symbol, $marginMode);
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -6410,8 +6410,7 @@ class binance extends Exchange {
                 $request['symbol'] = $market['id'];
                 $request['isIsolated'] = 'TRUE';
             }
-            $params = $this->omit($params, 'marginMode');
-            $response = Async\await($this->sapiPostMarginRepay (array_merge($request, $params)));
+            $response = Async\await($this->sapiPostMarginRepay (array_merge($request, $query)));
             //
             //     {
             //         "tranId" => 108988250265,
@@ -6433,8 +6432,7 @@ class binance extends Exchange {
              * @param {array} $params extra parameters specific to the binance api endpoint
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
              */
-            $marginMode = $this->safe_string($params, 'marginMode'); // cross or isolated
-            $params = $this->omit($params, 'marginMode');
+            list($marginMode, $query) = $this->handle_margin_mode_and_params('borrowMargin', $params); // cross or isolated
             $this->check_required_margin_argument('borrowMargin', $symbol, $marginMode);
             Async\await($this->load_markets());
             $currency = $this->currency($code);
@@ -6447,7 +6445,7 @@ class binance extends Exchange {
                 $request['symbol'] = $market['id'];
                 $request['isIsolated'] = 'TRUE';
             }
-            $response = Async\await($this->sapiPostMarginLoan (array_merge($request, $params)));
+            $response = Async\await($this->sapiPostMarginLoan (array_merge($request, $query)));
             //
             //     {
             //         "tranId" => 108988250265,

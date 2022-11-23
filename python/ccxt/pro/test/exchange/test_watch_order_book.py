@@ -9,6 +9,7 @@ async def test_watch_order_book(exchange, symbol):
     method = 'watchOrderBook'
     # we have to skip some exchanges here due to the frequency of trading or for other reasons
     skipped_exchanges = [
+        'cex',    # CEX requires authentication for watch_order_book
         'ripio',
         'gopax',  # requires authentication for watch_order_book
         'luno',  # requires authentication for watch_order_book
