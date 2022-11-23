@@ -1455,7 +1455,6 @@ module.exports = class bybit extends Exchange {
         //          "theta": "-0.03262827"
         //      }
         //
-        const timestamp = this.safeInteger (ticker, 'time');
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
         const last = this.safeString2 (ticker, 'last_price', 'lastPrice');
@@ -1470,8 +1469,8 @@ module.exports = class bybit extends Exchange {
         const low = this.safeStringN (ticker, [ 'low_price_24h', 'low24h', 'lowPrice' ]);
         return this.safeTicker ({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': high,
             'low': low,
             'bid': bid,
@@ -1625,6 +1624,8 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://bybit-exchange.github.io/docs/futuresV2/linear/#t-latestsymbolinfo
+         * @see https://bybit-exchange.github.io/docs/spot/v3/#t-spot_latestsymbolinfo
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
