@@ -118,12 +118,12 @@ module.exports = class wazirx extends wazirxRest {
         //         "w": "100.0"
         //     }
         //
-        const timestamp = this.safeNumber (trade, 'E');
+        const timestamp = this.safeInteger (trade, 'E');
         const marketId = this.safeString (trade, 's');
         market = this.safeMarket (marketId, market);
         const feeCurrencyId = this.safeString (trade, 'U');
         return this.safeTrade ({
-            'id': this.safeString (trade, 'id'),
+            'id': this.safeString (trade, 't'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
