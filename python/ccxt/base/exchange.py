@@ -813,12 +813,22 @@ class Exchange(object):
     @staticmethod
     def safe_string_lower_n(dictionary, key_list, default_value=None):
         value = Exchange.get_object_value_from_key_list(dictionary, key_list)
-        return str(value).lower() if value is not None else default_value
+        if value is not None:
+            return str(value).lower()
+        elif default_value is None:
+            return default_value
+        else:
+            return default_value.lower()
 
     @staticmethod
     def safe_string_upper_n(dictionary, key_list, default_value=None):
         value = Exchange.get_object_value_from_key_list(dictionary, key_list)
-        return str(value).upper() if value is not None else default_value
+        if value is not None:
+            return str(value).upper()
+        elif default_value is None:
+            return default_value
+        else:
+            return default_value.upper()
 
     @staticmethod
     def safe_integer_n(dictionary, key_list, default_value=None):
