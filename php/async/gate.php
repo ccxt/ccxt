@@ -2057,13 +2057,22 @@ class gate extends Exchange {
     public function fetch_tickers($symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+             * @see https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-order
+             * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers
+             * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers-2
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the gate api endpoint
              * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
             Async\await($this->load_markets());
-            list($type, $query) = $this->handle_market_type_and_params('fetchTickers', null, $params);
+            $symbols = $this->market_symbols($symbols);
+            $first = $this->safe_string($symbols, 0);
+            $market = null;
+            if ($first !== null) {
+                $market = $this->market($first);
+            }
+            list($type, $query) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
             list($request, $requestParams) = $this->prepare_request(null, $type, $query);
             $method = $this->get_supported_mapping($type, array(
                 'spot' => 'publicSpotGetTickers',
