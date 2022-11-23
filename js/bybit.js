@@ -5939,10 +5939,6 @@ module.exports = class bybit extends Exchange {
                 if (method === 'POST') {
                     body = this.json (query);
                     authFull = auth_base + body;
-                    const brokerId = this.safeString (this.options, 'brokerId');
-                    if (brokerId !== undefined) {
-                        headers['Referer'] = brokerId;
-                    }
                 } else {
                     authFull = auth_base + queryEncoded;
                     url += '?' + this.urlencode (query);
@@ -5973,14 +5969,17 @@ module.exports = class bybit extends Exchange {
                             'Content-Type': 'application/json',
                         };
                     }
-                    if (!isSpot) {
-                        const brokerId = this.safeString (this.options, 'brokerId');
-                        if (brokerId !== undefined) {
-                            headers['Referer'] = brokerId;
-                        }
-                    }
                 } else {
                     url += '?' + this.urlencode (sortedQuery) + '&sign=' + signature;
+                }
+            }
+            if (method === 'POST') {
+                const brokerId = this.safeString (this.options, 'brokerId');
+                if (brokerId !== undefined) {
+                    if (headers === undefined) {
+                        headers = {};
+                    }
+                    headers['Referer'] = brokerId;
                 }
             }
         }
