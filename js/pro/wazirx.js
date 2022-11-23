@@ -1,4 +1,4 @@
-f'use strict';
+'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -549,7 +549,7 @@ module.exports = class wazirx extends wazirxRest {
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'i'),
-            'clientOrderId':this.safeString(order, 'c'),
+            'clientOrderId': this.safeString (order, 'c'),
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
