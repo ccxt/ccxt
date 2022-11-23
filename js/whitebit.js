@@ -15,7 +15,7 @@ module.exports = class whitebit extends Exchange {
             'id': 'whitebit',
             'name': 'WhiteBIT',
             'version': 'v4',
-            'countries': [ 'EE' ],
+            'countries': [ 'LT', 'EE', 'BG', 'AU' ],
             'rateLimit': 500,
             'has': {
                 'CORS': undefined,
@@ -98,6 +98,10 @@ module.exports = class whitebit extends Exchange {
                         'public': 'https://whitebit.com/api/v1/public',
                         'private': 'https://whitebit.com/api/v1',
                     },
+                    'v2': {
+                        'public': 'https://whitebit.com/api/v2/public',
+                        'private': 'https://whitebit.com/api/v2',
+                    },
                     'v4': {
                         'public': 'https://whitebit.com/api/v4/public',
                         'private': 'https://whitebit.com/api/v4',
@@ -117,11 +121,20 @@ module.exports = class whitebit extends Exchange {
                         ],
                     },
                 },
+                'v2': {
+                    'public': {
+                        'get': [
+                            'markets',
+                        ],
+                    },
+                },
                 'v4': {
                     'public': {
                         'get': [
-                            'ticker', // available markets and activity
+                            'ticker', // available markets (spot) and activity
+                            'markets', // available markets (spot + futures) and configs
                             'assets', // currencies configs
+                            'futures', // futures markets
                             'collateral/markets', // array of market symbols
                             'fee',
                             'orderbook/{market}',
@@ -170,10 +183,16 @@ module.exports = class whitebit extends Exchange {
             },
             'fees': {
                 'trading': {
-                    'tierBased': false,
-                    'percentage': true,
-                    'taker': this.parseNumber ('0.1'),
-                    'maker': this.parseNumber ('0.1'),
+                    'taker': this.parseNumber ('0.01'),
+                    'maker': this.parseNumber ('0.01'),
+                },
+                'spot': {
+                    'taker': this.parseNumber ('0.01'),
+                    'maker': this.parseNumber ('0.01'),
+                },
+                'swap': {
+                    'taker': this.parseNumber ('0.01'),
+                    'maker': this.parseNumber ('0.01'),
                 },
             },
             'options': {
@@ -219,51 +238,28 @@ module.exports = class whitebit extends Exchange {
          * @method
          * @name whitebit#fetchMarkets
          * @description retrieves data on all markets for whitebit
-         * @see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Public/http-v2.md#market-info
-         * @see https://github.com/whitebit-exchange/api-docs/blob/main/docs/Public/http-v4.md#collateral-markets-list
+         * @see // TODO
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        let promises = [ this.v4PublicGetCollateralMarkets (params), this.v2PublicGetMarkets (params) ];
-        //
-        // Spot
-        //
-        //    {
-        //        "success": true,
-        //        "message": "",
-        //        "result": [
-        //            {
-        //                "name": "C98_USDT",
-        //                "stock": "C98",
-        //                "money": "USDT",
-        //                "stockPrec": "3",
-        //                "moneyPrec": "5",
-        //                "feePrec": "6",
-        //                "makerFee": "0.001",
-        //                "takerFee": "0.001",
-        //                "minAmount": "2.5",
-        //                "minTotal": "5.05",
-        //                "tradesEnabled": true
-        //            },
-        //            ...
-        //        ]
-        // }
-        //
-        // Margin assets
-        // {
-        //     "success": true,
-        //     "message": null,
-        //     "result": [
-        //       "ADA_PERP",
-        //       "BTC_USDT",
-        //       "ETH_BTC",
-        //     ]
-        // }
-        promises = await Promise.all (promises);
-        const marginMarketsResponse = promises[0];
-        const response = promises[1];
-        const markets = this.safeValue (response, 'result', []);
-        const marginMarkets = this.safeValue (marginMarketsResponse, 'result', []);
+        const markets = await this.v2PublicGetMarkets (params);
+        // [
+        //  {
+        //      "name": "SON_USD",         // Market pair name
+        //      "stock": "SON",            // Ticker of stock currency
+        //      "money": "USD",            // Ticker of money currency
+        //      "stockPrec": "3",          // Stock currency precision
+        //      "moneyPrec": "2",          // Precision of money currency
+        //      "feePrec": "4",            // Fee precision
+        //      "makerFee": "0.001",       // Default maker fee ratio
+        //      "takerFee": "0.001",       // Default taker fee ratio
+        //      "minAmount": "0.001",      // Minimal amount of stock to trade
+        //      "minTotal": "0.001",       // Minimal amount of money to trade
+        //      "tradesEnabled": true,     // Is trading enabled
+        //      "type": "spot",            // "spot" / "futures"
+        //      "is_collateral": false,    // true for all futures / margin markets
+        //  }
+        // ]
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -274,7 +270,12 @@ module.exports = class whitebit extends Exchange {
             const quote = this.safeCurrencyCode (quoteId);
             const symbol = base + '/' + quote;
             const active = this.safeValue (market, 'tradesEnabled');
-            const isMargin = this.inArray (id, marginMarkets);
+            const type = this.safeValue (market, 'type');
+            const isSpot = type === 'spot';
+            const isFutures = type === 'futures';
+            const isMargin = isSpot && this.safeValue (market, 'is_collateral');
+            const takerFee = this.safeString (market, 'takerFee');
+            const makerFee = this.safeString (market, 'makerFee');
             const entry = {
                 'id': id,
                 'symbol': symbol,
@@ -284,18 +285,18 @@ module.exports = class whitebit extends Exchange {
                 'baseId': baseId,
                 'quoteId': quoteId,
                 'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
+                'type': isFutures ? 'swap' : 'spot',
+                'spot': isSpot,
                 'margin': isMargin,
-                'swap': quote === 'PERP',
+                'swap': isFutures,
                 'future': false,
                 'option': false,
                 'active': active,
-                'contract': false,
+                'contract': isFutures,
                 'linear': undefined,
                 'inverse': undefined,
-                'taker': this.safeNumber (market, 'makerFee'),
-                'maker': this.safeNumber (market, 'takerFee'),
+                'taker': Precise.stringDiv (takerFee, '100'),
+                'maker': Precise.stringDiv (makerFee, '100'),
                 'contractSize': undefined,
                 'expiry': undefined,
                 'expiryDatetime': undefined,
@@ -336,8 +337,10 @@ module.exports = class whitebit extends Exchange {
          * @name whitebit#fetchCurrencies
          * @description fetches all available currencies on an exchange
          * @param {object} params extra parameters specific to the whitebit api endpoint
+         * @see https://whitebit-exchange.github.io/api-docs/docs/Public/http-v4#asset-status-list
          * @returns {object} an associative dictionary of currencies
          */
+        const fees = await this.v4PublicGetFee ();
         const currencies = await this.v4PublicGetAssets (params);
         //
         //      "BTC": {
@@ -402,15 +405,20 @@ module.exports = class whitebit extends Exchange {
             }
             const limits = this.safeValue (currency, 'limits', {});
             const networks = {};
+            const fee = this.safeValue (fees, id, {});
+            const withdrawFee = this.safeValue (fee, 'withdraw', {});
             for (let j = 0; j < clampedNetworks.length; j++) {
                 const network = clampedNetworks[j];
                 const depositLimits = this.safeValue (this.safeValue (limits, 'deposit', {}), network, {});
                 const withdrawLimits = this.safeValue (this.safeValue (limits, 'withdraw', {}), network, {});
+                const networkFee = this.safeValue (fees, id + ' (' + network + ')', {});
+                const withdrawFee = this.safeValue (networkFee, 'withdraw');
                 networks[network] = {
                     'info': network,
                     'id': network,
                     'network': network,
                     'name': undefined,
+                    'fee': this.safeNumber (withdrawFee, 'fixed'),
                     'limits': {
                         'withdraw': {
                             'min': this.safeNumber (withdrawLimits, 'min', undefined),
@@ -435,7 +443,7 @@ module.exports = class whitebit extends Exchange {
                 'active': active,
                 'deposit': canDeposit,
                 'withdraw': canWithdraw,
-                'fee': undefined,
+                'fee': this.safeNumber (withdrawFee, 'fixed', undefined),
                 'precision': this.safeNumber (currency, 'currency_precision'),
                 'networks': networks,
                 'limits': {
@@ -468,31 +476,66 @@ module.exports = class whitebit extends Exchange {
          */
         await this.loadMarkets ();
         const response = await this.v4PublicGetFee (params);
+        // Without providers
+        // "TYC": {
+        //     "is_depositable": true,
+        //     "is_withdrawal": true,
+        //     "ticker": "TYC",
+        //     "name": "Tycoon",
+        //     "providers": [
+        //     ],
+        //     "withdraw": {
+        //         "max_amount": "0",
+        //         "min_amount": "1000",
+        //         "fixed": "873",
+        //         "flex": null,
+        //     },
+        //     "deposit": {
+        //         "max_amount": "0",
+        //         "min_amount": "800",
+        //         "fixed": null,
+        //         "flex": null,
+        //     },
+        // };
         //
-        //      {
-        //          "1INCH":{
-        //              "is_depositable":true,
-        //              "is_withdrawal":true,
-        //              "ticker":"1INCH",
-        //              "name":"1inch",
-        //              "providers":[
-        //              ],
-        //              "withdraw":{
-        //                   "max_amount":"0",
-        //                  "min_amount":"21.5",
-        //                  "fixed":"17.5",
-        //                  "flex":null
-        //              },
-        //              "deposit":{
-        //                  "max_amount":"0",
-        //                  "min_amount":"19.5",
-        //                  "fixed":null,
-        //                  "flex":null
-        //               }
-        //          },
-        //           {...}
-        //      }
-        //
+        // With providers
+        // "UAH": {
+        //     "ticker": "UAH",
+        //     "name": "Hryvnia",
+        //     "providers": [
+        //       "UAH_ADVCASH",
+        //     ],
+        //     "withdraw": {
+        //       "UAH_ADVCASH": {
+        //         "is_withdrawal": false,
+        //         "ticker": "UAH_ADVCASH",
+        //         "name": "UAH AdvCash",
+        //         "max_amount": "50000",
+        //         "min_amount": "50",
+        //         "fixed": null,
+        //         "flex": {
+        //           "percent": "1.5",
+        //           "min_fee": "0.75",
+        //           "max_fee": "750"
+        //         }
+        //       },
+        //     },
+        //     "deposit": {
+        //       "UAH_ADVCASH": {
+        //         "is_depositable": true,
+        //         "ticker": "UAH_ADVCASH",
+        //         "name": "UAH AdvCash",
+        //         "max_amount": "50000",
+        //         "min_amount": "50",
+        //         "fixed": null,
+        //         "flex": {
+        //           "percent": "1.5",
+        //           "min_fee": "0.75",
+        //           "max_fee": "750"
+        //         }
+        //       },
+        //     }
+        //   },
         const currenciesIds = Object.keys (response);
         const withdrawFees = {};
         const depositFees = {};
@@ -501,9 +544,9 @@ module.exports = class whitebit extends Exchange {
             const data = response[currency];
             const code = this.safeCurrencyCode (currency);
             const withdraw = this.safeValue (data, 'withdraw', {});
-            withdrawFees[code] = this.safeString (withdraw, 'fixed');
+            withdrawFees[code] = this.safeString (withdraw, 'fixed'); // undefined if no fixed fee or isFiat
             const deposit = this.safeValue (data, 'deposit', {});
-            depositFees[code] = this.safeString (deposit, 'fixed');
+            depositFees[code] = this.safeString (deposit, 'fixed'); // undefined if no fixed fee or isFiat
         }
         return {
             'withdraw': withdrawFees,
@@ -550,7 +593,7 @@ module.exports = class whitebit extends Exchange {
             result[symbol] = {
                 'info': fee,
                 'symbol': market['symbol'],
-                'percentage': true,
+                'percentage': false,
                 'tierBased': false,
                 'maker': this.parseNumber (makerFee),
                 'taker': this.parseNumber (takerFee),
@@ -1430,6 +1473,7 @@ module.exports = class whitebit extends Exchange {
                 throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires an uniqueId when the ticker is fiat');
             }
         }
+        // TODO: Multinetwork
         const response = await this[method] (this.extend (request, params));
         //
         // fiat
