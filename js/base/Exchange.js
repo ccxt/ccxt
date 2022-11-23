@@ -2143,7 +2143,7 @@ module.exports = class Exchange {
         return [ type, params ];
     }
 
-    handleSubTypeAndParams (methodName, market = undefined, params = {}) {
+    handleSubTypeAndParams (methodName, market = undefined, params = {}, defaultValue = 'linear') {
         let subType = undefined;
         // if set in params, it takes precedence
         const subTypeInParams = this.safeString2 (params, 'subType', 'subType');
@@ -2162,12 +2162,22 @@ module.exports = class Exchange {
             }
             // if it was not defined in market object
             if (subType === undefined) {
-                const exchangeWideValue = this.safeString2 (this.options, 'defaultSubType', 'subType', 'linear');
+                const exchangeWideValue = this.safeString2 (this.options, 'defaultSubType', 'subType', defaultValue);
                 const methodOptions = this.safeValue (this.options, methodName, {});
                 subType = this.safeString2 (methodOptions, 'defaultSubType', 'subType', exchangeWideValue);
             }
         }
         return [ subType, params ];
+    }
+
+    handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined) {
+        /**
+         * @ignore
+         * @method
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[string|undefined, object]} the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
+         */
+        return this.handleOptionAndParams (params, methodName, 'marginMode', defaultValue);
     }
 
     throwExactlyMatchedException (exact, string, message) {
@@ -2784,16 +2794,6 @@ module.exports = class Exchange {
         } else {
             return account;
         }
-    }
-
-    handleMarginModeAndParams (methodName, params = {}) {
-        /**
-         * @ignore
-         * @method
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[string|undefined, object]} the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
-         */
-        return this.handleOptionAndParams (params, methodName, 'marginMode');
     }
 
     checkRequiredArgument (methodName, argument, argumentName, options = []) {
