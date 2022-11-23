@@ -1428,7 +1428,6 @@ class bybit(Exchange):
         #          "theta": "-0.03262827"
         #      }
         #
-        timestamp = self.safe_integer(ticker, 'time')
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
         last = self.safe_string_2(ticker, 'last_price', 'lastPrice')
@@ -1443,8 +1442,8 @@ class bybit(Exchange):
         low = self.safe_string_n(ticker, ['low_price_24h', 'low24h', 'lowPrice'])
         return self.safe_ticker({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
+            'timestamp': None,
+            'datetime': None,
             'high': high,
             'low': low,
             'bid': bid,
@@ -1590,6 +1589,8 @@ class bybit(Exchange):
     def fetch_tickers(self, symbols=None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        see https://bybit-exchange.github.io/docs/futuresV2/linear/#t-latestsymbolinfo
+        see https://bybit-exchange.github.io/docs/spot/v3/#t-spot_latestsymbolinfo
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bybit api endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
