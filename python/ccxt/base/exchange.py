@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.2.15'
+__version__ = '2.2.16'
 
 # -----------------------------------------------------------------------------
 
@@ -2880,7 +2880,7 @@ class Exchange(object):
         params = self.omit(params, ['defaultType', 'type'])
         return [type, params]
 
-    def handle_sub_type_and_params(self, methodName, market=None, params={}):
+    def handle_sub_type_and_params(self, methodName, market=None, params={}, defaultValue='linear'):
         subType = None
         # if set in params, it takes precedence
         subTypeInParams = self.safe_string_2(params, 'subType', 'defaultSubType')
@@ -2897,7 +2897,7 @@ class Exchange(object):
                     subType = 'inverse'
             # if it was not defined in market object
             if subType is None:
-                values = self.handleOptionAndParams(None, methodName, 'subType', 'linear')  # no need to re-test params here
+                values = self.handleOptionAndParams(None, methodName, 'subType', defaultValue)  # no need to re-test params here
                 subType = values[0]
         return [subType, params]
 
