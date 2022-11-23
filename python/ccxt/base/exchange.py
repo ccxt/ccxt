@@ -869,7 +869,7 @@ class Exchange(object):
 
     @staticmethod
     def get_object_value_from_key_list(dictionary, key_list):
-        filtered_list = list(filter(lambda el: el in dictionary, key_list))
+        filtered_list = list(filter(lambda el: el in dictionary and dictionary[el] != '' and dictionary[el] != None, key_list))
         if (len(filtered_list) == 0):
             return None
         return dictionary[filtered_list[0]]
