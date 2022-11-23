@@ -708,11 +708,17 @@ class Exchange(object):
 
     @staticmethod
     def safe_string_lower(dictionary, key, default_value=None):
-        return str(dictionary[key]).lower() if Exchange.key_exists(dictionary, key) else default_value
+        if Exchange.key_exists(dictionary, key):
+            return str(dictionary[key]).lower()
+        else:
+            return default_value.lower() if default_value is not None else default_value
 
     @staticmethod
     def safe_string_upper(dictionary, key, default_value=None):
-        return str(dictionary[key]).upper() if Exchange.key_exists(dictionary, key) else default_value
+        if Exchange.key_exists(dictionary, key):
+            return str(dictionary[key]).upper()
+        else:
+            return default_value.upper() if default_value is not None else default_value
 
     @staticmethod
     def safe_integer(dictionary, key, default_value=None):
