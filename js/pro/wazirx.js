@@ -1,4 +1,4 @@
-'use strict';
+f'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -542,14 +542,14 @@ module.exports = class wazirx extends wazirxRest {
         //         "v": "0.0"
         //     }
         //
-        const timestamp = this.safeNumber (order, 'O');
+        const timestamp = this.safeInteger (order, 'O');
         const marketId = this.safeString (order, 's');
         const status = this.safeString (order, 'X');
         const market = this.safeMarket (marketId);
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'i'),
-            'clientOrderId': undefined,
+            'clientOrderId':this.safeString(order, 'c'),
             'datetime': this.iso8601 (timestamp),
             'timestamp': timestamp,
             'lastTradeTimestamp': undefined,
