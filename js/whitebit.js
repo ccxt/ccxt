@@ -25,6 +25,7 @@ module.exports = class whitebit extends Exchange {
                 'future': false,
                 'option': false,
                 'borrowMargin': false,
+                'postOnly': true,
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'cancelOrders': false,
@@ -242,7 +243,8 @@ module.exports = class whitebit extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const markets = await this.v2PublicGetMarkets (params);
+        const response = await this.v2PublicGetMarkets (params);
+        const markets = this.safeValue (response, 'result', []);
         // [
         //  {
         //      "name": "SON_USD",         // Market pair name
@@ -1129,7 +1131,7 @@ module.exports = class whitebit extends Exchange {
         }
         params = this.omit (query, [ 'triggerPrice', 'stopPrice' ]);
         const response = await this[method] (this.extend (request, params));
-        return this.parseOrder (response);
+        return this.parseOrder (this.extend (response, { postOnly }));
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -1376,8 +1378,8 @@ module.exports = class whitebit extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
-            'timeInForce': undefined,
-            'postOnly': undefined,
+            'timeInForce': this.safeValue (order, 'postOnly') ? 'PO' : undefined,
+            'postOnly': this.safeValue (order, 'postOnly') ? true : undefined,
             'status': undefined,
             'side': side,
             'price': price,
@@ -1473,7 +1475,13 @@ module.exports = class whitebit extends Exchange {
                 throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires an uniqueId when the ticker is fiat');
             }
         }
-        // TODO: Multinetwork
+        if (this.isMultinetwork (code)) {
+            const network = this.safeValue (params, 'network');
+            if (network === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchDepositAddress() requires an network when the ticker is multinetwork');
+            }
+            request['network'] = network;
+        }
         const response = await this[method] (this.extend (request, params));
         //
         // fiat
@@ -1935,6 +1943,13 @@ module.exports = class whitebit extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'info': info,
         };
+    }
+
+    isMultinetwork (code) {
+        const currency = this.currency (code);
+        const hash = currency['networks'];
+        const networks = Object.keys (hash);
+        return networks.length > 1 && networks.indexOf (code) === -1;
     }
 
     isFiat (currency) {
