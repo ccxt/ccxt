@@ -471,7 +471,7 @@ class Exchange {
         } else if ($default_value === null) {
             return $default_value;
         } else {
-            return strtolower($default_value);
+            return strtoupper($default_value);
         }
         return static::valid_object_value($object, $key) ? strtoupper(strval($object[$key])) : $default_value;
     }
