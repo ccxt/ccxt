@@ -1330,14 +1330,25 @@ module.exports = class digifinex extends Exchange {
         //         0.029927
         //     ]
         //
-        return [
-            this.safeTimestamp (ohlcv, 0),
-            this.safeNumber (ohlcv, 5), // open
-            this.safeNumber (ohlcv, 3), // high
-            this.safeNumber (ohlcv, 4), // low
-            this.safeNumber (ohlcv, 2), // close
-            this.safeNumber (ohlcv, 1), // volume
-        ];
+        if (market['swap']) {
+            return [
+                this.safeInteger (ohlcv, 0),
+                this.safeNumber (ohlcv, 1), // open
+                this.safeNumber (ohlcv, 2), // high
+                this.safeNumber (ohlcv, 3), // low
+                this.safeNumber (ohlcv, 4), // close
+                this.safeNumber (ohlcv, 5), // volume
+            ];
+        } else {
+            return [
+                this.safeTimestamp (ohlcv, 0),
+                this.safeNumber (ohlcv, 5), // open
+                this.safeNumber (ohlcv, 3), // high
+                this.safeNumber (ohlcv, 4), // low
+                this.safeNumber (ohlcv, 2), // close
+                this.safeNumber (ohlcv, 1), // volume
+            ];
+        }
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -1345,6 +1356,8 @@ module.exports = class digifinex extends Exchange {
          * @method
          * @name digifinex#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-candles-data
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#recentcandle
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
@@ -1354,25 +1367,34 @@ module.exports = class digifinex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-            'period': this.timeframes[timeframe],
-            // 'start_time': 1564520003, // starting timestamp, 200 candles before end_time by default
-            // 'end_time': 1564520003, // ending timestamp, current timestamp by default
-        };
-        if (since !== undefined) {
-            const startTime = parseInt (since / 1000);
-            request['start_time'] = startTime;
+        let method = 'publicSpotGetKline';
+        const request = {};
+        if (market['swap']) {
+            method = 'publicSwapGetPublicCandles';
+            request['instrument_id'] = market['id'];
+            request['granularity'] = timeframe;
             if (limit !== undefined) {
-                const duration = this.parseTimeframe (timeframe);
-                request['end_time'] = this.sum (startTime, limit * duration);
+                request['limit'] = limit;
             }
-        } else if (limit !== undefined) {
-            const endTime = this.seconds ();
-            const duration = this.parseTimeframe (timeframe);
-            request['startTime'] = this.sum (endTime, -limit * duration);
+        } else {
+            request['symbol'] = market['id'];
+            request['period'] = this.timeframes[timeframe];
+            if (since !== undefined) {
+                const startTime = parseInt (since / 1000);
+                request['start_time'] = startTime;
+                if (limit !== undefined) {
+                    const duration = this.parseTimeframe (timeframe);
+                    request['end_time'] = this.sum (startTime, limit * duration);
+                }
+            } else if (limit !== undefined) {
+                const endTime = this.seconds ();
+                const duration = this.parseTimeframe (timeframe);
+                request['start_time'] = this.sum (endTime, -limit * duration);
+            }
         }
-        const response = await this.publicSpotGetKline (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
+        //
+        // spot
         //
         //     {
         //         "code":0,
@@ -1383,8 +1405,29 @@ module.exports = class digifinex extends Exchange {
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        return this.parseOHLCVs (data, market, timeframe, since, limit);
+        // swap
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "instrument_id": "BTCUSDTPERP",
+        //             "granularity": "1m",
+        //             "candles": [
+        //                 [1588089660000,"6900","6900","6900","6900","0","0"],
+        //                 [1588089720000,"6900","6900","6900","6900","0","0"],
+        //                 [1588089780000,"6900","6900","6900","6900","0","0"],
+        //             ]
+        //         }
+        //     }
+        //
+        let candles = undefined;
+        if (market['swap']) {
+            const data = this.safeValue (response, 'data', {});
+            candles = this.safeValue (data, 'candles', []);
+        } else {
+            candles = this.safeValue (response, 'data', []);
+        }
+        return this.parseOHLCVs (candles, market, timeframe, since, limit);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
