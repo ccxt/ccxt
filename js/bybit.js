@@ -1638,7 +1638,7 @@ module.exports = class bybit extends Exchange {
         if (symbols !== undefined) {
             const symbol = this.safeValue (symbols, 0);
             market = this.market (symbol);
-            [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+            type = market['type'];
             isUsdcSettled = market['settle'] === 'USDC';
         } else {
             [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
