@@ -63,6 +63,8 @@ module.exports = class exmo extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchTransactions': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
@@ -176,7 +178,7 @@ module.exports = class exmo extends Exchange {
                 },
                 'transaction': {
                     'tierBased': false,
-                    'percentage': false, // fixed transaction fees for crypto, see fetchTransactionFees below
+                    'percentage': false, // fixed transaction fees for crypto, see fetchDepositWithdrawFees below
                 },
             },
             'options': {
@@ -422,7 +424,7 @@ module.exports = class exmo extends Exchange {
         /**
          * @method
          * @name exmo#fetchTransactionFees
-         * @description fetch transaction fees
+         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
          * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
          * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the exmo api endpoint
@@ -489,6 +491,84 @@ module.exports = class exmo extends Exchange {
         }
         // cache them for later use
         this.options['transactionFees'] = result;
+        return result;
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name exmo#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the exmo api endpoint
+         * @returns {object} a list of [transaction fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fees-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.publicGetPaymentsProvidersCryptoList (params);
+        //
+        //    {
+        //        "USDT": [
+        //            {
+        //                "type": "deposit", // or "withdraw"
+        //                "name": "USDT (ERC20)",
+        //                "currency_name": "USDT",
+        //                "min": "10",
+        //                "max": "0",
+        //                "enabled": true,
+        //                "comment": "Minimum deposit amount is 10 USDT",
+        //                "commission_desc": "0%",
+        //                "currency_confirmations": 2
+        //            },
+        //            ...
+        //        ],
+        //        ...
+        //    }
+        //
+        const result = this.parseDepositWithdrawFees (response, codes);
+        // cache them for later use
+        this.options['transactionFees'] = result;
+        return result;
+    }
+
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        //
+        //    [
+        //        {
+        //            "type": "deposit", // or "withdraw"
+        //            "name": "BTC",
+        //            "currency_name": "BTC",
+        //            "min": "0.001",
+        //            "max": "0",
+        //            "enabled": true,
+        //            "comment": "Minimum deposit amount is 0.001 BTC. We do not support BSC and BEP20 network, please consider this when sending funds",
+        //            "commission_desc": "0%",
+        //            "currency_confirmations": 1
+        //        },
+        //        ...
+        //    ]
+        //
+        const result = this.depositWithdrawFee (fee);
+        for (let i = 0; i < fee.length; i++) {
+            const provider = fee[i];
+            const type = this.safeString (provider, 'type');
+            const name = this.safeString (provider, 'name');
+            const commissionDesc = this.safeString (provider, 'commission_desc');
+            result['networks'][name] = {
+                'withdraw': {
+                    'fee': undefined,
+                    'percentage': undefined,
+                },
+                'deposit': {
+                    'fee': undefined,
+                    'percentage': true,
+                },
+            };
+            result['networks'][name][type] = {
+                'fee': this.parseFixedFloatValue (commissionDesc),
+                'percentage': true,
+            };
+        }
         return result;
     }
 
