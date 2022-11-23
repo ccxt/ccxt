@@ -754,13 +754,27 @@ class digifinex(Exchange):
     async def fetch_tickers(self, symbols=None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        see https://docs.digifinex.com/en-ww/spot/v3/rest.html#ticker-price
+        see https://docs.digifinex.com/en-ww/swap/v2/rest.html#tickers
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the digifinex api endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        response = await self.publicSpotGetTicker(params)
+        first = self.safe_string(symbols, 0)
+        market = None
+        if first is not None:
+            market = self.market(first)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTickers', market, params)
+        method = 'publicSpotGetTicker'
+        request = {}
+        if type == 'swap':
+            method = 'publicSwapGetPublicTickers'
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # spot
         #
         #    {
         #        "ticker": [{
@@ -778,8 +792,37 @@ class digifinex(Exchange):
         #        "code": 0
         #    }
         #
+        # swap
+        #
+        #     {
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "instrument_id": "SUSHIUSDTPERP",
+        #                 "index_price": "1.1297",
+        #                 "mark_price": "1.1289",
+        #                 "max_buy_price": "1.1856",
+        #                 "min_sell_price": "1.0726",
+        #                 "best_bid": "1.1278",
+        #                 "best_bid_size": "500",
+        #                 "best_ask": "1.1302",
+        #                 "best_ask_size": "471",
+        #                 "high_24h": "1.2064",
+        #                 "open_24h": "1.1938",
+        #                 "low_24h": "1.1239",
+        #                 "last": "1.1302",
+        #                 "last_qty": "29",
+        #                 "volume_24h": "4946163",
+        #                 "price_change_percent": "-0.053275255486681085",
+        #                 "open_interest": "-",
+        #                 "timestamp": 1663222782100
+        #             },
+        #             ...
+        #         ]
+        #     }
+        #
         result = {}
-        tickers = self.safe_value(response, 'ticker', [])
+        tickers = self.safe_value_2(response, 'ticker', 'data', [])
         date = self.safe_integer(response, 'date')
         for i in range(0, len(tickers)):
             rawTicker = self.extend({
@@ -793,16 +836,24 @@ class digifinex(Exchange):
     async def fetch_ticker(self, symbol, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        see https://docs.digifinex.com/en-ww/spot/v3/rest.html#ticker-price
+        see https://docs.digifinex.com/en-ww/swap/v2/rest.html#ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the digifinex api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
-            'symbol': market['id'],
-        }
-        response = await self.publicSpotGetTicker(self.extend(request, params))
+        method = 'publicSpotGetTicker'
+        request = {}
+        if market['swap']:
+            method = 'publicSwapGetPublicTicker'
+            request['instrument_id'] = market['id']
+        else:
+            request['symbol'] = market['id']
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # spot
         #
         #    {
         #        "ticker": [{
@@ -820,15 +871,46 @@ class digifinex(Exchange):
         #        "code": 0
         #    }
         #
+        # swap
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "instrument_id": "BTCUSDTPERP",
+        #             "index_price": "20141.9967",
+        #             "mark_price": "20139.3404",
+        #             "max_buy_price": "21146.4838",
+        #             "min_sell_price": "19132.2725",
+        #             "best_bid": "20140.0998",
+        #             "best_bid_size": "3116",
+        #             "best_ask": "20140.0999",
+        #             "best_ask_size": "9004",
+        #             "high_24h": "20410.6496",
+        #             "open_24h": "20308.6998",
+        #             "low_24h": "19600",
+        #             "last": "20140.0999",
+        #             "last_qty": "2",
+        #             "volume_24h": "49382816",
+        #             "price_change_percent": "-0.008301855936636448",
+        #             "open_interest": "-",
+        #             "timestamp": 1663221614998
+        #         }
+        #     }
+        #
         date = self.safe_integer(response, 'date')
         tickers = self.safe_value(response, 'ticker', [])
+        data = self.safe_value(response, 'data', {})
         firstTicker = self.safe_value(tickers, 0, {})
-        result = self.extend({'date': date}, firstTicker)
+        result = None
+        if market['swap']:
+            result = data
+        else:
+            result = self.extend({'date': date}, firstTicker)
         return self.parse_ticker(result, market)
 
     def parse_ticker(self, ticker, market=None):
         #
-        # fetchTicker, fetchTickers
+        # spot: fetchTicker, fetchTickers
         #
         #     {
         #         "last":0.021957,
@@ -843,31 +925,56 @@ class digifinex(Exchange):
         #         "date"1564518452,  # injected from fetchTicker/fetchTickers
         #     }
         #
-        marketId = self.safe_string_upper(ticker, 'symbol')
-        symbol = self.safe_symbol(marketId, market, '_')
+        # swap: fetchTicker, fetchTickers
+        #
+        #     {
+        #         "instrument_id": "BTCUSDTPERP",
+        #         "index_price": "20141.9967",
+        #         "mark_price": "20139.3404",
+        #         "max_buy_price": "21146.4838",
+        #         "min_sell_price": "19132.2725",
+        #         "best_bid": "20140.0998",
+        #         "best_bid_size": "3116",
+        #         "best_ask": "20140.0999",
+        #         "best_ask_size": "9004",
+        #         "high_24h": "20410.6496",
+        #         "open_24h": "20308.6998",
+        #         "low_24h": "19600",
+        #         "last": "20140.0999",
+        #         "last_qty": "2",
+        #         "volume_24h": "49382816",
+        #         "price_change_percent": "-0.008301855936636448",
+        #         "open_interest": "-",
+        #         "timestamp": 1663221614998
+        #     }
+        #
+        marketId = self.safe_string_upper_2(ticker, 'symbol', 'instrument_id')
+        symbol = self.safe_symbol(marketId, market)
+        market = self.safe_market(marketId)
         timestamp = self.safe_timestamp(ticker, 'date')
+        if market['swap']:
+            timestamp = self.safe_integer(ticker, 'timestamp')
         last = self.safe_string(ticker, 'last')
-        percentage = self.safe_string(ticker, 'change')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_string(ticker, 'high'),
-            'low': self.safe_string(ticker, 'low'),
-            'bid': self.safe_string(ticker, 'buy'),
-            'bidVolume': None,
-            'ask': self.safe_string(ticker, 'sell'),
-            'askVolume': None,
+            'high': self.safe_string_2(ticker, 'high', 'high_24h'),
+            'low': self.safe_string_2(ticker, 'low', 'low_24h'),
+            'bid': self.safe_string_2(ticker, 'buy', 'best_bid'),
+            'bidVolume': self.safe_string(ticker, 'best_bid_size'),
+            'ask': self.safe_string_2(ticker, 'sell', 'best_ask'),
+            'askVolume': self.safe_string(ticker, 'best_ask_size'),
             'vwap': None,
-            'open': None,
+            'open': self.safe_string(ticker, 'open_24h'),
             'close': last,
             'last': last,
             'previousClose': None,
             'change': None,
-            'percentage': percentage,
+            'percentage': self.safe_string_2(ticker, 'change', 'price_change_percent'),
             'average': None,
-            'baseVolume': self.safe_string(ticker, 'vol'),
-            'quoteVolume': self.safe_string(ticker, 'base_vol'),
+            'baseVolume': self.safe_string(ticker, 'base_vol'),
+            'quoteVolume': self.safe_string_2(ticker, 'vol', 'volume_24h'),
             'info': ticker,
         }, market)
 

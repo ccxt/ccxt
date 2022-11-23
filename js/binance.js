@@ -192,6 +192,7 @@ module.exports = class binance extends Exchange {
                         'asset/transfer': 0.1,
                         'asset/assetDetail': 0.1,
                         'asset/tradeFee': 0.1,
+                        'asset/ledger-transfer/cloud-mining/queryByPage': 4,
                         'margin/loan': 1,
                         'margin/repay': 1,
                         'margin/account': 1,
@@ -263,6 +264,7 @@ module.exports = class binance extends Exchange {
                         'sub-account/sub/transfer/history': 0.1,
                         'sub-account/transfer/subUserHistory': 0.1,
                         'sub-account/universalTransfer': 0.1,
+                        'sub-account/apiRestrictions/ipRestriction/thirdPartyList': 1,
                         'managed-subaccount/asset': 0.1,
                         'managed-subaccount/accountSnapshot': 240,
                         // lending endpoints
@@ -383,6 +385,8 @@ module.exports = class binance extends Exchange {
                         'sub-account/transfer/subToSub': 0.1,
                         'sub-account/transfer/subToMaster': 0.1,
                         'sub-account/universalTransfer': 0.1,
+                        // v2 not supported yet
+                        // 'sub-account/subAccountApi/ipRestriction': 20,
                         'managed-subaccount/deposit': 0.1,
                         'managed-subaccount/withdraw': 0.1,
                         'userDataStream': 0.1,
@@ -674,6 +678,7 @@ module.exports = class binance extends Exchange {
                         'trades': 5,
                         'historicalTrades': 20,
                         'exerciseHistory': 3,
+                        'openInterest': 3,
                     },
                 },
                 'eapiPrivate': {
@@ -2608,7 +2613,6 @@ module.exports = class binance extends Exchange {
         let takerOrMaker = undefined;
         if (buyerMaker !== undefined) {
             side = buyerMaker ? 'sell' : 'buy'; // this is reversed intentionally
-            takerOrMaker = 'taker';
         } else if ('side' in trade) {
             side = this.safeStringLower (trade, 'side');
         } else {
@@ -6380,7 +6384,7 @@ module.exports = class binance extends Exchange {
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
-        const marginMode = this.safeString (params, 'marginMode'); // cross or isolated
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('repayMargin', params); // cross or isolated
         this.checkRequiredMarginArgument ('repayMargin', symbol, marginMode);
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -6393,8 +6397,7 @@ module.exports = class binance extends Exchange {
             request['symbol'] = market['id'];
             request['isIsolated'] = 'TRUE';
         }
-        params = this.omit (params, 'marginMode');
-        const response = await this.sapiPostMarginRepay (this.extend (request, params));
+        const response = await this.sapiPostMarginRepay (this.extend (request, query));
         //
         //     {
         //         "tranId": 108988250265,
@@ -6416,8 +6419,7 @@ module.exports = class binance extends Exchange {
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
-        const marginMode = this.safeString (params, 'marginMode'); // cross or isolated
-        params = this.omit (params, 'marginMode');
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('borrowMargin', params); // cross or isolated
         this.checkRequiredMarginArgument ('borrowMargin', symbol, marginMode);
         await this.loadMarkets ();
         const currency = this.currency (code);
@@ -6430,7 +6432,7 @@ module.exports = class binance extends Exchange {
             request['symbol'] = market['id'];
             request['isIsolated'] = 'TRUE';
         }
-        const response = await this.sapiPostMarginLoan (this.extend (request, params));
+        const response = await this.sapiPostMarginLoan (this.extend (request, query));
         //
         //     {
         //         "tranId": 108988250265,

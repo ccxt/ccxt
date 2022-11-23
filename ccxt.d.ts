@@ -744,6 +744,7 @@ declare module 'ccxt' {
         class idex extends Exchange {}
         class kraken extends Exchange {}
         class kucoin extends Exchange {}
+        class luno extends Exchange {}
         class mexc extends Exchange {}
         class ndax extends Exchange {}
         class okcoin extends Exchange {}

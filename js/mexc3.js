@@ -421,13 +421,11 @@ module.exports = class mexc3 extends Exchange {
                 'FLUX1': 'FLUX', // switched places
                 'FLUX': 'FLUX1', // switched places
                 'FREE': 'FreeRossDAO', // conflict with FREE Coin
-                'GMT': 'GMT Token',
                 'HERO': 'Step Hero', // conflict with Metahero
                 'MIMO': 'Mimosa',
                 'PROS': 'Pros.Finance', // conflict with Prosper
                 'SIN': 'Sin City Token',
                 'SOUL': 'Soul Swap',
-                'STEPN': 'GMT',
             },
             'exceptions': {
                 'exact': {
