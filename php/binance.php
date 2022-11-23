@@ -1321,88 +1321,105 @@ class binance extends Exchange {
         $result = array();
         for ($i = 0; $i < count($response); $i++) {
             //
-            //     {
-            //         coin => 'LINK',
-            //         depositAllEnable => true,
-            //         withdrawAllEnable => true,
-            //         $name => 'ChainLink',
-            //         free => '0.06168',
-            //         locked => '0',
-            //         freeze => '0',
-            //         withdrawing => '0',
-            //         ipoing => '0',
-            //         ipoable => '0',
-            //         storage => '0',
-            //         isLegalMoney => false,
-            //         $trading => true,
-            //         $networkList => [
-            //             array(
-            //                 $network => 'BNB',
-            //                 coin => 'LINK',
-            //                 withdrawIntegerMultiple => '0',
-            //                 $isDefault => false,
-            //                 $depositEnable => true,
-            //                 $withdrawEnable => true,
-            //                 depositDesc => '',
-            //                 withdrawDesc => '',
-            //                 specialTips => 'Both a MEMO and an Address are required to successfully deposit your LINK BEP2 tokens to Binance.',
-            //                 $name => 'BEP2',
-            //                 resetAddressStatus => false,
-            //                 addressRegex => '^(bnb1)[0-9a-z]{38}$',
-            //                 memoRegex => '^[0-9A-Za-z\\-_]array(1,120)$',
-            //                 $withdrawFee => '0.002',
-            //                 withdrawMin => '0.01',
-            //                 withdrawMax => '9999999',
-            //                 minConfirm => 1,
-            //                 unLockConfirm => 0
-            //             ),
-            //             array(
-            //                 $network => 'BSC',
-            //                 coin => 'LINK',
-            //                 withdrawIntegerMultiple => '0.00000001',
-            //                 $isDefault => false,
-            //                 $depositEnable => true,
-            //                 $withdrawEnable => true,
-            //                 depositDesc => '',
-            //                 withdrawDesc => '',
-            //                 specialTips => '',
-            //                 $name => 'BEP20 (BSC)',
-            //                 resetAddressStatus => false,
-            //                 addressRegex => '^(0x)[0-9A-Fa-f]{40}$',
-            //                 memoRegex => '',
-            //                 $withdrawFee => '0.005',
-            //                 withdrawMin => '0.01',
-            //                 withdrawMax => '9999999',
-            //                 minConfirm => 15,
-            //                 unLockConfirm => 0
-            //             ),
-            //             {
-            //                 $network => 'ETH',
-            //                 coin => 'LINK',
-            //                 withdrawIntegerMultiple => '0.00000001',
-            //                 $isDefault => true,
-            //                 $depositEnable => true,
-            //                 $withdrawEnable => true,
-            //                 depositDesc => '',
-            //                 withdrawDesc => '',
-            //                 $name => 'ERC20',
-            //                 resetAddressStatus => false,
-            //                 addressRegex => '^(0x)[0-9A-Fa-f]{40}$',
-            //                 memoRegex => '',
-            //                 $withdrawFee => '0.34',
-            //                 withdrawMin => '0.68',
-            //                 withdrawMax => '0',
-            //                 minConfirm => 12,
-            //                 unLockConfirm => 0
-            //             }
-            //         ]
-            //     }
+            //    {
+            //        "coin" => "LINK",
+            //        "depositAllEnable" => true,
+            //        "withdrawAllEnable" => true,
+            //        "name" => "ChainLink",
+            //        "free" => "0",
+            //        "locked" => "0",
+            //        "freeze" => "0",
+            //        "withdrawing" => "0",
+            //        "ipoing" => "0",
+            //        "ipoable" => "0",
+            //        "storage" => "0",
+            //        "isLegalMoney" => false,
+            //        "trading" => true,
+            //        "networkList" => [
+            //            array(
+            //                "network" => "BSC",
+            //                "coin" => "LINK",
+            //                "withdrawIntegerMultiple" => "0.00000001",
+            //                "isDefault" => false,
+            //                "depositEnable" => true,
+            //                "withdrawEnable" => true,
+            //                "depositDesc" => "",
+            //                "withdrawDesc" => "",
+            //                "specialTips" => "",
+            //                "specialWithdrawTips" => "The $network you have selected is BSC. Please ensure that the withdrawal address supports the Binance Smart Chain $network-> You will lose your assets if the chosen platform does not support retrievals.",
+            //                "name" => "BNB Smart Chain (BEP20)",
+            //                "resetAddressStatus" => false,
+            //                "addressRegex" => "^(0x)[0-9A-Fa-f]{40}$",
+            //                "addressRule" => "",
+            //                "memoRegex" => "",
+            //                "withdrawFee" => "0.012",
+            //                "withdrawMin" => "0.024",
+            //                "withdrawMax" => "9999999999.99999999",
+            //                "minConfirm" => "15",
+            //                "unLockConfirm" => "0",
+            //                "sameAddress" => false,
+            //                "estimatedArrivalTime" => "5",
+            //                "busy" => false,
+            //                "country" => "AE,BINANCE_BAHRAIN_BSC"
+            //            ),
+            //            array(
+            //                "network" => "BNB",
+            //                "coin" => "LINK",
+            //                "withdrawIntegerMultiple" => "0.00000001",
+            //                "isDefault" => false,
+            //                "depositEnable" => true,
+            //                "withdrawEnable" => true,
+            //                "depositDesc" => "",
+            //                "withdrawDesc" => "",
+            //                "specialTips" => "Both a MEMO and an Address are required to successfully deposit your LINK BEP2 tokens to Binance.",
+            //                "specialWithdrawTips" => "",
+            //                "name" => "BNB Beacon Chain (BEP2)",
+            //                "resetAddressStatus" => false,
+            //                "addressRegex" => "^(bnb1)[0-9a-z]{38}$",
+            //                "addressRule" => "",
+            //                "memoRegex" => "^[0-9A-Za-z\\-_]array(1,120)$",
+            //                "withdrawFee" => "0.002",
+            //                "withdrawMin" => "0.01",
+            //                "withdrawMax" => "10000000000",
+            //                "minConfirm" => "1",
+            //                "unLockConfirm" => "0",
+            //                "sameAddress" => true,
+            //                "estimatedArrivalTime" => "5",
+            //                "busy" => false,
+            //                "country" => "AE,BINANCE_BAHRAIN_BSC"
+            //            ),
+            //            {
+            //                "network" => "ETH",
+            //                "coin" => "LINK",
+            //                "withdrawIntegerMultiple" => "0.00000001",
+            //                "isDefault" => true,
+            //                "depositEnable" => true,
+            //                "withdrawEnable" => true,
+            //                "depositDesc" => "",
+            //                "withdrawDesc" => "",
+            //                "name" => "Ethereum (ERC20)",
+            //                "resetAddressStatus" => false,
+            //                "addressRegex" => "^(0x)[0-9A-Fa-f]{40}$",
+            //                "addressRule" => "",
+            //                "memoRegex" => "",
+            //                "withdrawFee" => "0.55",
+            //                "withdrawMin" => "1.1",
+            //                "withdrawMax" => "10000000000",
+            //                "minConfirm" => "12",
+            //                "unLockConfirm" => "0",
+            //                "sameAddress" => false,
+            //                "estimatedArrivalTime" => "5",
+            //                "busy" => false,
+            //                "country" => "AE,BINANCE_BAHRAIN_BSC"
+            //            }
+            //        ]
+            //    }
             //
             $entry = $response[$i];
             $id = $this->safe_string($entry, 'coin');
             $name = $this->safe_string($entry, 'name');
             $code = $this->safe_currency_code($id);
-            $precision = null;
+            $minPrecision = null;
             $isWithdrawEnabled = true;
             $isDepositEnabled = true;
             $networkList = $this->safe_value($entry, 'networkList', array());
@@ -1422,14 +1439,24 @@ class binance extends Exchange {
                 if ($isDefault || ($fee === null)) {
                     $fee = $withdrawFee;
                 }
+                $precisionTick = $this->safe_string($networkItem, 'withdrawIntegerMultiple');
+                // avoid zero values, which are mostly from fiat or leveraged tokens : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
+                // so, when there is zero instead of $i->e. 0.001, then we skip those cases, because we don't know the precision - it might be because of $network is suspended or other reasons
+                if (!Precise::string_eq($precisionTick, '0')) {
+                    $minPrecision = ($minPrecision === null) ? $precisionTick : Precise::string_min($minPrecision, $precisionTick);
+                }
             }
             $trading = $this->safe_value($entry, 'trading');
             $active = ($isWithdrawEnabled && $isDepositEnabled && $trading);
+            $maxDecimalPlaces = null;
+            if ($minPrecision !== null) {
+                $maxDecimalPlaces = $this->parse_number($this->number_to_string($this->precision_from_string($minPrecision)));
+            }
             $result[$code] = array(
                 'id' => $id,
                 'name' => $name,
                 'code' => $code,
-                'precision' => $precision,
+                'precision' => $maxDecimalPlaces,
                 'info' => $entry,
                 'active' => $active,
                 'deposit' => $isDepositEnabled,
