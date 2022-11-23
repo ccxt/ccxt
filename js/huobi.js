@@ -1886,7 +1886,7 @@ module.exports = class huobi extends Exchange {
         let subType = undefined;
         let method = 'spotPublicGetMarketTickers';
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
-        [ subType, params ] = this.handleSubTypeAndParams ('watchOrders', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
         const request = {};
         const future = (type === 'future');
         const swap = (type === 'swap');
