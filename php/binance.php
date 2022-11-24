@@ -246,6 +246,9 @@ class binance extends Exchange {
                         'capital/deposit/subHisrec' => 0.1,
                         'capital/withdraw/history' => 0.1,
                         'convert/tradeFlow' => 0.6667, // Weight(UID) => 100 => cost = 0.006667 * 100 = 0.6667
+                        'convert/exchangeInfo' => 50,
+                        'convert/assetInfo' => 10,
+                        'convert/orderStatus' => 0.6667,
                         'account/status' => 0.1,
                         'account/apiTradingStatus' => 0.1,
                         'account/apiRestrictions/ipRestriction' => 0.1,
@@ -443,6 +446,8 @@ class binance extends Exchange {
                         'loan/adjust/ltv' => 40, // Weight(UID) => 6000 => cost = 0.006667 * 6000 = 40
                         'loan/customize/margin_call' => 40, // Weight(UID) => 6000 => cost = 0.006667 * 6000 = 40
                         'loan/vip/repay' => 40, // Weight(UID) => 6000 => cost = 0.006667 * 6000 = 40
+                        'convert/getQuote' => 20.001,
+                        'convert/acceptQuote' => 3.3335,
                     ),
                     'put' => array(
                         'userDataStream' => 0.1,
