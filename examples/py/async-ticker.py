@@ -12,14 +12,13 @@ import ccxt.async_support as ccxt  # noqa: E402
 
 
 async def test(id, symbol):
-    exchange = getattr(ccxt, id)({
-        'enableRateLimit': True,  # required according to the Manual
-    })
+    exchange = getattr(ccxt, id)()
     ticker = await exchange.fetch_ticker(symbol)
     await exchange.close()
     return ticker
 
+
 if __name__ == '__main__':
     id = 'binance'
     symbol = 'ETH/BTC'
-    pprint(asyncio.get_event_loop().run_until_complete(test(id, symbol)))
+    pprint(asyncio.run(test(id, symbol)))

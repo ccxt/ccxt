@@ -5,13 +5,19 @@ var fetch = require('../node-fetch/index');
 function wrapFetchForNode(fetch) {
   // Support schemaless URIs on the server for parity with the browser.
   // https://github.com/matthew-andrews/isomorphic-fetch/pull/10
-  return function (u, options) {
+  const f = function (u, options) {
     if (typeof u === 'string' && u.slice(0, 2) === '//') {
       return fetch('https:' + u, options);
     }
 
     return fetch(u, options);
   };
+  // Igor Kroitor 2019 Dec 30
+  // expose http and https
+  // https://github.com/ccxt/ccxt/issues/6327
+  f.http = fetch.http;
+  f.https = fetch.https;
+  return f;
 }
 
 module.exports = function (context) {

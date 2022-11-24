@@ -13,10 +13,9 @@ sys.path.append(root + '/python')
 
 import ccxt.async_support as ccxt  # noqa: E402
 
-exchange = ccxt.theocean()
-
 
 async def poll():
+    exchange = ccxt.theocean()
     while True:
         yield await exchange.fetch_order_book('WETH/TUSD')
         await asyncio.sleep(exchange.rateLimit / 1000)
@@ -27,4 +26,4 @@ async def main():
         print(orderbook['bids'][0], orderbook['asks'][0])
 
 
-asyncio.get_event_loop().run_until_complete(main())
+asyncio.run(main())

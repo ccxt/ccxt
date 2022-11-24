@@ -2,63 +2,77 @@
 
 /*  ------------------------------------------------------------------------ */
 
-const { sleep
-      , now } = require ('./time')
+const { now, sleep } = require ('./time');
 
 /*  ------------------------------------------------------------------------ */
 
-module.exports = {
+class Throttle {
+    constructor (config) {
+        this.config = {
+            refillRate: 1.0,
+            delay: 0.001,
+            capacity: 1.0,
+            maxCapacity: 2000,
+            tokens: 0,
+            cost: 1.0,
+        };
+        Object.assign (this.config, config);
+        this.queue = [];
+        this.running = false;
+    }
 
-    throttle: function throttle (cfg) {
-
-        let   lastTimestamp = now ()
-            , numTokens     = (cfg.numTokens !== undefined) ? cfg.numTokens : cfg.capacity
-            , running       = false
-            , counter       = 0
-
-        const queue = []
-
-        return Object.assign ((cost) => {
-
-            if (queue.length > cfg.maxCapacity)
-                throw new Error ('Backlog is over max capacity of ' + cfg.maxCapacity)
-
-            return new Promise (async (resolve, reject) => {
-
-                try {
-                    queue.push ({ cost, resolve, reject })
-
-                    if (!running) {
-                        running = true
-                        while (queue.length > 0) {
-                            const hasEnoughTokens = cfg.capacity ? (numTokens > 0) : (numTokens >= 0)
-                            if (hasEnoughTokens) {
-                                if (queue.length > 0) {
-                                    let { cost, resolve, reject } = queue[0]
-                                    cost = (cost || cfg.defaultCost)
-                                    if (numTokens >= Math.min (cost, cfg.capacity)) {
-                                        numTokens -= cost
-                                        queue.shift ()
-                                        resolve ()
-                                    }
-                                }
-                            }
-                            const t = now ()
-                                , elapsed = t - lastTimestamp
-                            lastTimestamp = t
-                            numTokens = Math.min (cfg.capacity, numTokens + elapsed * cfg.refillRate)
-                            await sleep (cfg.delay)
-                        }
-                        running = false
-                    }
-
-                } catch (e) {
-                    reject (e)
+    async loop () {
+        let lastTimestamp = now ();
+        while (this.running) {
+            const { resolver, cost } = this.queue[0];
+            if (this.config['tokens'] >= 0) {
+                this.config['tokens'] -= cost;
+                resolver ();
+                this.queue.shift ();
+                // contextswitch
+                await Promise.resolve ();
+                if (this.queue.length === 0) {
+                    this.running = false;
                 }
-            })
-
-        }, cfg, { configure: newCfg => throttle (Object.assign ({}, cfg, newCfg)) })
+            } else {
+                await sleep (this.config['delay'] * 1000);
+                const current = now ();
+                const elapsed = current - lastTimestamp;
+                lastTimestamp = current;
+                const tokens = this.config['tokens'] + (this.config['refillRate'] * elapsed);
+                this.config['tokens'] = Math.min (tokens, this.config['capacity']);
+            }
+        }
     }
 }
 
-/*  ------------------------------------------------------------------------ */
+function throttle (config) {
+    function inner (cost = undefined) {
+        let resolver;
+        const promise = new Promise ((resolve, reject) => {
+            resolver = resolve;
+        });
+        if (this.queue.length > this.config['maxCapacity']) {
+            throw new Error ('throttle queue is over maxCapacity (' + this.config['maxCapacity'].toString () + '), see https://github.com/ccxt/ccxt/issues/11645#issuecomment-1195695526');
+        }
+        cost = (cost === undefined) ? this.config['cost'] : cost;
+        this.queue.push ({ resolver, cost });
+        if (!this.running) {
+            this.running = true;
+            this.loop ();
+        }
+        return promise;
+    }
+    const instance = new Throttle (config);
+    const bound = inner.bind (instance);
+    // useful for inspecting the tokenBucket
+    bound.config = instance.config;
+    bound.queue = instance.queue;
+    return bound;
+}
+
+module.exports = {
+    throttle,
+};
+
+// ----------------------------------------

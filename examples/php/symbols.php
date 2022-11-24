@@ -1,11 +1,11 @@
 <?php
 
-$root = dirname (dirname (dirname (__FILE__)));
+$root = dirname(dirname(dirname(__FILE__)));
 
 include $root . '/ccxt.php';
 include 'Console/Table.php';
 
-date_default_timezone_set ('UTC');
+date_default_timezone_set('UTC');
 
 function style ($s, $style) { return $style . $s . "\033[0m"; }
 function green     ($s) { return style ($s, "\033[92m"); }
@@ -53,7 +53,7 @@ if (count ($argv) > 1) {
 
     if ($exchange_found) {
 
-        dump ('Instantiating', green ($id), 'exchange exchange');
+        dump ('Instantiating', green ($id), 'exchange');
 
         // instantiate the exchange by id
         $exchange = '\\ccxt\\' . $id;
@@ -66,7 +66,7 @@ if (count ($argv) > 1) {
         dump (green ($id), 'has', count ($exchange->symbols), 'symbols:', yellow (implode (', ', $exchange->symbols)));
 
         // output a table of all markets
-        @dump (tabulate (array ('id', 'symbol', 'base', 'quote', 'taker', 'maker', 'precision', 'limits'), array_map ('market_table_helper', $markets)));
+        @dump (tabulate(array('id', 'symbol', 'base', 'quote', 'taker', 'maker', 'precision', 'limits'), array_map ('market_table_helper', $markets)));
 
     } else {
 

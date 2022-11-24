@@ -12,7 +12,6 @@ Many thanks to Coda Hale for his implementation in Go language:
 import hmac
 from binascii import hexlify
 from .util import number_to_string, number_to_string_crop
-from six import b
 
 
 def bit_length(num):
@@ -60,20 +59,20 @@ def generate_k(order, secexp, hash_func, data, retry_gen=0, extra_entropy=b''):
         extra_entropy
 
     # Step B
-    v = b('\x01') * holen
+    v = b'\x01' * holen
 
     # Step C
-    k = b('\x00') * holen
+    k = b'\x00' * holen
 
     # Step D
 
-    k = hmac.new(k, v + b('\x00') + bx, hash_func).digest()
+    k = hmac.new(k, v + b'\x00' + bx, hash_func).digest()
 
     # Step E
     v = hmac.new(k, v, hash_func).digest()
 
     # Step F
-    k = hmac.new(k, v + b('\x01') + bx, hash_func).digest()
+    k = hmac.new(k, v + b'\x01' + bx, hash_func).digest()
 
     # Step G
     v = hmac.new(k, v, hash_func).digest()
@@ -81,7 +80,7 @@ def generate_k(order, secexp, hash_func, data, retry_gen=0, extra_entropy=b''):
     # Step H
     while True:
         # Step H1
-        t = b('')
+        t = b''
 
         # Step H2
         while len(t) < rolen:
@@ -97,5 +96,5 @@ def generate_k(order, secexp, hash_func, data, retry_gen=0, extra_entropy=b''):
             else:
                 retry_gen -= 1
 
-        k = hmac.new(k, v + b('\x00'), hash_func).digest()
+        k = hmac.new(k, v + b'\x00', hash_func).digest()
         v = hmac.new(k, v, hash_func).digest()

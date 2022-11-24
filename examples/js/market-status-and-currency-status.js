@@ -6,7 +6,7 @@ const ccxt = require ('../../ccxt')
 
 ;(async function main () {
 
-    let kraken = new ccxt.kraken ({ enableRateLimit: true })
+    let kraken = new ccxt.kraken ()
     await kraken.loadMarkets ()
 
     const markets = Object.values (kraken.markets).map (market => ({

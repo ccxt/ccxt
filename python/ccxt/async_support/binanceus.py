@@ -6,7 +6,7 @@
 from ccxt.async_support.binance import binance
 
 
-class binanceus (binance):
+class binanceus(binance):
 
     def describe(self):
         return self.deep_extend(super(binanceus, self).describe(), {
@@ -14,15 +14,15 @@ class binanceus (binance):
             'name': 'Binance US',
             'countries': ['US'],  # US
             'certified': False,
+            'pro': True,
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/65177307-217b7c80-da5f-11e9-876e-0b748ba0a358.jpg',
                 'api': {
                     'web': 'https://www.binance.us',
+                    'sapi': 'https://api.binance.us/sapi/v1',
                     'wapi': 'https://api.binance.us/wapi/v3',
-                    'public': 'https://api.binance.us/api/v1',
+                    'public': 'https://api.binance.us/api/v3',
                     'private': 'https://api.binance.us/api/v3',
-                    'v3': 'https://api.binance.us/api/v3',
-                    'v1': 'https://api.binance.us/api/v1',
                 },
                 'www': 'https://www.binance.us',
                 'referral': 'https://www.binance.us/?ref=35005074',
@@ -31,10 +31,13 @@ class binanceus (binance):
             },
             'fees': {
                 'trading': {
-                    'tierBased': False,
+                    'tierBased': True,
                     'percentage': True,
-                    'taker': 0.0,  # 0.1% trading fee, zero fees for all trading pairs before November 1
-                    'maker': 0.0,  # 0.1% trading fee, zero fees for all trading pairs before November 1
+                    'taker': self.parse_number('0.001'),  # 0.1% trading fee, zero fees for all trading pairs before November 1
+                    'maker': self.parse_number('0.001'),  # 0.1% trading fee, zero fees for all trading pairs before November 1
                 },
+            },
+            'options': {
+                'quoteOrderQty': False,
             },
         })

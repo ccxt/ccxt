@@ -4,9 +4,7 @@
 
 let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x => !x.startsWith ('--'))
     , verbose = process.argv.includes ('--verbose')
-    , debug = process.argv.includes ('--verbose')
-    , cloudscrape = process.argv.includes ('--cloudscrape')
-    , cfscrape = process.argv.includes ('--cfscrape')
+    , debug = process.argv.includes ('--debug')
     , poll = process.argv.includes ('--poll')
     , no_send = process.argv.includes ('--no-send')
     , no_load_markets = process.argv.includes ('--no-load-markets')
@@ -15,6 +13,15 @@ let [processPath, , exchangeId, methodName, ... params] = process.argv.filter (x
     , table = process.argv.includes ('--table')
     , iso8601 = process.argv.includes ('--iso8601')
     , cors = process.argv.includes ('--cors')
+    , cache_markets = process.argv.includes ('--cache-markets')
+    , testnet =
+        process.argv.includes ('--test') ||
+        process.argv.includes ('--testnet') ||
+        process.argv.includes ('--sandbox')
+    , signIn = process.argv.includes ('--sign-in') || process.argv.includes ('--signIn')
+    , isSpot = process.argv.includes ('--spot')
+    , isSwap = process.argv.includes ('--swap')
+    , isFuture = process.argv.includes ('--future')
 
 //-----------------------------------------------------------------------------
 
@@ -39,51 +46,19 @@ const ccxt         = require ('../../ccxt.js')
     , util         = require ('util')
     , { execSync } = require ('child_process')
     , log          = require ('ololog').configure ({ locate: false }).unlimited
+    , fsPromises   = require ('fs/promises')
     , { ExchangeError, NetworkError } = ccxt
+
+//-----------------------------------------------------------------------------
+
+console.log (new Date ())
+console.log ('Node.js:', process.version)
+console.log ('CCXT v' + ccxt.version)
 
 //-----------------------------------------------------------------------------
 
 process.on ('uncaughtException',  e => { log.bright.red.error (e); log.red.error (e.message); process.exit (1) })
 process.on ('unhandledRejection', e => { log.bright.red.error (e); log.red.error (e.message); process.exit (1) })
-
-//-----------------------------------------------------------------------------
-// cloudscraper helper
-
-const scrapeCloudflareHttpHeaderCookie = (url) =>
-
-	(new Promise ((resolve, reject) => {
-
-        const cloudscraper = require ('cloudscraper')
-		return cloudscraper.get (url, function (error, response, body) {
-
-			if (error) {
-
-                log.red ('Cloudscraper error')
-				reject (error)
-
-			} else {
-
-				resolve (response.request.headers)
-			}
-        })
-    }))
-
-const cfscrapeCookies = (url) => {
-
-    const command = [
-        `python -c "`,
-        `import cfscrape; `,
-        `import json; `,
-        `tokens, user_agent = cfscrape.get_tokens('${url}'); `,
-        `print(json.dumps({`,
-            `'Cookie': '; '.join([key + '=' + tokens[key] for key in tokens]), `,
-            `'User-Agent': user_agent`,
-        `}));" 2> /dev/null`
-    ].join ('')
-
-    const output = execSync (command)
-    return JSON.parse (output.toString ('utf8'))
-}
 
 //-----------------------------------------------------------------------------
 
@@ -99,22 +74,44 @@ let settings = localKeysFile ? (require (localKeysFile)[exchangeId] || {}) : {}
 
 const timeout = 30000
 let exchange = undefined
-const enableRateLimit = true
+
+const { Agent } = require ('https')
+
+const httpsAgent = new Agent ({
+    ecdhCurve: 'auto',
+    keepAlive: true,
+})
 
 try {
+    if (ccxt.pro.exchanges.includes(exchangeId)) {
+        exchange = new (ccxt.pro)[exchangeId] ({ timeout, httpsAgent, ... settings })
+    } else {
+        exchange = new (ccxt)[exchangeId] ({ timeout, httpsAgent, ... settings })
+    }
 
-    const { Agent } = require ('https')
+    if (isSpot) {
+        exchange.options['defaultType'] = 'spot';
+    } else if (isSwap) {
+        exchange.options['defaultType'] = 'swap';
+    } else if (isFuture) {
+        exchange.options['defaultType'] = 'future';
+    }
 
-    const agent = new Agent ({
-        ecdhCurve: 'auto',
-    })
+    // check auth keys in env var
+    const requiredCredentials = exchange.requiredCredentials;
+    for (const [credential, isRequired] of Object.entries (requiredCredentials)) {
+        if (isRequired && exchange[credential] === undefined) {
+            const credentialEnvName = (exchangeId + '_' + credential).toUpperCase () // example: KRAKEN_APIKEY
+            const credentialValue = process.env[credentialEnvName]
+            if (credentialValue) {
+                exchange[credential] = credentialValue
+            }
+        }
+    }
 
-    exchange = new (ccxt)[exchangeId] ({
-        timeout,
-        enableRateLimit,
-        agent,
-        ... settings,
-    })
+    if (testnet) {
+        exchange.setSandboxMode (true)
+    }
 
 } catch (e) {
 
@@ -131,35 +128,36 @@ function printSupportedExchanges () {
 
 //-----------------------------------------------------------------------------
 
- function printUsage () {
+function printUsage () {
     log ('This is an example of a basic command-line interface to all exchanges')
     log ('Usage: node', process.argv[1], 'id'.green, 'method'.yellow, '"param1" param2 "param3" param4 ...'.blue)
     log ('Examples:')
-    log ('node', process.argv[1], 'okcoinusd fetchOHLCV BTC/USD 15m')
+    log ('node', process.argv[1], 'okcoin fetchOHLCV BTC/USD 15m')
     log ('node', process.argv[1], 'bitfinex fetchBalance')
     log ('node', process.argv[1], 'kraken fetchOrderBook ETH/BTC')
     printSupportedExchanges ()
     log ('Supported options:')
     log ('--verbose         Print verbose output')
     log ('--debug           Print debugging output')
-    log ('--cloudscrape     Use https://github.com/codemanki/cloudscraper to bypass Cloudflare')
-    log ('--cfscrape        Use https://github.com/Anorov/cloudflare-scrape to bypass Cloudflare (requires python and cfscrape)')
     log ('--poll            Repeat continuously in rate-limited mode')
-    log ("--no-send         Print the request but don't actually send it to the exchange (sets verbose and load-markets)")
+    log ('--no-send         Print the request but do not actually send it to the exchange (sets verbose and load-markets)')
     log ('--no-load-markets Do not pre-load markets (for debugging)')
     log ('--details         Print detailed fetch responses')
     log ('--no-table        Do not print the fetch response as a table')
     log ('--table           Print the fetch response as a table')
     log ('--iso8601         Print timestamps as ISO8601 datetimes')
     log ('--cors            use CORS proxy for debugging')
+    log ('--sign-in         Call signIn() if any')
+    log ('--sandbox         Use the exchange sandbox if available, same as --testnet')
+    log ('--testnet         Use the exchange testnet if available, same as --sandbox')
+    log ('--test            Use the exchange testnet if available, same as --sandbox')
+    log ('--cache-markets   Cache the loaded markets in the .cache folder in the current directory')
 }
 
 //-----------------------------------------------------------------------------
 
 const printHumanReadable = (exchange, result) => {
-
-    if (Array.isArray (result) || table) {
-
+    if (!no_table && Array.isArray (result) || table) {
         result = Object.values (result)
         let arrayOfObjects = (typeof result[0] === 'object')
 
@@ -170,47 +168,40 @@ const printHumanReadable = (exchange, result) => {
                 log (object)
             })
 
-        if (!no_table)
-            if (arrayOfObjects || table) {
-                log (result.length > 0 ? asTable (result.map (element => {
-                    let keys = Object.keys (element)
-                    delete element['info']
-                    keys.forEach (key => {
-                        if (typeof element[key] === 'number') {
-                            if (!iso8601)
-                                return element[key]
-                            try {
-                                const iso8601 = exchange.iso8601 (element[key])
-                                if (iso8601.match (/^20[0-9]{2}[-]?/))
-                                    element[key] = iso8601
-                                else
-                                    throw new Error ('wrong date')
-                            } catch (e) {
-                                return element[key]
-                            }
-                        }
-                    })
-                    return element
-                })) : result)
-                log (result.length, 'objects');
-            } else {
-                log (result)
-                log (result.length, 'objects');
-            }
-
+        if (arrayOfObjects || table && Array.isArray (result)) {
+            log (result.length > 0 ? asTable (result.map (element => {
+                let keys = Object.keys (element)
+                delete element['info']
+                keys.forEach (key => {
+                    if (!iso8601)
+                        return element[key]
+                    try {
+                        const iso8601 = exchange.iso8601 (element[key])
+                        if (iso8601.match (/^20[0-9]{2}[-]?/))
+                            element[key] = iso8601
+                        else
+                            throw new Error ('wrong date')
+                    } catch (e) {
+                        return element[key]
+                    }
+                })
+                return element
+            })) : result)
+            log (result.length, 'objects');
+        } else {
+            console.dir (result, { depth: null })
+            log (result.length, 'objects');
+        }
     } else {
-
-        log (result)
+        console.dir (result, { depth: null, maxArrayLength: null })
     }
 }
 
 //-----------------------------------------------------------------------------
 
+async function run () {
 
-async function main () {
-
-    const requirements = exchangeId && methodName
-    if (!requirements) {
+    if (!exchangeId) {
 
         printUsage ()
 
@@ -222,14 +213,8 @@ async function main () {
 
         const www = Array.isArray (exchange.urls.www) ? exchange.urls.www[0] : exchange.urls.www
 
-        if (cloudscrape)
-            exchange.headers = await scrapeCloudflareHttpHeaderCookie (www)
-
-        if (cfscrape)
-            exchange.headers = cfscrapeCookies (www)
-
         if (cors) {
-            exchange.proxy =  'https://cors-anywhere.herokuapp.com/';
+            exchange.proxy = 'https://cors-anywhere.herokuapp.com/';
             exchange.origin = exchange.uuid ()
         }
 
@@ -239,8 +224,22 @@ async function main () {
             exchange.verbose = verbose
         }
 
+        const path = '.cache/' + exchangeId + '-markets.json'
+
         if (!no_load_markets) {
-            await exchange.loadMarkets ()
+            try {
+                await fsPromises.access (path, fs.constants.R_OK)
+                exchange.markets = JSON.parse (await fsPromises.readFile (path))
+            } catch {
+                await exchange.loadMarkets ()
+                if (cache_markets) {
+                    await fsPromises.writeFile (path, JSON.stringify (exchange.markets))
+                }
+            }
+        }
+
+        if (signIn && exchange.has.signIn) {
+            await exchange.signIn ()
         }
 
         exchange.verbose = verbose
@@ -261,51 +260,71 @@ async function main () {
             }
         }
 
-        if (typeof exchange[methodName] === 'function') {
+        if (methodName) {
 
-            log (exchange.id + '.' + methodName, '(' + args.join (', ') + ')')
+            if (typeof exchange[methodName] === 'function') {
 
-            while (true) {
+                log (exchange.id + '.' + methodName, '(' + args.join (', ') + ')')
 
-                try {
+                let start = exchange.milliseconds ()
+                let end = exchange.milliseconds ()
 
-                    const result = await exchange[methodName] (... args)
-                    printHumanReadable (exchange, result)
+                let i = 0;
 
-                } catch (e) {
+                let isWsMethod = false
+                if (methodName.startsWith("watch")) { // handle WS methods
+                    isWsMethod = true;
+                }
 
-                    if (e instanceof ExchangeError) {
+                while (true) {
+                    try {
+                        const result = await exchange[methodName] (... args)
+                        end = exchange.milliseconds ()
+                        if (!isWsMethod) {
+                            console.log (exchange.iso8601 (end), 'iteration', i++, 'passed in', end - start, 'ms\n')
+                        }
+                        printHumanReadable (exchange, result)
+                        if (!isWsMethod) {
+                            console.log (exchange.iso8601 (end), 'iteration', i, 'passed in', end - start, 'ms\n')
+                        }
+                        start = end
+                    } catch (e) {
+                        if (e instanceof ExchangeError) {
+                            log.red (e.constructor.name, e.message)
+                        } else if (e instanceof NetworkError) {
+                            log.yellow (e.constructor.name, e.message)
+                        }
 
-                        log.red (e.constructor.name, e.message)
+                        log.dim ('---------------------------------------------------')
 
-                    } else if (e instanceof NetworkError) {
-
-                        log.yellow (e.constructor.name, e.message)
+                        // rethrow for call-stack // other errors
+                        throw e
 
                     }
 
-                    log.dim ('---------------------------------------------------')
+                    if (debug) {
+                        const keys = Object.keys (httpsAgent.freeSockets)
+                        const firstKey = keys[0]
+                        console.log (firstKey, httpsAgent.freeSockets[firstKey].length)
+                    }
 
-                    // rethrow for call-stack // other errors
-                    throw e
-
+                    if (!poll && !isWsMethod){
+                        break
+                    }
                 }
 
-                if (!poll)
-                    break;
+            } else if (exchange[methodName] === undefined) {
+                log.red (exchange.id + '.' + methodName + ': no such property')
+            } else {
+                printHumanReadable (exchange, exchange[methodName])
             }
-
-        } else if (exchange[methodName] === undefined) {
-
-            log.red (exchange.id + '.' + methodName + ': no such property')
-
         } else {
-
-            printHumanReadable (exchange, exchange[methodName])
+            console.log (exchange)
         }
     }
+
 }
 
 //-----------------------------------------------------------------------------
 
-main ()
+run ()

@@ -1,7 +1,7 @@
 'use strict';
 
 var utils = exports;
-var BN = require('../BN/bn');
+var BN = require('../../../BN/bn');
 
 utils.assert = function (condition, errorMessage) {
   if (!condition) {
@@ -116,3 +116,99 @@ function intFromLE(bytes) {
 }
 utils.intFromLE = intFromLE;
 
+// used to convert `CryptoJS` wordArrays into `crypto` hex buffers
+function wordToByteArray(word, length) {
+  var ba = [],
+      xFF = 0xFF;
+  if (length > 0)
+    ba.push(word >>> 24);
+  if (length > 1)
+    ba.push((word >>> 16) & xFF);
+  if (length > 2)
+    ba.push((word >>> 8) & xFF);
+  if (length > 3)
+    ba.push(word & xFF);
+
+  return ba;
+}
+
+function wordArrayToBuffer(wordArray) {
+  let length = undefined;
+  if (wordArray.hasOwnProperty("sigBytes") && wordArray.hasOwnProperty("words")) {
+    length = wordArray.sigBytes;
+    wordArray = wordArray.words;
+  } else {
+    throw Error('Argument not a wordArray')
+  }
+
+  const result = []
+  let bytes = []
+  let i = 0;
+  while (length > 0) {
+    bytes = wordToByteArray(wordArray[i], Math.min(4, length));
+    length -= bytes.length;
+    result.push(bytes);
+    i++;
+  }
+  return [].concat.apply([], result)
+}
+
+utils.wordArrayToBuffer = wordArrayToBuffer;
+
+// https://github.com/indutny/minimalistic-crypto-utils/blob/master/lib/utils.js
+// moved here to remove the dep
+
+function toArray(msg, enc) {
+  if (Array.isArray(msg))
+    return msg.slice();
+  if (!msg)
+    return [];
+  var res = [];
+  if (typeof msg !== 'string') {
+    for (var i = 0; i < msg.length; i++)
+      res[i] = msg[i] | 0;
+    return res;
+  }
+  if (enc === 'hex') {
+    msg = msg.replace(/[^a-z0-9]+/ig, '');
+    if (msg.length % 2 !== 0)
+      msg = '0' + msg;
+    for (var i = 0; i < msg.length; i += 2)
+      res.push(parseInt(msg[i] + msg[i + 1], 16));
+  } else {
+    for (var i = 0; i < msg.length; i++) {
+      var c = msg.charCodeAt(i);
+      var hi = c >> 8;
+      var lo = c & 0xff;
+      if (hi)
+        res.push(hi, lo);
+      else
+        res.push(lo);
+    }
+  }
+  return res;
+}
+utils.toArray = toArray;
+
+function zero2(word) {
+  if (word.length === 1)
+    return '0' + word;
+  else
+    return word;
+}
+utils.zero2 = zero2;
+
+function toHex(msg) {
+  var res = '';
+  for (var i = 0; i < msg.length; i++)
+    res += zero2(msg[i].toString(16));
+  return res;
+}
+utils.toHex = toHex;
+
+utils.encode = function encode(arr, enc) {
+  if (enc === 'hex')
+    return toHex(arr);
+  else
+    return arr;
+};

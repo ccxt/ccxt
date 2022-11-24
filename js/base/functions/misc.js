@@ -1,6 +1,7 @@
 'use strict';
 
 const { ROUND_UP, ROUND_DOWN } = require ('./number')
+const { NotSupported } = require ('../errors')
 
 //-------------------------------------------------------------------------
 // converts timeframe to seconds
@@ -8,7 +9,7 @@ const parseTimeframe = (timeframe) => {
 
     const amount = timeframe.slice (0, -1)
     const unit = timeframe.slice (-1)
-    let scale = 60 // 1m by default
+    let scale = undefined;
 
     if (unit === 'y') {
         scale = 60 * 60 * 24 * 365
@@ -20,6 +21,12 @@ const parseTimeframe = (timeframe) => {
         scale = 60 * 60 * 24
     } else if (unit === 'h') {
         scale = 60 * 60
+    } else if (unit === 'm') {
+        scale = 60
+    } else if (unit === 's') {
+        scale = 1
+    } else {
+        throw new NotSupported ('timeframe unit ' + unit + ' is not supported')
     }
 
     return amount * scale
@@ -41,8 +48,9 @@ const buildOHLCVC = (trades, timeframe = '1m', since = -Infinity, limit = Infini
 
     for (let i = 0; i <= oldest; i++) {
         const trade = trades[i];
-        if (trade.timestamp < since)
+        if (trade.timestamp < since) {
             continue;
+        }
         const openingTime = Math.floor (trade.timestamp / ms) * ms; // shift to the edge of m/h/d (but not M)
         const candle = ohlcvs.length - 1;
 
@@ -93,6 +101,10 @@ const implodeParams = (string, params) => {
     return string
 }
 
+function vwap (baseVolume, quoteVolume) {
+    return ((baseVolume !== undefined) && (quoteVolume !== undefined) && (baseVolume > 0)) ? (quoteVolume / baseVolume) : undefined
+}
+
 /*  ------------------------------------------------------------------------ */
 
 module.exports = {
@@ -108,7 +120,7 @@ module.exports = {
             }
         }
 
-        return Object.keys (result).map (price => [parseFloat (price), parseFloat (result[price])])
+        return Object.keys (result).map ((price) => [parseFloat (price), parseFloat (result[price])])
     },
 
     parseTimeframe,
@@ -118,7 +130,9 @@ module.exports = {
     ROUND_DOWN,
 
     implodeParams,
-    extractParams
+    extractParams,
+
+    vwap,
 }
 
 /*  ------------------------------------------------------------------------ */

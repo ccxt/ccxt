@@ -9,12 +9,9 @@ sys.path.append(root + '/python')
 
 import ccxt.async_support as ccxt  # noqa: E402
 
-exchange = ccxt.poloniex({
-    'enableRateLimit': True,  # don't remove this line or they might ban you: https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
-})
-
 
 async def poll():
+    exchange = ccxt.poloniex()
     while True:
         yield await exchange.fetch_ticker('ETH/BTC')
 
@@ -24,4 +21,4 @@ async def main():
         print(ticker)
 
 
-asyncio.get_event_loop().run_until_complete(main())
+asyncio.run(main())

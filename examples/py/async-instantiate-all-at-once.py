@@ -11,9 +11,15 @@ import ccxt.async_support as ccxt  # noqa: E402
 
 exchanges = {}  # a placeholder for your instances
 
-for id in ccxt.exchanges:
-    exchange = getattr(ccxt, id)
-    exchanges[id] = exchange()
 
-# now exchanges dictionary contains all exchange instances...
-asyncio.get_event_loop().run_until_complete(exchanges['bittrex'].fetch_order_book('ETH/BTC'))
+async def main():
+    for id in ccxt.exchanges:
+        exchange = getattr(ccxt, id)
+        exchanges[id] = exchange()
+    # now exchanges dictionary contains all exchange instances...
+    print(await exchanges['bittrex'].fetch_order_book('ETH/BTC'))
+    # close the aiohttp session object
+    for id in exchanges:
+        await exchanges[id].close()
+
+asyncio.run(main())

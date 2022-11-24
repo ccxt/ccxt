@@ -53,7 +53,7 @@ def print_usage():
     dump("Usage: python " + sys.argv[0], green('id'), yellow('[symbol]'))
     dump("Symbol is optional, for example:")
     dump("python " + sys.argv[0], green('kraken'))
-    dump("python " + sys.argv[0], green('gdax'), yellow('BTC/USD'))
+    dump("python " + sys.argv[0], green('coinbasepro'), yellow('BTC/USD'))
     print_exchanges()
 
 

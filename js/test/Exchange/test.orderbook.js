@@ -2,33 +2,14 @@
 
 // ----------------------------------------------------------------------------
 
-const log       = require ('ololog')
-    , ansi      = require ('ansicolor').nice
-    , chai      = require ('chai')
-    , expect    = chai.expect
-    , assert    = chai.assert
+const assert = require ('assert')
 
 // ----------------------------------------------------------------------------
-
-const printOrderBookOneLiner = (orderbook, method, symbol) => {
-
-    const bids = orderbook.bids
-    const asks = orderbook.asks
-
-    log (symbol.toString ().green,
-        method,
-        orderbook['datetime'],
-        'bid: '       + ((bids.length > 0) ? bids[0][0] : 'N/A'),
-        'bidVolume: ' + ((bids.length > 0) ? bids[0][1] : 'N/A'),
-        'ask: '       + ((asks.length > 0) ? asks[0][0] : 'N/A'),
-        'askVolume: ' + ((asks.length > 0) ? asks[0][1] : 'N/A'))
-}
-
-/*  ------------------------------------------------------------------------ */
 
 module.exports = (exchange, orderbook, method, symbol) => {
 
     const format = {
+        // 'symbol': 'ETH/BTC', // reserved
         'bids': [],
         'asks': [],
         'timestamp': 1234567890,
@@ -37,10 +18,13 @@ module.exports = (exchange, orderbook, method, symbol) => {
         // 'info': {},
     }
 
-    expect (orderbook).to.have.all.keys (format)
+    const keys = Object.keys (format)
+    for (let i = 0; i < keys.length; i++) {
+        assert (keys[i] in orderbook)
+    }
 
-    const bids = orderbook.bids
-    const asks = orderbook.asks
+    const bids = orderbook['bids']
+    const asks = orderbook['asks']
 
     for (let i = 0; i < bids.length; i++) {
         if (bids.length > (i + 1)) {
@@ -60,18 +44,23 @@ module.exports = (exchange, orderbook, method, symbol) => {
 
     if (![
 
-        'coinmarketcap',
+        'bitrue',
+        'bkex',
+        'blockchaincom',
+        'btcalpha',
+        'btcbox',
+        'ftxus',
+        'mexc',
         'xbtce',
-        'coinsecure',
         'upbit', // an orderbook might have a 0-price ask occasionally
 
     ].includes (exchange.id)) {
 
-        if (bids.length && asks.length)
-            assert (bids[0][0] <= asks[0][0],
-                `bids[0][0]: ${bids[0][0]} (of ${bids.length}); asks[0][0]:${asks[0][0]} (of ${asks.length})`)
-
+        if (bids.length && asks.length) {
+            const errorMessage = 'bids[0][0]:' +  bids[0][0] + 'of' + bids.length +  'asks[0][0]:' +  asks[0][0] + 'of' + asks.length
+            assert (bids[0][0] <= asks[0][0], errorMessage)
+        }
     }
 
-    printOrderBookOneLiner (orderbook, method, symbol)
+    console.log (symbol, method, orderbook['nonce'] || orderbook['datetime'], bids.length, 'bids:', bids[0], asks.length, 'asks:', asks[0])
 }

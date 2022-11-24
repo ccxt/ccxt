@@ -17,12 +17,10 @@ const ccxt = require ('../../ccxt.js')
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
 
-        'enableRateLimit': true, // ←- required! https://github.com/ccxt/ccxt/wiki/Manual#rate-limit
-
         // 'verbose': true, // ←- uncomment this for verbose output
 
         // additional credentials might be required in exchange-specific cases:
-        // uid or password for GDAX, etc...
+        // uid or password for Coinbase Pro, etc...
     })
 
 // ----------------------------------------------------------------------------

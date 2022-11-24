@@ -4,17 +4,18 @@
 # https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 from ccxt.base.exchange import Exchange
-import base64
 import hashlib
-import math
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
+from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import AddressPending
 from ccxt.base.errors import NotSupported
+from ccxt.base.decimal_to_precision import TICK_SIZE
+from ccxt.base.precise import Precise
 
 
-class buda (Exchange):
+class buda(Exchange):
 
     def describe(self):
         return self.deep_extend(super(buda, self).describe(), {
@@ -24,25 +25,69 @@ class buda (Exchange):
             'rateLimit': 1000,
             'version': 'v2',
             'has': {
-                'CORS': False,
+                'CORS': None,
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
+                'addMargin': False,
+                'cancelOrder': True,
                 'createDepositAddress': True,
+                'createOrder': True,
+                'createReduceOnlyOrder': False,
+                'fetchBalance': True,
+                'fetchBorrowRate': False,
+                'fetchBorrowRateHistories': False,
+                'fetchBorrowRateHistory': False,
+                'fetchBorrowRates': False,
+                'fetchBorrowRatesPerSymbol': False,
                 'fetchClosedOrders': True,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
-                'fetchFundingFees': True,
-                'fetchMyTrades': False,
+                'fetchFundingHistory': False,
+                'fetchFundingRate': False,
+                'fetchFundingRateHistory': False,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
+                'fetchLeverage': False,
+                'fetchMarginMode': False,
+                'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
+                'fetchMyTrades': None,
                 'fetchOHLCV': True,
+                'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
+                'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': False,
+                'fetchPositionMode': False,
+                'fetchPositions': False,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
+                'fetchTicker': True,
                 'fetchTrades': True,
+                'fetchTradingFee': False,
+                'fetchTradingFees': False,
+                'fetchTransactionFees': True,
+                'fetchTransfer': False,
+                'fetchTransfers': False,
+                'fetchWithdrawal': False,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': False,
+                'setMarginMode': False,
+                'setPositionMode': False,
+                'transfer': False,
                 'withdraw': True,
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/47380619-8a029200-d706-11e8-91e0-8a391fe48de3.jpg',
-                'api': 'https://www.buda.com/api',
+                'api': {
+                    'rest': 'https://www.buda.com/api',
+                },
                 'www': 'https://www.buda.com',
                 'doc': 'https://api.buda.com',
                 'fees': 'https://www.buda.com/comisiones',
@@ -136,6 +181,7 @@ class buda (Exchange):
                     },
                 },
             },
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'not_authorized': AuthenticationError,  # {message: 'Invalid credentials', code: 'not_authorized'}
                 'forbidden': PermissionDenied,  # {message: 'You dont have access to self resource', code: 'forbidden'}
@@ -149,6 +195,27 @@ class buda (Exchange):
     def fetch_currency_info(self, currency, currencies=None):
         if not currencies:
             response = self.publicGetCurrencies()
+            #
+            #     {
+            #         "currencies":[
+            #             {
+            #                 "id":"BTC",
+            #                 "symbol":"฿",
+            #                 "managed":true,
+            #                 "input_decimals":8,
+            #                 "display_decimals":8,
+            #                 "timezone":"UTC",
+            #                 "deposit_minimum":["0.0","BTC"],
+            #                 "withdrawal_minimum":["0.00001","BTC"],
+            #                 "max_digits_for_decimals":6,
+            #                 "crypto":true,
+            #                 "address_explorer":"https://blockchair.com/bitcoin/address/",
+            #                 "tx_explorer":"https://blockchair.com/bitcoin/transaction/",
+            #                 "amount_to_micro_multiplier":1000000000000
+            #             }
+            #         ]
+            #     }
+            #
             currencies = self.safe_value(response, 'currencies')
         for i in range(0, len(currencies)):
             currencyInfo = currencies[i]
@@ -157,98 +224,178 @@ class buda (Exchange):
         return None
 
     def fetch_markets(self, params={}):
+        """
+        retrieves data on all markets for buda
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [dict]: an array of objects representing market data
+        """
         marketsResponse = self.publicGetMarkets(params)
-        markets = self.safe_value(marketsResponse, 'markets')
+        #
+        #     {
+        #         "markets": [
+        #           {
+        #             "id": "BTC-CLP",
+        #             "name": "btc-clp",
+        #             "base_currency": "BTC",
+        #             "quote_currency": "CLP",
+        #             "minimum_order_amount": [
+        #               "0.00002",
+        #               "BTC"
+        #             ],
+        #             "disabled": False,
+        #             "illiquid": False,
+        #             "rpo_disabled": null,
+        #             "taker_fee": "0.8",
+        #             "maker_fee": "0.4",
+        #             "max_orders_per_minute": 50,
+        #             "maker_discount_percentage": "0.0",
+        #             "taker_discount_percentage": "0.0"
+        #           },
+        #         ]
+        #     }
+        #
+        markets = self.safe_value(marketsResponse, 'markets', [])
         currenciesResponse = self.publicGetCurrencies()
         currencies = self.safe_value(currenciesResponse, 'currencies')
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
-            id = self.safe_string(market, 'id')
             baseId = self.safe_string(market, 'base_currency')
             quoteId = self.safe_string(market, 'quote_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             baseInfo = self.fetch_currency_info(baseId, currencies)
             quoteInfo = self.fetch_currency_info(quoteId, currencies)
-            symbol = base + '/' + quote
-            precision = {
-                'amount': baseInfo['input_decimals'],
-                'price': quoteInfo['input_decimals'],
-            }
-            limits = {
-                'amount': {
-                    'min': float(market['minimum_order_amount'][0]),
-                    'max': None,
-                },
-                'price': {
-                    'min': math.pow(10, -precision['price']),
-                    'max': None,
-                },
-            }
-            limits['cost'] = {
-                'min': limits['amount']['min'] * limits['price']['min'],
-                'max': None,
-            }
+            minimumOrderAmount = self.safe_value(market, 'minimum_order_amount', [])
+            taker_fee = self.safe_string(market, 'taker_fee')
+            maker_fee = self.safe_string(market, 'maker_fee')
             result.append({
-                'id': id,
-                'symbol': symbol,
+                'id': self.safe_string(market, 'id'),
+                'symbol': base + '/' + quote,
                 'base': base,
                 'quote': quote,
+                'settle': None,
                 'baseId': baseId,
                 'quoteId': quoteId,
+                'settleId': None,
+                'type': 'spot',
+                'spot': True,
+                'margin': False,
+                'swap': False,
+                'future': False,
+                'option': False,
                 'active': True,
-                'precision': precision,
-                'limits': limits,
-                'info': market,
-            })
-        return result
-
-    def fetch_currencies(self, params={}):
-        response = self.publicGetCurrencies()
-        currencies = response['currencies']
-        result = {}
-        for i in range(0, len(currencies)):
-            currency = currencies[i]
-            if not currency['managed']:
-                continue
-            id = self.safe_string(currency, 'id')
-            code = self.safe_currency_code(id)
-            precision = self.safe_float(currency, 'input_decimals')
-            minimum = math.pow(10, -precision)
-            result[code] = {
-                'id': id,
-                'code': code,
-                'info': currency,
-                'name': None,
-                'active': True,
-                'fee': None,
-                'precision': precision,
+                'contract': False,
+                'linear': None,
+                'inverse': None,
+                'contractSize': None,
+                'expiry': None,
+                'expiryDatetime': None,
+                'strike': None,
+                'optionType': None,
+                'taker': self.parse_number(Precise.string_div(taker_fee, '1000')),
+                'maker': self.parse_number(Precise.string_div(maker_fee, '1000')),
+                'precision': {
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(baseInfo, 'input_decimals'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(quoteInfo, 'input_decimals'))),
+                },
                 'limits': {
+                    'leverage': {
+                        'min': None,
+                        'max': None,
+                    },
                     'amount': {
-                        'min': minimum,
+                        'min': self.safe_number(minimumOrderAmount, 0),
                         'max': None,
                     },
                     'price': {
-                        'min': minimum,
+                        'min': None,
                         'max': None,
                     },
                     'cost': {
                         'min': None,
                         'max': None,
                     },
+                },
+                'info': market,
+            })
+        return result
+
+    def fetch_currencies(self, params={}):
+        """
+        fetches all available currencies on an exchange
+        :param dict params: extra parameters specific to the buda api endpoint
+        :returns dict: an associative dictionary of currencies
+        """
+        response = self.publicGetCurrencies()
+        #
+        #     {
+        #         "currencies":[
+        #             {
+        #                 "id":"BTC",
+        #                 "symbol":"฿",
+        #                 "managed":true,
+        #                 "input_decimals":8,
+        #                 "display_decimals":8,
+        #                 "timezone":"UTC",
+        #                 "deposit_minimum":["0.0","BTC"],
+        #                 "withdrawal_minimum":["0.00001","BTC"],
+        #                 "max_digits_for_decimals":6,
+        #                 "crypto":true,
+        #                 "address_explorer":"https://blockchair.com/bitcoin/address/",
+        #                 "tx_explorer":"https://blockchair.com/bitcoin/transaction/",
+        #                 "amount_to_micro_multiplier":1000000000000
+        #             }
+        #         ]
+        #     }
+        #
+        currencies = response['currencies']
+        result = {}
+        for i in range(0, len(currencies)):
+            currency = currencies[i]
+            managed = self.safe_value(currency, 'managed', False)
+            if not managed:
+                continue
+            id = self.safe_string(currency, 'id')
+            code = self.safe_currency_code(id)
+            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'input_decimals')))
+            depositMinimum = self.safe_value(currency, 'deposit_minimum', [])
+            withdrawalMinimum = self.safe_value(currency, 'withdrawal_minimum', [])
+            minDeposit = self.safe_number(depositMinimum, 0)
+            minWithdraw = self.safe_number(withdrawalMinimum, 0)
+            result[code] = {
+                'id': id,
+                'code': code,
+                'info': currency,
+                'name': None,
+                'active': True,
+                'deposit': None,
+                'withdraw': None,
+                'fee': None,
+                'precision': precision,
+                'limits': {
+                    'amount': {
+                        'min': precision,
+                        'max': None,
+                    },
                     'deposit': {
-                        'min': float(currency['deposit_minimum'][0]),
+                        'min': minDeposit,
                         'max': None,
                     },
                     'withdraw': {
-                        'min': float(currency['withdrawal_minimum'][0]),
+                        'min': minWithdraw,
                     },
                 },
             }
         return result
 
-    def fetch_funding_fees(self, codes=None, params={}):
+    def fetch_transaction_fees(self, codes=None, params={}):
+        """
+        fetch transaction fees
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the buda api endpoint
+        :returns dict: a list of `fees structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
         #  by default it will try load withdrawal fees of all currencies(with separate requests)
         #  however if you define codes = ['ETH', 'BTC'] in args it will only load those
         self.load_markets()
@@ -263,8 +410,8 @@ class buda (Exchange):
             request = {'currency': currency['id']}
             withdrawResponse = self.publicGetCurrenciesCurrencyFeesWithdrawal(request)
             depositResponse = self.publicGetCurrenciesCurrencyFeesDeposit(request)
-            withdrawFees[code] = self.parse_funding_fee(withdrawResponse['fee'])
-            depositFees[code] = self.parse_funding_fee(depositResponse['fee'])
+            withdrawFees[code] = self.parse_transaction_fee(withdrawResponse['fee'])
+            depositFees[code] = self.parse_transaction_fee(depositResponse['fee'])
             info[code] = {
                 'withdraw': withdrawResponse,
                 'deposit': depositResponse,
@@ -275,7 +422,7 @@ class buda (Exchange):
             'info': info,
         }
 
-    def parse_funding_fee(self, fee, type=None):
+    def parse_transaction_fee(self, fee, type=None):
         if type is None:
             type = fee['name']
         if type == 'withdrawal':
@@ -288,49 +435,90 @@ class buda (Exchange):
         }
 
     def fetch_ticker(self, symbol, params={}):
+        """
+        fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        :param str symbol: unified symbol of the market to fetch the ticker for
+        :param dict params: extra parameters specific to the buda api endpoint
+        :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
             'market': market['id'],
         }
         response = self.publicGetMarketsMarketTicker(self.extend(request, params))
+        #
+        #     {
+        #         "ticker":{
+        #             "market_id":"ETH-BTC",
+        #             "last_price":["0.07300001","BTC"],
+        #             "min_ask":["0.07716895","BTC"],
+        #             "max_bid":["0.0754966","BTC"],
+        #             "volume":["0.168965697","ETH"],
+        #             "price_variation_24h":"-0.046",
+        #             "price_variation_7d":"-0.085"
+        #         }
+        #     }
+        #
         ticker = self.safe_value(response, 'ticker')
         return self.parse_ticker(ticker, market)
 
     def parse_ticker(self, ticker, market=None):
+        #
+        # fetchTicker
+        #
+        #     {
+        #         "market_id":"ETH-BTC",
+        #         "last_price":["0.07300001","BTC"],
+        #         "min_ask":["0.07716895","BTC"],
+        #         "max_bid":["0.0754966","BTC"],
+        #         "volume":["0.168965697","ETH"],
+        #         "price_variation_24h":"-0.046",
+        #         "price_variation_7d":"-0.085"
+        #     }
+        #
         timestamp = self.milliseconds()
-        symbol = None
-        if market is not None:
-            symbol = market['symbol']
-        last = float(ticker['last_price'][0])
-        percentage = float(ticker['price_variation_24h'])
-        open = float(self.price_to_precision(symbol, last / (percentage + 1)))
-        change = last - open
-        average = self.sum(last, open) / 2
-        return {
+        marketId = self.safe_string(ticker, 'market_id')
+        symbol = self.safe_symbol(marketId, market, '-')
+        lastPrice = self.safe_value(ticker, 'last_price', [])
+        last = self.safe_string(lastPrice, 0)
+        percentage = self.safe_string(ticker, 'price_variation_24h')
+        percentage = Precise.string_mul(percentage, '100')
+        maxBid = self.safe_value(ticker, 'max_bid', [])
+        minAsk = self.safe_value(ticker, 'min_ask', [])
+        baseVolume = self.safe_value(ticker, 'volume', [])
+        return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': None,
             'low': None,
-            'bid': float(ticker['max_bid'][0]),
+            'bid': self.safe_string(maxBid, 0),
             'bidVolume': None,
-            'ask': float(ticker['min_ask'][0]),
+            'ask': self.safe_string(minAsk, 0),
             'askVolume': None,
             'vwap': None,
-            'open': open,
+            'open': None,
             'close': last,
             'last': last,
-            'previousClose': open,
-            'change': change,
-            'percentage': percentage * 100,
-            'average': average,
-            'baseVolume': float(ticker['volume'][0]),
+            'previousClose': None,
+            'change': None,
+            'percentage': percentage,
+            'average': None,
+            'baseVolume': self.safe_string(baseVolume, 0),
             'quoteVolume': None,
             'info': ticker,
-        }
+        }, market)
 
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the buda api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -362,23 +550,21 @@ class buda (Exchange):
         timestamp = None
         side = None
         type = None
-        price = None
-        amount = None
+        priceString = None
+        amountString = None
         id = None
         order = None
         fee = None
         symbol = None
-        cost = None
         if market:
             symbol = market['symbol']
         if isinstance(trade, list):
-            timestamp = int(trade[0])
-            price = float(trade[1])
-            amount = float(trade[2])
-            cost = price * amount
-            side = trade[3]
-            id = str(trade[4])
-        return {
+            timestamp = self.safe_integer(trade, 0)
+            priceString = self.safe_string(trade, 1)
+            amountString = self.safe_string(trade, 2)
+            side = self.safe_string(trade, 3)
+            id = self.safe_string(trade, 4)
+        return self.safe_trade({
             'id': id,
             'order': order,
             'info': trade,
@@ -388,13 +574,20 @@ class buda (Exchange):
             'type': type,
             'side': side,
             'takerOrMaker': None,
-            'price': price,
-            'amount': amount,
-            'cost': cost,
+            'price': priceString,
+            'amount': amountString,
+            'cost': None,
             'fee': fee,
-        }
+        }, market)
 
     def fetch_order_book(self, symbol, limit=None, params={}):
+        """
+        fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the buda api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         self.load_markets()
         market = self.market(symbol)
         request = {
@@ -402,9 +595,18 @@ class buda (Exchange):
         }
         response = self.publicGetMarketsMarketOrderBook(self.extend(request, params))
         orderbook = self.safe_value(response, 'order_book')
-        return self.parse_order_book(orderbook)
+        return self.parse_order_book(orderbook, market['symbol'])
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the buda api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         self.load_markets()
         market = self.market(symbol)
         if since is None:
@@ -418,22 +620,36 @@ class buda (Exchange):
         response = self.publicGetTvHistory(self.extend(request, params))
         return self.parse_trading_view_ohlcv(response, market, timeframe, since, limit)
 
-    def fetch_balance(self, params={}):
-        self.load_markets()
-        response = self.privateGetBalances(params)
+    def parse_balance(self, response):
         result = {'info': response}
-        balances = self.safe_value(response, 'balances')
+        balances = self.safe_value(response, 'balances', [])
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'id')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['free'] = float(balance['available_amount'][0])
-            account['total'] = float(balance['amount'][0])
+            account['free'] = self.safe_string(balance['available_amount'], 0)
+            account['total'] = self.safe_string(balance['amount'], 0)
             result[code] = account
-        return self.parse_balance(result)
+        return self.safe_balance(result)
+
+    def fetch_balance(self, params={}):
+        """
+        query for balance and get the amount of funds available for trading or funds locked in orders
+        :param dict params: extra parameters specific to the buda api endpoint
+        :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
+        """
+        self.load_markets()
+        response = self.privateGetBalances(params)
+        return self.parse_balance(response)
 
     def fetch_order(self, id, symbol=None, params={}):
+        """
+        fetches information on an order made by the user
+        :param str|None symbol: not used by buda fetchOrder
+        :param dict params: extra parameters specific to the buda api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             'id': int(id),
@@ -443,6 +659,14 @@ class buda (Exchange):
         return self.parse_order(order)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the buda api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         market = None
         if symbol is not None:
@@ -456,22 +680,49 @@ class buda (Exchange):
         return self.parse_orders(orders, market, since, limit)
 
     def fetch_open_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetch all unfilled currently open orders
+        :param str|None symbol: unified market symbol
+        :param int|None since: the earliest time in ms to fetch open orders for
+        :param int|None limit: the maximum number of  open orders structures to retrieve
+        :param dict params: extra parameters specific to the buda api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         request = {
             'state': 'pending',
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def fetch_closed_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        fetches information on multiple closed orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the buda api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         request = {
             'state': 'traded',
         }
         return self.fetch_orders(symbol, since, limit, self.extend(request, params))
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
+        """
+        create a trade order
+        :param str symbol: unified symbol of the market to create an order in
+        :param str type: 'market' or 'limit'
+        :param str side: 'buy' or 'sell'
+        :param float amount: how much of currency you want to trade in units of base currency
+        :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+        :param dict params: extra parameters specific to the buda api endpoint
+        :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         side = 'Bid' if (side == 'buy') else 'Ask'
+        market = self.market(symbol)
         request = {
-            'market': self.market_id(symbol),
+            'market': market['id'],
             'price_type': type,
             'type': side,
             'amount': self.amount_to_precision(symbol, amount),
@@ -483,6 +734,13 @@ class buda (Exchange):
         return self.parse_order(order)
 
     def cancel_order(self, id, symbol=None, params={}):
+        """
+        cancels an open order
+        :param str id: order id
+        :param str|None symbol: not used by buda cancelOrder()
+        :param dict params: extra parameters specific to the buda api endpoint
+        :returns dict: An `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         self.load_markets()
         request = {
             'id': int(id),
@@ -501,49 +759,81 @@ class buda (Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
+        #
+        #     {
+        #         'id': 63679183,
+        #         'uuid': 'f9697bee-627e-4175-983f-0d5a41963fec',
+        #         'market_id': 'ETH-CLP',
+        #         'account_id': 51590,
+        #         'type': 'Ask',
+        #         'state': 'received',
+        #         'created_at': '2021-01-04T08:29:52.730Z',
+        #         'fee_currency': 'CLP',
+        #         'price_type': 'limit',
+        #         'source': None,
+        #         'limit': ['741000.0', 'CLP'],
+        #         'amount': ['0.001', 'ETH'],
+        #         'original_amount': ['0.001', 'ETH'],
+        #         'traded_amount': ['0.0', 'ETH'],
+        #         'total_exchanged': ['0.0', 'CLP'],
+        #         'paid_fee': ['0.0', 'CLP']
+        #     }
+        #
         id = self.safe_string(order, 'id')
         timestamp = self.parse8601(self.safe_string(order, 'created_at'))
-        symbol = None
-        if market is None:
-            marketId = order['market_id']
-            if marketId in self.markets_by_id:
-                market = self.markets_by_id[marketId]
-        if market is not None:
-            symbol = market['symbol']
+        datetime = self.iso8601(timestamp)
+        marketId = self.safe_string(order, 'market_id')
+        symbol = self.safe_symbol(marketId, market, '-')
         type = self.safe_string(order, 'price_type')
         side = self.safe_string_lower(order, 'type')
         status = self.parse_order_status(self.safe_string(order, 'state'))
-        amount = float(order['original_amount'][0])
-        remaining = float(order['amount'][0])
-        filled = float(order['traded_amount'][0])
-        cost = float(order['total_exchanged'][0])
-        price = self.safe_float(order, 'limit')
-        if price is not None:
-            price = float(price[0])
-        if cost > 0 and filled > 0:
-            price = self.price_to_precision(symbol, cost / filled)
-        fee = {
-            'cost': float(order['paid_fee'][0]),
-            'currency': order['paid_fee'][1],
-        }
-        return {
+        originalAmount = self.safe_value(order, 'original_amount', [])
+        amount = self.safe_string(originalAmount, 0)
+        remainingAmount = self.safe_value(order, 'amount', [])
+        remaining = self.safe_string(remainingAmount, 0)
+        tradedAmount = self.safe_value(order, 'traded_amount', [])
+        filled = self.safe_string(tradedAmount, 0)
+        totalExchanged = self.safe_value(order, 'total_exchanged', [])
+        cost = self.safe_string(totalExchanged, 0)
+        limitPrice = self.safe_value(order, 'limit', [])
+        price = self.safe_string(limitPrice, 0)
+        if price is None:
+            if limitPrice is not None:
+                price = limitPrice
+        paidFee = self.safe_value(order, 'paid_fee', [])
+        feeCost = self.safe_string(paidFee, 0)
+        fee = None
+        if feeCost is not None:
+            feeCurrencyId = self.safe_string(paidFee, 1)
+            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
+            fee = {
+                'cost': feeCost,
+                'code': feeCurrencyCode,  # kept here for backward-compatibility, but will be removed soon
+                'currency': feeCurrencyCode,
+            }
+        return self.safe_order({
+            'info': order,
             'id': id,
-            'datetime': self.iso8601(timestamp),
+            'clientOrderId': None,
+            'datetime': datetime,
             'timestamp': timestamp,
             'lastTradeTimestamp': None,
             'status': status,
             'symbol': symbol,
             'type': type,
+            'timeInForce': None,
+            'postOnly': None,
             'side': side,
             'price': price,
+            'stopPrice': None,
+            'average': None,
             'cost': cost,
             'amount': amount,
             'filled': filled,
             'remaining': remaining,
             'trades': None,
             'fee': fee,
-            'info': order,
-        }
+        }, market)
 
     def is_fiat(self, code):
         fiats = {
@@ -555,6 +845,12 @@ class buda (Exchange):
         return self.safe_value(fiats, code, False)
 
     def fetch_deposit_address(self, code, params={}):
+        """
+        fetch the deposit address for a currency associated with self account
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the buda api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         self.load_markets()
         currency = self.currency(code)
         if self.is_fiat(code):
@@ -579,14 +875,21 @@ class buda (Exchange):
             'currency': code,
             'address': address,
             'tag': None,
+            'network': None,
             'info': receiveAddresses,
         }
 
     def create_deposit_address(self, code, params={}):
+        """
+        create a currency deposit address
+        :param str code: unified currency code of the currency for the deposit address
+        :param dict params: extra parameters specific to the buda api endpoint
+        :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
+        """
         self.load_markets()
         currency = self.currency(code)
         if self.is_fiat(code):
-            raise NotSupported(self.id + ': fiat fetchDepositAddress() for ' + code + ' is not supported')
+            raise NotSupported(self.id + ' createDepositAddress() of fiat for ' + code + ' is not supported')
         request = {
             'currency': currency['id'],
         }
@@ -603,7 +906,7 @@ class buda (Exchange):
         statuses = {
             'rejected': 'failed',
             'confirmed': 'ok',
-            'anulled': 'canceled',
+            'aNoneed': 'canceled',
             'retained': 'canceled',
             'pending_confirmation': 'pending',
         }
@@ -618,7 +921,7 @@ class buda (Exchange):
         fee = float(transaction['fee'][0])
         feeCurrency = transaction['fee'][1]
         status = self.parse_transaction_status(self.safe_string(transaction, 'state'))
-        type = 'deposit' if ('deposit_data' in list(transaction.keys())) else 'withdrawal'
+        type = 'deposit' if ('deposit_data' in transaction) else 'withdrawal'
         data = self.safe_value(transaction, type + '_data', {})
         address = self.safe_value(data, 'target_address')
         txid = self.safe_string(data, 'tx_hash')
@@ -629,7 +932,13 @@ class buda (Exchange):
             'txid': txid,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
+            'network': None,
             'address': address,
+            'addressTo': None,
+            'addressFrom': None,
+            'tag': None,
+            'tagTo': None,
+            'tagFrom': None,
             'type': type,
             'amount': amount,
             'currency': code,
@@ -642,9 +951,17 @@ class buda (Exchange):
         }
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all deposits made to an account
+        :param str code: unified currency code
+        :param int|None since: the earliest time in ms to fetch deposits for
+        :param int|None limit: the maximum number of deposits structures to retrieve
+        :param dict params: extra parameters specific to the buda api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         if code is None:
-            raise ExchangeError(self.id + ': fetchDeposits() requires a currency code argument')
+            raise ArgumentsRequired(self.id + ' fetchDeposits() requires a currency code argument')
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
@@ -652,12 +969,20 @@ class buda (Exchange):
         }
         response = self.privateGetCurrenciesCurrencyDeposits(self.extend(request, params))
         deposits = self.safe_value(response, 'deposits')
-        return self.parseTransactions(deposits, currency, since, limit)
+        return self.parse_transactions(deposits, currency, since, limit)
 
     def fetch_withdrawals(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch all withdrawals made from an account
+        :param str code: unified currency code
+        :param int|None since: the earliest time in ms to fetch withdrawals for
+        :param int|None limit: the maximum number of withdrawals structures to retrieve
+        :param dict params: extra parameters specific to the buda api endpoint
+        :returns [dict]: a list of `transaction structures <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
         self.load_markets()
         if code is None:
-            raise ExchangeError(self.id + ': fetchDeposits() requires a currency code argument')
+            raise ArgumentsRequired(self.id + ' fetchWithdrawals() requires a currency code argument')
         currency = self.currency(code)
         request = {
             'currency': currency['id'],
@@ -665,9 +990,19 @@ class buda (Exchange):
         }
         response = self.privateGetCurrenciesCurrencyWithdrawals(self.extend(request, params))
         withdrawals = self.safe_value(response, 'withdrawals')
-        return self.parseTransactions(withdrawals, currency, since, limit)
+        return self.parse_transactions(withdrawals, currency, since, limit)
 
     def withdraw(self, code, amount, address, tag=None, params={}):
+        """
+        make a withdrawal
+        :param str code: unified currency code
+        :param float amount: the amount to withdraw
+        :param str address: the address to withdraw to
+        :param str|None tag:
+        :param dict params: extra parameters specific to the buda api endpoint
+        :returns dict: a `transaction structure <https://docs.ccxt.com/en/latest/manual.html#transaction-structure>`
+        """
+        tag, params = self.handle_withdraw_tag_and_params(tag, params)
         self.check_address(address)
         self.load_markets()
         currency = self.currency(code)
@@ -693,13 +1028,13 @@ class buda (Exchange):
                 request += '?' + self.urlencode(query)
             else:
                 body = self.json(query)
-        url = self.urls['api'] + '/' + self.version + '/' + request
+        url = self.urls['api']['rest'] + '/' + self.version + '/' + request
         if api == 'private':
             self.check_required_credentials()
             nonce = str(self.nonce())
             components = [method, '/api/' + self.version + '/' + request]
             if body:
-                base64Body = base64.b64encode(self.encode(body))
+                base64Body = self.string_to_base64(body)
                 components.append(self.decode(base64Body))
             components.append(nonce)
             message = ' '.join(components)
@@ -719,9 +1054,6 @@ class buda (Exchange):
             errorCode = self.safe_string(response, 'code')
             message = self.safe_string(response, 'message', body)
             feedback = self.id + ' ' + message
-            exceptions = self.exceptions
             if errorCode is not None:
-                if errorCode in exceptions:
-                    raise exceptions[errorCode](feedback)
-                else:
-                    raise ExchangeError(feedback)
+                self.throw_exactly_matched_exception(self.exceptions, errorCode, feedback)
+                raise ExchangeError(feedback)

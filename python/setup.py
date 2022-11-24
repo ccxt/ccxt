@@ -12,7 +12,7 @@ is_python_2 = sys.version_info < (3, 0)
 here = path.abspath(path.dirname(__file__))
 root = path.dirname(here)
 
-readme = path.join(here, 'README.rst')
+readme = path.join(here, 'README.md')
 package_json = path.join(here, 'package.json')
 
 # a workaround when installing locally from git repository with pip install -e .
@@ -27,6 +27,14 @@ with open(readme, encoding='utf-8') as f:
 with open(package_json, encoding='utf-8') as f:
     package = json.load(f)
 
+project_urls = {
+    'Homepage': 'https://ccxt.com',
+    'Documentation': 'https://docs.ccxt.com/en/latest/manual.html',
+    'Discord': 'https://discord.gg/ccxt',
+    'Twitter': 'https://twitter.com/ccxt_official',
+    'Funding': 'https://opencollective.com/ccxt',
+}
+
 setup(
 
     name=package['name'],
@@ -34,6 +42,7 @@ setup(
 
     description=package['description'],
     long_description=long_description,
+    long_description_content_type='text/markdown',
 
     # will switch from rst to md shortly
     # long_description_content_type='text/markdown',
@@ -56,10 +65,10 @@ setup(
         'Programming Language :: Python :: 2',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.3',
-        'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'Programming Language :: JavaScript',
         'Programming Language :: PHP',
         'Operating System :: OS Independent',
@@ -70,7 +79,7 @@ setup(
     packages=find_packages(exclude=['ccxt.async_support*'] if is_python_2 else []),
 
     install_requires=[
-        'setuptools>=38.5.1',
+        'setuptools>=60.9.0',
         'certifi>=2018.1.18',
         'requests>=2.18.4',
         'cryptography>=2.6.1'
@@ -78,15 +87,20 @@ setup(
 
     extras_require={
         ':python_version>="3.5.2"': [
-            'aiohttp>=3.0.1',
-            'aiodns==1.1.1',
-            'yarl==1.1.0',
+            'aiohttp>=3.8',
+            'aiodns>=1.1.1',
+            'yarl>=1.7.2',
         ],
         'qa': [
-            'flake8==3.5.0'
+            'flake8==3.7.9',
         ],
         'doc': [
-            'Sphinx==1.7.0'
+            'Sphinx==4.0',
+            'mistune==0.8.4',  # needed for m2r2
+            'm2r2==0.2.7',
+            'sphinx-rtd-theme==0.5.2',
+            'readthedocs-sphinx-search==0.1.0',
         ]
-    }
+    },
+    project_urls=project_urls,
 )

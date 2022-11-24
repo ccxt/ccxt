@@ -42,26 +42,34 @@ const precisionConstants = {
 // See https://stackoverflow.com/questions/1685680/how-to-avoid-scientific-notation-for-large-numbers-in-javascript for discussion
 
 function numberToString (x) { // avoids scientific notation for too large and too small numbers
+    if (x === undefined) return undefined
 
-    if (typeof x === 'string') return x
+    if (typeof x !== 'number') return x.toString ()
 
+    const s = x.toString ()
     if (Math.abs (x) < 1.0) {
-        const s = x.toString ()
-        const e = parseInt (s.split ('e-')[1])
+        const n_e = s.split ('e-')
+        const n = n_e[0].replace ('.', '')
+        const e = parseInt (n_e[1])
         const neg = (s[0] === '-')
         if (e) {
-            x *= Math.pow (10, e - 1)
-            x = (neg ? '-' : '') + '0.' + (new Array (e)).join ('0') + x.toString ().substring (neg ? 3 : 2)
+            x = (neg ? '-' : '') + '0.' + (new Array (e)).join ('0') + n.substring (neg)
+            return x
         }
     } else {
-        let e = parseInt (x.toString ().split ('+')[1])
-        if (e > 20) {
-            e -= 20
-            x /= Math.pow (10, e)
-            x += (new Array (e + 1)).join ('0')
+        const parts = s.split ('e')
+        if (parts[1]) {
+            let e = parseInt (parts[1])
+            const m = parts[0].split ('.')
+            let part = ''
+            if (m[1]) {
+                e -= m[1].length
+                part = m[1]
+            }
+            return m[0] + part + (new Array (e + 1)).join ('0')
         }
     }
-    return x.toString ()
+    return s
 }
 
 //-----------------------------------------------------------------------------
@@ -91,10 +99,13 @@ const decimalToPrecision = (x, roundingMode
                              , countingMode       = DECIMAL_PLACES
                              , paddingMode        = NO_PADDING) => {
 
-    if (numPrecisionDigits < 0) {
-        if (countingMode === TICK_SIZE) {
-            throw new Error (`TICK_SIZE cant be used with negative numPrecisionDigits`)
+    if (countingMode === TICK_SIZE) {
+        if (numPrecisionDigits <= 0) {
+            throw new Error ('TICK_SIZE cant be used with negative or zero numPrecisionDigits')
         }
+    }
+
+    if (numPrecisionDigits < 0) {
         const toNearest = Math.pow (10, -numPrecisionDigits)
         if (roundingMode === ROUND) {
             return (toNearest * decimalToPrecision (x / toNearest, roundingMode, 0, countingMode, paddingMode)).toString ()
@@ -106,9 +117,13 @@ const decimalToPrecision = (x, roundingMode
 
 /*  handle tick size */
     if (countingMode === TICK_SIZE) {
-        const missing = x % numPrecisionDigits
-        const reminder = x / numPrecisionDigits
-        if (reminder !== Math.floor (reminder)) {
+        const precisionDigitsString = decimalToPrecision (numPrecisionDigits, ROUND, 22, DECIMAL_PLACES, NO_PADDING)
+        const newNumPrecisionDigits = precisionFromString (precisionDigitsString)
+        let missing = x % numPrecisionDigits
+        // See: https://github.com/ccxt/ccxt/pull/6486
+        missing = Number (decimalToPrecision (missing, ROUND, 8, DECIMAL_PLACES, NO_PADDING));
+        const fpError = decimalToPrecision (missing / numPrecisionDigits, ROUND, Math.max (newNumPrecisionDigits, 8), DECIMAL_PLACES, NO_PADDING)
+        if (precisionFromString (fpError) !== 0) {
             if (roundingMode === ROUND) {
                 if (x > 0) {
                     if (missing >= numPrecisionDigits / 2) {
@@ -127,8 +142,6 @@ const decimalToPrecision = (x, roundingMode
                 x = x - missing
             }
         }
-        const precisionDigitsString = decimalToPrecision (numPrecisionDigits, ROUND, 100, DECIMAL_PLACES, NO_PADDING)
-        const newNumPrecisionDigits = precisionFromString (precisionDigitsString)
         return decimalToPrecision (x, ROUND, newNumPrecisionDigits, DECIMAL_PLACES, paddingMode);
     }
 
@@ -282,15 +295,25 @@ const decimalToPrecision = (x, roundingMode
     return String.fromCharCode (...out)
 }
 
+function omitZero (stringNumber) {
+    if (stringNumber === undefined || stringNumber === '') {
+        return undefined
+    }
+    if (parseFloat (stringNumber) === 0) {
+        return undefined
+    }
+    return stringNumber
+}
+
 /*  ------------------------------------------------------------------------ */
 
 module.exports = {
-
     numberToString,
     precisionFromString,
     decimalToPrecision,
     truncate_to_string,
     truncate,
+    omitZero,
     precisionConstants,
     ROUND,
     TRUNCATE,

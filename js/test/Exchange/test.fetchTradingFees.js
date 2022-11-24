@@ -1,37 +1,23 @@
 'use strict'
 
-// ----------------------------------------------------------------------------
-
-const log       = require ('ololog')
-    , ansi      = require ('ansicolor').nice
-    , chai      = require ('chai')
-    , expect    = chai.expect
-    , assert    = chai.assert
-
-/*  ------------------------------------------------------------------------ */
+const testTradingFee = require ("./test.tradingFee")
 
 module.exports = async (exchange) => {
-
-    const skippedExchanges = [
-    ]
-
+    const method = "fetchTradingFees"
+    const skippedExchanges = []
     if (skippedExchanges.includes (exchange.id)) {
-        log (exchange.id, 'found in ignored exchanges, skipping fetchTradingFees...')
+        console.log (exchange.id, 'found in ignored exchanges, skipping ' + method + '...')
         return
     }
-
-    if (exchange.has.fetchTradingFees) {
-
-        // log ('fetching trading fees...')
-
-        const method = 'fetchTradingFees'
+    if (exchange.has[method]) {
         const fees = await exchange[method] ()
-        log.green (fees)
+        const symbols = Object.keys (fees)
+        for (let i = 0; i < symbols.length; i++) {
+            const symbol = symbols[i]
+            testTradingFee (symbol, fees[symbol])
+        }
         return fees
-
     } else {
-
-        log ('fetching trading fees not supported')
+        console.log (method + '() is not supported')
     }
 }
-

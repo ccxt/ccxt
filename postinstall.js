@@ -5,13 +5,13 @@ function style(s, style) {
 }
 
 const colors = {
-    'black': 30,
-    'red': 31,
-    'green': 32,
-    'yellow': 33,
-    'blue': 34,
-    'white': 37,
-    'gray': 90,
+    black: 30,
+    red: 31,
+    green: 32,
+    yellow: 33,
+    blue: 34,
+    white: 37,
+    gray: 90,
 }
 
 let colorFunctions = {}
@@ -28,6 +28,8 @@ let ascii = [
     '                         ;hX32::::::,:,    i9X9i::::::,:.',
     '                         rG999GGGGGGGAS    iG99hGGGGGGGAr',
     '                         ;2S55SSSSSSS2r    r2555SSSSSSS2;',
+    '                                                         ',
+    '                                                         ',
     '                         ;2S5s    ;2S2r    r2SS555555SS2;',
     '                         rAh&2    sAhAS    SAGGh9999GGGAr',
     '                         .:,::rrrs::::,    ,:,,;9X3X:,,:.',
@@ -56,17 +58,19 @@ let footer = [
 ]
 
 async function getData () {
-    let data =  {}
-    let collectiveData = await (await fetch ('https://opencollective.com/ccxt.json')).json ()
-    let githubData = await (await fetch ('https://api.github.com/repos/ccxt/ccxt')).json ()
-    data['contributors'] = collectiveData['contributorsCount'].toLocaleString ()
-    data['backers'] = collectiveData['backersCount'].toLocaleString ()
-    data['balance'] = Math.floor (collectiveData['balance'] / 100).toLocaleString ()
-    data['budget'] = Math.floor (collectiveData['yearlyIncome'] / 100).toLocaleString ()
-    data['stars'] = githubData['stargazers_count'].toLocaleString ()
-    data['forks'] = githubData['forks_count'].toLocaleString ()
-    data['size'] = (githubData['size'] / 1000000).toFixed (2)
-    return data
+    const [collectiveData_result, githubData_result] = await Promise.all ([fetch ('https://opencollective.com/ccxt.json'), fetch ('https://api.github.com/repos/ccxt/ccxt')])
+    const collectiveData = await collectiveData_result.json()
+    const githubData = await githubData_result.json()
+
+    return {
+        contributors: collectiveData['contributorsCount'].toLocaleString (),
+        backers: collectiveData['backersCount'].toLocaleString (),
+        balance: Math.floor (collectiveData['balance'] / 100).toLocaleString (),
+        budget: Math.floor (collectiveData['yearlyIncome'] / 100).toLocaleString (),
+        stars: githubData['stargazers_count'].toLocaleString (),
+        forks: githubData['forks_count'].toLocaleString (),
+        size: (githubData['size'] / 1000000).toFixed (2)
+    }
 }
 
 function pad (string) {
@@ -75,16 +79,28 @@ function pad (string) {
     return ' '.repeat (half + (padding % 2)) + string + ' '.repeat (half)
 }
 
-getData().then ((data) => {
-    colorFunctions['blue'] (ascii.join ('\n'))
-    colorFunctions['red'] (pad (`Stars: ${data['stars']}`))
-    colorFunctions['red'] (pad (`Forks: ${data['forks']}`))
-    colorFunctions['red'] (pad (`Contributors: ${data['contributors']}`))
-    colorFunctions['red'] (pad (`Size: ${data['size']}MB`))
-    colorFunctions['yellow'] ('\n' + pad ('Thanks for installing ccxt 🙏'))
-    colorFunctions['gray'] (pad ('Please consider donating to our open collective'))
-    colorFunctions['gray'] (pad ('to help us maintain this package.'))
-    colorFunctions['yellow'] (pad ('👉 Donate: https://opencollective.com/ccxt/donate 🎉'))
-    colorFunctions['white'] (pad (`Thanks to our ${data['backers']} backers we are operating on an annual budget of $${data['budget']}`))
-    colorFunctions['yellow'] (footer.join ('\n'))
-})
+async function main () {
+
+    try {
+
+        const data = await getData()
+
+        colorFunctions['blue'] (ascii.join ('\n'))
+        colorFunctions['red'] (pad (`Stars: ${data.stars}`))
+        colorFunctions['red'] (pad (`Forks: ${data.forks}`))
+        colorFunctions['red'] (pad (`Contributors: ${data.contributors}`))
+        colorFunctions['red'] (pad (`Size: ${data.size}MB`))
+        colorFunctions['yellow'] ('\n' + pad ('Thanks for installing ccxt 🙏'))
+        colorFunctions['gray'] (pad ('Please consider donating to our open collective'))
+        colorFunctions['gray'] (pad ('to help us maintain this package.'))
+        colorFunctions['yellow'] (pad ('👉 Donate: https://opencollective.com/ccxt/donate 🎉'))
+        colorFunctions['white'] (pad (`Thanks to our ${data.backers} backers we are operating on an annual budget of $${data.budget}`))
+        colorFunctions['yellow'] (footer.join ('\n'))
+
+    } catch (e) {
+
+        // console.log (e.constructor.name, e.message)
+    }
+}
+
+main()

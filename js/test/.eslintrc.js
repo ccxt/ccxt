@@ -2,8 +2,7 @@
 
 module.exports = {
   "env": {
-    "node": true,
-    "mocha": true
+    "node": true
   },
   "parserOptions": {
     "ecmaVersion": 2017,
