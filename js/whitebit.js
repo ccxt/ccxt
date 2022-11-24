@@ -555,6 +555,7 @@ module.exports = class whitebit extends Exchange {
          * @param {object} params extra parameters specific to the whitebit api endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
+        await this.loadMarkets ();
         const response = await this.v4PublicGetAssets (params);
         //
         //      {
@@ -1939,7 +1940,7 @@ module.exports = class whitebit extends Exchange {
         const currency = this.currency (code);
         const hash = currency['networks'];
         const networks = Object.keys (hash);
-        return networks.length > 1 ? !this.inArray (code, networks) : false;
+        return networks.length > 1;
     }
 
     isFiat (currency) {
