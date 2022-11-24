@@ -1121,7 +1121,7 @@ module.exports = class whitebit extends Exchange {
         }
         params = this.omit (query, [ 'triggerPrice', 'stopPrice' ]);
         const response = await this[method] (this.extend (request, params));
-        return this.parseOrder (this.extend (response, { postOnly }));
+        return this.parseOrder (this.extend (response, { 'postOnly': postOnly }));
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
