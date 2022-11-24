@@ -1920,7 +1920,7 @@ module.exports = class binance extends Exchange {
             method = 'sapiGetMarginAccount';
         } else if (type === 'savings') {
             const lockedProduct = this.safeStringUpper (params, 'lockedProduct');
-            if (lockedProduct) {
+            if (lockedProduct !== undefined) {
                 request['product'] = lockedProduct;
                 method = 'sapiGetStakingPosition';
             } else {
