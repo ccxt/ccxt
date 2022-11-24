@@ -2897,7 +2897,7 @@ class digifinex(Exchange):
         transfers = self.safe_value(response, 'data', [])
         return self.parse_transfers(transfers, currency, since, limit)
 
-    def handle_margin_mode_and_params(self, methodName, params={}):
+    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
         """
          * @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
@@ -2907,7 +2907,7 @@ class digifinex(Exchange):
         defaultType = self.safe_string(self.options, 'defaultType')
         isMargin = self.safe_value(params, 'margin', False)
         marginMode = None
-        marginMode, params = super(digifinex, self).handle_margin_mode_and_params(methodName, params)
+        marginMode, params = super(digifinex, self).handle_margin_mode_and_params(methodName, params, defaultValue)
         if marginMode is not None:
             if marginMode != 'cross':
                 raise NotSupported(self.id + ' only cross margin is supported')

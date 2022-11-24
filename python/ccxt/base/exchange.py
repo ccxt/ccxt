@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.2.17'
+__version__ = '2.2.18'
 
 # -----------------------------------------------------------------------------
 
@@ -2901,6 +2901,14 @@ class Exchange(object):
                 subType = values[0]
         return [subType, params]
 
+    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
+        """
+         * @ignore
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [str|None, dict]: the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] self.options["marginMode"] or self.options["defaultMarginMode"]
+        """
+        return self.handleOptionAndParams(params, methodName, 'marginMode', defaultValue)
+
     def throw_exactly_matched_exception(self, exact, string, message):
         if string in exact:
             raise exact[string](message)
@@ -3385,20 +3393,6 @@ class Exchange(object):
             return market['id']
         else:
             return account
-
-    def handle_margin_mode_and_params(self, methodName, params={}):
-        """
-         * @ignore
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [str|None, dict]: the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] self.options["marginMode"] or self.options["defaultMarginMode"]
-        """
-        defaultMarginMode = self.safe_string_2(self.options, 'marginMode', 'defaultMarginMode')
-        methodOptions = self.safe_value(self.options, methodName, {})
-        methodMarginMode = self.safe_string_2(methodOptions, 'marginMode', 'defaultMarginMode', defaultMarginMode)
-        marginMode = self.safe_string_lower_2(params, 'marginMode', 'defaultMarginMode', methodMarginMode)
-        if marginMode is not None:
-            params = self.omit(params, ['marginMode', 'defaultMarginMode'])
-        return [marginMode, params]
 
     def check_required_argument(self, methodName, argument, argumentName, options=[]):
         """
