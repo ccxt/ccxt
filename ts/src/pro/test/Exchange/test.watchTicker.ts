@@ -17,6 +17,7 @@ export default async (exchange, symbol) => {
 
     // we have to skip some exchanges here due to the frequency of trading
     const skippedExchanges = [
+        'cex',
         'ripio',
         'mexc'
     ]

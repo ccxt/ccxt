@@ -12,6 +12,7 @@ export default class wazirx extends Exchange {
             'countries': [ 'IN' ],
             'version': 'v2',
             'rateLimit': 1000,
+            'pro': true,
             'has': {
                 'CORS': false,
                 'spot': true,

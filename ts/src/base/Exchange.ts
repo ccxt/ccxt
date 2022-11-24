@@ -2755,14 +2755,14 @@ export default class Exchange {
         return [ type, params ];
     }
 
-    handleSubTypeAndParams (methodName, market = undefined, params = {}) {
+    handleSubTypeAndParams (methodName, market = undefined, params = {}, defaultValue = 'linear') {
         let subType = undefined;
         // if set in params, it takes precedence
-        const subTypeInParams = this.safeString2 (params, 'subType', 'subType');
+        const subTypeInParams = this.safeString2 (params, 'subType', 'defaultSubType');
         // avoid omitting if it's not present
         if (subTypeInParams !== undefined) {
             subType = subTypeInParams;
-            params = this.omit (params, [ 'defaultSubType', 'subType' ]);
+            params = this.omit (params, [ 'subType', 'defaultSubType' ]);
         } else {
             // at first, check from market object
             if (market !== undefined) {
@@ -2774,12 +2774,21 @@ export default class Exchange {
             }
             // if it was not defined in market object
             if (subType === undefined) {
-                const exchangeWideValue = this.safeString2 (this.options, 'defaultSubType', 'subType', 'linear');
-                const methodOptions = this.safeValue (this.options, methodName, {});
-                subType = this.safeString2 (methodOptions, 'defaultSubType', 'subType', exchangeWideValue);
+                const values = this.handleOptionAndParams (undefined, methodName, 'subType', defaultValue); // no need to re-test params here
+                subType = values[0];
             }
         }
         return [ subType, params ];
+    }
+
+    handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined) {
+        /**
+         * @ignore
+         * @method
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[string|undefined, object]} the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
+         */
+        return this.handleOptionAndParams (params, methodName, 'marginMode', defaultValue);
     }
 
     throwExactlyMatchedException (exact, string, message) {
@@ -3397,23 +3406,6 @@ export default class Exchange {
         } else {
             return account;
         }
-    }
-
-    handleMarginModeAndParams (methodName, params = {}) {
-        /**
-         * @ignore
-         * @method
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[string|undefined, object]} the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
-         */
-        const defaultMarginMode = this.safeString2 (this.options, 'marginMode', 'defaultMarginMode');
-        const methodOptions = this.safeValue (this.options, methodName, {});
-        const methodMarginMode = this.safeString2 (methodOptions, 'marginMode', 'defaultMarginMode', defaultMarginMode);
-        const marginMode = this.safeStringLower2 (params, 'marginMode', 'defaultMarginMode', methodMarginMode);
-        if (marginMode !== undefined) {
-            params = this.omit (params, [ 'marginMode', 'defaultMarginMode' ]);
-        }
-        return [ marginMode, params ];
     }
 
     checkRequiredArgument (methodName, argument, argumentName, options = []) {

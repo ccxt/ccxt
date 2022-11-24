@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '2.2.5'
+__version__ = '2.2.19'
 
 # ----------------------------------------------------------------------------
 
@@ -27,6 +27,7 @@ from ccxt.pro.bitstamp import bitstamp                                    # noqa
 from ccxt.pro.bittrex import bittrex                                      # noqa: F401
 from ccxt.pro.bitvavo import bitvavo                                      # noqa: F401
 from ccxt.pro.bybit import bybit                                          # noqa: F401
+from ccxt.pro.cex import cex                                              # noqa: F401
 from ccxt.pro.coinbaseprime import coinbaseprime                          # noqa: F401
 from ccxt.pro.coinbasepro import coinbasepro                              # noqa: F401
 from ccxt.pro.coinex import coinex                                        # noqa: F401
@@ -53,6 +54,7 @@ from ccxt.pro.okx import okx                                              # noqa
 from ccxt.pro.phemex import phemex                                        # noqa: F401
 from ccxt.pro.ripio import ripio                                          # noqa: F401
 from ccxt.pro.upbit import upbit                                          # noqa: F401
+from ccxt.pro.wazirx import wazirx                                        # noqa: F401
 from ccxt.pro.whitebit import whitebit                                    # noqa: F401
 from ccxt.pro.zb import zb                                                # noqa: F401
 from ccxt.pro.zipmex import zipmex                                        # noqa: F401
@@ -75,6 +77,7 @@ exchanges = [
     'bittrex',
     'bitvavo',
     'bybit',
+    'cex',
     'coinbaseprime',
     'coinbasepro',
     'coinex',
@@ -101,6 +104,7 @@ exchanges = [
     'phemex',
     'ripio',
     'upbit',
+    'wazirx',
     'whitebit',
     'zb',
     'zipmex',

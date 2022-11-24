@@ -445,6 +445,38 @@ export default class indodax extends Exchange {
         return this.parseTicker (ticker, market);
     }
 
+    async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name indodax#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#ticker-all
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} params extra parameters specific to the indodax api endpoint
+         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        await this.loadMarkets ();
+        //
+        // {
+        //     "tickers": {
+        //         "btc_idr": {
+        //             "high": "120009000",
+        //             "low": "116735000",
+        //             "vol_btc": "218.13777777",
+        //             "vol_idr": "25800033297",
+        //             "last": "117088000",
+        //             "buy": "117002000",
+        //             "sell": "117078000",
+        //             "server_time": 1571207881
+        //         }
+        //     }
+        // }
+        //
+        const response = await this.publicGetTickerAll (params);
+        const tickers = this.safeValue (response, 'tickers');
+        return this.parseTickers (tickers, symbols);
+    }
+
     parseTrade (trade, market = undefined) {
         const timestamp = this.safeTimestamp (trade, 'date');
         return this.safeTrade ({

@@ -15,6 +15,7 @@ export default class cex extends Exchange {
             'name': 'CEX.IO',
             'countries': [ 'GB', 'EU', 'CY', 'RU' ],
             'rateLimit': 1500,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -295,7 +296,7 @@ export default class cex extends Exchange {
                 'active': active,
                 'deposit': undefined,
                 'withdraw': undefined,
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'precision'))),
+                'precision': this.parseNumber (this.safeString (currency, 'precision')),
                 'fee': undefined,
                 'limits': {
                     'amount': {

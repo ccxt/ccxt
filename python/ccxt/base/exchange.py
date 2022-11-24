@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.2.5'
+__version__ = '2.2.19'
 
 # -----------------------------------------------------------------------------
 
@@ -2898,14 +2898,14 @@ class Exchange(object):
         params = self.omit(params, ['defaultType', 'type'])
         return [type, params]
 
-    def handle_sub_type_and_params(self, methodName, market=None, params={}):
+    def handle_sub_type_and_params(self, methodName, market=None, params={}, defaultValue='linear'):
         subType = None
         # if set in params, it takes precedence
-        subTypeInParams = self.safe_string_2(params, 'subType', 'subType')
+        subTypeInParams = self.safe_string_2(params, 'subType', 'defaultSubType')
         # avoid omitting if it's not present
         if subTypeInParams is not None:
             subType = subTypeInParams
-            params = self.omit(params, ['defaultSubType', 'subType'])
+            params = self.omit(params, ['subType', 'defaultSubType'])
         else:
             # at first, check from market object
             if market is not None:
@@ -2915,10 +2915,17 @@ class Exchange(object):
                     subType = 'inverse'
             # if it was not defined in market object
             if subType is None:
-                exchangeWideValue = self.safe_string_2(self.options, 'defaultSubType', 'subType', 'linear')
-                methodOptions = self.safe_value(self.options, methodName, {})
-                subType = self.safe_string_2(methodOptions, 'defaultSubType', 'subType', exchangeWideValue)
+                values = self.handleOptionAndParams(None, methodName, 'subType', defaultValue)  # no need to re-test params here
+                subType = values[0]
         return [subType, params]
+
+    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
+        """
+         * @ignore
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [str|None, dict]: the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] self.options["marginMode"] or self.options["defaultMarginMode"]
+        """
+        return self.handleOptionAndParams(params, methodName, 'marginMode', defaultValue)
 
     def throw_exactly_matched_exception(self, exact, string, message):
         if string in exact:
@@ -3404,20 +3411,6 @@ class Exchange(object):
             return market['id']
         else:
             return account
-
-    def handle_margin_mode_and_params(self, methodName, params={}):
-        """
-         * @ignore
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [str|None, dict]: the marginMode in lowercase by params["marginMode"], params["defaultMarginMode"] self.options["marginMode"] or self.options["defaultMarginMode"]
-        """
-        defaultMarginMode = self.safe_string_2(self.options, 'marginMode', 'defaultMarginMode')
-        methodOptions = self.safe_value(self.options, methodName, {})
-        methodMarginMode = self.safe_string_2(methodOptions, 'marginMode', 'defaultMarginMode', defaultMarginMode)
-        marginMode = self.safe_string_lower_2(params, 'marginMode', 'defaultMarginMode', methodMarginMode)
-        if marginMode is not None:
-            params = self.omit(params, ['marginMode', 'defaultMarginMode'])
-        return [marginMode, params]
 
     def check_required_argument(self, methodName, argument, argumentName, options=[]):
         """
