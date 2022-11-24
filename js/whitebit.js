@@ -1939,7 +1939,7 @@ module.exports = class whitebit extends Exchange {
         const currency = this.currency (code);
         const hash = currency['networks'];
         const networks = Object.keys (hash);
-        return networks.length > 1 ? !this.inArray(code, networks) : false;
+        return networks.length > 1 ? !this.inArray (code, networks) : false;
     }
 
     isFiat (currency) {
