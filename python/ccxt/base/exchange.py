@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.2.12'
+__version__ = '2.2.17'
 
 # -----------------------------------------------------------------------------
 
@@ -2880,14 +2880,14 @@ class Exchange(object):
         params = self.omit(params, ['defaultType', 'type'])
         return [type, params]
 
-    def handle_sub_type_and_params(self, methodName, market=None, params={}):
+    def handle_sub_type_and_params(self, methodName, market=None, params={}, defaultValue='linear'):
         subType = None
         # if set in params, it takes precedence
-        subTypeInParams = self.safe_string_2(params, 'subType', 'subType')
+        subTypeInParams = self.safe_string_2(params, 'subType', 'defaultSubType')
         # avoid omitting if it's not present
         if subTypeInParams is not None:
             subType = subTypeInParams
-            params = self.omit(params, ['defaultSubType', 'subType'])
+            params = self.omit(params, ['subType', 'defaultSubType'])
         else:
             # at first, check from market object
             if market is not None:
@@ -2897,9 +2897,8 @@ class Exchange(object):
                     subType = 'inverse'
             # if it was not defined in market object
             if subType is None:
-                exchangeWideValue = self.safe_string_2(self.options, 'defaultSubType', 'subType', 'linear')
-                methodOptions = self.safe_value(self.options, methodName, {})
-                subType = self.safe_string_2(methodOptions, 'defaultSubType', 'subType', exchangeWideValue)
+                values = self.handleOptionAndParams(None, methodName, 'subType', defaultValue)  # no need to re-test params here
+                subType = values[0]
         return [subType, params]
 
     def throw_exactly_matched_exception(self, exact, string, message):

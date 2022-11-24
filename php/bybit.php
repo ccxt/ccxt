@@ -1447,7 +1447,6 @@ class bybit extends Exchange {
         //          "theta" => "-0.03262827"
         //      }
         //
-        $timestamp = $this->safe_integer($ticker, 'time');
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
         $last = $this->safe_string_2($ticker, 'last_price', 'lastPrice');
@@ -1462,8 +1461,8 @@ class bybit extends Exchange {
         $low = $this->safe_string_n($ticker, array( 'low_price_24h', 'low24h', 'lowPrice' ));
         return $this->safe_ticker(array(
             'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'high' => $high,
             'low' => $low,
             'bid' => $bid,
@@ -1613,6 +1612,8 @@ class bybit extends Exchange {
     public function fetch_tickers($symbols = null, $params = array ()) {
         /**
          * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * @see https://bybit-exchange.github.io/docs/futuresV2/linear/#t-latestsymbolinfo
+         * @see https://bybit-exchange.github.io/docs/spot/v3/#t-spot_latestsymbolinfo
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the bybit api endpoint
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}

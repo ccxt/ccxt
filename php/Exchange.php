@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.2.12';
+$version = '2.2.17';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.2.12';
+    const VERSION = '2.2.17';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -3786,14 +3786,14 @@ class Exchange {
         return array( $type, $params );
     }
 
-    public function handle_sub_type_and_params($methodName, $market = null, $params = array ()) {
+    public function handle_sub_type_and_params($methodName, $market = null, $params = array (), $defaultValue = 'linear') {
         $subType = null;
         // if set in $params, it takes precedence
-        $subTypeInParams = $this->safe_string_2($params, 'subType', 'subType');
+        $subTypeInParams = $this->safe_string_2($params, 'subType', 'defaultSubType');
         // avoid omitting if it's not present
         if ($subTypeInParams !== null) {
             $subType = $subTypeInParams;
-            $params = $this->omit ($params, array( 'defaultSubType', 'subType' ));
+            $params = $this->omit ($params, array( 'subType', 'defaultSubType' ));
         } else {
             // at first, check from $market object
             if ($market !== null) {
@@ -3805,9 +3805,8 @@ class Exchange {
             }
             // if it was not defined in $market object
             if ($subType === null) {
-                $exchangeWideValue = $this->safe_string_2($this->options, 'defaultSubType', 'subType', 'linear');
-                $methodOptions = $this->safe_value($this->options, $methodName, array());
-                $subType = $this->safe_string_2($methodOptions, 'defaultSubType', 'subType', $exchangeWideValue);
+                $values = $this->handleOptionAndParams (null, $methodName, 'subType', $defaultValue); // no need to re-test $params here
+                $subType = $values[0];
             }
         }
         return array( $subType, $params );
