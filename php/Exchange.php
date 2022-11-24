@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.2.17';
+$version = '2.2.19';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.2.17';
+    const VERSION = '2.2.19';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -353,6 +353,7 @@ class Exchange {
         'handleOptionAndParams' => 'handle_option_and_params',
         'handleMarketTypeAndParams' => 'handle_market_type_and_params',
         'handleSubTypeAndParams' => 'handle_sub_type_and_params',
+        'handleMarginModeAndParams' => 'handle_margin_mode_and_params',
         'throwExactlyMatchedException' => 'throw_exactly_matched_exception',
         'throwBroadlyMatchedException' => 'throw_broadly_matched_exception',
         'findBroadlyMatchedKey' => 'find_broadly_matched_key',
@@ -420,7 +421,6 @@ class Exchange {
         'fetchPremiumIndexOHLCV' => 'fetch_premium_index_ohlcv',
         'handleTimeInForce' => 'handle_time_in_force',
         'convertTypeToAccount' => 'convert_type_to_account',
-        'handleMarginModeAndParams' => 'handle_margin_mode_and_params',
         'checkRequiredArgument' => 'check_required_argument',
         'checkRequiredMarginArgument' => 'check_required_margin_argument',
         'checkRequiredSymbol' => 'check_required_symbol',
@@ -3812,6 +3812,15 @@ class Exchange {
         return array( $subType, $params );
     }
 
+    public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null) {
+        /**
+         * @ignore
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return array([string|null, object]) the marginMode in lowercase as specified by $params["marginMode"], $params["defaultMarginMode"] $this->options["marginMode"] or $this->options["defaultMarginMode"]
+         */
+        return $this->handleOptionAndParams ($params, $methodName, 'marginMode', $defaultValue);
+    }
+
     public function throw_exactly_matched_exception($exact, $string, $message) {
         if (is_array($exact) && array_key_exists($string, $exact)) {
             throw new $exact[$string]($message);
@@ -4417,22 +4426,6 @@ class Exchange {
         } else {
             return $account;
         }
-    }
-
-    public function handle_margin_mode_and_params($methodName, $params = array ()) {
-        /**
-         * @ignore
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return array([string|null, object]) the $marginMode in lowercase as specified by $params["marginMode"], $params["defaultMarginMode"] $this->options["marginMode"] or $this->options["defaultMarginMode"]
-         */
-        $defaultMarginMode = $this->safe_string_2($this->options, 'marginMode', 'defaultMarginMode');
-        $methodOptions = $this->safe_value($this->options, $methodName, array());
-        $methodMarginMode = $this->safe_string_2($methodOptions, 'marginMode', 'defaultMarginMode', $defaultMarginMode);
-        $marginMode = $this->safe_string_lower_2($params, 'marginMode', 'defaultMarginMode', $methodMarginMode);
-        if ($marginMode !== null) {
-            $params = $this->omit ($params, array( 'marginMode', 'defaultMarginMode' ));
-        }
-        return array( $marginMode, $params );
     }
 
     public function check_required_argument($methodName, $argument, $argumentName, $options = []) {
