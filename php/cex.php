@@ -124,6 +124,7 @@ class cex extends Exchange {
                         'cancel_replace_order/{pair}/',
                         'close_position/{pair}/',
                         'get_address/',
+                        'get_crypto_address',
                         'get_myfee/',
                         'get_order/',
                         'get_order_tx/',
@@ -185,6 +186,23 @@ class cex extends Exchange {
                         'cd' => 'canceled',
                         'a' => 'open',
                     ),
+                ),
+                'defaultNetwork' => 'ERC20',
+                'defaultNetworks' => array(
+                    'USDT' => 'TRC20',
+                ),
+                'networks' => array(
+                    'ERC20' => 'Ethereum',
+                    'BTC' => 'BTC',
+                    'BEP20' => 'Binance Smart Chain',
+                    'BSC' => 'Binance Smart Chain',
+                    'TRC20' => 'Tron',
+                ),
+                'networksById' => array(
+                    'Ethereum' => 'ERC20',
+                    'BTC' => 'BTC',
+                    'Binance Smart Chain' => 'BEP20',
+                    'Tron' => 'TRC20',
                 ),
             ),
         ));
@@ -1466,24 +1484,47 @@ class cex extends Exchange {
          * @param {array} $params extra parameters specific to the cex api endpoint
          * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$address-structure $address structure}
          */
-        if ($code === 'XRP' || $code === 'XLM') {
-            // https://github.com/ccxt/ccxt/pull/2327#issuecomment-375204856
-            throw new NotSupported($this->id . ' fetchDepositAddress() does not support XRP and XLM addresses yet (awaiting docs from CEX.io)');
-        }
         $this->load_markets();
         $currency = $this->currency($code);
         $request = array(
             'currency' => $currency['id'],
         );
-        $response = $this->privatePostGetAddress (array_merge($request, $params));
-        $address = $this->safe_string($response, 'data');
+        list($networkCode, $query) = $this->handle_network_code_and_params($params);
+        // atm, cex doesn't support network in the $request
+        $response = $this->privatePostGetCryptoAddress (array_merge($request, $query));
+        //
+        //    {
+        //         "e" => "get_crypto_address",
+        //         "ok" => "ok",
+        //         "data" => {
+        //             "name" => "BTC",
+        //             "addresses" => array(
+        //                 {
+        //                     "blockchain" => "Bitcoin",
+        //                     "address" => "2BvKwe1UwrdTjq2nzhscFYXwqCjCaaHCeq"
+        //
+        //                     // for others coins (i.e. XRP, XLM) other keys are present:
+        //                     //     "destination" => "rF1sdh25BJX3qFwneeTBwaq3zPEWYcwjp2",
+        //                     //     "destinationTag" => "7519113655",
+        //                     //     "memo" => "XLM-memo12345",
+        //                 }
+        //             )
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data', array());
+        $addresses = $this->safe_value($data, 'addresses', array());
+        $chainsIndexedById = $this->index_by($addresses, 'blockchain');
+        $selectedNetworkId = $this->select_network_id_from_available_networks($code, $networkCode, $chainsIndexedById);
+        $addressObject = $this->safe_value($chainsIndexedById, $selectedNetworkId, array());
+        $address = $this->safe_string_2($addressObject, 'address', 'destination');
         $this->check_address($address);
         return array(
             'currency' => $code,
             'address' => $address,
-            'tag' => null,
-            'network' => null,
-            'info' => $response,
+            'tag' => $this->safe_string_2($addressObject, 'destinationTag', 'memo'),
+            'network' => $this->network_id_to_code($selectedNetworkId),
+            'info' => $data,
         );
     }
 

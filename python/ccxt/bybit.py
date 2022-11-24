@@ -12,7 +12,6 @@ from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
-from ccxt.base.errors import InvalidAddress
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import OrderNotFound
 from ccxt.base.errors import NotSupported
@@ -697,37 +696,6 @@ class bybit(Exchange):
         #     }
         #
         return self.safe_integer(response, 'time')
-
-    def network_id_to_code(self, networkId):
-        networksById = self.safe_value(self.options, 'networksById', {})
-        return self.safe_string(networksById, networkId, networkId)
-
-    def network_code_to_id(self, networkCode):
-        networks = self.safe_value(self.options, 'networks', {})
-        return self.safe_string_upper(networks, networkCode, networkCode)
-
-    def handle_network_code_and_params(self, code, params):
-        networks = self.safe_value(self.options, 'networks', {})
-        networkCodeOrIdInParams = self.safe_string_upper_2(params, 'networkCode', 'network')
-        networkId = None
-        if networkCodeOrIdInParams is not None:
-            params = self.omit(params, ['networkCode', 'network'])
-            networkId = self.safe_string_upper(networks, networkCodeOrIdInParams, networkCodeOrIdInParams)
-        # if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for 'request'-side only and thus we do not fill it with anything. We can only use defaults after response is received
-        return [networkId, params]
-
-    def default_network_id(self, code):
-        targetNetworkCode = None
-        defaultNetworks = self.safe_value(self.options, 'defaultNetworks', {})
-        if code in defaultNetworks:
-            targetNetworkCode = defaultNetworks[code]
-        else:
-            defaultNetwork = self.safe_value(self.options, 'defaultNetwork')
-            if defaultNetwork is not None:
-                targetNetworkCode = defaultNetwork
-        networks = self.safe_value(self.options, 'networks', {})
-        networkId = self.safe_string_upper(networks, targetNetworkCode, targetNetworkCode)
-        return networkId
 
     def fetch_currencies(self, params={}):
         """
@@ -4229,7 +4197,8 @@ class bybit(Exchange):
         :param dict params: extra parameters specific to the bybit api endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
         """
-        networkId, query = self.handle_network_code_and_params(code, params)
+        networkCode, query = self.handle_network_code_and_params(params)
+        networkId = self.network_code_to_id(networkCode)
         currency = self.currency(code)
         request = {
             'coin': currency['id'],
@@ -4258,24 +4227,10 @@ class bybit(Exchange):
         #
         result = self.safe_value(response, 'result', {})
         chains = self.safe_value(result, 'chains', [])
-        chainsLength = len(chains)
-        if chainsLength == 0:
-            errorMessage = ('network ' + networkId + ' was not found for ' + code) if (networkId is not None) else ('no deposit networks were found for ' + code)
-            raise InvalidAddress(self.id + ' fetchDepositAddress() - ' + errorMessage)
-        else:
-            chainsIndexedById = self.index_by(chains, 'chain')
-            chosenNetworkId = None
-            if networkId is not None:
-                if networkId in chainsIndexedById:
-                    chosenNetworkId = networkId
-                else:
-                    raise InvalidAddress(self.id + ' fetchDepositAddress() - no deposit networks were found for ' + code)
-            else:
-                ids = list(chainsIndexedById.keys())
-                defaultNetwordId = self.default_network_id(code)
-                chosenNetworkId = defaultNetwordId if (defaultNetwordId in chainsIndexedById) else ids[0]
-            addressInfo = chainsIndexedById[chosenNetworkId]
-            return self.parse_deposit_address(addressInfo, currency)
+        chainsIndexedById = self.index_by(chains, 'chain')
+        selectedNetworkId = self.select_network_id_from_available_networks(code, networkCode, chainsIndexedById)
+        addressObject = self.safe_value(chainsIndexedById, selectedNetworkId, {})
+        return self.parse_deposit_address(addressObject, currency)
 
     def fetch_deposits(self, code=None, since=None, limit=None, params={}):
         """
@@ -4637,7 +4592,8 @@ class bybit(Exchange):
         }
         if tag is not None:
             request['tag'] = tag
-        networkId, query = self.handle_network_code_and_params(code, params)
+        networkCode, query = self.handle_network_code_and_params(params)
+        networkId = self.network_code_to_id(networkCode)
         if networkId is not None:
             request['chain'] = networkId
         response = self.privatePostAssetV3PrivateWithdrawCreate(self.extend(request, query))

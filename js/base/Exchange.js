@@ -1645,6 +1645,71 @@ module.exports = class Exchange {
         }
     }
 
+    networkCodeToId (networkCode) {
+        const networks = this.safeValue (this.options, 'networks', {});
+        return this.safeString (networks, networkCode, networkCode);
+    }
+
+    networkIdToCode (networkId) {
+        const networksById = this.safeValue (this.options, 'networksById', {});
+        return this.safeString (networksById, networkId, networkId);
+    }
+
+    handleNetworkCodeAndParams (params) {
+        const networkCodeInParams = this.safeString2 (params, 'networkCode', 'network');
+        if (networkCodeInParams !== undefined) {
+            params = this.omit (params, [ 'networkCode', 'network' ]);
+        }
+        // if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
+        return [ networkCodeInParams, params ];
+    }
+
+    defaultNetworkCode (currencyCode) {
+        let defaultNetworkCode = undefined;
+        const defaultNetworks = this.safeValue (this.options, 'defaultNetworks', {});
+        if (currencyCode in defaultNetworks) {
+            // if currency had set its network in "defaultNetworks", use it
+            defaultNetworkCode = defaultNetworks[currencyCode];
+        } else {
+            // otherwise, try to use the global-scope 'defaultNetwork' value (even if that network is not supported by currency, it doesn't make any problem, this will be just used "at first" if currency supports this network at all)
+            const defaultNetwork = this.safeValue (this.options, 'defaultNetwork');
+            if (defaultNetwork !== undefined) {
+                defaultNetworkCode = defaultNetwork;
+            }
+        }
+        return defaultNetworkCode;
+    }
+
+    selectNetworkIdFromAvailableNetworks (currencyCode, networkCode, networkEntriesIndexed) {
+        // this method is used against raw & unparse network entries, which are just indexed by network id
+        let chosenNetworkId = undefined;
+        const availableNetworkIds = Object.keys (networkEntriesIndexed);
+        const responseNetworksLength = availableNetworkIds.length;
+        if (networkCode !== undefined) {
+            // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
+            const networkId = this.networkCodeToId (networkCode);
+            if (responseNetworksLength === 0) {
+                throw new NotSupported (this.id + ' - ' + networkCode + ' network did not return any result for ' + currencyCode);
+            } else {
+                if (networkId in networkEntriesIndexed) {
+                    chosenNetworkId = networkId;
+                } else {
+                    throw new NotSupported (this.id + ' - ' + networkId + ' network was not found for ' + currencyCode + ', use one of ' + availableNetworkIds.join (', '));
+                }
+            }
+        } else {
+            if (responseNetworksLength === 0) {
+                throw new NotSupported (this.id + ' - no networks were returned for' + currencyCode);
+            } else {
+                // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
+                const defaultNetwordCode = this.defaultNetworkCode (currencyCode);
+                const defaultNetwordId = this.networkCodeToId (defaultNetwordCode);
+                chosenNetworkId = (defaultNetwordId in networkEntriesIndexed) ? defaultNetwordId : availableNetworkIds[0];
+            }
+        }
+        return chosenNetworkId;
+    }
+
     safeNumber2 (dictionary, key1, key2, d = undefined) {
         const value = this.safeString2 (dictionary, key1, key2);
         return this.parseNumber (value, d);
