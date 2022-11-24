@@ -16,6 +16,7 @@ class wazirx extends Exchange {
             'countries' => array( 'IN' ),
             'version' => 'v2',
             'rateLimit' => 1000,
+            'pro' => true,
             'has' => array(
                 'CORS' => false,
                 'spot' => true,

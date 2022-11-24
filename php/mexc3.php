@@ -4409,7 +4409,7 @@ class mexc3 extends Exchange {
         );
     }
 
-    public function handle_margin_mode_and_params($methodName, $params = array ()) {
+    public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null) {
         /**
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
@@ -4420,7 +4420,7 @@ class mexc3 extends Exchange {
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $isMargin = $this->safe_value($params, 'margin', false);
         $marginMode = null;
-        list($marginMode, $params) = parent::handle_margin_mode_and_params($methodName, $params);
+        list($marginMode, $params) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
         if (($defaultType === 'margin') || ($isMargin === true)) {
             $marginMode = 'isolated';
         }
