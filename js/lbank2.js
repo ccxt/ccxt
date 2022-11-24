@@ -2137,13 +2137,7 @@ module.exports = class lbank2 extends Exchange {
         // extremely incomplete response
         // vast majority fees undefined
         await this.loadMarkets ();
-        const code = this.safeString2 (params, 'coin', 'assetCode');
-        params = this.omit (params, [ 'coin', 'assetCode' ]);
         const request = {};
-        if (code !== undefined) {
-            const currency = this.currency (code);
-            request['assetCode'] = currency['id'];
-        }
         const response = await this.publicGetWithdrawConfigs (this.extend (request, params));
         //
         //    {
@@ -2185,36 +2179,48 @@ module.exports = class lbank2 extends Exchange {
         //            type: '1'
         //        },
         //        ...
-        //    ],
+        //    ]
         //
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const fee = response[i];
-            const canWithdraw = this.safeString (fee, 'canWithDraw');
+            const canWithdraw = this.safeValue (fee, 'canWithDraw');
             if (canWithdraw !== false) {
                 const currencyId = this.safeString (fee, 'assetCode');
                 const code = this.safeCurrencyCode (currencyId);
-                if (codes === undefined || !this.inArray (code, codes)) {
-                    const resultValue = this.safeValue (result, code);
-                    if (resultValue === undefined) {
-                        result[code] = this.depositWithdrawFee (fee);
-                    }
+                if (codes === undefined || this.inArray (code, codes)) {
                     const withdrawFee = this.safeNumber (fee, 'fee');
-                    const chain = this.safeString (fee, 'chain');
-                    const networkCode = this.safeString (this.options['inverse-networks'], chain, chain);
-                    result[code]['networks'][networkCode] = {
-                        'withdraw': {
-                            'fee': withdrawFee,
-                            'percentage': undefined,
-                        },
-                        'deposit': {
-                            'fee': undefined,
-                            'percentage': undefined,
-                        },
-                    };
+                    if (withdrawFee !== undefined) {
+                        const resultValue = this.safeValue (result, code);
+                        if (resultValue === undefined) {
+                            result[code] = this.depositWithdrawFee ([ fee ]);
+                        } else {
+                            result[code]['info'].push (fee);
+                        }
+                        const chain = this.safeString (fee, 'chain');
+                        const networkCode = this.safeString (this.options['inverse-networks'], chain, chain);
+                        if (networkCode !== undefined) {
+                            result[code]['networks'][networkCode] = {
+                                'withdraw': {
+                                    'fee': withdrawFee,
+                                    'percentage': undefined,
+                                },
+                                'deposit': {
+                                    'fee': undefined,
+                                    'percentage': undefined,
+                                },
+                            };
+                        } else {
+                            result[code]['withdraw'] = {
+                                'fee': withdrawFee,
+                                'percentage': undefined,
+                            };
+                        }
+                    }
                 }
             }
         }
+        return result;
     }
 
     parseDepositWithdrawFee (fee, currency = undefined) {
