@@ -26,6 +26,7 @@ class wazirx(Exchange):
             'countries': ['IN'],
             'version': 'v2',
             'rateLimit': 1000,
+            'pro': True,
             'has': {
                 'CORS': False,
                 'spot': True,

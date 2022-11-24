@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.2.9'
+__version__ = '2.2.29'
 
 # -----------------------------------------------------------------------------
 
@@ -2479,6 +2479,59 @@ class Exchange(object):
         else:
             raise NotSupported(self.id + ' network ' + network + ' is not yet supported')
 
+    def network_code_to_id(self, networkCode):
+        networks = self.safe_value(self.options, 'networks', {})
+        return self.safe_string(networks, networkCode, networkCode)
+
+    def network_id_to_code(self, networkId):
+        networksById = self.safe_value(self.options, 'networksById', {})
+        return self.safe_string(networksById, networkId, networkId)
+
+    def handle_network_code_and_params(self, params):
+        networkCodeInParams = self.safe_string_2(params, 'networkCode', 'network')
+        if networkCodeInParams is not None:
+            params = self.omit(params, ['networkCode', 'network'])
+        # if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
+        return [networkCodeInParams, params]
+
+    def default_network_code(self, currencyCode):
+        defaultNetworkCode = None
+        defaultNetworks = self.safe_value(self.options, 'defaultNetworks', {})
+        if currencyCode in defaultNetworks:
+            # if currency had set its network in "defaultNetworks", use it
+            defaultNetworkCode = defaultNetworks[currencyCode]
+        else:
+            # otherwise, try to use the global-scope 'defaultNetwork' value(even if that network is not supported by currency, it doesn't make any problem, self will be just used "at first" if currency supports self network at all)
+            defaultNetwork = self.safe_value(self.options, 'defaultNetwork')
+            if defaultNetwork is not None:
+                defaultNetworkCode = defaultNetwork
+        return defaultNetworkCode
+
+    def select_network_id_from_available_networks(self, currencyCode, networkCode, networkEntriesIndexed):
+        # self method is used against raw & unparse network entries, which are just indexed by network id
+        chosenNetworkId = None
+        availableNetworkIds = list(networkEntriesIndexed.keys())
+        responseNetworksLength = len(availableNetworkIds)
+        if networkCode is not None:
+            # if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
+            networkId = self.networkCodeToId(networkCode)
+            if responseNetworksLength == 0:
+                raise NotSupported(self.id + ' - ' + networkCode + ' network did not return any result for ' + currencyCode)
+            else:
+                if networkId in networkEntriesIndexed:
+                    chosenNetworkId = networkId
+                else:
+                    raise NotSupported(self.id + ' - ' + networkId + ' network was not found for ' + currencyCode + ', use one of ' + ', '.join(availableNetworkIds))
+        else:
+            if responseNetworksLength == 0:
+                raise NotSupported(self.id + ' - no networks were returned for' + currencyCode)
+            else:
+                # if networkCode was not provided by user, then we try to use the default network(if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
+                defaultNetwordCode = self.defaultNetworkCode(currencyCode)
+                defaultNetwordId = self.networkCodeToId(defaultNetwordCode)
+                chosenNetworkId = defaultNetwordId if (defaultNetwordId in networkEntriesIndexed) else availableNetworkIds[0]
+        return chosenNetworkId
+
     def safe_number_2(self, dictionary, key1, key2, d=None):
         value = self.safe_string_2(dictionary, key1, key2)
         return self.parse_number(value, d)
@@ -2880,14 +2933,14 @@ class Exchange(object):
         params = self.omit(params, ['defaultType', 'type'])
         return [type, params]
 
-    def handle_sub_type_and_params(self, methodName, market=None, params={}):
+    def handle_sub_type_and_params(self, methodName, market=None, params={}, defaultValue='linear'):
         subType = None
         # if set in params, it takes precedence
-        subTypeInParams = self.safe_string_2(params, 'subType', 'subType')
+        subTypeInParams = self.safe_string_2(params, 'subType', 'defaultSubType')
         # avoid omitting if it's not present
         if subTypeInParams is not None:
             subType = subTypeInParams
-            params = self.omit(params, ['defaultSubType', 'subType'])
+            params = self.omit(params, ['subType', 'defaultSubType'])
         else:
             # at first, check from market object
             if market is not None:
@@ -2897,10 +2950,17 @@ class Exchange(object):
                     subType = 'inverse'
             # if it was not defined in market object
             if subType is None:
-                exchangeWideValue = self.safe_string_2(self.options, 'defaultSubType', 'subType', 'linear')
-                methodOptions = self.safe_value(self.options, methodName, {})
-                subType = self.safe_string_2(methodOptions, 'defaultSubType', 'subType', exchangeWideValue)
+                values = self.handleOptionAndParams(None, methodName, 'subType', defaultValue)  # no need to re-test params here
+                subType = values[0]
         return [subType, params]
+
+    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
+        """
+         * @ignore
+        :param dict params: extra parameters specific to the exchange api endpoint
+        :returns [str|None, dict]: the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] self.options["marginMode"] or self.options["defaultMarginMode"]
+        """
+        return self.handleOptionAndParams(params, methodName, 'marginMode', defaultValue)
 
     def throw_exactly_matched_exception(self, exact, string, message):
         if string in exact:
@@ -3386,20 +3446,6 @@ class Exchange(object):
             return market['id']
         else:
             return account
-
-    def handle_margin_mode_and_params(self, methodName, params={}):
-        """
-         * @ignore
-        :param dict params: extra parameters specific to the exchange api endpoint
-        :returns [str|None, dict]: the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] self.options["marginMode"] or self.options["defaultMarginMode"]
-        """
-        defaultMarginMode = self.safe_string_2(self.options, 'marginMode', 'defaultMarginMode')
-        methodOptions = self.safe_value(self.options, methodName, {})
-        methodMarginMode = self.safe_string_2(methodOptions, 'marginMode', 'defaultMarginMode', defaultMarginMode)
-        marginMode = self.safe_string_lower_2(params, 'marginMode', 'defaultMarginMode', methodMarginMode)
-        if marginMode is not None:
-            params = self.omit(params, ['marginMode', 'defaultMarginMode'])
-        return [marginMode, params]
 
     def check_required_argument(self, methodName, argument, argumentName, options=[]):
         """

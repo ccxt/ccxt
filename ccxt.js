@@ -37,7 +37,7 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '2.2.9'
+const version = '2.2.29'
 
 Exchange.ccxtVersion = version
 
@@ -207,6 +207,7 @@ const pro = {
     'phemex':                  require ('./js/pro/phemex.js'),
     'ripio':                   require ('./js/pro/ripio.js'),
     'upbit':                   require ('./js/pro/upbit.js'),
+    'wazirx':                  require ('./js/pro/wazirx.js'),
     'whitebit':                require ('./js/pro/whitebit.js'),
     'zb':                      require ('./js/pro/zb.js'),
     'zipmex':                  require ('./js/pro/zipmex.js'),

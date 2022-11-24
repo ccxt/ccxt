@@ -1884,20 +1884,26 @@ class huobi extends Exchange {
         return Async\async(function () use ($symbols, $params) {
             /**
              * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+             * @see https://huobiapi.github.io/docs/spot/v1/en/#get-latest-$tickers-for-all-pairs
+             * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-a-batch-of-$market-data-overview
+             * @see https://huobiapi.github.io/docs/dm/v1/en/#get-a-batch-of-$market-data-overview
+             * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-a-batch-of-$market-data-overview-v2
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the huobi api endpoint
              * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
-            $options = $this->safe_value($this->options, 'fetchTickers', array());
-            $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
-            $type = $this->safe_string($options, 'type', $defaultType);
-            $type = $this->safe_string($params, 'type', $type);
+            $first = $this->safe_string($symbols, 0);
+            $market = null;
+            if ($first !== null) {
+                $market = $this->market($first);
+            }
+            $type = null;
+            $subType = null;
             $method = 'spotPublicGetMarketTickers';
-            $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
-            $subType = $this->safe_string($options, 'subType', $defaultSubType);
-            $subType = $this->safe_string($params, 'subType', $subType);
+            list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
+            list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', $market, $params);
             $request = array();
             $future = ($type === 'future');
             $swap = ($type === 'swap');

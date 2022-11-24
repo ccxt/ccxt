@@ -432,6 +432,8 @@ class mexc3(Exchange):
                 'FLUX1': 'FLUX',  # switched places
                 'FLUX': 'FLUX1',  # switched places
                 'FREE': 'FreeRossDAO',  # conflict with FREE Coin
+                'GMT': 'GMT Token',  # Conflict with GMT(STEPN)
+                'STEPN': 'GMT',  # Conflict with GMT Token
                 'HERO': 'Step Hero',  # conflict with Metahero
                 'MIMO': 'Mimosa',
                 'PROS': 'Pros.Finance',  # conflict with Prosper
@@ -4175,7 +4177,7 @@ class mexc3(Exchange):
             'info': info,
         }
 
-    def handle_margin_mode_and_params(self, methodName, params={}):
+    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
         """
          * @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
@@ -4186,7 +4188,7 @@ class mexc3(Exchange):
         defaultType = self.safe_string(self.options, 'defaultType')
         isMargin = self.safe_value(params, 'margin', False)
         marginMode = None
-        marginMode, params = super(mexc3, self).handle_margin_mode_and_params(methodName, params)
+        marginMode, params = super(mexc3, self).handle_margin_mode_and_params(methodName, params, defaultValue)
         if (defaultType == 'margin') or (isMargin is True):
             marginMode = 'isolated'
         return [marginMode, params]

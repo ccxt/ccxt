@@ -433,6 +433,35 @@ class indodax(Exchange):
         ticker = self.safe_value(response, 'ticker', {})
         return self.parse_ticker(ticker, market)
 
+    async def fetch_tickers(self, symbols=None, params={}):
+        """
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#ticker-all
+        :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+        :param dict params: extra parameters specific to the indodax api endpoint
+        :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
+        """
+        await self.load_markets()
+        #
+        # {
+        #     "tickers": {
+        #         "btc_idr": {
+        #             "high": "120009000",
+        #             "low": "116735000",
+        #             "vol_btc": "218.13777777",
+        #             "vol_idr": "25800033297",
+        #             "last": "117088000",
+        #             "buy": "117002000",
+        #             "sell": "117078000",
+        #             "server_time": 1571207881
+        #         }
+        #     }
+        # }
+        #
+        response = await self.publicGetTickerAll(params)
+        tickers = self.safe_value(response, 'tickers')
+        return self.parse_tickers(tickers, symbols)
+
     def parse_trade(self, trade, market=None):
         timestamp = self.safe_timestamp(trade, 'date')
         return self.safe_trade({
