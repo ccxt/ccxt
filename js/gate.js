@@ -110,6 +110,8 @@ module.exports = class gate extends Exchange {
                 'fetchTradingFee': true,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchWithdrawals': true,
                 'repayMargin': true,
                 'setLeverage': true,
@@ -1699,7 +1701,7 @@ module.exports = class gate extends Exchange {
         /**
          * @method
          * @name gate#fetchTransactionFees
-         * @description fetch transaction fees
+         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
          * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
          * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the gate api endpoint
@@ -1749,6 +1751,90 @@ module.exports = class gate extends Exchange {
                 'deposit': undefined,
                 'info': entry,
             };
+        }
+        return result;
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the gate api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privateWalletGetWithdrawStatus (params);
+        //
+        //    [
+        //        {
+        //            "currency": "MTN",
+        //            "name": "Medicalchain",
+        //            "name_cn": "Medicalchain",
+        //            "deposit": "0",
+        //            "withdraw_percent": "0%",
+        //            "withdraw_fix": "900",
+        //            "withdraw_day_limit": "500000",
+        //            "withdraw_day_limit_remain": "500000",
+        //            "withdraw_amount_mini": "900.1",
+        //            "withdraw_eachtime_limit": "90000000000",
+        //            "withdraw_fix_on_chains": {
+        //                "ETH": "900"
+        //            }
+        //        }
+        //    ]
+        //
+        return this.parseDepositWithdrawFees (response, codes, 'currency');
+    }
+
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        //
+        //    {
+        //        "currency": "MTN",
+        //        "name": "Medicalchain",
+        //        "name_cn": "Medicalchain",
+        //        "deposit": "0",
+        //        "withdraw_percent": "0%",
+        //        "withdraw_fix": "900",
+        //        "withdraw_day_limit": "500000",
+        //        "withdraw_day_limit_remain": "500000",
+        //        "withdraw_amount_mini": "900.1",
+        //        "withdraw_eachtime_limit": "90000000000",
+        //        "withdraw_fix_on_chains": {
+        //            "ETH": "900"
+        //        }
+        //    }
+        //
+        const withdrawFixOnChains = this.safeValue (fee, 'withdraw_fix_on_chains');
+        const result = {
+            'info': fee,
+            'withdraw': {
+                'fee': this.safeNumber (fee, 'withdraw_fix'),
+                'percentage': false,
+            },
+            'deposit': {
+                'fee': this.safeNumber (fee, 'deposit'),
+                'percentage': false,
+            },
+            'networks': {},
+        };
+        if (withdrawFixOnChains !== undefined) {
+            const chainKeys = Object.keys (withdrawFixOnChains);
+            for (let i = 0; i < chainKeys.length; i++) {
+                const chainKey = chainKeys[i];
+                result['networks'][chainKey] = {
+                    'withdraw': {
+                        'fee': this.parseNumber (withdrawFixOnChains[chainKey]),
+                        'percentage': false,
+                    },
+                    'deposit': {
+                        'fee': undefined,
+                        'percentage': undefined,
+                    },
+                };
+            }
         }
         return result;
     }
