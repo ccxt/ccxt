@@ -1302,9 +1302,13 @@ class okcoin(Exchange):
         :param dict params: extra parameters specific to the okcoin api endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
-        defaultType = self.safe_string_2(self.options, 'fetchTickers', 'defaultType')
-        type = self.safe_string(params, 'type', defaultType)
         symbols = self.market_symbols(symbols)
+        first = self.safe_string(symbols, 0)
+        market = None
+        if first is not None:
+            market = self.market(first)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTickers', market, params)
         return await self.fetch_tickers_by_type(type, symbols, self.omit(params, 'type'))
 
     def parse_trade(self, trade, market=None):
