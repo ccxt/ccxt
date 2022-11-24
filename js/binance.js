@@ -1840,15 +1840,21 @@ module.exports = class binance extends Exchange {
                 result[symbol] = this.safeBalance (subResult);
             }
         } else if (type === 'savings') {
-            const positionAmountVos = this.safeValue (response, 'positionAmountVos', []);
+            let positionAmountVos = this.safeValue (response, 'positionAmountVos', []);
+            if (Array.isArray (response)) {
+                positionAmountVos = response;
+            }
             for (let i = 0; i < positionAmountVos.length; i++) {
                 const entry = positionAmountVos[i];
                 const currencyId = this.safeString (entry, 'asset');
                 const code = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
+                let account = this.safeValue (result, code);
+                if (account === undefined) {
+                    account = this.account ();
+                }
                 const usedAndTotal = this.safeString (entry, 'amount');
-                account['total'] = usedAndTotal;
-                account['used'] = usedAndTotal;
+                account['total'] = Precise.stringAdd (account['total'], usedAndTotal);
+                account['used'] = Precise.stringAdd (account['used'], usedAndTotal);
                 result[code] = account;
             }
         } else if (type === 'funding') {
@@ -1913,7 +1919,13 @@ module.exports = class binance extends Exchange {
         } else if ((type === 'margin') || (marginMode === 'cross')) {
             method = 'sapiGetMarginAccount';
         } else if (type === 'savings') {
-            method = 'sapiGetLendingUnionAccount';
+            const lockedProduct = this.safeStringUpper (params, 'lockedProduct');
+            if (lockedProduct) {
+                request['product'] = lockedProduct;
+                method = 'sapiGetStakingPosition';
+            } else {
+                method = 'sapiGetLendingUnionAccount';
+            }
         } else if (type === 'funding') {
             method = 'sapiPostAssetGetFundingAsset';
         } else if (marginMode === 'isolated') {
@@ -1934,7 +1946,7 @@ module.exports = class binance extends Exchange {
                 request['symbols'] = symbols;
             }
         }
-        const requestParams = this.omit (query, [ 'type', 'symbols' ]);
+        const requestParams = this.omit (query, [ 'type', 'symbols', 'lockedProduct' ]);
         const response = await this[method] (this.extend (request, requestParams));
         //
         // spot
