@@ -9,6 +9,11 @@ sys.path.append(root + '/python')
 
 import ccxt  # noqa: E402
 
+# -----------------------------------------------------------------------------
+
+print('CCXT Version:', ccxt.__version__)
+
+# -----------------------------------------------------------------------------
 
 exchange = ccxt.bybit ({
     'apiKey': 'YOUR_API_KEY',
@@ -17,7 +22,7 @@ exchange = ccxt.bybit ({
     # 'verbose': True,  # for debug output
 })
 
-# BTC/USD:USDC-YYMMDD-STRIKE-C
+# BASE/QUOTE:SETTLE-YYMMDD-STRIKE-C (end with C for call, end with P for put)
 symbol = 'BTC/USD:USDC-221209-18000-C'
 amount = 0.01
 price = 280.0
