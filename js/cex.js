@@ -195,6 +195,7 @@ module.exports = class cex extends Exchange {
                     'ERC20': 'Ethereum',
                     'BTC': 'BTC',
                     'BEP20': 'Binance Smart Chain',
+                    'BSC': 'Binance Smart Chain',
                     'TRC20': 'Tron',
                 },
                 'networksById': {
@@ -1555,7 +1556,7 @@ module.exports = class cex extends Exchange {
             'address': address,
             'tag': this.safeString2 (addressObject, 'destinationTag', 'memo'),
             'network': this.networkIdToCode (selectedNetworkId),
-            'info': addressObject,
+            'info': data,
         };
     }
 
