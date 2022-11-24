@@ -686,44 +686,6 @@ class bybit extends Exchange {
         return $this->safe_integer($response, 'time');
     }
 
-    public function network_id_to_code($networkId) {
-        $networksById = $this->safe_value($this->options, 'networksById', array());
-        return $this->safe_string($networksById, $networkId, $networkId);
-    }
-
-    public function network_code_to_id($networkCode) {
-        $networks = $this->safe_value($this->options, 'networks', array());
-        return $this->safe_string_upper($networks, $networkCode, $networkCode);
-    }
-
-    public function handle_network_code_and_params($code, $params) {
-        $networks = $this->safe_value($this->options, 'networks', array());
-        $networkCodeOrIdInParams = $this->safe_string_upper_2($params, 'networkCode', 'network');
-        $networkId = null;
-        if ($networkCodeOrIdInParams !== null) {
-            $params = $this->omit($params, array( 'networkCode', 'network' ));
-            $networkId = $this->safe_string_upper($networks, $networkCodeOrIdInParams, $networkCodeOrIdInParams);
-        }
-        // if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for 'request'-side only and thus we do not fill it with anything. We can only use defaults after response is received
-        return array( $networkId, $params );
-    }
-
-    public function default_network_id($code) {
-        $targetNetworkCode = null;
-        $defaultNetworks = $this->safe_value($this->options, 'defaultNetworks', array());
-        if (is_array($defaultNetworks) && array_key_exists($code, $defaultNetworks)) {
-            $targetNetworkCode = $defaultNetworks[$code];
-        } else {
-            $defaultNetwork = $this->safe_value($this->options, 'defaultNetwork');
-            if ($defaultNetwork !== null) {
-                $targetNetworkCode = $defaultNetwork;
-            }
-        }
-        $networks = $this->safe_value($this->options, 'networks', array());
-        $networkId = $this->safe_string_upper($networks, $targetNetworkCode, $targetNetworkCode);
-        return $networkId;
-    }
-
     public function fetch_currencies($params = array ()) {
         /**
          * fetches all available currencies on an exchange
@@ -4430,7 +4392,8 @@ class bybit extends Exchange {
          * @param {array} $params extra parameters specific to the bybit api endpoint
          * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
          */
-        list($networkId, $query) = $this->handle_network_code_and_params($code, $params);
+        list($networkCode, $query) = $this->handle_network_code_and_params($params);
+        $networkId = $this->network_code_to_id($networkCode);
         $currency = $this->currency($code);
         $request = array(
             'coin' => $currency['id'],
@@ -4460,27 +4423,10 @@ class bybit extends Exchange {
         //
         $result = $this->safe_value($response, 'result', array());
         $chains = $this->safe_value($result, 'chains', array());
-        $chainsLength = count($chains);
-        if ($chainsLength === 0) {
-            $errorMessage = ($networkId !== null) ? ('network ' . $networkId . ' was not found for ' . $code) : ('no deposit networks were found for ' . $code);
-            throw new InvalidAddress($this->id . ' fetchDepositAddress() - ' . $errorMessage);
-        } else {
-            $chainsIndexedById = $this->index_by($chains, 'chain');
-            $chosenNetworkId = null;
-            if ($networkId !== null) {
-                if (is_array($chainsIndexedById) && array_key_exists($networkId, $chainsIndexedById)) {
-                    $chosenNetworkId = $networkId;
-                } else {
-                    throw new InvalidAddress($this->id . ' fetchDepositAddress() - no deposit networks were found for ' . $code);
-                }
-            } else {
-                $ids = is_array($chainsIndexedById) ? array_keys($chainsIndexedById) : array();
-                $defaultNetwordId = $this->default_network_id($code);
-                $chosenNetworkId = (is_array($chainsIndexedById) && array_key_exists($defaultNetwordId, $chainsIndexedById)) ? $defaultNetwordId : $ids[0];
-            }
-            $addressInfo = $chainsIndexedById[$chosenNetworkId];
-            return $this->parse_deposit_address($addressInfo, $currency);
-        }
+        $chainsIndexedById = $this->index_by($chains, 'chain');
+        $selectedNetworkId = $this->select_network_id_from_available_networks($code, $networkCode, $chainsIndexedById);
+        $addressObject = $this->safe_value($chainsIndexedById, $selectedNetworkId, array());
+        return $this->parse_deposit_address($addressObject, $currency);
     }
 
     public function fetch_deposits($code = null, $since = null, $limit = null, $params = array ()) {
@@ -4862,7 +4808,8 @@ class bybit extends Exchange {
         if ($tag !== null) {
             $request['tag'] = $tag;
         }
-        list($networkId, $query) = $this->handle_network_code_and_params($code, $params);
+        list($networkCode, $query) = $this->handle_network_code_and_params($params);
+        $networkId = $this->network_code_to_id($networkCode);
         if ($networkId !== null) {
             $request['chain'] = $networkId;
         }
