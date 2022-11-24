@@ -21,9 +21,10 @@ module.exports = class digifinex extends Exchange {
                 'CORS': undefined,
                 'spot': true,
                 'margin': true,
-                'swap': undefined, // has but unimplemented
+                'swap': true,
                 'future': false,
                 'option': false,
+                'addMargin': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
                 'createOrder': true,
@@ -41,11 +42,18 @@ module.exports = class digifinex extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchFundingHistory': false,
                 'fetchFundingRate': true,
+                'fetchFundingRates': false,
                 'fetchFundingRateHistory': true,
+                'fetchIndexOHLCV': false,
                 'fetchLedger': true,
+                'fetchLeverage': false,
+                'fetchLeverageTiers': true,
                 'fetchMarginMode': false,
+                'fetchMarketLeverageTiers': true,
                 'fetchMarkets': true,
+                'fetchMarkOHLCV': false,
                 'fetchMyTrades': true,
                 'fetchOHLCV': true,
                 'fetchOpenOrders': true,
@@ -55,6 +63,8 @@ module.exports = class digifinex extends Exchange {
                 'fetchPosition': true,
                 'fetchPositionMode': false,
                 'fetchPositions': true,
+                'fetchPositionsRisk': false,
+                'fetchPremiumIndexOHLCV': false,
                 'fetchStatus': true,
                 'fetchTicker': true,
                 'fetchTickers': true,
@@ -64,8 +74,11 @@ module.exports = class digifinex extends Exchange {
                 'fetchTradingFees': false,
                 'fetchTransfers': true,
                 'fetchWithdrawals': true,
+                'reduceMargin': false,
                 'setLeverage': true,
+                'setMargin': false,
                 'setMarginMode': false,
+                'setPositionMode': false,
                 'transfer': true,
                 'withdraw': true,
             },
@@ -440,7 +453,7 @@ module.exports = class digifinex extends Exchange {
         const spotMarkets = promises[0];
         const swapMarkets = promises[1];
         //
-        // Spot
+        // spot and margin
         //
         //     {
         //         "symbol_list":[
@@ -461,28 +474,7 @@ module.exports = class digifinex extends Exchange {
         //         "code":0
         //     }
         //
-        // Margin
-        //
-        //     {
-        //         "symbol_list":[
-        //             {
-        //                     "order_types":["LIMIT"],
-        //                     "quote_asset":"USDT",
-        //                     "minimum_value":0,
-        //                     "amount_precision":2,
-        //                     "status":"TRADING",
-        //                     "minimum_amount":22,
-        //                     "liquidation_rate":0.3,
-        //                     "symbol":"TRX_USDT",
-        //                     "zone":"MAIN",
-        //                     "base_asset":"TRX",
-        //                     "price_precision":6
-        //             },
-        //         ],
-        //         "code":0
-        //     }
-        //
-        // Swap
+        // swap
         //
         //     {
         //         "code": 0,
@@ -1109,7 +1101,7 @@ module.exports = class digifinex extends Exchange {
 
     parseTrade (trade, market = undefined) {
         //
-        // fetchTrades (spot)
+        // spot: fetchTrades
         //
         //     {
         //         "date":1564520003,
@@ -1119,7 +1111,7 @@ module.exports = class digifinex extends Exchange {
         //         "price":0.02193,
         //     }
         //
-        // fetchTrades (swap)
+        // swap: fetchTrades
         //
         //     {
         //         "instrument_id": "BTCUSDTPERP",
@@ -1130,7 +1122,7 @@ module.exports = class digifinex extends Exchange {
         //         "trade_time": 1669158092314
         //     }
         //
-        // fetchMyTrades (spot)
+        // spot: fetchMyTrades
         //
         //     {
         //         "symbol": "BTC_USDT",
@@ -1145,7 +1137,7 @@ module.exports = class digifinex extends Exchange {
         //         "is_maker": true
         //     }
         //
-        // fetchMyTrades (swap)
+        // swap: fetchMyTrades
         //
         //     {
         //         "trade_id": "1590136768424841218",
@@ -1556,7 +1548,7 @@ module.exports = class digifinex extends Exchange {
         const query = this.omit (params, [ 'postOnly', 'post_only' ]);
         const response = await this[method] (this.extend (request, query));
         //
-        // spot
+        // spot and margin
         //
         //     {
         //         "code": 0,
@@ -1621,7 +1613,7 @@ module.exports = class digifinex extends Exchange {
         }
         const response = await this[method] (this.extend (request, query));
         //
-        // spot
+        // spot and margin
         //
         //     {
         //         "code": 0,
@@ -1878,7 +1870,7 @@ module.exports = class digifinex extends Exchange {
         }
         const response = await this[method] (this.extend (request, query));
         //
-        // spot
+        // spot and margin
         //
         //     {
         //         "code": 0,
@@ -1982,7 +1974,7 @@ module.exports = class digifinex extends Exchange {
         }
         const response = await this[method] (this.extend (request, query));
         //
-        // spot
+        // spot and margin
         //
         //     {
         //         "code": 0,
@@ -2077,7 +2069,7 @@ module.exports = class digifinex extends Exchange {
         }
         const response = await this[method] (this.extend (request, query));
         //
-        // spot
+        // spot and margin
         //
         //     {
         //         "code": 0,
@@ -3433,6 +3425,195 @@ module.exports = class digifinex extends Exchange {
         //
         const transfers = this.safeValue (response, 'data', []);
         return this.parseTransfers (transfers, currency, since, limit);
+    }
+
+    async fetchLeverageTiers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name digifinex#fetchLeverageTiers
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#instruments
+         * @description retrieve information on the maximum leverage, for different trade sizes
+         * @param {[string]|undefined} symbols a list of unified market symbols
+         * @param {object} params extra parameters specific to the digifinex api endpoint
+         * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}, indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const response = await this.publicSwapGetPublicInstruments (params);
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "instrument_id": "BTCUSDTPERP",
+        //                 "type": "REAL",
+        //                 "contract_type": "PERPETUAL",
+        //                 "base_currency": "BTC",
+        //                 "quote_currency": "USDT",
+        //                 "clear_currency": "USDT",
+        //                 "contract_value": "0.001",
+        //                 "contract_value_currency": "BTC",
+        //                 "is_inverse": false,
+        //                 "is_trading": true,
+        //                 "status": "ONLINE",
+        //                 "price_precision": 1,
+        //                 "tick_size": "0.1",
+        //                 "min_order_amount": 1,
+        //                 "open_max_limits": [
+        //                     {
+        //                         "leverage": "50",
+        //                         "max_limit": "1000000"
+        //                     },
+        //                 ]
+        //             },
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        symbols = this.marketSymbols (symbols);
+        return this.parseLeverageTiers (data, symbols, 'symbol');
+    }
+
+    parseLeverageTiers (response, symbols = undefined, marketIdKey = undefined) {
+        //
+        //     [
+        //         {
+        //             "instrument_id": "BTCUSDTPERP",
+        //             "type": "REAL",
+        //             "contract_type": "PERPETUAL",
+        //             "base_currency": "BTC",
+        //             "quote_currency": "USDT",
+        //             "clear_currency": "USDT",
+        //             "contract_value": "0.001",
+        //             "contract_value_currency": "BTC",
+        //             "is_inverse": false,
+        //             "is_trading": true,
+        //             "status": "ONLINE",
+        //             "price_precision": 1,
+        //             "tick_size": "0.1",
+        //             "min_order_amount": 1,
+        //             "open_max_limits": [
+        //                 {
+        //                     "leverage": "50",
+        //                     "max_limit": "1000000"
+        //                 }
+        //             ]
+        //         },
+        //     ]
+        //
+        const tiers = {};
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const entry = response[i];
+            const marketId = this.safeString (entry, 'instrument_id');
+            const market = this.safeMarket (marketId);
+            const symbol = this.safeSymbol (marketId, market);
+            let symbolsLength = 0;
+            tiers[symbol] = this.parseMarketLeverageTiers (response[i], market);
+            if (symbols !== undefined) {
+                symbolsLength = symbols.length;
+                if (this.inArray (symbol, symbols)) {
+                    result[symbol] = this.parseMarketLeverageTiers (response[i], market);
+                }
+            }
+            if (symbol !== undefined && (symbolsLength === 0 || this.inArray (symbols, symbol))) {
+                result[symbol] = this.parseMarketLeverageTiers (response[i], market);
+            }
+        }
+        return result;
+    }
+
+    async fetchMarketLeverageTiers (symbol, params = {}) {
+        /**
+         * @method
+         * @name digifinex#fetchMarketLeverageTiers
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#instrument
+         * @description retrieve information on the maximum leverage, for different trade sizes for a single market
+         * @param {string} symbol unified market symbol
+         * @param {object} params extra parameters specific to the digifinex api endpoint
+         * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['swap']) {
+            throw new BadRequest (this.id + ' fetchMarketLeverageTiers() supports swap markets only');
+        }
+        const request = {
+            'instrument_id': market['id'],
+        };
+        const response = await this.publicSwapGetPublicInstrument (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "instrument_id": "BTCUSDTPERP",
+        //             "type": "REAL",
+        //             "contract_type": "PERPETUAL",
+        //             "base_currency": "BTC",
+        //             "quote_currency": "USDT",
+        //             "clear_currency": "USDT",
+        //             "contract_value": "0.001",
+        //             "contract_value_currency": "BTC",
+        //             "is_inverse": false,
+        //             "is_trading": true,
+        //             "status": "ONLINE",
+        //             "price_precision": 1,
+        //             "tick_size": "0.1",
+        //             "min_order_amount": 1,
+        //             "open_max_limits": [
+        //                 {
+        //                     "leverage": "50",
+        //                     "max_limit": "1000000"
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseMarketLeverageTiers (data, market);
+    }
+
+    parseMarketLeverageTiers (info, market) {
+        //
+        //     {
+        //         "instrument_id": "BTCUSDTPERP",
+        //         "type": "REAL",
+        //         "contract_type": "PERPETUAL",
+        //         "base_currency": "BTC",
+        //         "quote_currency": "USDT",
+        //         "clear_currency": "USDT",
+        //         "contract_value": "0.001",
+        //         "contract_value_currency": "BTC",
+        //         "is_inverse": false,
+        //         "is_trading": true,
+        //         "status": "ONLINE",
+        //         "price_precision": 1,
+        //         "tick_size": "0.1",
+        //         "min_order_amount": 1,
+        //         "open_max_limits": [
+        //             {
+        //                 "leverage": "50",
+        //                 "max_limit": "1000000"
+        //             }
+        //         ]
+        //     }
+        //
+        const tiers = [];
+        const brackets = this.safeValue (info, 'open_max_limits', {});
+        for (let i = 0; i < brackets.length; i++) {
+            const tier = brackets[i];
+            const marketId = this.safeString (info, 'instrument_id');
+            market = this.safeMarket (marketId);
+            tiers.push ({
+                'tier': this.sum (i, 1),
+                'currency': market['settle'],
+                'minNotional': undefined,
+                'maxNotional': this.safeNumber (tier, 'max_limit'),
+                'maintenanceMarginRate': undefined,
+                'maxLeverage': this.safeNumber (tier, 'leverage'),
+                'info': tier,
+            });
+        }
+        return tiers;
     }
 
     handleMarginModeAndParams (methodName, params = {}) {
