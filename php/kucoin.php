@@ -2387,18 +2387,21 @@ class kucoin extends Exchange {
         return $this->parse_transactions($responseData, $currency, $since, $limit, array( 'type' => 'withdrawal' ));
     }
 
-    public function fetch_balance_helper($entry) {
+    public function parse_balance_helper($entry) {
         $account = $this->account();
         $account['used'] = $this->safe_string($entry, 'holdBalance');
         $account['free'] = $this->safe_string($entry, 'availableBalance');
         $account['total'] = $this->safe_string($entry, 'totalBalance');
+        $debt = $this->safe_string($entry, 'liability');
+        $interest = $this->safe_string($entry, 'interest');
+        $account['debt'] = Precise::string_add($debt, $interest);
         return $account;
     }
 
     public function fetch_balance($params = array ()) {
         /**
          * $query for $balance and get the amount of funds available for trading or funds locked in orders
-         * @see https://docs.kucoin.com/#list-accounts
+         * @see https://docs.kucoin.com/#list-$accounts
          * @see https://docs.kucoin.com/#$query-$isolated-margin-$account-info
          * @param {array} $params extra parameters specific to the kucoin api endpoint
          * @param {array} $params->marginMode 'cross' or 'isolated', margin $type for fetching margin $balance
@@ -2420,11 +2423,14 @@ class kucoin extends Exchange {
         $method = 'privateGetAccounts';
         $request = array();
         $isolated = ($marginMode === 'isolated') || ($type === 'isolated');
+        $cross = ($marginMode === 'cross') || ($type === 'cross');
         if ($isolated) {
             $method = 'privateGetIsolatedAccounts';
             if ($currency !== null) {
                 $request['balanceCurrency'] = $currency['id'];
             }
+        } elseif ($cross) {
+            $method = 'privateGetMarginAccount';
         } else {
             if ($currency !== null) {
                 $request['currency'] = $currency['id'];
@@ -2502,9 +2508,17 @@ class kucoin extends Exchange {
                 $baseCode = $this->safe_currency_code($this->safe_string($base, 'currency'));
                 $quoteCode = $this->safe_currency_code($this->safe_string($quote, 'currency'));
                 $subResult = array();
-                $subResult[$baseCode] = $this->fetch_balance_helper($base);
-                $subResult[$quoteCode] = $this->fetch_balance_helper($quote);
+                $subResult[$baseCode] = $this->parse_balance_helper($base);
+                $subResult[$quoteCode] = $this->parse_balance_helper($quote);
                 $result[$symbol] = $this->safe_balance($subResult);
+            }
+        } elseif ($cross) {
+            $accounts = $this->safe_value($data, 'accounts', array());
+            for ($i = 0; $i < count($accounts); $i++) {
+                $balance = $accounts[$i];
+                $currencyId = $this->safe_string($balance, 'currency');
+                $code = $this->safe_currency_code($currencyId);
+                $result[$code] = $this->parse_balance_helper($balance);
             }
         } else {
             for ($i = 0; $i < count($data); $i++) {

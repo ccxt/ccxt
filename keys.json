@@ -33,5 +33,6 @@
     "crex24":        { "skip": true },
     "cex":           { "skip": true },
     "ascendex":      { "skip": true },
-    "btcex":         { "skip": true }
+    "btcex":         { "skip": true },
+    "wazirx":        { "skipWs": true } 
 }
