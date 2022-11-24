@@ -99,10 +99,6 @@ module.exports = class whitebit extends Exchange {
                         'public': 'https://whitebit.com/api/v1/public',
                         'private': 'https://whitebit.com/api/v1',
                     },
-                    'v2': {
-                        'public': 'https://whitebit.com/api/v2/public',
-                        'private': 'https://whitebit.com/api/v2',
-                    },
                     'v4': {
                         'public': 'https://whitebit.com/api/v4/public',
                         'private': 'https://whitebit.com/api/v4',
@@ -119,13 +115,6 @@ module.exports = class whitebit extends Exchange {
                         'get': [
                             'ticker', // single market activity
                             'kline',
-                        ],
-                    },
-                },
-                'v2': {
-                    'public': {
-                        'get': [
-                            'markets',
                         ],
                     },
                 },
@@ -239,12 +228,10 @@ module.exports = class whitebit extends Exchange {
          * @method
          * @name whitebit#fetchMarkets
          * @description retrieves data on all markets for whitebit
-         * @see // TODO
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await this.v2PublicGetMarkets (params);
-        const markets = this.safeValue (response, 'result', []);
+        const markets = await this.v4PublicGetMarkets (params);
         // [
         //  {
         //      "name": "SON_USD",         // Market pair name
@@ -1958,6 +1945,10 @@ module.exports = class whitebit extends Exchange {
     isFiat (currency) {
         const fiatCurrencies = this.safeValue (this.options, 'fiatCurrencies', []);
         return this.inArray (currency, fiatCurrencies);
+    }
+
+    nonce () {
+        return this.milliseconds ();
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
