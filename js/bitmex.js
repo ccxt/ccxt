@@ -393,6 +393,7 @@ module.exports = class bitmex extends Exchange {
             const contract = !index;
             const initMargin = this.safeString (market, 'initMargin', '1');
             const maxLeverage = this.parseNumber (Precise.stringDiv ('1', initMargin));
+            const multiplierString = Precise.stringAbs (this.safeString (market, 'multiplier'));
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -416,7 +417,7 @@ module.exports = class bitmex extends Exchange {
                 'inverse': contract ? inverse : undefined,
                 'taker': this.safeNumber (market, 'takerFee'),
                 'maker': this.safeNumber (market, 'makerFee'),
-                'contractSize': this.safeNumber (market, 'multiplier'),
+                'contractSize': this.parseNumber (multiplierString),
                 'expiry': expiry,
                 'expiryDatetime': expiryDatetime,
                 'strike': this.safeNumber (market, 'optionStrikePrice'),

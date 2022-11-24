@@ -480,12 +480,17 @@ class crex24 extends Exchange {
     public function fetch_transaction_fees($codes = null, $params = array ()) {
         /**
          * fetch transaction fees
-         * @param {[string]|null} $codes not used by crex24 fetchTransactionFees
+         * @see https://docs.crex24.com/trade-api/v2/#currencies-withdrawal-fees
+         * @param {[string]|null} $codes list of unified currency $codes
          * @param {array} $params extra parameters specific to the crex24 api endpoint
-         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure transaction fees structures}
+         * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure transaction fees structures}
          */
         $this->load_markets();
-        $response = $this->publicGetCurrenciesWithdrawalFees ($params);
+        $request = array();
+        if ($codes !== null) {
+            $request['filter'] = implode(',', $codes);
+        }
+        $response = $this->publicGetCurrenciesWithdrawalFees (array_merge($request, $params));
         //
         //     array(
         //         {
@@ -504,26 +509,55 @@ class crex24 extends Exchange {
         //         }
         //     )
         //
-        $withdrawFees = array();
+        return $this->parse_transaction_fees($response, $codes);
+    }
+
+    public function parse_transaction_fees($response, $codes = null) {
+        $result = array();
         for ($i = 0; $i < count($response); $i++) {
             $entry = $response[$i];
             $currencyId = $this->safe_string($entry, 'currency');
             $code = $this->safe_currency_code($currencyId);
-            $networkList = $this->safe_value($entry, 'fees');
-            $withdrawFees[$code] = array();
-            for ($j = 0; $j < count($networkList); $j++) {
-                $networkEntry = $networkList[$j];
-                $networkId = $this->safe_string($networkEntry, 'feeCurrency');
-                $networkCode = $this->safe_currency_code($networkId);
-                $fee = $this->safe_number($networkEntry, 'amount');
-                $withdrawFees[$code][$networkCode] = $fee;
+            if ($codes !== null && !$this->in_array($code, $codes)) {
+                continue;
             }
+            $result[$code] = $this->parse_transaction_fee($entry);
         }
-        return array(
-            'withdraw' => $withdrawFees,
+        return $result;
+    }
+
+    public function parse_transaction_fee($transaction) {
+        //
+        //     array(
+        //         {
+        //             currency => '1INCH',
+        //             fees => array(
+        //                 array( feeCurrency => 'BTC', amount => 0.00032 ),
+        //                 array( feeCurrency => 'ETH', amount => 0.0054 ),
+        //                 array( feeCurrency => 'DOGE', amount => 63.06669 ),
+        //                 array( feeCurrency => 'LTC', amount => 0.0912 ),
+        //                 array( feeCurrency => 'BCH', amount => 0.02364 ),
+        //                 array( feeCurrency => 'USDT', amount => 12.717 ),
+        //                 array( feeCurrency => 'USDC', amount => 12.7367 ),
+        //                 array( feeCurrency => 'TRX', amount => 205.99108 ),
+        //                 array( feeCurrency => 'EOS', amount => 3.30141 )
+        //             )
+        //         }
+        //     )
+        //
+        $result = array(
+            'withdraw' => array(),
             'deposit' => array(),
-            'info' => $response,
+            'info' => $transaction,
         );
+        $networkList = $this->safe_value($transaction, 'fees');
+        for ($j = 0; $j < count($networkList); $j++) {
+            $networkEntry = $networkList[$j];
+            $networkId = $this->safe_string($networkEntry, 'feeCurrency');
+            $fee = $this->safe_number($networkEntry, 'amount');
+            $result['withdraw'][$networkId] = $fee;
+        }
+        return $result;
     }
 
     public function parse_balance($response) {

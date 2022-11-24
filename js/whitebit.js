@@ -1021,7 +1021,7 @@ module.exports = class whitebit extends Exchange {
         const postOnly = this.isPostOnly (isMarketOrder, false, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
         if (postOnly) {
-            throw new NotSupported (this.id + ' createOrder() does not support postOnly orders.');
+            request['postOnly'] = true;
         }
         let method = undefined;
         if (isStopOrder) {

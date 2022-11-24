@@ -423,7 +423,7 @@ class bybit(Exchange, ccxt.async_support.bybit):
                 timestamp = int(timestamp) if (timestamp is not None) else None
         marketId = self.safe_string_2(ticker, 'symbol', 's')
         symbol = self.safe_symbol(marketId, market)
-        last = self.safe_string_n(ticker, ['l', 'last_price', 'lastPrice'])
+        last = self.safe_string_n(ticker, ['c', 'last_price', 'lastPrice'])
         open = self.safe_string_n(ticker, ['prev_price_24h', 'o', 'prevPrice24h'])
         quoteVolume = self.safe_string_n(ticker, ['v', 'turnover24h'])
         if quoteVolume is None:
@@ -1191,10 +1191,14 @@ class bybit(Exchange, ccxt.async_support.bybit):
         symbols = list(marketSymbols.keys())
         for i in range(0, len(symbols)):
             symbol = symbols[i]
-            messageHash = 'usertrade:' + symbol + ':' + topic
+            messageHash = 'usertrade:' + symbol
+            if topic:
+                messageHash += ':' + topic
             client.resolve(trades, messageHash)
         # non-symbol specific
-        messageHash = 'usertrade:' + topic
+        messageHash = 'usertrade'
+        if topic:
+            messageHash += ':' + topic
         client.resolve(trades, messageHash)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -1393,9 +1397,13 @@ class bybit(Exchange, ccxt.async_support.bybit):
         symbols = list(marketSymbols.keys())
         for i in range(0, len(symbols)):
             symbol = symbols[i]
-            messageHash = 'order:' + symbol + ':' + topic
+            messageHash = 'order:' + symbol
+            if topic:
+                messageHash += ':' + topic
             client.resolve(orders, messageHash)
-        messageHash = 'order:' + topic
+        messageHash = 'order'
+        if topic:
+            messageHash += ':' + topic
         # non-symbol specific
         client.resolve(orders, messageHash)
 

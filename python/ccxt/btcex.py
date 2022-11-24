@@ -1121,8 +1121,6 @@ class btcex(Exchange):
         type = self.safe_string(order, 'order_type')
         # injected in createOrder
         trades = self.safe_value(order, 'trades')
-        if trades is not None:
-            trades = self.parse_trades(trades, market)
         timeInForce = self.parse_time_in_force(self.safe_string(order, 'time_in_force'))
         stopPrice = self.safe_value(order, 'trigger_price')
         postOnly = self.safe_value(order, 'post_only')
