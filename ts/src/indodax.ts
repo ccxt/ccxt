@@ -472,7 +472,7 @@ export default class indodax extends Exchange {
         //     }
         // }
         //
-        const response = await this.publicGetTickerAll (params);
+        const response = await (this as any).publicGetTickerAll (params);
         const tickers = this.safeValue (response, 'tickers');
         return this.parseTickers (tickers, symbols);
     }

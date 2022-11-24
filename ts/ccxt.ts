@@ -84,7 +84,6 @@ import btcmarkets from  './src/btcmarkets.js'
 import btctradeua from  './src/btctradeua.js'
 import btcturk from  './src/btcturk.js'
 import buda from  './src/buda.js'
-import bw from  './src/bw.js'
 import bybit from  './src/bybit.js'
 import bytetrade from  './src/bytetrade.js'
 import cex from  './src/cex.js'
@@ -251,7 +250,6 @@ const exchanges = {
     'btctradeua':             btctradeua,
     'btcturk':                btcturk,
     'buda':                   buda,
-    'bw':                     bw,
     'bybit':                  bybit,
     'bytetrade':              bytetrade,
     'cex':                    cex,
@@ -440,7 +438,6 @@ export {
     btctradeua,
     btcturk,
     buda,
-    bw,
     bybit,
     bytetrade,
     cex,

@@ -3085,7 +3085,7 @@ export default class digifinex extends Exchange {
         if (limit !== undefined) {
             request['limit'] = limit; // default 20 max 100
         }
-        const response = await this.privateSwapGetAccountTransferRecord (this.extend (request, params));
+        const response = await (this as any).privateSwapGetAccountTransferRecord (this.extend (request, params));
         //
         //     {
         //         "code": 0,
