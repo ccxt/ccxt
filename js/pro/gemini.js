@@ -273,7 +273,7 @@ module.exports = class gemini extends geminiRest {
         const changesLength = changes.length;
         // reverse order of array to store candles in ascending order
         for (let i = 0; i < changesLength; i++) {
-            const index = changesLength - i;
+            const index = changesLength - i - 1;
             const parsed = this.parseOHLCV (changes[index], market);
             stored.append (parsed);
         }
