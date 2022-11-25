@@ -1181,7 +1181,12 @@ module.exports = class kraken extends Exchange {
         }
         const lastTrade = trades[length - 1];
         const lastTradeId = this.safeString (result, 'last');
-        lastTrade.push (lastTradeId);
+        const lastTradeLength = lastTrade.length;
+        if (lastTradeLength > 6) {
+            lastTrade[lastTradeLength - 1] = lastTradeId;
+        } else {
+            lastTrade.push (lastTradeId);
+        }
         return this.parseTrades (trades, market, since, limit);
     }
 
