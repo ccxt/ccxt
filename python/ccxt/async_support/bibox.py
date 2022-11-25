@@ -993,6 +993,8 @@ class bibox(Exchange):
                 'active': active,
                 'fee': None,
                 'precision': precision,
+                'withdraw': withdraw,
+                'deposit': deposit,
                 'limits': {
                     'amount': {
                         'min': precision,

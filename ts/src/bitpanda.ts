@@ -338,6 +338,8 @@ export default class bitpanda extends Exchange {
                 'active': undefined,
                 'fee': undefined,
                 'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'precision'))),
+                'withdraw': undefined,
+                'deposit': undefined,
                 'limits': {
                     'amount': { 'min': undefined, 'max': undefined },
                     'withdraw': { 'min': undefined, 'max': undefined },

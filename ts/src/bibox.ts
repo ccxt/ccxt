@@ -1020,6 +1020,8 @@ export default class bibox extends Exchange {
                 'active': active,
                 'fee': undefined,
                 'precision': precision,
+                'withdraw': withdraw,
+                'deposit': deposit,
                 'limits': {
                     'amount': {
                         'min': precision,
