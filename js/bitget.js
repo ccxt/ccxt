@@ -2494,7 +2494,7 @@ module.exports = class bitget extends Exchange {
         } else {
             const code = this.safeString2 (params, 'code', 'marginCoin');
             if (code === undefined) {
-                throw new ArgumentsRequired (this.id + ' cancelAllOrders () requires a code argument (marginCoin) in the params');
+                throw new ArgumentsRequired (this.id + ' cancelAllOrders () requires a code argument [marginCoin] in the params');
             }
             const currency = this.currency (code);
             request['marginCoin'] = this.safeCurrencyCode (code, currency);
