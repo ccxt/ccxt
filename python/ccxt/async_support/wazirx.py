@@ -26,6 +26,7 @@ class wazirx(Exchange):
             'countries': ['IN'],
             'version': 'v2',
             'rateLimit': 1000,
+            'pro': True,
             'has': {
                 'CORS': False,
                 'spot': True,
@@ -55,7 +56,7 @@ class wazirx(Exchange):
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': False,
                 'fetchMyTrades': False,
-                'fetchOHLCV': False,
+                'fetchOHLCV': True,
                 'fetchOpenInterestHistory': False,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
@@ -98,6 +99,7 @@ class wazirx(Exchange):
                         'ticker/24hr': 1,
                         'time': 1,
                         'trades': 1,
+                        'klines': 1,
                     },
                 },
                 'private': {
@@ -138,6 +140,18 @@ class wazirx(Exchange):
                     '2136': RateLimitExceeded,  # {"code":2136,"message":"Too many api request"}
                     '94001': InvalidOrder,  # {"code":94001,"message":"Stop price not found."}
                 },
+            },
+            'timeframes': {
+                '1m': '1m',
+                '5m': '5m',
+                '30m': '30m',
+                '1h': '1h',
+                '2h': '2h',
+                '4h': '4h',
+                '6h': '6h',
+                '12h': '12h',
+                '1d': '1d',
+                '1w': '1w',
             },
             'options': {
                 # 'fetchTradesMethod': 'privateGetHistoricalTrades',
@@ -252,6 +266,53 @@ class wazirx(Exchange):
                 'info': market,
             })
         return result
+
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents. Available values [1m,5m,15m,30m,1h,2h,4h,6h,12h,1d,1w]
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the wazirx api endpoint
+        :param int|None params['until']: timestamp in s of the latest candle to fetch
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+            'interval': self.timeframes[timeframe],
+        }
+        if limit is not None:
+            request['limit'] = limit
+        until = self.safe_integer(params, 'until')
+        params = self.omit(params, ['until'])
+        if since is not None:
+            request['startTime'] = int(since / 1000)
+        if until is not None:
+            request['endTime'] = until
+        response = await self.publicGetKlines(self.extend(request, params))
+        #
+        #    [
+        #        [1669014360,1402001,1402001,1402001,1402001,0],
+        #        ...
+        #    ]
+        #
+        return self.parse_ohlcvs(response, market, timeframe, since, limit)
+
+    def parse_ohlcv(self, ohlcv, market=None):
+        #
+        #    [1669014300,1402001,1402001,1402001,1402001,0],
+        #
+        return [
+            self.safe_timestamp(ohlcv, 0),
+            self.safe_number(ohlcv, 1),
+            self.safe_number(ohlcv, 2),
+            self.safe_number(ohlcv, 3),
+            self.safe_number(ohlcv, 4),
+            self.safe_number(ohlcv, 5),
+        ]
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         """

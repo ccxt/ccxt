@@ -80,6 +80,7 @@ class digifinex(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': False,
+                'fetchTransfers': True,
                 'fetchWithdrawals': True,
                 'setLeverage': True,
                 'setMarginMode': False,
@@ -568,7 +569,7 @@ class digifinex(Exchange):
                 'swap': swap,
                 'future': False,
                 'option': False,
-                'active': True if isAllowed else None,
+                'active': True if isAllowed else False,
                 'contract': swap,
                 'linear': isLinear,
                 'inverse': isInverse,
@@ -2119,19 +2120,41 @@ class digifinex(Exchange):
 
     def parse_transfer(self, transfer, currency=None):
         #
+        # transfer
+        #
         #     {
         #         "code": 0
         #     }
         #
+        # fetchTransfers
+        #
+        #     {
+        #         "transfer_id": 130524,
+        #         "type": 1,
+        #         "currency": "USDT",
+        #         "amount": "24",
+        #         "timestamp": 1666505659000
+        #     }
+        #
+        fromAccount = None
+        toAccount = None
+        type = self.safe_integer(transfer, 'type')
+        if type == 1:
+            fromAccount = 'spot'
+            toAccount = 'swap'
+        elif type == 2:
+            fromAccount = 'swap'
+            toAccount = 'spot'
+        timestamp = self.safe_integer(transfer, 'timestamp')
         return {
             'info': transfer,
-            'id': None,
-            'timestamp': None,
-            'datetime': None,
-            'currency': self.safe_currency_code(None, currency),
+            'id': self.safe_string(transfer, 'transfer_id'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'currency': self.safe_currency_code(self.safe_string(transfer, 'currency'), currency),
             'amount': self.safe_number(transfer, 'amount'),
-            'fromAccount': self.safe_string(transfer, 'fromAccount'),
-            'toAccount': self.safe_string(transfer, 'toAccount'),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
             'status': self.parse_transfer_status(self.safe_string(transfer, 'code')),
         }
 
@@ -2837,7 +2860,46 @@ class digifinex(Exchange):
         #     }
         #
 
-    def handle_margin_mode_and_params(self, methodName, params={}):
+    async def fetch_transfers(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch the transfer history, only transfers between spot and swap accounts are supported
+        see https://docs.digifinex.com/en-ww/swap/v2/rest.html#transferrecord
+        :param str|None code: unified currency code of the currency transferred
+        :param int|None since: the earliest time in ms to fetch transfers for
+        :param int|None limit: the maximum number of  transfers to retrieve
+        :param dict params: extra parameters specific to the digifinex api endpoint
+        :returns [dict]: a list of `transfer structures <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
+        await self.load_markets()
+        currency = None
+        request = {}
+        if code is not None:
+            currency = self.safe_currency_code(code)
+            request['currency'] = currency['id']
+        if since is not None:
+            request['start_timestamp'] = since
+        if limit is not None:
+            request['limit'] = limit  # default 20 max 100
+        response = await self.privateSwapGetAccountTransferRecord(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "transfer_id": 130524,
+        #                 "type": 1,
+        #                 "currency": "USDT",
+        #                 "amount": "24",
+        #                 "timestamp": 1666505659000
+        #             },
+        #             ...
+        #         ]
+        #     }
+        #
+        transfers = self.safe_value(response, 'data', [])
+        return self.parse_transfers(transfers, currency, since, limit)
+
+    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
         """
          * @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
@@ -2847,7 +2909,7 @@ class digifinex(Exchange):
         defaultType = self.safe_string(self.options, 'defaultType')
         isMargin = self.safe_value(params, 'margin', False)
         marginMode = None
-        marginMode, params = super(digifinex, self).handle_margin_mode_and_params(methodName, params)
+        marginMode, params = super(digifinex, self).handle_margin_mode_and_params(methodName, params, defaultValue)
         if marginMode is not None:
             if marginMode != 'cross':
                 raise NotSupported(self.id + ' only cross margin is supported')

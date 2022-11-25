@@ -70,6 +70,7 @@ class digifinex extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => true,
                 'fetchTradingFees' => false,
+                'fetchTransfers' => true,
                 'fetchWithdrawals' => true,
                 'setLeverage' => true,
                 'setMarginMode' => false,
@@ -576,7 +577,7 @@ class digifinex extends Exchange {
                     'swap' => $swap,
                     'future' => false,
                     'option' => false,
-                    'active' => $isAllowed ? true : null,
+                    'active' => $isAllowed ? true : false,
                     'contract' => $swap,
                     'linear' => $isLinear,
                     'inverse' => $isInverse,
@@ -2266,19 +2267,42 @@ class digifinex extends Exchange {
 
     public function parse_transfer($transfer, $currency = null) {
         //
+        // $transfer
+        //
         //     {
         //         "code" => 0
         //     }
         //
+        // fetchTransfers
+        //
+        //     {
+        //         "transfer_id" => 130524,
+        //         "type" => 1,
+        //         "currency" => "USDT",
+        //         "amount" => "24",
+        //         "timestamp" => 1666505659000
+        //     }
+        //
+        $fromAccount = null;
+        $toAccount = null;
+        $type = $this->safe_integer($transfer, 'type');
+        if ($type === 1) {
+            $fromAccount = 'spot';
+            $toAccount = 'swap';
+        } elseif ($type === 2) {
+            $fromAccount = 'swap';
+            $toAccount = 'spot';
+        }
+        $timestamp = $this->safe_integer($transfer, 'timestamp');
         return array(
             'info' => $transfer,
-            'id' => null,
-            'timestamp' => null,
-            'datetime' => null,
-            'currency' => $this->safe_currency_code(null, $currency),
+            'id' => $this->safe_string($transfer, 'transfer_id'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $this->safe_currency_code($this->safe_string($transfer, 'currency'), $currency),
             'amount' => $this->safe_number($transfer, 'amount'),
-            'fromAccount' => $this->safe_string($transfer, 'fromAccount'),
-            'toAccount' => $this->safe_string($transfer, 'toAccount'),
+            'fromAccount' => $fromAccount,
+            'toAccount' => $toAccount,
             'status' => $this->parse_transfer_status($this->safe_string($transfer, 'code')),
         );
     }
@@ -3050,7 +3074,52 @@ class digifinex extends Exchange {
         }) ();
     }
 
-    public function handle_margin_mode_and_params($methodName, $params = array ()) {
+    public function fetch_transfers($code = null, $since = null, $limit = null, $params = array ()) {
+        return Async\async(function () use ($code, $since, $limit, $params) {
+            /**
+             * fetch the transfer history, only $transfers between spot and swap accounts are supported
+             * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#transferrecord
+             * @param {string|null} $code unified $currency $code of the $currency transferred
+             * @param {int|null} $since the earliest time in ms to fetch $transfers for
+             * @param {int|null} $limit the maximum number of  $transfers to retrieve
+             * @param {array} $params extra parameters specific to the digifinex api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structures}
+             */
+            Async\await($this->load_markets());
+            $currency = null;
+            $request = array();
+            if ($code !== null) {
+                $currency = $this->safe_currency_code($code);
+                $request['currency'] = $currency['id'];
+            }
+            if ($since !== null) {
+                $request['start_timestamp'] = $since;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit; // default 20 max 100
+            }
+            $response = Async\await($this->privateSwapGetAccountTransferRecord (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => 0,
+            //         "data" => array(
+            //             array(
+            //                 "transfer_id" => 130524,
+            //                 "type" => 1,
+            //                 "currency" => "USDT",
+            //                 "amount" => "24",
+            //                 "timestamp" => 1666505659000
+            //             ),
+            //             ...
+            //         )
+            //     }
+            //
+            $transfers = $this->safe_value($response, 'data', array());
+            return $this->parse_transfers($transfers, $currency, $since, $limit);
+        }) ();
+    }
+
+    public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null) {
         /**
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
@@ -3060,7 +3129,7 @@ class digifinex extends Exchange {
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $isMargin = $this->safe_value($params, 'margin', false);
         $marginMode = null;
-        list($marginMode, $params) = parent::handle_margin_mode_and_params($methodName, $params);
+        list($marginMode, $params) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
         if ($marginMode !== null) {
             if ($marginMode !== 'cross') {
                 throw new NotSupported($this->id . ' only cross margin is supported');
