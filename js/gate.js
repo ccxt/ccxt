@@ -2048,12 +2048,21 @@ module.exports = class gate extends Exchange {
          * @method
          * @name gate#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-order
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers-2
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the gate api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        symbols = this.marketSymbols (symbols);
+        const first = this.safeString (symbols, 0);
+        let market = undefined;
+        if (first !== undefined) {
+            market = this.market (first);
+        }
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         const [ request, requestParams ] = this.prepareRequest (undefined, type, query);
         const method = this.getSupportedMapping (type, {
             'spot': 'publicSpotGetTickers',
@@ -2065,11 +2074,14 @@ module.exports = class gate extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    fetchBalanceHelper (entry) {
+    parseBalanceHelper (entry) {
         const account = this.account ();
         account['used'] = this.safeString2 (entry, 'freeze', 'locked');
         account['free'] = this.safeString (entry, 'available');
         account['total'] = this.safeString (entry, 'total');
+        if ('borrowed' in entry) {
+            account['debt'] = this.safeString (entry, 'borrowed');
+        }
         return account;
     }
 
@@ -2218,8 +2230,7 @@ module.exports = class gate extends Exchange {
         const result = {
             'info': response,
         };
-        const crossMargin = marginMode === 'cross_margin';
-        const margin = marginMode === 'margin';
+        const isolated = marginMode === 'margin';
         let data = response;
         if ('balances' in data) { // True for cross_margin
             const flatBalances = [];
@@ -2237,7 +2248,7 @@ module.exports = class gate extends Exchange {
         }
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
-            if (margin && !crossMargin) {
+            if (isolated) {
                 const marketId = this.safeString (entry, 'currency_pair');
                 const symbol = this.safeSymbol (marketId, undefined, '_');
                 const base = this.safeValue (entry, 'base', {});
@@ -2245,15 +2256,15 @@ module.exports = class gate extends Exchange {
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'currency'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'currency'));
                 const subResult = {};
-                subResult[baseCode] = this.fetchBalanceHelper (base);
-                subResult[quoteCode] = this.fetchBalanceHelper (quote);
+                subResult[baseCode] = this.parseBalanceHelper (base);
+                subResult[quoteCode] = this.parseBalanceHelper (quote);
                 result[symbol] = this.safeBalance (subResult);
             } else {
                 const code = this.safeCurrencyCode (this.safeString (entry, 'currency'));
-                result[code] = this.fetchBalanceHelper (entry);
+                result[code] = this.parseBalanceHelper (entry);
             }
         }
-        return (margin && !crossMargin) ? result : this.safeBalance (result);
+        return isolated ? result : this.safeBalance (result);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {

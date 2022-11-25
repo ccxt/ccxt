@@ -32,7 +32,7 @@ async function example () {
     const balance_margin = await exchange.fetchBalance ({'defaultType': 'margin', 'marginMode': marginMode}); // use `defaultType` because of temporary bug, otherwise, after several days, you can use `type` too.
     // if we don't have enought coins, then we have to borrow at first
     let needed_amount_to_borrow = undefined;  // will be auto-set below
-    if ( amount_to_trade - balance_margin[symbol][borrow_coin]['free']) {
+    if (amount_to_trade > balance_margin[symbol][borrow_coin]['free']) {
         needed_amount_to_borrow = amount_to_trade - balance_margin[symbol][borrow_coin]['free'];
         console.log ('hmm, I have only ' + balance_margin[symbol][borrow_coin]['free'] + ' ' + borrow_coin + ' in margin balance, and still need additional ' + needed_amount_to_borrow + ' to make an order. Lets borrow it.');
         // To initate a borrow, at first, check if we have enough collateral (for this example, as we make a sell-short, we need '-1' to keep for collateral currency)

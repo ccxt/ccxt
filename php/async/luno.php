@@ -21,6 +21,7 @@ class luno extends Exchange {
             // 300 calls per minute = 5 calls per second = 1000ms / 5 = 200ms between requests
             'rateLimit' => 200,
             'version' => '1',
+            'pro' => true,
             'has' => array(
                 'CORS' => null,
                 'spot' => true,
