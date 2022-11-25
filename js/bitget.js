@@ -2460,16 +2460,13 @@ module.exports = class bitget extends Exchange {
          * @name bitget#cancelAllOrders
          * @description cancel all open orders
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-order
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-plan-order-tpsl
          * @param {string|undefined} symbol unified market symbol
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @param {string} params.code marginCoin unified currency code
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const code = this.safeString2 (params, 'code', 'marginCoin');
-        if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders () requires a code argument in the params');
-        }
         let market = undefined;
         let defaultSubType = this.safeString (this.options, 'defaultSubType');
         if (symbol !== undefined) {
@@ -2481,13 +2478,29 @@ module.exports = class bitget extends Exchange {
         if (marketType === 'spot') {
             throw new NotSupported (this.id + ' cancelAllOrders () does not support spot markets');
         }
-        const currency = this.currency (code);
         const request = {
-            'marginCoin': this.safeCurrencyCode (code, currency),
             'productType': productType,
         };
+        let method = undefined;
+        const stop = this.safeValue (params, 'stop');
+        const planType = this.safeString (params, 'planType');
+        if (stop !== undefined || planType !== undefined) {
+            if (planType === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a planType parameter for stop orders, either normal_plan, profit_plan or loss_plan');
+            }
+            method = 'privateMixPostPlanCancelPlan';
+            params = this.omit (params, [ 'stop' ]);
+        } else {
+            const code = this.safeString2 (params, 'code', 'marginCoin');
+            const currency = this.currency (code);
+            if (code === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelAllOrders () requires a code argument in the params');
+            }
+            method = 'privateMixPostOrderCancelAllOrders';
+            request['marginCoin'] = this.safeCurrencyCode (code, currency);
+        }
         params = this.omit (query, [ 'code', 'marginCoin' ]);
-        const response = await this.privateMixPostOrderCancelAllOrders (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
