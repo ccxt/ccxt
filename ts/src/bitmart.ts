@@ -800,7 +800,7 @@ export default class bitmart extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.privateGetAccountV1WithdrawCharge (this.extend (request, params));
+        const response = await (this as any).privateGetAccountV1WithdrawCharge (this.extend (request, params));
         //
         //     {
         //         message: 'OK',

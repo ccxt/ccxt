@@ -2126,7 +2126,7 @@ export default class bibox extends Exchange {
                 'coin_symbol': currency['id'],
             }, params),
         };
-        const response = await this.v1PrivatePostTransfer (request);
+        const response = await (this as any).v1PrivatePostTransfer (request);
         //
         //    {
         //        "result": [

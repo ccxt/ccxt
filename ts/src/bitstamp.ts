@@ -1216,7 +1216,7 @@ export default class bitstamp extends Exchange {
          * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privatePostBalance (params);
+        const response = await (this as any).privatePostBalance (params);
         //
         //    {
         //        yfi_available: '0.00000000',
