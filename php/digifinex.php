@@ -562,7 +562,7 @@ class digifinex extends Exchange {
                 'swap' => $swap,
                 'future' => false,
                 'option' => false,
-                'active' => $isAllowed ? true : null,
+                'active' => $isAllowed ? true : false,
                 'contract' => $swap,
                 'linear' => $isLinear,
                 'inverse' => $isInverse,

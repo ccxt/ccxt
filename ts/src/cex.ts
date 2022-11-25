@@ -124,6 +124,7 @@ export default class cex extends Exchange {
                         'cancel_replace_order/{pair}/',
                         'close_position/{pair}/',
                         'get_address/',
+                        'get_crypto_address',
                         'get_myfee/',
                         'get_order/',
                         'get_order_tx/',
@@ -185,6 +186,23 @@ export default class cex extends Exchange {
                         'cd': 'canceled',
                         'a': 'open',
                     },
+                },
+                'defaultNetwork': 'ERC20',
+                'defaultNetworks': {
+                    'USDT': 'TRC20',
+                },
+                'networks': {
+                    'ERC20': 'Ethereum',
+                    'BTC': 'BTC',
+                    'BEP20': 'Binance Smart Chain',
+                    'BSC': 'Binance Smart Chain',
+                    'TRC20': 'Tron',
+                },
+                'networksById': {
+                    'Ethereum': 'ERC20',
+                    'BTC': 'BTC',
+                    'Binance Smart Chain': 'BEP20',
+                    'Tron': 'TRC20',
                 },
             },
         });
@@ -1498,24 +1516,47 @@ export default class cex extends Exchange {
          * @param {object} params extra parameters specific to the cex api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
-        if (code === 'XRP' || code === 'XLM') {
-            // https://github.com/ccxt/ccxt/pull/2327#issuecomment-375204856
-            throw new NotSupported (this.id + ' fetchDepositAddress() does not support XRP and XLM addresses yet (awaiting docs from CEX.io)');
-        }
         await this.loadMarkets ();
         const currency = this.currency (code);
         const request = {
             'currency': currency['id'],
         };
-        const response = await (this as any).privatePostGetAddress (this.extend (request, params));
-        const address = this.safeString (response, 'data');
+        const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
+        // atm, cex doesn't support network in the request
+        const response = await (this as any).privatePostGetCryptoAddress (this.extend (request, query));
+        //
+        //    {
+        //         "e": "get_crypto_address",
+        //         "ok": "ok",
+        //         "data": {
+        //             "name": "BTC",
+        //             "addresses": [
+        //                 {
+        //                     "blockchain": "Bitcoin",
+        //                     "address": "2BvKwe1UwrdTjq2nzhscFYXwqCjCaaHCeq"
+        //
+        //                     // for others coins (i.e. XRP, XLM) other keys are present:
+        //                     //     "destination": "rF1sdh25BJX3qFwneeTBwaq3zPEWYcwjp2",
+        //                     //     "destinationTag": "7519113655",
+        //                     //     "memo": "XLM-memo12345",
+        //                 }
+        //             ]
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const addresses = this.safeValue (data, 'addresses', []);
+        const chainsIndexedById = this.indexBy (addresses, 'blockchain');
+        const selectedNetworkId = this.selectNetworkIdFromAvailableNetworks (code, networkCode, chainsIndexedById);
+        const addressObject = this.safeValue (chainsIndexedById, selectedNetworkId, {});
+        const address = this.safeString2 (addressObject, 'address', 'destination');
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
-            'tag': undefined,
-            'network': undefined,
-            'info': response,
+            'tag': this.safeString2 (addressObject, 'destinationTag', 'memo'),
+            'network': this.networkIdToCode (selectedNetworkId),
+            'info': data,
         };
     }
 

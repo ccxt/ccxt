@@ -567,7 +567,7 @@ class digifinex(Exchange):
                 'swap': swap,
                 'future': False,
                 'option': False,
-                'active': True if isAllowed else None,
+                'active': True if isAllowed else False,
                 'contract': swap,
                 'linear': isLinear,
                 'inverse': isInverse,
