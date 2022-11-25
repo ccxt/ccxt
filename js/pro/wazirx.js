@@ -102,6 +102,19 @@ module.exports = class wazirx extends wazirxRest {
 
     parseWSTrade (trade, market = undefined) {
         //
+        // trade
+        //     {
+        //         "E": 1631681323000,  Event time
+        //         "S": "buy",          Side
+        //         "a": 26946138,       Buyer order ID
+        //         "b": 26946169,       Seller order ID
+        //         "m": true,           Is buyer maker?
+        //         "p": "7.0",          Price
+        //         "q": "15.0",         Quantity
+        //         "s": "btcinr",       Symbol
+        //         "t": 17376030        Trade ID
+        //     }
+        // ownTrade
         //     {
         //         "E": 1631683058000,
         //         "S": "ask",
@@ -123,6 +136,7 @@ module.exports = class wazirx extends wazirxRest {
         market = this.safeMarket (marketId, market);
         const feeCost = this.safeString (trade, 'f');
         const feeCurrencyId = this.safeString (trade, 'U');
+        const isMaker = this.safeValue (trade, 'm') === true;
         let fee = undefined;
         if (feeCost !== undefined) {
             fee = {
@@ -137,10 +151,10 @@ module.exports = class wazirx extends wazirxRest {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'order': this.safeString (trade, 'o'),
+            'order': this.safeStringN (trade, [ 'o', 'a', 'b' ]),
             'type': undefined,
-            'side': undefined,
-            'takerOrMaker': this.safeValue (trade, 'm'),
+            'side': this.safeString (trade, 'S'),
+            'takerOrMaker': isMaker ? 'maker' : 'taker',
             'price': this.safeString (trade, 'p'),
             'amount': this.safeString (trade, 'q'),
             'cost': undefined,
@@ -717,10 +731,19 @@ module.exports = class wazirx extends wazirxRest {
         //         "id": 0
         //     }
         //
+        //     {
+        //         message: 'HeartBeat message not received, closing the connection',
+        //         status: 'error'
+        //     }
+        //
         throw new ExchangeError (this.id + ' ' + this.json (message));
     }
 
     handleMessage (client, message) {
+        const status = this.safeString (message, 'status');
+        if (status === 'error') {
+            return this.handleError (client, message);
+        }
         const event = this.safeString (message, 'event');
         const eventHandlers = {
             'error': this.handleError,
