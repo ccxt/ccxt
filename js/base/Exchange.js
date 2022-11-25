@@ -1645,14 +1645,14 @@ module.exports = class Exchange {
         }
     }
 
-    networkCodeToId (networkCode, currencyCode = undefined) {
-        const networkIdsByCodes = this.safeValue (this.options, 'networks', {});
-        return this.safeString (networkIdsByCodes, networkCode, networkCode);
+    networkCodeToId (networkCode) {
+        const networks = this.safeValue (this.options, 'networks', {});
+        return this.safeString (networks, networkCode, networkCode);
     }
 
-    networkIdToCode (networkId, currencyCode = undefined) {
-        const networkCodesByIds = this.safeValue (this.options, 'networksById', {});
-        return this.safeString (networkCodesByIds, networkId, networkId);
+    networkIdToCode (networkId) {
+        const networksById = this.safeValue (this.options, 'networksById', {});
+        return this.safeString (networksById, networkId, networkId);
     }
 
     handleNetworkCodeAndParams (params) {
@@ -1687,7 +1687,7 @@ module.exports = class Exchange {
         const responseNetworksLength = availableNetworkIds.length;
         if (networkCode !== undefined) {
             // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
-            const networkId = this.networkCodeToId (networkCode, currencyCode);
+            const networkId = this.networkCodeToId (networkCode);
             if (responseNetworksLength === 0) {
                 throw new NotSupported (this.id + ' - ' + networkCode + ' network did not return any result for ' + currencyCode);
             } else {
@@ -1702,9 +1702,9 @@ module.exports = class Exchange {
                 throw new NotSupported (this.id + ' - no networks were returned for' + currencyCode);
             } else {
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
-                const defaultNetworkCode = this.defaultNetworkCode (currencyCode);
-                const defaultNetworkId = this.networkCodeToId (defaultNetworkCode, currencyCode);
-                chosenNetworkId = (defaultNetworkId in networkEntriesIndexed) ? defaultNetworkId : availableNetworkIds[0];
+                const defaultNetwordCode = this.defaultNetworkCode (currencyCode);
+                const defaultNetwordId = this.networkCodeToId (defaultNetwordCode);
+                chosenNetworkId = (defaultNetwordId in networkEntriesIndexed) ? defaultNetwordId : availableNetworkIds[0];
             }
         }
         return chosenNetworkId;
