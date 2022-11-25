@@ -272,8 +272,9 @@ module.exports = class gemini extends geminiRest {
         }
         const changesLength = changes.length;
         // reverse order of array to store candles in ascending order
-        for (let i = changesLength - 1; i >= 0; i--) {
-            const parsed = this.parseOHLCV (changes[i], market);
+        for (let i = 0; i < changesLength; i++) {
+            const index = changesLength - i;
+            const parsed = this.parseOHLCV (changes[index], market);
             stored.append (parsed);
         }
         const messageHash = 'ohlcv:' + symbol + ':' + timeframeId;
@@ -325,8 +326,8 @@ module.exports = class gemini extends geminiRest {
         }
         for (let i = 0; i < changes.length; i++) {
             const delta = changes[i];
-            const price = this.safeFloat (delta, 1);
-            const size = this.safeFloat (delta, 2);
+            const price = this.safeNumber (delta, 1);
+            const size = this.safeNumber (delta, 2);
             const side = (delta[0] === 'buy') ? 'bids' : 'asks';
             const bookside = orderbook[side];
             bookside.store (price, size);
