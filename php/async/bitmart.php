@@ -56,6 +56,8 @@ class bitmart extends Exchange {
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => true,
+                'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => null,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
@@ -736,7 +738,7 @@ class bitmart extends Exchange {
     public function fetch_transaction_fee($code, $params = array ()) {
         return Async\async(function () use ($code, $params) {
             /**
-             * fetch the fee for a transaction
+             * *DEPRECATED* please use fetchDepositWithdrawFee instead
              * @param {string} $code unified $currency $code
              * @param {array} $params extra parameters specific to the bitmart api endpoint
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
@@ -768,6 +770,61 @@ class bitmart extends Exchange {
                 'withdraw' => $withdrawFees,
                 'deposit' => array(),
             );
+        }) ();
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //
+        //    {
+        //        today_available_withdraw_BTC => '100.0000',
+        //        min_withdraw => '0.005',
+        //        withdraw_precision => '8',
+        //        withdraw_fee => '0.000500000000000000000000000000'
+        //    }
+        //
+        return array(
+            'info' => $fee,
+            'withdraw' => array(
+                'fee' => $this->safe_number($fee, 'withdraw_fee'),
+                'percentage' => null,
+            ),
+            'deposit' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'networks' => array(),
+        );
+    }
+
+    public function fetch_deposit_withdraw_fee($code, $params = array ()) {
+        return Async\async(function () use ($code, $params) {
+            /**
+             * fetch the fee for deposits and withdrawals
+             * @param {string} $code unified $currency $code
+             * @param {array} $params extra parameters specific to the bitmart api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'currency' => $currency['id'],
+            );
+            $response = Async\await($this->privateGetAccountV1WithdrawCharge (array_merge($request, $params)));
+            //
+            //     {
+            //         message => 'OK',
+            //         $code => '1000',
+            //         trace => '3ecc0adf-91bd-4de7-aca1-886c1122f54f',
+            //         $data => {
+            //             today_available_withdraw_BTC => '100.0000',
+            //             min_withdraw => '0.005',
+            //             withdraw_precision => '8',
+            //             withdraw_fee => '0.000500000000000000000000000000'
+            //         }
+            //     }
+            //
+            $data = $response['data'];
+            return $this->parse_deposit_withdraw_fee($data);
         }) ();
     }
 
@@ -2862,7 +2919,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function handle_margin_mode_and_params($methodName, $params = array ()) {
+    public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null) {
         /**
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
@@ -2872,7 +2929,7 @@ class bitmart extends Exchange {
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $isMargin = $this->safe_value($params, 'margin', false);
         $marginMode = null;
-        list($marginMode, $params) = parent::handle_margin_mode_and_params($methodName, $params);
+        list($marginMode, $params) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
         if ($marginMode !== null) {
             if ($marginMode !== 'isolated') {
                 throw new NotSupported($this->id . ' only isolated margin is supported');

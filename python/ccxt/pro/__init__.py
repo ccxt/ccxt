@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '2.2.8'
+__version__ = '2.2.32'
 
 # ----------------------------------------------------------------------------
 
@@ -58,6 +58,7 @@ from ccxt.pro.okx import okx                                              # noqa
 from ccxt.pro.phemex import phemex                                        # noqa: F401
 from ccxt.pro.ripio import ripio                                          # noqa: F401
 from ccxt.pro.upbit import upbit                                          # noqa: F401
+from ccxt.pro.wazirx import wazirx                                        # noqa: F401
 from ccxt.pro.whitebit import whitebit                                    # noqa: F401
 from ccxt.pro.zb import zb                                                # noqa: F401
 from ccxt.pro.zipmex import zipmex                                        # noqa: F401
@@ -107,6 +108,7 @@ exchanges = [
     'phemex',
     'ripio',
     'upbit',
+    'wazirx',
     'whitebit',
     'zb',
     'zipmex',

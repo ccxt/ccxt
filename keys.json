@@ -40,6 +40,7 @@
     "tidebit":       { "skip": true },
     "tokocrypto":    { "skip": true },
     "upbit":         { "skipWs": true },
+    "wazirx":        { "skipWs": true },
     "whitebit":      { "skipWs": true },
     "zb":            { "skipWs": true },
     "zipmex":        { "skipWs": true }
