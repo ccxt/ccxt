@@ -4740,15 +4740,11 @@ module.exports = class huobi extends Exchange {
         return this.networkIdToCode (networkId);
     }
 
-    selectNetworkIdFromAvailableNetworksCustom (currencyCode, networkCode, networkEntriesIndexed) {
-        const renamedIndexedNetworkIds = {};
-        const networkPairIdKeys = Object.keys (networkEntriesIndexed);
-        for (let i = 0; i < networkPairIdKeys.length; i++) {
-            const pairId = networkPairIdKeys[i];
-            const networkId = this.networkIdByNetworkPairId[currencyCode][pairId];
-            renamedIndexedNetworkIds[networkId] = networkEntriesIndexed[pairId];
-        }
-        return renamedIndexedNetworkIds;
+    networkPairIdFromCode (currencyCode, networkCode) {
+        const networkId = this.networkCodeToId (networkCode);
+        const networkPairIds = this.safeValue (this.networkPairIdByNetworkId, currencyCode, {});
+        const networkPairId = this.safeValue (networkPairIds, networkId, networkId);
+        return networkPairId;
     }
 
     async fetchWithdrawAddresses (code, note = undefined, networkCode = undefined, params = {}) {
@@ -5037,19 +5033,11 @@ module.exports = class huobi extends Exchange {
         if (tag !== undefined) {
             request['addr-tag'] = tag; // only for XRP?
         }
-        const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeStringLower (networks, network, network); // handle ETH>ERC20 alias
-        if (network !== undefined) {
-            // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
-            if (network === 'erc20') {
-                request['chain'] = currency['id'] + network;
-            } else {
-                request['chain'] = network + currency['id'];
-            }
-            params = this.omit (params, 'network');
+        const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            request['chain'] = this.networkPairIdFromCode (code, networkCode);
         }
-        const response = await this.spotPrivatePostV1DwWithdrawApiCreate (this.extend (request, params));
+        const response = await this.spotPrivatePostV1DwWithdrawApiCreate (this.extend (request, paramsOmited));
         //
         //     {
         //         "status": "ok",
