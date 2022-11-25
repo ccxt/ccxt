@@ -2471,14 +2471,33 @@ module.exports = class bybit extends Exchange {
         //         "executionTime": "1666702226335"
         //     }
         //
-        const id = this.safeString2 (trade, 'execId', 'id');
+        // private USDC settled trades
+        //
+        //     {
+        //         "symbol": "ETHPERP",
+        //         "orderLinkId": "",
+        //         "side": "Buy",
+        //         "orderId": "aad0ee44-ce12-4112-aeee-b7829f6c3a26",
+        //         "execFee": "0.0210",
+        //         "feeRate": "0.000600",
+        //         "blockTradeId": "",
+        //         "tradeTime": "1669196417930",
+        //         "execPrice": "1162.15",
+        //         "lastLiquidityInd": "TAKER",
+        //         "execValue": "34.8645",
+        //         "execType": "Trade",
+        //         "execQty": "0.030",
+        //         "tradeId": "0e94eaf5-b08e-5505-b43f-7f1f30b1ca80"
+        //     }
+        //
+        const id = this.safeStringN (trade, [ 'execId', 'id', 'tradeId' ]);
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const amountString = this.safeString2 (trade, 'orderQty', 'size');
-        const priceString = this.safeString2 (trade, 'orderPrice', 'price');
+        const amountString = this.safeStringN (trade, [ 'orderQty', 'size', 'execQty' ]);
+        const priceString = this.safeStringN (trade, [ 'orderPrice', 'price', 'execPrice' ]);
         const costString = this.safeString (trade, 'execValue');
-        const timestamp = this.safeInteger2 (trade, 'time', 'execTime');
+        const timestamp = this.safeIntegerN (trade, [ 'time', 'execTime', 'tradeTime' ]);
         let side = this.safeStringLower (trade, 'side');
         if (side === undefined) {
             const isBuyer = this.safeInteger (trade, 'isBuyer');
@@ -5034,6 +5053,51 @@ module.exports = class bybit extends Exchange {
         return this.parseTrades (list, market, since, limit);
     }
 
+    async fetchMyUsdcTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        await this.loadMarkets ();
+        let market = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+            request['category'] = market['option'] ? 'OPTION' : 'PERPETUAL';
+        } else {
+            request['category'] = 'PERPETUAL';
+        }
+        const response = await this.privatePostOptionUsdcOpenapiPrivateV1ExecutionList (this.extend (request, params));
+        //
+        //     {
+        //       "result": {
+        //         "cursor": "29%3A1%2C28%3A1",
+        //         "resultTotalSize": 2,
+        //         "dataList": [
+        //           {
+        //             "symbol": "ETHPERP",
+        //             "orderLinkId": "",
+        //             "side": "Sell",
+        //             "orderId": "d83f8b4d-2f60-4e04-a64a-a3f207989dc6",
+        //             "execFee": "0.0210",
+        //             "feeRate": "0.000600",
+        //             "blockTradeId": "",
+        //             "tradeTime": "1669196423581",
+        //             "execPrice": "1161.45",
+        //             "lastLiquidityInd": "TAKER",
+        //             "execValue": "34.8435",
+        //             "execType": "Trade",
+        //             "execQty": "0.030",
+        //             "tradeId": "d9aa8590-9e6a-575e-a1be-d6261e6ed2e5"
+        //           }, ...
+        //         ]
+        //       },
+        //       "retCode": 0,
+        //       "retMsg": "Success."
+        //     }
+        //
+        const result = this.safeValue (response, 'result', {});
+        const dataList = this.safeValue (result, 'dataList', []);
+        return this.parseTrades (dataList, market, since, limit);
+    }
+
     async fetchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -5050,11 +5114,14 @@ module.exports = class bybit extends Exchange {
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const isUsdcSettled = market['settle'] === 'USDC';
         const enableUnifiedMargin = await this.isUnifiedMarginEnabled ();
         if (market['spot']) {
             return await this.fetchMySpotTrades (symbol, since, limit, params);
         } else if (enableUnifiedMargin) {
             return await this.fetchMyDerivativesTrades (symbol, since, limit, params);
+        } else if (isUsdcSettled) {
+            return await this.fetchMyUsdcTrades (symbol, since, limit, params);
         } else {
             return await this.fetchMyContractTrades (symbol, since, limit, params);
         }
