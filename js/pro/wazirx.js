@@ -4,7 +4,7 @@
 
 const wazirxRest = require ('../wazirx');
 const { NotSupported, ExchangeError } = require ('../base/errors');
-const { ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
+const { ArrayCacheBySymbolById, ArrayCacheByTimestamp, ArrayCache } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -16,7 +16,7 @@ module.exports = class wazirx extends wazirxRest {
                 'watchBalance': true,
                 'watchTicker': true,
                 'watchTickers': true,
-                'watchTrades': false,
+                'watchTrades': true,
                 'watchMyTrades': true,
                 'watchOrders': true,
                 'watchOrderBook': true,
@@ -121,7 +121,16 @@ module.exports = class wazirx extends wazirxRest {
         const timestamp = this.safeInteger (trade, 'E');
         const marketId = this.safeString (trade, 's');
         market = this.safeMarket (marketId, market);
+        const feeCost = this.safeString (trade, 'f');
         const feeCurrencyId = this.safeString (trade, 'U');
+        let fee = undefined;
+        if (feeCost !== undefined) {
+            fee = {
+                'cost': feeCost,
+                'currency': this.safeCurrencyCode (feeCurrencyId),
+                'rate': undefined,
+            };
+        }
         return this.safeTrade ({
             'id': this.safeString (trade, 't'),
             'info': trade,
@@ -135,11 +144,7 @@ module.exports = class wazirx extends wazirxRest {
             'price': this.safeString (trade, 'p'),
             'amount': this.safeString (trade, 'q'),
             'cost': undefined,
-            'fee': {
-                'cost': this.safeString (trade, 'f'),
-                'currency': this.safeCurrencyCode (feeCurrencyId),
-                'rate': undefined,
-            },
+            'fee': fee,
         }, market);
     }
 
@@ -267,6 +272,73 @@ module.exports = class wazirx extends wazirxRest {
             'quoteVolume': this.safeString (ticker, 'q'),
             'info': ticker,
         }, market);
+    }
+
+    async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name wazirx#watchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {object} params extra parameters specific to the wazirx api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const messageHash = market['id'] + '@trades';
+        const url = this.urls['api']['ws'];
+        const message = {
+            'event': 'subscribe',
+            'streams': [ messageHash ],
+        };
+        const request = this.extend (message, params);
+        const trades = await this.watch (url, messageHash, request, messageHash);
+        if (this.newUpdates) {
+            limit = trades.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
+    }
+
+    handleTrades (client, message) {
+        //
+        //     {
+        //         "data": {
+        //             "trades": [{
+        //                 "E": 1631681323000,  Event time
+        //                 "S": "buy",          Side
+        //                 "a": 26946138,       Buyer order ID
+        //                 "b": 26946169,       Seller order ID
+        //                 "m": true,           Is buyer maker?
+        //                 "p": "7.0",          Price
+        //                 "q": "15.0",         Quantity
+        //                 "s": "btcinr",       Symbol
+        //                 "t": 17376030        Trade ID
+        //             }]
+        //         },
+        //         "stream": "btcinr@trades"
+        //     }
+        //
+        const data = this.safeValue (message, 'data', {});
+        const rawTrades = this.safeValue (data, 'trades', []);
+        const messageHash = this.safeString (message, 'stream');
+        const split = messageHash.split ('@');
+        const marketId = this.safeString (split, 0);
+        const market = this.safeMarket (marketId);
+        const symbol = this.safeSymbol (marketId, market);
+        let trades = this.safeValue (this.trades, symbol);
+        if (trades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            trades = new ArrayCache (limit);
+            this.trades[symbol] = trades;
+        }
+        for (let i = 0; i < rawTrades.length; i++) {
+            const parsedTrade = this.parseWSTrade (rawTrades[i], market);
+            trades.append (parsedTrade);
+        }
+        client.resolve (trades, messageHash);
     }
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -664,6 +736,7 @@ module.exports = class wazirx extends wazirxRest {
             'ticker@arr': this.handleTicker,
             '@depth': this.handleOrderBook,
             '@kline': this.handleOHLCV,
+            '@trades': this.handleTrades,
             'outboundAccountPosition': this.handleBalance,
             'orderUpdate': this.handleOrder,
             'ownTrade': this.handleMyTrades,
