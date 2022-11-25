@@ -2774,14 +2774,12 @@ module.exports = class huobi extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const result = {};
-        this.currencyNetworkPairIdsByDisplayName = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
             const chains = this.safeValue (entry, 'chains', []);
             const networks = {};
-            this.currencyNetworkPairIdsByDisplayName[code] = {};
             const instStatus = this.safeString (entry, 'instStatus');
             const currencyActive = instStatus === 'normal';
             let minPrecision = undefined;
@@ -2792,9 +2790,7 @@ module.exports = class huobi extends Exchange {
             for (let j = 0; j < chains.length; j++) {
                 const chain = chains[j];
                 const displayName = this.safeString (chain, 'displayName');
-                const currencyNetworkPairId = this.safeString (chain, 'chain');
-                this.currencyNetworkPairIdsByDisplayName[code][displayName] = currencyNetworkPairId;
-                const networkCode = this.networkIdToCode (currencyNetworkPairId, code);
+                const networkCode = this.networkIdToCode (displayName);
                 minWithdraw = this.safeNumber (chain, 'minWithdrawAmt');
                 maxWithdraw = this.safeNumber (chain, 'maxWithdrawAmt');
                 const withdrawStatus = this.safeString (chain, 'withdrawStatus');
@@ -2857,19 +2853,30 @@ module.exports = class huobi extends Exchange {
                 'networks': networks,
             };
         }
+        this.defineNeworkPairIds (result);
         return result;
     }
 
-    networkCodeToId (networkCode, currencyCode = undefined) {
-        const networks = this.safeValue (this.options, 'networks', {});
-        const commonNetworkCode = this.safeString (networks, networkCode, networkCode);
-        const currencySpecificNetworkPairId = this.currencyNetworkPairIdsByDisplayName[currencyCode][commonNetworkCode]; // i.e. usdterc20, trc20usdt
-        return currencySpecificNetworkPairId;
-    }
-
-    networkIdToCode (networkId, currencyCode = undefined) {
-        const networkCodesByIds = this.safeValue (this.options, 'networksById', {});
-        return this.safeString (networkCodesByIds, networkId, networkId);
+    defineNetworkPairIds (currencies) {
+        const currencyCodes = Object.keys (currencies);
+        this.networkPairIdByNetworkId = {};
+        this.networkIdByNetworkPairId = {};
+        for (let i = 0; i < currencyCodes.length; i++) {
+            const currencyCode = currencyCodes[i];
+            this.networkPairIdByNetworkId[currencyCode] = {};
+            this.networkIdByNetworkPairId[currencyCode] = {};
+            const currency = currencies[currencyKey];
+            const networks = this.safeValue (currency, 'networks', {});
+            const networkKeys = Object.keys (networks);
+            for (let j = 0; j < networkKeys.length; j++) {
+                const networkKey = networkKeys[j];
+                const network = networks[networkKey];
+                const id = network['id'];
+                const info = network['info'];
+                const networkPairId = this.safeString (info, 'chain');
+                this.networkPairIdByNetworkId[code][id] = networkPairId;
+                this.networkIdByNetworkPairId[code][networkPairId] = id;
+        }
     }
 
     async fetchBalance (params = {}) {
@@ -4723,6 +4730,20 @@ module.exports = class huobi extends Exchange {
         const selectedNetworkId = this.selectNetworkIdFromAvailableNetworks (code, networkCode, chainsIndexedById);
         const addressObject = this.safeValue (chainsIndexedById, selectedNetworkId, {});
         return this.parseDepositAddress (addressObject, code);
+    }
+
+    selectNetworkIdFromAvailableNetworks (currencyCode, networkCode, networkEntriesIndexed) {
+        const renamedNetworkIds = {};
+        const networkPairIdKeys = Object.keys (networkEntriesIndexed);
+        for (let i = 0; i < networkPairIdKeys.length; i++) {
+            const key = networkPairIdKeys[i];
+            const networkId = this.networkIdByNetworkPairId[key];
+            renamedNetworkIds[networkId]
+            const network = this.safeString (networkEntry, 'network');
+            if (network === networkCode) {
+                return networkId;
+            }
+        }
     }
 
     async fetchWithdrawAddressesByNetwork (code, params = {}) {
