@@ -21,8 +21,6 @@
     "currencycom":   { "skipWs": true },
     "deribit":       { "skipWs": false },
     "exmo":          { "skipWs": true },
-    "ftx":           { "skipWs": true, "skip": true },
-    "ftxus":         { "skipWs": true, "skip": true },
     "gate":          { "skipWs": true },
     "hitbtc":        { "skipWs": true },
     "hollaex":       { "skipWs": true },
