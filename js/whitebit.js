@@ -186,6 +186,7 @@ module.exports = class whitebit extends Exchange {
                 },
             },
             'options': {
+                'beneficiaryProviders': [ 'VISAMASTER', 'CHECKOUT', 'UAH_IBAN' ],
                 'fiatCurrencies': [ 'EUR', 'USD', 'UAH', 'TRY', 'KZT' ],
                 'accountsByType': {
                     'main': 'main',
@@ -736,7 +737,7 @@ module.exports = class whitebit extends Exchange {
             'market': market['id'],
         };
         if (limit !== undefined) {
-            request['depth'] = limit; // default = 50, maximum = 100
+            request['limit'] = limit; // default = 50, maximum = 100
         }
         const response = await this.v4PublicGetOrderbookMarket (this.extend (request, params));
         //
@@ -1155,8 +1156,11 @@ module.exports = class whitebit extends Exchange {
             const balance = response[id];
             const code = this.safeCurrencyCode (id);
             const account = this.account ();
-            account['free'] = this.safeString (balance, 'available');
-            account['used'] = this.safeString (balance, 'freeze');
+            const mainBalance = this.safeString (balance, 'main_balance');
+            const available = this.safeString (balance, 'available');
+            const freeze = this.safeString (balance, 'freeze');
+            account['free'] = Precise.stringAdd (available, mainBalance);
+            account['used'] = freeze;
             result[code] = account;
         }
         return this.safeBalance (result);
@@ -1171,14 +1175,34 @@ module.exports = class whitebit extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.v4PrivatePostTradeAccountBalance (params);
+        const mainBalance = await this.v4PrivatePostMainAccountBalance (params);
+        const tradeBalance = await this.v4PrivatePostTradeAccountBalance (params);
+        const result = this.extend (mainBalance, tradeBalance);
+        // Main balance (no params)
+        //      {
+        //          "BTC": { "main_balance": "1" },
+        //          "USDT": { "main_balance": "200" },
+        //      }
         //
+        // Main balance (with ticker params)
+        //      { "main_balance": "1" }
+        //
+        // Trade balance (no params)
         //     {
         //         "BTC": { "available": "0.123", "freeze": "1" },
         //         "XMR": { "available": "3013", "freeze": "100" },
         //     }
         //
-        return this.parseBalance (response);
+        // Trade balance (with ticker params)
+        //     { "available": "0.123", "freeze": "1" }
+        //
+        const code = this.safeValue (params, 'ticker');
+        if (code === undefined) {
+            return this.parseBalance (result);
+        }
+        const hash = {};
+        hash[code] = result;
+        return this.parseBalance (hash);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1558,20 +1582,16 @@ module.exports = class whitebit extends Exchange {
         const accountsByType = this.safeValue (this.options, 'accountsByType');
         const fromAccountId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toAccountId = this.safeString (accountsByType, toAccount, toAccount);
-        const amountString = amount.toString ();
+        const amountString = this.numberToString (amount);
         const request = {
             'ticker': currency['id'],
-            'amount': this.currencyToPrecision (code, amountString),
+            'amount': amountString,
             'from': fromAccountId,
             'to': toAccountId,
         };
         const response = await this.v4PrivatePostMainAccountTransfer (this.extend (request, params));
-        //
-        //    []
-        //
-        const transfer = this.parseTransfer (response, currency);
-        return this.extend (transfer, {
-            'amount': this.currencyToPrecision (code, amountString),
+        return this.extend (this.parseTransfer (response, currency), {
+            'amount': amountString,
             'fromAccount': fromAccount,
             'toAccount': toAccount,
         });
@@ -1610,23 +1630,65 @@ module.exports = class whitebit extends Exchange {
         const currency = this.currency (code); // check if it has canDeposit
         const request = {
             'ticker': currency['id'],
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.numberToString (amount),
             'address': address,
         };
         let uniqueId = this.safeValue (params, 'uniqueId');
         if (uniqueId === undefined) {
             uniqueId = this.uuid22 ();
+            request['uniqueId'] = uniqueId;
         }
-        request['uniqueId'] = uniqueId;
-        if (tag !== undefined) {
+        if (this.isMultinetwork (code)) {
+            const network = this.safeValue (params, 'network');
+            if (params === undefined || params['network'] === undefined) {
+                throw new ArgumentsRequired (this.id + ' withdraw() requires a network when the ticker is multinetwork');
+            }
+            request['network'] = network;
+        }
+        if (this.isMemo (code)) {
+            if (tag === undefined) {
+                throw new ArgumentsRequired (this.id + ' withdraw() requires a tag when the ticker has memo');
+            }
             request['memo'] = tag;
         }
         if (this.isFiat (code)) {
             const provider = this.safeValue (params, 'provider');
+            const partialEnable = this.safeValue (params, 'partialEnable');
+            if (partialEnable !== undefined) {
+                request['partialEnable'] = provider;
+            }
             if (provider === undefined) {
                 throw new ArgumentsRequired (this.id + ' withdraw() requires a provider when the ticker is fiat');
             }
             request['provider'] = provider;
+            if (this.hasBeneficiaryForWithdraw (code, provider)) {
+                const beneficiary = this.safeValue (params, 'beneficiary');
+                const tin = this.safeValue (beneficiary, 'tin');
+                const phone = this.safeValue (beneficiary, 'phone');
+                const firstName = this.safeValue (beneficiary, 'firstName');
+                const lastName = this.safeValue (beneficiary, 'lastName');
+                if (beneficiary === undefined) {
+                    throw new ArgumentsRequired (this.id + ' withdraw() requires a beneficiary when the provider is ' + provider);
+                }
+                request['beneficiary'] = {};
+                if (firstName === undefined || lastName === undefined) {
+                    throw new ArgumentsRequired (this.id + ' withdraw() requires a beneficiary.firstName and beneficiary.lastName when the provider is ' + provider);
+                }
+                request['beneficiary']['firstName'] = firstName;
+                request['beneficiary']['lastName'] = lastName;
+                if (provider === 'VISAMASTER') {
+                    if (phone === undefined) {
+                        throw new ArgumentsRequired (this.id + ' withdraw() requires a beneficiary.phone when the provider is ' + provider);
+                    }
+                    request['beneficiary']['phone'] = phone;
+                }
+                if (provider === 'UAH_IBAN') {
+                    if (tin === undefined) {
+                        throw new ArgumentsRequired (this.id + ' withdraw() requires a beneficiary.tin when the provider is ' + provider);
+                    }
+                    request['beneficiary']['tin'] = tin;
+                }
+            }
         }
         const response = await this.v4PrivatePostMainAccountWithdraw (this.extend (request, params));
         //
@@ -1934,6 +1996,12 @@ module.exports = class whitebit extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'info': info,
         };
+    }
+
+    hasBeneficiaryForWithdraw (params) {
+        const provider = this.safeValue (params, 'provider');
+        const providers = this.safeValue (this.options, 'beneficiaryProviders', []);
+        return this.inArray (provider, providers);
     }
 
     isMultinetwork (code) {
