@@ -4,7 +4,7 @@
 
 const Exchange = require ('./base/Exchange');
 const { TICK_SIZE } = require ('./base/functions/number');
-const { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, InvalidAddress } = require ('./base/errors');
+const { AuthenticationError, ExchangeError, ArgumentsRequired, PermissionDenied, InvalidOrder, OrderNotFound, InsufficientFunds, BadRequest, RateLimitExceeded, InvalidNonce, NotSupported, InvalidAddress, BadReqeust } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 
 //  ---------------------------------------------------------------------------
@@ -508,15 +508,157 @@ module.exports = class bybit extends Exchange {
                     '10005': PermissionDenied, // permission denied for current apikey
                     '10006': RateLimitExceeded, // too many requests
                     '10007': AuthenticationError, // api_key not found in your request parameters
+                    '10008': AuthenticationError, // User had been banned
+                    '10009': AuthenticationError, // IP had been banned
                     '10010': PermissionDenied, // request ip mismatch
+                    '10014': BadRequest, // Request is duplicate
                     '10016': ExchangeError, // {"retCode":10016,"retMsg":"System error. Please try again later."}
                     '10017': BadRequest, // request path not found or request method is invalid
                     '10018': RateLimitExceeded, // exceed ip rate limit
                     '10020': PermissionDenied, // {"retCode":10020,"retMsg":"your account is not a unified margin account, please update your account","result":null,"retExtInfo":null,"time":1664783731123}
+                    '10027': PermissionDenied, // Trading Banned
                     '12201': BadRequest, // {"retCode":12201,"retMsg":"Invalid orderCategory parameter.","result":{},"retExtInfo":null,"time":1666699391220}
+                    '110001': InvalidOrder, // Order does not exist
+                    '110003': InvalidOrder, // Order price is out of permissible range
+                    '110004': InsufficientFunds, // Insufficient wallet balance
+                    '110005': InvalidOrder, // position status
+                    '110006': InsufficientFunds, // cannot afford estimated position_margin
                     '110007': InsufficientFunds, // {"retCode":110007,"retMsg":"ab not enough for new order","result":{},"retExtInfo":{},"time":1668838414793}
+                    '110008': InvalidOrder, // Order has been finished or canceled
+                    '110009': InvalidOrder, // The number of stop orders exceeds maximum limit allowed
+                    '110010': InvalidOrder, // Order already cancelled
+                    '110011': InvalidOrder, // Any adjustments made will trigger immediate liquidation
+                    '110012': InsufficientFunds, // Available balance not enough
+                    '110013': BadRequest, // Due to risk limit, cannot set leverage
+                    '110014': InsufficientFunds, // Available balance not enough to add margin
+                    '110015': BadRequest, // the position is in cross_margin
+                    '110016': InvalidOrder, // Requested quantity of contracts exceeds risk limit, please adjust your risk limit level before trying again
+                    '110017': InvalidOrder, // Reduce-only rule not satisfied
+                    '110018': BadRequest, // userId illegal
+                    '110019': InvalidOrder, // orderId illegal
+                    '110020': InvalidOrder, // number of active orders greater than 500
+                    '110021': InvalidOrder, // Open Interest exceeded
+                    '110022': InvalidOrder, // qty has been limited, cannot modify the order to add qty
+                    '110023': InvalidOrder, // This contract only supports position reduction operation, please contact customer service for details
+                    '110024': InvalidOrder, // You have an existing position, so position mode cannot be switched
+                    '110025': InvalidOrder, // Position mode is not modified
+                    '110026': InvalidOrder, // Cross/isolated margin mode is not modified
+                    '110027': InvalidOrder, // Margin is not modified
+                    '110028': InvalidOrder, // Open orders exist, so you cannot change position mode
+                    '110029': InvalidOrder, // Hedge mode is not available for this symbol
+                    '110030': InvalidOrder, // Duplicate orderId
+                    '110031': InvalidOrder, // risk limit info does not exists
+                    '110032': InvalidOrder, // Illegal order
+                    '110033': InvalidOrder, // Margin cannot be set without open position
+                    '110034': InvalidOrder, // There is no net position
+                    '110035': InvalidOrder, // Cancel order is not completed before liquidation
+                    '110036': InvalidOrder, // Cross margin mode is not allowed to change leverage
+                    '110037': InvalidOrder, // User setting list does not have this symbol
+                    '110038': InvalidOrder, // Portfolio margin mode is not allowed to change leverage
+                    '110039': InvalidOrder, // Maintain margin rate is too high, which may trigger liquidation
+                    '110040': InvalidOrder, // Order will trigger forced liquidation, please resubmit the order
+                    '110041': InvalidOrder, // Skip liquidation is not allowed when a position or maker order exists
+                    '110042': InvalidOrder, // Pre-delivery status can only reduce positions
+                    '110043': BadRequest, // Set leverage not modified
+                    '110044': InsufficientFunds, // Insufficient available margin
+                    '110045': InsufficientFunds, // Insufficient wallet balance
+                    '110046': BadRequest, // Any adjustments made will trigger immediate liquidation
+                    '110047': BadRequest, // Risk limit cannot be adjusted due to insufficient available margin
+                    '110048': BadRequest, // Risk limit cannot be adjusted as the current/expected position value held exceeds the revised risk limit
+                    '110049': BadRequest, // Tick notes can only be numbers
+                    '110050': BadRequest, // Coin is not in the range of selected
+                    '110051': InsufficientFunds, // The user's available balance cannot cover the lowest price of the current market
+                    '110052': InsufficientFunds, // User's available balance is insufficient to set a price
+                    '110053': InsufficientFunds, // The user's available balance cannot cover the current market price and upper limit price
+                    '110054': InvalidOrder, // This position has at least one take profit link order, so the take profit and stop loss mode cannot be switched
+                    '110055': InvalidOrder, // This position has at least one stop loss link order, so the take profit and stop loss mode cannot be switched
+                    '110056': InvalidOrder, // This position has at least one trailing stop link order, so the take profit and stop loss mode cannot be switched
+                    '110057': InvalidOrder, // Conditional order or limit order contains TP/SL related params
+                    '110058': InvalidOrder, // Insufficient number of remaining position size to set take profit and stop loss
+                    '110059': InvalidOrder, // In the case of partial filled of the open order, it is not allowed to modify the take profit and stop loss settings of the open order
+                    '110060': BadRequest, // Under full TP/SL mode, it is not allowed to modify TP/SL
+                    '110061': BadRequest, // Under partial TP/SL mode, TP/SL set more than 20
+                    '110062': BadRequest, // Institution MMP profile not found.
+                    '110063': ExchangeError, // Settlement in progress! xxx not available for trades.
+                    '110064': InvalidOrder, // The number of contracts modified cannot be less than or equal to the filled quantity
+                    '110065': PermissionDenied, // MMP hasn't yet been enabled for your account. Please contact your BD manager.
+                    '110066': ExchangeError, // No trading is allowed at the current time
+                    '110067': PermissionDenied, // unified account is not support
+                    '110068': PermissionDenied, // Leveraged user trading is not allowed
+                    '110069': PermissionDenied, // Do not allow OTC lending users to trade
+                    '110070': InvalidOrder, // ETP symbols are not allowed to be traded
+                    '130006': InvalidOrder, // {"ret_code":130006,"ret_msg":"The number of contracts exceeds maximum limit allowed: too large","ext_code":"","ext_info":"","result":null,"time_now":"1658397095.099030","rate_limit_status":99,"rate_limit_reset_ms":1658397095097,"rate_limit":100}
+                    '130021': InsufficientFunds, // {"ret_code":130021,"ret_msg":"orderfix price failed for CannotAffordOrderCost.","ext_code":"","ext_info":"","result":null,"time_now":"1644588250.204878","rate_limit_status":98,"rate_limit_reset_ms":1644588250200,"rate_limit":100} |  {"ret_code":130021,"ret_msg":"oc_diff[1707966351], new_oc[1707966351] with ob[....]+AB[....]","ext_code":"","ext_info":"","result":null,"time_now":"1658395300.872766","rate_limit_status":99,"rate_limit_reset_ms":1658395300855,"rate_limit":100} caused issues/9149#issuecomment-1146559498
+                    '130074': InvalidOrder, // {"ret_code":130074,"ret_msg":"expect Rising, but trigger_price[190000000] \u003c= current[211280000]??LastPrice","ext_code":"","ext_info":"","result":null,"time_now":"1655386638.067076","rate_limit_status":97,"rate_limit_reset_ms":1655386638065,"rate_limit":100}
                     '131001': InsufficientFunds, // {"retCode":131001,"retMsg":"the available balance is not sufficient to cover the handling fee","result":{},"retExtInfo":{},"time":1666892821245}
-                    '140025': BadRequest, // {"retCode":140025,"retMsg":"position mode not modified","result":{},"retExtInfo":{},"time":1668693678336}
+                    '140003': InvalidOrder, // Order price is out of permissible range
+                    '140004': InsufficientFunds, // Insufficient wallet balance
+                    '140005': InvalidOrder, // position status
+                    '140006': InsufficientFunds, // cannot afford estimated position_margin
+                    '140007': InsufficientFunds, // Insufficient available balance
+                    '140008': InvalidOrder, // Order has been finished or canceled
+                    '140009': InvalidOrder, // The number of stop orders exceeds maximum limit allowed
+                    '140010': InvalidOrder, // Order already cancelled
+                    '140011': InvalidOrder, // Any adjustments made will trigger immediate liquidation
+                    '140012': InsufficientFunds, // Available balance not enough
+                    '140013': BadRequest, // Due to risk limit, cannot set leverage
+                    '140014': InsufficientFunds, // Available balance not enough to add margin
+                    '140015': InvalidOrder, // the position is in cross_margin
+                    '140016': InvalidOrder, // Requested quantity of contracts exceeds risk limit, please adjust your risk limit level before trying again
+                    '140017': InvalidOrder, // Reduce-only rule not satisfied
+                    '140018': BadRequest, // userId illegal
+                    '140019': InvalidOrder, // orderId illegal
+                    '140020': InvalidOrder, // number of active orders greater than 500
+                    '140021': InvalidOrder, // Open Interest exceeded
+                    '140022': InvalidOrder, // qty has been limited, cannot modify the order to add qty
+                    '140023': InvalidOrder, // This contract only supports position reduction operation, please contact customer service for details
+                    '140024': BadReqeust, // You have an existing position, so position mode cannot be switched
+                    '140025': BadRequest, // Position mode is not modified
+                    '140026': BadRequest, // Cross/isolated margin mode is not modified
+                    '140027': BadRequest, // Margin is not modified
+                    '140028': InvalidOrder, // Open orders exist, so you cannot change position mode
+                    '140029': BadRequest, // Hedge mode is not available for this symbol
+                    '140030': InvalidOrder, // Duplicate orderId
+                    '140031': BadRequest, // risk limit info does not exists
+                    '140032': InvalidOrder, // Illegal order
+                    '140033': InvalidOrder, // Margin cannot be set without open position
+                    '140034': InvalidOrder, // There is no net position
+                    '140035': InvalidOrder, // Cancel order is not completed before liquidation
+                    '140036': BadRequest, // Cross margin mode is not allowed to change leverage
+                    '140037': InvalidOrder, // User setting list does not have this symbol
+                    '140038': BadRequest, // Portfolio margin mode is not allowed to change leverage
+                    '140039': BadRequest, // Maintain margin rate is too high, which may trigger liquidation
+                    '140040': InvalidOrder, // Order will trigger forced liquidation, please resubmit the order
+                    '140041': InvalidOrder, // Skip liquidation is not allowed when a position or maker order exists
+                    '140042': InvalidOrder, // Pre-delivery status can only reduce positions
+                    '140043': BadRequest, // Set leverage not modified
+                    '140044': InsufficientFunds, // Insufficient available margin
+                    '140045': InsufficientFunds, // Insufficient wallet balance
+                    '140046': BadRequest, // Any adjustments made will trigger immediate liquidation
+                    '140047': BadRequest, // Risk limit cannot be adjusted due to insufficient available margin
+                    '140048': BadRequest, // Risk limit cannot be adjusted as the current/expected position value held exceeds the revised risk limit
+                    '140049': BadReqeust, // Tick notes can only be numbers
+                    '140050': InvalidOrder, // Coin is not in the range of selected
+                    '140051': InsufficientFunds, // The user's available balance cannot cover the lowest price of the current market
+                    '140052': InsufficientFunds, // User's available balance is insufficient to set a price
+                    '140053': InsufficientFunds, // The user's available balance cannot cover the current market price and upper limit price
+                    '140054': InvalidOrder, // This position has at least one take profit link order, so the take profit and stop loss mode cannot be switched
+                    '140055': InvalidOrder, // This position has at least one stop loss link order, so the take profit and stop loss mode cannot be switched
+                    '140056': InvalidOrder, // This position has at least one trailing stop link order, so the take profit and stop loss mode cannot be switched
+                    '140057': InvalidOrder, // Conditional order or limit order contains TP/SL related params
+                    '140058': InvalidOrder, // Insufficient number of remaining position size to set take profit and stop loss
+                    '140059': InvalidOrder, // In the case of partial filled of the open order, it is not allowed to modify the take profit and stop loss settings of the open order
+                    '140060': BadRequest, // Under full TP/SL mode, it is not allowed to modify TP/SL
+                    '140061': BadRequest, // Under partial TP/SL mode, TP/SL set more than 20
+                    '140062': BadRequest, // Institution MMP profile not found.
+                    '140063': ExchangeError, // Settlement in progress! xxx not available for trades.
+                    '140064': InvalidOrder, // The number of contracts modified cannot be less than or equal to the filled quantity
+                    '140065': PermissionDenied, // MMP hasn't yet been enabled for your account. Please contact your BD manager.
+                    '140066': ExchangeError, // No trading is allowed at the current time
+                    '140067': PermissionDenied, // unified account is not support
+                    '140068': PermissionDenied, // Leveraged user trading is not allowed
+                    '140069': PermissionDenied, // Do not allow OTC lending users to trade
+                    '140070': InvalidOrder, // ETP symbols are not allowed to be traded
                     '20001': OrderNotFound, // Order not exists
                     '20003': InvalidOrder, // missing parameter side
                     '20004': InvalidOrder, // invalid parameter side
@@ -600,10 +742,6 @@ module.exports = class bybit extends Exchange {
                     '34026': ExchangeError, // the limit is no change
                     '34036': BadRequest, // {"ret_code":34036,"ret_msg":"leverage not modified","ext_code":"","ext_info":"","result":null,"time_now":"1652376449.258918","rate_limit_status":74,"rate_limit_reset_ms":1652376449255,"rate_limit":75}
                     '35015': BadRequest, // {"ret_code":35015,"ret_msg":"Qty not in range","ext_code":"","ext_info":"","result":null,"time_now":"1652277215.821362","rate_limit_status":99,"rate_limit_reset_ms":1652277215819,"rate_limit":100}
-                    '110043': BadRequest, // {"retCode":110043,"retMsg":"leverage not modified","result":{},"retExtInfo":null,"time":1665720465151}
-                    '130006': InvalidOrder, // {"ret_code":130006,"ret_msg":"The number of contracts exceeds maximum limit allowed: too large","ext_code":"","ext_info":"","result":null,"time_now":"1658397095.099030","rate_limit_status":99,"rate_limit_reset_ms":1658397095097,"rate_limit":100}
-                    '130021': InsufficientFunds, // {"ret_code":130021,"ret_msg":"orderfix price failed for CannotAffordOrderCost.","ext_code":"","ext_info":"","result":null,"time_now":"1644588250.204878","rate_limit_status":98,"rate_limit_reset_ms":1644588250200,"rate_limit":100} |  {"ret_code":130021,"ret_msg":"oc_diff[1707966351], new_oc[1707966351] with ob[....]+AB[....]","ext_code":"","ext_info":"","result":null,"time_now":"1658395300.872766","rate_limit_status":99,"rate_limit_reset_ms":1658395300855,"rate_limit":100} caused issues/9149#issuecomment-1146559498
-                    '130074': InvalidOrder, // {"ret_code":130074,"ret_msg":"expect Rising, but trigger_price[190000000] \u003c= current[211280000]??LastPrice","ext_code":"","ext_info":"","result":null,"time_now":"1655386638.067076","rate_limit_status":97,"rate_limit_reset_ms":1655386638065,"rate_limit":100}
                     '3100116': BadRequest, // {"retCode":3100116,"retMsg":"Order quantity below the lower limit 0.01.","result":null,"retExtMap":{"key0":"0.01"}}
                     '3100198': BadRequest, // {"retCode":3100198,"retMsg":"orderLinkId can not be empty.","result":null,"retExtMap":{}}
                     '3200300': InsufficientFunds, // {"retCode":3200300,"retMsg":"Insufficient margin balance.","result":null,"retExtMap":{}}
