@@ -216,6 +216,7 @@ module.exports = class bitget extends Exchange {
                             'plan/placePositionsTPSL': 2,
                             'plan/modifyTPSLPlan': 2,
                             'plan/cancelPlan': 2,
+                            'plan/cancelAllPlan': 2,
                             'trace/closeTrackOrder': 2,
                             'trace/setUpCopySymbols': 2,
                         },
@@ -2460,7 +2461,7 @@ module.exports = class bitget extends Exchange {
          * @name bitget#cancelAllOrders
          * @description cancel all open orders
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-order
-         * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-plan-order-tpsl
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-trigger-order-tpsl
          * @param {string|undefined} symbol unified market symbol
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @param {string} params.code marginCoin unified currency code
@@ -2488,7 +2489,7 @@ module.exports = class bitget extends Exchange {
             if (planType === undefined) {
                 throw new ArgumentsRequired (this.id + ' cancelOrder() requires a planType parameter for stop orders, either normal_plan, profit_plan, loss_plan, pos_profit, pos_loss, moving_plan or track_plan');
             }
-            method = 'privateMixPostPlanCancelPlan';
+            method = 'privateMixPostPlanCancelAllPlan';
             params = this.omit (params, [ 'stop' ]);
         } else {
             const code = this.safeString2 (params, 'code', 'marginCoin');
@@ -2496,8 +2497,8 @@ module.exports = class bitget extends Exchange {
                 throw new ArgumentsRequired (this.id + ' cancelAllOrders () requires a code argument (marginCoin) in the params');
             }
             const currency = this.currency (code);
-            method = 'privateMixPostOrderCancelAllOrders';
             request['marginCoin'] = this.safeCurrencyCode (code, currency);
+            method = 'privateMixPostOrderCancelAllOrders';
         }
         params = this.omit (query, [ 'code', 'marginCoin' ]);
         const response = await this[method] (this.extend (request, params));
