@@ -2889,6 +2889,20 @@ module.exports = class huobi extends Exchange {
         }
     }
 
+    networkCodeFromPairId (info, key, currencyCode) {
+        const networkPairId = this.safeString (info, key);
+        const networkIds = this.safeValue (this.networkIdByNetworkPairId, currencyCode, {});
+        const networkId = this.safeValue (networkIds, networkPairId, networkPairId);
+        return this.networkIdToCode (networkId);
+    }
+
+    networkPairIdFromCode (currencyCode, networkCode) {
+        const networkId = this.networkCodeToId (networkCode);
+        const networkPairIds = this.safeValue (this.networkPairIdByNetworkId, currencyCode, {});
+        const networkPairId = this.safeValue (networkPairIds, networkId, networkId);
+        return networkPairId;
+    }
+
     async fetchBalance (params = {}) {
         /**
          * @method
@@ -4731,20 +4745,6 @@ module.exports = class huobi extends Exchange {
         const indexedAddresses = await this.fetchDepositAddressesByNetwork (code, paramsOmited);
         const selectedNetworkId = this.selectNetworkIdFromAvailableNetworks (code, networkCode, indexedAddresses);
         return indexedAddresses[selectedNetworkId];
-    }
-
-    networkCodeFromPairId (info, key, currencyCode) {
-        const networkPairId = this.safeString (info, key);
-        const networkIds = this.safeValue (this.networkIdByNetworkPairId, currencyCode, {});
-        const networkId = this.safeValue (networkIds, networkPairId, networkPairId);
-        return this.networkIdToCode (networkId);
-    }
-
-    networkPairIdFromCode (currencyCode, networkCode) {
-        const networkId = this.networkCodeToId (networkCode);
-        const networkPairIds = this.safeValue (this.networkPairIdByNetworkId, currencyCode, {});
-        const networkPairId = this.safeValue (networkPairIds, networkId, networkId);
-        return networkPairId;
     }
 
     async fetchWithdrawAddresses (code, note = undefined, networkCode = undefined, params = {}) {
