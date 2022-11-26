@@ -21,7 +21,7 @@ class wazirx extends \ccxt\async\wazirx {
                 'watchBalance' => true,
                 'watchTicker' => true,
                 'watchTickers' => true,
-                'watchTrades' => false,
+                'watchTrades' => true,
                 'watchMyTrades' => true,
                 'watchOrders' => true,
                 'watchOrderBook' => true,
@@ -107,6 +107,19 @@ class wazirx extends \ccxt\async\wazirx {
 
     public function parse_ws_trade($trade, $market = null) {
         //
+        // $trade
+        //     {
+        //         "E" => 1631681323000,  Event time
+        //         "S" => "buy",          Side
+        //         "a" => 26946138,       Buyer order ID
+        //         "b" => 26946169,       Seller order ID
+        //         "m" => true,           Is buyer maker?
+        //         "p" => "7.0",          Price
+        //         "q" => "15.0",         Quantity
+        //         "s" => "btcinr",       Symbol
+        //         "t" => 17376030        Trade ID
+        //     }
+        // ownTrade
         //     {
         //         "E" => 1631683058000,
         //         "S" => "ask",
@@ -126,25 +139,31 @@ class wazirx extends \ccxt\async\wazirx {
         $timestamp = $this->safe_integer($trade, 'E');
         $marketId = $this->safe_string($trade, 's');
         $market = $this->safe_market($marketId, $market);
+        $feeCost = $this->safe_string($trade, 'f');
         $feeCurrencyId = $this->safe_string($trade, 'U');
+        $isMaker = $this->safe_value($trade, 'm') === true;
+        $fee = null;
+        if ($feeCost !== null) {
+            $fee = array(
+                'cost' => $feeCost,
+                'currency' => $this->safe_currency_code($feeCurrencyId),
+                'rate' => null,
+            );
+        }
         return $this->safe_trade(array(
             'id' => $this->safe_string($trade, 't'),
             'info' => $trade,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $market['symbol'],
-            'order' => $this->safe_string($trade, 'o'),
+            'order' => $this->safe_string_n($trade, array( 'o' )),
             'type' => null,
-            'side' => null,
-            'takerOrMaker' => $this->safe_value($trade, 'm'),
+            'side' => $this->safe_string($trade, 'S'),
+            'takerOrMaker' => $isMaker ? 'maker' : 'taker',
             'price' => $this->safe_string($trade, 'p'),
             'amount' => $this->safe_string($trade, 'q'),
             'cost' => null,
-            'fee' => array(
-                'cost' => $this->safe_string($trade, 'f'),
-                'currency' => $this->safe_currency_code($feeCurrencyId),
-                'rate' => null,
-            ),
+            'fee' => $fee,
         ), $market);
     }
 
@@ -272,6 +291,73 @@ class wazirx extends \ccxt\async\wazirx {
             'quoteVolume' => $this->safe_string($ticker, 'q'),
             'info' => $ticker,
         ), $market);
+    }
+
+    public function watch_trades($symbol, $since = null, $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * get the list of most recent $trades for a particular $symbol
+             * @param {string} $symbol unified $symbol of the $market to fetch $trades for
+             * @param {int|null} $since timestamp in ms of the earliest trade to fetch
+             * @param {int|null} $limit the maximum amount of $trades to fetch
+             * @param {array} $params extra parameters specific to the wazirx api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-$trades trade structures~
+             */
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $symbol = $market['symbol'];
+            $messageHash = $market['id'] . '@trades';
+            $url = $this->urls['api']['ws'];
+            $message = array(
+                'event' => 'subscribe',
+                'streams' => array( $messageHash ),
+            );
+            $request = array_merge($message, $params);
+            $trades = Async\await($this->watch($url, $messageHash, $request, $messageHash));
+            if ($this->newUpdates) {
+                $limit = $trades->getLimit ($symbol, $limit);
+            }
+            return $this->filter_by_since_limit($trades, $since, $limit, 'timestamp', true);
+        }) ();
+    }
+
+    public function handle_trades($client, $message) {
+        //
+        //     {
+        //         "data" => array(
+        //             "trades" => [array(
+        //                 "E" => 1631681323000,  Event time
+        //                 "S" => "buy",          Side
+        //                 "a" => 26946138,       Buyer order ID
+        //                 "b" => 26946169,       Seller order ID
+        //                 "m" => true,           Is buyer maker?
+        //                 "p" => "7.0",          Price
+        //                 "q" => "15.0",         Quantity
+        //                 "s" => "btcinr",       Symbol
+        //                 "t" => 17376030        Trade ID
+        //             )]
+        //         ),
+        //         "stream" => "btcinr@$trades"
+        //     }
+        //
+        $data = $this->safe_value($message, 'data', array());
+        $rawTrades = $this->safe_value($data, 'trades', array());
+        $messageHash = $this->safe_string($message, 'stream');
+        $split = explode('@', $messageHash);
+        $marketId = $this->safe_string($split, 0);
+        $market = $this->safe_market($marketId);
+        $symbol = $this->safe_symbol($marketId, $market);
+        $trades = $this->safe_value($this->trades, $symbol);
+        if ($trades === null) {
+            $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
+            $trades = new ArrayCache ($limit);
+            $this->trades[$symbol] = $trades;
+        }
+        for ($i = 0; $i < count($rawTrades); $i++) {
+            $parsedTrade = $this->parse_ws_trade($rawTrades[$i], $market);
+            $trades->append ($parsedTrade);
+        }
+        $client->resolve ($trades, $messageHash);
     }
 
     public function watch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
@@ -652,10 +738,19 @@ class wazirx extends \ccxt\async\wazirx {
         //         "id" => 0
         //     }
         //
+        //     {
+        //         $message => 'HeartBeat $message not received, closing the connection',
+        //         status => 'error'
+        //     }
+        //
         throw new ExchangeError($this->id . ' ' . $this->json($message));
     }
 
     public function handle_message($client, $message) {
+        $status = $this->safe_string($message, 'status');
+        if ($status === 'error') {
+            return $this->handle_error($client, $message);
+        }
         $event = $this->safe_string($message, 'event');
         $eventHandlers = array(
             'error' => array($this, 'handle_error'),
@@ -671,6 +766,7 @@ class wazirx extends \ccxt\async\wazirx {
             'ticker@arr' => array($this, 'handle_ticker'),
             '@depth' => array($this, 'handle_order_book'),
             '@kline' => array($this, 'handle_ohlcv'),
+            '@trades' => array($this, 'handle_trades'),
             'outboundAccountPosition' => array($this, 'handle_balance'),
             'orderUpdate' => array($this, 'handle_order'),
             'ownTrade' => array($this, 'handle_my_trades'),
