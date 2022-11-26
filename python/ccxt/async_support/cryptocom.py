@@ -340,7 +340,12 @@ class cryptocom(Exchange):
         #                    margin_trading_enabled_5x: True,
         #                    margin_trading_enabled_10x: True,
         #                    max_quantity: '100000000',
-        #                    min_quantity: '0.01'
+        #                    min_quantity: '0.01',
+        #                    max_price:'1',
+        #                    min_price:'0.00000001',
+        #                    last_update_date:1667263094857,
+        #                    quantity_tick_size:'0.1',
+        #                    price_tick_size:'0.00000001'
         #               },
         #            ]
         #        }
@@ -356,8 +361,7 @@ class cryptocom(Exchange):
             quoteId = self.safe_string(market, 'quote_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            priceDecimals = self.safe_string(market, 'price_decimals')
-            minPrice = self.parse_precision(priceDecimals)
+            minPrice = self.safe_string(market, 'min_price')
             minQuantity = self.safe_string(market, 'min_quantity')
             maxLeverage = self.parse_number('1')
             margin_trading_enabled_5x = self.safe_value(market, 'margin_trading_enabled_5x')
@@ -391,8 +395,8 @@ class cryptocom(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantity_decimals'))),
-                    'price': self.parse_number(self.parse_precision(priceDecimals)),
+                    'amount': self.safe_number(market, 'quantity_tick_size'),
+                    'price': self.safe_number(market, 'price_tick_size'),
                 },
                 'limits': {
                     'leverage': {
@@ -405,7 +409,7 @@ class cryptocom(Exchange):
                     },
                     'price': {
                         'min': self.parse_number(minPrice),
-                        'max': None,
+                        'max': self.safe_number(market, 'max_price'),
                     },
                     'cost': {
                         'min': self.parse_number(Precise.string_mul(minQuantity, minPrice)),

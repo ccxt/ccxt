@@ -867,44 +867,6 @@ module.exports = class bybit extends Exchange {
         return this.safeInteger (response, 'time');
     }
 
-    networkIdToCode (networkId) {
-        const networksById = this.safeValue (this.options, 'networksById', {});
-        return this.safeString (networksById, networkId, networkId);
-    }
-
-    networkCodeToId (networkCode) {
-        const networks = this.safeValue (this.options, 'networks', {});
-        return this.safeStringUpper (networks, networkCode, networkCode);
-    }
-
-    handleNetworkCodeAndParams (code, params) {
-        const networks = this.safeValue (this.options, 'networks', {});
-        const networkCodeOrIdInParams = this.safeStringUpper2 (params, 'networkCode', 'network');
-        let networkId = undefined;
-        if (networkCodeOrIdInParams !== undefined) {
-            params = this.omit (params, [ 'networkCode', 'network' ]);
-            networkId = this.safeStringUpper (networks, networkCodeOrIdInParams, networkCodeOrIdInParams);
-        }
-        // if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for 'request'-side only and thus we do not fill it with anything. We can only use defaults after response is received
-        return [ networkId, params ];
-    }
-
-    defaultNetworkId (code) {
-        let targetNetworkCode = undefined;
-        const defaultNetworks = this.safeValue (this.options, 'defaultNetworks', {});
-        if (code in defaultNetworks) {
-            targetNetworkCode = defaultNetworks[code];
-        } else {
-            const defaultNetwork = this.safeValue (this.options, 'defaultNetwork');
-            if (defaultNetwork !== undefined) {
-                targetNetworkCode = defaultNetwork;
-            }
-        }
-        const networks = this.safeValue (this.options, 'networks', {});
-        const networkId = this.safeStringUpper (networks, targetNetworkCode, targetNetworkCode);
-        return networkId;
-    }
-
     async fetchCurrencies (params = {}) {
         /**
          * @method
@@ -1839,6 +1801,8 @@ module.exports = class bybit extends Exchange {
          * @method
          * @name bybit#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://bybit-exchange.github.io/docs/futuresV2/linear/#t-latestsymbolinfo
+         * @see https://bybit-exchange.github.io/docs/spot/v3/#t-spot_latestsymbolinfo
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
@@ -5209,7 +5173,8 @@ module.exports = class bybit extends Exchange {
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
-        const [ networkId, query ] = this.handleNetworkCodeAndParams (code, params);
+        const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
+        const networkId = this.networkCodeToId (networkCode);
         const currency = this.currency (code);
         const request = {
             'coin': currency['id'],
@@ -5239,27 +5204,10 @@ module.exports = class bybit extends Exchange {
         //
         const result = this.safeValue (response, 'result', {});
         const chains = this.safeValue (result, 'chains', []);
-        const chainsLength = chains.length;
-        if (chainsLength === 0) {
-            const errorMessage = (networkId !== undefined) ? ('network ' + networkId + ' was not found for ' + code) : ('no deposit networks were found for ' + code);
-            throw new InvalidAddress (this.id + ' fetchDepositAddress() - ' + errorMessage);
-        } else {
-            const chainsIndexedById = this.indexBy (chains, 'chain');
-            let chosenNetworkId = undefined;
-            if (networkId !== undefined) {
-                if (networkId in chainsIndexedById) {
-                    chosenNetworkId = networkId;
-                } else {
-                    throw new InvalidAddress (this.id + ' fetchDepositAddress() - no deposit networks were found for ' + code);
-                }
-            } else {
-                const ids = Object.keys (chainsIndexedById);
-                const defaultNetwordId = this.defaultNetworkId (code);
-                chosenNetworkId = (defaultNetwordId in chainsIndexedById) ? defaultNetwordId : ids[0];
-            }
-            const addressInfo = chainsIndexedById[chosenNetworkId];
-            return this.parseDepositAddress (addressInfo, currency);
-        }
+        const chainsIndexedById = this.indexBy (chains, 'chain');
+        const selectedNetworkId = this.selectNetworkIdFromAvailableNetworks (code, networkCode, chainsIndexedById);
+        const addressObject = this.safeValue (chainsIndexedById, selectedNetworkId, {});
+        return this.parseDepositAddress (addressObject, currency);
     }
 
     async fetchDeposits (code = undefined, since = undefined, limit = undefined, params = {}) {
@@ -5649,7 +5597,8 @@ module.exports = class bybit extends Exchange {
         if (tag !== undefined) {
             request['tag'] = tag;
         }
-        const [ networkId, query ] = this.handleNetworkCodeAndParams (code, params);
+        const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
+        const networkId = this.networkCodeToId (networkCode);
         if (networkId !== undefined) {
             request['chain'] = networkId;
         }

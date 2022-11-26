@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.2.10';
+$version = '2.2.35';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.2.10';
+    const VERSION = '2.2.35';
 
     public $browser;
     public $marketsLoading = null;
@@ -1093,6 +1093,71 @@ class Exchange extends \ccxt\Exchange {
         }
     }
 
+    public function network_code_to_id($networkCode) {
+        $networks = $this->safe_value($this->options, 'networks', array());
+        return $this->safe_string($networks, $networkCode, $networkCode);
+    }
+
+    public function network_id_to_code($networkId) {
+        $networksById = $this->safe_value($this->options, 'networksById', array());
+        return $this->safe_string($networksById, $networkId, $networkId);
+    }
+
+    public function handle_network_code_and_params($params) {
+        $networkCodeInParams = $this->safe_string_2($params, 'networkCode', 'network');
+        if ($networkCodeInParams !== null) {
+            $params = $this->omit ($params, array( 'networkCode', 'network' ));
+        }
+        // if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
+        return array( $networkCodeInParams, $params );
+    }
+
+    public function default_network_code($currencyCode) {
+        $defaultNetworkCode = null;
+        $defaultNetworks = $this->safe_value($this->options, 'defaultNetworks', array());
+        if (is_array($defaultNetworks) && array_key_exists($currencyCode, $defaultNetworks)) {
+            // if currency had set its network in "defaultNetworks", use it
+            $defaultNetworkCode = $defaultNetworks[$currencyCode];
+        } else {
+            // otherwise, try to use the global-scope 'defaultNetwork' value (even if that network is not supported by currency, it doesn't make any problem, this will be just used "at first" if currency supports this network at all)
+            $defaultNetwork = $this->safe_value($this->options, 'defaultNetwork');
+            if ($defaultNetwork !== null) {
+                $defaultNetworkCode = $defaultNetwork;
+            }
+        }
+        return $defaultNetworkCode;
+    }
+
+    public function select_network_id_from_available_networks($currencyCode, $networkCode, $networkEntriesIndexed) {
+        // this method is used against raw & unparse network entries, which are just indexed by network id
+        $chosenNetworkId = null;
+        $availableNetworkIds = is_array($networkEntriesIndexed) ? array_keys($networkEntriesIndexed) : array();
+        $responseNetworksLength = count($availableNetworkIds);
+        if ($networkCode !== null) {
+            // if $networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
+            $networkId = $this->networkCodeToId ($networkCode);
+            if ($responseNetworksLength === 0) {
+                throw new NotSupported($this->id . ' - ' . $networkCode . ' network did not return any result for ' . $currencyCode);
+            } else {
+                if (is_array($networkEntriesIndexed) && array_key_exists($networkId, $networkEntriesIndexed)) {
+                    $chosenNetworkId = $networkId;
+                } else {
+                    throw new NotSupported($this->id . ' - ' . $networkId . ' network was not found for ' . $currencyCode . ', use one of ' . implode(', ', $availableNetworkIds));
+                }
+            }
+        } else {
+            if ($responseNetworksLength === 0) {
+                throw new NotSupported($this->id . ' - no networks were returned for' . $currencyCode);
+            } else {
+                // if $networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
+                $defaultNetwordCode = $this->defaultNetworkCode ($currencyCode);
+                $defaultNetwordId = $this->networkCodeToId ($defaultNetwordCode);
+                $chosenNetworkId = (is_array($networkEntriesIndexed) && array_key_exists($defaultNetwordId, $networkEntriesIndexed)) ? $defaultNetwordId : $availableNetworkIds[0];
+            }
+        }
+        return $chosenNetworkId;
+    }
+
     public function safe_number_2($dictionary, $key1, $key2, $d = null) {
         $value = $this->safe_string_2($dictionary, $key1, $key2);
         return $this->parse_number($value, $d);
@@ -1564,6 +1629,16 @@ class Exchange extends \ccxt\Exchange {
         throw new NotSupported($this->id . ' fetchTransactionFees() is not supported yet');
     }
 
+    public function fetch_deposit_withdraw_fee($code, $params = array ()) {
+        return Async\async(function () use ($code, $params) {
+            if (!$this->has['fetchDepositWithdrawFees']) {
+                throw new NotSupported($this->id . ' fetchDepositWithdrawFee() is not supported yet');
+            }
+            $fees = Async\await($this->fetchDepositWithdrawFees (array( $code ), $params));
+            return $this->safe_value($fees, $code);
+        }) ();
+    }
+
     public function get_supported_mapping($key, $mapping = array ()) {
         if (is_array($mapping) && array_key_exists($key, $mapping)) {
             return $mapping[$key];
@@ -1627,14 +1702,14 @@ class Exchange extends \ccxt\Exchange {
         return array( $type, $params );
     }
 
-    public function handle_sub_type_and_params($methodName, $market = null, $params = array ()) {
+    public function handle_sub_type_and_params($methodName, $market = null, $params = array (), $defaultValue = 'linear') {
         $subType = null;
         // if set in $params, it takes precedence
-        $subTypeInParams = $this->safe_string_2($params, 'subType', 'subType');
+        $subTypeInParams = $this->safe_string_2($params, 'subType', 'defaultSubType');
         // avoid omitting if it's not present
         if ($subTypeInParams !== null) {
             $subType = $subTypeInParams;
-            $params = $this->omit ($params, array( 'defaultSubType', 'subType' ));
+            $params = $this->omit ($params, array( 'subType', 'defaultSubType' ));
         } else {
             // at first, check from $market object
             if ($market !== null) {
@@ -1646,12 +1721,20 @@ class Exchange extends \ccxt\Exchange {
             }
             // if it was not defined in $market object
             if ($subType === null) {
-                $exchangeWideValue = $this->safe_string_2($this->options, 'defaultSubType', 'subType', 'linear');
-                $methodOptions = $this->safe_value($this->options, $methodName, array());
-                $subType = $this->safe_string_2($methodOptions, 'defaultSubType', 'subType', $exchangeWideValue);
+                $values = $this->handleOptionAndParams (null, $methodName, 'subType', $defaultValue); // no need to re-test $params here
+                $subType = $values[0];
             }
         }
         return array( $subType, $params );
+    }
+
+    public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null) {
+        /**
+         * @ignore
+         * @param {array} $params extra parameters specific to the exchange api endpoint
+         * @return array([string|null, object]) the marginMode in lowercase as specified by $params["marginMode"], $params["defaultMarginMode"] $this->options["marginMode"] or $this->options["defaultMarginMode"]
+         */
+        return $this->handleOptionAndParams ($params, $methodName, 'marginMode', $defaultValue);
     }
 
     public function throw_exactly_matched_exception($exact, $string, $message) {
@@ -2305,22 +2388,6 @@ class Exchange extends \ccxt\Exchange {
         }
     }
 
-    public function handle_margin_mode_and_params($methodName, $params = array ()) {
-        /**
-         * @ignore
-         * @param {array} $params extra parameters specific to the exchange api endpoint
-         * @return array([string|null, object]) the $marginMode in lowercase as specified by $params["marginMode"], $params["defaultMarginMode"] $this->options["marginMode"] or $this->options["defaultMarginMode"]
-         */
-        $defaultMarginMode = $this->safe_string_2($this->options, 'marginMode', 'defaultMarginMode');
-        $methodOptions = $this->safe_value($this->options, $methodName, array());
-        $methodMarginMode = $this->safe_string_2($methodOptions, 'marginMode', 'defaultMarginMode', $defaultMarginMode);
-        $marginMode = $this->safe_string_lower_2($params, 'marginMode', 'defaultMarginMode', $methodMarginMode);
-        if ($marginMode !== null) {
-            $params = $this->omit ($params, array( 'marginMode', 'defaultMarginMode' ));
-        }
-        return array( $marginMode, $params );
-    }
-
     public function check_required_argument($methodName, $argument, $argumentName, $options = []) {
         /**
          * @ignore
@@ -2361,5 +2428,48 @@ class Exchange extends \ccxt\Exchange {
          * @param {string} $methodName name of the method that requires a $symbol
          */
         $this->checkRequiredArgument ($methodName, $symbol, 'symbol');
+    }
+
+    public function parse_deposit_withdraw_fees($response, $codes = null, $currencyIdKey = null) {
+        /**
+         * @ignore
+         * @param {[object]|array} $response unparsed $response from the exchange
+         * @param {[string]|null} $codes the unified $currency $codes to fetch transactions fees for, returns all currencies when null
+         * @param {str|null} $currencyIdKey *should only be null when $response is a $dictionary* the object key that corresponds to the $currency id
+         * @return {array} objects with withdraw and deposit fees, indexed by $currency $codes
+         */
+        $depositWithdrawFees = array();
+        $codes = $this->marketCodes ($codes);
+        $isArray = gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response));
+        $responseKeys = $response;
+        if (!$isArray) {
+            $responseKeys = is_array($response) ? array_keys($response) : array();
+        }
+        for ($i = 0; $i < count($responseKeys); $i++) {
+            $entry = $responseKeys[$i];
+            $dictionary = $isArray ? $entry : $response[$entry];
+            $currencyId = $isArray ? $this->safe_string($dictionary, $currencyIdKey) : $entry;
+            $currency = $this->safe_value($this->currencies_by_id, $currencyId);
+            $code = $this->safe_string($currency, 'code', $currencyId);
+            if (($codes === null) || ($this->in_array($code, $codes))) {
+                $depositWithdrawFees[$code] = $this->parseDepositWithdrawFee ($dictionary, $currency);
+            }
+        }
+        return $depositWithdrawFees;
+    }
+
+    public function deposit_withdraw_fee($info) {
+        return array(
+            'info' => $info,
+            'withdraw' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'deposit' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'networks' => array(),
+        );
     }
 }

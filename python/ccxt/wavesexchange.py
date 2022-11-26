@@ -74,6 +74,7 @@ class wavesexchange(Exchange):
                 'fetchPositionsRisk': False,
                 'fetchPremiumIndexOHLCV': False,
                 'fetchTicker': True,
+                'fetchTickers': True,
                 'fetchTrades': True,
                 'fetchTransfer': False,
                 'fetchTransfers': False,
