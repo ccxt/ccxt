@@ -16,7 +16,7 @@ print('CCXT Version:', ccxt.__version__)
 # -----------------------------------------------------------------------------
 
 
-# Example 1: Transfer from spot main-account to future main-account
+# Example 1: Transfer between the spot main-account and swap main-account
 def main_account_transfer():
     exchange = ccxt.phemex({
         'apiKey': 'YOUR_API_KEY',
@@ -26,7 +26,7 @@ def main_account_transfer():
     code = 'USDT'
     amount = 10
     fromAccount = 'spot'
-    toAccount = 'future'
+    toAccount = 'swap'
     params = {}
 
     try:
@@ -36,7 +36,7 @@ def main_account_transfer():
         print(err)
 
 
-# Example 2: Transfer from main-account to sub-account (Requires the main and sub-account UID's found on the account/sub-accounts page on Phemex)
+# Example 2: Transfer between main-account and sub-account (Requires the main and sub-account UID's found on the account/sub-accounts page on Phemex)
 def transfer_between_main_and_sub_accounts():
     exchange = ccxt.phemex({
         'apiKey': 'YOUR_API_KEY',
@@ -47,7 +47,11 @@ def transfer_between_main_and_sub_accounts():
     amount = 10
     fromAccount = '4148428'
     toAccount = '4663243'
-    params = {}
+    # set the bizType to 'SPOT' or 'PERPETUAL', default is 'SPOT'
+    bizType = 'PERPETUAL'
+    params = {
+        'bizType': bizType
+    }
 
     try:
         transfer = exchange.transfer(code, amount, fromAccount, toAccount, params=params)
@@ -56,7 +60,7 @@ def transfer_between_main_and_sub_accounts():
         print(err)
 
 
-# Example 3: Transfer from spot sub-account to future sub-account (Requires a sub-account API key and secret)
+# Example 3: Transfer between the spot sub-account and swap sub-account (Requires a sub-account API key and secret)
 def sub_account_transfer():
     exchange = ccxt.phemex({
         'apiKey': 'YOUR_SUB_ACCOUNT_API_KEY',
@@ -66,7 +70,7 @@ def sub_account_transfer():
     code = 'USDT'
     amount = 10
     fromAccount = 'spot'
-    toAccount = 'future'
+    toAccount = 'swap'
     params = {}
 
     try:
@@ -76,6 +80,29 @@ def sub_account_transfer():
         print(err)
 
 
+# Example 4: Use the Implicit API to transfer from swap sub-account to swap main-account
+def sub_swap_to_main_swap():
+    exchange = ccxt.phemex({
+        'apiKey': 'YOUR_SUB_ACCOUNT_API_KEY',
+        'secret': 'YOUR_SUB_ACCOUNT_SECRET',
+        # 'verbose': True,  # for debug output
+    })
+    code = 'USDT'
+    amount = 10
+    convertedAmount = exchange.toEv(amount)
+
+    try:
+        response = exchange.privatePostAssetsFuturesSubAccountsTransfer({
+            'amountEv': convertedAmount,
+            'currency': code,
+        })
+        pprint(response)
+    except Exception as e:
+        print('privatePostAssetsFuturesSubAccountsTransfer() failed')
+        print(e)
+
+
 main_account_transfer()
 # transfer_between_main_and_sub_accounts()
 # sub_account_transfer()
+# sub_swap_to_main_swap()
