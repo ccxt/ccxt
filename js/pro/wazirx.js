@@ -151,7 +151,7 @@ module.exports = class wazirx extends wazirxRest {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'order': this.safeStringN (trade, [ 'o', 'a', 'b' ]),
+            'order': this.safeStringN (trade, [ 'o' ]),
             'type': undefined,
             'side': this.safeString (trade, 'S'),
             'takerOrMaker': isMaker ? 'maker' : 'taker',
