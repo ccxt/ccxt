@@ -3438,7 +3438,7 @@ module.exports = class bybit extends Exchange {
     async createSpotOrder (symbol, type, side, amount, price = undefined, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        if (type === 'market' && side === 'buy') {
+        if ((type === 'market') && (side === 'buy')) {
             // for market buy it requires the amount of quote currency to spend
             if (this.options['createMarketBuyOrderRequiresPrice']) {
                 const cost = this.safeNumber (params, 'cost');
@@ -5688,7 +5688,7 @@ module.exports = class bybit extends Exchange {
         };
         let method = undefined;
         const enableUnifiedMargin = await this.isUnifiedMarginEnabled ();
-        const isV3 = (this.version === 'v3');
+        const isUsdcSettled = market['settle'] === 'USDC';
         if (enableUnifiedMargin) {
             method = 'privateGetUnifiedV3PrivatePositionList';
             if (market['option']) {
@@ -5698,7 +5698,14 @@ module.exports = class bybit extends Exchange {
             } else {
                 throw new NotSupported (this.id + ' fetchPosition() does not allow inverse market orders for ' + symbol + ' markets');
             }
-        } else if (isV3) {
+        } else if (isUsdcSettled) {
+            method = 'privatePostOptionUsdcOpenapiPrivateV1QueryPosition';
+            if (market['option']) {
+                request['category'] = 'OPTION';
+            } else if (market['linear']) {
+                request['category'] = 'PERPETUAL';
+            }
+        } else {
             method = 'privateGetContractV3PrivatePositionList';
         }
         const response = await this[method] (this.extend (request, params));
@@ -5801,7 +5808,7 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const positions = this.safeValue (result, 'list', []);
+        const positions = this.safeValue2 (result, 'list', 'dataList', []);
         const timestamp = this.safeInteger (response, 'time');
         const first = this.safeValue (positions, 0);
         const position = this.parsePosition (first);
@@ -5973,7 +5980,10 @@ module.exports = class bybit extends Exchange {
     async fetchDerivativesPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const response = await this.privateGetContractV3PrivatePositionList (params);
+        const request = {
+            'settleCoin': 'USDT',
+        };
+        const response = await this.privateGetContractV3PrivatePositionList (this.extend (request, params));
         //
         // contract v3
         //
@@ -6084,72 +6094,30 @@ module.exports = class bybit extends Exchange {
         //
         // linear swap
         //
-        //    {
-        //        "user_id":"24478789",
-        //        "symbol":"LTCUSDT",
-        //        "side":"Buy",
-        //        "size":"0.1",
-        //        "position_value":"7.083",
-        //        "entry_price":"70.83",
-        //        "liq_price":"0.01",
-        //        "bust_price":"0.01",
-        //        "leverage":"1",
-        //        "auto_add_margin":"0",
-        //        "is_isolated":false,
-        //        "position_margin":"13.8407674",
-        //        "occ_closing_fee":"6e-07",
-        //        "realised_pnl":"-0.0042498",
-        //        "cum_realised_pnl":"-0.159232",
-        //        "free_qty":"-0.1",
-        //        "tp_sl_mode":"Full",
-        //        "unrealised_pnl":"0.008",
-        //        "deleverage_indicator":"2",
-        //        "risk_id":"71",
-        //        "stop_loss":"0",
-        //        "take_profit":"0",
-        //        "trailing_stop":"0",
-        //        "position_idx":"1",
-        //        "mode":"BothSide"
-        //    }
-        //
-        // inverse swap / future
-        //    {
-        //        "id":0,
-        //        "position_idx":0,
-        //        "mode":0,
-        //        "user_id":24478789,
-        //        "risk_id":11,
-        //        "symbol":"ETHUSD",
-        //        "side":"Buy",
-        //        "size":10, // USD amount
-        //        "position_value":"0.0047808",
-        //        "entry_price":"2091.70013387",
-        //        "is_isolated":false,
-        //        "auto_add_margin":1,
-        //        "leverage":"10",
-        //        "effective_leverage":"0.9",
-        //        "position_margin":"0.00048124",
-        //        "liq_price":"992.75",
-        //        "bust_price":"990.4",
-        //        "occ_closing_fee":"0.00000606",
-        //        "occ_funding_fee":"0",
-        //        "take_profit":"0",
-        //        "stop_loss":"0",
-        //        "trailing_stop":"0",
-        //        "position_status":"Normal",
-        //        "deleverage_indicator":3,
-        //        "oc_calc_data":"{\"blq\":0,\"slq\":0,\"bmp\":0,\"smp\":0,\"fq\":-10,\"bv2c\":0.10126,\"sv2c\":0.10114}",
-        //        "order_margin":"0",
-        //        "wallet_balance":"0.0053223",
-        //        "realised_pnl":"-0.00000287",
-        //        "unrealised_pnl":0.00001847,
-        //        "cum_realised_pnl":"-0.00001611",
-        //        "cross_seq":8301155878,
-        //        "position_seq":0,
-        //        "created_at":"2022-05-05T15:06:17.949997224Z",
-        //        "updated_at":"2022-05-13T13:40:29.793570924Z",
-        //        "tp_sl_mode":"Full"
-        //    }
+        //     {
+        //         "positionIdx": 0,
+        //         "riskId": "11",
+        //         "symbol": "ETHUSDT",
+        //         "side": "Buy",
+        //         "size": "0.10",
+        //         "positionValue": "119.845",
+        //         "entryPrice": "1198.45",
+        //         "tradeMode": 1,
+        //         "autoAddMargin": 0,
+        //         "leverage": "4.2",
+        //         "positionBalance": "28.58931118",
+        //         "liqPrice": "919.10",
+        //         "bustPrice": "913.15",
+        //         "takeProfit": "0.00",
+        //         "stopLoss": "0.00",
+        //         "trailingStop": "0.00",
+        //         "unrealisedPnl": "0.083",
+        //         "createdTime": "1669097244192",
+        //         "updatedTime": "1669413126190",
+        //         "tpSlMode": "Full",
+        //         "riskLimitValue": "900000",
+        //         "activePrice": "0.00"
+        //     }
         //
         // usdc
         //    {
@@ -6212,30 +6180,49 @@ module.exports = class bybit extends Exchange {
         const size = this.safeString (position, 'size');
         let side = this.safeString (position, 'side');
         side = (side === 'Buy') ? 'long' : 'short';
-        const notional = this.safeString2 (position, 'position_value', 'positionValue');
-        const unrealisedPnl = this.omitZero (this.safeString2 (position, 'unrealised_pnl', 'unrealisedPnl'));
+        const notional = this.safeString (position, 'positionValue');
+        const unrealisedPnl = this.omitZero (this.safeString2 (position, 'unrealisedPnl'));
         let initialMarginString = this.safeString (position, 'positionIM');
-        const maintenanceMarginString = this.safeString (position, 'positionMM');
+        let maintenanceMarginString = this.safeString (position, 'positionMM');
         let timestamp = this.parse8601 (this.safeString (position, 'updated_at'));
         if (timestamp === undefined) {
             timestamp = this.safeInteger (position, 'updatedAt');
         }
-        const isIsolated = this.safeValue (position, 'is_isolated', false); // if not present it is cross
-        const marginMode = isIsolated ? 'isolated' : 'cross';
-        let collateralString = this.safeString (position, 'position_margin');
-        const entryPrice = this.omitZero (this.safeString2 (position, 'entry_price', 'entryPrice'));
-        const liquidationPrice = this.omitZero (this.safeString2 (position, 'liq_price', 'liqPrice'));
+        // default to cross of USDC margined positions
+        const autoAddMargin = this.safeInteger (position, 'autoAddMargin', 1);
+        const marginMode = autoAddMargin ? 'cross' : 'isolated';
+        let collateralString = this.safeString (position, 'positionBalance');
+        const entryPrice = this.omitZero (this.safeString (position, 'entryPrice'));
+        const liquidationPrice = this.omitZero (this.safeString (position, 'liqPrice'));
         const leverage = this.safeString (position, 'leverage');
-        if (market['settle'] === 'USDT') {
-            // Initial Margin = Contract size x Entry Price / Leverage
-            initialMarginString = Precise.stringDiv (Precise.stringMul (size, entryPrice), leverage);
-        } else if (market['inverse']) {
-            // Initial Margin = Contracts / ( Entry Price x Leverage )
-            initialMarginString = Precise.stringDiv (size, Precise.stringMul (entryPrice, leverage));
-            if (!isIsolated) {
-                collateralString = this.safeString (position, 'wallet_balance');
+        if (market['settle'] === 'USDC') {
+            // (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
+            const difference = Precise.stringAbs (Precise.stringSub (entryPrice, liquidationPrice));
+            collateralString = Precise.stringAdd (Precise.stringAdd (Precise.stringMul (difference, size), maintenanceMarginString), unrealisedPnl);
+        } else {
+            const bustPrice = this.safeString (position, 'bustPrice');
+            if (market['linear']) {
+                // derived from the following formulas
+                // (Entry price - Bust price) * Contracts = Collateral
+                // (Entry price - Liq price) * Contracts = Collateral - Maintenance Margin
+                // Maintenance Margin = (Bust price - Liq price) x Contracts
+                const maintenanceMarginPriceDifference = Precise.stringAbs (Precise.stringSub (liquidationPrice, bustPrice));
+                maintenanceMarginString = Precise.stringMul (maintenanceMarginPriceDifference, size);
+                // Initial Margin = Contracts x Entry Price / Leverage
+                initialMarginString = Precise.stringDiv (Precise.stringMul (size, entryPrice), leverage);
+            } else {
+                // Contracts * (1 / Entry price - 1 / Bust price) = Collateral
+                // Contracts * (1 / Entry price - 1 / Liq price) = Collateral - Maintenance Margin
+                // Maintenance Margin = Contracts * (1 / Liq price - 1 / Bust price)
+                // Maintenance Margin = Contracts * (Bust price - Liq price) / (Liq price x Bust price)
+                const difference = Precise.stringAbs (Precise.stringSub (bustPrice, liquidationPrice));
+                const multiply = Precise.stringMul (bustPrice, liquidationPrice);
+                maintenanceMarginString = Precise.stringDiv (Precise.stringMul (size, difference), multiply);
+                // Initial Margin = Leverage x Contracts / EntryPrice
+                initialMarginString = Precise.stringDiv (size, Precise.stringMul (entryPrice, leverage));
             }
         }
+        const maintenanceMarginPercentage = Precise.stringDiv (maintenanceMarginString, notional);
         const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
         return {
             'info': position,
@@ -6245,8 +6232,8 @@ module.exports = class bybit extends Exchange {
             'datetime': this.iso8601 (timestamp),
             'initialMargin': this.parseNumber (initialMarginString),
             'initialMarginPercentage': this.parseNumber (Precise.stringDiv (initialMarginString, notional)),
-            'maintenanceMargin': maintenanceMarginString,
-            'maintenanceMarginPercentage': undefined,
+            'maintenanceMargin': this.parseNumber (maintenanceMarginString),
+            'maintenanceMarginPercentage': this.parseNumber (maintenanceMarginPercentage),
             'entryPrice': this.parseNumber (entryPrice),
             'notional': this.parseNumber (notional),
             'leverage': this.parseNumber (leverage),
