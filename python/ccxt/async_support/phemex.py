@@ -415,7 +415,7 @@ class phemex(Exchange):
                 'defaultSubType': 'linear',
                 'accountsByType': {
                     'spot': 'spot',
-                    'future': 'future',
+                    'swap': 'future',
                 },
                 'transfer': {
                     'fillResponseFromRequest': True,
@@ -3230,6 +3230,7 @@ class phemex(Exchange):
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict params: extra parameters specific to the phemex api endpoint
+        :param str|None params['bizType']: for transferring between main and sub-acounts either 'SPOT' or 'PERPETUAL' default is 'SPOT'
         :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
         """
         await self.load_markets()

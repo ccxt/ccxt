@@ -54,6 +54,8 @@ class bibox(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': True,
+                'fetchDepositWithdrawFees': False,
                 'fetchLedger': True,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
@@ -991,6 +993,8 @@ class bibox(Exchange):
                 'active': active,
                 'fee': None,
                 'precision': precision,
+                'withdraw': withdraw,
+                'deposit': deposit,
                 'limits': {
                     'amount': {
                         'min': precision,
@@ -1932,7 +1936,7 @@ class bibox(Exchange):
 
     async def fetch_transaction_fees(self, codes=None, params={}):
         """
-        fetch transaction fees
+        *DEPRECATED* please use fetchDepositWithdrawFees instead
         :param [str]|None codes: list of unified currency codes
         :param dict params: extra parameters specific to the bibox api endpoint
         :returns [dict]: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
@@ -1985,6 +1989,77 @@ class bibox(Exchange):
             'info': info,
             'withdraw': withdrawFees,
             'deposit': {},
+        }
+
+    async def fetch_deposit_withdraw_fee(self, code, params={}):
+        """
+        fetch withdrawal fees for currencies
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the bibox api endpoint
+        :returns dict: a `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'cmd': 'transfer/coinConfig',
+            'body': self.extend({
+                'coin_symbol': currency['id'],
+            }, params),
+        }
+        response = await self.v1PrivatePostTransfer(request)
+        #
+        #    {
+        #        "result": [
+        #            {
+        #                "result": [
+        #                    {
+        #                        "coin_symbol": "ETH",
+        #                        "is_active": 1,
+        #                        "original_decimals": 18,
+        #                        "enable_deposit": 1,
+        #                        "enable_withdraw": 1,
+        #                        "withdraw_fee": 0.008,
+        #                        "withdraw_min": 0.05,
+        #                        "deposit_avg_spent": 173700,
+        #                        "withdraw_avg_spent": 322600
+        #                    }
+        #                ],
+        #                "cmd": "transfer/coinConfig"
+        #            }
+        #        ]
+        #    }
+        #
+        outerResults = self.safe_value(response, 'result', [])
+        firstOuterResult = self.safe_value(outerResults, 0, {})
+        innerResults = self.safe_value(firstOuterResult, 'result', [])
+        firstInnerResult = self.safe_value(innerResults, 0, {})
+        return self.parse_deposit_withdraw_fee(firstInnerResult, currency)
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        #    {
+        #        "coin_symbol": "ETH",
+        #        "is_active": 1,
+        #        "original_decimals": 18,
+        #        "enable_deposit": 1,
+        #        "enable_withdraw": 1,
+        #        "withdraw_fee": 0.008,
+        #        "withdraw_min": 0.05,
+        #        "deposit_avg_spent": 173700,
+        #        "withdraw_avg_spent": 322600
+        #    }
+        #
+        return {
+            'info': fee,
+            'withdraw': {
+                'fee': self.safe_number(fee, 'withdraw_fee'),
+                'percentage': None,
+            },
+            'deposit': {
+                'fee': None,
+                'percentage': None,
+            },
+            'networks': {},
         }
 
     async def transfer(self, code, amount, fromAccount, toAccount, params={}):
