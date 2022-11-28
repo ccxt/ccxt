@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.2.36';
+$version = '2.2.37';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.2.36';
+    const VERSION = '2.2.37';
 
     public $browser;
     public $marketsLoading = null;
@@ -1540,7 +1540,7 @@ class Exchange extends \ccxt\Exchange {
                 if ($error) {
                     throw new AuthenticationError($this->id . ' requires "' . $key . '" credential');
                 } else {
-                    return $error;
+                    return false;
                 }
             }
         }

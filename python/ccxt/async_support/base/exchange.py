@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.2.36'
+__version__ = '2.2.37'
 
 # -----------------------------------------------------------------------------
 
@@ -1347,7 +1347,7 @@ class Exchange(BaseExchange):
                 if error:
                     raise AuthenticationError(self.id + ' requires "' + key + '" credential')
                 else:
-                    return error
+                    return False
         return True
 
     def oath(self):
