@@ -2151,7 +2151,7 @@ module.exports = class wavesexchange extends Exchange {
         const order2Timestamp = this.parse8601 (order2Datetime);
         let order = undefined;
         let myTrade = false;
-        // choose myOrder or else most recent order
+        // choose user order or else most recent order
         if (this.safeString (order1, 'senderPublicKey') === this.apiKey) {
             order = order1;
             myTrade = true;
