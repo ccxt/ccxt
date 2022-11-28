@@ -1664,7 +1664,36 @@ module.exports = class Exchange {
          * @returns {[string|undefined]} exchange-specific network id
          */
         const networkIdsByCodes = this.safeValue (this.options, 'networks', {});
-        return this.safeString (networkIdsByCodes, networkCode, networkCode);
+        let networkId = this.safeString (networkIdsByCodes, networkCode);
+        // for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
+        if (networkId === undefined) {
+            if (currencyCode === undefined) {
+                // if currencyCode was not provided, then we just set passed value to networkId
+                networkId = networkCode;
+            } else {
+                // if currencyCode was provided, then we try to find if that currencyCode has a replacement (i.e. ERC20 for ETH)
+                const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
+                if (currencyCode in defaultNetworkCodeReplacements) {
+                    // if there is a replacement for the passed networkCode, then we use it to find network-id in `options->networks` object
+                    const replacementObject = defaultNetworkCodeReplacements[currencyCode]; // i.e. { 'ERC20': 'ETH' }
+                    const keys = Object.keys (replacementObject);
+                    for (let i = 0; i < keys.length; i++) {
+                        const key = keys[i];
+                        const value = replacementObject[key];
+                        // if value matches to provided unified networkCode, then we use it's key to find network-id in `options->networks` object
+                        if (value === networkCode) {
+                            networkId = this.safeString (networkIdsByCodes, key);
+                            break;
+                        }
+                    }
+                }
+                // if it wasn't found, we just set the provided value to network-id
+                if (networkId === undefined) {
+                    networkId = networkCode;
+                }
+            }
+        }
+        return networkId;
     }
 
     networkIdToCode (networkId, currencyCode = undefined) {
@@ -1678,6 +1707,7 @@ module.exports = class Exchange {
          */
         const networkCodesByIds = this.safeValue (this.options, 'networksById', {});
         let networkCode = this.safeString (networkCodesByIds, networkId, networkId);
+        // replace mainnet network-codes (i.e. ERC20->ETH)
         if (currencyCode !== undefined) {
             const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
             if (currencyCode in defaultNetworkCodeReplacements) {
