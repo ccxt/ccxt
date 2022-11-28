@@ -2259,14 +2259,30 @@ export default class Exchange {
         }
     }
 
-    networkCodeToId (networkCode) {
-        const networks = this.safeValue (this.options, 'networks', {});
-        return this.safeString (networks, networkCode, networkCode);
+    networkCodeToId (networkCode, currencyCode = undefined) {
+        /**
+         * @method
+         * @name exchange#networkCodeToId
+         * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+         * @param {string} networkCode unified network code
+         * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
+         * @returns {[string|undefined]} exchange-specific network id
+         */
+        const networkIdsByCodes = this.safeValue (this.options, 'networks', {});
+        return this.safeString (networkIdsByCodes, networkCode, networkCode);
     }
 
-    networkIdToCode (networkId) {
-        const networksById = this.safeValue (this.options, 'networksById', {});
-        return this.safeString (networksById, networkId, networkId);
+    networkIdToCode (networkId, currencyCode = undefined) {
+        /**
+         * @method
+         * @name exchange#networkIdToCode
+         * @description tries to convert the provided exchange-specific networkId to an unified network Code. In order to achieve this, derived class needs to have 'options->networksById' defined.
+         * @param {string} networkId unified network code
+         * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
+         * @returns {[string|undefined]} unified network code
+         */
+        const networkCodesByIds = this.safeValue (this.options, 'networksById', {});
+        return this.safeString (networkCodesByIds, networkId, networkId);
     }
 
     handleNetworkCodeAndParams (params) {
@@ -2301,7 +2317,7 @@ export default class Exchange {
         const responseNetworksLength = availableNetworkIds.length;
         if (networkCode !== undefined) {
             // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
-            const networkId = this.networkCodeToId (networkCode);
+            const networkId = this.networkCodeToId (networkCode, currencyCode);
             if (responseNetworksLength === 0) {
                 throw new NotSupported (this.id + ' - ' + networkCode + ' network did not return any result for ' + currencyCode);
             } else {
@@ -2316,9 +2332,9 @@ export default class Exchange {
                 throw new NotSupported (this.id + ' - no networks were returned for' + currencyCode);
             } else {
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
-                const defaultNetwordCode = this.defaultNetworkCode (currencyCode);
-                const defaultNetwordId = this.networkCodeToId (defaultNetwordCode);
-                chosenNetworkId = (defaultNetwordId in networkEntriesIndexed) ? defaultNetwordId : availableNetworkIds[0];
+                const defaultNetworkCode = this.defaultNetworkCode (currencyCode);
+                const defaultNetworkId = this.networkCodeToId (defaultNetworkCode, currencyCode);
+                chosenNetworkId = (defaultNetworkId in networkEntriesIndexed) ? defaultNetworkId : availableNetworkIds[0];
             }
         }
         return chosenNetworkId;
@@ -2684,7 +2700,7 @@ export default class Exchange {
                 if (error) {
                     throw new AuthenticationError (this.id + ' requires "' + key + '" credential');
                 } else {
-                    return error;
+                    return false;
                 }
             }
         }
