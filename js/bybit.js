@@ -1249,7 +1249,8 @@ module.exports = class bybit extends Exchange {
             const id = this.safeString (market, 'symbol');
             const baseId = this.safeString (market, 'baseCoin');
             const quoteId = this.safeString (market, 'quoteCoin');
-            const settleId = this.safeString (market, 'settleCoin', (linear ? quoteId : baseId));
+            const defaultSettledId = linear ? quoteId : baseId;
+            const settleId = this.safeString (market, 'settleCoin', defaultSettledId);
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
             let settle = undefined;
@@ -6163,15 +6164,15 @@ module.exports = class bybit extends Exchange {
         const liquidationPrice = this.omitZero (this.safeString (position, 'liqPrice'));
         const leverage = this.safeString (position, 'leverage');
         if (market['settle'] === 'USDC') {
-            // (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
+            //  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
             const difference = Precise.stringAbs (Precise.stringSub (entryPrice, liquidationPrice));
             collateralString = Precise.stringAdd (Precise.stringAdd (Precise.stringMul (difference, size), maintenanceMarginString), unrealisedPnl);
         } else {
             const bustPrice = this.safeString (position, 'bustPrice');
             if (market['linear']) {
                 // derived from the following formulas
-                // (Entry price - Bust price) * Contracts = Collateral
-                // (Entry price - Liq price) * Contracts = Collateral - Maintenance Margin
+                //  (Entry price - Bust price) * Contracts = Collateral
+                //  (Entry price - Liq price) * Contracts = Collateral - Maintenance Margin
                 // Maintenance Margin = (Bust price - Liq price) x Contracts
                 const maintenanceMarginPriceDifference = Precise.stringAbs (Precise.stringSub (liquidationPrice, bustPrice));
                 maintenanceMarginString = Precise.stringMul (maintenanceMarginPriceDifference, size);
