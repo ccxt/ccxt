@@ -56,6 +56,8 @@ module.exports = class bitfinex extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchTransactions': true,
                 'fetchWithdrawals': undefined,
                 'transfer': true,
@@ -393,7 +395,7 @@ module.exports = class bitfinex extends Exchange {
         /**
          * @method
          * @name bitfinex#fetchTransactionFees
-         * @description fetch transaction fees
+         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
          * @see https://docs.bitfinex.com/v1/reference/rest-auth-fees
          * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the bitfinex api endpoint
@@ -424,6 +426,48 @@ module.exports = class bitfinex extends Exchange {
             };
         }
         return result;
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitfinex#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://docs.bitfinex.com/v1/reference/rest-auth-fees
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the bitfinex api endpoint
+         * @returns {[object]} a list of [fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privatePostAccountFees (params);
+        //
+        //    {
+        //        'withdraw': {
+        //            'BTC': '0.0004',
+        //            ...
+        //        }
+        //    }
+        //
+        const withdraw = this.safeValue (response, 'withdraw');
+        return this.parseDepositWithdrawFees (withdraw, codes);
+    }
+
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        //
+        //    '0.0004'
+        //
+        return {
+            'withdraw': {
+                'fee': this.parseNumber (fee),
+                'percentage': undefined,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+            'info': fee,
+        };
     }
 
     async fetchTradingFees (params = {}) {
