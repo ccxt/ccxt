@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.2.37';
+$version = '2.2.38';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.2.37';
+    const VERSION = '2.2.38';
 
     public $browser;
     public $marketsLoading = null;
@@ -1093,14 +1093,26 @@ class Exchange extends \ccxt\Exchange {
         }
     }
 
-    public function network_code_to_id($networkCode) {
-        $networks = $this->safe_value($this->options, 'networks', array());
-        return $this->safe_string($networks, $networkCode, $networkCode);
+    public function network_code_to_id($networkCode, $currencyCode = null) {
+        /**
+         * tries to convert the provided $networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+         * @param {string} $networkCode unified network code
+         * @param {string} $currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass $currencyCode argument additionally
+         * @return {[string|null]} exchange-specific network id
+         */
+        $networkIdsByCodes = $this->safe_value($this->options, 'networks', array());
+        return $this->safe_string($networkIdsByCodes, $networkCode, $networkCode);
     }
 
-    public function network_id_to_code($networkId) {
-        $networksById = $this->safe_value($this->options, 'networksById', array());
-        return $this->safe_string($networksById, $networkId, $networkId);
+    public function network_id_to_code($networkId, $currencyCode = null) {
+        /**
+         * tries to convert the provided exchange-specific $networkId to an unified network Code. In order to achieve this, derived class needs to have 'options->networksById' defined.
+         * @param {string} $networkId unified network code
+         * @param {string} $currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass $currencyCode argument additionally
+         * @return {[string|null]} unified network code
+         */
+        $networkCodesByIds = $this->safe_value($this->options, 'networksById', array());
+        return $this->safe_string($networkCodesByIds, $networkId, $networkId);
     }
 
     public function handle_network_code_and_params($params) {
@@ -1135,7 +1147,7 @@ class Exchange extends \ccxt\Exchange {
         $responseNetworksLength = count($availableNetworkIds);
         if ($networkCode !== null) {
             // if $networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
-            $networkId = $this->networkCodeToId ($networkCode);
+            $networkId = $this->networkCodeToId ($networkCode, $currencyCode);
             if ($responseNetworksLength === 0) {
                 throw new NotSupported($this->id . ' - ' . $networkCode . ' network did not return any result for ' . $currencyCode);
             } else {
@@ -1150,9 +1162,9 @@ class Exchange extends \ccxt\Exchange {
                 throw new NotSupported($this->id . ' - no networks were returned for' . $currencyCode);
             } else {
                 // if $networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
-                $defaultNetwordCode = $this->defaultNetworkCode ($currencyCode);
-                $defaultNetwordId = $this->networkCodeToId ($defaultNetwordCode);
-                $chosenNetworkId = (is_array($networkEntriesIndexed) && array_key_exists($defaultNetwordId, $networkEntriesIndexed)) ? $defaultNetwordId : $availableNetworkIds[0];
+                $defaultNetworkCode = $this->defaultNetworkCode ($currencyCode);
+                $defaultNetworkId = $this->networkCodeToId ($defaultNetworkCode, $currencyCode);
+                $chosenNetworkId = (is_array($networkEntriesIndexed) && array_key_exists($defaultNetworkId, $networkEntriesIndexed)) ? $defaultNetworkId : $availableNetworkIds[0];
             }
         }
         return $chosenNetworkId;
