@@ -79,7 +79,12 @@ module.exports = class Exchange extends BaseExchange {
         //     const client = this.client (url)
         //     const backoffDelay = 0
         //     const future = client.future (messageHash)
-        //     const connected = client.connect (backoffDelay)
+        //     let connected = undefined;
+        //     if (this.enableRateLimit) {
+        //         connected = this.throttle ().then (() => client.connect (backoffDelay));
+        //     } else {
+        //         connected = client.connect (backoffDelay);
+        //     }
         //     connected.then (() => {
         //         if (message && !client.subscriptions[subscribeHash]) {
         //             client.subscriptions[subscribeHash] = true
@@ -109,7 +114,12 @@ module.exports = class Exchange extends BaseExchange {
         // the policy is to make sure that 100% of promises are resolved or rejected
         // either with a call to client.resolve or client.reject with
         //  a proper exception class instance
-        const connected = client.connect (backoffDelay);
+        let connected = undefined;
+        if (this.enableRateLimit) {
+            connected = this.throttle ().then (() => client.connect (backoffDelay));
+        } else {
+            connected = client.connect (backoffDelay);
+        }
         // the following is executed only if the catch-clause does not
         // catch any connection-level exceptions from the client
         // (connection established successfully)

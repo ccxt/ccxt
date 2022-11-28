@@ -79,7 +79,16 @@ trait ClientTrait {
         // todo: calculate the backoff delay in php
         $backoff_delay = 0; // milliseconds
         $future = $client->future($message_hash);
-        $connected = $client->connect($backoff_delay);
+        $connected;
+        if ($this->enableRateLimit) {
+            $connected = $this->throttle()->then(
+                function () use ($client, $backoff_delay) {
+                    return $client->connect($backoff_delay);
+                }
+            );
+        } else {
+            $connected = $client->connect($backoff_delay);
+        }
         $connected->then(
             function($result) use ($client, $message_hash, $message, $subscribe_hash, $subscription) {
                 if (!isset($client->subscriptions[$subscribe_hash])) {
