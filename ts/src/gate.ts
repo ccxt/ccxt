@@ -1764,7 +1764,7 @@ export default class gate extends Exchange {
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privateWalletGetWithdrawStatus (params);
+        const response = await (this as any).privateWalletGetWithdrawStatus (params);
         //
         //    [
         //        {

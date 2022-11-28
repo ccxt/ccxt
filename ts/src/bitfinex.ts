@@ -438,7 +438,7 @@ export default class bitfinex extends Exchange {
          * @returns {[object]} a list of [fees structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const response = await this.privatePostAccountFees (params);
+        const response = await (this as any).privatePostAccountFees (params);
         //
         //    {
         //        'withdraw': {
