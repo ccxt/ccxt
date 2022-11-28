@@ -344,6 +344,8 @@ class bitpanda(Exchange):
                 'active': None,
                 'fee': None,
                 'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'precision'))),
+                'withdraw': None,
+                'deposit': None,
                 'limits': {
                     'amount': {'min': None, 'max': None},
                     'withdraw': {'min': None, 'max': None},
