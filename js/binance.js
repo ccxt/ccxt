@@ -1900,6 +1900,7 @@ module.exports = class binance extends Exchange {
          * @param {string|undefined} params.type 'future', 'delivery', 'savings', 'funding', or 'spot'
          * @param {string|undefined} params.marginMode 'cross' or 'isolated', for margin trading, uses this.options.defaultMarginMode if not passed, defaults to undefined/None/null
          * @param {[string]|undefined} params.symbols unified market symbols, only used in isolated margin mode
+         * @param {[string]|undefined} params.product staking product list: 'STAKING' or 'F_DEFI' or 'L_DEFI'
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
@@ -1921,7 +1922,6 @@ module.exports = class binance extends Exchange {
         } else if (type === 'savings') {
             const lockedProduct = this.safeStringUpper (params, 'lockedProduct');
             if (lockedProduct !== undefined) {
-                request['product'] = lockedProduct;
                 method = 'sapiGetStakingPosition';
             } else {
                 method = 'sapiGetLendingUnionAccount';
@@ -1946,7 +1946,7 @@ module.exports = class binance extends Exchange {
                 request['symbols'] = symbols;
             }
         }
-        const requestParams = this.omit (query, [ 'type', 'symbols', 'lockedProduct' ]);
+        const requestParams = this.omit (query, [ 'type', 'symbols' ]);
         const response = await this[method] (this.extend (request, requestParams));
         //
         // spot
