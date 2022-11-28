@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.2.35'
+__version__ = '2.2.36'
 
 # -----------------------------------------------------------------------------
 
@@ -708,11 +708,17 @@ class Exchange(object):
 
     @staticmethod
     def safe_string_lower(dictionary, key, default_value=None):
-        return str(dictionary[key]).lower() if Exchange.key_exists(dictionary, key) else default_value
+        if Exchange.key_exists(dictionary, key):
+            return str(dictionary[key]).lower()
+        else:
+            return default_value.lower() if default_value is not None else default_value
 
     @staticmethod
     def safe_string_upper(dictionary, key, default_value=None):
-        return str(dictionary[key]).upper() if Exchange.key_exists(dictionary, key) else default_value
+        if Exchange.key_exists(dictionary, key):
+            return str(dictionary[key]).upper()
+        else:
+            return default_value.upper() if default_value is not None else default_value
 
     @staticmethod
     def safe_integer(dictionary, key, default_value=None):
@@ -807,12 +813,22 @@ class Exchange(object):
     @staticmethod
     def safe_string_lower_n(dictionary, key_list, default_value=None):
         value = Exchange.get_object_value_from_key_list(dictionary, key_list)
-        return str(value).lower() if value is not None else default_value
+        if value is not None:
+            return str(value).lower()
+        elif default_value is None:
+            return default_value
+        else:
+            return default_value.lower()
 
     @staticmethod
     def safe_string_upper_n(dictionary, key_list, default_value=None):
         value = Exchange.get_object_value_from_key_list(dictionary, key_list)
-        return str(value).upper() if value is not None else default_value
+        if value is not None:
+            return str(value).upper()
+        elif default_value is None:
+            return default_value
+        else:
+            return default_value.upper()
 
     @staticmethod
     def safe_integer_n(dictionary, key_list, default_value=None):

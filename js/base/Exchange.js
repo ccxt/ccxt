@@ -1645,6 +1645,71 @@ module.exports = class Exchange {
         }
     }
 
+    networkCodeToId (networkCode) {
+        const networks = this.safeValue (this.options, 'networks', {});
+        return this.safeString (networks, networkCode, networkCode);
+    }
+
+    networkIdToCode (networkId) {
+        const networksById = this.safeValue (this.options, 'networksById', {});
+        return this.safeString (networksById, networkId, networkId);
+    }
+
+    handleNetworkCodeAndParams (params) {
+        const networkCodeInParams = this.safeString2 (params, 'networkCode', 'network');
+        if (networkCodeInParams !== undefined) {
+            params = this.omit (params, [ 'networkCode', 'network' ]);
+        }
+        // if it was not defined by user, we should not set it from 'defaultNetworks', because handleNetworkCodeAndParams is for only request-side and thus we do not fill it with anything. We can only use 'defaultNetworks' after parsing response-side
+        return [ networkCodeInParams, params ];
+    }
+
+    defaultNetworkCode (currencyCode) {
+        let defaultNetworkCode = undefined;
+        const defaultNetworks = this.safeValue (this.options, 'defaultNetworks', {});
+        if (currencyCode in defaultNetworks) {
+            // if currency had set its network in "defaultNetworks", use it
+            defaultNetworkCode = defaultNetworks[currencyCode];
+        } else {
+            // otherwise, try to use the global-scope 'defaultNetwork' value (even if that network is not supported by currency, it doesn't make any problem, this will be just used "at first" if currency supports this network at all)
+            const defaultNetwork = this.safeValue (this.options, 'defaultNetwork');
+            if (defaultNetwork !== undefined) {
+                defaultNetworkCode = defaultNetwork;
+            }
+        }
+        return defaultNetworkCode;
+    }
+
+    selectNetworkIdFromAvailableNetworks (currencyCode, networkCode, networkEntriesIndexed) {
+        // this method is used against raw & unparse network entries, which are just indexed by network id
+        let chosenNetworkId = undefined;
+        const availableNetworkIds = Object.keys (networkEntriesIndexed);
+        const responseNetworksLength = availableNetworkIds.length;
+        if (networkCode !== undefined) {
+            // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
+            const networkId = this.networkCodeToId (networkCode);
+            if (responseNetworksLength === 0) {
+                throw new NotSupported (this.id + ' - ' + networkCode + ' network did not return any result for ' + currencyCode);
+            } else {
+                if (networkId in networkEntriesIndexed) {
+                    chosenNetworkId = networkId;
+                } else {
+                    throw new NotSupported (this.id + ' - ' + networkId + ' network was not found for ' + currencyCode + ', use one of ' + availableNetworkIds.join (', '));
+                }
+            }
+        } else {
+            if (responseNetworksLength === 0) {
+                throw new NotSupported (this.id + ' - no networks were returned for' + currencyCode);
+            } else {
+                // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
+                const defaultNetwordCode = this.defaultNetworkCode (currencyCode);
+                const defaultNetwordId = this.networkCodeToId (defaultNetwordCode);
+                chosenNetworkId = (defaultNetwordId in networkEntriesIndexed) ? defaultNetwordId : availableNetworkIds[0];
+            }
+        }
+        return chosenNetworkId;
+    }
+
     safeNumber2 (dictionary, key1, key2, d = undefined) {
         const value = this.safeString2 (dictionary, key1, key2);
         return this.parseNumber (value, d);
@@ -2082,6 +2147,14 @@ module.exports = class Exchange {
         throw new NotSupported (this.id + ' fetchTransactionFees() is not supported yet');
     }
 
+    async fetchDepositWithdrawFee (code, params = {}) {
+        if (!this.has['fetchDepositWithdrawFees']) {
+            throw new NotSupported (this.id + ' fetchDepositWithdrawFee() is not supported yet');
+        }
+        const fees = await this.fetchDepositWithdrawFees ([ code ], params);
+        return this.safeValue (fees, code);
+    }
+
     getSupportedMapping (key, mapping = {}) {
         if (key in mapping) {
             return mapping[key];
@@ -2143,14 +2216,14 @@ module.exports = class Exchange {
         return [ type, params ];
     }
 
-    handleSubTypeAndParams (methodName, market = undefined, params = {}) {
+    handleSubTypeAndParams (methodName, market = undefined, params = {}, defaultValue = 'linear') {
         let subType = undefined;
         // if set in params, it takes precedence
-        const subTypeInParams = this.safeString2 (params, 'subType', 'subType');
+        const subTypeInParams = this.safeString2 (params, 'subType', 'defaultSubType');
         // avoid omitting if it's not present
         if (subTypeInParams !== undefined) {
             subType = subTypeInParams;
-            params = this.omit (params, [ 'defaultSubType', 'subType' ]);
+            params = this.omit (params, [ 'subType', 'defaultSubType' ]);
         } else {
             // at first, check from market object
             if (market !== undefined) {
@@ -2162,12 +2235,21 @@ module.exports = class Exchange {
             }
             // if it was not defined in market object
             if (subType === undefined) {
-                const exchangeWideValue = this.safeString2 (this.options, 'defaultSubType', 'subType', 'linear');
-                const methodOptions = this.safeValue (this.options, methodName, {});
-                subType = this.safeString2 (methodOptions, 'defaultSubType', 'subType', exchangeWideValue);
+                const values = this.handleOptionAndParams (undefined, methodName, 'subType', defaultValue); // no need to re-test params here
+                subType = values[0];
             }
         }
         return [ subType, params ];
+    }
+
+    handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined) {
+        /**
+         * @ignore
+         * @method
+         * @param {object} params extra parameters specific to the exchange api endpoint
+         * @returns {[string|undefined, object]} the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
+         */
+        return this.handleOptionAndParams (params, methodName, 'marginMode', defaultValue);
     }
 
     throwExactlyMatchedException (exact, string, message) {
@@ -2786,23 +2868,6 @@ module.exports = class Exchange {
         }
     }
 
-    handleMarginModeAndParams (methodName, params = {}) {
-        /**
-         * @ignore
-         * @method
-         * @param {object} params extra parameters specific to the exchange api endpoint
-         * @returns {[string|undefined, object]} the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] this.options["marginMode"] or this.options["defaultMarginMode"]
-         */
-        const defaultMarginMode = this.safeString2 (this.options, 'marginMode', 'defaultMarginMode');
-        const methodOptions = this.safeValue (this.options, methodName, {});
-        const methodMarginMode = this.safeString2 (methodOptions, 'marginMode', 'defaultMarginMode', defaultMarginMode);
-        const marginMode = this.safeStringLower2 (params, 'marginMode', 'defaultMarginMode', methodMarginMode);
-        if (marginMode !== undefined) {
-            params = this.omit (params, [ 'marginMode', 'defaultMarginMode' ]);
-        }
-        return [ marginMode, params ];
-    }
-
     checkRequiredArgument (methodName, argument, argumentName, options = []) {
         /**
          * @ignore
@@ -2846,5 +2911,49 @@ module.exports = class Exchange {
          * @param {string} methodName name of the method that requires a symbol
          */
         this.checkRequiredArgument (methodName, symbol, 'symbol');
+    }
+
+    parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
+        /**
+         * @ignore
+         * @method
+         * @param {[object]|object} response unparsed response from the exchange
+         * @param {[string]|undefined} codes the unified currency codes to fetch transactions fees for, returns all currencies when undefined
+         * @param {str|undefined} currencyIdKey *should only be undefined when response is a dictionary* the object key that corresponds to the currency id
+         * @returns {object} objects with withdraw and deposit fees, indexed by currency codes
+         */
+        const depositWithdrawFees = {};
+        codes = this.marketCodes (codes);
+        const isArray = Array.isArray (response);
+        let responseKeys = response;
+        if (!isArray) {
+            responseKeys = Object.keys (response);
+        }
+        for (let i = 0; i < responseKeys.length; i++) {
+            const entry = responseKeys[i];
+            const dictionary = isArray ? entry : response[entry];
+            const currencyId = isArray ? this.safeString (dictionary, currencyIdKey) : entry;
+            const currency = this.safeValue (this.currencies_by_id, currencyId);
+            const code = this.safeString (currency, 'code', currencyId);
+            if ((codes === undefined) || (this.inArray (code, codes))) {
+                depositWithdrawFees[code] = this.parseDepositWithdrawFee (dictionary, currency);
+            }
+        }
+        return depositWithdrawFees;
+    }
+
+    depositWithdrawFee (info) {
+        return {
+            'info': info,
+            'withdraw': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+        };
     }
 };

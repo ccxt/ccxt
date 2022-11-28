@@ -62,6 +62,7 @@ module.exports = class digifinex extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
+                'fetchTransfers': true,
                 'fetchWithdrawals': true,
                 'setLeverage': true,
                 'setMarginMode': false,
@@ -567,7 +568,7 @@ module.exports = class digifinex extends Exchange {
                 'swap': swap,
                 'future': false,
                 'option': false,
-                'active': isAllowed ? true : undefined,
+                'active': isAllowed ? true : false,
                 'contract': swap,
                 'linear': isLinear,
                 'inverse': isInverse,
@@ -2252,19 +2253,42 @@ module.exports = class digifinex extends Exchange {
 
     parseTransfer (transfer, currency = undefined) {
         //
+        // transfer
+        //
         //     {
         //         "code": 0
         //     }
         //
+        // fetchTransfers
+        //
+        //     {
+        //         "transfer_id": 130524,
+        //         "type": 1,
+        //         "currency": "USDT",
+        //         "amount": "24",
+        //         "timestamp": 1666505659000
+        //     }
+        //
+        let fromAccount = undefined;
+        let toAccount = undefined;
+        const type = this.safeInteger (transfer, 'type');
+        if (type === 1) {
+            fromAccount = 'spot';
+            toAccount = 'swap';
+        } else if (type === 2) {
+            fromAccount = 'swap';
+            toAccount = 'spot';
+        }
+        const timestamp = this.safeInteger (transfer, 'timestamp');
         return {
             'info': transfer,
-            'id': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
-            'currency': this.safeCurrencyCode (undefined, currency),
+            'id': this.safeString (transfer, 'transfer_id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': this.safeCurrencyCode (this.safeString (transfer, 'currency'), currency),
             'amount': this.safeNumber (transfer, 'amount'),
-            'fromAccount': this.safeString (transfer, 'fromAccount'),
-            'toAccount': this.safeString (transfer, 'toAccount'),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
             'status': this.parseTransferStatus (this.safeString (transfer, 'code')),
         };
     }
@@ -3032,7 +3056,52 @@ module.exports = class digifinex extends Exchange {
         //
     }
 
-    handleMarginModeAndParams (methodName, params = {}) {
+    async fetchTransfers (code = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name digifinex#fetchTransfers
+         * @description fetch the transfer history, only transfers between spot and swap accounts are supported
+         * @see https://docs.digifinex.com/en-ww/swap/v2/rest.html#transferrecord
+         * @param {string|undefined} code unified currency code of the currency transferred
+         * @param {int|undefined} since the earliest time in ms to fetch transfers for
+         * @param {int|undefined} limit the maximum number of  transfers to retrieve
+         * @param {object} params extra parameters specific to the digifinex api endpoint
+         * @returns {[object]} a list of [transfer structures]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
+        await this.loadMarkets ();
+        let currency = undefined;
+        const request = {};
+        if (code !== undefined) {
+            currency = this.safeCurrencyCode (code);
+            request['currency'] = currency['id'];
+        }
+        if (since !== undefined) {
+            request['start_timestamp'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit; // default 20 max 100
+        }
+        const response = await this.privateSwapGetAccountTransferRecord (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": [
+        //             {
+        //                 "transfer_id": 130524,
+        //                 "type": 1,
+        //                 "currency": "USDT",
+        //                 "amount": "24",
+        //                 "timestamp": 1666505659000
+        //             },
+        //             ...
+        //         ]
+        //     }
+        //
+        const transfers = this.safeValue (response, 'data', []);
+        return this.parseTransfers (transfers, currency, since, limit);
+    }
+
+    handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined) {
         /**
          * @ignore
          * @method
@@ -3043,7 +3112,7 @@ module.exports = class digifinex extends Exchange {
         const defaultType = this.safeString (this.options, 'defaultType');
         const isMargin = this.safeValue (params, 'margin', false);
         let marginMode = undefined;
-        [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params);
+        [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
         if (marginMode !== undefined) {
             if (marginMode !== 'cross') {
                 throw new NotSupported (this.id + ' only cross margin is supported');

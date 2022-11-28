@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.2.35';
+$version = '2.2.36';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.2.35';
+    const VERSION = '2.2.36';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -463,10 +463,23 @@ class Exchange {
     }
 
     public static function safe_string_lower($object, $key, $default_value = null) {
-        return static::valid_object_value($object, $key) ? strtolower(strval($object[$key])) : $default_value;
+        if (static::valid_object_value($object, $key)) {
+            return strtolower(strval($object[$key]));
+        } else if ($default_value === null) {
+            return $default_value;
+        } else {
+            return strtolower($default_value);
+        }
     }
 
     public static function safe_string_upper($object, $key, $default_value = null) {
+        if (static::valid_object_value($object, $key)) {
+            return strtoupper(strval($object[$key]));
+        } else if ($default_value === null) {
+            return $default_value;
+        } else {
+            return strtoupper($default_value);
+        }
         return static::valid_object_value($object, $key) ? strtoupper(strval($object[$key])) : $default_value;
     }
 
@@ -541,12 +554,24 @@ class Exchange {
 
     public static function safe_string_lower_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
-        return (static::valid_string($value) && is_scalar($value)) ? strtolower(strval($value)) : $default_value;
+        if (static::valid_string($value) && is_scalar($value)) {
+            return strtolower(strval($value));
+        } else if ($default_value === null) {
+            return $default_value;
+        } else {
+            return strtolower($default_value);
+        }
     }
 
     public static function safe_string_upper_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
-        return (static::valid_string($value) && is_scalar($value)) ? strtoupper(strval($value)) : $default_value;
+        if (static::valid_string($value) && is_scalar($value)) {
+            return strtoupper(strval($value));
+        } else if ($default_value === null) {
+            return $default_value;
+        } else {
+            return strtoupper($default_value);
+        }
     }
 
     public static function safe_integer_n($object, $array, $default_value = null) {
