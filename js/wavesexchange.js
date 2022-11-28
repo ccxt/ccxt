@@ -2145,9 +2145,17 @@ module.exports = class wavesexchange extends Exchange {
         const amountString = this.safeString (data, 'amount');
         const order1 = this.safeValue (data, 'order1');
         const order2 = this.safeValue (data, 'order2');
+        const order1Datetime = this.safeString (order1, 'timestamp');
+        const order1Timestamp = this.parse8601 (order1Datetime);
+        const order2Datetime = this.safeString (order2, 'timestamp');
+        const order2Timestamp = this.parse8601 (order2Datetime);
         let order = undefined;
-        // order2 arrived after order1
+        // choose myOrder or else most recent order
         if (this.safeString (order1, 'senderPublicKey') === this.apiKey) {
+            order = order1;
+        } else if (this.safeString (order2, 'senderPublicKey') === this.apiKey) {
+            order = order2;
+        } else if (order1Timestamp > order2Timestamp) {
             order = order1;
         } else {
             order = order2;
