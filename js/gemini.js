@@ -232,7 +232,7 @@ module.exports = class gemini extends Exchange {
                 },
             },
             'options': {
-                'fetchMarketsMethod': 'fetch_markets_from_web',
+                'fetchMarketsMethod': 'fetch_markets_from_api',
                 'fetchTickerMethod': 'fetchTickerV1', // fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2
                 'networkIds': {
                     'bitcoin': 'BTC',
@@ -371,6 +371,17 @@ module.exports = class gemini extends Exchange {
         return result;
     }
 
+    parseMarketActive (status) {
+        const statuses = {
+            'open': true,
+            'closed': false,
+            'cancel_only': true,
+            'post_only': true,
+            'limit_only': true,
+        };
+        return this.safeValue (statuses, status, true);
+    }
+
     async fetchMarketsFromAPI (params = {}) {
         const response = await this.publicGetV1Symbols (params);
         //
@@ -381,14 +392,37 @@ module.exports = class gemini extends Exchange {
         //     ]
         //
         const result = [];
+        let promises = [];
         for (let i = 0; i < response.length; i++) {
-            const marketId = response[i];
-            const market = marketId;
-            const idLength = marketId.length - 0;
-            const baseId = marketId.slice (0, idLength - 3);
-            const quoteId = marketId.slice (idLength - 3, idLength);
+            let marketId = response[i];
+            marketId = marketId.toUpperCase ();
+            const method = 'publicGetV1SymbolsDetailsSymbol';
+            const request = {
+                'symbol': marketId,
+            };
+            //
+            //     {
+            //         "symbol": "BTCUSD",
+            //         "base_currency": "BTC",
+            //         "quote_currency": "USD",
+            //         "tick_size": 1E-8,
+            //         "quote_increment": 0.01,
+            //         "min_order_size": "0.00001",
+            //         "status": "open",
+            //         "wrap_enabled": false
+            //     }
+            //
+            promises.push (this[method] (this.extend (request, params)));
+        }
+        promises = await Promise.all (promises);
+        for (let i = 0; i < promises.length; i++) {
+            const response = promises[i];
+            const marketId = this.safeString (response, 'symbol');
+            const baseId = this.safeString (response, 'base_currency');
             const base = this.safeCurrencyCode (baseId);
+            const quoteId = this.safeString (response, 'quote_currency');
             const quote = this.safeCurrencyCode (quoteId);
+            const status = this.safeString (response, 'status');
             result.push ({
                 'id': marketId,
                 'symbol': base + '/' + quote,
@@ -404,7 +438,7 @@ module.exports = class gemini extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': undefined,
+                'active': this.parseMarketActive (status),
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -414,8 +448,8 @@ module.exports = class gemini extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'price': undefined,
-                    'amount': undefined,
+                    'price': this.safeNumber (response, 'quote_increment'),
+                    'amount': this.safeNumber (response, 'tick_size'),
                 },
                 'limits': {
                     'leverage': {
@@ -423,7 +457,7 @@ module.exports = class gemini extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': undefined,
+                        'min': this.safeNumber (response, 'min_order_size'),
                         'max': undefined,
                     },
                     'price': {
@@ -435,7 +469,7 @@ module.exports = class gemini extends Exchange {
                         'max': undefined,
                     },
                 },
-                'info': market,
+                'info': response,
             });
         }
         return result;
@@ -1317,7 +1351,7 @@ module.exports = class gemini extends Exchange {
     }
 
     nonce () {
-        return this.milliseconds ();
+        return this.seconds ();
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
