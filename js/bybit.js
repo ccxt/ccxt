@@ -612,7 +612,7 @@ module.exports = class bybit extends Exchange {
                     '140021': InvalidOrder, // Open Interest exceeded
                     '140022': InvalidOrder, // qty has been limited, cannot modify the order to add qty
                     '140023': InvalidOrder, // This contract only supports position reduction operation, please contact customer service for details
-                    '140024': BadReqeust, // You have an existing position, so position mode cannot be switched
+                    '140024': BadRequest, // You have an existing position, so position mode cannot be switched
                     '140025': BadRequest, // Position mode is not modified
                     '140026': BadRequest, // Cross/isolated margin mode is not modified
                     '140027': BadRequest, // Margin is not modified
@@ -637,7 +637,7 @@ module.exports = class bybit extends Exchange {
                     '140046': BadRequest, // Any adjustments made will trigger immediate liquidation
                     '140047': BadRequest, // Risk limit cannot be adjusted due to insufficient available margin
                     '140048': BadRequest, // Risk limit cannot be adjusted as the current/expected position value held exceeds the revised risk limit
-                    '140049': BadReqeust, // Tick notes can only be numbers
+                    '140049': BadRequest, // Tick notes can only be numbers
                     '140050': InvalidOrder, // Coin is not in the range of selected
                     '140051': InsufficientFunds, // The user's available balance cannot cover the lowest price of the current market
                     '140052': InsufficientFunds, // User's available balance is insufficient to set a price
