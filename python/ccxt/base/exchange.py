@@ -381,7 +381,7 @@ class Exchange(object):
         self.positions = dict() if self.positions is None else self.positions
         self.ohlcvs = dict() if self.ohlcvs is None else self.ohlcvs
         self.currencies = dict() if self.currencies is None else self.currencies
-        self.options = dict() if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
+        self.options = self.get_default_options() if self.options is None else self.options  # Python does not allow to define properties in run-time with setattr
         self.decimal_to_precision = decimal_to_precision
         self.number_to_string = number_to_string
 
@@ -1786,6 +1786,14 @@ class Exchange(object):
 
     # METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    def get_default_options(self):
+        return {
+            'defaultNetworkCodeReplacements': {
+                'ETH': {'ERC20': 'ETH'},
+                'TRX': {'TRC20': 'TRX'},
+            },
+        }
+
     def safe_ledger_entry(self, entry, currency=None):
         currency = self.safe_currency(None, currency)
         direction = self.safe_string(entry, 'direction')
@@ -2513,7 +2521,13 @@ class Exchange(object):
         :returns [str|None]: unified network code
         """
         networkCodesByIds = self.safe_value(self.options, 'networksById', {})
-        return self.safe_string(networkCodesByIds, networkId, networkId)
+        networkCode = self.safe_string(networkCodesByIds, networkId, networkId)
+        if currencyCode is not None:
+            defaultNetworkCodeReplacements = self.safe_value(self.options, 'defaultNetworkCodeReplacements', {})
+            if currencyCode in defaultNetworkCodeReplacements:
+                replacementObject = self.safe_value(defaultNetworkCodeReplacements, currencyCode, {})
+                networkCode = self.safe_string(replacementObject, networkCode, networkCode)
+        return networkCode
 
     def handle_network_code_and_params(self, params):
         networkCodeInParams = self.safe_string_2(params, 'networkCode', 'network')

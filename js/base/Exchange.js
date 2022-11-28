@@ -234,7 +234,7 @@ module.exports = class Exchange {
         //         }
         //     }
         //
-        this.options = {} // exchange-specific options, if any
+        this.options = this.getDefaultOptions(); // exchange-specific options, if any
         // fetch implementation options (JS only)
         this.fetchOptions = {
             // keepalive: true, // does not work in Chrome, https://github.com/ccxt/ccxt/issues/6368
@@ -796,6 +796,15 @@ module.exports = class Exchange {
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    getDefaultOptions () {
+        return {
+            'defaultNetworkCodeReplacements': {
+                'ETH': { 'ERC20': 'ETH' },
+                'TRX': { 'TRC20': 'TRX' },
+            },
+        };
+    }
 
     safeLedgerEntry (entry, currency = undefined) {
         currency = this.safeCurrency (undefined, currency);
@@ -1668,7 +1677,15 @@ module.exports = class Exchange {
          * @returns {[string|undefined]} unified network code
          */
         const networkCodesByIds = this.safeValue (this.options, 'networksById', {});
-        return this.safeString (networkCodesByIds, networkId, networkId);
+        let networkCode = this.safeString (networkCodesByIds, networkId, networkId);
+        if (currencyCode !== undefined) {
+            const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
+            if (currencyCode in defaultNetworkCodeReplacements) {
+                const replacementObject = this.safeValue (defaultNetworkCodeReplacements, currencyCode, {});
+                networkCode = this.safeString (replacementObject, networkCode, networkCode);
+            }
+        }
+        return networkCode;
     }
 
     handleNetworkCodeAndParams (params) {
