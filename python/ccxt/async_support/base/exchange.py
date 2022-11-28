@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.2.29'
+__version__ = '2.2.36'
 
 # -----------------------------------------------------------------------------
 
@@ -1400,6 +1400,12 @@ class Exchange(BaseExchange):
     async def fetch_transaction_fees(self, codes=None, params={}):
         raise NotSupported(self.id + ' fetchTransactionFees() is not supported yet')
 
+    async def fetch_deposit_withdraw_fee(self, code, params={}):
+        if not self.has['fetchDepositWithdrawFees']:
+            raise NotSupported(self.id + ' fetchDepositWithdrawFee() is not supported yet')
+        fees = await self.fetchDepositWithdrawFees([code], params)
+        return self.safe_value(fees, code)
+
     def get_supported_mapping(self, key, mapping={}):
         if key in mapping:
             return mapping[key]
@@ -1997,3 +2003,41 @@ class Exchange(BaseExchange):
         :param str methodName: name of the method that requires a symbol
         """
         self.checkRequiredArgument(methodName, symbol, 'symbol')
+
+    def parse_deposit_withdraw_fees(self, response, codes=None, currencyIdKey=None):
+        """
+         * @ignore
+        :param [object]|dict response: unparsed response from the exchange
+        :param [str]|None codes: the unified currency codes to fetch transactions fees for, returns all currencies when None
+        :param str|None currencyIdKey: *should only be None when response is a dictionary* the object key that corresponds to the currency id
+        :returns dict: objects with withdraw and deposit fees, indexed by currency codes
+        """
+        depositWithdrawFees = {}
+        codes = self.marketCodes(codes)
+        isArray = isinstance(response, list)
+        responseKeys = response
+        if not isArray:
+            responseKeys = list(response.keys())
+        for i in range(0, len(responseKeys)):
+            entry = responseKeys[i]
+            dictionary = entry if isArray else response[entry]
+            currencyId = self.safe_string(dictionary, currencyIdKey) if isArray else entry
+            currency = self.safe_value(self.currencies_by_id, currencyId)
+            code = self.safe_string(currency, 'code', currencyId)
+            if (codes is None) or (self.in_array(code, codes)):
+                depositWithdrawFees[code] = self.parseDepositWithdrawFee(dictionary, currency)
+        return depositWithdrawFees
+
+    def deposit_withdraw_fee(self, info):
+        return {
+            'info': info,
+            'withdraw': {
+                'fee': None,
+                'percentage': None,
+            },
+            'deposit': {
+                'fee': None,
+                'percentage': None,
+            },
+            'networks': {},
+        }
