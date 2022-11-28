@@ -2487,7 +2487,7 @@ module.exports = class bybit extends Exchange {
             if (market['spot']) {
                 feeCurrencyCode = this.safeString (trade, 'commissionAsset');
             } else {
-                feeCurrencyCode = market['inverse'] ? market['base'] : market['quote'];
+                feeCurrencyCode = market['inverse'] ? market['base'] : market['setlle'];
             }
             fee = {
                 'cost': feeCostString,
