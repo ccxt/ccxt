@@ -41,6 +41,8 @@ module.exports = class lbank2 extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': false,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -68,8 +70,6 @@ module.exports = class lbank2 extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFees': true,
                 'fetchTransactionFees': true,
-                'fetchDepositWithdrawFee': 'emulated',
-                'fetchDepositWithdrawFees': true,
                 'reduceMargin': false,
                 'setLeverage': false,
                 'setMarginMode': false,
@@ -2046,7 +2046,7 @@ module.exports = class lbank2 extends Exchange {
         const withdrawFees = {};
         for (let i = 0; i < result.length; i++) {
             const item = result[i];
-            const canWithdraw = this.safeString (item, 'canWithDraw');
+            const canWithdraw = this.safeValue (item, 'canWithDraw');
             if (canWithdraw === 'true') {
                 const currencyId = this.safeString (item, 'assetCode');
                 const code = this.safeCurrencyCode (currencyId);
@@ -2185,7 +2185,7 @@ module.exports = class lbank2 extends Exchange {
         for (let i = 0; i < response.length; i++) {
             const fee = response[i];
             const canWithdraw = this.safeValue (fee, 'canWithDraw');
-            if (canWithdraw !== false) {
+            if (canWithdraw === true) {
                 const currencyId = this.safeString (fee, 'assetCode');
                 const code = this.safeCurrencyCode (currencyId);
                 if (codes === undefined || this.inArray (code, codes)) {
