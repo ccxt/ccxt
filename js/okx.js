@@ -1451,7 +1451,13 @@ module.exports = class okx extends Exchange {
          * @param {object} params extra parameters specific to the okx api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        symbols = this.marketSymbols (symbols);
+        const first = this.safeString (symbols, 0);
+        let market = undefined;
+        if (first !== undefined) {
+            market = this.market (first);
+        }
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         return await this.fetchTickersByType (type, symbols, query);
     }
 
