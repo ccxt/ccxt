@@ -2886,7 +2886,7 @@ module.exports = class huobi extends Exchange {
         return super.networkIdToCode (networkTitle);
     }
 
-    networkCodeToId (networkCode, currencyCode = undefined) {// here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
+    networkCodeToId (networkCode, currencyCode = undefined) { // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
         if (currencyCode === undefined) {
             throw new ArgumentsRequired (this.id + ' networkIdToCode() requires a currencyCode argument');
         }
