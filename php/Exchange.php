@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.2.35';
+$version = '2.2.40';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.2.35';
+    const VERSION = '2.2.40';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -463,10 +463,23 @@ class Exchange {
     }
 
     public static function safe_string_lower($object, $key, $default_value = null) {
-        return static::valid_object_value($object, $key) ? strtolower(strval($object[$key])) : $default_value;
+        if (static::valid_object_value($object, $key)) {
+            return strtolower(strval($object[$key]));
+        } else if ($default_value === null) {
+            return $default_value;
+        } else {
+            return strtolower($default_value);
+        }
     }
 
     public static function safe_string_upper($object, $key, $default_value = null) {
+        if (static::valid_object_value($object, $key)) {
+            return strtoupper(strval($object[$key]));
+        } else if ($default_value === null) {
+            return $default_value;
+        } else {
+            return strtoupper($default_value);
+        }
         return static::valid_object_value($object, $key) ? strtoupper(strval($object[$key])) : $default_value;
     }
 
@@ -541,12 +554,24 @@ class Exchange {
 
     public static function safe_string_lower_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
-        return (static::valid_string($value) && is_scalar($value)) ? strtolower(strval($value)) : $default_value;
+        if (static::valid_string($value) && is_scalar($value)) {
+            return strtolower(strval($value));
+        } else if ($default_value === null) {
+            return $default_value;
+        } else {
+            return strtolower($default_value);
+        }
     }
 
     public static function safe_string_upper_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
-        return (static::valid_string($value) && is_scalar($value)) ? strtoupper(strval($value)) : $default_value;
+        if (static::valid_string($value) && is_scalar($value)) {
+            return strtoupper(strval($value));
+        } else if ($default_value === null) {
+            return $default_value;
+        } else {
+            return strtoupper($default_value);
+        }
     }
 
     public static function safe_integer_n($object, $array, $default_value = null) {
@@ -3296,14 +3321,26 @@ class Exchange {
         }
     }
 
-    public function network_code_to_id($networkCode) {
-        $networks = $this->safe_value($this->options, 'networks', array());
-        return $this->safe_string($networks, $networkCode, $networkCode);
+    public function network_code_to_id($networkCode, $currencyCode = null) {
+        /**
+         * tries to convert the provided $networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+         * @param {string} $networkCode unified network code
+         * @param {string} $currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass $currencyCode argument additionally
+         * @return {[string|null]} exchange-specific network id
+         */
+        $networkIdsByCodes = $this->safe_value($this->options, 'networks', array());
+        return $this->safe_string($networkIdsByCodes, $networkCode, $networkCode);
     }
 
-    public function network_id_to_code($networkId) {
-        $networksById = $this->safe_value($this->options, 'networksById', array());
-        return $this->safe_string($networksById, $networkId, $networkId);
+    public function network_id_to_code($networkId, $currencyCode = null) {
+        /**
+         * tries to convert the provided exchange-specific $networkId to an unified network Code. In order to achieve this, derived class needs to have 'options->networksById' defined.
+         * @param {string} $networkId unified network code
+         * @param {string} $currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass $currencyCode argument additionally
+         * @return {[string|null]} unified network code
+         */
+        $networkCodesByIds = $this->safe_value($this->options, 'networksById', array());
+        return $this->safe_string($networkCodesByIds, $networkId, $networkId);
     }
 
     public function handle_network_code_and_params($params) {
@@ -3338,7 +3375,7 @@ class Exchange {
         $responseNetworksLength = count($availableNetworkIds);
         if ($networkCode !== null) {
             // if $networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
-            $networkId = $this->networkCodeToId ($networkCode);
+            $networkId = $this->networkCodeToId ($networkCode, $currencyCode);
             if ($responseNetworksLength === 0) {
                 throw new NotSupported($this->id . ' - ' . $networkCode . ' network did not return any result for ' . $currencyCode);
             } else {
@@ -3353,9 +3390,9 @@ class Exchange {
                 throw new NotSupported($this->id . ' - no networks were returned for' . $currencyCode);
             } else {
                 // if $networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
-                $defaultNetwordCode = $this->defaultNetworkCode ($currencyCode);
-                $defaultNetwordId = $this->networkCodeToId ($defaultNetwordCode);
-                $chosenNetworkId = (is_array($networkEntriesIndexed) && array_key_exists($defaultNetwordId, $networkEntriesIndexed)) ? $defaultNetwordId : $availableNetworkIds[0];
+                $defaultNetworkCode = $this->defaultNetworkCode ($currencyCode);
+                $defaultNetworkId = $this->networkCodeToId ($defaultNetworkCode, $currencyCode);
+                $chosenNetworkId = (is_array($networkEntriesIndexed) && array_key_exists($defaultNetworkId, $networkEntriesIndexed)) ? $defaultNetworkId : $availableNetworkIds[0];
             }
         }
         return $chosenNetworkId;
@@ -3725,7 +3762,7 @@ class Exchange {
                 if ($error) {
                     throw new AuthenticationError($this->id . ' requires "' . $key . '" credential');
                 } else {
-                    return $error;
+                    return false;
                 }
             }
         }
