@@ -886,8 +886,9 @@ module.exports = class kucoin extends Exchange {
         const result = this.depositWithdrawFee (fee);
         const isWithdrawEnabled = this.safeValue (fee, 'isWithdrawEnabled');
         if (isWithdrawEnabled) {
-            const chain = this.safeString (fee, 'chain');
-            result['networks'][chain] = {
+            const networkId = this.safeString (fee, 'chain');
+            const networkCode = this.networkIdToCode (networkId);
+            result['networks'][networkCode] = {
                 'withdraw': {
                     'fee': this.safeNumber (fee, 'withdrawMinFee'),
                     'percentage': undefined,
@@ -898,7 +899,7 @@ module.exports = class kucoin extends Exchange {
                 },
             };
         }
-        return result;
+        return this.assignDefaultDepositWithdrawFees (result);
     }
 
     isFuturesMethod (methodName, params) {
