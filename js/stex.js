@@ -2584,8 +2584,9 @@ module.exports = class stex extends Exchange {
         const networks = this.safeValue (fee, 'protocol_specific_settings', []);
         for (let i = 0; i < networks.length; i++) {
             const network = networks[i];
-            const networkName = this.safeString (network, 'protocol_name');
-            result['networks'][networkName] = {
+            const networkId = this.safeString (network, 'protocol_name');
+            const networkCode = this.networkIdToCode (networkId);
+            result['networks'][networkCode] = {
                 'withdraw': {
                     'fee': this.safeNumber (network, 'withdrawal_fee_const'),
                     'percentage': false,
