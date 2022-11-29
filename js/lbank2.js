@@ -192,7 +192,7 @@ module.exports = class lbank2 extends Exchange {
                 'fetchTrades': {
                     'method': 'publicGetTrades', // or 'publicGetTradesSupplement'
                 },
-                'fetchTransactionFees': { // DEPRECATED, please use fetchDepositWithdrawFees
+                'fetchTransactionFees': {   // DEPRECATED, please use fetchDepositWithdrawFees
                     'method': 'fetchPrivateTransactionFees', // or 'fetchPublicTransactionFees'
                 },
                 'fetchDepositWithdrawFees': {
