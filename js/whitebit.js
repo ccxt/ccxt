@@ -597,7 +597,7 @@ module.exports = class whitebit extends Exchange {
                     depositWithdrawFees[code] = this.depositWithdrawFee ({});
                 }
                 depositWithdrawFees[code]['info'][entry] = feeInfo;
-                let network = this.safeString (splitEntry, 1);
+                let networkId = this.safeString (splitEntry, 1);
                 const withdraw = this.safeValue (feeInfo, 'withdraw');
                 const deposit = this.safeValue (feeInfo, 'deposit');
                 const withdrawFee = this.safeNumber (withdraw, 'fixed');
@@ -610,10 +610,11 @@ module.exports = class whitebit extends Exchange {
                     'fee': depositFee,
                     'percentage': (depositFee !== undefined) ? false : undefined,
                 };
-                if (network !== undefined) {
-                    const networkLength = network.length;
-                    network = network.slice (1, networkLength - 1);
-                    depositWithdrawFees[code]['networks'][network] = {
+                if (networkId !== undefined) {
+                    const networkLength = networkId.length;
+                    networkId = networkId.slice (1, networkLength - 1);
+                    const networkCode = this.networkIdToCode (networkId);
+                    depositWithdrawFees[code]['networks'][networkCode] = {
                         'withdraw': withdrawResult,
                         'deposit': depositResult,
                     };
