@@ -197,6 +197,7 @@ module.exports = class binance extends Exchange {
                         'asset/transfer': 0.1,
                         'asset/assetDetail': 0.1,
                         'asset/tradeFee': 0.1,
+                        'asset/ledger-transfer/cloud-mining/queryByPage': 4,
                         'margin/loan': 1,
                         'margin/repay': 1,
                         'margin/account': 1,
@@ -232,6 +233,8 @@ module.exports = class binance extends Exchange {
                         'loan/loanable/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/collateral/data': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/repay/collateral/rate': 600, // Weight(IP): 6000 => cost = 0.1 * 6000 = 600
+                        'loan/vip/ongoing/orders': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/vip/repay/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'fiat/orders': 600.03, // Weight(UID): 90000 => cost = 0.006667 * 90000 = 600.03
                         'fiat/payments': 0.1,
                         'futures/transfer': 1,
@@ -249,6 +252,9 @@ module.exports = class binance extends Exchange {
                         'capital/deposit/subHisrec': 0.1,
                         'capital/withdraw/history': 0.1,
                         'convert/tradeFlow': 0.6667, // Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
+                        'convert/exchangeInfo': 50,
+                        'convert/assetInfo': 10,
+                        'convert/orderStatus': 0.6667,
                         'account/status': 0.1,
                         'account/apiTradingStatus': 0.1,
                         'account/apiRestrictions/ipRestriction': 0.1,
@@ -266,6 +272,7 @@ module.exports = class binance extends Exchange {
                         'sub-account/sub/transfer/history': 0.1,
                         'sub-account/transfer/subUserHistory': 0.1,
                         'sub-account/universalTransfer': 0.1,
+                        'sub-account/apiRestrictions/ipRestriction/thirdPartyList': 1,
                         'managed-subaccount/asset': 0.1,
                         'managed-subaccount/accountSnapshot': 240,
                         // lending endpoints
@@ -386,6 +393,8 @@ module.exports = class binance extends Exchange {
                         'sub-account/transfer/subToSub': 0.1,
                         'sub-account/transfer/subToMaster': 0.1,
                         'sub-account/universalTransfer': 0.1,
+                        // v2 not supported yet
+                        // 'sub-account/subAccountApi/ipRestriction': 20,
                         'managed-subaccount/deposit': 0.1,
                         'managed-subaccount/withdraw': 0.1,
                         'userDataStream': 0.1,
@@ -442,6 +451,9 @@ module.exports = class binance extends Exchange {
                         'loan/repay': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'loan/adjust/ltv': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'loan/customize/margin_call': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
+                        'loan/vip/repay': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
+                        'convert/getQuote': 20.001,
+                        'convert/acceptQuote': 3.3335,
                     },
                     'put': {
                         'userDataStream': 0.1,
@@ -676,6 +688,7 @@ module.exports = class binance extends Exchange {
                         'trades': 5,
                         'historicalTrades': 20,
                         'exerciseHistory': 3,
+                        'openInterest': 3,
                     },
                 },
                 'eapiPrivate': {
@@ -1323,88 +1336,105 @@ module.exports = class binance extends Exchange {
         const result = {};
         for (let i = 0; i < response.length; i++) {
             //
-            //     {
-            //         coin: 'LINK',
-            //         depositAllEnable: true,
-            //         withdrawAllEnable: true,
-            //         name: 'ChainLink',
-            //         free: '0.06168',
-            //         locked: '0',
-            //         freeze: '0',
-            //         withdrawing: '0',
-            //         ipoing: '0',
-            //         ipoable: '0',
-            //         storage: '0',
-            //         isLegalMoney: false,
-            //         trading: true,
-            //         networkList: [
-            //             {
-            //                 network: 'BNB',
-            //                 coin: 'LINK',
-            //                 withdrawIntegerMultiple: '0',
-            //                 isDefault: false,
-            //                 depositEnable: true,
-            //                 withdrawEnable: true,
-            //                 depositDesc: '',
-            //                 withdrawDesc: '',
-            //                 specialTips: 'Both a MEMO and an Address are required to successfully deposit your LINK BEP2 tokens to Binance.',
-            //                 name: 'BEP2',
-            //                 resetAddressStatus: false,
-            //                 addressRegex: '^(bnb1)[0-9a-z]{38}$',
-            //                 memoRegex: '^[0-9A-Za-z\\-_]{1,120}$',
-            //                 withdrawFee: '0.002',
-            //                 withdrawMin: '0.01',
-            //                 withdrawMax: '9999999',
-            //                 minConfirm: 1,
-            //                 unLockConfirm: 0
-            //             },
-            //             {
-            //                 network: 'BSC',
-            //                 coin: 'LINK',
-            //                 withdrawIntegerMultiple: '0.00000001',
-            //                 isDefault: false,
-            //                 depositEnable: true,
-            //                 withdrawEnable: true,
-            //                 depositDesc: '',
-            //                 withdrawDesc: '',
-            //                 specialTips: '',
-            //                 name: 'BEP20 (BSC)',
-            //                 resetAddressStatus: false,
-            //                 addressRegex: '^(0x)[0-9A-Fa-f]{40}$',
-            //                 memoRegex: '',
-            //                 withdrawFee: '0.005',
-            //                 withdrawMin: '0.01',
-            //                 withdrawMax: '9999999',
-            //                 minConfirm: 15,
-            //                 unLockConfirm: 0
-            //             },
-            //             {
-            //                 network: 'ETH',
-            //                 coin: 'LINK',
-            //                 withdrawIntegerMultiple: '0.00000001',
-            //                 isDefault: true,
-            //                 depositEnable: true,
-            //                 withdrawEnable: true,
-            //                 depositDesc: '',
-            //                 withdrawDesc: '',
-            //                 name: 'ERC20',
-            //                 resetAddressStatus: false,
-            //                 addressRegex: '^(0x)[0-9A-Fa-f]{40}$',
-            //                 memoRegex: '',
-            //                 withdrawFee: '0.34',
-            //                 withdrawMin: '0.68',
-            //                 withdrawMax: '0',
-            //                 minConfirm: 12,
-            //                 unLockConfirm: 0
-            //             }
-            //         ]
-            //     }
+            //    {
+            //        "coin": "LINK",
+            //        "depositAllEnable": true,
+            //        "withdrawAllEnable": true,
+            //        "name": "ChainLink",
+            //        "free": "0",
+            //        "locked": "0",
+            //        "freeze": "0",
+            //        "withdrawing": "0",
+            //        "ipoing": "0",
+            //        "ipoable": "0",
+            //        "storage": "0",
+            //        "isLegalMoney": false,
+            //        "trading": true,
+            //        "networkList": [
+            //            {
+            //                "network": "BSC",
+            //                "coin": "LINK",
+            //                "withdrawIntegerMultiple": "0.00000001",
+            //                "isDefault": false,
+            //                "depositEnable": true,
+            //                "withdrawEnable": true,
+            //                "depositDesc": "",
+            //                "withdrawDesc": "",
+            //                "specialTips": "",
+            //                "specialWithdrawTips": "The network you have selected is BSC. Please ensure that the withdrawal address supports the Binance Smart Chain network. You will lose your assets if the chosen platform does not support retrievals.",
+            //                "name": "BNB Smart Chain (BEP20)",
+            //                "resetAddressStatus": false,
+            //                "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
+            //                "addressRule": "",
+            //                "memoRegex": "",
+            //                "withdrawFee": "0.012",
+            //                "withdrawMin": "0.024",
+            //                "withdrawMax": "9999999999.99999999",
+            //                "minConfirm": "15",
+            //                "unLockConfirm": "0",
+            //                "sameAddress": false,
+            //                "estimatedArrivalTime": "5",
+            //                "busy": false,
+            //                "country": "AE,BINANCE_BAHRAIN_BSC"
+            //            },
+            //            {
+            //                "network": "BNB",
+            //                "coin": "LINK",
+            //                "withdrawIntegerMultiple": "0.00000001",
+            //                "isDefault": false,
+            //                "depositEnable": true,
+            //                "withdrawEnable": true,
+            //                "depositDesc": "",
+            //                "withdrawDesc": "",
+            //                "specialTips": "Both a MEMO and an Address are required to successfully deposit your LINK BEP2 tokens to Binance.",
+            //                "specialWithdrawTips": "",
+            //                "name": "BNB Beacon Chain (BEP2)",
+            //                "resetAddressStatus": false,
+            //                "addressRegex": "^(bnb1)[0-9a-z]{38}$",
+            //                "addressRule": "",
+            //                "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
+            //                "withdrawFee": "0.002",
+            //                "withdrawMin": "0.01",
+            //                "withdrawMax": "10000000000",
+            //                "minConfirm": "1",
+            //                "unLockConfirm": "0",
+            //                "sameAddress": true,
+            //                "estimatedArrivalTime": "5",
+            //                "busy": false,
+            //                "country": "AE,BINANCE_BAHRAIN_BSC"
+            //            },
+            //            {
+            //                "network": "ETH",
+            //                "coin": "LINK",
+            //                "withdrawIntegerMultiple": "0.00000001",
+            //                "isDefault": true,
+            //                "depositEnable": true,
+            //                "withdrawEnable": true,
+            //                "depositDesc": "",
+            //                "withdrawDesc": "",
+            //                "name": "Ethereum (ERC20)",
+            //                "resetAddressStatus": false,
+            //                "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
+            //                "addressRule": "",
+            //                "memoRegex": "",
+            //                "withdrawFee": "0.55",
+            //                "withdrawMin": "1.1",
+            //                "withdrawMax": "10000000000",
+            //                "minConfirm": "12",
+            //                "unLockConfirm": "0",
+            //                "sameAddress": false,
+            //                "estimatedArrivalTime": "5",
+            //                "busy": false,
+            //                "country": "AE,BINANCE_BAHRAIN_BSC"
+            //            }
+            //        ]
+            //    }
             //
             const entry = response[i];
             const id = this.safeString (entry, 'coin');
             const name = this.safeString (entry, 'name');
             const code = this.safeCurrencyCode (id);
-            const precision = undefined;
+            let minPrecision = undefined;
             let isWithdrawEnabled = true;
             let isDepositEnabled = true;
             const networkList = this.safeValue (entry, 'networkList', []);
@@ -1424,14 +1454,24 @@ module.exports = class binance extends Exchange {
                 if (isDefault || (fee === undefined)) {
                     fee = withdrawFee;
                 }
+                const precisionTick = this.safeString (networkItem, 'withdrawIntegerMultiple');
+                // avoid zero values, which are mostly from fiat or leveraged tokens : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
+                // so, when there is zero instead of i.e. 0.001, then we skip those cases, because we don't know the precision - it might be because of network is suspended or other reasons
+                if (!Precise.stringEq (precisionTick, '0')) {
+                    minPrecision = (minPrecision === undefined) ? precisionTick : Precise.stringMin (minPrecision, precisionTick);
+                }
             }
             const trading = this.safeValue (entry, 'trading');
             const active = (isWithdrawEnabled && isDepositEnabled && trading);
+            let maxDecimalPlaces = undefined;
+            if (minPrecision !== undefined) {
+                maxDecimalPlaces = this.parseNumber (this.numberToString (this.precisionFromString (minPrecision)));
+            }
             result[code] = {
                 'id': id,
                 'name': name,
                 'code': code,
-                'precision': precision,
+                'precision': maxDecimalPlaces,
                 'info': entry,
                 'active': active,
                 'deposit': isDepositEnabled,
@@ -1764,7 +1804,9 @@ module.exports = class binance extends Exchange {
         const account = this.account ();
         account['used'] = this.safeString (entry, 'locked');
         account['free'] = this.safeString (entry, 'free');
-        account['total'] = this.safeString (entry, 'totalAsset');
+        const interest = this.safeString (entry, 'interest');
+        const debt = this.safeString (entry, 'borrowed');
+        account['debt'] = Precise.stringAdd (debt, interest);
         return account;
     }
 
@@ -1774,7 +1816,8 @@ module.exports = class binance extends Exchange {
         };
         let timestamp = undefined;
         const isolated = marginMode === 'isolated';
-        if (((type === 'spot') || (type === 'margin') || (marginMode === 'cross')) && !isolated) {
+        const cross = (type === 'margin') || (marginMode === 'cross');
+        if (!isolated && ((type === 'spot') || cross)) {
             timestamp = this.safeInteger (response, 'updateTime');
             const balances = this.safeValue2 (response, 'balances', 'userAssets', []);
             for (let i = 0; i < balances.length; i++) {
@@ -1784,6 +1827,11 @@ module.exports = class binance extends Exchange {
                 const account = this.account ();
                 account['free'] = this.safeString (balance, 'free');
                 account['used'] = this.safeString (balance, 'locked');
+                if (cross) {
+                    const debt = this.safeString (balance, 'borrowed');
+                    const interest = this.safeString (balance, 'interest');
+                    account['debt'] = Precise.stringAdd (debt, interest);
+                }
                 result[code] = account;
             }
         } else if (isolated) {
@@ -1872,7 +1920,7 @@ module.exports = class binance extends Exchange {
             const options = this.safeValue (this.options, type, {});
             const fetchBalanceOptions = this.safeValue (options, 'fetchBalance', {});
             method = this.safeString (fetchBalanceOptions, 'method', 'dapiPrivateGetAccount');
-        } else if (type === 'margin' || marginMode === 'cross') {
+        } else if ((type === 'margin') || (marginMode === 'cross')) {
             method = 'sapiGetMarginAccount';
         } else if (type === 'savings') {
             method = 'sapiGetLendingUnionAccount';
@@ -2602,7 +2650,6 @@ module.exports = class binance extends Exchange {
         let takerOrMaker = undefined;
         if (buyerMaker !== undefined) {
             side = buyerMaker ? 'sell' : 'buy'; // this is reversed intentionally
-            takerOrMaker = 'taker';
         } else if ('side' in trade) {
             side = this.safeStringLower (trade, 'side');
         } else {
@@ -2943,13 +2990,11 @@ module.exports = class binance extends Exchange {
         const marketType = this.safeString (params, 'type', defaultType);
         const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
         const postOnly = this.safeValue (params, 'postOnly', false);
-        const reduceOnly = this.safeValue (params, 'reduceOnly');
         const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
-        if (reduceOnly !== undefined) {
-            if ((marketType !== 'future') && (marketType !== 'delivery')) {
-                throw new InvalidOrder (this.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for future and delivery markets only');
-            }
-        }
+        const request = {
+            'symbol': market['id'],
+            'side': side.toUpperCase (),
+        };
         let method = 'privatePostOrder';
         if (marketType === 'future') {
             method = 'fapiPrivatePostOrder';
@@ -2957,6 +3002,11 @@ module.exports = class binance extends Exchange {
             method = 'dapiPrivatePostOrder';
         } else if (marketType === 'margin' || marginMode !== undefined) {
             method = 'sapiPostMarginOrder';
+            const reduceOnly = this.safeValue (params, 'reduceOnly');
+            if (reduceOnly) {
+                request['sideEffectType'] = 'AUTO_REPAY';
+                params = this.omit (params, 'reduceOnly');
+            }
         }
         if (market['spot'] || marketType === 'margin') {
             // support for testing orders
@@ -2971,6 +3021,7 @@ module.exports = class binance extends Exchange {
         }
         const initialUppercaseType = type.toUpperCase ();
         let uppercaseType = initialUppercaseType;
+        request['type'] = uppercaseType;
         const stopPrice = this.safeNumber (query, 'stopPrice');
         if (stopPrice !== undefined) {
             if (uppercaseType === 'MARKET') {
@@ -2987,11 +3038,6 @@ module.exports = class binance extends Exchange {
                 throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
             }
         }
-        const request = {
-            'symbol': market['id'],
-            'type': uppercaseType,
-            'side': side.toUpperCase (),
-        };
         if (marginMode === 'isolated') {
             request['isIsolated'] = true;
         }
@@ -4199,8 +4245,9 @@ module.exports = class binance extends Exchange {
                     toId = this.marketId (symbol);
                 }
             }
-            const fromIsolated = this.inArray (fromId, this.ids);
-            const toIsolated = this.inArray (toId, this.ids);
+            const accountsById = this.safeValue (this.options, 'accountsById', {});
+            const fromIsolated = !(fromId in accountsById);
+            const toIsolated = !(toId in accountsById);
             if (fromIsolated || toIsolated) { // Isolated margin transfer
                 const fromFuture = fromId === 'UMFUTURE' || fromId === 'CMFUTURE';
                 const toFuture = toId === 'UMFUTURE' || toId === 'CMFUTURE';
@@ -4211,7 +4258,7 @@ module.exports = class binance extends Exchange {
                 const prohibitedWithIsolated = fromFuture || toFuture || mining || funding;
                 if ((fromIsolated || toIsolated) && prohibitedWithIsolated) {
                     throw new BadRequest (this.id + ' transfer () does not allow transfers between ' + fromAccount + ' and ' + toAccount);
-                } else if (fromIsolated && toSpot) {
+                } else if (toSpot && fromIsolated) {
                     method = 'sapiPostMarginIsolatedTransfer';
                     request['transFrom'] = 'ISOLATED_MARGIN';
                     request['transTo'] = 'SPOT';
@@ -4222,11 +4269,11 @@ module.exports = class binance extends Exchange {
                     request['transTo'] = 'ISOLATED_MARGIN';
                     request['symbol'] = toId;
                 } else {
-                    if (this.inArray (fromId, this.ids)) {
+                    if (fromIsolated) {
                         request['fromSymbol'] = fromId;
                         fromId = 'ISOLATEDMARGIN';
                     }
-                    if (this.inArray (toId, this.ids)) {
+                    if (toIsolated) {
                         request['toSymbol'] = toId;
                         toId = 'ISOLATEDMARGIN';
                     }
@@ -6374,39 +6421,27 @@ module.exports = class binance extends Exchange {
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('repayMargin', params); // cross or isolated
+        this.checkRequiredMarginArgument ('repayMargin', symbol, marginMode);
         await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            symbol = market['symbol'];
-        }
         const currency = this.currency (code);
         const request = {
             'asset': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
-        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
-        if (marginMode === 'isolated') {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument for isolated margin');
-            }
-            request['isIsolated'] = 'TRUE';
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
             request['symbol'] = market['id'];
+            request['isIsolated'] = 'TRUE';
         }
-        params = this.omit (params, 'marginMode');
-        const response = await this.sapiPostMarginRepay (this.extend (request, params));
+        const response = await this.sapiPostMarginRepay (this.extend (request, query));
         //
         //     {
         //         "tranId": 108988250265,
         //         "clientTag":""
         //     }
         //
-        const transaction = this.parseMarginLoan (response, currency);
-        return this.extend (transaction, {
-            'amount': amount,
-            'symbol': symbol,
-        });
+        return this.parseMarginLoan (response, currency);
     }
 
     async borrowMargin (code, amount, symbol = undefined, params = {}) {
@@ -6421,39 +6456,27 @@ module.exports = class binance extends Exchange {
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('borrowMargin', params); // cross or isolated
+        this.checkRequiredMarginArgument ('borrowMargin', symbol, marginMode);
         await this.loadMarkets ();
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            symbol = market['symbol'];
-        }
         const currency = this.currency (code);
         const request = {
             'asset': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
-        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
-        if (marginMode === 'isolated') {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument for isolated margin');
-            }
-            request['isIsolated'] = 'TRUE';
+        if (symbol !== undefined) {
+            const market = this.market (symbol);
             request['symbol'] = market['id'];
+            request['isIsolated'] = 'TRUE';
         }
-        params = this.omit (params, 'marginMode');
-        const response = await this.sapiPostMarginLoan (this.extend (request, params));
+        const response = await this.sapiPostMarginLoan (this.extend (request, query));
         //
         //     {
         //         "tranId": 108988250265,
         //         "clientTag":""
         //     }
         //
-        const transaction = this.parseMarginLoan (response, currency);
-        return this.extend (transaction, {
-            'amount': amount,
-            'symbol': symbol,
-        });
+        return this.parseMarginLoan (response, currency);
     }
 
     parseMarginLoan (info, currency = undefined) {

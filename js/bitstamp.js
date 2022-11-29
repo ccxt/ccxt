@@ -48,6 +48,8 @@ module.exports = class bitstamp extends Exchange {
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -1149,7 +1151,7 @@ module.exports = class bitstamp extends Exchange {
         /**
          * @method
          * @name bitstamp#fetchTransactionFees
-         * @description fetch transaction fees
+         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
          * @see https://www.bitstamp.net/api/#balance
          * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the bitstamp api endpoint
@@ -1204,6 +1206,80 @@ module.exports = class bitstamp extends Exchange {
             }
             if (id.indexOf ('_withdrawal_fee') >= 0) {
                 result[code]['withdraw'] = this.safeNumber (response, id);
+            }
+        }
+        return result;
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitstamp#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://www.bitstamp.net/api/#balance
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the bitstamp api endpoint
+         * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privatePostBalance (params);
+        //
+        //    {
+        //        yfi_available: '0.00000000',
+        //        yfi_balance: '0.00000000',
+        //        yfi_reserved: '0.00000000',
+        //        yfi_withdrawal_fee: '0.00070000',
+        //        yfieur_fee: '0.000',
+        //        yfiusd_fee: '0.000',
+        //        zrx_available: '0.00000000',
+        //        zrx_balance: '0.00000000',
+        //        zrx_reserved: '0.00000000',
+        //        zrx_withdrawal_fee: '12.00000000',
+        //        zrxeur_fee: '0.000',
+        //        zrxusd_fee: '0.000',
+        //        ...
+        //    }
+        //
+        return this.parseDepositWithdrawFees (response, codes);
+    }
+
+    parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
+        //
+        //    {
+        //        yfi_available: '0.00000000',
+        //        yfi_balance: '0.00000000',
+        //        yfi_reserved: '0.00000000',
+        //        yfi_withdrawal_fee: '0.00070000',
+        //        yfieur_fee: '0.000',
+        //        yfiusd_fee: '0.000',
+        //        zrx_available: '0.00000000',
+        //        zrx_balance: '0.00000000',
+        //        zrx_reserved: '0.00000000',
+        //        zrx_withdrawal_fee: '12.00000000',
+        //        zrxeur_fee: '0.000',
+        //        zrxusd_fee: '0.000',
+        //        ...
+        //    }
+        //
+        const result = {};
+        const ids = Object.keys (response);
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const currencyId = id.split ('_')[0];
+            const code = this.safeCurrencyCode (currencyId);
+            const dictValue = this.safeNumber (response, id);
+            if (codes !== undefined && !this.inArray (code, codes)) {
+                continue;
+            }
+            if (id.indexOf ('_available') >= 0) {
+                result[code] = this.depositWithdrawFee ({});
+            }
+            if (id.indexOf ('_withdrawal_fee') >= 0) {
+                result[code]['withdraw']['fee'] = dictValue;
+            }
+            const resultValue = this.safeValue (result, code);
+            if (resultValue !== undefined) {
+                result[code]['info'][id] = dictValue;
             }
         }
         return result;

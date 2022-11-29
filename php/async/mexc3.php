@@ -428,13 +428,13 @@ class mexc3 extends Exchange {
                 'FLUX1' => 'FLUX', // switched places
                 'FLUX' => 'FLUX1', // switched places
                 'FREE' => 'FreeRossDAO', // conflict with FREE Coin
-                'GMT' => 'GMT Token',
+                'GMT' => 'GMT Token', // Conflict with GMT (STEPN)
+                'STEPN' => 'GMT', // Conflict with GMT Token
                 'HERO' => 'Step Hero', // conflict with Metahero
                 'MIMO' => 'Mimosa',
                 'PROS' => 'Pros.Finance', // conflict with Prosper
                 'SIN' => 'Sin City Token',
                 'SOUL' => 'Soul Swap',
-                'STEPN' => 'GMT',
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -459,6 +459,7 @@ class mexc3 extends Exchange {
                     '88009' => '\\ccxt\\ExchangeError', // v3 array("msg":"Loan record does not exist","code":88009)
                     '88013' => '\\ccxt\\InvalidOrder', // array("msg":"最小交易额不能小于：5USDT","code":88013)
                     '88015' => '\\ccxt\\InsufficientFunds', // array("msg":"持仓不足","code":88015)
+                    '700003' => '\\ccxt\\InvalidNonce', // array("code":700003,"msg":"Timestamp for this request is outside of the recvWindow.")
                 ),
                 'broad' => array(
                     'Order quantity error, please try to modify.' => '\\ccxt\\BadRequest', // code:2011
@@ -4526,7 +4527,7 @@ class mexc3 extends Exchange {
         );
     }
 
-    public function handle_margin_mode_and_params($methodName, $params = array ()) {
+    public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null) {
         /**
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
@@ -4537,7 +4538,7 @@ class mexc3 extends Exchange {
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $isMargin = $this->safe_value($params, 'margin', false);
         $marginMode = null;
-        list($marginMode, $params) = parent::handle_margin_mode_and_params($methodName, $params);
+        list($marginMode, $params) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
         if (($defaultType === 'margin') || ($isMargin === true)) {
             $marginMode = 'isolated';
         }

@@ -100,6 +100,8 @@ class gate(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -1638,7 +1640,7 @@ class gate(Exchange):
 
     async def fetch_transaction_fees(self, codes=None, params={}):
         """
-        fetch transaction fees
+        *DEPRECATED* please use fetchDepositWithdrawFees instead
         see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
         :param [str]|None codes: list of unified currency codes
         :param dict params: extra parameters specific to the gate api endpoint
@@ -1685,6 +1687,84 @@ class gate(Exchange):
                 'deposit': None,
                 'info': entry,
             }
+        return result
+
+    async def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the gate api endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        await self.load_markets()
+        response = await self.privateWalletGetWithdrawStatus(params)
+        #
+        #    [
+        #        {
+        #            "currency": "MTN",
+        #            "name": "Medicalchain",
+        #            "name_cn": "Medicalchain",
+        #            "deposit": "0",
+        #            "withdraw_percent": "0%",
+        #            "withdraw_fix": "900",
+        #            "withdraw_day_limit": "500000",
+        #            "withdraw_day_limit_remain": "500000",
+        #            "withdraw_amount_mini": "900.1",
+        #            "withdraw_eachtime_limit": "90000000000",
+        #            "withdraw_fix_on_chains": {
+        #                "ETH": "900"
+        #            }
+        #        }
+        #    ]
+        #
+        return self.parse_deposit_withdraw_fees(response, codes, 'currency')
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        #    {
+        #        "currency": "MTN",
+        #        "name": "Medicalchain",
+        #        "name_cn": "Medicalchain",
+        #        "deposit": "0",
+        #        "withdraw_percent": "0%",
+        #        "withdraw_fix": "900",
+        #        "withdraw_day_limit": "500000",
+        #        "withdraw_day_limit_remain": "500000",
+        #        "withdraw_amount_mini": "900.1",
+        #        "withdraw_eachtime_limit": "90000000000",
+        #        "withdraw_fix_on_chains": {
+        #            "ETH": "900"
+        #        }
+        #    }
+        #
+        withdrawFixOnChains = self.safe_value(fee, 'withdraw_fix_on_chains')
+        result = {
+            'info': fee,
+            'withdraw': {
+                'fee': self.safe_number(fee, 'withdraw_fix'),
+                'percentage': False,
+            },
+            'deposit': {
+                'fee': self.safe_number(fee, 'deposit'),
+                'percentage': False,
+            },
+            'networks': {},
+        }
+        if withdrawFixOnChains is not None:
+            chainKeys = list(withdrawFixOnChains.keys())
+            for i in range(0, len(chainKeys)):
+                chainKey = chainKeys[i]
+                result['networks'][chainKey] = {
+                    'withdraw': {
+                        'fee': self.parse_number(withdrawFixOnChains[chainKey]),
+                        'percentage': False,
+                    },
+                    'deposit': {
+                        'fee': None,
+                        'percentage': None,
+                    },
+                }
         return result
 
     async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
@@ -1960,12 +2040,20 @@ class gate(Exchange):
     async def fetch_tickers(self, symbols=None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        see https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-order
+        see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers
+        see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers-2
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the gate api endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
-        type, query = self.handle_market_type_and_params('fetchTickers', None, params)
+        symbols = self.market_symbols(symbols)
+        first = self.safe_string(symbols, 0)
+        market = None
+        if first is not None:
+            market = self.market(first)
+        type, query = self.handle_market_type_and_params('fetchTickers', market, params)
         request, requestParams = self.prepare_request(None, type, query)
         method = self.get_supported_mapping(type, {
             'spot': 'publicSpotGetTickers',
@@ -1976,11 +2064,13 @@ class gate(Exchange):
         response = await getattr(self, method)(self.extend(request, requestParams))
         return self.parse_tickers(response, symbols)
 
-    def fetch_balance_helper(self, entry):
+    def parse_balance_helper(self, entry):
         account = self.account()
         account['used'] = self.safe_string_2(entry, 'freeze', 'locked')
         account['free'] = self.safe_string(entry, 'available')
         account['total'] = self.safe_string(entry, 'total')
+        if 'borrowed' in entry:
+            account['debt'] = self.safe_string(entry, 'borrowed')
         return account
 
     async def fetch_balance(self, params={}):
@@ -2126,8 +2216,7 @@ class gate(Exchange):
         result = {
             'info': response,
         }
-        crossMargin = marginMode == 'cross_margin'
-        margin = marginMode == 'margin'
+        isolated = marginMode == 'margin'
         data = response
         if 'balances' in data:  # True for cross_margin
             flatBalances = []
@@ -2143,7 +2232,7 @@ class gate(Exchange):
             data = flatBalances
         for i in range(0, len(data)):
             entry = data[i]
-            if margin and not crossMargin:
+            if isolated:
                 marketId = self.safe_string(entry, 'currency_pair')
                 symbol = self.safe_symbol(marketId, None, '_')
                 base = self.safe_value(entry, 'base', {})
@@ -2151,13 +2240,13 @@ class gate(Exchange):
                 baseCode = self.safe_currency_code(self.safe_string(base, 'currency'))
                 quoteCode = self.safe_currency_code(self.safe_string(quote, 'currency'))
                 subResult = {}
-                subResult[baseCode] = self.fetch_balance_helper(base)
-                subResult[quoteCode] = self.fetch_balance_helper(quote)
+                subResult[baseCode] = self.parse_balance_helper(base)
+                subResult[quoteCode] = self.parse_balance_helper(quote)
                 result[symbol] = self.safe_balance(subResult)
             else:
                 code = self.safe_currency_code(self.safe_string(entry, 'currency'))
-                result[code] = self.fetch_balance_helper(entry)
-        return result if (margin and not crossMargin) else self.safe_balance(result)
+                result[code] = self.parse_balance_helper(entry)
+        return result if isolated else self.safe_balance(result)
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
@@ -4185,32 +4274,28 @@ class gate(Exchange):
         :param str params['id']: '34267567' loan id, extra parameter required for isolated margin
         :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
         """
+        marginMode = self.safe_string(params, 'marginMode')  # cross or isolated
+        params = self.omit(params, 'marginMode')
+        self.check_required_margin_argument('repayMargin', symbol, marginMode)
         await self.load_markets()
         currency = self.currency(code)
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
         request = {
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
-        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
-        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)  # cross or isolated
-        method = 'privateMarginPostCrossRepayments'
-        if marginMode == 'isolated':
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' repayMargin() requires a symbol argument for isolated margin')
-            mode = self.safe_string(params, 'mode')  # 'all' or 'partial'
-            if mode is None:
-                raise ArgumentsRequired(self.id + ' repayMargin() requires a mode parameter for isolated margin')
-            id = self.safe_string_2(params, 'loan_id', 'id')
-            if id is None:
-                raise ArgumentsRequired(self.id + ' repayMargin() requires an id parameter for isolated margin')
+        method = None
+        if symbol is None:
+            method = 'privateMarginPostCrossRepayments'
+        else:
             method = 'privateMarginPostLoansLoanIdRepayment'
+            market = self.market(symbol)
             request['currency_pair'] = market['id']
-            request['mode'] = mode
-            request['loan_id'] = id
-        params = self.omit(params, ['marginMode', 'mode', 'loan_id', 'id'])
+            request['mode'] = 'partial'
+            loanId = self.safe_string_2(params, 'loan_id', 'id')
+            if loanId is None:
+                raise ArgumentsRequired(self.id + ' repayMargin() requires loan_id param for isolated margin')
+            request['loan_id'] = loanId
+        params = self.omit(params, ['marginMode', 'loan_id', 'id'])
         response = await getattr(self, method)(self.extend(request, params))
         #
         # Cross
@@ -4266,28 +4351,26 @@ class gate(Exchange):
         :param str params['rate']: '0.0002' or '0.002' extra parameter required for isolated margin
         :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
         """
+        marginMode = self.safe_string(params, 'marginMode')  # cross or isolated
+        params = self.omit(params, 'marginMode')
+        self.check_required_margin_argument('borrowMargin', symbol, marginMode)
         await self.load_markets()
         currency = self.currency(code)
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            symbol = market['symbol']
         request = {
             'currency': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
-        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
-        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)  # cross or isolated
-        method = 'privateMarginPostCrossLoans'
-        if marginMode == 'isolated':
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument for isolated margin')
+        method = None
+        if symbol is None:
+            method = 'privateMarginPostCrossLoans'
+        else:
+            market = self.market(symbol)
             request['currency_pair'] = market['id']
-            rate = self.safe_string(params, 'rate')
-            if rate is None:
-                raise ArgumentsRequired(self.id + ' borrowMargin() requires a rate parameter for isolated margin')
-            request['rate'] = rate  # Only rates '0.0002', '0.002' are supported.
             request['side'] = 'borrow'
+            # default it to 0.01% since self is a reasonable limit
+            # as it is the smallest tick size currently offered by gateio
+            request['rate'] = self.safe_string(params, 'rate', '0.0001')
+            request['auto_renew'] = True
             method = 'privateMarginPostLoans'
         params = self.omit(params, ['marginMode', 'rate'])
         response = await getattr(self, method)(self.extend(request, params))

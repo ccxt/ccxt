@@ -678,6 +678,8 @@ module.exports = class woo extends Exchange {
                 'active': undefined,
                 'fee': undefined,
                 'networks': resultingNetworks,
+                'deposit': undefined,
+                'withdraw': undefined,
                 'limits': {
                     'deposit': {
                         'min': undefined,

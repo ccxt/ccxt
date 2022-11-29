@@ -299,17 +299,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 2
      
    * - China
-     - .. image:: https://user-images.githubusercontent.com/1294454/69436317-31128c80-0d52-11ea-91d1-eb7bb5818812.jpg
-          :target: https://www.bw.com/regGetCommission/N3JuT1R3bWxKTE0
-          :alt: bw
-     
-     - bw
-     - `BW <https://www.bw.com/regGetCommission/N3JuT1R3bWxKTE0>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://github.com/bw-exchange/api_docs_en/wiki
-          :alt: API Version 1
-     
-   * - China
      - .. image:: https://user-images.githubusercontent.com/51840849/87182089-1e05fa00-c2ec-11ea-8da9-cc73b45abbbc.jpg
           :target: https://www.coinex.com/register?refer_code=yw5fz
           :alt: coinex
@@ -399,11 +388,11 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
    * - China
      - .. image:: https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg
-          :target: https://www.zbex.club/en/register?ref=4301lera
+          :target: https://www.zb.com/en/register?ref=4301lera
           :alt: zb
      
      - zb
-     - `ZB <https://www.zbex.club/en/register?ref=4301lera>`__
+     - `ZB <https://www.zb.com/en/register?ref=4301lera>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://www.zb.com/i/developer
           :alt: API Version 1
@@ -834,7 +823,7 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - cryptocom
      - `Crypto.com <https://crypto.com/exch/5835vstech>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://exchange-docs.crypto.com/
+          :target: https://exchange-docs.crypto.com/spot/index.html
           :alt: API Version 2
      
    * - Malta

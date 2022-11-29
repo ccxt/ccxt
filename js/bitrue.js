@@ -1753,10 +1753,11 @@ module.exports = class bitrue extends Exchange {
         //         "fee": 1,
         //         "ctime": null,
         //         "coin": "usdt_erc20",
+        //         "withdrawId": 1156423,
         //         "addressTo": "0x2edfae3878d7b6db70ce4abed177ab2636f60c83"
         //     }
         //
-        const id = this.safeString (transaction, 'id');
+        const id = this.safeString2 (transaction, 'id', 'withdrawId');
         const tagType = this.safeString (transaction, 'tagType');
         let addressTo = this.safeString (transaction, 'addressTo');
         let addressFrom = this.safeString (transaction, 'addressFrom');
@@ -1783,7 +1784,7 @@ module.exports = class bitrue extends Exchange {
         const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         const amount = this.safeNumber (transaction, 'amount');
         let network = undefined;
-        let currencyId = this.safeString (transaction, 'symbol');
+        let currencyId = this.safeString2 (transaction, 'symbol', 'coin');
         if (currencyId !== undefined) {
             const parts = currencyId.split ('_');
             currencyId = this.safeString (parts, 0);
@@ -1863,8 +1864,23 @@ module.exports = class bitrue extends Exchange {
             request['tag'] = tag;
         }
         const response = await this.v1PrivatePostWithdrawCommit (this.extend (request, params));
-        //     { id: '9a67628b16ba4988ae20d329333f16bc' }
-        return this.parseTransaction (response, currency);
+        //
+        //     {
+        //         "code": 200,
+        //         "msg": "succ",
+        //         "data": {
+        //             "msg": null,
+        //             "amount": 1000,
+        //             "fee": 1,
+        //             "ctime": null,
+        //             "coin": "usdt_erc20",
+        //             "withdrawId": 1156423,
+        //             "addressTo": "0x2edfae3878d7b6db70ce4abed177ab2636f60c83"
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseTransaction (data, currency);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
