@@ -629,7 +629,8 @@ module.exports = class crex24 extends Exchange {
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
             const networkId = this.safeString (networkEntry, 'feeCurrency');
-            result['networks'][networkId] = {
+            const networkCode = this.networkIdToCode (networkId);
+            result['networks'][networkCode] = {
                 'withdraw': {
                     'fee': this.safeNumber (networkEntry, 'amount'),
                     'percentage': undefined,
