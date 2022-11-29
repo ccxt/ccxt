@@ -1457,12 +1457,18 @@ class okx extends Exchange {
     public function fetch_tickers($symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the okx api endpoint
              * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
-            list($type, $query) = $this->handle_market_type_and_params('fetchTickers', null, $params);
+            $symbols = $this->market_symbols($symbols);
+            $first = $this->safe_string($symbols, 0);
+            $market = null;
+            if ($first !== null) {
+                $market = $this->market($first);
+            }
+            list($type, $query) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
             return Async\await($this->fetch_tickers_by_type($type, $symbols, $query));
         }) ();
     }
@@ -2484,7 +2490,7 @@ class okx extends Exchange {
         if (($clientOrderId !== null) && (strlen($clientOrderId) < 1)) {
             $clientOrderId = null; // fix empty $clientOrderId string
         }
-        $stopPrice = $this->safe_number_n($order, array( 'triggerPx', 'slTriggerPx', 'tpTriggerPx' ));
+        $stopPrice = $this->safe_number_n($order, array( 'tpTriggerPx', 'triggerPx', 'slTriggerPx' ));
         $reduceOnly = $this->safe_string($order, 'reduceOnly');
         if ($reduceOnly !== null) {
             $reduceOnly = ($reduceOnly === 'true');

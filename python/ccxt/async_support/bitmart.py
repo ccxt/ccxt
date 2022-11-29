@@ -67,6 +67,8 @@ class bitmart(Exchange):
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': True,
+                'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': None,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
@@ -325,6 +327,7 @@ class bitmart(Exchange):
                     # below Error codes used interchangeably for both failed postOnly and IOC orders depending on market price and order side
                     '50035': InvalidOrder,  # {"message":"The price is low and there is no matching depth","code":50035,"trace":"677f01c7-8b88-4346-b097-b4226c75c90e","data":{}}
                     '50034': InvalidOrder,  # {"message":"The price is high and there is no matching depth","code":50034,"trace":"ebfae59a-ba69-4735-86b2-0ed7b9ca14ea","data":{}}
+                    '51011': InvalidOrder,  # {"message":"param not match : size * price >=5","code":51011,"trace":"525e1d27bfd34d60b2d90ba13a7c0aa9.74.16696421352220797","data":{}}
                     '53000': AccountSuspended,  # 403, Your account is frozen due to security policies. Please contact customer service
                     '53001': AccountSuspended,  # {"message":"Your kyc country is restricted. Please contact customer service.","code":53001,"trace":"8b445940-c123-4de9-86d7-73c5be2e7a24","data":{}}
                     '57001': BadRequest,  # 405, Method Not Allowed
@@ -721,7 +724,7 @@ class bitmart(Exchange):
 
     async def fetch_transaction_fee(self, code, params={}):
         """
-        fetch the fee for a transaction
+        *DEPRECATED* please use fetchDepositWithdrawFee instead
         :param str code: unified currency code
         :param dict params: extra parameters specific to the bitmart api endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
@@ -753,6 +756,57 @@ class bitmart(Exchange):
             'withdraw': withdrawFees,
             'deposit': {},
         }
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        #    {
+        #        today_available_withdraw_BTC: '100.0000',
+        #        min_withdraw: '0.005',
+        #        withdraw_precision: '8',
+        #        withdraw_fee: '0.000500000000000000000000000000'
+        #    }
+        #
+        return {
+            'info': fee,
+            'withdraw': {
+                'fee': self.safe_number(fee, 'withdraw_fee'),
+                'percentage': None,
+            },
+            'deposit': {
+                'fee': None,
+                'percentage': None,
+            },
+            'networks': {},
+        }
+
+    async def fetch_deposit_withdraw_fee(self, code, params={}):
+        """
+        fetch the fee for deposits and withdrawals
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        await self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = await self.privateGetAccountV1WithdrawCharge(self.extend(request, params))
+        #
+        #     {
+        #         message: 'OK',
+        #         code: '1000',
+        #         trace: '3ecc0adf-91bd-4de7-aca1-886c1122f54f',
+        #         data: {
+        #             today_available_withdraw_BTC: '100.0000',
+        #             min_withdraw: '0.005',
+        #             withdraw_precision: '8',
+        #             withdraw_fee: '0.000500000000000000000000000000'
+        #         }
+        #     }
+        #
+        data = response['data']
+        return self.parse_deposit_withdraw_fee(data)
 
     def parse_ticker(self, ticker, market=None):
         #
@@ -2661,7 +2715,7 @@ class bitmart(Exchange):
             'info': info,
         }
 
-    def handle_margin_mode_and_params(self, methodName, params={}):
+    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
         """
          * @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
@@ -2671,7 +2725,7 @@ class bitmart(Exchange):
         defaultType = self.safe_string(self.options, 'defaultType')
         isMargin = self.safe_value(params, 'margin', False)
         marginMode = None
-        marginMode, params = super(bitmart, self).handle_margin_mode_and_params(methodName, params)
+        marginMode, params = super(bitmart, self).handle_margin_mode_and_params(methodName, params, defaultValue)
         if marginMode is not None:
             if marginMode != 'isolated':
                 raise NotSupported(self.id + ' only isolated margin is supported')

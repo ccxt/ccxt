@@ -44,6 +44,8 @@ class bibox extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => true,
+                'fetchDepositWithdrawFees' => false,
                 'fetchLedger' => true,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
@@ -707,7 +709,7 @@ class bibox extends Exchange {
                 'symbol' => $market['id'],
             );
             if ($limit !== null) {
-                $request['size'] = $limit; // default = 100
+                $request['limit'] = $limit; // default = 100
             }
             if ($since !== null) {
                 $request['start_time'] = $since;
@@ -1027,6 +1029,8 @@ class bibox extends Exchange {
                     'active' => $active,
                     'fee' => null,
                     'precision' => $precision,
+                    'withdraw' => $withdraw,
+                    'deposit' => $deposit,
                     'limits' => array(
                         'amount' => array(
                             'min' => $precision,
@@ -2058,7 +2062,7 @@ class bibox extends Exchange {
     public function fetch_transaction_fees($codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
-             * fetch transaction fees
+             * *DEPRECATED* please use fetchDepositWithdrawFees instead
              * @param {[string]|null} $codes list of unified $currency $codes
              * @param {array} $params extra parameters specific to the bibox api endpoint
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
@@ -2115,6 +2119,81 @@ class bibox extends Exchange {
                 'deposit' => array(),
             );
         }) ();
+    }
+
+    public function fetch_deposit_withdraw_fee($code, $params = array ()) {
+        return Async\async(function () use ($code, $params) {
+            /**
+             * fetch withdrawal fees for currencies
+             * @param {string} $code unified $currency $code
+             * @param {array} $params extra parameters specific to the bibox api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'cmd' => 'transfer/coinConfig',
+                'body' => array_merge(array(
+                    'coin_symbol' => $currency['id'],
+                ), $params),
+            );
+            $response = Async\await($this->v1PrivatePostTransfer ($request));
+            //
+            //    {
+            //        "result" => array(
+            //            {
+            //                "result" => array(
+            //                    {
+            //                        "coin_symbol" => "ETH",
+            //                        "is_active" => 1,
+            //                        "original_decimals" => 18,
+            //                        "enable_deposit" => 1,
+            //                        "enable_withdraw" => 1,
+            //                        "withdraw_fee" => 0.008,
+            //                        "withdraw_min" => 0.05,
+            //                        "deposit_avg_spent" => 173700,
+            //                        "withdraw_avg_spent" => 322600
+            //                    }
+            //                ),
+            //                "cmd" => "transfer/coinConfig"
+            //            }
+            //        )
+            //    }
+            //
+            $outerResults = $this->safe_value($response, 'result', array());
+            $firstOuterResult = $this->safe_value($outerResults, 0, array());
+            $innerResults = $this->safe_value($firstOuterResult, 'result', array());
+            $firstInnerResult = $this->safe_value($innerResults, 0, array());
+            return $this->parse_deposit_withdraw_fee($firstInnerResult, $currency);
+        }) ();
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //
+        //    {
+        //        "coin_symbol" => "ETH",
+        //        "is_active" => 1,
+        //        "original_decimals" => 18,
+        //        "enable_deposit" => 1,
+        //        "enable_withdraw" => 1,
+        //        "withdraw_fee" => 0.008,
+        //        "withdraw_min" => 0.05,
+        //        "deposit_avg_spent" => 173700,
+        //        "withdraw_avg_spent" => 322600
+        //    }
+        //
+        return array(
+            'info' => $fee,
+            'withdraw' => array(
+                'fee' => $this->safe_number($fee, 'withdraw_fee'),
+                'percentage' => null,
+            ),
+            'deposit' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'networks' => array(),
+        );
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
