@@ -2097,7 +2097,7 @@ export default class lbank2 extends Exchange {
         // complete response
         // incl. for coins which undefined in public method
         await this.loadMarkets ();
-        const response = await this.privatePostSupplementUserInfo (params);
+        const response = await (this as any).privatePostSupplementUserInfo (params);
         //
         //    {
         //        "result": "true",
@@ -2137,7 +2137,7 @@ export default class lbank2 extends Exchange {
         // vast majority fees undefined
         await this.loadMarkets ();
         const request = {};
-        const response = await this.publicGetWithdrawConfigs (this.extend (request, params));
+        const response = await (this as any).publicGetWithdrawConfigs (this.extend (request, params));
         //
         //    {
         //        result: 'true',
