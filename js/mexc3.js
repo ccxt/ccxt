@@ -4571,7 +4571,7 @@ module.exports = class mexc3 extends Exchange {
                 },
             };
         }
-        return result;
+        return this.assignDefaultDepositWithdrawFees (result);
     }
 
     parseMarginLoan (info, currency = undefined) {
