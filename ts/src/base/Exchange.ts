@@ -2261,11 +2261,12 @@ export default class Exchange {
 
     networkCodeToId (networkCode, currencyCode = undefined) {
         /**
+         * @ignore
          * @method
          * @name exchange#networkCodeToId
          * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
          * @param {string} networkCode unified network code
-         * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
+         * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {[string|undefined]} exchange-specific network id
          */
         const networkIdsByCodes = this.safeValue (this.options, 'networks', {});
@@ -2274,11 +2275,12 @@ export default class Exchange {
 
     networkIdToCode (networkId, currencyCode = undefined) {
         /**
+         * @ignore
          * @method
          * @name exchange#networkIdToCode
          * @description tries to convert the provided exchange-specific networkId to an unified network Code. In order to achieve this, derived class needs to have 'options->networksById' defined.
          * @param {string} networkId unified network code
-         * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
+         * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {[string|undefined]} unified network code
          */
         const networkCodesByIds = this.safeValue (this.options, 'networksById', {});

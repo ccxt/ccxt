@@ -2592,6 +2592,7 @@ export default class coinex extends Exchange {
         //          code: 0,
         //          data: {
         //            coin_address: '1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq',
+        //            // coin_address: 'xxxxxxxxxxxxxx:yyyyyyyyy', // with embedded tag/memo
         //            is_bitcoin_cash: false
         //          },
         //          message: 'Success'
@@ -2631,12 +2632,21 @@ export default class coinex extends Exchange {
         //         is_bitcoin_cash: false
         //     }
         //
-        const address = this.safeString (depositAddress, 'coin_address');
+        const coinAddress = this.safeString (depositAddress, 'coin_address');
+        const parts = coinAddress.split (':');
+        let address = undefined;
+        let tag = undefined;
+        if (parts.length > 1) {
+            address = parts[0];
+            tag = parts[1];
+        } else {
+            address = coinAddress;
+        }
         return {
             'info': depositAddress,
             'currency': this.safeCurrencyCode (undefined, currency),
             'address': address,
-            'tag': undefined,
+            'tag': tag,
             'network': undefined,
         };
     }
