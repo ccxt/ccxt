@@ -1184,13 +1184,17 @@ module.exports = class digifinex extends Exchange {
                 takerOrMaker = undefined;
             }
             if ((side === '1') || (direction === '1')) {
-                side = 'open long';
+                // side = 'open long';
+                side = 'buy';
             } else if ((side === '2') || (direction === '2')) {
-                side = 'open short';
+                // side = 'open short';
+                side = 'sell';
             } else if ((side === '3') || (direction === '3')) {
-                side = 'close long';
+                // side = 'close long';
+                side = 'sell';
             } else if ((side === '4') || (direction === '4')) {
-                side = 'close short';
+                // side = 'close short';
+                side = 'buy';
             }
         } else {
             const parts = side.split ('_');
@@ -1200,7 +1204,7 @@ module.exports = class digifinex extends Exchange {
                 type = 'limit';
             }
             const isMaker = this.safeValue (trade, 'is_maker');
-            takerOrMaker = (isMaker) ? 'maker' : 'taker';
+            takerOrMaker = isMaker ? 'maker' : 'taker';
         }
         let fee = undefined;
         const feeCostString = this.safeString (trade, 'fee');
