@@ -4620,10 +4620,18 @@ module.exports = class binance extends Exchange {
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
             const networkId = this.safeString (networkEntry, 'network');
+            const withdrawFee = this.safeNumber (networkEntry, 'withdrawFee');
+            const isDefault = this.safeValue (networkEntry, 'isDefault');
+            if (isDefault === true) {
+                result['withdraw'] = {
+                    'fee': withdrawFee,
+                    'percentage': undefined,
+                };
+            }
             const networkCode = this.safeCurrencyCode (networkId);
             result['networks'][networkCode] = {
                 'withdraw': {
-                    'fee': this.safeNumber (networkEntry, 'withdrawFee'),
+                    'fee': withdrawFee,
                     'percentage': undefined,
                 },
                 'deposit': {
