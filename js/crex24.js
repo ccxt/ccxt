@@ -641,7 +641,7 @@ module.exports = class crex24 extends Exchange {
                 },
             };
         }
-        return result;
+        return this.assignDefaultDepositWithdrawFees (result);
     }
 
     parseBalance (response) {
