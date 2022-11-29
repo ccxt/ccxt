@@ -2783,10 +2783,14 @@ module.exports = class huobi extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const result = {};
+        this.networkJunctionsByTitles = {};
+        this.networkTitlesByJunctions = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
+            this.networkJunctionsByTitles[code] = {};
+            this.networkTitlesByJunctions[code] = {};
             const chains = this.safeValue (entry, 'chains', []);
             const networks = {};
             const instStatus = this.safeString (entry, 'instStatus');
@@ -2797,17 +2801,20 @@ module.exports = class huobi extends Exchange {
             let deposit = undefined;
             let withdraw = undefined;
             for (let j = 0; j < chains.length; j++) {
-                const chain = chains[j];
-                const displayName = this.safeString (chain, 'displayName');
-                const networkCode = this.networkIdToCode (displayName);
-                minWithdraw = this.safeNumber (chain, 'minWithdrawAmt');
-                maxWithdraw = this.safeNumber (chain, 'maxWithdrawAmt');
-                const withdrawStatus = this.safeString (chain, 'withdrawStatus');
-                const depositStatus = this.safeString (chain, 'depositStatus');
+                const chainEntry = chains[j];
+                const uniqueChainId = this.safeString (chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
+                const title = this.safeString (chainEntry, 'displayName');
+                this.networkJunctionsByTitles[code][title] = uniqueChainId;
+                this.networkTitlesByJunctions[code][uniqueChainId] = title;
+                const networkCode = this.networkIdToCode (title, code);
+                minWithdraw = this.safeNumber (chainEntry, 'minWithdrawAmt');
+                maxWithdraw = this.safeNumber (chainEntry, 'maxWithdrawAmt');
+                const withdrawStatus = this.safeString (chainEntry, 'withdrawStatus');
+                const depositStatus = this.safeString (chainEntry, 'depositStatus');
                 const withdrawEnabled = (withdrawStatus === 'allowed');
                 const depositEnabled = (depositStatus === 'allowed');
                 const active = withdrawEnabled && depositEnabled;
-                const precision = this.parsePrecision (this.safeString (chain, 'withdrawPrecision'));
+                const precision = this.parsePrecision (this.safeString (chainEntry, 'withdrawPrecision'));
                 if (precision !== undefined) {
                     minPrecision = (minPrecision === undefined) ? precision : Precise.stringMin (precision, minPrecision);
                 }
@@ -2821,10 +2828,10 @@ module.exports = class huobi extends Exchange {
                 } else if (!depositEnabled) {
                     deposit = false;
                 }
-                const fee = this.safeNumber (chain, 'transactFeeWithdraw');
+                const fee = this.safeNumber (chainEntry, 'transactFeeWithdraw');
                 networks[networkCode] = {
-                    'info': chain,
-                    'id': displayName,
+                    'info': chainEntry,
+                    'id': uniqueChainId,
                     'network': networkCode,
                     'limits': {
                         'withdraw': {
@@ -2862,45 +2869,34 @@ module.exports = class huobi extends Exchange {
                 'networks': networks,
             };
         }
-        this.defineNetworkPairIds (result);
         return result;
     }
 
-    defineNetworkPairIds (currencies) {
-        const currencyCodes = Object.keys (currencies);
-        this.networkPairIdByNetworkId = {};
-        this.networkIdByNetworkPairId = {};
-        for (let i = 0; i < currencyCodes.length; i++) {
-            const currencyCode = currencyCodes[i];
-            const currency = currencies[currencyCode];
-            const networks = this.safeValue (currency, 'networks', {});
-            const networkKeys = Object.keys (networks);
-            this.networkPairIdByNetworkId[currencyCode] = {};
-            this.networkIdByNetworkPairId[currencyCode] = {};
-            for (let j = 0; j < networkKeys.length; j++) {
-                const networkKey = networkKeys[j];
-                const network = networks[networkKey];
-                const id = network['id'];
-                const info = network['info'];
-                const networkPairId = this.safeString (info, 'chain');
-                this.networkPairIdByNetworkId[currencyCode][id] = networkPairId;
-                this.networkIdByNetworkPairId[currencyCode][networkPairId] = id;
-            }
+    networkIdToCode (networkId, currencyCode = undefined) {
+        // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
+        if (currencyCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' networkIdToCode() requires a currencyCode argument');
         }
+        const keysLength = (Object.keys (this.networkTitlesByJunctions)).length;
+        if (keysLength === 0) {
+            throw new ExchangeError (this.id + ' networkIdToCode() - markets need to be loaded at first');
+        }
+        const networkTitles = this.safeValue (this.networkTitlesByJunctions, currencyCode, {});
+        const networkTitle = this.safeValue (networkTitles, networkId, networkId);
+        return super.networkIdToCode (networkTitle);
     }
 
-    networkCodeFromPairId (info, key, currencyCode) {
-        const networkPairId = this.safeString (info, key);
-        const networkIds = this.safeValue (this.networkIdByNetworkPairId, currencyCode, {});
-        const networkId = this.safeValue (networkIds, networkPairId, networkPairId);
-        return this.networkIdToCode (networkId);
-    }
-
-    networkPairIdFromCode (currencyCode, networkCode) {
-        const networkId = this.networkCodeToId (networkCode);
-        const networkPairIds = this.safeValue (this.networkPairIdByNetworkId, currencyCode, {});
-        const networkPairId = this.safeValue (networkPairIds, networkId, networkId);
-        return networkPairId;
+    networkCodeToId (networkCode, currencyCode = undefined) {// here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
+        if (currencyCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' networkIdToCode() requires a currencyCode argument');
+        }
+        const keysLength = (Object.keys (this.networkJunctionsByTitles)).length;
+        if (keysLength === 0) {
+            throw new ExchangeError (this.id + ' networkCodeToId() - markets need to be loaded at first');
+        }
+        const uniqueNetworkIds = this.safeValue (this.networkJunctionsByTitles, currencyCode, {});
+        const networkTitle = super.networkCodeToId (networkCode);
+        return this.safeValue (uniqueNetworkIds, networkTitle, networkTitle);
     }
 
     async fetchBalance (params = {}) {
@@ -4688,12 +4684,13 @@ module.exports = class huobi extends Exchange {
         currency = this.safeCurrency (currencyId, currency);
         const code = this.safeCurrencyCode (currencyId, currency);
         const note = this.safeString (depositAddress, 'note');
+        const networkId = this.safeString (depositAddress, 'chain');
         this.checkAddress (address);
         return {
             'currency': code,
             'address': address,
             'tag': tag,
-            'network': this.networkCodeFromPairId (depositAddress, 'chain', code),
+            'network': this.networkIdToCode (networkId, code),
             'note': note,
             'info': depositAddress,
         };
@@ -4959,13 +4956,14 @@ module.exports = class huobi extends Exchange {
         if (feeCost !== undefined) {
             feeCost = Precise.stringAbs (feeCost);
         }
+        const networkId = this.safeString (transaction, 'chain');
         return {
             'info': transaction,
             'id': this.safeString2 (transaction, 'id', 'data'),
             'txid': this.safeString (transaction, 'tx-hash'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': this.networkCodeFromPairId (transaction, 'chain', code),
+            'network': this.networkIdToCode (networkId, code),
             'address': this.safeString (transaction, 'address'),
             'addressTo': undefined,
             'addressFrom': undefined,
