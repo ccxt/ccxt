@@ -1671,27 +1671,6 @@ module.exports = class Exchange {
         return this.safeString (networkCodesByIds, networkId, networkId);
     }
 
-    networkCodesToIds (networkCodes = undefined) {
-        /**
-         * @ignore
-         * @method
-         * @name exchange#networkCodeToId
-         * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
-         * @param {[string]|undefined} networkCodes unified network codes
-         * @returns {[string|undefined]} exchange-specific network ids
-         */
-        if (networkCodes === undefined) {
-            return undefined;
-        }
-        const ids = [];
-        const networkIdsByCodes = this.safeValue (this.options, 'networks', {});
-        for (let i = 0; i < networkCodes.length; i++) {
-            const networkCode = networkCodes[i];
-            ids.push (this.safeString (networkIdsByCodes, networkCode, networkCode));
-        }
-        return ids;
-    }
-
     handleNetworkCodeAndParams (params) {
         const networkCodeInParams = this.safeString2 (params, 'networkCode', 'network');
         if (networkCodeInParams !== undefined) {
