@@ -4602,8 +4602,7 @@ module.exports = class binance extends Exchange {
         //        }
         //    ]
         //
-        const ids = this.networkCodesToIds (codes);
-        return this.parseDepositWithdrawFees (response, ids, 'coin');
+        return this.parseDepositWithdrawFees (response, codes, 'coin');
     }
 
     parseDepositWithdrawFee (fee, currency = undefined) {
