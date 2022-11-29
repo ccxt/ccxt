@@ -239,6 +239,7 @@ async function testAllExchanges () {
     const taskPool = TaskPool (maxConcurrency)
     const results = []
 
+    exchanges = ["binanceusdm", "binance"]
     for (const exchange of exchanges) {
         taskPool.run (() => testExchange (exchange).then (x => results.push (x)))
     }

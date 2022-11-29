@@ -145,6 +145,8 @@ async function testSymbol (exchange, symbol) {
 
 async function loadExchange (exchange) {
 
+    // debug only
+    exchange.verbose = true;
     const markets = await exchange.loadMarkets ();
 
     assert (typeof exchange.markets === 'object', '.markets is not an object');
