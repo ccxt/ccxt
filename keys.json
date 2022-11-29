@@ -1,5 +1,7 @@
 {
     "aax":           { "skip": true, "skipWs": true },
+    "binanceusdm":   { "skip": true, "skipWs": true },
+    "binancecoinm":  { "skip": true, "skipWs": true },
     "bitcoincom":    { "skipWs": true },
     "bitmart":       { "skipWs": true },
     "bitmex":        { "skipWs": true },
@@ -16,7 +18,6 @@
     "gate":          { "skipWs": true },
     "gateio":        { "skipWs": true },
     "bequant":       { "skipWs": true },
-    "binancecoinm":  { "skipWs": true },
     "bitopro":       { "skipWs": true },
     "bitvavo":       { "skipWs": true },
     "huobi":         { "skipWs": true },
