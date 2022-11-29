@@ -829,9 +829,40 @@ module.exports = class bybit extends Exchange {
         const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
         if (enableUnifiedMargin === undefined) {
             const response = await this.privateGetUserV3PrivateQueryApi (params);
+            //
+            //     {
+            //         "retCode":0,
+            //         "retMsg":"OK",
+            //         "result":{
+            //             "id":"88888888",
+            //             "note":"ccxt-moon",
+            //             "apiKey":"8s8c808v8u8",
+            //             "readOnly":0,
+            //             "secret":"",
+            //             "permissions":{
+            //                 "ContractTrade":[""],
+            //                 "Spot":[""],
+            //                 "Wallet":[""],
+            //                 "Options":[""],
+            //                 "Derivatives":[""],
+            //                 "CopyTrading":[""],
+            //                 "BlockTrade":[],
+            //                 "Exchange":[""],
+            //                 "NFT":[""]
+            //             },
+            //             "ips":[""],
+            //             "type":1,
+            //             "deadlineDay":27,
+            //             "expiredAt":"",
+            //             "createdAt":"",
+            //             "unified":1
+            //         },
+            //         "retExtInfo":null,
+            //         "time":1669735171649
+            //     }
+            //
             const result = this.safeValue (response, 'result', {});
-            const permissions = this.safeValue (result, 'permissions', {});
-            this.options['enableUnifiedMargin'] = this.safeInteger (permissions, 'unified') === 0;
+            this.options['enableUnifiedMargin'] = this.safeInteger (result, 'unified') === 1;
         }
         return this.options['enableUnifiedMargin'];
     }
