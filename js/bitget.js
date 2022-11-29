@@ -82,7 +82,7 @@ module.exports = class bitget extends Exchange {
                 'setLeverage': true,
                 'setMarginMode': true,
                 'setPositionMode': false,
-                'transfer': false,
+                'transfer': true,
                 'withdraw': false,
             },
             'timeframes': {
@@ -216,6 +216,7 @@ module.exports = class bitget extends Exchange {
                             'plan/placePositionsTPSL': 2,
                             'plan/modifyTPSLPlan': 2,
                             'plan/cancelPlan': 2,
+                            'plan/cancelAllPlan': 2,
                             'trace/closeTrackOrder': 2,
                             'trace/setUpCopySymbols': 2,
                         },
@@ -2460,16 +2461,13 @@ module.exports = class bitget extends Exchange {
          * @name bitget#cancelAllOrders
          * @description cancel all open orders
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-order
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-trigger-order-tpsl
          * @param {string|undefined} symbol unified market symbol
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @param {string} params.code marginCoin unified currency code
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const code = this.safeString2 (params, 'code', 'marginCoin');
-        if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders () requires a code argument in the params');
-        }
         let market = undefined;
         let defaultSubType = this.safeString (this.options, 'defaultSubType');
         if (symbol !== undefined) {
@@ -2481,13 +2479,29 @@ module.exports = class bitget extends Exchange {
         if (marketType === 'spot') {
             throw new NotSupported (this.id + ' cancelAllOrders () does not support spot markets');
         }
-        const currency = this.currency (code);
         const request = {
-            'marginCoin': this.safeCurrencyCode (code, currency),
             'productType': productType,
         };
+        let method = undefined;
+        const stop = this.safeValue (params, 'stop');
+        const planType = this.safeString (params, 'planType');
+        if (stop !== undefined || planType !== undefined) {
+            if (planType === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a planType parameter for stop orders, either normal_plan, profit_plan, loss_plan, pos_profit, pos_loss, moving_plan or track_plan');
+            }
+            method = 'privateMixPostPlanCancelAllPlan';
+            params = this.omit (params, [ 'stop' ]);
+        } else {
+            const code = this.safeString2 (params, 'code', 'marginCoin');
+            if (code === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelAllOrders () requires a code argument [marginCoin] in the params');
+            }
+            const currency = this.currency (code);
+            request['marginCoin'] = this.safeCurrencyCode (code, currency);
+            method = 'privateMixPostOrderCancelAllOrders';
+        }
         params = this.omit (query, [ 'code', 'marginCoin' ]);
-        const response = await this.privateMixPostOrderCancelAllOrders (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "code": "00000",
@@ -3486,6 +3500,81 @@ module.exports = class bitget extends Exchange {
         //
         const data = this.safeValue (response, 'data', {});
         return this.parseOpenInterest (data, market);
+    }
+
+    async transfer (code, amount, fromAccount, toAccount, params = {}) {
+        /**
+         * @method
+         * @name bitget#transfer
+         * @see https://bitgetlimited.github.io/apidoc/en/spot/#transfer
+         * @description transfer currency internally between wallets on the same account
+         * @param {string} code unified currency code
+         * @param {float} amount amount to transfer
+         * @param {string} fromAccount account to transfer from
+         * @param {string} toAccount account to transfer to
+         * @param {object} params extra parameters specific to the bitget api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMS
+         * @param {string} params.clientOid custom id
+         * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const fromSwap = fromAccount === 'swap';
+        const toSwap = toAccount === 'swap';
+        const usdt = currency['code'] === 'USDT';
+        if (fromSwap) {
+            fromAccount = usdt ? 'mix_usdt' : 'mix_usd';
+        } else if (toSwap) {
+            toAccount = usdt ? 'mix_usdt' : 'mix_usd';
+        }
+        const request = {
+            'fromType': fromAccount,
+            'toType': toAccount,
+            'amount': amount,
+            'coin': currency['info']['coinName'],
+        };
+        const response = await this.privateSpotPostWalletTransfer (this.extend (request, params));
+        //
+        //    {
+        //        "code": "00000",
+        //        "msg": "success",
+        //        "requestTime": 1668119107154,
+        //        "data": "SUCCESS"
+        //    }
+        //
+        return this.parseTransfer (response, currency);
+    }
+
+    parseTransfer (transfer, currency = undefined) {
+        //
+        //    {
+        //        "code": "00000",
+        //        "msg": "success",
+        //        "requestTime": 1668119107154,
+        //        "data": "SUCCESS"
+        //    }
+        //
+        const timestamp = this.safeInteger (transfer, 'requestTime');
+        const msg = this.safeString (transfer, 'msg');
+        return {
+            'info': transfer,
+            'id': this.safeString (transfer, 'id'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'currency': this.safeString (currency, 'code'),
+            'amount': this.safeNumber (transfer, 'size'),
+            'fromAccount': undefined,
+            'toAccount': undefined,
+            'status': (msg === 'success') ? 'ok' : msg,
+        };
+    }
+
+    parseTransferStatus (status) {
+        const statuses = {
+            'success': 'ok',
+        };
+        return this.safeString (statuses, status, status);
     }
 
     parseOpenInterest (interest, market = undefined) {

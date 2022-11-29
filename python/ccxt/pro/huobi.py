@@ -279,28 +279,36 @@ class huobi(Exchange, ccxt.async_support.huobi):
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         """
+        see https://huobiapi.github.io/docs/dm/v1/en/#subscribe-market-depth-data
+        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#subscribe-incremental-market-depth-data
+        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-subscribe-incremental-market-depth-data
         watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the huobi api endpoint
         :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
         """
-        if (limit is not None) and (limit != 150):
-            raise ExchangeError(self.id + ' watchOrderBook accepts limit = 150 only')
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
-        # only supports a limit of 150 at self time
+        allowedSpotLimits = [150]
+        allowedSwapLimits = [20, 150]
         limit = 150 if (limit is None) else limit
+        if market['spot'] and not self.in_array(limit, allowedSpotLimits):
+            raise ExchangeError(self.id + ' watchOrderBook spot market accepts limits of 150 only')
+        if not market['spot'] and not self.in_array(limit, allowedSwapLimits):
+            raise ExchangeError(self.id + ' watchOrderBook swap market accepts limits of 20 and 150 only')
         messageHash = None
         if market['spot']:
             messageHash = 'market.' + market['id'] + '.mbp.' + str(limit)
         else:
             messageHash = 'market.' + market['id'] + '.depth.size_' + str(limit) + '.high_freq'
         url = self.get_url_by_market_type(market['type'], market['linear'])
+        method = self.handle_order_book_subscription
         if not market['spot']:
             params['data_type'] = 'incremental'
-        orderbook = await self.subscribe_public(url, symbol, messageHash, self.handle_order_book_subscription, params)
+            method = None
+        orderbook = await self.subscribe_public(url, symbol, messageHash, method, params)
         return orderbook.limit()
 
     def handle_order_book_snapshot(self, client, message, subscription):
@@ -388,46 +396,6 @@ class huobi(Exchange, ccxt.async_support.huobi):
         orderbook = await self.watch(url, requestId, request, requestId, snapshotSubscription)
         return orderbook.limit()
 
-    async def fetch_order_book_snapshot(self, client, message, subscription):
-        symbol = self.safe_string(subscription, 'symbol')
-        limit = self.safe_integer(subscription, 'limit')
-        messageHash = self.safe_string(subscription, 'messageHash')
-        try:
-            snapshot = await self.fetch_order_book(symbol, limit)
-            orderbook = self.orderbooks[symbol]
-            messages = orderbook.cache
-            firstMessage = self.safe_value(messages, 0, {})
-            tick = self.safe_value(firstMessage, 'tick')
-            sequence = self.safe_integer(tick, 'seqNum')
-            nonce = self.safe_integer(snapshot, 'nonce')
-            # if the received snapshot is earlier than the first cached delta
-            # then we cannot align it with the cached deltas and we need to
-            # retry synchronizing in maxAttempts
-            if (sequence is not None) and (nonce < sequence):
-                maxAttempts = self.safe_integer(self.options, 'maxOrderBookSyncAttempts', 3)
-                numAttempts = self.safe_integer(subscription, 'numAttempts', 0)
-                # retry to syncrhonize if we haven't reached maxAttempts yet
-                if numAttempts < maxAttempts:
-                    # safety guard
-                    if messageHash in client.subscriptions:
-                        numAttempts = self.sum(numAttempts, 1)
-                        subscription['numAttempts'] = numAttempts
-                        client.subscriptions[messageHash] = subscription
-                        self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
-                else:
-                    # raise upon failing to synchronize in maxAttempts
-                    raise InvalidNonce(self.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + str(maxAttempts) + ' attempts')
-            else:
-                orderbook.reset(snapshot)
-                # unroll the accumulated deltas
-                for i in range(0, len(messages)):
-                    message = messages[i]
-                    self.handle_order_book_message(client, message, orderbook)
-                self.orderbooks[symbol] = orderbook
-                client.resolve(orderbook, messageHash)
-        except Exception as e:
-            client.reject(e, messageHash)
-
     def handle_delta(self, bookside, delta):
         price = self.safe_float(delta, 0)
         amount = self.safe_float(delta, 1)
@@ -459,7 +427,7 @@ class huobi(Exchange, ccxt.async_support.huobi):
         #         }
         #     }
         #
-        # non-spot market
+        # non-spot market update
         #
         #     {
         #         "ch":"market.BTC220218.depth.size_150.high_freq",
@@ -479,17 +447,50 @@ class huobi(Exchange, ccxt.async_support.huobi):
         #         },
         #         "ts":1645023376098
         #     }
+        # non-spot market snapshot
         #
+        #     {
+        #         "ch":"market.BTC220218.depth.size_150.high_freq",
+        #         "tick":{
+        #             "asks":[
+        #                 [43445.74,1],
+        #                 [43444.48,0],
+        #                 [40593.92,9]
+        #             ],
+        #             "bids":[
+        #                 [43445.74,1],
+        #                 [43444.48,0],
+        #                 [40593.92,9]
+        #             ],
+        #             "ch":"market.BTC220218.depth.size_150.high_freq",
+        #             "event":"snapshot",
+        #             "id":152727500274,
+        #             "mrid":152727500274,
+        #             "ts":1645023376098,
+        #             "version":37536690
+        #         },
+        #         "ts":1645023376098
+        #     }
+        #
+        ch = self.safe_value(message, 'ch')
+        parts = ch.split('.')
+        marketId = self.safe_string(parts, 1)
+        symbol = self.safe_symbol(marketId)
         tick = self.safe_value(message, 'tick', {})
-        seqNum = self.safe_integer_2(tick, 'seqNum', 'id')
+        seqNum = self.safe_integer_2(tick, 'seqNum', 'version')
         prevSeqNum = self.safe_integer(tick, 'prevSeqNum')
+        event = self.safe_string(tick, 'event')
+        timestamp = self.safe_integer(message, 'ts')
+        if event == 'snapshot':
+            snapshot = self.parse_order_book(tick, symbol, timestamp)
+            orderbook.reset(snapshot)
+            orderbook['nonce'] = seqNum
         if (prevSeqNum is None or prevSeqNum <= orderbook['nonce']) and (seqNum > orderbook['nonce']):
             asks = self.safe_value(tick, 'asks', [])
             bids = self.safe_value(tick, 'bids', [])
             self.handle_deltas(orderbook['asks'], asks)
             self.handle_deltas(orderbook['bids'], bids)
             orderbook['nonce'] = seqNum
-            timestamp = self.safe_integer(message, 'ts')
             orderbook['timestamp'] = timestamp
             orderbook['datetime'] = self.iso8601(timestamp)
         return orderbook
@@ -540,6 +541,8 @@ class huobi(Exchange, ccxt.async_support.huobi):
         #         "ts":1645023376098
         #     }
         #
+        tick = self.safe_value(message, 'tick', {})
+        event = self.safe_string(tick, 'event')
         messageHash = self.safe_string(message, 'ch')
         ch = self.safe_value(message, 'ch')
         parts = ch.split('.')
@@ -549,12 +552,12 @@ class huobi(Exchange, ccxt.async_support.huobi):
         if orderbook is None:
             size = self.safe_string(parts, 3)
             sizeParts = size.split('_')
-            limit = self.safe_number(sizeParts, 1)
+            limit = self.safe_integer(sizeParts, 1)
             orderbook = self.order_book({}, limit)
         if orderbook['nonce'] is None:
             orderbook.cache.append(message)
-        else:
-            self.handle_order_book_message(client, message, orderbook)
+        if event is not None or orderbook['nonce'] is not None:
+            self.orderbooks[symbol] = self.handle_order_book_message(client, message, orderbook)
             client.resolve(orderbook, messageHash)
 
     def handle_order_book_subscription(self, client, message, subscription):
@@ -565,8 +568,6 @@ class huobi(Exchange, ccxt.async_support.huobi):
         self.orderbooks[symbol] = self.order_book({}, limit)
         if self.markets[symbol]['spot'] is True:
             self.spawn(self.watch_order_book_snapshot, client, message, subscription)
-        else:
-            self.spawn(self.fetch_order_book_snapshot, client, message, subscription)
 
     async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         """
@@ -692,7 +693,7 @@ class huobi(Exchange, ccxt.async_support.huobi):
         orders = await self.subscribe_private(channel, messageHash, type, subType, params)
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
-        return self.filter_by_since_limit(orders, since, limit)
+        return self.filter_by_since_limit(orders, since, limit, 'timestamp', True)
 
     def handle_order(self, client, message):
         #
@@ -1292,7 +1293,7 @@ class huobi(Exchange, ccxt.async_support.huobi):
                 return
             first = self.safe_value(data, 0, {})
             messageHash = self.safe_string(message, 'topic')
-            subscription = self.safe_value(client.subscriptions, messageHash)
+            subscription = self.safe_value_2(client.subscriptions, messageHash, messageHash + '.*')
             if subscription is None:
                 # if subscription not found means that we subscribed to a specific currency/symbol
                 # and we use the first data entry to find it
@@ -1323,7 +1324,7 @@ class huobi(Exchange, ccxt.async_support.huobi):
                             # we skip it if the market was delisted
                             if code is not None:
                                 account = self.account()
-                                account['free'] = self.safe_string(balance, 'margin_balance')
+                                account['free'] = self.safe_string_2(balance, 'margin_balance', 'margin_available')
                                 account['used'] = self.safe_string(balance, 'margin_frozen')
                                 accountsByCode = {}
                                 accountsByCode[code] = account

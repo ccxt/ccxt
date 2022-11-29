@@ -747,9 +747,17 @@ class bittrex extends Exchange {
         $priceString = $this->safe_string($trade, 'rate');
         $amountString = $this->safe_string($trade, 'quantity');
         $takerOrMaker = null;
+        $side = $this->safe_string_lower_2($trade, 'takerSide', 'direction');
         $isTaker = $this->safe_value($trade, 'isTaker');
         if ($isTaker !== null) {
             $takerOrMaker = $isTaker ? 'taker' : 'maker';
+            if (!$isTaker) { // as noted in PR #15655 this API provides confusing value - when it's 'maker' $trade, then $side value should reversed
+                if ($side === 'buy') {
+                    $side = 'sell';
+                } elseif ($side === 'sell') {
+                    $side = 'buy';
+                }
+            }
         }
         $fee = null;
         $feeCostString = $this->safe_string($trade, 'commission');
@@ -759,7 +767,6 @@ class bittrex extends Exchange {
                 'currency' => $market['quote'],
             );
         }
-        $side = $this->safe_string_lower_2($trade, 'takerSide', 'direction');
         return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,

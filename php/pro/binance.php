@@ -46,6 +46,14 @@ class binance extends \ccxt\async\binance {
                 ),
             ),
             'options' => array(
+                'streamLimits' => array(
+                    'spot' => 1024,
+                    'margin' => 1024,
+                    'future' => 200,
+                    'delivery' => 200,
+                ),
+                'streamBySubscriptionsHash' => array(),
+                'streamIndex' => -1,
                 // get updates every 1000ms or 100ms
                 // or every 0ms in real-time for futures
                 'watchOrderBookRate' => 100,
@@ -79,6 +87,36 @@ class binance extends \ccxt\async\binance {
         $newValue = $this->sum($previousValue, 1);
         $this->options['requestId'][$url] = $newValue;
         return $newValue;
+    }
+
+    public function stream($type, $subscriptionHash) {
+        $streamBySubscriptionsHash = $this->safe_value($this->options, 'streamBySubscriptionsHash', array());
+        $stream = $this->safe_string($streamBySubscriptionsHash, $subscriptionHash);
+        if ($stream === null) {
+            $streamIndex = $this->safe_integer($this->options, 'streamIndex', -1);
+            $streamLimits = $this->safe_value($this->options, 'streamLimits');
+            $streamLimit = $this->safe_integer($streamLimits, $type);
+            $streamIndex = $streamIndex + 1;
+            if ($streamIndex === $streamLimit) {
+                $streamIndex = 0;
+            }
+            $this->options['streamIndex'] = $streamIndex;
+            $stream = $this->number_to_string($streamIndex);
+            $streamBySubscriptionsHash[$subscriptionHash] = $stream;
+        }
+        return $stream;
+    }
+
+    public function on_error($client, $error) {
+        $this->options['streamBySubscriptionsHash'] = array();
+        $this->options['streamIndex'] = -1;
+        parent::on_error($client, $error);
+    }
+
+    public function on_close($client, $error) {
+        $this->options['streamBySubscriptionsHash'] = array();
+        $this->options['streamIndex'] = -1;
+        parent::on_close($client, $error);
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
@@ -140,7 +178,7 @@ class binance extends \ccxt\async\binance {
             //
             $name = 'depth';
             $messageHash = $market['lowercaseId'] . '@' . $name;
-            $url = $this->urls['api']['ws'][$type]; // . '/' . $messageHash;
+            $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, $messageHash);
             $requestId = $this->request_id($url);
             $watchOrderBookRate = $this->safe_string($this->options, 'watchOrderBookRate', '100');
             $request = array(
@@ -381,7 +419,7 @@ class binance extends \ccxt\async\binance {
             $watchTradesType = $this->safe_string_2($options, 'type', 'defaultType', $defaultType);
             $type = $this->safe_string($params, 'type', $watchTradesType);
             $query = $this->omit($params, 'type');
-            $url = $this->urls['api']['ws'][$type];
+            $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, $messageHash);
             $requestId = $this->request_id($url);
             $request = array(
                 'method' => 'SUBSCRIBE',
@@ -605,7 +643,7 @@ class binance extends \ccxt\async\binance {
             $watchOHLCVType = $this->safe_string_2($options, 'type', 'defaultType', $defaultType);
             $type = $this->safe_string($params, 'type', $watchOHLCVType);
             $query = $this->omit($params, 'type');
-            $url = $this->urls['api']['ws'][$type];
+            $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, $messageHash);
             $requestId = $this->request_id($url);
             $request = array(
                 'method' => 'SUBSCRIBE',
@@ -698,7 +736,7 @@ class binance extends \ccxt\async\binance {
             $watchTickerType = $this->safe_string_2($options, 'type', 'defaultType', $defaultType);
             $type = $this->safe_string($params, 'type', $watchTickerType);
             $query = $this->omit($params, 'type');
-            $url = $this->urls['api']['ws'][$type];
+            $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, $messageHash);
             $requestId = $this->request_id($url);
             $request = array(
                 'method' => 'SUBSCRIBE',

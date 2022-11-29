@@ -1828,20 +1828,25 @@ class huobi(Exchange):
     async def fetch_tickers(self, symbols=None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        see https://huobiapi.github.io/docs/spot/v1/en/#get-latest-tickers-for-all-pairs
+        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-a-batch-of-market-data-overview
+        see https://huobiapi.github.io/docs/dm/v1/en/#get-a-batch-of-market-data-overview
+        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-a-batch-of-market-data-overview-v2
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the huobi api endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        options = self.safe_value(self.options, 'fetchTickers', {})
-        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
-        type = self.safe_string(options, 'type', defaultType)
-        type = self.safe_string(params, 'type', type)
+        first = self.safe_string(symbols, 0)
+        market = None
+        if first is not None:
+            market = self.market(first)
+        type = None
+        subType = None
         method = 'spotPublicGetMarketTickers'
-        defaultSubType = self.safe_string(self.options, 'defaultSubType', 'inverse')
-        subType = self.safe_string(options, 'subType', defaultSubType)
-        subType = self.safe_string(params, 'subType', subType)
+        type, params = self.handle_market_type_and_params('fetchTickers', market, params)
+        subType, params = self.handle_sub_type_and_params('fetchTickers', market, params)
         request = {}
         future = (type == 'future')
         swap = (type == 'swap')
@@ -3948,7 +3953,7 @@ class huobi(Exchange):
             raise NotSupported(self.id + ' createOrder() supports tp_trigger_price + tp_order_price for take profit orders and/or sl_trigger_price + sl_order price for stop loss orders, stop orders are supported only with open long orders and open short orders')
         market = self.market(symbol)
         request = {
-            # 'symbol': 'BTC',  # optional, case-insenstive, both uppercase and lowercase are supported, "BTC", "ETH", ...
+            # 'symbol': 'BTC',  # optional, case-insensitive, both uppercase and lowercase are supported, "BTC", "ETH", ...
             # 'contract_type': 'this_week',  # optional, self_week, next_week, quarter, next_quarter
             'contract_code': market['id'],  # optional BTC180914
             # 'client_order_id': clientOrderId,  # optional, must be less than 9223372036854775807

@@ -102,7 +102,7 @@ class bitget(Exchange):
                 'setLeverage': True,
                 'setMarginMode': True,
                 'setPositionMode': False,
-                'transfer': False,
+                'transfer': True,
                 'withdraw': False,
             },
             'timeframes': {
@@ -236,6 +236,7 @@ class bitget(Exchange):
                             'plan/placePositionsTPSL': 2,
                             'plan/modifyTPSLPlan': 2,
                             'plan/cancelPlan': 2,
+                            'plan/cancelAllPlan': 2,
                             'trace/closeTrackOrder': 2,
                             'trace/setUpCopySymbols': 2,
                         },
@@ -2351,15 +2352,13 @@ class bitget(Exchange):
         """
         cancel all open orders
         see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-order
+        see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-trigger-order-tpsl
         :param str|None symbol: unified market symbol
         :param dict params: extra parameters specific to the bitget api endpoint
         :param str params['code']: marginCoin unified currency code
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
-        code = self.safe_string_2(params, 'code', 'marginCoin')
-        if code is None:
-            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a code argument in the params')
         market = None
         defaultSubType = self.safe_string(self.options, 'defaultSubType')
         if symbol is not None:
@@ -2369,13 +2368,26 @@ class bitget(Exchange):
         marketType, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
         if marketType == 'spot':
             raise NotSupported(self.id + ' cancelAllOrders() does not support spot markets')
-        currency = self.currency(code)
         request = {
-            'marginCoin': self.safe_currency_code(code, currency),
             'productType': productType,
         }
+        method = None
+        stop = self.safe_value(params, 'stop')
+        planType = self.safe_string(params, 'planType')
+        if stop is not None or planType is not None:
+            if planType is None:
+                raise ArgumentsRequired(self.id + ' cancelOrder() requires a planType parameter for stop orders, either normal_plan, profit_plan, loss_plan, pos_profit, pos_loss, moving_plan or track_plan')
+            method = 'privateMixPostPlanCancelAllPlan'
+            params = self.omit(params, ['stop'])
+        else:
+            code = self.safe_string_2(params, 'code', 'marginCoin')
+            if code is None:
+                raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a code argument [marginCoin] in the params')
+            currency = self.currency(code)
+            request['marginCoin'] = self.safe_currency_code(code, currency)
+            method = 'privateMixPostOrderCancelAllOrders'
         params = self.omit(query, ['code', 'marginCoin'])
-        response = self.privateMixPostOrderCancelAllOrders(self.extend(request, params))
+        response = getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "code": "00000",
@@ -3292,6 +3304,75 @@ class bitget(Exchange):
         #
         data = self.safe_value(response, 'data', {})
         return self.parse_open_interest(data, market)
+
+    def transfer(self, code, amount, fromAccount, toAccount, params={}):
+        """
+        see https://bitgetlimited.github.io/apidoc/en/spot/#transfer
+        transfer currency internally between wallets on the same account
+        :param str code: unified currency code
+        :param float amount: amount to transfer
+        :param str fromAccount: account to transfer from
+        :param str toAccount: account to transfer to
+        :param dict params: extra parameters specific to the bitget api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMS
+        :param str params['clientOid']: custom id
+        :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        fromSwap = fromAccount == 'swap'
+        toSwap = toAccount == 'swap'
+        usdt = currency['code'] == 'USDT'
+        if fromSwap:
+            fromAccount = 'mix_usdt' if usdt else 'mix_usd'
+        elif toSwap:
+            toAccount = 'mix_usdt' if usdt else 'mix_usd'
+        request = {
+            'fromType': fromAccount,
+            'toType': toAccount,
+            'amount': amount,
+            'coin': currency['info']['coinName'],
+        }
+        response = self.privateSpotPostWalletTransfer(self.extend(request, params))
+        #
+        #    {
+        #        "code": "00000",
+        #        "msg": "success",
+        #        "requestTime": 1668119107154,
+        #        "data": "SUCCESS"
+        #    }
+        #
+        return self.parse_transfer(response, currency)
+
+    def parse_transfer(self, transfer, currency=None):
+        #
+        #    {
+        #        "code": "00000",
+        #        "msg": "success",
+        #        "requestTime": 1668119107154,
+        #        "data": "SUCCESS"
+        #    }
+        #
+        timestamp = self.safe_integer(transfer, 'requestTime')
+        msg = self.safe_string(transfer, 'msg')
+        return {
+            'info': transfer,
+            'id': self.safe_string(transfer, 'id'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'currency': self.safe_string(currency, 'code'),
+            'amount': self.safe_number(transfer, 'size'),
+            'fromAccount': None,
+            'toAccount': None,
+            'status': 'ok' if (msg == 'success') else msg,
+        }
+
+    def parse_transfer_status(self, status):
+        statuses = {
+            'success': 'ok',
+        }
+        return self.safe_string(statuses, status, status)
 
     def parse_open_interest(self, interest, market=None):
         #

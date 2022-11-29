@@ -753,19 +753,17 @@ class kraken(Exchange):
         :param dict params: extra parameters specific to the kraken api endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
-        if symbols is None:
-            raise ArgumentsRequired(self.id + ' fetchTickers() requires a symbols argument, an array of symbols')
         self.load_markets()
-        symbols = self.market_symbols(symbols)
-        marketIds = []
-        for i in range(0, len(symbols)):
-            symbol = symbols[i]
-            market = self.markets[symbol]
-            if market['active'] and not market['darkpool']:
-                marketIds.append(market['id'])
-        request = {
-            'pair': ','.join(marketIds),
-        }
+        request = {}
+        if symbols is not None:
+            symbols = self.market_symbols(symbols)
+            marketIds = []
+            for i in range(0, len(symbols)):
+                symbol = symbols[i]
+                market = self.markets[symbol]
+                if market['active'] and not market['darkpool']:
+                    marketIds.append(market['id'])
+            request['pair'] = ','.join(marketIds)
         response = self.publicGetTicker(self.extend(request, params))
         tickers = response['result']
         ids = list(tickers.keys())

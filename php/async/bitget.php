@@ -89,7 +89,7 @@ class bitget extends Exchange {
                 'setLeverage' => true,
                 'setMarginMode' => true,
                 'setPositionMode' => false,
-                'transfer' => false,
+                'transfer' => true,
                 'withdraw' => false,
             ),
             'timeframes' => array(
@@ -223,6 +223,7 @@ class bitget extends Exchange {
                             'plan/placePositionsTPSL' => 2,
                             'plan/modifyTPSLPlan' => 2,
                             'plan/cancelPlan' => 2,
+                            'plan/cancelAllPlan' => 2,
                             'trace/closeTrackOrder' => 2,
                             'trace/setUpCopySymbols' => 2,
                         ),
@@ -2468,16 +2469,13 @@ class bitget extends Exchange {
             /**
              * cancel all open orders
              * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-order
+             * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-trigger-order-tpsl
              * @param {string|null} $symbol unified $market $symbol
              * @param {array} $params extra parameters specific to the bitget api endpoint
              * @param {string} $params->code marginCoin unified $currency $code
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
             Async\await($this->load_markets());
-            $code = $this->safe_string_2($params, 'code', 'marginCoin');
-            if ($code === null) {
-                throw new ArgumentsRequired($this->id . ' cancelAllOrders () requires a $code argument in the params');
-            }
             $market = null;
             $defaultSubType = $this->safe_string($this->options, 'defaultSubType');
             if ($symbol !== null) {
@@ -2489,13 +2487,29 @@ class bitget extends Exchange {
             if ($marketType === 'spot') {
                 throw new NotSupported($this->id . ' cancelAllOrders () does not support spot markets');
             }
-            $currency = $this->currency($code);
             $request = array(
-                'marginCoin' => $this->safe_currency_code($code, $currency),
                 'productType' => $productType,
             );
+            $method = null;
+            $stop = $this->safe_value($params, 'stop');
+            $planType = $this->safe_string($params, 'planType');
+            if ($stop !== null || $planType !== null) {
+                if ($planType === null) {
+                    throw new ArgumentsRequired($this->id . ' cancelOrder() requires a $planType parameter for $stop orders, either normal_plan, profit_plan, loss_plan, pos_profit, pos_loss, moving_plan or track_plan');
+                }
+                $method = 'privateMixPostPlanCancelAllPlan';
+                $params = $this->omit($params, array( 'stop' ));
+            } else {
+                $code = $this->safe_string_2($params, 'code', 'marginCoin');
+                if ($code === null) {
+                    throw new ArgumentsRequired($this->id . ' cancelAllOrders () requires a $code argument [marginCoin] in the params');
+                }
+                $currency = $this->currency($code);
+                $request['marginCoin'] = $this->safe_currency_code($code, $currency);
+                $method = 'privateMixPostOrderCancelAllOrders';
+            }
             $params = $this->omit($query, array( 'code', 'marginCoin' ));
-            $response = Async\await($this->privateMixPostOrderCancelAllOrders (array_merge($request, $params)));
+            $response = Async\await($this->$method (array_merge($request, $params)));
             //
             //     {
             //         "code" => "00000",
@@ -3497,6 +3511,81 @@ class bitget extends Exchange {
             $data = $this->safe_value($response, 'data', array());
             return $this->parse_open_interest($data, $market);
         }) ();
+    }
+
+    public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
+        return Async\async(function () use ($code, $amount, $fromAccount, $toAccount, $params) {
+            /**
+             * @see https://bitgetlimited.github.io/apidoc/en/spot/#transfer
+             * transfer $currency internally between wallets on the same account
+             * @param {string} $code unified $currency $code
+             * @param {float} $amount amount to transfer
+             * @param {string} $fromAccount account to transfer from
+             * @param {string} $toAccount account to transfer to
+             * @param {array} $params extra parameters specific to the bitget api endpoint
+             *
+             * EXCHANGE SPECIFIC PARAMS
+             * @param {string} $params->clientOid custom id
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure transfer structure}
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $fromSwap = $fromAccount === 'swap';
+            $toSwap = $toAccount === 'swap';
+            $usdt = $currency['code'] === 'USDT';
+            if ($fromSwap) {
+                $fromAccount = $usdt ? 'mix_usdt' : 'mix_usd';
+            } elseif ($toSwap) {
+                $toAccount = $usdt ? 'mix_usdt' : 'mix_usd';
+            }
+            $request = array(
+                'fromType' => $fromAccount,
+                'toType' => $toAccount,
+                'amount' => $amount,
+                'coin' => $currency['info']['coinName'],
+            );
+            $response = Async\await($this->privateSpotPostWalletTransfer (array_merge($request, $params)));
+            //
+            //    {
+            //        "code" => "00000",
+            //        "msg" => "success",
+            //        "requestTime" => 1668119107154,
+            //        "data" => "SUCCESS"
+            //    }
+            //
+            return $this->parse_transfer($response, $currency);
+        }) ();
+    }
+
+    public function parse_transfer($transfer, $currency = null) {
+        //
+        //    {
+        //        "code" => "00000",
+        //        "msg" => "success",
+        //        "requestTime" => 1668119107154,
+        //        "data" => "SUCCESS"
+        //    }
+        //
+        $timestamp = $this->safe_integer($transfer, 'requestTime');
+        $msg = $this->safe_string($transfer, 'msg');
+        return array(
+            'info' => $transfer,
+            'id' => $this->safe_string($transfer, 'id'),
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'currency' => $this->safe_string($currency, 'code'),
+            'amount' => $this->safe_number($transfer, 'size'),
+            'fromAccount' => null,
+            'toAccount' => null,
+            'status' => ($msg === 'success') ? 'ok' : $msg,
+        );
+    }
+
+    public function parse_transfer_status($status) {
+        $statuses = array(
+            'success' => 'ok',
+        );
+        return $this->safe_string($statuses, $status, $status);
     }
 
     public function parse_open_interest($interest, $market = null) {

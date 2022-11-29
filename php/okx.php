@@ -365,6 +365,7 @@ class okx extends Exchange {
                     '50026' => '\\ccxt\\ExchangeNotAvailable', // System error, please try again later.
                     '50027' => '\\ccxt\\PermissionDenied', // The account is restricted from trading
                     '50028' => '\\ccxt\\ExchangeError', // Unable to take the order, please reach out to support center for details
+                    '50044' => '\\ccxt\\BadRequest', // Must select one broker type
                     // API Class
                     '50100' => '\\ccxt\\ExchangeError', // API frozen, please contact customer service
                     '50101' => '\\ccxt\\AuthenticationError', // Broker id of APIKey does not match current environment
@@ -609,8 +610,12 @@ class okx extends Exchange {
                     '60018' => '\\ccxt\\BadRequest', // The {0} {1} {2} {3} {4} does not exist
                     '60019' => '\\ccxt\\BadRequest', // Invalid op {op}
                     '63999' => '\\ccxt\\ExchangeError', // Internal system error
+                    '70010' => '\\ccxt\\BadRequest', // Timestamp parameters need to be in Unix timestamp format in milliseconds.
+                    '70013' => '\\ccxt\\BadRequest', // endTs needs to be bigger than or equal to beginTs.
+                    '70016' => '\\ccxt\\BadRequest', // Please specify your instrument settings for at least one instType.
                 ),
                 'broad' => array(
+                    'Internal Server Error' => '\\ccxt\\ExchangeNotAvailable', // array("code":500,"data":array(),"detailMsg":"","error_code":"500","error_message":"Internal Server Error","msg":"Internal Server Error")
                     'server error' => '\\ccxt\\ExchangeNotAvailable', // array("code":500,"data":array(),"detailMsg":"","error_code":"500","error_message":"server error 1236805249","msg":"server error 1236805249")
                 ),
             ),
@@ -1423,12 +1428,18 @@ class okx extends Exchange {
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         /**
-         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the okx api endpoint
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
-        list($type, $query) = $this->handle_market_type_and_params('fetchTickers', null, $params);
+        $symbols = $this->market_symbols($symbols);
+        $first = $this->safe_string($symbols, 0);
+        $market = null;
+        if ($first !== null) {
+            $market = $this->market($first);
+        }
+        list($type, $query) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
         return $this->fetch_tickers_by_type($type, $symbols, $query);
     }
 
@@ -2433,7 +2444,7 @@ class okx extends Exchange {
         if (($clientOrderId !== null) && (strlen($clientOrderId) < 1)) {
             $clientOrderId = null; // fix empty $clientOrderId string
         }
-        $stopPrice = $this->safe_number_n($order, array( 'triggerPx', 'slTriggerPx', 'tpTriggerPx' ));
+        $stopPrice = $this->safe_number_n($order, array( 'tpTriggerPx', 'triggerPx', 'slTriggerPx' ));
         $reduceOnly = $this->safe_string($order, 'reduceOnly');
         if ($reduceOnly !== null) {
             $reduceOnly = ($reduceOnly === 'true');
@@ -2706,6 +2717,7 @@ class okx extends Exchange {
          * @param {bool} $params->stop True if fetching trigger or conditional orders
          * @param {string} $params->ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string|null} $params->algoId Algo ID "'433845797218942976'"
+         * @param {int|null} $params->until timestamp in ms to fetch orders for
          * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         $this->load_markets();
@@ -2725,6 +2737,8 @@ class okx extends Exchange {
             $market = $this->market($symbol);
             $request['instId'] = $market['id'];
         }
+        $type = null;
+        $query = null;
         list($type, $query) = $this->handle_market_type_and_params('fetchCanceledOrders', $market, $params);
         $request['instType'] = $this->convert_to_instrument_type($type);
         if ($limit !== null) {
@@ -2749,6 +2763,15 @@ class okx extends Exchange {
                     throw new ArgumentsRequired($this->id . ' fetchCanceledOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
                 }
                 $request['ordType'] = $ordType;
+            }
+        } else {
+            if ($since !== null) {
+                $request['begin'] = $since;
+            }
+            $until = $this->safe_integer_2($query, 'till', 'until');
+            if ($until !== null) {
+                $request['end'] = $until;
+                $query = $this->omit($query, array( 'until', 'till' ));
             }
         }
         $send = $this->omit($query, array( 'method', 'stop', 'ordType' ));
@@ -2866,6 +2889,7 @@ class okx extends Exchange {
          * @param {bool} $params->stop True if fetching trigger or conditional orders
          * @param {string} $params->ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string|null} $params->algoId Algo ID "'433845797218942976'"
+         * @param {int|null} $params->until timestamp in ms to fetch orders for
          * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
          */
         $this->load_markets();
@@ -2885,6 +2909,8 @@ class okx extends Exchange {
             $market = $this->market($symbol);
             $request['instId'] = $market['id'];
         }
+        $type = null;
+        $query = null;
         list($type, $query) = $this->handle_market_type_and_params('fetchClosedOrders', $market, $params);
         $request['instType'] = $this->convert_to_instrument_type($type);
         if ($limit !== null) {
@@ -2905,6 +2931,14 @@ class okx extends Exchange {
             }
             $request['state'] = 'effective';
         } else {
+            if ($since !== null) {
+                $request['begin'] = $since;
+            }
+            $until = $this->safe_integer_2($query, 'till', 'until');
+            if ($until !== null) {
+                $request['end'] = $until;
+                $query = $this->omit($query, array( 'until', 'till' ));
+            }
             $request['state'] = 'filled';
         }
         $send = $this->omit($query, array( 'method', 'stop' ));
@@ -4048,7 +4082,7 @@ class okx extends Exchange {
                 $marketIds[] = $market['id'];
             }
             if (strlen($marketIds) > 0) {
-                $request['instId'] = (string) $marketIds;
+                $request['instId'] = implode(',', $marketIds);
             }
         }
         $response = $this->privateGetAccountPositions (array_merge($request, $params));
