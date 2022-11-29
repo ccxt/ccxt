@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.2.29'
+__version__ = '2.2.40'
 
 # -----------------------------------------------------------------------------
 
@@ -994,13 +994,25 @@ class Exchange(BaseExchange):
         else:
             raise NotSupported(self.id + ' network ' + network + ' is not yet supported')
 
-    def network_code_to_id(self, networkCode):
-        networks = self.safe_value(self.options, 'networks', {})
-        return self.safe_string(networks, networkCode, networkCode)
+    def network_code_to_id(self, networkCode, currencyCode=None):
+        """
+        tries to convert the provided networkCode(which is expected to be an unified network code) to a network id. In order to achieve self, derived class needs to have 'options->networks' defined.
+        :param str networkCode: unified network code
+        :param str currencyCode: unified currency code, but self argument is not required by default, unless there is an exchange(like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
+        :returns [str|None]: exchange-specific network id
+        """
+        networkIdsByCodes = self.safe_value(self.options, 'networks', {})
+        return self.safe_string(networkIdsByCodes, networkCode, networkCode)
 
-    def network_id_to_code(self, networkId):
-        networksById = self.safe_value(self.options, 'networksById', {})
-        return self.safe_string(networksById, networkId, networkId)
+    def network_id_to_code(self, networkId, currencyCode=None):
+        """
+        tries to convert the provided exchange-specific networkId to an unified network Code. In order to achieve self, derived class needs to have 'options->networksById' defined.
+        :param str networkId: unified network code
+        :param str currencyCode: unified currency code, but self argument is not required by default, unless there is an exchange(like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
+        :returns [str|None]: unified network code
+        """
+        networkCodesByIds = self.safe_value(self.options, 'networksById', {})
+        return self.safe_string(networkCodesByIds, networkId, networkId)
 
     def handle_network_code_and_params(self, params):
         networkCodeInParams = self.safe_string_2(params, 'networkCode', 'network')
@@ -1029,7 +1041,7 @@ class Exchange(BaseExchange):
         responseNetworksLength = len(availableNetworkIds)
         if networkCode is not None:
             # if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
-            networkId = self.networkCodeToId(networkCode)
+            networkId = self.networkCodeToId(networkCode, currencyCode)
             if responseNetworksLength == 0:
                 raise NotSupported(self.id + ' - ' + networkCode + ' network did not return any result for ' + currencyCode)
             else:
@@ -1042,9 +1054,9 @@ class Exchange(BaseExchange):
                 raise NotSupported(self.id + ' - no networks were returned for' + currencyCode)
             else:
                 # if networkCode was not provided by user, then we try to use the default network(if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
-                defaultNetwordCode = self.defaultNetworkCode(currencyCode)
-                defaultNetwordId = self.networkCodeToId(defaultNetwordCode)
-                chosenNetworkId = defaultNetwordId if (defaultNetwordId in networkEntriesIndexed) else availableNetworkIds[0]
+                defaultNetworkCode = self.defaultNetworkCode(currencyCode)
+                defaultNetworkId = self.networkCodeToId(defaultNetworkCode, currencyCode)
+                chosenNetworkId = defaultNetworkId if (defaultNetworkId in networkEntriesIndexed) else availableNetworkIds[0]
         return chosenNetworkId
 
     def safe_number_2(self, dictionary, key1, key2, d=None):
@@ -1347,7 +1359,7 @@ class Exchange(BaseExchange):
                 if error:
                     raise AuthenticationError(self.id + ' requires "' + key + '" credential')
                 else:
-                    return error
+                    return False
         return True
 
     def oath(self):
@@ -1399,6 +1411,12 @@ class Exchange(BaseExchange):
 
     async def fetch_transaction_fees(self, codes=None, params={}):
         raise NotSupported(self.id + ' fetchTransactionFees() is not supported yet')
+
+    async def fetch_deposit_withdraw_fee(self, code, params={}):
+        if not self.has['fetchDepositWithdrawFees']:
+            raise NotSupported(self.id + ' fetchDepositWithdrawFee() is not supported yet')
+        fees = await self.fetchDepositWithdrawFees([code], params)
+        return self.safe_value(fees, code)
 
     def get_supported_mapping(self, key, mapping={}):
         if key in mapping:
@@ -1997,3 +2015,41 @@ class Exchange(BaseExchange):
         :param str methodName: name of the method that requires a symbol
         """
         self.checkRequiredArgument(methodName, symbol, 'symbol')
+
+    def parse_deposit_withdraw_fees(self, response, codes=None, currencyIdKey=None):
+        """
+         * @ignore
+        :param [object]|dict response: unparsed response from the exchange
+        :param [str]|None codes: the unified currency codes to fetch transactions fees for, returns all currencies when None
+        :param str|None currencyIdKey: *should only be None when response is a dictionary* the object key that corresponds to the currency id
+        :returns dict: objects with withdraw and deposit fees, indexed by currency codes
+        """
+        depositWithdrawFees = {}
+        codes = self.marketCodes(codes)
+        isArray = isinstance(response, list)
+        responseKeys = response
+        if not isArray:
+            responseKeys = list(response.keys())
+        for i in range(0, len(responseKeys)):
+            entry = responseKeys[i]
+            dictionary = entry if isArray else response[entry]
+            currencyId = self.safe_string(dictionary, currencyIdKey) if isArray else entry
+            currency = self.safe_value(self.currencies_by_id, currencyId)
+            code = self.safe_string(currency, 'code', currencyId)
+            if (codes is None) or (self.in_array(code, codes)):
+                depositWithdrawFees[code] = self.parseDepositWithdrawFee(dictionary, currency)
+        return depositWithdrawFees
+
+    def deposit_withdraw_fee(self, info):
+        return {
+            'info': info,
+            'withdraw': {
+                'fee': None,
+                'percentage': None,
+            },
+            'deposit': {
+                'fee': None,
+                'percentage': None,
+            },
+            'networks': {},
+        }

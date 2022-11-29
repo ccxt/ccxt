@@ -236,6 +236,7 @@ class bitget(Exchange):
                             'plan/placePositionsTPSL': 2,
                             'plan/modifyTPSLPlan': 2,
                             'plan/cancelPlan': 2,
+                            'plan/cancelAllPlan': 2,
                             'trace/closeTrackOrder': 2,
                             'trace/setUpCopySymbols': 2,
                         },
@@ -2351,15 +2352,13 @@ class bitget(Exchange):
         """
         cancel all open orders
         see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-order
+        see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-trigger-order-tpsl
         :param str|None symbol: unified market symbol
         :param dict params: extra parameters specific to the bitget api endpoint
         :param str params['code']: marginCoin unified currency code
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
-        code = self.safe_string_2(params, 'code', 'marginCoin')
-        if code is None:
-            raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a code argument in the params')
         market = None
         defaultSubType = self.safe_string(self.options, 'defaultSubType')
         if symbol is not None:
@@ -2369,13 +2368,26 @@ class bitget(Exchange):
         marketType, query = self.handle_market_type_and_params('cancelAllOrders', market, params)
         if marketType == 'spot':
             raise NotSupported(self.id + ' cancelAllOrders() does not support spot markets')
-        currency = self.currency(code)
         request = {
-            'marginCoin': self.safe_currency_code(code, currency),
             'productType': productType,
         }
+        method = None
+        stop = self.safe_value(params, 'stop')
+        planType = self.safe_string(params, 'planType')
+        if stop is not None or planType is not None:
+            if planType is None:
+                raise ArgumentsRequired(self.id + ' cancelOrder() requires a planType parameter for stop orders, either normal_plan, profit_plan, loss_plan, pos_profit, pos_loss, moving_plan or track_plan')
+            method = 'privateMixPostPlanCancelAllPlan'
+            params = self.omit(params, ['stop'])
+        else:
+            code = self.safe_string_2(params, 'code', 'marginCoin')
+            if code is None:
+                raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a code argument [marginCoin] in the params')
+            currency = self.currency(code)
+            request['marginCoin'] = self.safe_currency_code(code, currency)
+            method = 'privateMixPostOrderCancelAllOrders'
         params = self.omit(query, ['code', 'marginCoin'])
-        response = await self.privateMixPostOrderCancelAllOrders(self.extend(request, params))
+        response = await getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "code": "00000",

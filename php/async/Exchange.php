@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.2.29';
+$version = '2.2.40';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.2.29';
+    const VERSION = '2.2.40';
 
     public $browser;
     public $marketsLoading = null;
@@ -1093,14 +1093,26 @@ class Exchange extends \ccxt\Exchange {
         }
     }
 
-    public function network_code_to_id($networkCode) {
-        $networks = $this->safe_value($this->options, 'networks', array());
-        return $this->safe_string($networks, $networkCode, $networkCode);
+    public function network_code_to_id($networkCode, $currencyCode = null) {
+        /**
+         * tries to convert the provided $networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
+         * @param {string} $networkCode unified network code
+         * @param {string} $currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass $currencyCode argument additionally
+         * @return {[string|null]} exchange-specific network id
+         */
+        $networkIdsByCodes = $this->safe_value($this->options, 'networks', array());
+        return $this->safe_string($networkIdsByCodes, $networkCode, $networkCode);
     }
 
-    public function network_id_to_code($networkId) {
-        $networksById = $this->safe_value($this->options, 'networksById', array());
-        return $this->safe_string($networksById, $networkId, $networkId);
+    public function network_id_to_code($networkId, $currencyCode = null) {
+        /**
+         * tries to convert the provided exchange-specific $networkId to an unified network Code. In order to achieve this, derived class needs to have 'options->networksById' defined.
+         * @param {string} $networkId unified network code
+         * @param {string} $currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass $currencyCode argument additionally
+         * @return {[string|null]} unified network code
+         */
+        $networkCodesByIds = $this->safe_value($this->options, 'networksById', array());
+        return $this->safe_string($networkCodesByIds, $networkId, $networkId);
     }
 
     public function handle_network_code_and_params($params) {
@@ -1135,7 +1147,7 @@ class Exchange extends \ccxt\Exchange {
         $responseNetworksLength = count($availableNetworkIds);
         if ($networkCode !== null) {
             // if $networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
-            $networkId = $this->networkCodeToId ($networkCode);
+            $networkId = $this->networkCodeToId ($networkCode, $currencyCode);
             if ($responseNetworksLength === 0) {
                 throw new NotSupported($this->id . ' - ' . $networkCode . ' network did not return any result for ' . $currencyCode);
             } else {
@@ -1150,9 +1162,9 @@ class Exchange extends \ccxt\Exchange {
                 throw new NotSupported($this->id . ' - no networks were returned for' . $currencyCode);
             } else {
                 // if $networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
-                $defaultNetwordCode = $this->defaultNetworkCode ($currencyCode);
-                $defaultNetwordId = $this->networkCodeToId ($defaultNetwordCode);
-                $chosenNetworkId = (is_array($networkEntriesIndexed) && array_key_exists($defaultNetwordId, $networkEntriesIndexed)) ? $defaultNetwordId : $availableNetworkIds[0];
+                $defaultNetworkCode = $this->defaultNetworkCode ($currencyCode);
+                $defaultNetworkId = $this->networkCodeToId ($defaultNetworkCode, $currencyCode);
+                $chosenNetworkId = (is_array($networkEntriesIndexed) && array_key_exists($defaultNetworkId, $networkEntriesIndexed)) ? $defaultNetworkId : $availableNetworkIds[0];
             }
         }
         return $chosenNetworkId;
@@ -1540,7 +1552,7 @@ class Exchange extends \ccxt\Exchange {
                 if ($error) {
                     throw new AuthenticationError($this->id . ' requires "' . $key . '" credential');
                 } else {
-                    return $error;
+                    return false;
                 }
             }
         }
@@ -1627,6 +1639,16 @@ class Exchange extends \ccxt\Exchange {
 
     public function fetch_transaction_fees($codes = null, $params = array ()) {
         throw new NotSupported($this->id . ' fetchTransactionFees() is not supported yet');
+    }
+
+    public function fetch_deposit_withdraw_fee($code, $params = array ()) {
+        return Async\async(function () use ($code, $params) {
+            if (!$this->has['fetchDepositWithdrawFees']) {
+                throw new NotSupported($this->id . ' fetchDepositWithdrawFee() is not supported yet');
+            }
+            $fees = Async\await($this->fetchDepositWithdrawFees (array( $code ), $params));
+            return $this->safe_value($fees, $code);
+        }) ();
     }
 
     public function get_supported_mapping($key, $mapping = array ()) {
@@ -2418,5 +2440,48 @@ class Exchange extends \ccxt\Exchange {
          * @param {string} $methodName name of the method that requires a $symbol
          */
         $this->checkRequiredArgument ($methodName, $symbol, 'symbol');
+    }
+
+    public function parse_deposit_withdraw_fees($response, $codes = null, $currencyIdKey = null) {
+        /**
+         * @ignore
+         * @param {[object]|array} $response unparsed $response from the exchange
+         * @param {[string]|null} $codes the unified $currency $codes to fetch transactions fees for, returns all currencies when null
+         * @param {str|null} $currencyIdKey *should only be null when $response is a $dictionary* the object key that corresponds to the $currency id
+         * @return {array} objects with withdraw and deposit fees, indexed by $currency $codes
+         */
+        $depositWithdrawFees = array();
+        $codes = $this->marketCodes ($codes);
+        $isArray = gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response));
+        $responseKeys = $response;
+        if (!$isArray) {
+            $responseKeys = is_array($response) ? array_keys($response) : array();
+        }
+        for ($i = 0; $i < count($responseKeys); $i++) {
+            $entry = $responseKeys[$i];
+            $dictionary = $isArray ? $entry : $response[$entry];
+            $currencyId = $isArray ? $this->safe_string($dictionary, $currencyIdKey) : $entry;
+            $currency = $this->safe_value($this->currencies_by_id, $currencyId);
+            $code = $this->safe_string($currency, 'code', $currencyId);
+            if (($codes === null) || ($this->in_array($code, $codes))) {
+                $depositWithdrawFees[$code] = $this->parseDepositWithdrawFee ($dictionary, $currency);
+            }
+        }
+        return $depositWithdrawFees;
+    }
+
+    public function deposit_withdraw_fee($info) {
+        return array(
+            'info' => $info,
+            'withdraw' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'deposit' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'networks' => array(),
+        );
     }
 }

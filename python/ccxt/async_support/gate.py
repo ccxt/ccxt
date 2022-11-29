@@ -100,6 +100,8 @@ class gate(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -1638,7 +1640,7 @@ class gate(Exchange):
 
     async def fetch_transaction_fees(self, codes=None, params={}):
         """
-        fetch transaction fees
+        *DEPRECATED* please use fetchDepositWithdrawFees instead
         see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
         :param [str]|None codes: list of unified currency codes
         :param dict params: extra parameters specific to the gate api endpoint
@@ -1685,6 +1687,84 @@ class gate(Exchange):
                 'deposit': None,
                 'info': entry,
             }
+        return result
+
+    async def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the gate api endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        await self.load_markets()
+        response = await self.privateWalletGetWithdrawStatus(params)
+        #
+        #    [
+        #        {
+        #            "currency": "MTN",
+        #            "name": "Medicalchain",
+        #            "name_cn": "Medicalchain",
+        #            "deposit": "0",
+        #            "withdraw_percent": "0%",
+        #            "withdraw_fix": "900",
+        #            "withdraw_day_limit": "500000",
+        #            "withdraw_day_limit_remain": "500000",
+        #            "withdraw_amount_mini": "900.1",
+        #            "withdraw_eachtime_limit": "90000000000",
+        #            "withdraw_fix_on_chains": {
+        #                "ETH": "900"
+        #            }
+        #        }
+        #    ]
+        #
+        return self.parse_deposit_withdraw_fees(response, codes, 'currency')
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        #    {
+        #        "currency": "MTN",
+        #        "name": "Medicalchain",
+        #        "name_cn": "Medicalchain",
+        #        "deposit": "0",
+        #        "withdraw_percent": "0%",
+        #        "withdraw_fix": "900",
+        #        "withdraw_day_limit": "500000",
+        #        "withdraw_day_limit_remain": "500000",
+        #        "withdraw_amount_mini": "900.1",
+        #        "withdraw_eachtime_limit": "90000000000",
+        #        "withdraw_fix_on_chains": {
+        #            "ETH": "900"
+        #        }
+        #    }
+        #
+        withdrawFixOnChains = self.safe_value(fee, 'withdraw_fix_on_chains')
+        result = {
+            'info': fee,
+            'withdraw': {
+                'fee': self.safe_number(fee, 'withdraw_fix'),
+                'percentage': False,
+            },
+            'deposit': {
+                'fee': self.safe_number(fee, 'deposit'),
+                'percentage': False,
+            },
+            'networks': {},
+        }
+        if withdrawFixOnChains is not None:
+            chainKeys = list(withdrawFixOnChains.keys())
+            for i in range(0, len(chainKeys)):
+                chainKey = chainKeys[i]
+                result['networks'][chainKey] = {
+                    'withdraw': {
+                        'fee': self.parse_number(withdrawFixOnChains[chainKey]),
+                        'percentage': False,
+                    },
+                    'deposit': {
+                        'fee': None,
+                        'percentage': None,
+                    },
+                }
         return result
 
     async def fetch_funding_history(self, symbol=None, since=None, limit=None, params={}):
