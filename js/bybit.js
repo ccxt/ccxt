@@ -4926,7 +4926,7 @@ module.exports = class bybit extends Exchange {
         return this.parseTrades (trades, market, since, limit);
     }
 
-    async fetchMyDerivativesTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+    async fetchMyUnifiedMarginTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchMyDerivativesTrades() requires a symbol argument');
         }
@@ -4940,6 +4940,13 @@ module.exports = class bybit extends Exchange {
             // 'category': ''
             // 'limit' 20, // max 50
         };
+        if (market['option']) {
+            request['category'] = 'option';
+        } else if (market['linear']) {
+            request['category'] = 'linear';
+        } else {
+            throw new NotSupported (this.id + ' fetchMyTrades() does not allow inverse market orders for ' + symbol + ' markets');
+        }
         if (since !== undefined) {
             request['startTime'] = since;
         }
@@ -5133,7 +5140,7 @@ module.exports = class bybit extends Exchange {
         if (market['spot']) {
             return await this.fetchMySpotTrades (symbol, since, limit, params);
         } else if (enableUnifiedMargin) {
-            return await this.fetchMyDerivativesTrades (symbol, since, limit, params);
+            return await this.fetchMyUnifiedMarginTrades (symbol, since, limit, params);
         } else if (isUsdcSettled) {
             return await this.fetchMyUsdcTrades (symbol, since, limit, params);
         } else {
