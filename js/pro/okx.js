@@ -99,6 +99,18 @@ module.exports = class okx extends okxRest {
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#watchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {object} params extra parameters specific to the okx api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const trades = await this.subscribe ('public', 'trades', symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -143,6 +155,14 @@ module.exports = class okx extends okxRest {
     }
 
     async watchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name okx#watchTicker
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the okx api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         return await this.subscribe ('public', 'tickers', symbol, params);
     }
 
@@ -187,6 +207,19 @@ module.exports = class okx extends okxRest {
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the okx api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const interval = this.timeframes[timeframe];
         const name = 'candle' + interval;
         const ohlcv = await this.subscribe ('public', name, symbol, params);
@@ -238,6 +271,15 @@ module.exports = class okx extends okxRest {
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#watchOrderBook
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {object} params extra parameters specific to the okx api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         const options = this.safeValue (this.options, 'watchOrderBook', {});
         //
         // bbo-tbt
@@ -264,7 +306,7 @@ module.exports = class okx extends okxRest {
         //
         const depth = this.safeString (options, 'depth', 'books');
         const orderbook = await this.subscribe ('public', depth, symbol, params);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleDelta (bookside, delta) {
@@ -505,6 +547,13 @@ module.exports = class okx extends okxRest {
     }
 
     async watchBalance (params = {}) {
+        /**
+         * @method
+         * @name okx#watchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} params extra parameters specific to the okx api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         await this.authenticate ();
         return await this.subscribe ('private', 'account', undefined, params);
@@ -565,6 +614,17 @@ module.exports = class okx extends okxRest {
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name okx#watchOrders
+         * @description watches information on multiple orders made by the user
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the okx api endpoint
+         * @param {bool} params.stop true if fetching trigger or conditional orders
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         await this.authenticate ();
         //
@@ -584,10 +644,12 @@ module.exports = class okx extends okxRest {
         // By default, receive order updates from any instrument type
         let type = this.safeString (options, 'type', 'ANY');
         type = this.safeString (params, 'type', type);
-        params = this.omit (params, 'type');
+        const isStop = this.safeValue (params, 'stop', false);
+        params = this.omit (params, [ 'type', 'stop' ]);
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            symbol = market['symbol'];
             type = market['type'];
         }
         if (type === 'future') {
@@ -597,7 +659,8 @@ module.exports = class okx extends okxRest {
         const request = {
             'instType': uppercaseType,
         };
-        const orders = await this.subscribe ('private', 'orders', symbol, this.extend (request, params));
+        const channel = isStop ? 'orders-algo' : 'orders';
+        const orders = await this.subscribe ('private', channel, symbol, this.extend (request, params));
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -818,6 +881,7 @@ module.exports = class okx extends okxRest {
                 'account': this.handleBalance,
                 // 'margin_account': this.handleBalance,
                 'orders': this.handleOrders,
+                'orders-algo': this.handleOrders,
             };
             const method = this.safeValue (methods, channel);
             if (method === undefined) {

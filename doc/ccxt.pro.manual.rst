@@ -54,7 +54,7 @@ The CCXT Pro heavily relies on the transpiler of CCXT for `multilanguage support
 Exchanges
 ---------
 
-The CCXT Pro library currently supports the following 42 cryptocurrency exchange markets and WebSocket trading APIs:
+The CCXT Pro library currently supports the following 44 cryptocurrency exchange markets and WebSocket trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -308,6 +308,21 @@ The CCXT Pro library currently supports the following 42 cryptocurrency exchange
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27766442-8ddc33b0-5ed8-11e7-8b98-f786aef0f3c9.jpg
+          :target: https://cex.io/r/0/up105393824/0/
+          :alt: cex
+     
+     - cex
+     - `CEX.IO <https://cex.io/r/0/up105393824/0/>`__
+     - .. image:: https://img.shields.io/badge/*-lightgray
+          :target: https://cex.io/cex-api
+          :alt: API Version *
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/44539184-29f26e00-a70c-11e8-868f-e907fc236a7c.jpg
           :target: https://exchange.coinbase.com
           :alt: coinbaseprime
@@ -360,7 +375,7 @@ The CCXT Pro library currently supports the following 42 cryptocurrency exchange
      - cryptocom
      - `Crypto.com <https://crypto.com/exch/5835vstech>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://exchange-docs.crypto.com/
+          :target: https://exchange-docs.crypto.com/spot/index.html
           :alt: API Version 2
      
      - 
@@ -376,6 +391,21 @@ The CCXT Pro library currently supports the following 42 cryptocurrency exchange
      - `Currency.com <https://currency.com/trading/signup?c=362jaimv&pid=referral>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://currency.com/api
+          :alt: API Version 2
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/41933112-9e2dd65a-798b-11e8-8440-5bab2959fcb8.jpg
+          :target: https://www.deribit.com/reg-1189.4038
+          :alt: deribit
+     
+     - deribit
+     - `Deribit <https://www.deribit.com/reg-1189.4038>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://docs.deribit.com/v2
           :alt: API Version 2
      
      - 
@@ -407,36 +437,6 @@ The CCXT Pro library currently supports the following 42 cryptocurrency exchange
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://api.fmfw.io/api/2/explore/
           :alt: API Version 2
-     
-     - 
-     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
-          :target: https://ccxt.pro
-          :alt: CCXT Pro
-     
-   * - .. image:: https://user-images.githubusercontent.com/1294454/67149189-df896480-f2b0-11e9-8816-41593e17f9ec.jpg
-          :target: https://ftx.com/referrals#a=1623029
-          :alt: ftx
-     
-     - ftx
-     - `FTX <https://ftx.com/referrals#a=1623029>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://github.com/ftexchange/ftx
-          :alt: API Version *
-     
-     - 
-     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
-          :target: https://ccxt.pro
-          :alt: CCXT Pro
-     
-   * - .. image:: https://user-images.githubusercontent.com/1294454/141506670-12f6115f-f425-4cd8-b892-b51d157ca01f.jpg
-          :target: https://ftx.com/referrals#a=1623029
-          :alt: ftxus
-     
-     - ftxus
-     - `FTX US <https://ftx.com/referrals#a=1623029>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://github.com/ftexchange/ftx
-          :alt: API Version *
      
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
@@ -582,6 +582,24 @@ The CCXT Pro library currently supports the following 42 cryptocurrency exchange
           :target: https://docs.kucoin.com
           :alt: API Version 2
      
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg
+          :target: https://www.luno.com/invite/44893A
+          :alt: luno
+     
+     - luno
+     - `luno <https://www.luno.com/invite/44893A>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://www.luno.com/en/api
+          :alt: API Version 1
+     
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
           :target: https://ccxt.pro
@@ -698,12 +716,27 @@ The CCXT Pro library currently supports the following 42 cryptocurrency exchange
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
+   * - .. image:: https://user-images.githubusercontent.com/1294454/148647666-c109c20b-f8ac-472f-91c3-5f658cb90f49.jpeg
+          :target: https://wazirx.com/invite/k7rrnks5
+          :alt: wazirx
+     
+     - wazirx
+     - `WazirX <https://wazirx.com/invite/k7rrnks5>`__
+     - .. image:: https://img.shields.io/badge/2-lightgray
+          :target: https://docs.wazirx.com/#public-rest-api-for-wazirx
+          :alt: API Version 2
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/32859187-cd5214f0-ca5e-11e7-967d-96568e2e2bd1.jpg
-          :target: https://www.zbex.club/en/register?ref=4301lera
+          :target: https://www.zb.com/en/register?ref=4301lera
           :alt: zb
      
      - zb
-     - `ZB <https://www.zbex.club/en/register?ref=4301lera>`__
+     - `ZB <https://www.zb.com/en/register?ref=4301lera>`__
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://www.zb.com/i/developer
           :alt: API Version 1
@@ -916,7 +949,7 @@ The cache is a fixed-size deque aka array/list with two ends. The CCXT Pro libra
 
 .. code-block:: Python
 
-   ccxtpro.ftx({
+   ccxtpro.binance({
        'options': {
            'tradesLimit': 1000,
            'OHLCVLimit': 1000,
@@ -1355,7 +1388,7 @@ When developers say *"real-time"*\ , that usually means pseudo real-time, or, pu
 
 The 2nd-order data is **always** calculated from the 1st-order data. OHLCVs are calculated from aggregated trades. Tickers are calculated from trades and orderbooks.
 
-Some exchanges do the calculation of OHLCVs (2nd order data) for you on the exchange side and send you updates over WS (Binance). Other exchanges don't really think that is necessary, for a reason (FTX).
+Some exchanges do the calculation of OHLCVs (2nd order data) for you on the exchange side and send you updates over WS (Binance). Other exchanges don't really think that is necessary, for a reason.
 
 Obviously, it takes time to calculate 2nd-order OHLCV candles from trades. Apart from that sending the calculated candle back to all connected users also takes time. Additional delays can happen during periods of high volatility if an exchange is traded very actively under high load.
 

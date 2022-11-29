@@ -32,9 +32,9 @@ class OrderBook extends \ArrayObject implements \JsonSerializable {
         return $this->getArrayCopy();
     }
 
-    public function limit($n = PHP_INT_MAX) {
-        $this['asks']->limit($n);
-        $this['bids']->limit($n);
+    public function limit() {
+        $this['asks']->limit();
+        $this['bids']->limit();
         return $this;
     }
 

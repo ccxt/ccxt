@@ -15,8 +15,10 @@ function test_watch_order_book($exchange, $symbol) {
 
     // we have to skip some exchanges here due to the frequency of trading
     $skipped_exchanges = array(
+        'cex', // requires authentication for watch_order_book
         'ripio',
         'gopax', // requires authentication for watch_order_book
+        'luno', // requires authentication for watch_order_book
     );
 
     if (in_array($exchange->id, $skipped_exchanges)) {

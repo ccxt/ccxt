@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.0.31'
+__version__ = '2.2.40'
 
 # -----------------------------------------------------------------------------
 
@@ -94,7 +94,6 @@ from ccxt.async_support.btcmarkets import btcmarkets                            
 from ccxt.async_support.btctradeua import btctradeua                            # noqa: F401
 from ccxt.async_support.btcturk import btcturk                                  # noqa: F401
 from ccxt.async_support.buda import buda                                        # noqa: F401
-from ccxt.async_support.bw import bw                                            # noqa: F401
 from ccxt.async_support.bybit import bybit                                      # noqa: F401
 from ccxt.async_support.bytetrade import bytetrade                              # noqa: F401
 from ccxt.async_support.cex import cex                                          # noqa: F401
@@ -113,12 +112,9 @@ from ccxt.async_support.currencycom import currencycom                          
 from ccxt.async_support.delta import delta                                      # noqa: F401
 from ccxt.async_support.deribit import deribit                                  # noqa: F401
 from ccxt.async_support.digifinex import digifinex                              # noqa: F401
-from ccxt.async_support.eqonex import eqonex                                    # noqa: F401
 from ccxt.async_support.exmo import exmo                                        # noqa: F401
 from ccxt.async_support.flowbtc import flowbtc                                  # noqa: F401
 from ccxt.async_support.fmfwio import fmfwio                                    # noqa: F401
-from ccxt.async_support.ftx import ftx                                          # noqa: F401
-from ccxt.async_support.ftxus import ftxus                                      # noqa: F401
 from ccxt.async_support.gate import gate                                        # noqa: F401
 from ccxt.async_support.gateio import gateio                                    # noqa: F401
 from ccxt.async_support.gemini import gemini                                    # noqa: F401
@@ -160,7 +156,6 @@ from ccxt.async_support.qtrade import qtrade                                    
 from ccxt.async_support.ripio import ripio                                      # noqa: F401
 from ccxt.async_support.stex import stex                                        # noqa: F401
 from ccxt.async_support.therock import therock                                  # noqa: F401
-from ccxt.async_support.tidebit import tidebit                                  # noqa: F401
 from ccxt.async_support.tidex import tidex                                      # noqa: F401
 from ccxt.async_support.timex import timex                                      # noqa: F401
 from ccxt.async_support.tokocrypto import tokocrypto                            # noqa: F401
@@ -217,7 +212,6 @@ exchanges = [
     'btctradeua',
     'btcturk',
     'buda',
-    'bw',
     'bybit',
     'bytetrade',
     'cex',
@@ -236,12 +230,9 @@ exchanges = [
     'delta',
     'deribit',
     'digifinex',
-    'eqonex',
     'exmo',
     'flowbtc',
     'fmfwio',
-    'ftx',
-    'ftxus',
     'gate',
     'gateio',
     'gemini',
@@ -283,7 +274,6 @@ exchanges = [
     'ripio',
     'stex',
     'therock',
-    'tidebit',
     'tidex',
     'timex',
     'tokocrypto',

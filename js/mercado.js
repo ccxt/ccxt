@@ -729,7 +729,7 @@ module.exports = class mercado extends Exchange {
 
     parseOHLCV (ohlcv, market = undefined) {
         return [
-            this.safeTimestamp (ohlcv, 0),
+            this.safeInteger (ohlcv, 0),
             this.safeNumber (ohlcv, 1),
             this.safeNumber (ohlcv, 2),
             this.safeNumber (ohlcv, 3),

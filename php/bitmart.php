@@ -50,6 +50,8 @@ class bitmart extends Exchange {
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => true,
+                'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => null,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
@@ -111,6 +113,7 @@ class bitmart extends Exchange {
                         'spot/v1/symbols' => 7.5,
                         'spot/v1/symbols/details' => 5,
                         'spot/v1/ticker' => 5,
+                        'spot/v2/ticker' => 5,
                         'spot/v1/steps' => 30,
                         'spot/v1/symbols/kline' => 5,
                         'spot/v1/symbols/book' => 5,
@@ -307,6 +310,7 @@ class bitmart extends Exchange {
                     // below Error codes used interchangeably for both failed postOnly and IOC orders depending on market price and order side
                     '50035' => '\\ccxt\\InvalidOrder', // array("message":"The price is low and there is no matching depth","code":50035,"trace":"677f01c7-8b88-4346-b097-b4226c75c90e","data":array())
                     '50034' => '\\ccxt\\InvalidOrder', // array("message":"The price is high and there is no matching depth","code":50034,"trace":"ebfae59a-ba69-4735-86b2-0ed7b9ca14ea","data":array())
+                    '51011' => '\\ccxt\\InvalidOrder', // array("message":"param not match : size * price >=5","code":51011,"trace":"525e1d27bfd34d60b2d90ba13a7c0aa9.74.16696421352220797","data":array())
                     '53000' => '\\ccxt\\AccountSuspended', // 403, Your account is frozen due to security policies. Please contact customer service
                     '53001' => '\\ccxt\\AccountSuspended', // array("message":"Your kyc country is restricted. Please contact customer service.","code":53001,"trace":"8b445940-c123-4de9-86d7-73c5be2e7a24","data":array())
                     '57001' => '\\ccxt\\BadRequest', // 405, Method Not Allowed
@@ -716,7 +720,7 @@ class bitmart extends Exchange {
 
     public function fetch_transaction_fee($code, $params = array ()) {
         /**
-         * fetch the fee for a transaction
+         * *DEPRECATED* please use fetchDepositWithdrawFee instead
          * @param {string} $code unified $currency $code
          * @param {array} $params extra parameters specific to the bitmart api endpoint
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
@@ -750,26 +754,79 @@ class bitmart extends Exchange {
         );
     }
 
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //
+        //    {
+        //        today_available_withdraw_BTC => '100.0000',
+        //        min_withdraw => '0.005',
+        //        withdraw_precision => '8',
+        //        withdraw_fee => '0.000500000000000000000000000000'
+        //    }
+        //
+        return array(
+            'info' => $fee,
+            'withdraw' => array(
+                'fee' => $this->safe_number($fee, 'withdraw_fee'),
+                'percentage' => null,
+            ),
+            'deposit' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'networks' => array(),
+        );
+    }
+
+    public function fetch_deposit_withdraw_fee($code, $params = array ()) {
+        /**
+         * fetch the fee for deposits and withdrawals
+         * @param {string} $code unified $currency $code
+         * @param {array} $params extra parameters specific to the bitmart api endpoint
+         * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structure}
+         */
+        $this->load_markets();
+        $currency = $this->currency($code);
+        $request = array(
+            'currency' => $currency['id'],
+        );
+        $response = $this->privateGetAccountV1WithdrawCharge (array_merge($request, $params));
+        //
+        //     {
+        //         message => 'OK',
+        //         $code => '1000',
+        //         trace => '3ecc0adf-91bd-4de7-aca1-886c1122f54f',
+        //         $data => {
+        //             today_available_withdraw_BTC => '100.0000',
+        //             min_withdraw => '0.005',
+        //             withdraw_precision => '8',
+        //             withdraw_fee => '0.000500000000000000000000000000'
+        //         }
+        //     }
+        //
+        $data = $response['data'];
+        return $this->parse_deposit_withdraw_fee($data);
+    }
+
     public function parse_ticker($ticker, $market = null) {
         //
         // spot
         //
         //      {
-        //          "symbol":"DOGE_USDT",
-        //          "last_price":"0.128300",
-        //          "quote_volume_24h":"2296619.060420",
-        //          "base_volume_24h":"17508866.000000000000000000000000000000",
-        //          "high_24h":"0.133900",
-        //          "low_24h":"0.127799",
-        //          "open_24h":"0.133100",
-        //          "close_24h":"0.128300",
-        //          "best_ask":"0.128530",
-        //          "best_ask_size":"15170",
-        //          "best_bid":"0.128200",
-        //          "best_bid_size":"21232",
-        //          "fluctuation":"-0.0361",
-        //          "s_t" => 1610936002, // ws only
-        //          "url":"https://www.bitmart.com/trade?$symbol=DOGE_USDT"
+        //          "symbol" => "SOLAR_USDT",
+        //          "last_price" => "0.020342",
+        //          "quote_volume_24h" => "56817.811802",
+        //          "base_volume_24h" => "2172060",
+        //          "high_24h" => "0.256000",
+        //          "low_24h" => "0.016980",
+        //          "open_24h" => "0.022309",
+        //          "close_24h" => "0.020342",
+        //          "best_ask" => "0.020389",
+        //          "best_ask_size" => "339.000000000000000000000000000000",
+        //          "best_bid" => "0.020342",
+        //          "best_bid_size" => "3369.000000000000000000000000000000",
+        //          "fluctuation" => "-0.0882",
+        //          "url" => "https://www.bitmart.com/trade?$symbol=SOLAR_USDT",
+        //          "timestamp" => 1667403439367
         //      }
         //
         // swap
@@ -787,7 +844,7 @@ class bitmart extends Exchange {
         //          "legal_coin_price":"0.1302699"
         //      }
         //
-        $timestamp = $this->safe_timestamp_2($ticker, 'timestamp', 's_t', $this->milliseconds());
+        $timestamp = $this->safe_integer($ticker, 'timestamp', $this->milliseconds());
         $marketId = $this->safe_string_2($ticker, 'symbol', 'contract_symbol');
         $market = $this->safe_market($marketId, $market);
         $symbol = $market['symbol'];
@@ -919,19 +976,26 @@ class bitmart extends Exchange {
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         /**
-         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all market $tickers are returned if not assigned
+         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * @see https://developer-pro.bitmart.com/en/spot/#get-$ticker-of-all-pairs-v2
+         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the bitmart api endpoint
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', null, $params);
-        $method = $this->get_supported_mapping($marketType, array(
-            'spot' => 'publicGetSpotV1Ticker',
+        $type = null;
+        $market = null;
+        if ($symbols !== null) {
+            $symbol = $this->safe_value($symbols, 0);
+            $market = $this->market($symbol);
+        }
+        list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
+        $method = $this->get_supported_mapping($type, array(
+            'spot' => 'publicGetSpotV2Ticker',
             'swap' => 'publicGetContractV1Tickers',
         ));
-        $response = $this->$method ($query);
+        $response = $this->$method ($params);
         $data = $this->safe_value($response, 'data', array());
         $tickers = $this->safe_value($data, 'tickers', array());
         $result = array();
@@ -2303,8 +2367,8 @@ class bitmart extends Exchange {
             'type' => $type,
             'updated' => null,
             'txid' => $txid,
-            'timestamp' => $timestamp !== 0 ? $timestamp : null,
-            'datetime' => $timestamp !== 0 ? $this->iso8601($timestamp) : null,
+            'timestamp' => ($timestamp !== 0) ? $timestamp : null,
+            'datetime' => ($timestamp !== 0) ? $this->iso8601($timestamp) : null,
             'fee' => $fee,
         );
     }
@@ -2747,7 +2811,7 @@ class bitmart extends Exchange {
 
     public function parse_borrow_interest($info, $market = null) {
         //
-        //     array(
+        //     {
         //         "borrow_id" => "1657664327844Lk5eJJugXmdHHZoe",
         //         "symbol" => "BTC_USDT",
         //         "currency" => "USDT",
@@ -2756,7 +2820,7 @@ class bitmart extends Exchange {
         //         "hourly_interest" => "0.00002291",
         //         "interest_amount" => "0.00045833",
         //         "create_time" => 1657664329000
-        //     ),
+        //     }
         //
         $marketId = $this->safe_string($info, 'symbol');
         $market = $this->safe_market($marketId, $market);
@@ -2774,7 +2838,7 @@ class bitmart extends Exchange {
         );
     }
 
-    public function handle_margin_mode_and_params($methodName, $params = array ()) {
+    public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null) {
         /**
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
@@ -2784,7 +2848,7 @@ class bitmart extends Exchange {
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $isMargin = $this->safe_value($params, 'margin', false);
         $marginMode = null;
-        list($marginMode, $params) = parent::handle_margin_mode_and_params($methodName, $params);
+        list($marginMode, $params) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
         if ($marginMode !== null) {
             if ($marginMode !== 'isolated') {
                 throw new NotSupported($this->id . ' only isolated margin is supported');

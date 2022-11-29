@@ -419,9 +419,13 @@ class Transpiler {
         ]
     }
 
-    getSyncPHPRegexes () {
+    getPHPSyncRegexes () {
         return [
-            [ /\bAsync\\await\((.+)\);/g, '$1;' ], // delete await
+            // delete await, the following regex does not pick up multiline await calls
+            [ /\bAsync\\await\((.+)\);/g, '$1;' ],
+            // hence the following regex is added with a dotAll modifier 's'
+            // and a non greedy match for the calls not picked up by the previous regex
+            [ /\bAsync\\await\((.+?)\);/gs, '$1;' ],
             [ /.+Promise\\all.+\n/g, '' ], // remove line entirely
             [ /\byield(?: from)?\s+/g, '' ], // delete yield from
         ]
@@ -756,6 +760,7 @@ class Transpiler {
             'hashlib': 'hashlib',
             'math': 'math',
             'json.loads': 'json',
+            'json.dumps': 'json',
             'sys': 'sys',
         }
 
@@ -765,8 +770,12 @@ class Transpiler {
 
         for (let library in pythonStandardLibraries) {
             const regex = new RegExp ("[^\\'\\\"a-zA-Z]" + library + "[^\\'\\\"a-zA-Z]")
-            if (bodyAsString.match (regex))
-                libraries.push ('import ' + pythonStandardLibraries[library])
+            if (bodyAsString.match (regex)){
+                const importStatement = 'import ' + pythonStandardLibraries[library];
+                if (!libraries.includes(importStatement)) {
+                    libraries.push (importStatement)
+                }
+            }
         }
 
         if (bodyAsString.match (/numbers\.(Real|Integral)/)) {
@@ -991,7 +1000,7 @@ class Transpiler {
     transpileAsyncPHPToSyncPHP (php) {
 
         // remove yield from php body
-        return this.regexAll (php, this.getSyncPHPRegexes ())
+        return this.regexAll (php, this.getPHPSyncRegexes ())
     }
 
     // ------------------------------------------------------------------------
@@ -1131,7 +1140,7 @@ class Transpiler {
             [ /ccxt\\\\async/, 'ccxt' ],
         ]
 
-        const newContents = this.regexAll (syncBody, this.getSyncPHPRegexes ().concat (phpTestRegexes));
+        const newContents = this.regexAll (syncBody, this.getPHPSyncRegexes ().concat (phpTestRegexes));
 
         fs.truncateSync (sync)
         fs.writeFileSync (sync, newContents)

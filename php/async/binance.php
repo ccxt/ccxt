@@ -138,8 +138,8 @@ class binance extends Exchange {
                 'test' => array(
                     'dapiPublic' => 'https://testnet.binancefuture.com/dapi/v1',
                     'dapiPrivate' => 'https://testnet.binancefuture.com/dapi/v1',
-                    'vapiPublic' => 'https://testnet.binanceops.com/vapi/v1',
-                    'vapiPrivate' => 'https://testnet.binanceops.com/vapi/v1',
+                    'eapiPublic' => 'https://testnet.binanceops.com/eapi/v1',
+                    'eapiPrivate' => 'https://testnet.binanceops.com/eapi/v1',
                     'fapiPublic' => 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivate' => 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivateV2' => 'https://testnet.binancefuture.com/fapi/v2',
@@ -153,8 +153,8 @@ class binance extends Exchange {
                     'sapiV3' => 'https://api.binance.com/sapi/v3',
                     'dapiPublic' => 'https://dapi.binance.com/dapi/v1',
                     'dapiPrivate' => 'https://dapi.binance.com/dapi/v1',
-                    'vapiPublic' => 'https://vapi.binance.com/vapi/v1',
-                    'vapiPrivate' => 'https://vapi.binance.com/vapi/v1',
+                    'eapiPublic' => 'https://eapi.binance.com/eapi/v1',
+                    'eapiPrivate' => 'https://eapi.binance.com/eapi/v1',
                     'dapiPrivateV2' => 'https://dapi.binance.com/dapi/v2',
                     'dapiData' => 'https://dapi.binance.com/futures/data',
                     'fapiPublic' => 'https://fapi.binance.com/fapi/v1',
@@ -201,6 +201,7 @@ class binance extends Exchange {
                         'asset/transfer' => 0.1,
                         'asset/assetDetail' => 0.1,
                         'asset/tradeFee' => 0.1,
+                        'asset/ledger-transfer/cloud-mining/queryByPage' => 4,
                         'margin/loan' => 1,
                         'margin/repay' => 1,
                         'margin/account' => 1,
@@ -231,8 +232,13 @@ class binance extends Exchange {
                         'loan/income' => 40, // Weight(UID) => 6000 => cost = 0.006667 * 6000 = 40
                         'loan/ongoing/orders' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
                         'loan/ltv/adjustment/history' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
-                        'loan/borrow/history' => 2.6667, // Weight(UID) => 400 => cost = 0.006667 * 400 ~= 2.6667
+                        'loan/borrow/history' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
                         'loan/repay/history' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
+                        'loan/loanable/data' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
+                        'loan/collateral/data' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
+                        'loan/repay/collateral/rate' => 600, // Weight(IP) => 6000 => cost = 0.1 * 6000 = 600
+                        'loan/vip/ongoing/orders' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
+                        'loan/vip/repay/history' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
                         'fiat/orders' => 600.03, // Weight(UID) => 90000 => cost = 0.006667 * 90000 = 600.03
                         'fiat/payments' => 0.1,
                         'futures/transfer' => 1,
@@ -250,6 +256,9 @@ class binance extends Exchange {
                         'capital/deposit/subHisrec' => 0.1,
                         'capital/withdraw/history' => 0.1,
                         'convert/tradeFlow' => 0.6667, // Weight(UID) => 100 => cost = 0.006667 * 100 = 0.6667
+                        'convert/exchangeInfo' => 50,
+                        'convert/assetInfo' => 10,
+                        'convert/orderStatus' => 0.6667,
                         'account/status' => 0.1,
                         'account/apiTradingStatus' => 0.1,
                         'account/apiRestrictions/ipRestriction' => 0.1,
@@ -267,6 +276,7 @@ class binance extends Exchange {
                         'sub-account/sub/transfer/history' => 0.1,
                         'sub-account/transfer/subUserHistory' => 0.1,
                         'sub-account/universalTransfer' => 0.1,
+                        'sub-account/apiRestrictions/ipRestriction/thirdPartyList' => 1,
                         'managed-subaccount/asset' => 0.1,
                         'managed-subaccount/accountSnapshot' => 240,
                         // lending endpoints
@@ -368,7 +378,7 @@ class binance extends Exchange {
                         'account/enableFastWithdrawSwitch' => 0.1,
                         // 'account/apiRestrictions/ipRestriction' => 1, discontinued
                         // 'account/apiRestrictions/ipRestriction/ipList' => 1, discontinued
-                        'capital/withdraw/apply' => 0.1,
+                        'capital/withdraw/apply' => 4.0002, // Weight(UID) => 600 => cost = 0.006667 * 600 = 4.0002
                         'margin/transfer' => 1, // Weight(IP) => 600 => cost = 0.1 * 600 = 60
                         'margin/loan' => 20.001, // Weight(UID) => 3000 => cost = 0.006667 * 3000 = 20.001
                         'margin/repay' => 20.001,
@@ -387,6 +397,8 @@ class binance extends Exchange {
                         'sub-account/transfer/subToSub' => 0.1,
                         'sub-account/transfer/subToMaster' => 0.1,
                         'sub-account/universalTransfer' => 0.1,
+                        // v2 not supported yet
+                        // 'sub-account/subAccountApi/ipRestriction' => 20,
                         'managed-subaccount/deposit' => 0.1,
                         'managed-subaccount/withdraw' => 0.1,
                         'userDataStream' => 0.1,
@@ -442,6 +454,10 @@ class binance extends Exchange {
                         'loan/borrow' => 40, // Weight(UID) => 6000 => cost = 0.006667 * 6000 = 40
                         'loan/repay' => 40, // Weight(UID) => 6000 => cost = 0.006667 * 6000 = 40
                         'loan/adjust/ltv' => 40, // Weight(UID) => 6000 => cost = 0.006667 * 6000 = 40
+                        'loan/customize/margin_call' => 40, // Weight(UID) => 6000 => cost = 0.006667 * 6000 = 40
+                        'loan/vip/repay' => 40, // Weight(UID) => 6000 => cost = 0.006667 * 6000 = 40
+                        'convert/getQuote' => 20.001,
+                        'convert/acceptQuote' => 3.3335,
                     ),
                     'put' => array(
                         'userDataStream' => 0.1,
@@ -663,46 +679,54 @@ class binance extends Exchange {
                         'positionRisk' => 1,
                     ),
                 ),
-                'vapiPublic' => array(
+                'eapiPublic' => array(
                     'get' => array(
-                        'ping',
-                        'time',
-                        'optionInfo',
-                        'exchangeInfo',
-                        'index',
-                        'ticker',
-                        'mark',
-                        'depth',
-                        'klines',
-                        'trades',
-                        'historicalTrades',
+                        'ping' => 1,
+                        'time' => 1,
+                        'exchangeInfo' => 1,
+                        'index' => 1,
+                        'ticker' => 5,
+                        'mark' => 5,
+                        'depth' => 1,
+                        'klines' => 1,
+                        'trades' => 5,
+                        'historicalTrades' => 20,
+                        'exerciseHistory' => 3,
+                        'openInterest' => 3,
                     ),
                 ),
-                'vapiPrivate' => array(
+                'eapiPrivate' => array(
                     'get' => array(
-                        'account',
-                        'position',
-                        'order',
-                        'openOrders',
-                        'historyOrders',
-                        'userTrades',
+                        'account' => 3,
+                        'position' => 5,
+                        'openOrders' => array( 'cost' => 1, 'noSymbol' => 40 ),
+                        'historyOrders' => 3,
+                        'userTrades' => 5,
+                        'exerciseRecord' => 5,
+                        'bill' => 1,
+                        'marginAccount' => 3,
+                        'mmp' => 1,
+                        'countdownCancelAll' => 1,
                     ),
                     'post' => array(
-                        'transfer',
-                        'bill',
-                        'order',
-                        'batchOrders',
-                        'userDataStream',
-                        'openAccount',
+                        'transfer' => 1,
+                        'order' => 1,
+                        'batchOrders' => 5,
+                        'listenKey' => 1,
+                        'mmpSet' => 1,
+                        'mmpReset' => 1,
+                        'countdownCancelAll' => 1,
+                        'countdownCancelAllHeartBeat' => 10,
                     ),
                     'put' => array(
-                        'userDataStream',
+                        'listenKey' => 1,
                     ),
                     'delete' => array(
-                        'order',
-                        'batchOrders',
-                        'allOpenOrders',
-                        'userDataStream',
+                        'order' => 1,
+                        'batchOrders' => 1,
+                        'allOpenOrders' => 1,
+                        'allOpenOrdersByUnderlying' => 1,
+                        'listenKey' => 1,
                     ),
                 ),
                 'public' => array(
@@ -1315,88 +1339,105 @@ class binance extends Exchange {
             $result = array();
             for ($i = 0; $i < count($response); $i++) {
                 //
-                //     {
-                //         coin => 'LINK',
-                //         depositAllEnable => true,
-                //         withdrawAllEnable => true,
-                //         $name => 'ChainLink',
-                //         free => '0.06168',
-                //         locked => '0',
-                //         freeze => '0',
-                //         withdrawing => '0',
-                //         ipoing => '0',
-                //         ipoable => '0',
-                //         storage => '0',
-                //         isLegalMoney => false,
-                //         $trading => true,
-                //         $networkList => [
-                //             array(
-                //                 $network => 'BNB',
-                //                 coin => 'LINK',
-                //                 withdrawIntegerMultiple => '0',
-                //                 $isDefault => false,
-                //                 $depositEnable => true,
-                //                 $withdrawEnable => true,
-                //                 depositDesc => '',
-                //                 withdrawDesc => '',
-                //                 specialTips => 'Both a MEMO and an Address are required to successfully deposit your LINK BEP2 tokens to Binance.',
-                //                 $name => 'BEP2',
-                //                 resetAddressStatus => false,
-                //                 addressRegex => '^(bnb1)[0-9a-z]{38}$',
-                //                 memoRegex => '^[0-9A-Za-z\\-_]array(1,120)$',
-                //                 $withdrawFee => '0.002',
-                //                 withdrawMin => '0.01',
-                //                 withdrawMax => '9999999',
-                //                 minConfirm => 1,
-                //                 unLockConfirm => 0
-                //             ),
-                //             array(
-                //                 $network => 'BSC',
-                //                 coin => 'LINK',
-                //                 withdrawIntegerMultiple => '0.00000001',
-                //                 $isDefault => false,
-                //                 $depositEnable => true,
-                //                 $withdrawEnable => true,
-                //                 depositDesc => '',
-                //                 withdrawDesc => '',
-                //                 specialTips => '',
-                //                 $name => 'BEP20 (BSC)',
-                //                 resetAddressStatus => false,
-                //                 addressRegex => '^(0x)[0-9A-Fa-f]{40}$',
-                //                 memoRegex => '',
-                //                 $withdrawFee => '0.005',
-                //                 withdrawMin => '0.01',
-                //                 withdrawMax => '9999999',
-                //                 minConfirm => 15,
-                //                 unLockConfirm => 0
-                //             ),
-                //             {
-                //                 $network => 'ETH',
-                //                 coin => 'LINK',
-                //                 withdrawIntegerMultiple => '0.00000001',
-                //                 $isDefault => true,
-                //                 $depositEnable => true,
-                //                 $withdrawEnable => true,
-                //                 depositDesc => '',
-                //                 withdrawDesc => '',
-                //                 $name => 'ERC20',
-                //                 resetAddressStatus => false,
-                //                 addressRegex => '^(0x)[0-9A-Fa-f]{40}$',
-                //                 memoRegex => '',
-                //                 $withdrawFee => '0.34',
-                //                 withdrawMin => '0.68',
-                //                 withdrawMax => '0',
-                //                 minConfirm => 12,
-                //                 unLockConfirm => 0
-                //             }
-                //         ]
-                //     }
+                //    {
+                //        "coin" => "LINK",
+                //        "depositAllEnable" => true,
+                //        "withdrawAllEnable" => true,
+                //        "name" => "ChainLink",
+                //        "free" => "0",
+                //        "locked" => "0",
+                //        "freeze" => "0",
+                //        "withdrawing" => "0",
+                //        "ipoing" => "0",
+                //        "ipoable" => "0",
+                //        "storage" => "0",
+                //        "isLegalMoney" => false,
+                //        "trading" => true,
+                //        "networkList" => [
+                //            array(
+                //                "network" => "BSC",
+                //                "coin" => "LINK",
+                //                "withdrawIntegerMultiple" => "0.00000001",
+                //                "isDefault" => false,
+                //                "depositEnable" => true,
+                //                "withdrawEnable" => true,
+                //                "depositDesc" => "",
+                //                "withdrawDesc" => "",
+                //                "specialTips" => "",
+                //                "specialWithdrawTips" => "The $network you have selected is BSC. Please ensure that the withdrawal address supports the Binance Smart Chain $network-> You will lose your assets if the chosen platform does not support retrievals.",
+                //                "name" => "BNB Smart Chain (BEP20)",
+                //                "resetAddressStatus" => false,
+                //                "addressRegex" => "^(0x)[0-9A-Fa-f]{40}$",
+                //                "addressRule" => "",
+                //                "memoRegex" => "",
+                //                "withdrawFee" => "0.012",
+                //                "withdrawMin" => "0.024",
+                //                "withdrawMax" => "9999999999.99999999",
+                //                "minConfirm" => "15",
+                //                "unLockConfirm" => "0",
+                //                "sameAddress" => false,
+                //                "estimatedArrivalTime" => "5",
+                //                "busy" => false,
+                //                "country" => "AE,BINANCE_BAHRAIN_BSC"
+                //            ),
+                //            array(
+                //                "network" => "BNB",
+                //                "coin" => "LINK",
+                //                "withdrawIntegerMultiple" => "0.00000001",
+                //                "isDefault" => false,
+                //                "depositEnable" => true,
+                //                "withdrawEnable" => true,
+                //                "depositDesc" => "",
+                //                "withdrawDesc" => "",
+                //                "specialTips" => "Both a MEMO and an Address are required to successfully deposit your LINK BEP2 tokens to Binance.",
+                //                "specialWithdrawTips" => "",
+                //                "name" => "BNB Beacon Chain (BEP2)",
+                //                "resetAddressStatus" => false,
+                //                "addressRegex" => "^(bnb1)[0-9a-z]{38}$",
+                //                "addressRule" => "",
+                //                "memoRegex" => "^[0-9A-Za-z\\-_]array(1,120)$",
+                //                "withdrawFee" => "0.002",
+                //                "withdrawMin" => "0.01",
+                //                "withdrawMax" => "10000000000",
+                //                "minConfirm" => "1",
+                //                "unLockConfirm" => "0",
+                //                "sameAddress" => true,
+                //                "estimatedArrivalTime" => "5",
+                //                "busy" => false,
+                //                "country" => "AE,BINANCE_BAHRAIN_BSC"
+                //            ),
+                //            {
+                //                "network" => "ETH",
+                //                "coin" => "LINK",
+                //                "withdrawIntegerMultiple" => "0.00000001",
+                //                "isDefault" => true,
+                //                "depositEnable" => true,
+                //                "withdrawEnable" => true,
+                //                "depositDesc" => "",
+                //                "withdrawDesc" => "",
+                //                "name" => "Ethereum (ERC20)",
+                //                "resetAddressStatus" => false,
+                //                "addressRegex" => "^(0x)[0-9A-Fa-f]{40}$",
+                //                "addressRule" => "",
+                //                "memoRegex" => "",
+                //                "withdrawFee" => "0.55",
+                //                "withdrawMin" => "1.1",
+                //                "withdrawMax" => "10000000000",
+                //                "minConfirm" => "12",
+                //                "unLockConfirm" => "0",
+                //                "sameAddress" => false,
+                //                "estimatedArrivalTime" => "5",
+                //                "busy" => false,
+                //                "country" => "AE,BINANCE_BAHRAIN_BSC"
+                //            }
+                //        ]
+                //    }
                 //
                 $entry = $response[$i];
                 $id = $this->safe_string($entry, 'coin');
                 $name = $this->safe_string($entry, 'name');
                 $code = $this->safe_currency_code($id);
-                $precision = null;
+                $minPrecision = null;
                 $isWithdrawEnabled = true;
                 $isDepositEnabled = true;
                 $networkList = $this->safe_value($entry, 'networkList', array());
@@ -1416,14 +1457,24 @@ class binance extends Exchange {
                     if ($isDefault || ($fee === null)) {
                         $fee = $withdrawFee;
                     }
+                    $precisionTick = $this->safe_string($networkItem, 'withdrawIntegerMultiple');
+                    // avoid zero values, which are mostly from fiat or leveraged tokens : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
+                    // so, when there is zero instead of $i->e. 0.001, then we skip those cases, because we don't know the precision - it might be because of $network is suspended or other reasons
+                    if (!Precise::string_eq($precisionTick, '0')) {
+                        $minPrecision = ($minPrecision === null) ? $precisionTick : Precise::string_min($minPrecision, $precisionTick);
+                    }
                 }
                 $trading = $this->safe_value($entry, 'trading');
                 $active = ($isWithdrawEnabled && $isDepositEnabled && $trading);
+                $maxDecimalPlaces = null;
+                if ($minPrecision !== null) {
+                    $maxDecimalPlaces = $this->parse_number($this->number_to_string($this->precision_from_string($minPrecision)));
+                }
                 $result[$code] = array(
                     'id' => $id,
                     'name' => $name,
                     'code' => $code,
-                    'precision' => $precision,
+                    'precision' => $maxDecimalPlaces,
                     'info' => $entry,
                     'active' => $active,
                     'deposit' => $isDepositEnabled,
@@ -1757,7 +1808,9 @@ class binance extends Exchange {
         $account = $this->account();
         $account['used'] = $this->safe_string($entry, 'locked');
         $account['free'] = $this->safe_string($entry, 'free');
-        $account['total'] = $this->safe_string($entry, 'totalAsset');
+        $interest = $this->safe_string($entry, 'interest');
+        $debt = $this->safe_string($entry, 'borrowed');
+        $account['debt'] = Precise::string_add($debt, $interest);
         return $account;
     }
 
@@ -1767,7 +1820,8 @@ class binance extends Exchange {
         );
         $timestamp = null;
         $isolated = $marginMode === 'isolated';
-        if ((($type === 'spot') || ($type === 'margin') || ($marginMode === 'cross')) && !$isolated) {
+        $cross = ($type === 'margin') || ($marginMode === 'cross');
+        if (!$isolated && (($type === 'spot') || $cross)) {
             $timestamp = $this->safe_integer($response, 'updateTime');
             $balances = $this->safe_value_2($response, 'balances', 'userAssets', array());
             for ($i = 0; $i < count($balances); $i++) {
@@ -1777,6 +1831,11 @@ class binance extends Exchange {
                 $account = $this->account();
                 $account['free'] = $this->safe_string($balance, 'free');
                 $account['used'] = $this->safe_string($balance, 'locked');
+                if ($cross) {
+                    $debt = $this->safe_string($balance, 'borrowed');
+                    $interest = $this->safe_string($balance, 'interest');
+                    $account['debt'] = Precise::string_add($debt, $interest);
+                }
                 $result[$code] = $account;
             }
         } elseif ($isolated) {
@@ -1864,7 +1923,7 @@ class binance extends Exchange {
                 $options = $this->safe_value($this->options, $type, array());
                 $fetchBalanceOptions = $this->safe_value($options, 'fetchBalance', array());
                 $method = $this->safe_string($fetchBalanceOptions, 'method', 'dapiPrivateGetAccount');
-            } elseif ($type === 'margin' || $marginMode === 'cross') {
+            } elseif (($type === 'margin') || ($marginMode === 'cross')) {
                 $method = 'sapiGetMarginAccount';
             } elseif ($type === 'savings') {
                 $method = 'sapiGetLendingUnionAccount';
@@ -2595,7 +2654,6 @@ class binance extends Exchange {
         $takerOrMaker = null;
         if ($buyerMaker !== null) {
             $side = $buyerMaker ? 'sell' : 'buy'; // this is reversed intentionally
-            $takerOrMaker = 'taker';
         } elseif (is_array($trade) && array_key_exists('side', $trade)) {
             $side = $this->safe_string_lower($trade, 'side');
         } else {
@@ -2935,13 +2993,11 @@ class binance extends Exchange {
             $marketType = $this->safe_string($params, 'type', $defaultType);
             $clientOrderId = $this->safe_string_2($params, 'newClientOrderId', 'clientOrderId');
             $postOnly = $this->safe_value($params, 'postOnly', false);
-            $reduceOnly = $this->safe_value($params, 'reduceOnly');
             list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
-            if ($reduceOnly !== null) {
-                if (($marketType !== 'future') && ($marketType !== 'delivery')) {
-                    throw new InvalidOrder($this->id . ' createOrder() does not support $reduceOnly for ' . $marketType . ' orders, $reduceOnly orders are supported for future and delivery markets only');
-                }
-            }
+            $request = array(
+                'symbol' => $market['id'],
+                'side' => strtoupper($side),
+            );
             $method = 'privatePostOrder';
             if ($marketType === 'future') {
                 $method = 'fapiPrivatePostOrder';
@@ -2949,6 +3005,11 @@ class binance extends Exchange {
                 $method = 'dapiPrivatePostOrder';
             } elseif ($marketType === 'margin' || $marginMode !== null) {
                 $method = 'sapiPostMarginOrder';
+                $reduceOnly = $this->safe_value($params, 'reduceOnly');
+                if ($reduceOnly) {
+                    $request['sideEffectType'] = 'AUTO_REPAY';
+                    $params = $this->omit($params, 'reduceOnly');
+                }
             }
             if ($market['spot'] || $marketType === 'margin') {
                 // support for testing orders
@@ -2963,6 +3024,7 @@ class binance extends Exchange {
             }
             $initialUppercaseType = strtoupper($type);
             $uppercaseType = $initialUppercaseType;
+            $request['type'] = $uppercaseType;
             $stopPrice = $this->safe_number($query, 'stopPrice');
             if ($stopPrice !== null) {
                 if ($uppercaseType === 'MARKET') {
@@ -2979,11 +3041,6 @@ class binance extends Exchange {
                     throw new InvalidOrder($this->id . ' ' . $type . ' is not a valid order $type for the ' . $symbol . ' market');
                 }
             }
-            $request = array(
-                'symbol' => $market['id'],
-                'type' => $uppercaseType,
-                'side' => strtoupper($side),
-            );
             if ($marginMode === 'isolated') {
                 $request['isIsolated'] = true;
             }
@@ -4191,8 +4248,9 @@ class binance extends Exchange {
                         $toId = $this->market_id($symbol);
                     }
                 }
-                $fromIsolated = $this->in_array($fromId, $this->ids);
-                $toIsolated = $this->in_array($toId, $this->ids);
+                $accountsById = $this->safe_value($this->options, 'accountsById', array());
+                $fromIsolated = !(is_array($accountsById) && array_key_exists($fromId, $accountsById));
+                $toIsolated = !(is_array($accountsById) && array_key_exists($toId, $accountsById));
                 if ($fromIsolated || $toIsolated) { // Isolated margin $transfer
                     $fromFuture = $fromId === 'UMFUTURE' || $fromId === 'CMFUTURE';
                     $toFuture = $toId === 'UMFUTURE' || $toId === 'CMFUTURE';
@@ -4203,7 +4261,7 @@ class binance extends Exchange {
                     $prohibitedWithIsolated = $fromFuture || $toFuture || $mining || $funding;
                     if (($fromIsolated || $toIsolated) && $prohibitedWithIsolated) {
                         throw new BadRequest($this->id . ' $transfer () does not allow transfers between ' . $fromAccount . ' and ' . $toAccount);
-                    } elseif ($fromIsolated && $toSpot) {
+                    } elseif ($toSpot && $fromIsolated) {
                         $method = 'sapiPostMarginIsolatedTransfer';
                         $request['transFrom'] = 'ISOLATED_MARGIN';
                         $request['transTo'] = 'SPOT';
@@ -4214,11 +4272,11 @@ class binance extends Exchange {
                         $request['transTo'] = 'ISOLATED_MARGIN';
                         $request['symbol'] = $toId;
                     } else {
-                        if ($this->in_array($fromId, $this->ids)) {
+                        if ($fromIsolated) {
                             $request['fromSymbol'] = $fromId;
                             $fromId = 'ISOLATEDMARGIN';
                         }
-                        if ($this->in_array($toId, $this->ids)) {
+                        if ($toIsolated) {
                             $request['toSymbol'] = $toId;
                             $toId = 'ISOLATEDMARGIN';
                         }
@@ -5866,7 +5924,7 @@ class binance extends Exchange {
             } else {
                 throw new AuthenticationError($this->id . ' $userDataStream endpoint requires `apiKey` credential');
             }
-        } elseif (($api === 'private') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV3') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2')) {
+        } elseif (($api === 'private') || ($api === 'eapiPrivate') || ($api === 'sapi' && $path !== 'system/status') || ($api === 'sapiV3') || ($api === 'wapi' && $path !== 'systemStatus') || ($api === 'dapiPrivate') || ($api === 'dapiPrivateV2') || ($api === 'fapiPrivate') || ($api === 'fapiPrivateV2')) {
             $this->check_required_credentials();
             $query = null;
             $defaultRecvWindow = $this->safe_integer($this->options, 'recvWindow');
@@ -6371,39 +6429,27 @@ class binance extends Exchange {
              * @param {array} $params extra parameters specific to the binance api endpoint
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
              */
+            list($marginMode, $query) = $this->handle_margin_mode_and_params('repayMargin', $params); // cross or isolated
+            $this->check_required_margin_argument('repayMargin', $symbol, $marginMode);
             Async\await($this->load_markets());
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $symbol = $market['symbol'];
-            }
             $currency = $this->currency($code);
             $request = array(
                 'asset' => $currency['id'],
                 'amount' => $this->currency_to_precision($code, $amount),
             );
-            $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
-            $marginMode = $this->safe_string($params, 'marginMode', $defaultMarginMode); // cross or isolated
-            if ($marginMode === 'isolated') {
-                if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' repayMargin() requires a $symbol argument for isolated margin');
-                }
-                $request['isIsolated'] = 'TRUE';
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
+                $request['isIsolated'] = 'TRUE';
             }
-            $params = $this->omit($params, 'marginMode');
-            $response = Async\await($this->sapiPostMarginRepay (array_merge($request, $params)));
+            $response = Async\await($this->sapiPostMarginRepay (array_merge($request, $query)));
             //
             //     {
             //         "tranId" => 108988250265,
             //         "clientTag":""
             //     }
             //
-            $transaction = $this->parse_margin_loan($response, $currency);
-            return array_merge($transaction, array(
-                'amount' => $amount,
-                'symbol' => $symbol,
-            ));
+            return $this->parse_margin_loan($response, $currency);
         }) ();
     }
 
@@ -6418,39 +6464,27 @@ class binance extends Exchange {
              * @param {array} $params extra parameters specific to the binance api endpoint
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure margin loan structure}
              */
+            list($marginMode, $query) = $this->handle_margin_mode_and_params('borrowMargin', $params); // cross or isolated
+            $this->check_required_margin_argument('borrowMargin', $symbol, $marginMode);
             Async\await($this->load_markets());
-            $market = null;
-            if ($symbol !== null) {
-                $market = $this->market($symbol);
-                $symbol = $market['symbol'];
-            }
             $currency = $this->currency($code);
             $request = array(
                 'asset' => $currency['id'],
                 'amount' => $this->currency_to_precision($code, $amount),
             );
-            $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', 'marginMode', 'cross');
-            $marginMode = $this->safe_string($params, 'marginMode', $defaultMarginMode); // cross or isolated
-            if ($marginMode === 'isolated') {
-                if ($symbol === null) {
-                    throw new ArgumentsRequired($this->id . ' borrowMargin() requires a $symbol argument for isolated margin');
-                }
-                $request['isIsolated'] = 'TRUE';
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
                 $request['symbol'] = $market['id'];
+                $request['isIsolated'] = 'TRUE';
             }
-            $params = $this->omit($params, 'marginMode');
-            $response = Async\await($this->sapiPostMarginLoan (array_merge($request, $params)));
+            $response = Async\await($this->sapiPostMarginLoan (array_merge($request, $query)));
             //
             //     {
             //         "tranId" => 108988250265,
             //         "clientTag":""
             //     }
             //
-            $transaction = $this->parse_margin_loan($response, $currency);
-            return array_merge($transaction, array(
-                'amount' => $amount,
-                'symbol' => $symbol,
-            ));
+            return $this->parse_margin_loan($response, $currency);
         }) ();
     }
 
@@ -6475,7 +6509,7 @@ class binance extends Exchange {
     public function fetch_open_interest_history($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
-             * Retrieves the open intestest history of a currency
+             * Retrieves the open interest history of a currency
              * @param {string} $symbol Unified CCXT $market $symbol
              * @param {string} $timeframe "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
              * @param {int|null} $since the time(ms) of the earliest record to retrieve as a unix timestamp
@@ -6539,10 +6573,14 @@ class binance extends Exchange {
         $timestamp = $this->safe_integer($interest, 'timestamp');
         $id = $this->safe_string($interest, 'symbol');
         $market = $this->safe_market($id, $market);
+        $amount = $this->safe_number($interest, 'sumOpenInterest');
+        $value = $this->safe_number($interest, 'sumOpenInterestValue');
         return array(
             'symbol' => $this->safe_symbol($id),
-            'baseVolume' => $this->safe_number($interest, 'sumOpenInterest'),
-            'quoteVolume' => $this->safe_number($interest, 'sumOpenInterestValue'),
+            'baseVolume' => $amount,  // deprecated
+            'quoteVolume' => $value,  // deprecated
+            'openInterestAmount' => $amount,
+            'openInterestValue' => $value,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'info' => $interest,

@@ -1,11 +1,13 @@
 const ccxt = require ('../../ccxt');
-const keys = require ('../../keys.local.json');
 
 console.log ('CCXT Version:', ccxt.version);
 
 async function main () {
 
-    const exchange = new ccxt.gateio (keys.gateio);
+    const exchange = new ccxt.gateio ({
+        'apiKey': 'YOUR_API_KEY',
+        'secret': 'YOUR_API_SECRET',
+    });
     await exchange.loadMarkets ();
 
     const ada = exchange.market ('ADA/USDT');

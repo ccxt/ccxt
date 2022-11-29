@@ -67,6 +67,8 @@ class bitmart(Exchange):
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': True,
+                'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': None,
                 'fetchMarginMode': False,
                 'fetchMarkets': True,
@@ -128,6 +130,7 @@ class bitmart(Exchange):
                         'spot/v1/symbols': 7.5,
                         'spot/v1/symbols/details': 5,
                         'spot/v1/ticker': 5,
+                        'spot/v2/ticker': 5,
                         'spot/v1/steps': 30,
                         'spot/v1/symbols/kline': 5,
                         'spot/v1/symbols/book': 5,
@@ -324,6 +327,7 @@ class bitmart(Exchange):
                     # below Error codes used interchangeably for both failed postOnly and IOC orders depending on market price and order side
                     '50035': InvalidOrder,  # {"message":"The price is low and there is no matching depth","code":50035,"trace":"677f01c7-8b88-4346-b097-b4226c75c90e","data":{}}
                     '50034': InvalidOrder,  # {"message":"The price is high and there is no matching depth","code":50034,"trace":"ebfae59a-ba69-4735-86b2-0ed7b9ca14ea","data":{}}
+                    '51011': InvalidOrder,  # {"message":"param not match : size * price >=5","code":51011,"trace":"525e1d27bfd34d60b2d90ba13a7c0aa9.74.16696421352220797","data":{}}
                     '53000': AccountSuspended,  # 403, Your account is frozen due to security policies. Please contact customer service
                     '53001': AccountSuspended,  # {"message":"Your kyc country is restricted. Please contact customer service.","code":53001,"trace":"8b445940-c123-4de9-86d7-73c5be2e7a24","data":{}}
                     '57001': BadRequest,  # 405, Method Not Allowed
@@ -720,7 +724,7 @@ class bitmart(Exchange):
 
     def fetch_transaction_fee(self, code, params={}):
         """
-        fetch the fee for a transaction
+        *DEPRECATED* please use fetchDepositWithdrawFee instead
         :param str code: unified currency code
         :param dict params: extra parameters specific to the bitmart api endpoint
         :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
@@ -753,26 +757,77 @@ class bitmart(Exchange):
             'deposit': {},
         }
 
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        #    {
+        #        today_available_withdraw_BTC: '100.0000',
+        #        min_withdraw: '0.005',
+        #        withdraw_precision: '8',
+        #        withdraw_fee: '0.000500000000000000000000000000'
+        #    }
+        #
+        return {
+            'info': fee,
+            'withdraw': {
+                'fee': self.safe_number(fee, 'withdraw_fee'),
+                'percentage': None,
+            },
+            'deposit': {
+                'fee': None,
+                'percentage': None,
+            },
+            'networks': {},
+        }
+
+    def fetch_deposit_withdraw_fee(self, code, params={}):
+        """
+        fetch the fee for deposits and withdrawals
+        :param str code: unified currency code
+        :param dict params: extra parameters specific to the bitmart api endpoint
+        :returns dict: a `fee structure <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        self.load_markets()
+        currency = self.currency(code)
+        request = {
+            'currency': currency['id'],
+        }
+        response = self.privateGetAccountV1WithdrawCharge(self.extend(request, params))
+        #
+        #     {
+        #         message: 'OK',
+        #         code: '1000',
+        #         trace: '3ecc0adf-91bd-4de7-aca1-886c1122f54f',
+        #         data: {
+        #             today_available_withdraw_BTC: '100.0000',
+        #             min_withdraw: '0.005',
+        #             withdraw_precision: '8',
+        #             withdraw_fee: '0.000500000000000000000000000000'
+        #         }
+        #     }
+        #
+        data = response['data']
+        return self.parse_deposit_withdraw_fee(data)
+
     def parse_ticker(self, ticker, market=None):
         #
         # spot
         #
         #      {
-        #          "symbol":"DOGE_USDT",
-        #          "last_price":"0.128300",
-        #          "quote_volume_24h":"2296619.060420",
-        #          "base_volume_24h":"17508866.000000000000000000000000000000",
-        #          "high_24h":"0.133900",
-        #          "low_24h":"0.127799",
-        #          "open_24h":"0.133100",
-        #          "close_24h":"0.128300",
-        #          "best_ask":"0.128530",
-        #          "best_ask_size":"15170",
-        #          "best_bid":"0.128200",
-        #          "best_bid_size":"21232",
-        #          "fluctuation":"-0.0361",
-        #          "s_t": 1610936002,  # ws only
-        #          "url":"https://www.bitmart.com/trade?symbol=DOGE_USDT"
+        #          "symbol": "SOLAR_USDT",
+        #          "last_price": "0.020342",
+        #          "quote_volume_24h": "56817.811802",
+        #          "base_volume_24h": "2172060",
+        #          "high_24h": "0.256000",
+        #          "low_24h": "0.016980",
+        #          "open_24h": "0.022309",
+        #          "close_24h": "0.020342",
+        #          "best_ask": "0.020389",
+        #          "best_ask_size": "339.000000000000000000000000000000",
+        #          "best_bid": "0.020342",
+        #          "best_bid_size": "3369.000000000000000000000000000000",
+        #          "fluctuation": "-0.0882",
+        #          "url": "https://www.bitmart.com/trade?symbol=SOLAR_USDT",
+        #          "timestamp": 1667403439367
         #      }
         #
         # swap
@@ -790,7 +845,7 @@ class bitmart(Exchange):
         #          "legal_coin_price":"0.1302699"
         #      }
         #
-        timestamp = self.safe_timestamp_2(ticker, 'timestamp', 's_t', self.milliseconds())
+        timestamp = self.safe_integer(ticker, 'timestamp', self.milliseconds())
         marketId = self.safe_string_2(ticker, 'symbol', 'contract_symbol')
         market = self.safe_market(marketId, market)
         symbol = market['symbol']
@@ -917,18 +972,24 @@ class bitmart(Exchange):
     def fetch_tickers(self, symbols=None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        see https://developer-pro.bitmart.com/en/spot/#get-ticker-of-all-pairs-v2
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bitmart api endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
-        marketType, query = self.handle_market_type_and_params('fetchTickers', None, params)
-        method = self.get_supported_mapping(marketType, {
-            'spot': 'publicGetSpotV1Ticker',
+        type = None
+        market = None
+        if symbols is not None:
+            symbol = self.safe_value(symbols, 0)
+            market = self.market(symbol)
+        type, params = self.handle_market_type_and_params('fetchTickers', market, params)
+        method = self.get_supported_mapping(type, {
+            'spot': 'publicGetSpotV2Ticker',
             'swap': 'publicGetContractV1Tickers',
         })
-        response = getattr(self, method)(query)
+        response = getattr(self, method)(params)
         data = self.safe_value(response, 'data', {})
         tickers = self.safe_value(data, 'tickers', [])
         result = {}
@@ -2208,8 +2269,8 @@ class bitmart(Exchange):
             'type': type,
             'updated': None,
             'txid': txid,
-            'timestamp': timestamp != timestamp if 0 else None,
-            'datetime': timestamp != self.iso8601(timestamp) if 0 else None,
+            'timestamp': timestamp if (timestamp != 0) else None,
+            'datetime': self.iso8601(timestamp) if (timestamp != 0) else None,
             'fee': fee,
         }
 
@@ -2637,7 +2698,7 @@ class bitmart(Exchange):
         #         "hourly_interest": "0.00002291",
         #         "interest_amount": "0.00045833",
         #         "create_time": 1657664329000
-        #     },
+        #     }
         #
         marketId = self.safe_string(info, 'symbol')
         market = self.safe_market(marketId, market)
@@ -2654,7 +2715,7 @@ class bitmart(Exchange):
             'info': info,
         }
 
-    def handle_margin_mode_and_params(self, methodName, params={}):
+    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
         """
          * @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
@@ -2664,7 +2725,7 @@ class bitmart(Exchange):
         defaultType = self.safe_string(self.options, 'defaultType')
         isMargin = self.safe_value(params, 'margin', False)
         marginMode = None
-        marginMode, params = super(bitmart, self).handle_margin_mode_and_params(methodName, params)
+        marginMode, params = super(bitmart, self).handle_margin_mode_and_params(methodName, params, defaultValue)
         if marginMode is not None:
             if marginMode != 'isolated':
                 raise NotSupported(self.id + ' only isolated margin is supported')

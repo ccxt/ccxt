@@ -1014,6 +1014,7 @@ class huobi(Exchange):
                 # https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
                 'PNT': 'Penta',
                 'SBTC': 'Super Bitcoin',
+                'SOUL': 'Soulsaver',
                 'BIFI': 'Bitcoin File',  # conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
             },
         })
@@ -1827,20 +1828,25 @@ class huobi(Exchange):
     async def fetch_tickers(self, symbols=None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        see https://huobiapi.github.io/docs/spot/v1/en/#get-latest-tickers-for-all-pairs
+        see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-a-batch-of-market-data-overview
+        see https://huobiapi.github.io/docs/dm/v1/en/#get-a-batch-of-market-data-overview
+        see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-a-batch-of-market-data-overview-v2
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the huobi api endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        options = self.safe_value(self.options, 'fetchTickers', {})
-        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
-        type = self.safe_string(options, 'type', defaultType)
-        type = self.safe_string(params, 'type', type)
+        first = self.safe_string(symbols, 0)
+        market = None
+        if first is not None:
+            market = self.market(first)
+        type = None
+        subType = None
         method = 'spotPublicGetMarketTickers'
-        defaultSubType = self.safe_string(self.options, 'defaultSubType', 'inverse')
-        subType = self.safe_string(options, 'subType', defaultSubType)
-        subType = self.safe_string(params, 'subType', subType)
+        type, params = self.handle_market_type_and_params('fetchTickers', market, params)
+        subType, params = self.handle_sub_type_and_params('fetchTickers', market, params)
         request = {}
         future = (type == 'future')
         swap = (type == 'swap')
@@ -2144,7 +2150,7 @@ class huobi(Exchange):
         if filledPoints is not None:
             if (feeCost is None) or Precise.string_equals(feeCost, '0'):
                 feeDeductCurrency = self.safe_string(trade, 'fee-deduct-currency')
-                if feeDeductCurrency != '':
+                if feeDeductCurrency is not None:
                     feeCost = filledPoints
                     feeCurrency = self.safe_currency_code(feeDeductCurrency)
         if feeCost is not None:
@@ -3947,7 +3953,7 @@ class huobi(Exchange):
             raise NotSupported(self.id + ' createOrder() supports tp_trigger_price + tp_order_price for take profit orders and/or sl_trigger_price + sl_order price for stop loss orders, stop orders are supported only with open long orders and open short orders')
         market = self.market(symbol)
         request = {
-            # 'symbol': 'BTC',  # optional, case-insenstive, both uppercase and lowercase are supported, "BTC", "ETH", ...
+            # 'symbol': 'BTC',  # optional, case-insensitive, both uppercase and lowercase are supported, "BTC", "ETH", ...
             # 'contract_type': 'this_week',  # optional, self_week, next_week, quarter, next_quarter
             'contract_code': market['id'],  # optional BTC180914
             # 'client_order_id': clientOrderId,  # optional, must be less than 9223372036854775807
@@ -6156,7 +6162,7 @@ class huobi(Exchange):
         :param int|None since: Not used by huobi api, but response parsed by CCXT
         :param int|None limit: Default：48，Data Range [1,200]
         :param dict params: Exchange specific parameters
-        :param int params['amount_type']: *required* Open interest unit. 1-cont，2-cryptocurrenty
+        :param int params['amount_type']: *required* Open interest unit. 1-cont，2-cryptocurrency
         :param int|None params['pair']: eg BTC-USDT *Only for USDT-M*
         :returns dict: an array of `open interest structures <https://docs.ccxt.com/en/latest/manual.html#open-interest-structure>`
         """
@@ -6172,7 +6178,7 @@ class huobi(Exchange):
         market = self.market(symbol)
         amountType = self.safe_number_2(params, 'amount_type', 'amountType')
         if amountType is None:
-            raise ArgumentsRequired(self.id + ' fetchOpenInterestHistory requires parameter params.amountType to be either 1(cont), or 2(cryptocurrenty)')
+            raise ArgumentsRequired(self.id + ' fetchOpenInterestHistory requires parameter params.amountType to be either 1(cont), or 2(cryptocurrency)')
         request = {
             'period': timeframes[timeframe],
             'amount_type': amountType,
@@ -6255,7 +6261,7 @@ class huobi(Exchange):
         #
         data = self.safe_value(response, 'data')
         tick = self.safe_value(data, 'tick')
-        return self.parse_open_interests(tick, None, since, limit)
+        return self.parse_open_interests(tick, market, since, limit)
 
     async def fetch_open_interest(self, symbol, params={}):
         """
@@ -6411,7 +6417,7 @@ class huobi(Exchange):
         #
         timestamp = self.safe_integer(interest, 'ts')
         amount = self.safe_number(interest, 'volume')
-        value = self.safe_value(interest, 'value')
+        value = self.safe_number(interest, 'value')
         return {
             'symbol': self.safe_string(market, 'symbol'),
             'baseVolume': amount,  # deprecated

@@ -112,6 +112,14 @@ module.exports = class huobi extends huobiRest {
     }
 
     async watchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name huobi#watchTicker
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the huobi api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -154,6 +162,16 @@ module.exports = class huobi extends huobiRest {
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#watchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {object} params extra parameters specific to the huobi api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -209,6 +227,17 @@ module.exports = class huobi extends huobiRest {
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the huobi api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -260,14 +289,30 @@ module.exports = class huobi extends huobiRest {
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
-        if ((limit !== undefined) && (limit !== 150)) {
-            throw new ExchangeError (this.id + ' watchOrderBook accepts limit = 150 only');
-        }
+        /**
+         * @method
+         * @name huobi#watchOrderBook
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#subscribe-market-depth-data
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#subscribe-incremental-market-depth-data
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-subscribe-incremental-market-depth-data
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {object} params extra parameters specific to the huobi api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        // only supports a limit of 150 at this time
+        const allowedSpotLimits = [ 150 ];
+        const allowedSwapLimits = [ 20, 150 ];
         limit = (limit === undefined) ? 150 : limit;
+        if (market['spot'] && !this.inArray (limit, allowedSpotLimits)) {
+            throw new ExchangeError (this.id + ' watchOrderBook spot market accepts limits of 150 only');
+        }
+        if (!market['spot'] && !this.inArray (limit, allowedSwapLimits)) {
+            throw new ExchangeError (this.id + ' watchOrderBook swap market accepts limits of 20 and 150 only');
+        }
         let messageHash = undefined;
         if (market['spot']) {
             messageHash = 'market.' + market['id'] + '.mbp.' + limit.toString ();
@@ -275,11 +320,13 @@ module.exports = class huobi extends huobiRest {
             messageHash = 'market.' + market['id'] + '.depth.size_' + limit.toString () + '.high_freq';
         }
         const url = this.getUrlByMarketType (market['type'], market['linear']);
+        let method = this.handleOrderBookSubscription;
         if (!market['spot']) {
             params['data_type'] = 'incremental';
+            method = undefined;
         }
-        const orderbook = await this.subscribePublic (url, symbol, messageHash, this.handleOrderBookSubscription, params);
-        return orderbook.limit (limit);
+        const orderbook = await this.subscribePublic (url, symbol, messageHash, method, params);
+        return orderbook.limit ();
     }
 
     handleOrderBookSnapshot (client, message, subscription) {
@@ -371,53 +418,7 @@ module.exports = class huobi extends huobiRest {
             'method': this.handleOrderBookSnapshot,
         };
         const orderbook = await this.watch (url, requestId, request, requestId, snapshotSubscription);
-        return orderbook.limit (limit);
-    }
-
-    async fetchOrderBookSnapshot (client, message, subscription) {
-        const symbol = this.safeString (subscription, 'symbol');
-        const limit = this.safeInteger (subscription, 'limit');
-        const messageHash = this.safeString (subscription, 'messageHash');
-        try {
-            const snapshot = await this.fetchOrderBook (symbol, limit);
-            const orderbook = this.orderbooks[symbol];
-            const messages = orderbook.cache;
-            const firstMessage = this.safeValue (messages, 0, {});
-            const tick = this.safeValue (firstMessage, 'tick');
-            const sequence = this.safeInteger (tick, 'seqNum');
-            const nonce = this.safeInteger (snapshot, 'nonce');
-            // if the received snapshot is earlier than the first cached delta
-            // then we cannot align it with the cached deltas and we need to
-            // retry synchronizing in maxAttempts
-            if ((sequence !== undefined) && (nonce < sequence)) {
-                const maxAttempts = this.safeInteger (this.options, 'maxOrderBookSyncAttempts', 3);
-                let numAttempts = this.safeInteger (subscription, 'numAttempts', 0);
-                // retry to syncrhonize if we haven't reached maxAttempts yet
-                if (numAttempts < maxAttempts) {
-                    // safety guard
-                    if (messageHash in client.subscriptions) {
-                        numAttempts = this.sum (numAttempts, 1);
-                        subscription['numAttempts'] = numAttempts;
-                        client.subscriptions[messageHash] = subscription;
-                        this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
-                    }
-                } else {
-                    // throw upon failing to synchronize in maxAttempts
-                    throw new InvalidNonce (this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + maxAttempts.toString () + ' attempts');
-                }
-            } else {
-                orderbook.reset (snapshot);
-                // unroll the accumulated deltas
-                for (let i = 0; i < messages.length; i++) {
-                    const message = messages[i];
-                    this.handleOrderBookMessage (client, message, orderbook);
-                }
-                this.orderbooks[symbol] = orderbook;
-                client.resolve (orderbook, messageHash);
-            }
-        } catch (e) {
-            client.reject (e, messageHash);
-        }
+        return orderbook.limit ();
     }
 
     handleDelta (bookside, delta) {
@@ -454,7 +455,7 @@ module.exports = class huobi extends huobiRest {
         //         }
         //     }
         //
-        // non-spot market
+        // non-spot market update
         //
         //     {
         //         "ch":"market.BTC220218.depth.size_150.high_freq",
@@ -474,17 +475,51 @@ module.exports = class huobi extends huobiRest {
         //         },
         //         "ts":1645023376098
         //     }
+        // non-spot market snapshot
         //
+        //     {
+        //         "ch":"market.BTC220218.depth.size_150.high_freq",
+        //         "tick":{
+        //             "asks":[
+        //                 [43445.74,1],
+        //                 [43444.48,0 ],
+        //                 [40593.92,9]
+        //             ],
+        //             "bids":[
+        //                 [43445.74,1],
+        //                 [43444.48,0 ],
+        //                 [40593.92,9]
+        //             ],
+        //             "ch":"market.BTC220218.depth.size_150.high_freq",
+        //             "event":"snapshot",
+        //             "id":152727500274,
+        //             "mrid":152727500274,
+        //             "ts":1645023376098,
+        //             "version":37536690
+        //         },
+        //         "ts":1645023376098
+        //     }
+        //
+        const ch = this.safeValue (message, 'ch');
+        const parts = ch.split ('.');
+        const marketId = this.safeString (parts, 1);
+        const symbol = this.safeSymbol (marketId);
         const tick = this.safeValue (message, 'tick', {});
-        const seqNum = this.safeInteger2 (tick, 'seqNum', 'id');
+        const seqNum = this.safeInteger2 (tick, 'seqNum', 'version');
         const prevSeqNum = this.safeInteger (tick, 'prevSeqNum');
+        const event = this.safeString (tick, 'event');
+        const timestamp = this.safeInteger (message, 'ts');
+        if (event === 'snapshot') {
+            const snapshot = this.parseOrderBook (tick, symbol, timestamp);
+            orderbook.reset (snapshot);
+            orderbook['nonce'] = seqNum;
+        }
         if ((prevSeqNum === undefined || prevSeqNum <= orderbook['nonce']) && (seqNum > orderbook['nonce'])) {
             const asks = this.safeValue (tick, 'asks', []);
             const bids = this.safeValue (tick, 'bids', []);
             this.handleDeltas (orderbook['asks'], asks);
             this.handleDeltas (orderbook['bids'], bids);
             orderbook['nonce'] = seqNum;
-            const timestamp = this.safeInteger (message, 'ts');
             orderbook['timestamp'] = timestamp;
             orderbook['datetime'] = this.iso8601 (timestamp);
         }
@@ -537,6 +572,8 @@ module.exports = class huobi extends huobiRest {
         //         "ts":1645023376098
         //     }
         //
+        const tick = this.safeValue (message, 'tick', {});
+        const event = this.safeString (tick, 'event');
         const messageHash = this.safeString (message, 'ch');
         const ch = this.safeValue (message, 'ch');
         const parts = ch.split ('.');
@@ -546,13 +583,14 @@ module.exports = class huobi extends huobiRest {
         if (orderbook === undefined) {
             const size = this.safeString (parts, 3);
             const sizeParts = size.split ('_');
-            const limit = this.safeNumber (sizeParts, 1);
+            const limit = this.safeInteger (sizeParts, 1);
             orderbook = this.orderBook ({}, limit);
         }
         if (orderbook['nonce'] === undefined) {
             orderbook.cache.push (message);
-        } else {
-            this.handleOrderBookMessage (client, message, orderbook);
+        }
+        if (event !== undefined || orderbook['nonce'] !== undefined) {
+            this.orderbooks[symbol] = this.handleOrderBookMessage (client, message, orderbook);
             client.resolve (orderbook, messageHash);
         }
     }
@@ -566,12 +604,20 @@ module.exports = class huobi extends huobiRest {
         this.orderbooks[symbol] = this.orderBook ({}, limit);
         if (this.markets[symbol]['spot'] === true) {
             this.spawn (this.watchOrderBookSnapshot, client, message, subscription);
-        } else {
-            this.spawn (this.fetchOrderBookSnapshot, client, message, subscription);
         }
     }
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#watchMyTrades
+         * @description watches information on multiple trades made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the huobi api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         this.checkRequiredCredentials ();
         let type = undefined;
         let marketId = '*'; // wildcard
@@ -660,6 +706,16 @@ module.exports = class huobi extends huobiRest {
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name huobi#watchOrders
+         * @description watches information on multiple orders made by the user
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the huobi api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         let type = undefined;
         let subType = undefined;
@@ -692,7 +748,7 @@ module.exports = class huobi extends huobiRest {
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
-        return this.filterBySinceLimit (orders, since, limit);
+        return this.filterBySinceLimit (orders, since, limit, 'timestamp', true);
     }
 
     handleOrder (client, message) {
@@ -1096,6 +1152,13 @@ module.exports = class huobi extends huobiRest {
     }
 
     async watchBalance (params = {}) {
+        /**
+         * @method
+         * @name huobi#watchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} params extra parameters specific to the huobi api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         let type = this.safeString2 (this.options, 'watchBalance', 'defaultType', 'spot');
         type = this.safeString (params, 'type', type);
         let subType = this.safeString2 (this.options, 'watchBalance', 'subType', 'linear');
@@ -1311,7 +1374,7 @@ module.exports = class huobi extends huobiRest {
             }
             const first = this.safeValue (data, 0, {});
             let messageHash = this.safeString (message, 'topic');
-            let subscription = this.safeValue (client.subscriptions, messageHash);
+            let subscription = this.safeValue2 (client.subscriptions, messageHash, messageHash + '.*');
             if (subscription === undefined) {
                 // if subscription not found means that we subscribed to a specific currency/symbol
                 // and we use the first data entry to find it
@@ -1343,7 +1406,7 @@ module.exports = class huobi extends huobiRest {
                             // we skip it if the market was delisted
                             if (code !== undefined) {
                                 const account = this.account ();
-                                account['free'] = this.safeString (balance, 'margin_balance');
+                                account['free'] = this.safeString2 (balance, 'margin_balance', 'margin_available');
                                 account['used'] = this.safeString (balance, 'margin_frozen');
                                 const accountsByCode = {};
                                 accountsByCode[code] = account;
