@@ -2170,7 +2170,7 @@ export default class digifinex extends Exchange {
         } else {
             request['market'] = marketType;
             if (since !== undefined) {
-                request['start_time'] = parseInt (since / 1000); // default 3 days from now, max 30 days
+                request['start_time'] = this.parseToInt (since / 1000); // default 3 days from now, max 30 days
             }
         }
         const marketIdRequest = (marketType === 'swap') ? 'instrument_id' : 'symbol';
@@ -2318,7 +2318,7 @@ export default class digifinex extends Exchange {
         } else {
             request['market'] = marketType;
             if (since !== undefined) {
-                request['start_time'] = parseInt (since / 1000); // default 3 days from now, max 30 days
+                request['start_time'] = this.parseToInt (since / 1000); // default 3 days from now, max 30 days
             }
         }
         const currencyIdRequest = (marketType === 'swap') ? 'currency' : 'currency_mark';
@@ -3446,7 +3446,7 @@ export default class digifinex extends Exchange {
          * @returns {object} a dictionary of [leverage tiers structures]{@link https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure}, indexed by market symbols
          */
         await this.loadMarkets ();
-        const response = await this.publicSwapGetPublicInstruments (params);
+        const response = await (this as any).publicSwapGetPublicInstruments (params);
         //
         //     {
         //         "code": 0,
@@ -3548,7 +3548,7 @@ export default class digifinex extends Exchange {
         const request = {
             'instrument_id': market['id'],
         };
-        const response = await this.publicSwapGetPublicInstrument (this.extend (request, params));
+        const response = await (this as any).publicSwapGetPublicInstrument (this.extend (request, params));
         //
         //     {
         //         "code": 0,

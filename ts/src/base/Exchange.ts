@@ -3299,7 +3299,7 @@ export default class Exchange {
         return safeMarket['symbol'];
     }
 
-    parseFundingRate (contract, market = undefined) {
+    parseFundingRate (contract: string, market = undefined) {
         throw new NotSupported (this.id + ' parseFundingRate() is not supported yet');
     }
 

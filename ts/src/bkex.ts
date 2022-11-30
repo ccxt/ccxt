@@ -1454,7 +1454,7 @@ export default class bkex extends Exchange {
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const response = await this.publicGetCommonCurrencys (params);
+        const response = await (this as any).publicGetCommonCurrencys (params);
         //
         //    {
         //        "msg": "success",
