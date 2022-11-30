@@ -53,6 +53,8 @@ class bkex extends Exchange {
                 'fetchDepositAddresses' => null,
                 'fetchDepositAddressesByNetwork' => null,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => null,
                 'fetchFundingRate' => null,
                 'fetchFundingRateHistory' => null,
@@ -1371,7 +1373,7 @@ class bkex extends Exchange {
     public function fetch_transaction_fees($codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
-             * fetch transaction fees
+             * *DEPRECATED* please use fetchDepositWithdrawFees instead
              * @see https://bkexapi.github.io/docs/api_en.htm?shell#basicInformation-2
              * @param {[string]|null} $codes list of unified currency $codes
              * @param {array} $params extra parameters specific to the bkex api endpoint
@@ -1444,6 +1446,68 @@ class bkex extends Exchange {
         //      }
         //
         return $this->safe_number($transaction, 'withdrawFee');
+    }
+
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * fetch deposit and withdraw fees
+             * @see https://bkexapi.github.io/docs/api_en.htm?shell#basicInformation-2
+             * @param {[string]|null} $codes list of unified currency $codes
+             * @param {array} $params extra parameters specific to the bkex api endpoint
+             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->publicGetCommonCurrencys ($params));
+            //
+            //    {
+            //        "msg" => "success",
+            //        "code" => "0",
+            //        "data" => array(
+            //            array(
+            //                "currency" => "ETH",
+            //                "maxWithdrawOneDay" => 2000,
+            //                "maxWithdrawSingle" => 2000,
+            //                "minWithdrawSingle" => 0.1,
+            //                "supportDeposit" => true,
+            //                "supportTrade" => true,
+            //                "supportWithdraw" => true,
+            //                "withdrawFee" => 0.008
+            //            ),
+            //            {
+            //                "currency" => "BTC",
+            //                "maxWithdrawOneDay" => 100,
+            //                "maxWithdrawSingle" => 100,
+            //                "minWithdrawSingle" => 0.01,
+            //                "supportDeposit" => true,
+            //                "supportTrade" => true,
+            //                "supportWithdraw" => true,
+            //                "withdrawFee" => 0.008
+            //            }
+            //        )
+            //    }
+            //
+            $data = $this->safe_value($response, 'data');
+            return $this->parse_deposit_withdraw_fees($data, $codes, 'currency');
+        }) ();
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //
+        //      {
+        //          "currency" => "ETH",
+        //          "maxWithdrawOneDay" => 2000,
+        //          "maxWithdrawSingle" => 2000,
+        //          "minWithdrawSingle" => 0.1,
+        //          "supportDeposit" => true,
+        //          "supportTrade" => true,
+        //          "supportWithdraw" => true,
+        //          "withdrawFee" => 0.008
+        //      }
+        //
+        $result = $this->deposit_withdraw_fee($fee);
+        $result['withdraw']['fee'] = $this->safe_number($fee, 'withdrawFee');
+        return $result;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
