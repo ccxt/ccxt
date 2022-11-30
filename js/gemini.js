@@ -232,7 +232,11 @@ module.exports = class gemini extends Exchange {
                 },
             },
             'options': {
-                'fetchMarketsMethod': 'fetch_markets_from_api',
+                'fetchMarketsMethod': 'fetch_markets_from_web',
+                'fetchMarketsFromAPI': {
+                    'fetchDetailsForAllSymbols': false,
+                    'fetchDetailsForMarketIds': [],
+                },
                 'fetchTickerMethod': 'fetchTickerV1', // fetchTickerV1, fetchTickerV2, fetchTickerV1AndV2
                 'networkIds': {
                     'bitcoin': 'BTC',
@@ -391,15 +395,63 @@ module.exports = class gemini extends Exchange {
         //         ...
         //     ]
         //
-        const result = [];
-        let promises = [];
+        const result = {};
         for (let i = 0; i < response.length; i++) {
-            let marketId = response[i];
-            marketId = marketId.toUpperCase ();
+            const marketId = response[i];
+            const idLength = marketId.length - 0;
+            const baseId = marketId.slice (0, idLength - 3); // Not true for all markets
+            const quoteId = marketId.slice (idLength - 3, idLength);
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            result[marketId] = {
+                'id': marketId,
+                'symbol': base + '/' + quote,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': undefined,
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'price': undefined,
+                    'amount': undefined,
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'price': {
+                        'max': undefined,
+                    },
+                },
+                'info': marketId,
+            };
+        }
+        const options = this.safeValue (this.options, 'fetchMarketsFromAPI', {});
+        const fetchDetailsForAllSymbols = this.safeValue (options, 'fetchDetailsForAllSymbols', false);
+        const fetchDetailsForMarketIds = this.safeValue (options, 'fetchDetailsForMarketIds', []);
+        let promises = [];
+        let marketIds = [];
+        if (fetchDetailsForAllSymbols) {
+            marketIds = response;
+        } else {
+            marketIds = fetchDetailsForMarketIds;
+        }
+        for (let i = 0; i < marketIds.length; i++) {
+            const marketId = marketIds[i];
             const method = 'publicGetV1SymbolsDetailsSymbol';
             const request = {
                 'symbol': marketId,
             };
+            promises.push (this[method] (this.extend (request, params)));
             //
             //     {
             //         "symbol": "BTCUSD",
@@ -412,18 +464,17 @@ module.exports = class gemini extends Exchange {
             //         "wrap_enabled": false
             //     }
             //
-            promises.push (this[method] (this.extend (request, params)));
         }
         promises = await Promise.all (promises);
         for (let i = 0; i < promises.length; i++) {
             const response = promises[i];
-            const marketId = this.safeString (response, 'symbol');
+            const marketId = this.safeStringLower (response, 'symbol');
             const baseId = this.safeString (response, 'base_currency');
             const base = this.safeCurrencyCode (baseId);
             const quoteId = this.safeString (response, 'quote_currency');
             const quote = this.safeCurrencyCode (quoteId);
             const status = this.safeString (response, 'status');
-            result.push ({
+            result[marketId] = ({
                 'id': marketId,
                 'symbol': base + '/' + quote,
                 'base': base,
@@ -472,7 +523,7 @@ module.exports = class gemini extends Exchange {
                 'info': response,
             });
         }
-        return result;
+        return this.toArray (result);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
