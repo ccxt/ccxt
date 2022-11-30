@@ -758,6 +758,7 @@ module.exports = class bybit extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
+                'createUnifiedMarginAccount': false,
                 'defaultType': 'swap',  // 'swap', 'future', 'option', 'spot'
                 'defaultSubType': 'linear',  // 'linear', 'inverse'
                 'defaultSettle': 'USDT', // USDC for USDC settled markets
@@ -868,9 +869,10 @@ module.exports = class bybit extends Exchange {
     }
 
     async upgradeUnifiedAccount (params = {}) {
-        // warning this method can only be called once
-        // it is not reverseable and you will be stuck with a unified margin account
-        // you also need at least 5000 USDT in your bybit account to do this
+        const createUnifiedMarginAccount = this.safeValue (this.options, 'createUnifiedMarginAccount');
+        if (!createUnifiedMarginAccount) {
+            throw new NotSupported (this.id + ' upgradeUnifiedAccount() warning this method can only be called once, it is not reverseable and you will be stuck with a unified margin account, you also need at least 5000 USDT in your bybit account to do this.');
+        }
         return await this.privatePostUnifiedV3PrivateAccountUpgradeUnifiedAccount (params);
     }
 
