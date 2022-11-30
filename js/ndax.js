@@ -2231,14 +2231,12 @@ module.exports = class ndax extends Exchange {
             id = this.safeString (transaction, 'WithdrawId');
             type = 'withdrawal';
         }
-        let templateForm = undefined;
-        const templateFormString = this.safeValue2 (transaction, 'TemplateForm', 'DepositInfo');
+        const templateForm = this.safeValue2 (transaction, 'TemplateForm', 'DepositInfo');
         let updated = this.safeInteger (transaction, 'LastUpdateTimeStamp');
-        if (templateFormString !== undefined) {
-            templateForm = JSON.parse (templateFormString);
+        if (templateForm !== undefined) {
             updated = this.safeInteger (templateForm, 'LastUpdated', updated);
         }
-        const address = this.safeString (templateForm, 'ExternalAddress', 'ToAddress');
+        const address = this.safeString2 (templateForm, 'ExternalAddress', 'ToAddress');
         const timestamp = this.safeInteger (templateForm, 'TimeSubmitted');
         const feeCost = this.safeNumber (transaction, 'FeeAmount');
         const transactionStatus = this.safeString (transaction, 'TicketStatus');
