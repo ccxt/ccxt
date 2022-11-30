@@ -7092,10 +7092,6 @@ module.exports = class bybit extends Exchange {
                 if (method === 'POST') {
                     body = this.json (query);
                     authFull = auth_base + body;
-                    const brokerId = this.safeString (this.options, 'brokerId');
-                    if (brokerId !== undefined) {
-                        headers['Referer'] = brokerId;
-                    }
                 } else {
                     authFull = auth_base + queryEncoded;
                     if (path === 'unified/v3/private/order/list') {
@@ -7130,10 +7126,6 @@ module.exports = class bybit extends Exchange {
                         headers = {
                             'Content-Type': 'application/json',
                         };
-                        const brokerId = this.safeString (this.options, 'brokerId');
-                        if (brokerId !== undefined) {
-                            headers['Referer'] = brokerId;
-                        }
                     }
                 } else {
                     if (path === 'contract/v3/private/order/list') {
@@ -7143,6 +7135,12 @@ module.exports = class bybit extends Exchange {
                     }
                     url += '&sign=' + signature;
                 }
+            }
+        }
+        if (method === 'POST') {
+            const brokerId = this.safeString (this.options, 'brokerId');
+            if (brokerId !== undefined) {
+                headers['Referer'] = brokerId;
             }
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
