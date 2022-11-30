@@ -729,6 +729,28 @@ module.exports = class ascendex extends Exchange {
         return this.safeBalance (result);
     }
 
+    parseMarginBalance (response) {
+        const timestamp = this.milliseconds ();
+        const result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        const balances = this.safeValue (response, 'data', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const code = this.safeCurrencyCode (this.safeString (balance, 'asset'));
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'availableBalance');
+            account['total'] = this.safeString (balance, 'totalBalance');
+            const debt = this.safeString (balance, 'borrowed');
+            const interest = this.safeString (balance, 'interest');
+            account['debt'] = Precise.stringAdd (debt, interest);
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     parseSwapBalance (response) {
         const timestamp = this.milliseconds ();
         const result = {
@@ -822,6 +844,8 @@ module.exports = class ascendex extends Exchange {
         //
         if (marketType === 'swap') {
             return this.parseSwapBalance (response);
+        } else if (marketType === 'margin') {
+            return this.parseMarginBalance (response);
         } else {
             return this.parseBalance (response);
         }
