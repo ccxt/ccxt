@@ -2890,7 +2890,7 @@ module.exports = class bybit extends Exchange {
             'info': response,
         };
         const responseResult = this.safeValue (response, 'result', {});
-        const currencyList = this.safeValue2 (responseResult, 'loanAccountList', 'list');
+        const currencyList = this.safeValueN (responseResult, [ 'loanAccountList', 'list', 'coin' ]);
         if (currencyList === undefined) {
             // usdc wallet
             const code = 'USDC';
@@ -2908,9 +2908,9 @@ module.exports = class bybit extends Exchange {
                     account['debt'] = Precise.stringAdd (loan, interest);
                 }
                 account['total'] = this.safeString2 (entry, 'total', 'walletBalance');
-                account['free'] = this.safeString2 (entry, 'free', 'availableBalance');
+                account['free'] = this.safeStringN (entry, [ 'free', 'availableBalanceWithoutConvert', 'availableBalance' ]);
                 account['used'] = this.safeString (entry, 'locked');
-                const currencyId = this.safeString2 (entry, 'tokenId', 'coin');
+                const currencyId = this.safeStringN (entry,[ 'tokenId', 'coin', 'currencyCoin' ]);
                 const code = this.safeCurrencyCode (currencyId);
                 result[code] = account;
             }
@@ -6250,18 +6250,18 @@ module.exports = class bybit extends Exchange {
         };
     }
 
-    async setContractV3MarginMode (marginMode, symbol = undefined, params = {}) {
+    async setMarginMode (marginMode, symbol = undefined, params = {}) {
         if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setContractV3MarginMode() requires a symbol argument');
+            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
         if (market['settle'] === 'USDC') {
-            throw new NotSupported (this.id + ' setContractV3MarginMode() does not support market ' + symbol + '');
+            throw new NotSupported (this.id + ' setMarginMode() does not support market ' + symbol + '');
         }
         marginMode = marginMode.toUpperCase ();
         if ((marginMode !== 'ISOLATED') && (marginMode !== 'CROSS')) {
-            throw new BadRequest (this.id + ' setContractV3MarginMode() marginMode must be either isolated or cross');
+            throw new BadRequest (this.id + ' setMarginMode() marginMode must be either isolated or cross');
         }
         const leverage = this.safeString (params, 'leverage');
         let sellLeverage = undefined;
@@ -6293,80 +6293,6 @@ module.exports = class bybit extends Exchange {
         //         "result": {},
         //         "retExtInfo": null,
         //         "time": 1658908532580
-        //     }
-        //
-        return response;
-    }
-
-    async setMarginMode (marginMode, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name bybit#setMarginMode
-         * @description set margin mode to 'cross' or 'isolated'
-         * @param {string} marginMode 'cross' or 'isolated'
-         * @param {string} symbol unified market symbol
-         * @param {object} params extra parameters specific to the bybit api endpoint
-         * @returns {object} response from the exchange
-         */
-        const isV3 = (this.version === 'v3');
-        if (isV3) {
-            return await this.setContractV3MarginMode (marginMode, symbol, params);
-        }
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setMarginMode() requires a symbol argument');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        if (market['settle'] === 'USDC') {
-            throw new NotSupported (this.id + ' setMarginMode() does not support market ' + symbol + '');
-        }
-        marginMode = marginMode.toUpperCase ();
-        if ((marginMode !== 'ISOLATED') && (marginMode !== 'CROSS')) {
-            throw new BadRequest (this.id + ' setMarginMode() marginMode must be either isolated or cross');
-        }
-        const leverage = this.safeNumber (params, 'leverage');
-        let sellLeverage = undefined;
-        let buyLeverage = undefined;
-        if (leverage === undefined) {
-            sellLeverage = this.safeNumber2 (params, 'sell_leverage', 'sellLeverage');
-            buyLeverage = this.safeNumber2 (params, 'buy_leverage', 'buyLeverage');
-            if (sellLeverage === undefined || buyLeverage === undefined) {
-                throw new ArgumentsRequired (this.id + ' setMarginMode() requires a leverage parameter or sell_leverage and buy_leverage parameters');
-            }
-            params = this.omit (params, [ 'buy_leverage', 'sell_leverage', 'sellLeverage', 'buyLeverage' ]);
-        } else {
-            params = this.omit (params, 'leverage');
-            sellLeverage = leverage;
-            buyLeverage = leverage;
-        }
-        const isIsolated = (marginMode === 'ISOLATED');
-        const request = {
-            'symbol': market['id'],
-            'is_isolated': isIsolated,
-            'buy_leverage': leverage,
-            'sell_leverage': leverage,
-        };
-        let method = undefined;
-        if (market['future']) {
-            method = 'privatePostFuturesPrivatePositionSwitchIsolated';
-        } else if (market['inverse']) {
-            method = 'privatePostV2PrivatePositionSwitchIsolated';
-        } else {
-            // linear
-            method = 'privatePostPrivateLinearPositionSwitchIsolated';
-        }
-        const response = await this[method] (this.extend (request, params));
-        //
-        //     {
-        //         "ret_code": 0,
-        //         "ret_msg": "OK",
-        //         "ext_code": "",
-        //         "ext_info": "",
-        //         "result": null,
-        //         "time_now": "1585881597.006026",
-        //         "rate_limit_status": 74,
-        //         "rate_limit_reset_ms": 1585881597004,
-        //         "rate_limit": 75
         //     }
         //
         return response;
