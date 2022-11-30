@@ -3407,10 +3407,10 @@ module.exports = class bybit extends Exchange {
         const isUSDCSettled = market['settle'] === 'USDC';
         if (market['spot']) {
             return await this.createSpotOrder (symbol, type, side, amount, price, params);
-        } else if (isUSDCSettled) {
-            return await this.createUsdcOrder (symbol, type, side, amount, price, params);
         } else if (enableUnifiedMargin && !market['inverse']) {
             return await this.createUnifiedMarginOrder (symbol, type, side, amount, price, params);
+        } else if (isUSDCSettled) {
+            return await this.createUsdcOrder (symbol, type, side, amount, price, params);
         } else {
             return await this.createContractV3Order (symbol, type, side, amount, price, params);
         }
@@ -6177,7 +6177,7 @@ module.exports = class bybit extends Exchange {
         //
         const contract = this.safeString (position, 'symbol');
         market = this.safeMarket (contract, market);
-        const size = this.safeString (position, 'size');
+        const size = Precise.stringAbs (this.safeString (position, 'size'));
         let side = this.safeString (position, 'side');
         side = (side === 'Buy') ? 'long' : 'short';
         const notional = this.safeString (position, 'positionValue');
@@ -6195,31 +6195,33 @@ module.exports = class bybit extends Exchange {
         const entryPrice = this.omitZero (this.safeString (position, 'entryPrice'));
         const liquidationPrice = this.omitZero (this.safeString (position, 'liqPrice'));
         const leverage = this.safeString (position, 'leverage');
-        if (market['settle'] === 'USDC') {
-            //  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
-            const difference = Precise.stringAbs (Precise.stringSub (entryPrice, liquidationPrice));
-            collateralString = Precise.stringAdd (Precise.stringAdd (Precise.stringMul (difference, size), maintenanceMarginString), unrealisedPnl);
-        } else {
-            const bustPrice = this.safeString (position, 'bustPrice');
-            if (market['linear']) {
-                // derived from the following formulas
-                //  (Entry price - Bust price) * Contracts = Collateral
-                //  (Entry price - Liq price) * Contracts = Collateral - Maintenance Margin
-                // Maintenance Margin = (Bust price - Liq price) x Contracts
-                const maintenanceMarginPriceDifference = Precise.stringAbs (Precise.stringSub (liquidationPrice, bustPrice));
-                maintenanceMarginString = Precise.stringMul (maintenanceMarginPriceDifference, size);
-                // Initial Margin = Contracts x Entry Price / Leverage
-                initialMarginString = Precise.stringDiv (Precise.stringMul (size, entryPrice), leverage);
+        if (liquidationPrice !== undefined) {
+            if (market['settle'] === 'USDC') {
+                //  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
+                const difference = Precise.stringAbs (Precise.stringSub (entryPrice, liquidationPrice));
+                collateralString = Precise.stringAdd (Precise.stringAdd (Precise.stringMul (difference, size), maintenanceMarginString), unrealisedPnl);
             } else {
-                // Contracts * (1 / Entry price - 1 / Bust price) = Collateral
-                // Contracts * (1 / Entry price - 1 / Liq price) = Collateral - Maintenance Margin
-                // Maintenance Margin = Contracts * (1 / Liq price - 1 / Bust price)
-                // Maintenance Margin = Contracts * (Bust price - Liq price) / (Liq price x Bust price)
-                const difference = Precise.stringAbs (Precise.stringSub (bustPrice, liquidationPrice));
-                const multiply = Precise.stringMul (bustPrice, liquidationPrice);
-                maintenanceMarginString = Precise.stringDiv (Precise.stringMul (size, difference), multiply);
-                // Initial Margin = Leverage x Contracts / EntryPrice
-                initialMarginString = Precise.stringDiv (size, Precise.stringMul (entryPrice, leverage));
+                const bustPrice = this.safeString (position, 'bustPrice');
+                if (market['linear']) {
+                    // derived from the following formulas
+                    //  (Entry price - Bust price) * Contracts = Collateral
+                    //  (Entry price - Liq price) * Contracts = Collateral - Maintenance Margin
+                    // Maintenance Margin = (Bust price - Liq price) x Contracts
+                    const maintenanceMarginPriceDifference = Precise.stringAbs (Precise.stringSub (liquidationPrice, bustPrice));
+                    maintenanceMarginString = Precise.stringMul (maintenanceMarginPriceDifference, size);
+                    // Initial Margin = Contracts x Entry Price / Leverage
+                    initialMarginString = Precise.stringDiv (Precise.stringMul (size, entryPrice), leverage);
+                } else {
+                    // Contracts * (1 / Entry price - 1 / Bust price) = Collateral
+                    // Contracts * (1 / Entry price - 1 / Liq price) = Collateral - Maintenance Margin
+                    // Maintenance Margin = Contracts * (1 / Liq price - 1 / Bust price)
+                    // Maintenance Margin = Contracts * (Bust price - Liq price) / (Liq price x Bust price)
+                    const difference = Precise.stringAbs (Precise.stringSub (bustPrice, liquidationPrice));
+                    const multiply = Precise.stringMul (bustPrice, liquidationPrice);
+                    maintenanceMarginString = Precise.stringDiv (Precise.stringMul (size, difference), multiply);
+                    // Initial Margin = Leverage x Contracts / EntryPrice
+                    initialMarginString = Precise.stringDiv (size, Precise.stringMul (entryPrice, leverage));
+                }
             }
         }
         const maintenanceMarginPercentage = Precise.stringDiv (maintenanceMarginString, notional);
