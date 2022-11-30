@@ -2012,7 +2012,7 @@ module.exports = class ndax extends Exchange {
          * @description fetch all deposits made to an account
          * @see https://apidoc.ndax.io/#getdeposits
          * @param {string|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch deposits for
+         * @param {int|undefined} since not used by ndax fetchDeposits
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve
          * @param {object} params extra parameters specific to the ndax api endpoint
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
