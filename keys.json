@@ -1,6 +1,6 @@
 {
     "aax":           { "skip": true, "skipWs": true },
-    "binance":   { "skip": true, "skipWs": true },
+    "binance":       { "skip": true, "skipWs": true },
     "binanceusdm":   { "skip": true, "skipWs": true },
     "binancecoinm":  { "skip": true, "skipWs": true },
     "bitcoincom":    { "skipWs": true },
