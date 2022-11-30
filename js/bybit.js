@@ -2775,54 +2775,25 @@ module.exports = class bybit extends Exchange {
 
     parseBalance (response) {
         //
-        // spot balance
-        //    {
-        //        "ret_code": "0",
-        //        "ret_msg": "",
-        //        "ext_code": null,
-        //        "ext_info": null,
-        //        "result": {
-        //            "balances": [
-        //                {
-        //                    "coin": "LTC",
-        //                    "coinId": "LTC",
-        //                    "coinName": "LTC",
-        //                    "total": "0.00000783",
-        //                    "free": "0.00000783",
-        //                    "locked": "0"
-        //                }
-        //            ]
-        //        }
-        //    }
-        //
-        // linear/inverse swap/futures
-        //    {
-        //        "ret_code": "0",
-        //        "ret_msg": "OK",
-        //        "ext_code": "",
-        //        "ext_info": "",
-        //        "result": {
-        //            "ADA": {
-        //                "equity": "0",
-        //                "available_balance": "0",
-        //                "used_margin": "0",
-        //                "order_margin": "0",
-        //                "position_margin": "0",
-        //                "occ_closing_fee": "0",
-        //                "occ_funding_fee": "0",
-        //                "wallet_balance": "0",
-        //                "realised_pnl": "0",
-        //                "unrealised_pnl": "0",
-        //                "cum_realised_pnl": "0",
-        //                "given_cash": "0",
-        //                "service_cash": "0"
-        //            },
-        //        },
-        //        "time_now": "1651772170.050566",
-        //        "rate_limit_status": "119",
-        //        "rate_limit_reset_ms": "1651772170042",
-        //        "rate_limit": "120"
-        //    }
+        // margin wallet
+        //     [
+        //         {
+        //             "free": "0.001143855",
+        //             "interest": "0",
+        //             "loan": "0",
+        //             "locked": "0",
+        //             "tokenId": "BTC",
+        //             "total": "0.001143855"
+        //         },
+        //         {
+        //             "free": "200.00005568",
+        //             "interest": "0.0008391",
+        //             "loan": "200",
+        //             "locked": "0",
+        //             "tokenId": "USDT",
+        //             "total": "200.00005568"
+        //         },
+        //     ]
         //
         // usdc wallet
         //    {
@@ -2884,68 +2855,64 @@ module.exports = class bybit extends Exchange {
         //
         // contract v3
         //
-        //     {
-        //         "retCode": 0,
-        //         "retMsg": "OK",
-        //         "result": {
-        //             "list": [
-        //                 {
-        //                     "coin": "BTC",
-        //                     "equity": "0.80319649",
-        //                     "walletBalance": "0.80319649",
-        //                     "positionMargin": "0",
-        //                     "availableBalance": "0.80319649",
-        //                     "orderMargin": "0",
-        //                     "occClosingFee": "0",
-        //                     "occFundingFee": "0",
-        //                     "unrealisedPnl": "0",
-        //                     "cumRealisedPnl": "0.00120039",
-        //                     "givenCash": "0",
-        //                     "serviceCash": "0"
-        //                 }
-        //             ]
+        //     [
+        //         {
+        //             "coin": "BTC",
+        //             "equity": "0.00000002",
+        //             "walletBalance": "0.00000002",
+        //             "positionMargin": "0",
+        //             "availableBalance": "0.00000002",
+        //             "orderMargin": "0",
+        //             "occClosingFee": "0",
+        //             "occFundingFee": "0",
+        //             "unrealisedPnl": "0",
+        //             "cumRealisedPnl": "-0.00010941",
+        //             "givenCash": "0",
+        //             "serviceCash": "0"
         //         },
-        //         "retExtInfo": {},
-        //         "time": 1658736635763
-        //     }
+        //         {
+        //             "coin": "USDT",
+        //             "equity": "3662.81038535",
+        //             "walletBalance": "3662.81038535",
+        //             "positionMargin": "0",
+        //             "availableBalance": "3662.81038535",
+        //             "orderMargin": "0",
+        //             "occClosingFee": "0",
+        //             "occFundingFee": "0",
+        //             "unrealisedPnl": "0",
+        //             "cumRealisedPnl": "-36.01761465",
+        //             "givenCash": "0",
+        //             "serviceCash": "0"
+        //         }
+        //     ]
         //
         const result = {
             'info': response,
         };
-        const data = this.safeValue (response, 'result', {});
-        const balances = this.safeValueN (data, [ 'balances', 'coin', 'list' ]);
-        if (Array.isArray (balances)) {
-            // spot balances
-            for (let i = 0; i < balances.length; i++) {
-                const balance = balances[i];
-                const currencyId = this.safeString2 (balance, 'coin', 'currencyCoin');
-                const code = this.safeCurrencyCode (currencyId);
-                const account = this.account ();
-                account['free'] = this.safeString (balance, 'availableBalance');
-                account['used'] = this.safeString (balance, 'locked');
-                account['total'] = this.safeString2 (balance, 'total', 'walletBalance');
-                result[code] = account;
-            }
+        const responseResult = this.safeValue (response, 'result', {});
+        const currencyList = this.safeValue2 (responseResult, 'loanAccountList', 'list');
+        if (currencyList === undefined) {
+            // usdc wallet
+            const code = 'USDC';
+            const account = this.account ();
+            account['free'] = this.safeString (responseResult, 'availableBalance');
+            account['total'] = this.safeString (responseResult, 'walletBalance');
+            result[code] = account;
         } else {
-            if ('walletBalance' in data) {
-                // usdc wallet
-                const code = 'USDC';
+            for (let i = 0; i < currencyList.length; i++) {
+                const entry = currencyList[i];
                 const account = this.account ();
-                account['free'] = this.safeString (data, 'availableBalance');
-                account['total'] = this.safeString (data, 'walletBalance');
-                result[code] = account;
-            } else {
-                // linear/inverse swap/futures
-                const currencyIds = Object.keys (data);
-                for (let i = 0; i < currencyIds.length; i++) {
-                    const currencyId = currencyIds[i];
-                    const balance = data[currencyId];
-                    const code = this.safeCurrencyCode (currencyId);
-                    const account = this.account ();
-                    account['free'] = this.safeString (balance, 'available_balance');
-                    account['total'] = this.safeString (balance, 'wallet_balance');
-                    result[code] = account;
+                const loan = this.safeString (entry, 'loan');
+                const interest = this.safeString (entry, 'interest');
+                if ((loan !== undefined) && (interest !== undefined)) {
+                    account['debt'] = Precise.stringAdd (loan, interest);
                 }
+                account['total'] = this.safeString2 (entry, 'total', 'walletBalance');
+                account['free'] = this.safeString2 (entry, 'free', 'availableBalance');
+                account['used'] = this.safeString (entry, 'locked');
+                const currencyId = this.safeString2 (entry, 'tokenId', 'coin');
+                const code = this.safeCurrencyCode (currencyId);
+                result[code] = account;
             }
         }
         return this.safeBalance (result);
@@ -2953,34 +2920,39 @@ module.exports = class bybit extends Exchange {
 
     async fetchSpotBalance (params = {}) {
         await this.loadMarkets ();
-        const response = await this.privateGetSpotV3PrivateAccount (params);
+        // here the margin account is the same as the spot account
+        // so we will default to loading the margin account
+        const response = await this.privateGetSpotV3PrivateCrossMarginAccount (params);
         //
         //     {
-        //         ret_code: 0,
-        //         ret_msg: 'OK',
-        //         ext_code: '',
-        //         ext_info: '',
-        //         result: {
-        //             BTC: {
-        //                 equity: 0,
-        //                 available_balance: 0,
-        //                 used_margin: 0,
-        //                 order_margin: 0,
-        //                 position_margin: 0,
-        //                 occ_closing_fee: 0,
-        //                 occ_funding_fee: 0,
-        //                 wallet_balance: 0,
-        //                 realised_pnl: 0,
-        //                 unrealised_pnl: 0,
-        //                 cum_realised_pnl: 0,
-        //                 given_cash: 0,
-        //                 service_cash: 0
-        //             }
+        //         "retCode": 0,
+        //         "retMsg": "success",
+        //         "result": {
+        //             "acctBalanceSum": "0.122995614474732872",
+        //             "debtBalanceSum": "0.011734191124529754",
+        //             "loanAccountList": [
+        //                 {
+        //                     "free": "0.001143855",
+        //                     "interest": "0",
+        //                     "loan": "0",
+        //                     "locked": "0",
+        //                     "tokenId": "BTC",
+        //                     "total": "0.001143855"
+        //                 },
+        //                 {
+        //                     "free": "200.00005568",
+        //                     "interest": "0.0008391",
+        //                     "loan": "200",
+        //                     "locked": "0",
+        //                     "tokenId": "USDT",
+        //                     "total": "200.00005568"
+        //                 },
+        //             ],
+        //             "riskRate": "0.0954",
+        //             "status": 1
         //         },
-        //         time_now: '1583937810.370020',
-        //         rate_limit_status: 119,
-        //         rate_limit_reset_ms: 1583937810367,
-        //         rate_limit: 120
+        //         "retExtInfo": {},
+        //         "time": 1669843584123
         //     }
         //
         return this.parseBalance (response);
@@ -3034,42 +3006,46 @@ module.exports = class bybit extends Exchange {
     async fetchDerivativesBalance (params = {}) {
         await this.loadMarkets ();
         const request = {};
-        const coin = this.safeString2 (params, 'coin', 'code');
-        params = this.omit (params, [ 'coin', 'code' ]);
-        if (coin !== undefined) {
-            const currency = this.currency (coin);
-            request['coin'] = currency['id'];
-        }
-        const method = (this.version === 'v3') ? 'privateGetContractV3PrivateAccountWalletBalance' : 'privateGetV2PrivateWalletBalance';
-        const response = await this[method] (this.extend (request, params));
+        const response = await this.privateGetContractV3PrivateAccountWalletBalance (this.extend (request, params));
         //
-        //    {
-        //        "ret_code": "0",
-        //        "ret_msg": "OK",
-        //        "ext_code": "",
-        //        "ext_info": "",
-        //        "result": {
-        //            "ADA": {
-        //                "equity": "0",
-        //                "available_balance": "0",
-        //                "used_margin": "0",
-        //                "order_margin": "0",
-        //                "position_margin": "0",
-        //                "occ_closing_fee": "0",
-        //                "occ_funding_fee": "0",
-        //                "wallet_balance": "0",
-        //                "realised_pnl": "0",
-        //                "unrealised_pnl": "0",
-        //                "cum_realised_pnl": "0",
-        //                "given_cash": "0",
-        //                "service_cash": "0"
-        //            },
-        //        },
-        //        "time_now": "1651772170.050566",
-        //        "rate_limit_status": "119",
-        //        "rate_limit_reset_ms": "1651772170042",
-        //        "rate_limit": "120"
-        //    }
+        //     {
+        //         "retCode": 0,
+        //         "retMsg": "OK",
+        //         "result": {
+        //             "list": [
+        //                 {
+        //                     "coin": "BTC",
+        //                     "equity": "0.00000002",
+        //                     "walletBalance": "0.00000002",
+        //                     "positionMargin": "0",
+        //                     "availableBalance": "0.00000002",
+        //                     "orderMargin": "0",
+        //                     "occClosingFee": "0",
+        //                     "occFundingFee": "0",
+        //                     "unrealisedPnl": "0",
+        //                     "cumRealisedPnl": "-0.00010941",
+        //                     "givenCash": "0",
+        //                     "serviceCash": "0"
+        //                 },
+        //                 {
+        //                     "coin": "USDT",
+        //                     "equity": "3662.81038535",
+        //                     "walletBalance": "3662.81038535",
+        //                     "positionMargin": "0",
+        //                     "availableBalance": "3662.81038535",
+        //                     "orderMargin": "0",
+        //                     "occClosingFee": "0",
+        //                     "occFundingFee": "0",
+        //                     "unrealisedPnl": "0",
+        //                     "cumRealisedPnl": "-36.01761465",
+        //                     "givenCash": "0",
+        //                     "serviceCash": "0"
+        //                 },
+        //             ]
+        //         },
+        //         "retExtInfo": {},
+        //         "time": 1669845599631
+        //     }
         //
         return this.parseBalance (response);
     }
@@ -6964,7 +6940,7 @@ module.exports = class bybit extends Exchange {
         }
         const request = {
             'coin': currency['id'],
-            'qty': this.currencyToPrecision (code, amount),
+            'qty': this.numberToString (amount),
         };
         const response = await this.privatePostSpotV3PrivateCrossMarginRepay (this.extend (request, query));
         //
