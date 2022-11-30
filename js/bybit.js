@@ -4921,25 +4921,28 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchMyUnifiedMarginTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyDerivativesTrades() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        let market = undefined;
         const request = {
-            'symbol': market['id'],
+            // 'symbol': market['id'],
             // 'orderId': 'f185806b-b801-40ff-adec-52289370ed62', // if not provided will return user's trading records
             // 'startTime': parseInt (since / 1000),
             // 'endTime': 0,
             // 'category': ''
             // 'limit' 20, // max 50
         };
-        if (market['option']) {
-            request['category'] = 'option';
-        } else if (market['linear']) {
+        if (symbol === undefined) {
             request['category'] = 'linear';
         } else {
-            throw new NotSupported (this.id + ' fetchMyTrades() does not allow inverse market orders for ' + symbol + ' markets');
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+            if (market['option']) {
+                request['category'] = 'option';
+            } else if (market['linear']) {
+                request['category'] = 'linear';
+            } else {
+                throw new NotSupported (this.id + ' fetchMyTrades() does not allow inverse market orders for ' + symbol + ' markets');
+            }
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -5124,21 +5127,23 @@ module.exports = class bybit extends Exchange {
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const isUsdcSettled = market['settle'] === 'USDC';
+        let market = undefined;
+        let isUsdcSettled = false;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            isUsdcSettled = market['settle'] === 'USDC';
+        }
         const enableUnifiedMargin = await this.isUnifiedMarginEnabled ();
-        if (market['spot']) {
-            return await this.fetchMySpotTrades (symbol, since, limit, params);
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        if (type === 'spot') {
+            return await this.fetchMySpotTrades (symbol, since, limit, query);
         } else if (enableUnifiedMargin) {
-            return await this.fetchMyUnifiedMarginTrades (symbol, since, limit, params);
+            return await this.fetchMyUnifiedMarginTrades (symbol, since, limit, query);
         } else if (isUsdcSettled) {
-            return await this.fetchMyUsdcTrades (symbol, since, limit, params);
+            return await this.fetchMyUsdcTrades (symbol, since, limit, query);
         } else {
-            return await this.fetchMyContractTrades (symbol, since, limit, params);
+            return await this.fetchMyContractTrades (symbol, since, limit, query);
         }
     }
 
