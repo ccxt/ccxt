@@ -158,7 +158,7 @@ module.exports = class whitebit extends Exchange {
                             'trade-account/order/history',
                             'order/collateral/limit',
                             'order/collateral/market',
-                            'order/collateral/trigger_market',
+                            'order/collateral/trigger-market',
                             'order/collateral/oco',
                             'order/new',
                             'order/market',
