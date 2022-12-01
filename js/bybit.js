@@ -1773,14 +1773,14 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const request = {};
-        const defaultSubtype = this.safeString (this.options, 'defaultSubType', 'linear');
-        if (defaultSubtype === 'option') {
+        const [ subType, query ] = this.handleSubTypeAndParams ('fetchTickers', undefined, params);
+        if (subType === 'option') {
             // bybit requires a symbol when query tockers for options markets
             throw new NotSupported (this.id + ' fetchTickers() is not supported for option markets');
         } else {
-            request['category'] = defaultSubtype;
+            request['category'] = subType;
         }
-        const response = await this.publicGetDerivativesV3PublicTickers (this.extend (request, params));
+        const response = await this.publicGetDerivativesV3PublicTickers (this.extend (request, query));
         //
         //     {
         //         "retCode": 0,
@@ -4139,23 +4139,24 @@ module.exports = class bybit extends Exchange {
     }
 
     async cancelAllUnifiedMarginOrders (symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllUnifiedMarginOrders() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
+        let market = undefined;
+        let settle = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            settle = market['settle'];
+            request['symbol'] = market['id'];
+        }
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('cancelAllOrders', market, params);
+        request['category'] = subType;
+        [ settle, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'settle', settle);
+        if (settle !== undefined) {
+            request['settleCoin'] = settle;
+        }
         const isStop = this.safeValue (params, 'stop', false);
         params = this.omit (params, [ 'stop' ]);
-        if (market['option']) {
-            request['category'] = 'option';
-        } else if (market['linear']) {
-            request['category'] = 'linear';
-        } else {
-            throw new NotSupported (this.id + ' cancelAllUnifiedMarginOrders() does not allow inverse market orders for ' + symbol + ' markets');
-        }
         if (isStop) {
             request['orderFilter'] = 'StopOrder';
         }
@@ -4246,14 +4247,19 @@ module.exports = class bybit extends Exchange {
     }
 
     async cancelAllDerivativesOrders (symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllDerivativesOrders() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
+        let market = undefined;
+        let settle = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            settle = market['settle'];
+            request['symbol'] = market['id'];
+        }
+        [ settle, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'settle', settle);
+        if (settle !== undefined) {
+            request['settleCoin'] = settle;
+        }
         const response = await this.privatePostContractV3PrivateOrderCancelAll (this.extend (request, params));
         //
         // contract v3
@@ -4287,21 +4293,34 @@ module.exports = class bybit extends Exchange {
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
+        let market = undefined;
+        let settle = this.safeString (params, 'settleCoin');
+        if (settle === undefined) {
+            [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', settle);
+        }
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            settle = market['settle'];
+        }
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('cancelAllOrders', market, params);
+        const isUsdcSettled = settle === 'USDC';
+        const isInverse = subType === 'inverse';
+        const isLinearSettle = isUsdcSettled || (settle === 'USDT');
+        if (isInverse && isLinearSettle) {
+            throw new ArgumentsRequired (this.id + ' fetchPositions with inverse subType requires settle to not be USDT or USDC');
+        }
+        const [ type, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         const enableUnifiedMargin = await this.isUnifiedMarginEnabled ();
-        const isUsdcSettled = market['settle'] === 'USDC';
-        if (market['spot']) {
-            return await this.cancelAllSpotOrders (symbol, params);
-        } else if (enableUnifiedMargin && !market['inverse']) {
-            return await this.cancelAllUnifiedMarginOrders (symbol, params);
+        if (type === 'spot') {
+            return await this.cancelAllSpotOrders (symbol, query);
+        } else if (enableUnifiedMargin && !isInverse) {
+            return await this.cancelAllUnifiedMarginOrders (symbol, query);
         } else if (isUsdcSettled) {
-            return await this.cancelAllUSDCOrders (symbol, params);
+            return await this.cancelAllUSDCOrders (symbol, query);
         } else {
-            return await this.cancelAllDerivativesOrders (symbol, params);
+            return await this.cancelAllDerivativesOrders (symbol, query);
         }
     }
 
@@ -4321,9 +4340,12 @@ module.exports = class bybit extends Exchange {
         };
         let market = undefined;
         if (symbol === undefined) {
-            request['category'] = 'linear';
+            let subType = undefined;
+            [ subType, params ] = this.handleSubTypeAndParams ('fetchUnifiedMarginOrders', market, params);
+            request['category'] = subType;
         } else {
             market = this.market (symbol);
+            request['symbol'] = market['id'];
             if (market['option']) {
                 request['category'] = 'option';
             } else if (market['linear']) {
@@ -4392,9 +4414,7 @@ module.exports = class bybit extends Exchange {
     async fetchDerivativesOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
         let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
+        let settle = undefined;
         const request = {
             // 'symbol': market['id'],
             // 'order_id': 'string'
@@ -4408,10 +4428,14 @@ module.exports = class bybit extends Exchange {
             // 'stop_order_id': 'string',
             // 'stop_order_status': 'Untriggered',
         };
-        const settleCoin = this.safeString (params, 'settleCoin');
-        // temporary solution until USDC margined is merged into v3
-        if ((market !== undefined) && (settleCoin !== 'USD')) {
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            settle = market['settle'];
             request['symbol'] = market['id'];
+        }
+        [ settle, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'settle', settle);
+        if (settle !== undefined) {
+            request['settleCoin'] = settle;
         }
         const isStop = this.safeValue (params, 'stop', false);
         params = this.omit (params, [ 'stop' ]);
@@ -4481,22 +4505,31 @@ module.exports = class bybit extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        const request = {};
+        let settle = this.safeString (params, 'settleCoin');
+        if (settle === undefined) {
+            [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', settle);
+        }
         if (symbol !== undefined) {
             market = this.market (symbol);
-            if (market['settle'] === 'USDC') {
-                request['settleCoin'] = 'USD';
-            }
+            settle = market['settle'];
         }
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOrders', market, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params);
+        const isInverse = subType === 'inverse';
+        const isUsdcSettled = settle === 'USDC';
+        const isLinearSettle = isUsdcSettled || (settle === 'USDT');
+        if (isInverse && isLinearSettle) {
+            throw new ArgumentsRequired (this.id + ' fetchPositions with inverse subType requires settle to not be USDT or USDC');
+        }
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         const enableUnifiedMargin = await this.isUnifiedMarginEnabled ();
-        if (enableUnifiedMargin) {
-            return await this.fetchUnifiedMarginOrders (symbol, since, limit, params);
-        } else if (type === 'spot') {
-            throw new NotSupported (this.id + ' fetchOrders() does not support ' + market['type'] + ' USDC markets, use exchange.fetchOpenOrders () and exchange.fetchClosedOrders () instead');
+        if (type === 'spot') {
+            throw new NotSupported (this.id + ' fetchOrders() does not support ' + market['type'] + ' markets, use exchange.fetchOpenOrders () and exchange.fetchClosedOrders () instead');
+        } else if (enableUnifiedMargin && !isInverse) {
+            return await this.fetchUnifiedMarginOrders (symbol, since, limit, query);
+        } else {
+            return await this.fetchDerivativesOrders (symbol, since, limit, query);
         }
-        return await this.fetchDerivativesOrders (symbol, since, limit, this.extend (request, params));
     }
 
     async fetchSpotClosedOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -4640,7 +4673,9 @@ module.exports = class bybit extends Exchange {
         const request = {};
         let market = undefined;
         if (symbol === undefined) {
-            request['category'] = 'linear';
+            let subType = undefined;
+            [ subType, params ] = this.handleSubTypeAndParams ('fetchUnifiedMarginOrders', market, params);
+            request['category'] = subType;
         } else {
             market = this.market (symbol);
             request['symbol'] = market['id'];
@@ -4713,14 +4748,19 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchDerivativesOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchDerivativesOpenOrders() requires a symbol argument for ' + symbol + ' markets');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
+        let market = undefined;
+        let settle = undefined;
+        const request = {};
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            settle = market['settle'];
+            request['symbol'] = market['id'];
+        }
+        [ settle, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'settle', settle);
+        if (settle !== undefined) {
+            request['settleCoin'] = settle;
+        }
         const isStop = this.safeValue (params, 'stop', false);
         params = this.omit (params, [ 'stop' ]);
         if (isStop) {
@@ -4830,23 +4870,32 @@ module.exports = class bybit extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        let isUsdcSettled = false;
+        let settle = this.safeString (params, 'settleCoin');
+        if (settle === undefined) {
+            [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', settle);
+        }
         if (symbol !== undefined) {
             market = this.market (symbol);
-            isUsdcSettled = market['settle'] === 'USDC';
+            settle = market['settle'];
         }
-        let type = undefined;
-        [ type, params ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
-        if (type === 'spot') {
-            return await this.fetchSpotOpenOrders (symbol, since, limit, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchOpenOrders', market, params);
+        const isInverse = subType === 'inverse';
+        const isUsdcSettled = settle === 'USDC';
+        const isLinearSettle = isUsdcSettled || (settle === 'USDT');
+        if (isInverse && isLinearSettle) {
+            throw new ArgumentsRequired (this.id + ' fetchPositions with inverse subType requires settle to not be USDT or USDC');
         }
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         const enableUnifiedMargin = await this.isUnifiedMarginEnabled ();
-        if (enableUnifiedMargin) {
-            return await this.fetchUnifiedMarginOpenOrders (symbol, since, limit, params);
-        } else if (!isUsdcSettled) {
-            return await this.fetchDerivativesOpenOrders (symbol, since, limit, params);
+        if (type === 'spot') {
+            return await this.fetchSpotOpenOrders (symbol, since, limit, query);
+        } else if (enableUnifiedMargin && !isInverse) {
+            return await this.fetchUnifiedMarginOpenOrders (symbol, since, limit, query);
+        } else if (isUsdcSettled) {
+            return await this.fetchUSDCOpenOrders (symbol, since, limit, query);
         } else {
-            return await this.fetchUSDCOpenOrders (symbol, since, limit, params);
+            return await this.fetchDerivativesOpenOrders (symbol, since, limit, query);
         }
     }
 
@@ -4926,7 +4975,9 @@ module.exports = class bybit extends Exchange {
 
     async fetchMyUnifiedMarginTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         await this.loadMarkets ();
+        await this.loadMarkets ();
         let market = undefined;
+        let settle = undefined;
         const request = {
             // 'symbol': market['id'],
             // 'orderId': 'f185806b-b801-40ff-adec-52289370ed62', // if not provided will return user's trading records
@@ -4935,18 +4986,17 @@ module.exports = class bybit extends Exchange {
             // 'category': ''
             // 'limit' 20, // max 50
         };
-        if (symbol === undefined) {
-            request['category'] = 'linear';
-        } else {
+        if (symbol !== undefined) {
             market = this.market (symbol);
+            settle = market['settle'];
             request['symbol'] = market['id'];
-            if (market['option']) {
-                request['category'] = 'option';
-            } else if (market['linear']) {
-                request['category'] = 'linear';
-            } else {
-                throw new NotSupported (this.id + ' fetchMyTrades() does not allow inverse market orders for ' + symbol + ' markets');
-            }
+        }
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchMyTrades', market, params);
+        request['category'] = subType;
+        [ settle, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'settle', settle);
+        if (settle !== undefined) {
+            request['settleCoin'] = settle;
         }
         if (since !== undefined) {
             request['startTime'] = since;
@@ -5133,16 +5183,27 @@ module.exports = class bybit extends Exchange {
          */
         await this.loadMarkets ();
         let market = undefined;
-        let isUsdcSettled = false;
+        let settle = this.safeString (params, 'settleCoin');
+        if (settle === undefined) {
+            [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', settle);
+        }
         if (symbol !== undefined) {
             market = this.market (symbol);
-            isUsdcSettled = market['settle'] === 'USDC';
+            settle = market['settle'];
         }
-        const enableUnifiedMargin = await this.isUnifiedMarginEnabled ();
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchMyTrades', market, params);
+        const isInverse = subType === 'inverse';
+        const isUsdcSettled = settle === 'USDC';
+        const isLinearSettle = isUsdcSettled || (settle === 'USDT');
+        if (isInverse && isLinearSettle) {
+            throw new ArgumentsRequired (this.id + ' fetchPositions with inverse subType requires settle to not be USDT or USDC');
+        }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
+        const enableUnifiedMargin = await this.isUnifiedMarginEnabled ();
         if (type === 'spot') {
             return await this.fetchMySpotTrades (symbol, since, limit, query);
-        } else if (enableUnifiedMargin) {
+        } else if (enableUnifiedMargin && !isInverse) {
             return await this.fetchMyUnifiedMarginTrades (symbol, since, limit, query);
         } else if (isUsdcSettled) {
             return await this.fetchMyUsdcTrades (symbol, since, limit, query);
@@ -5831,35 +5892,17 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const request = {};
-        let market = undefined;
         let type = undefined;
-        let isLinear = undefined;
         if (Array.isArray (symbols)) {
-            const length = symbols.length;
-            if (length !== 1) {
-                throw new ArgumentsRequired (this.id + ' fetchUnifiedMarginPositions() takes an array with exactly one symbol');
-            }
-            const symbol = this.safeString (symbols, 0);
-            market = this.market (symbol);
-            type = market['type'];
-            isLinear = market['linear'];
-            request['symbol'] = market['id'];
-        } else {
-            // market undefined
-            [ type, params ] = this.handleMarketTypeAndParams ('fetchUnifiedMarginPositions', undefined, params);
-            const options = this.safeValue (this.options, 'fetchUnifiedMarginPositions', {});
-            const defaultSubType = this.safeString (this.options, 'defaultSubType', 'linear');
-            let subType = this.safeString (options, 'subType', defaultSubType);
-            subType = this.safeString (params, 'subType', subType);
-            isLinear = (subType === 'linear');
+            throw new ArgumentsRequired (this.id + ' fetchPositions() does not accept an array of symbols');
         }
-        params = this.omit (params, [ 'subType' ]);
+        // market undefined
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
+        let subType = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchPositions', undefined, params);
+        request['category'] = subType;
         if (type === 'option') {
             request['category'] = 'option';
-        } else if (isLinear) {
-            request['category'] = 'linear';
-        } else {
-            throw new NotSupported (this.id + ' fetchUnifiedMarginPositions() does not allow inverse market');
         }
         const response = await this.privateGetUnifiedV3PrivatePositionList (this.extend (request, params));
         //
@@ -5906,7 +5949,7 @@ module.exports = class bybit extends Exchange {
                 // futures only
                 rawPosition = this.safeValue (rawPosition, 'data');
             }
-            results.push (this.parsePosition (rawPosition, market));
+            results.push (this.parsePosition (rawPosition));
         }
         return this.filterByArray (results, 'symbol', symbols, false);
     }
@@ -5990,7 +6033,7 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
         const request = {
-            'settleCoin': 'USDT',
+            'dataFilter': 'valid',
         };
         const response = await this.privateGetContractV3PrivatePositionList (this.extend (request, params));
         //
@@ -6069,34 +6112,31 @@ module.exports = class bybit extends Exchange {
          * @param {object} params extra parameters specific to the bybit api endpoint
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
+        if (Array.isArray (symbols)) {
+            throw new ArgumentsRequired (this.id + ' fetchPositions() does not accept an array of symbols');
+        }
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const request = {};
-        let market = undefined;
-        let isUsdcSettled = undefined;
         const enableUnifiedMargin = await this.isUnifiedMarginEnabled ();
-        if (Array.isArray (symbols)) {
-            const length = symbols.length;
-            if (length !== 1) {
-                throw new ArgumentsRequired (this.id + ' fetchPositions() takes an array with exactly one symbol');
-            }
-            const symbol = this.safeString (symbols, 0);
-            market = this.market (symbol);
-            isUsdcSettled = market['settle'] === 'USDC';
-            request['symbol'] = market['id'];
-        } else {
-            // market undefined
-            let defaultSettle = undefined;
-            [ defaultSettle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', 'USDT');
-            isUsdcSettled = defaultSettle === 'USDC';
+        let settle = this.safeString (params, 'settleCoin');
+        if (settle === undefined) {
+            [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', settle);
         }
-        params = this.omit (params, [ 'settle', 'defaultSettle' ]);
-        if (enableUnifiedMargin) {
-            return await this.fetchUnifiedMarginPositions (symbols, params);
+        const isUsdcSettled = settle === 'USDC';
+        const [ subType, query ] = this.handleSubTypeAndParams ('fetchPositions', undefined, params);
+        const isInverse = subType === 'inverse';
+        const isLinearSettle = isUsdcSettled || (settle === 'USDT');
+        if (isInverse && isLinearSettle) {
+            throw new ArgumentsRequired (this.id + ' fetchPositions with inverse subType requires settle to not be USDT or USDC');
+        }
+        if (enableUnifiedMargin && !isInverse) {
+            return await this.fetchUnifiedMarginPositions (symbols, query);
         } else if (isUsdcSettled) {
-            return await this.fetchUSDCPositions (symbols, params);
+            return await this.fetchUSDCPositions (symbols, query);
+        } else {
+            query['settleCoin'] = settle;
+            return await this.fetchDerivativesPositions (symbols, query);
         }
-        return await this.fetchDerivativesPositions (symbols, params);
     }
 
     parsePosition (position, market = undefined) {
@@ -6235,6 +6275,7 @@ module.exports = class bybit extends Exchange {
         }
         const maintenanceMarginPercentage = Precise.stringDiv (maintenanceMarginString, notional);
         const percentage = Precise.stringMul (Precise.stringDiv (unrealisedPnl, initialMarginString), '100');
+        const marginRatio = Precise.stringDiv (maintenanceMarginString, collateralString, 4);
         return {
             'info': position,
             'id': undefined,
@@ -6251,7 +6292,7 @@ module.exports = class bybit extends Exchange {
             'unrealizedPnl': this.parseNumber (unrealisedPnl),
             'contracts': this.parseNumber (size), // in USD for inverse swaps
             'contractSize': this.safeNumber (market, 'contractSize'),
-            'marginRatio': undefined,
+            'marginRatio': this.parseNumber (marginRatio),
             'liquidationPrice': this.parseNumber (liquidationPrice),
             'markPrice': this.safeNumber (position, 'markPrice'),
             'collateral': this.parseNumber (collateralString),
@@ -6309,60 +6350,6 @@ module.exports = class bybit extends Exchange {
         return response;
     }
 
-    async setUnifiedMarginLeverage (leverage, symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setUnifiedMarginLeverage() requires a symbol argument');
-        }
-        if ((leverage < 1) || (leverage > 100)) {
-            throw new BadRequest (this.id + ' setUnifiedMarginLeverage() leverage should be between 1 and 100');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        if (market['option']) {
-            request['category'] = 'option';
-        } else if (market['linear']) {
-            request['category'] = 'linear';
-        } else {
-            throw new NotSupported (this.id + ' setUnifiedMarginLeverage() leverage didn\'t support inverse market in unified margin');
-        }
-        leverage = leverage.toString ();
-        const buyLeverage = this.safeNumber2 (params, 'buy_leverage', 'buyLeverage');
-        const sellLeverage = this.safeNumber2 (params, 'sell_leverage', 'sellLeverage');
-        if (buyLeverage === undefined || sellLeverage === undefined) {
-            request['buyLeverage'] = leverage;
-            request['sellLeverage'] = leverage;
-        }
-        return await this.privatePostUnifiedV3PrivatePositionSetLeverage (this.extend (request, params));
-    }
-
-    async setContractV3Leverage (leverage, symbol = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' setContractV3Leverage() requires a symbol argument');
-        }
-        if ((leverage < 1) || (leverage > 100)) {
-            throw new BadRequest (this.id + ' setContractV3Leverage() leverage should be between 1 and 100');
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'symbol': market['id'],
-        };
-        const buyLeverage = this.safeNumber2 (params, 'buy_leverage', 'buyLeverage');
-        const sellLeverage = this.safeNumber2 (params, 'sell_leverage', 'sellLeverage');
-        if (buyLeverage !== undefined && sellLeverage !== undefined) {
-            if ((buyLeverage < 1) || (buyLeverage > 100) || (sellLeverage < 1) || (sellLeverage > 100)) {
-                throw new BadRequest (this.id + ' setDerivativesLeverage() leverage should be between 1 and 100');
-            }
-        } else {
-            request['buyLeverage'] = this.numberToString (leverage);
-            request['sellLeverage'] = this.numberToString (leverage);
-        }
-        return await this.privatePostContractV3PrivatePositionSetLeverage (this.extend (request, params));
-    }
-
     async setLeverage (leverage, symbol = undefined, params = {}) {
         /**
          * @method
@@ -6380,12 +6367,39 @@ module.exports = class bybit extends Exchange {
         const market = this.market (symbol);
         // WARNING: THIS WILL INCREASE LIQUIDATION PRICE FOR OPEN ISOLATED LONG POSITIONS
         // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
+        const isUsdcSettled = market['settle'] === 'USDC';
         const enableUnifiedMargin = await this.isUnifiedMarginEnabled ();
-        if (enableUnifiedMargin && !market['inverse']) {
-            return await this.setUnifiedMarginLeverage (leverage, symbol, params);
+        // engage in leverage setting
+        // we reuse the code here instead of having two methods
+        leverage = this.numberToString (leverage);
+        let method = undefined;
+        let request = undefined;
+        if (enableUnifiedMargin || !isUsdcSettled) {
+            request = {
+                'symbol': market['id'],
+                'buyLeverage': leverage,
+                'sellLeverage': leverage,
+            };
+            if (enableUnifiedMargin && !market['inverse']) {
+                if (market['option']) {
+                    request['category'] = 'option';
+                } else if (market['linear']) {
+                    request['category'] = 'linear';
+                } else {
+                    throw new NotSupported (this.id + ' setUnifiedMarginLeverage() leverage doesn\'t support inverse market in unified margin');
+                }
+                method = 'privatePostUnifiedV3PrivatePositionSetLeverage';
+            } else {
+                method = 'privatePostContractV3PrivatePositionSetLeverage';
+            }
         } else {
-            return await this.setContractV3Leverage (leverage, symbol, params);
+            request = {
+                'symbol': market['id'],
+                'leverage': leverage,
+            };
+            method = 'privatePostOptionUsdcOpenapiPrivateV1PositionSetLeverage';
         }
+        return await this[method] (this.extend (request, params));
     }
 
     async setPositionMode (hedged, symbol = undefined, params = {}) {
@@ -6559,8 +6573,6 @@ module.exports = class bybit extends Exchange {
         const value = this.safeNumber2 (interest, 'open_interest', 'openInterest');
         return {
             'symbol': this.safeSymbol (market['id']),
-            'baseVolume': value,  // deprecated
-            'quoteVolume': undefined,  // deprecated
             'openInterestAmount': undefined,
             'openInterestValue': value,
             'timestamp': timestamp,
@@ -7023,8 +7035,7 @@ module.exports = class bybit extends Exchange {
                         url += '?' + this.urlencode (query);
                     }
                 }
-                const signature = this.hmac (this.encode (authFull), this.encode (this.secret));
-                headers['X-BAPI-SIGN'] = signature;
+                headers['X-BAPI-SIGN'] = this.hmac (this.encode (authFull), this.encode (this.secret));
             } else {
                 const query = this.extend (params, {
                     'api_key': this.apiKey,
