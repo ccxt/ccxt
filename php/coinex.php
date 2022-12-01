@@ -2551,6 +2551,7 @@ class coinex extends Exchange {
         //          $code => 0,
         //          $data => array(
         //            coin_address => '1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq',
+        //            // coin_address => 'xxxxxxxxxxxxxx:yyyyyyyyy', // with embedded tag/memo
         //            is_bitcoin_cash => false
         //          ),
         //          message => 'Success'
@@ -2590,12 +2591,21 @@ class coinex extends Exchange {
         //         is_bitcoin_cash => false
         //     }
         //
-        $address = $this->safe_string($depositAddress, 'coin_address');
+        $coinAddress = $this->safe_string($depositAddress, 'coin_address');
+        $parts = explode(':', $coinAddress);
+        $address = null;
+        $tag = null;
+        if (strlen($parts) > 1) {
+            $address = $parts[0];
+            $tag = $parts[1];
+        } else {
+            $address = $coinAddress;
+        }
         return array(
             'info' => $depositAddress,
             'currency' => $this->safe_currency_code(null, $currency),
             'address' => $address,
-            'tag' => null,
+            'tag' => $tag,
             'network' => null,
         );
     }
