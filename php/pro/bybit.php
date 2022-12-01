@@ -444,7 +444,7 @@ class bybit extends \ccxt\async\bybit {
         }
         $marketId = $this->safe_string_2($ticker, 'symbol', 's');
         $symbol = $this->safe_symbol($marketId, $market);
-        $last = $this->safe_string_n($ticker, array( 'l', 'last_price', 'lastPrice' ));
+        $last = $this->safe_string_n($ticker, array( 'c', 'last_price', 'lastPrice' ));
         $open = $this->safe_string_n($ticker, array( 'prev_price_24h', 'o', 'prevPrice24h' ));
         $quoteVolume = $this->safe_string_n($ticker, array( 'v', 'turnover24h' ));
         if ($quoteVolume === null) {
@@ -1273,11 +1273,17 @@ class bybit extends \ccxt\async\bybit {
         $symbols = is_array($marketSymbols) ? array_keys($marketSymbols) : array();
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
-            $messageHash = 'usertrade:' . $symbol . ':' . $topic;
+            $messageHash = 'usertrade:' . $symbol;
+            if ($topic) {
+                $messageHash .= ':' . $topic;
+            }
             $client->resolve ($trades, $messageHash);
         }
         // non-$symbol specific
-        $messageHash = 'usertrade:' . $topic;
+        $messageHash = 'usertrade';
+        if ($topic) {
+            $messageHash .= ':' . $topic;
+        }
         $client->resolve ($trades, $messageHash);
     }
 
@@ -1490,10 +1496,16 @@ class bybit extends \ccxt\async\bybit {
         $symbols = is_array($marketSymbols) ? array_keys($marketSymbols) : array();
         for ($i = 0; $i < count($symbols); $i++) {
             $symbol = $symbols[$i];
-            $messageHash = 'order:' . $symbol . ':' . $topic;
+            $messageHash = 'order:' . $symbol;
+            if ($topic) {
+                $messageHash .= ':' . $topic;
+            }
             $client->resolve ($orders, $messageHash);
         }
-        $messageHash = 'order:' . $topic;
+        $messageHash = 'order';
+        if ($topic) {
+            $messageHash .= ':' . $topic;
+        }
         // non-$symbol specific
         $client->resolve ($orders, $messageHash);
     }

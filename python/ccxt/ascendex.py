@@ -717,6 +717,26 @@ class ascendex(Exchange):
             result[code] = account
         return self.safe_balance(result)
 
+    def parse_margin_balance(self, response):
+        timestamp = self.milliseconds()
+        result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+        }
+        balances = self.safe_value(response, 'data', [])
+        for i in range(0, len(balances)):
+            balance = balances[i]
+            code = self.safe_currency_code(self.safe_string(balance, 'asset'))
+            account = self.account()
+            account['free'] = self.safe_string(balance, 'availableBalance')
+            account['total'] = self.safe_string(balance, 'totalBalance')
+            debt = self.safe_string(balance, 'borrowed')
+            interest = self.safe_string(balance, 'interest')
+            account['debt'] = Precise.string_add(debt, interest)
+            result[code] = account
+        return self.safe_balance(result)
+
     def parse_swap_balance(self, response):
         timestamp = self.milliseconds()
         result = {
@@ -742,7 +762,12 @@ class ascendex(Exchange):
         """
         self.load_markets()
         self.load_accounts()
+        query = None
+        marketType = None
         marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
+        isMargin = self.safe_value(params, 'margin', False)
+        marketType = 'margin' if isMargin else marketType
+        params = self.omit(params, 'margin')
         options = self.safe_value(self.options, 'fetchBalance', {})
         accountsByType = self.safe_value(self.options, 'accountsByType', {})
         accountCategory = self.safe_string(accountsByType, marketType, 'cash')
@@ -805,6 +830,8 @@ class ascendex(Exchange):
         #
         if marketType == 'swap':
             return self.parse_swap_balance(response)
+        elif marketType == 'margin':
+            return self.parse_margin_balance(response)
         else:
             return self.parse_balance(response)
 

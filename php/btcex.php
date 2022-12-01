@@ -1145,9 +1145,6 @@ class btcex extends Exchange {
         $type = $this->safe_string($order, 'order_type');
         // injected in createOrder
         $trades = $this->safe_value($order, 'trades');
-        if ($trades !== null) {
-            $trades = $this->parse_trades($trades, $market);
-        }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'time_in_force'));
         $stopPrice = $this->safe_value($order, 'trigger_price');
         $postOnly = $this->safe_value($order, 'post_only');

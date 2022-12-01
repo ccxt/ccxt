@@ -38,6 +38,8 @@ module.exports = class bibox extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': true,
+                'fetchDepositWithdrawFees': false,
                 'fetchLedger': true,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
@@ -78,14 +80,13 @@ module.exports = class bibox extends Exchange {
                 'api': {
                     'rest': 'https://api.{hostname}',
                 },
-                'www': 'https://www.bibox365.com',
+                'www': 'https://www.{hostname}',
                 'doc': [
                     'https://biboxcom.github.io/en/',
                     'https://biboxcom.github.io/v3/spot/en/',
                     'https://biboxcom.github.io/api/spot/v4',
                 ],
                 'fees': 'https://bibox.zendesk.com/hc/en-us/articles/360002336133',
-                'referral': 'https://w2.bibox365.com/login/register?invite_code=05Kj3I',
             },
             'api': {
                 'v1': {
@@ -321,6 +322,7 @@ module.exports = class bibox extends Exchange {
                 'APENFT(NFT)': 'NFT',
                 'BOX': 'DefiBox',
                 'BPT': 'BlockPool Token',
+                'BUSDT': 'USDT',
                 'GMT': 'GMT Token',
                 'KEY': 'Bihu',
                 'MTC': 'MTC Mesh Network', // conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
@@ -612,45 +614,69 @@ module.exports = class bibox extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.safeInteger2 (trade, 'time', 'createdAt');
-        let side = this.safeInteger2 (trade, 'side', 'order_side');
-        side = (side === 1) ? 'buy' : 'sell';
-        let marketId = this.safeString (trade, 'pair');
-        if (marketId === undefined) {
-            const baseId = this.safeString (trade, 'coin_symbol');
-            const quoteId = this.safeString (trade, 'currency_symbol');
-            if ((baseId !== undefined) && (quoteId !== undefined)) {
-                marketId = baseId + '_' + quoteId;
-            }
-        }
+        //
+        // fetchMyTrades
+        //
+        //    {
+        //        "i": 452361213188,
+        //        "o": 14284855094264759,       // The order id assigned by the exchange
+        //        "s": "ADA_USDT",              // trading pair code
+        //        "T": 1579458,
+        //        "t": 1653676917531,           // transaction time
+        //        "p": 0.45,                    // transaction price
+        //        "q": 10,                      // transaction volume
+        //        "l": "maker",                 // taker/maker
+        //        "f": {
+        //            "a": "ADA",               // transaction fee currency
+        //            "m": 0.010000000          // handling fee
+        //        }
+        //    }
+        //
+        // fetchTrades
+        //
+        //    {
+        //        "i": "17122255",              // transaction id
+        //        "p": "46125.7",               // transaction price
+        //        "q": "0.079045",              // transaction amount
+        //        "s": "buy",                   // taker's transaction direction
+        //        "t": "1628738748319"          // transaction time
+        //    }
+        //
+        const id = this.safeString (trade, 'i');
+        const marketId = this.safeString (trade, 's');
+        const timestamp = this.safeInteger (trade, 't');
+        const fee = this.safeValue (trade, 'f');
+        const feeCurrencyId = this.safeString (fee, 'a');
+        const amount = this.safeString (trade, 'q');
+        let transactionId = this.safeString (trade, 'T');
+        let side = 'buy';
+        const orderId = this.safeString (trade, 'o');
         market = this.safeMarket (marketId, market);
-        const priceString = this.safeString (trade, 'price');
-        const amountString = this.safeString (trade, 'amount');
-        let fee = undefined;
-        const feeCostString = this.safeString (trade, 'fee');
-        if (feeCostString !== undefined) {
-            const feeCurrencyId = this.safeString (trade, 'fee_symbol');
-            const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
-            fee = {
-                'cost': Precise.stringNeg (feeCostString),
-                'currency': feeCurrencyCode,
-            };
+        if (marketId === 'buy' || marketId === 'sell') {
+            side = marketId;
+        } else if (Precise.stringLt (amount, '0')) {
+            side = 'sell';
         }
-        const id = this.safeString (trade, 'id');
+        if (Precise.stringLt (id, '9999999999')) {
+            transactionId = id;
+        }
         return this.safeTrade ({
             'info': trade,
-            'id': id,
-            'order': undefined, // Bibox does not have it (documented) yet
+            'id': transactionId,
+            'order': orderId,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'symbol': market['symbol'],
-            'type': 'limit',
-            'takerOrMaker': undefined,
+            'type': undefined,
+            'takerOrMaker': this.safeString (trade, 'l', 'taker'),
             'side': side,
-            'price': priceString,
-            'amount': amountString,
+            'price': this.safeString (trade, 'p'),
+            'amount': amount,
             'cost': undefined,
-            'fee': fee,
+            'fee': {
+                'cost': this.safeString (fee, 'm'),
+                'currency': this.safeCurrencyCode (feeCurrencyId),
+            },
         }, market);
     }
 
@@ -659,23 +685,47 @@ module.exports = class bibox extends Exchange {
          * @method
          * @name bibox#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://biboxcom.github.io/api/spot/v4/en/#get-trades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
-         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve, default = 100, max = 1000
          * @param {object} params extra parameters specific to the bibox api endpoint
+         * @param {int|undefined} params.until the earliest time in ms to fetch trades for
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int|undefined} params.after transaction record id, limited to return the minimum id of transaction records
+         * @param {int|undefined} params.before transaction record id, limited to return the maximum id of transaction records
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const until = this.safeInteger (params, 'until');
         const request = {
-            'cmd': 'deals',
-            'pair': market['id'],
+            'symbol': market['id'],
         };
         if (limit !== undefined) {
-            request['size'] = limit; // default = 200
+            request['limit'] = limit; // default = 100
         }
-        const response = await this.v1PublicGetMdata (this.extend (request, params));
-        return this.parseTrades (response['result'], market, since, limit);
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        if (until !== undefined) {
+            request['end_time'] = until;
+        }
+        const response = await this.v4PublicGetMarketdataTrades (this.extend (request, params));
+        //
+        //    [
+        //        {
+        //          "i": "17122255",        // transaction id
+        //          "p": "46125.7",         // transaction price
+        //          "q": "0.079045",        // transaction amount
+        //          "s": "buy",             // taker's transaction direction
+        //          "t": "1628738748319"    // transaction time
+        //        },
+        //        ...
+        //    ]
+        //
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -802,9 +852,13 @@ module.exports = class bibox extends Exchange {
         //            ...
         //    }
         //
-        let result = this.safeValue (response, 'e');
+        let result = this.safeValue (response, 'e', []);
         if (result === undefined) {
-            result = response || [];
+            if (Array.isArray (response)) {
+                result = response;
+            } else {
+                result = [];
+            }
         }
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
@@ -966,6 +1020,8 @@ module.exports = class bibox extends Exchange {
                 'active': active,
                 'fee': undefined,
                 'precision': precision,
+                'withdraw': withdraw,
+                'deposit': deposit,
                 'limits': {
                     'amount': {
                         'min': precision,
@@ -983,6 +1039,8 @@ module.exports = class bibox extends Exchange {
 
     parseBalance (response) {
         //
+        // v4PrivateGetUserdataAccounts (spot)
+        //
         //    [
         //        {
         //            "s": "USDT",              // asset code
@@ -992,14 +1050,28 @@ module.exports = class bibox extends Exchange {
         //        ...
         //    ]
         //
+        // v3.1PrivatePostTransferMainAssets (funding)
+        //
+        //    [
+        //        {
+        //            coin_symbol: 'ETHW',
+        //            BTCValue: '0.00036926',
+        //            CNYValue: '53.61898578',
+        //            USDValue: '7.58403021',
+        //            balance: '1.14228556',
+        //            freeze: '0.00000000'
+        //        },
+        //        ...
+        //    ]
+        //
         const result = { 'info': response };
         for (let i = 0; i < response.length; i++) {
             const balance = response[i];
-            const currencyId = this.safeString (balance, 's');
+            const currencyId = this.safeString2 (balance, 's', 'coin_symbol');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeString (balance, 'a');
-            account['used'] = this.safeString (balance, 'h');
+            account['free'] = this.safeString2 (balance, 'a', 'balance');
+            account['used'] = this.safeString2 (balance, 'h', 'freeze');
             result[code] = account;
         }
         return this.safeBalance (result);
@@ -1011,30 +1083,64 @@ module.exports = class bibox extends Exchange {
          * @name bibox#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://biboxcom.github.io/api/spot/v4/en/#get-accounts
+         * @see https://biboxcom.github.io/api/spot/v3/en/#wallet-assets
          * @param {object} params extra parameters specific to the bibox api endpoint
-         * @param {str} params.code unified currency code
+         * @param {str} params.code unified currency code (v4 only)
+         * @param {str|undefined} params.type 'funding' (v3), or 'spot' (v4)
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const code = this.safeString (params, 'code');
-        params = this.omit (params, 'code');
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
         const request = {};
-        if (code !== undefined) {
-            const currency = this.currency (code);
-            request['asset'] = currency['id'];
+        let balanceList = undefined;
+        if (marketType === 'spot') {
+            const code = this.safeString (query, 'code');
+            const requestParams = this.omit (query, 'code');
+            if (code !== undefined) {
+                const currency = this.currency (code);
+                request['asset'] = currency['id'];
+            }
+            balanceList = await this.v4PrivateGetUserdataAccounts (this.extend (request, requestParams));
+            //
+            //    [
+            //        {
+            //            "s": "USDT",              // asset code
+            //            "a": 2.6617573979,        // available amount
+            //            "h": 0                    // frozen amount
+            //        },
+            //        ...
+            //    ]
+            //
+        } else if ((marketType === 'main') || (marketType === 'wallet') || (marketType === 'funding')) {
+            const method = 'v3.1PrivatePostTransferMainAssets';
+            request['select'] = 1; // 0-Total assets of each currency, 1-Request asset details of all currencies
+            const response = await this[method] (this.extend (request, query));
+            //
+            //    {
+            //        result: {
+            //            total_btc: '0.01',
+            //            total_cny: 'xxx',
+            //            total_usd: 'xxx',
+            //            assets_list: [
+            //                {
+            //                    coin_symbol: 'ETHW',
+            //                    BTCValue: '0.00036926',
+            //                    CNYValue: '53.61898578',
+            //                    USDValue: '7.58403021',
+            //                    balance: '1.14228556',
+            //                    freeze: '0.00000000'
+            //                },
+            //                ...
+            //            ]
+            //        },
+            //        cmd: 'mainAssets',
+            //        state: '0'
+            //    }
+            //
+            const result = this.safeValue (response, 'result', {});
+            balanceList = this.safeValue (result, 'assets_list', []);
         }
-        const response = await this.v4PrivateGetUserdataAccounts (this.extend (request, params));
-        //
-        //    [
-        //        {
-        //            "s": "USDT",              // asset code
-        //            "a": 2.6617573979,        // available amount
-        //            "h": 0                    // frozen amount
-        //        },
-        //        ...
-        //    ]
-        //
-        return this.parseBalance (response);
+        return this.parseBalance (balanceList);
     }
 
     parseLedgerEntry (item, currency = undefined) {
@@ -1138,6 +1244,7 @@ module.exports = class bibox extends Exchange {
          * @method
          * @name bibox#fetchDeposits
          * @description fetch all deposits made to an account
+         * @see https://biboxcom.github.io/api/spot/v3/en/#query-deposit-records
          * @param {string|undefined} code unified currency code
          * @param {int|undefined} since not used by bibox
          * @param {int|undefined} limit the maximum number of deposits structures to retrieve, max=50, default=50
@@ -1201,94 +1308,96 @@ module.exports = class bibox extends Exchange {
          * @method
          * @name bibox#fetchWithdrawals
          * @description fetch all withdrawals made from an account
+         * @see https://biboxcom.github.io/api/spot/v3/en/#query-withdrawal-records
          * @param {string|undefined} code unified currency code
-         * @param {int|undefined} since the earliest time in ms to fetch withdrawals for
-         * @param {int|undefined} limit the maximum number of withdrawals structures to retrieve
+         * @param {int|undefined} since not used by bibox
+         * @param {int|undefined} limit the maximum number of deposits structures to retrieve, max=50, default=50
          * @param {object} params extra parameters specific to the bibox api endpoint
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {int} params.page page number, default=1
+         * @param {string|undefined} params.filter_type withdrawal record screening, -2: failed review; -1: user cancelled; 0: pending review; 1: approved (to be issued currency); 2: currency issued; 3: currency issued complete
          * @returns {[object]} a list of [transaction structures]{@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure}
          */
         await this.loadMarkets ();
         if (limit === undefined) {
-            limit = 100;
+            limit = 50;
         }
+        const page = this.safeInteger (params, 'page', 1);
         const request = {
-            'page': 1,
+            'page': page,
             'size': limit,
         };
         let currency = undefined;
         if (code !== undefined) {
             currency = this.currency (code);
-            request['symbol'] = currency['id'];
+            request['coin_symbol'] = currency['id'];
         }
-        const response = await this.v1PrivatePostTransfer ({
-            'cmd': 'transfer/transferOutList',
-            'body': this.extend (request, params),
-        });
+        const method = 'v3.1PrivatePostTransferTransferOutList';
+        const response = await this[method] (this.extend (request, params));
         //
-        //     {
-        //         "result":[
-        //             {
-        //                 "result":{
-        //                     "count":1,
-        //                     "page":1,
-        //                     "items":[
-        //                         {
-        //                             "id":612867,
-        //                             "coin_symbol":"ETH",
-        //                             "chain_type":"ETH",
-        //                             "to_address":"0xd41de7a88ab5fc59edc6669f54873576be95bff1",
-        //                             "tx_id":"0xc60950596227af3f27c3a1b5911ea1c79bae53bdce67274e48a0ce87a5ef2df8",
-        //                             "addr_remark":"binance",
-        //                             "amount":"2.34550946",
-        //                             "fee":"0.00600000",
-        //                             "createdAt":1561339330000,
-        //                             "memo":"",
-        //                             "status":3
-        //                         }
-        //                     ]
-        //                 },
-        //                 "cmd":"transfer/transferOutList"
-        //             }
-        //         ]
-        //     }
+        //    {
+        //        result: {
+        //            count: '5',
+        //            page: '1',
+        //            items: [
+        //                {
+        //                    id: '3553023',
+        //                    coin_symbol: 'bUSDT',
+        //                    chain_type: 'BEP20(BSC)',
+        //                    to_address: '0xf1458ba28073b056e9666c4b2bbbc60451cda0fd',
+        //                    tx_id: '0x2f2319c4ae804893369aeeeef06dd429abf2833b61290ea2bd63ec0e363ebce6',
+        //                    addr_remark: '',
+        //                    amount: '54.08252000',
+        //                    fee: '0.50000000',
+        //                    createdAt: '1666324662000',
+        //                    memo: '',
+        //                    status: '3'
+        //                },
+        //                ...
+        //            ]
+        //        },
+        //        cmd: 'transferOutList',
+        //        state: '0'
+        //    }
         //
-        const outerResults = this.safeValue (response, 'result');
-        const firstResult = this.safeValue (outerResults, 0, {});
-        const innerResult = this.safeValue (firstResult, 'result', {});
-        const withdrawals = this.safeValue (innerResult, 'items', []);
-        for (let i = 0; i < withdrawals.length; i++) {
-            withdrawals[i]['type'] = 'withdrawal';
+        const result = this.safeValue (response, 'result');
+        const items = this.safeValue (result, 'items');
+        for (let i = 0; i < items.length; i++) {
+            items[i]['type'] = 'withdrawal';
         }
-        return this.parseTransactions (withdrawals, currency, since, limit);
+        return this.parseTransactions (items, currency, since, limit);
     }
 
     parseTransaction (transaction, currency = undefined) {
         //
         // fetchDeposits
         //
-        //     {
-        //         'id': 1023291,
-        //         'coin_symbol': 'ETH',
-        //         'to_address': '0x7263....',
-        //         'amount': '0.49170000',
-        //         'confirmCount': '16',
-        //         'createdAt': 1553123867000,
-        //         'status': 2
-        //     }
+        //    {
+        //        id: '3553023',
+        //        coin_symbol: 'bUSDT',
+        //        chain_type: 'BEP20(BSC)',
+        //        to_address: '0xf1458ba28073b056e9666c4b2bbbc60451cda0fd',
+        //        tx_id: '0x2f2319c4ae804893369aeeeef06dd429abf2833b61290ea2bd63ec0e363ebce6',
+        //        addr_remark: '',                                                              // fetchWithawals only
+        //        amount: '14.71000000',
+        //        fee: '0.50000000',                                                            // fetchWithdrawals only
+        //        confirmCount: '14',
+        //        createdAt: '1663367581000',
+        //        memo: '',                                                                     // fetchWithdrawals only
+        //        status: '2'
+        //    }
         //
-        // fetchWithdrawals
-        //
-        //     {
-        //         'id': 521844,
-        //         'coin_symbol': 'ETH',
-        //         'to_address': '0xfd4e....',
-        //         'addr_remark': '',
-        //         'amount': '0.39452750',
-        //         'fee': '0.00600000',
-        //         'createdAt': 1553226906000,
-        //         'memo': '',
-        //         'status': 3
-        //     }
+        //    {
+        //        id: '3553023',
+        //        coin_symbol: 'bUSDT',
+        //        chain_type: 'BEP20(BSC)',
+        //        to_address: '0xf1458ba28073b056e9666c4b2bbbc60451cda0fd',
+        //        tx_id: '0x2f2319c4ae804893369aeeeef06dd429abf2833b61290ea2bd63ec0e363ebce6',
+        //        amount: '54.08252000',
+        //        createdAt: '1666324662000',
+        //        status: '3'
+        //    }
         //
         // withdraw
         //
@@ -1297,14 +1406,12 @@ module.exports = class bibox extends Exchange {
         //         "cmd":"transfer/transferOut"
         //     }
         //
-        const id = this.safeString2 (transaction, 'id', 'result');
         const address = this.safeString (transaction, 'to_address');
         const currencyId = this.safeString (transaction, 'coin_symbol');
         const code = this.safeCurrencyCode (currencyId, currency);
         const timestamp = this.safeInteger (transaction, 'createdAt');
         let tag = this.safeString (transaction, 'addr_remark');
         const type = this.safeString (transaction, 'type');
-        const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         const amount = this.safeNumber (transaction, 'amount');
         let feeCost = this.safeNumber (transaction, 'fee');
         if (type === 'deposit') {
@@ -1317,13 +1424,13 @@ module.exports = class bibox extends Exchange {
         };
         return {
             'info': transaction,
-            'id': id,
-            'txid': undefined,
+            'id': this.safeString2 (transaction, 'id', 'result'),
+            'txid': this.safeString (transaction, 'tx_id'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': undefined,
+            'network': this.safeString (transaction, 'chain_type'),
             'address': address,
-            'addressTo': undefined,
+            'addressTo': address,
             'addressFrom': undefined,
             'tag': tag,
             'tagTo': undefined,
@@ -1331,7 +1438,7 @@ module.exports = class bibox extends Exchange {
             'type': type,
             'amount': amount,
             'currency': code,
-            'status': status,
+            'status': this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type),
             'updated': undefined,
             'fee': fee,
         };
@@ -1774,63 +1881,64 @@ module.exports = class bibox extends Exchange {
          * @method
          * @name bibox#fetchMyTrades
          * @description fetch all trades made by the user
-         * @param {string} symbol unified market symbol
+         * @see https://biboxcom.github.io/api/spot/v4/en/#get-fills
+         * @param {string|undefined} symbol unified market symbol, if not given, please provide params['order_id']
          * @param {int|undefined} since the earliest time in ms to fetch trades for
-         * @param {int|undefined} limit the maximum number of trades structures to retrieve
+         * @param {int|undefined} limit the maximum number of trades structures to retrieve, default = 100
          * @param {object} params extra parameters specific to the bibox api endpoint
+         * @param {int|undefined} params.until the earliest time in ms to fetch trades for
+         *
+         * EXCHANGE SPECIFIC PARAMETERS
+         * @param {string|undefined} params.order_id the order id assigned by the exchange only return the transaction records of the specified order, if this parameter is not specified, please specify symbol
+         * @param {int|undefined} params.after transaction record id, limited to return the minimum id of transaction records
+         * @param {int|undefined} params.before transaction record id, limited to return the maximum id of transaction records
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a `symbol` argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const size = limit ? limit : 200;
-        const request = {
-            'cmd': 'orderpending/orderHistoryList',
-            'body': this.extend ({
-                'pair': market['id'],
-                'account_type': 0, // 0 - regular, 1 - margin
-                'page': 1,
-                'size': size,
-                'coin_symbol': market['baseId'],
-                'currency_symbol': market['quoteId'],
-            }, params),
-        };
-        const response = await this.v1PrivatePostOrderpending (request);
+        let market = undefined;
+        const request = {};
+        const until = this.safeInteger (params, 'until');
+        params = this.omit (params, 'until');
+        if (symbol === undefined) {
+            const orderId = this.safeString (params, 'order_id');
+            if (orderId === undefined) {
+                throw new ArgumentsRequired (this.id + ' fetchMyTrades requires either a symbol parameter of params["order_id"]');
+            }
+        }
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            request['symbol'] = market['id'];
+        }
+        if (since !== undefined) {
+            request['start_time'] = since;
+        }
+        if (limit !== undefined) {
+            request['limit'] = limit;
+        }
+        if (until !== undefined) {
+            request['end_time'] = until;
+        }
+        const response = await this.v4PrivateGetUserdataFills (this.extend (request, params));
         //
-        //     {
-        //         "result":[
-        //             {
-        //                 "result":{
-        //                     "count":1,
-        //                     "page":1,
-        //                     "items":[
-        //                         {
-        //                             "id":"100055558128033",
-        //                             "createdAt": 1512756997000,
-        //                             "account_type":0,
-        //                             "coin_symbol":"LTC",
-        //                             "currency_symbol":"BTC",
-        //                             "order_side":2,
-        //                             "order_type":2,
-        //                             "price":"0.00886500",
-        //                             "amount":"1.00000000",
-        //                             "money":"0.00886500",
-        //                             "fee":0
-        //                         }
-        //                     ]
-        //                 },
-        //                 "cmd":"orderpending/orderHistoryList"
-        //             }
-        //         ]
-        //     }
+        //    [
+        //        {
+        //            "i": 452361213188,
+        //            "o": 14284855094264759,
+        //            "s": "ADA_USDT",
+        //            "T": 1579458,
+        //            "t": 1653676917531,
+        //            "p": 0.45,
+        //            "q": 10,
+        //            "l": "maker",
+        //            "f": {
+        //                "a": "ADA",
+        //                "m": 0.010000000
+        //            }
+        //        }
+        //        ...
+        //    ]
         //
-        const outerResults = this.safeValue (response, 'result');
-        const firstResult = this.safeValue (outerResults, 0, {});
-        const innerResult = this.safeValue (firstResult, 'result', {});
-        const trades = this.safeValue (innerResult, 'items', []);
-        return this.parseTrades (trades, market, since, limit);
+        return this.parseTrades (response, market, since, limit);
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -1945,7 +2053,7 @@ module.exports = class bibox extends Exchange {
         /**
          * @method
          * @name bibox#fetchTransactionFees
-         * @description fetch transaction fees
+         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
          * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the bibox api endpoint
          * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
@@ -2000,6 +2108,81 @@ module.exports = class bibox extends Exchange {
             'info': info,
             'withdraw': withdrawFees,
             'deposit': {},
+        };
+    }
+
+    async fetchDepositWithdrawFee (code, params = {}) {
+        /**
+         * @method
+         * @name bibox#fetchDepositWithdrawFee
+         * @description fetch withdrawal fees for currencies
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the bibox api endpoint
+         * @returns {object} a [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'cmd': 'transfer/coinConfig',
+            'body': this.extend ({
+                'coin_symbol': currency['id'],
+            }, params),
+        };
+        const response = await this.v1PrivatePostTransfer (request);
+        //
+        //    {
+        //        "result": [
+        //            {
+        //                "result": [
+        //                    {
+        //                        "coin_symbol": "ETH",
+        //                        "is_active": 1,
+        //                        "original_decimals": 18,
+        //                        "enable_deposit": 1,
+        //                        "enable_withdraw": 1,
+        //                        "withdraw_fee": 0.008,
+        //                        "withdraw_min": 0.05,
+        //                        "deposit_avg_spent": 173700,
+        //                        "withdraw_avg_spent": 322600
+        //                    }
+        //                ],
+        //                "cmd": "transfer/coinConfig"
+        //            }
+        //        ]
+        //    }
+        //
+        const outerResults = this.safeValue (response, 'result', []);
+        const firstOuterResult = this.safeValue (outerResults, 0, {});
+        const innerResults = this.safeValue (firstOuterResult, 'result', []);
+        const firstInnerResult = this.safeValue (innerResults, 0, {});
+        return this.parseDepositWithdrawFee (firstInnerResult, currency);
+    }
+
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        //
+        //    {
+        //        "coin_symbol": "ETH",
+        //        "is_active": 1,
+        //        "original_decimals": 18,
+        //        "enable_deposit": 1,
+        //        "enable_withdraw": 1,
+        //        "withdraw_fee": 0.008,
+        //        "withdraw_min": 0.05,
+        //        "deposit_avg_spent": 173700,
+        //        "withdraw_avg_spent": 322600
+        //    }
+        //
+        return {
+            'info': fee,
+            'withdraw': {
+                'fee': this.safeNumber (fee, 'withdraw_fee'),
+                'percentage': undefined,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
         };
     }
 

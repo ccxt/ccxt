@@ -55,6 +55,8 @@ class bkex(Exchange):
                 'fetchDepositAddresses': None,
                 'fetchDepositAddressesByNetwork': None,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': None,
                 'fetchFundingRate': None,
                 'fetchFundingRateHistory': None,
@@ -90,8 +92,8 @@ class bkex(Exchange):
                 'fetchTradingFee': False,
                 'fetchTradingFees': False,
                 'fetchTradingLimits': None,
-                'fetchTransactionFee': None,
-                'fetchTransactionFees': None,
+                'fetchTransactionFee': 'emulated',
+                'fetchTransactionFees': True,
                 'fetchTransactions': None,
                 'fetchTransfer': False,
                 'fetchTransfers': False,
@@ -1264,6 +1266,135 @@ class bkex(Exchange):
             'STOP_LIMIT': 'limit',
         }
         return self.safe_string(statuses, status, status)
+
+    def fetch_transaction_fees(self, codes=None, params={}):
+        """
+        *DEPRECATED* please use fetchDepositWithdrawFees instead
+        see https://bkexapi.github.io/docs/api_en.htm?shell#basicInformation-2
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the bkex api endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        self.load_markets()
+        response = self.publicGetCommonCurrencys(params)
+        #
+        #      {
+        #          "msg": "success",
+        #          "code": "0",
+        #          "data": [
+        #            {
+        #              "currency": "ETH",
+        #              "maxWithdrawOneDay": 2000,
+        #              "maxWithdrawSingle": 2000,
+        #              "minWithdrawSingle": 0.1,
+        #              "supportDeposit": True,
+        #              "supportTrade": True,
+        #              "supportWithdraw": True,
+        #              "withdrawFee": 0.008
+        #            },
+        #            {
+        #              "currency": "BTC",
+        #              "maxWithdrawOneDay": 100,
+        #              "maxWithdrawSingle": 100,
+        #              "minWithdrawSingle": 0.01,
+        #              "supportDeposit": True,
+        #              "supportTrade": True,
+        #              "supportWithdraw": True,
+        #              "withdrawFee": 0.008
+        #            }
+        #          ]
+        #      }
+        #
+        return self.parse_transaction_fees(response, codes)
+
+    def parse_transaction_fees(self, response, codes=None):
+        data = self.safe_value(response, 'data')
+        result = {}
+        for i in range(0, len(data)):
+            entry = data[i]
+            currencyId = self.safe_string(entry, 'currency')
+            currency = self.safe_currency(currencyId)
+            code = self.safe_string(currency, 'code')
+            if (codes is None) or (self.in_array(code, codes)):
+                result[code] = {
+                    'withdraw': self.parse_transaction_fee(entry),
+                    'deposit': None,
+                    'info': entry,
+                }
+        return result
+
+    def parse_transaction_fee(self, transaction, currency=None):
+        #
+        #      {
+        #          "currency": "ETH",
+        #          "maxWithdrawOneDay": 2000,
+        #          "maxWithdrawSingle": 2000,
+        #          "minWithdrawSingle": 0.1,
+        #          "supportDeposit": True,
+        #          "supportTrade": True,
+        #          "supportWithdraw": True,
+        #          "withdrawFee": 0.008
+        #      }
+        #
+        return self.safe_number(transaction, 'withdrawFee')
+
+    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://bkexapi.github.io/docs/api_en.htm?shell#basicInformation-2
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the bkex api endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        self.load_markets()
+        response = self.publicGetCommonCurrencys(params)
+        #
+        #    {
+        #        "msg": "success",
+        #        "code": "0",
+        #        "data": [
+        #            {
+        #                "currency": "ETH",
+        #                "maxWithdrawOneDay": 2000,
+        #                "maxWithdrawSingle": 2000,
+        #                "minWithdrawSingle": 0.1,
+        #                "supportDeposit": True,
+        #                "supportTrade": True,
+        #                "supportWithdraw": True,
+        #                "withdrawFee": 0.008
+        #            },
+        #            {
+        #                "currency": "BTC",
+        #                "maxWithdrawOneDay": 100,
+        #                "maxWithdrawSingle": 100,
+        #                "minWithdrawSingle": 0.01,
+        #                "supportDeposit": True,
+        #                "supportTrade": True,
+        #                "supportWithdraw": True,
+        #                "withdrawFee": 0.008
+        #            }
+        #        ]
+        #    }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_deposit_withdraw_fees(data, codes, 'currency')
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        #      {
+        #          "currency": "ETH",
+        #          "maxWithdrawOneDay": 2000,
+        #          "maxWithdrawSingle": 2000,
+        #          "minWithdrawSingle": 0.1,
+        #          "supportDeposit": True,
+        #          "supportTrade": True,
+        #          "supportWithdraw": True,
+        #          "withdrawFee": 0.008
+        #      }
+        #
+        result = self.deposit_withdraw_fee(fee)
+        result['withdraw']['fee'] = self.safe_number(fee, 'withdrawFee')
+        return result
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         url = self.urls['api'][api] + '/' + self.version + self.implode_params(path, params)

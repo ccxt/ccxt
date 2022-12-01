@@ -49,6 +49,8 @@ module.exports = class bkex extends Exchange {
                 'fetchDepositAddresses': undefined,
                 'fetchDepositAddressesByNetwork': undefined,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': undefined,
                 'fetchFundingRate': undefined,
                 'fetchFundingRateHistory': undefined,
@@ -84,8 +86,8 @@ module.exports = class bkex extends Exchange {
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
                 'fetchTradingLimits': undefined,
-                'fetchTransactionFee': undefined,
-                'fetchTransactionFees': undefined,
+                'fetchTransactionFee': 'emulated',
+                'fetchTransactionFees': true,
                 'fetchTransactions': undefined,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
@@ -1362,6 +1364,146 @@ module.exports = class bkex extends Exchange {
             'STOP_LIMIT': 'limit',
         };
         return this.safeString (statuses, status, status);
+    }
+
+    async fetchTransactionFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name bkex#fetchTransactionFees
+         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
+         * @see https://bkexapi.github.io/docs/api_en.htm?shell#basicInformation-2
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the bkex api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.publicGetCommonCurrencys (params);
+        //
+        //      {
+        //          "msg": "success",
+        //          "code": "0",
+        //          "data": [
+        //            {
+        //              "currency": "ETH",
+        //              "maxWithdrawOneDay": 2000,
+        //              "maxWithdrawSingle": 2000,
+        //              "minWithdrawSingle": 0.1,
+        //              "supportDeposit": true,
+        //              "supportTrade": true,
+        //              "supportWithdraw": true,
+        //              "withdrawFee": 0.008
+        //            },
+        //            {
+        //              "currency": "BTC",
+        //              "maxWithdrawOneDay": 100,
+        //              "maxWithdrawSingle": 100,
+        //              "minWithdrawSingle": 0.01,
+        //              "supportDeposit": true,
+        //              "supportTrade": true,
+        //              "supportWithdraw": true,
+        //              "withdrawFee": 0.008
+        //            }
+        //          ]
+        //      }
+        //
+        return this.parseTransactionFees (response, codes);
+    }
+
+    parseTransactionFees (response, codes = undefined) {
+        const data = this.safeValue (response, 'data');
+        const result = {};
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const currencyId = this.safeString (entry, 'currency');
+            const currency = this.safeCurrency (currencyId);
+            const code = this.safeString (currency, 'code');
+            if ((codes === undefined) || (this.inArray (code, codes))) {
+                result[code] = {
+                    'withdraw': this.parseTransactionFee (entry),
+                    'deposit': undefined,
+                    'info': entry,
+                };
+            }
+        }
+        return result;
+    }
+
+    parseTransactionFee (transaction, currency = undefined) {
+        //
+        //      {
+        //          "currency": "ETH",
+        //          "maxWithdrawOneDay": 2000,
+        //          "maxWithdrawSingle": 2000,
+        //          "minWithdrawSingle": 0.1,
+        //          "supportDeposit": true,
+        //          "supportTrade": true,
+        //          "supportWithdraw": true,
+        //          "withdrawFee": 0.008
+        //      }
+        //
+        return this.safeNumber (transaction, 'withdrawFee');
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name bkex#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://bkexapi.github.io/docs/api_en.htm?shell#basicInformation-2
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the bkex api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.publicGetCommonCurrencys (params);
+        //
+        //    {
+        //        "msg": "success",
+        //        "code": "0",
+        //        "data": [
+        //            {
+        //                "currency": "ETH",
+        //                "maxWithdrawOneDay": 2000,
+        //                "maxWithdrawSingle": 2000,
+        //                "minWithdrawSingle": 0.1,
+        //                "supportDeposit": true,
+        //                "supportTrade": true,
+        //                "supportWithdraw": true,
+        //                "withdrawFee": 0.008
+        //            },
+        //            {
+        //                "currency": "BTC",
+        //                "maxWithdrawOneDay": 100,
+        //                "maxWithdrawSingle": 100,
+        //                "minWithdrawSingle": 0.01,
+        //                "supportDeposit": true,
+        //                "supportTrade": true,
+        //                "supportWithdraw": true,
+        //                "withdrawFee": 0.008
+        //            }
+        //        ]
+        //    }
+        //
+        const data = this.safeValue (response, 'data');
+        return this.parseDepositWithdrawFees (data, codes, 'currency');
+    }
+
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        //
+        //      {
+        //          "currency": "ETH",
+        //          "maxWithdrawOneDay": 2000,
+        //          "maxWithdrawSingle": 2000,
+        //          "minWithdrawSingle": 0.1,
+        //          "supportDeposit": true,
+        //          "supportTrade": true,
+        //          "supportWithdraw": true,
+        //          "withdrawFee": 0.008
+        //      }
+        //
+        const result = this.depositWithdrawFee (fee);
+        result['withdraw']['fee'] = this.safeNumber (fee, 'withdrawFee');
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
