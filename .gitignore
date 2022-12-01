@@ -35,4 +35,3 @@ python/LICENSE.txt
 .cache
 *.log
 *.un~
-/js/test/test-all.js
