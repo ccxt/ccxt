@@ -158,6 +158,7 @@ module.exports = class whitebit extends Exchange {
                             'trade-account/order/history',
                             'order/collateral/limit',
                             'order/collateral/market',
+                            'order/collateral/stop-limit',
                             'order/collateral/trigger-market',
                             'order/collateral/oco',
                             'order/new',
@@ -1113,9 +1114,17 @@ module.exports = class whitebit extends Exchange {
                         request['stop_limit_price'] = this.priceToPrecision (symbol, stopLimitPrice);
                     }
                 } else {
-                    // stop limit order
-                    method = 'v4PrivatePostOrderStopLimit';
-                    request['price'] = this.priceToPrecision (symbol, price);
+                    if (marginMode !== undefined) {
+                        if (marginMode !== 'cross') {
+                            throw new NotSupported (this.id + ' createOrder() is only available for cross margin');
+                        }
+                        method = 'v4PrivatePostOrderCollateralStopLimit'
+                        request['price'] = this.priceToPrecision (symbol, price);
+                    } else {
+                        // stop limit order
+                        method = 'v4PrivatePostOrderStopLimit';
+                        request['price'] = this.priceToPrecision (symbol, price);
+                    }
                 }
             } else {
                 if (marginMode !== undefined) {
@@ -1156,37 +1165,7 @@ module.exports = class whitebit extends Exchange {
         return this.parseOrder (this.extend (response, { 'postOnly': postOnly }));
     }
 
-    async cancelOrder (id, symbol = undefined, params = {}) {
-        /**
-         * @method
-         * @name whitebit#cancelOrder
-         * @description cancels an open order
-         * @param {string} id order id
-         * @param {string} symbol unified symbol of the market the order was made in
-         * @param {object} params extra parameters specific to the whitebit api endpoint
-         * @param {object} params.type 'oco' - to cancel oco order
-         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
-         */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
-        }
-        const type = this.safeString (params, 'type');
-        if (type !== undefined && type !== 'oco') {
-            throw new InvalidOrder (this.id + ' cancelOrder() only \'oco\' type is allowed');
-        }
-        let method = '';
-        if (type === 'oco') {
-            method = 'v4PrivatePostOrderOcoCancel';
-        } else {
-            method = 'v4PrivatePostOrderCancel';
-        }
-        await this.loadMarkets ();
-        const market = this.market (symbol);
-        const request = {
-            'market': market['id'],
-            'orderId': parseInt (id),
-        };
-        return await this[method] (this.extend (request, params));
+ {
     }
 
     parseBalance (response) {
@@ -1207,46 +1186,10 @@ module.exports = class whitebit extends Exchange {
         return this.safeBalance (result);
     }
 
-    async fetchBalance (params = {}) {
-        /**
-         * @method
-         * @name whitebit#fetchBalance
-         * @description query for balance and get the amount of funds available for trading or funds locked in orders
-         * @param {object} params extra parameters specific to the whitebit api endpoint
-         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
-         */
-        await this.loadMarkets ();
-        const mainBalance = await this.v4PrivatePostMainAccountBalance (params);
-        const tradeBalance = await this.v4PrivatePostTradeAccountBalance (params);
-        const result = this.extend (mainBalance, tradeBalance);
-        // Main balance (no params)
-        //      {
-        //          "BTC": { "main_balance": "1" },
-        //          "USDT": { "main_balance": "200" },
-        //      }
-        //
-        // Main balance (with ticker params)
-        //      { "main_balance": "1" }
-        //
-        // Trade balance (no params)
-        //     {
-        //         "BTC": { "available": "0.123", "freeze": "1" },
-        //         "XMR": { "available": "3013", "freeze": "100" },
-        //     }
-        //
-        // Trade balance (with ticker params)
-        //     { "available": "0.123", "freeze": "1" }
-        //
-        const code = this.safeValue (params, 'ticker');
-        if (code === undefined) {
-            return this.parseBalance (result);
-        }
-        const hash = {};
-        hash[code] = result;
-        return this.parseBalance (hash);
+ {
     }
 
-    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+ {
         /**
          * @method
          * @name whitebit#fetchOpenOrders
