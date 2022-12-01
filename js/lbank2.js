@@ -41,6 +41,8 @@ module.exports = class lbank2 extends Exchange {
                 'fetchBorrowRates': false,
                 'fetchBorrowRatesPerSymbol': false,
                 'fetchClosedOrders': false,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -190,8 +192,11 @@ module.exports = class lbank2 extends Exchange {
                 'fetchTrades': {
                     'method': 'publicGetTrades', // or 'publicGetTradesSupplement'
                 },
-                'fetchTransactionFees': {
+                'fetchTransactionFees': {   // DEPRECATED, please use fetchDepositWithdrawFees
                     'method': 'fetchPrivateTransactionFees', // or 'fetchPublicTransactionFees'
+                },
+                'fetchDepositWithdrawFees': {
+                    'method': 'fetchPrivateDepositWithdrawFees', // or 'fetchPublicDepositWithdrawFees'
                 },
                 'fetchDepositAddress': {
                     'method': 'fetchDepositAddressDefault', // or fetchDepositAddressSupplement
@@ -1658,14 +1663,14 @@ module.exports = class lbank2 extends Exchange {
         const fee = this.safeString (params, 'fee');
         params = this.omit (params, 'fee');
         if (fee === undefined) {
-            throw new ArgumentsRequired (this.id + ' withdraw () requires a fee argument to be supplied in params, the relevant coin network fee can be found by calling fetchTransactionFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchTransactionFees ()');
+            throw new ArgumentsRequired (this.id + ' withdraw () requires a fee argument to be supplied in params, the relevant coin network fee can be found by calling fetchDepositWithdrawFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchDepositWithdrawFees ()');
         }
         const currency = this.currency (code);
         const request = {
             'address': address,
             'coin': currency['id'],
             'amount': amount,
-            'fee': fee, // the correct coin-network fee must be supplied, which can be found by calling fetchTransactionFees (private)
+            'fee': fee, // the correct coin-network fee must be supplied, which can be found by calling fetchDepositWithdrawFees (private)
             // 'networkName': defaults to the defaultNetwork of the coin which can be found in the /supplement/user_info endpoint
             // 'memo': memo: memo word of bts and dct
             // 'mark': Withdrawal Notes
@@ -1921,7 +1926,7 @@ module.exports = class lbank2 extends Exchange {
         /**
          * @method
          * @name lbank2#fetchTransactionFees
-         * @description fetch transaction fees
+         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
          * @param {[string]|undefined} codes not used by lbank2 fetchTransactionFees ()
          * @param {object} params extra parameters specific to the lbank2 api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
@@ -2041,7 +2046,7 @@ module.exports = class lbank2 extends Exchange {
         const withdrawFees = {};
         for (let i = 0; i < result.length; i++) {
             const item = result[i];
-            const canWithdraw = this.safeString (item, 'canWithDraw');
+            const canWithdraw = this.safeValue (item, 'canWithDraw');
             if (canWithdraw === 'true') {
                 const currencyId = this.safeString (item, 'assetCode');
                 const code = this.safeCurrencyCode (currencyId);
@@ -2062,6 +2067,217 @@ module.exports = class lbank2 extends Exchange {
             'deposit': {},
             'info': response,
         };
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name lbank2#fetchDepositWithdrawFees
+         * @description when using private endpoint, only returns information for currencies with non-zero balance, use public method by specifying this.options['fetchDepositWithdrawFees']['method'] = 'fetchPublicDepositWithdrawFees'
+         * @param {[string]|undefined} codes array of unified currency codes
+         * @param {object} params extra parameters specific to the lbank2 api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const isAuthorized = this.checkRequiredCredentials (false);
+        let method = undefined;
+        if (isAuthorized === true) {
+            method = this.safeString (params, 'method');
+            params = this.omit (params, 'method');
+            if (method === undefined) {
+                const options = this.safeValue (this.options, 'fetchDepositWithdrawFees', {});
+                method = this.safeString (options, 'method', 'fetchPrivateDepositWithdrawFees');
+            }
+        } else {
+            method = 'fetchPublicDepositWithdrawFees';
+        }
+        return await this[method] (codes, params);
+    }
+
+    async fetchPrivateDepositWithdrawFees (codes = undefined, params = {}) {
+        // complete response
+        // incl. for coins which undefined in public method
+        await this.loadMarkets ();
+        const response = await this.privatePostSupplementUserInfo (params);
+        //
+        //    {
+        //        "result": "true",
+        //        "data": [
+        //            {
+        //                "usableAmt": "14.36",
+        //                "assetAmt": "14.36",
+        //                "networkList": [
+        //                    {
+        //                        "isDefault": false,
+        //                        "withdrawFeeRate": "",
+        //                        "name": "erc20",
+        //                        "withdrawMin": 30,
+        //                        "minLimit": 0.0001,
+        //                        "minDeposit": 20,
+        //                        "feeAssetCode": "usdt",
+        //                        "withdrawFee": "30",
+        //                        "type": 1,
+        //                        "coin": "usdt",
+        //                        "network": "eth"
+        //                    },
+        //                    ...
+        //                ],
+        //                "freezeAmt": "0",
+        //                "coin": "ada"
+        //            }
+        //        ],
+        //        "code": 0
+        //    }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parseDepositWithdrawFees (data, codes, 'coin');
+    }
+
+    async fetchPublicDepositWithdrawFees (codes = undefined, params = {}) {
+        // extremely incomplete response
+        // vast majority fees undefined
+        await this.loadMarkets ();
+        const request = {};
+        const response = await this.publicGetWithdrawConfigs (this.extend (request, params));
+        //
+        //    {
+        //        result: 'true',
+        //        data: [
+        //            {
+        //                amountScale: '4',
+        //                chain: 'heco',
+        //                assetCode: 'lbk',
+        //                min: '200',
+        //                transferAmtScale: '4',
+        //                canWithDraw: true,
+        //                fee: '100',
+        //                minTransfer: '0.0001',
+        //                type: '1'
+        //            },
+        //            ...
+        //        ],
+        //        error_code: '0',
+        //        ts: '1663364435973'
+        //    }
+        //
+        const data = this.safeValue (response, 'data', []);
+        return this.parsePublicDepositWithdrawFees (data, codes);
+    }
+
+    parsePublicDepositWithdrawFees (response, codes = undefined) {
+        //
+        //    [
+        //        {
+        //            amountScale: '4',
+        //            chain: 'heco',
+        //            assetCode: 'lbk',
+        //            min: '200',
+        //            transferAmtScale: '4',
+        //            canWithDraw: true,
+        //            fee: '100',
+        //            minTransfer: '0.0001',
+        //            type: '1'
+        //        },
+        //        ...
+        //    ]
+        //
+        const result = {};
+        for (let i = 0; i < response.length; i++) {
+            const fee = response[i];
+            const canWithdraw = this.safeValue (fee, 'canWithDraw');
+            if (canWithdraw === true) {
+                const currencyId = this.safeString (fee, 'assetCode');
+                const code = this.safeCurrencyCode (currencyId);
+                if (codes === undefined || this.inArray (code, codes)) {
+                    const withdrawFee = this.safeNumber (fee, 'fee');
+                    if (withdrawFee !== undefined) {
+                        const resultValue = this.safeValue (result, code);
+                        if (resultValue === undefined) {
+                            result[code] = this.depositWithdrawFee ([ fee ]);
+                        } else {
+                            result[code]['info'].push (fee);
+                        }
+                        const chain = this.safeString (fee, 'chain');
+                        const networkCode = this.safeString (this.options['inverse-networks'], chain, chain);
+                        if (networkCode !== undefined) {
+                            result[code]['networks'][networkCode] = {
+                                'withdraw': {
+                                    'fee': withdrawFee,
+                                    'percentage': undefined,
+                                },
+                                'deposit': {
+                                    'fee': undefined,
+                                    'percentage': undefined,
+                                },
+                            };
+                        } else {
+                            result[code]['withdraw'] = {
+                                'fee': withdrawFee,
+                                'percentage': undefined,
+                            };
+                        }
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        //
+        // * only used for fetchPrivateDepositWithdrawFees
+        //
+        //    {
+        //        "usableAmt": "14.36",
+        //        "assetAmt": "14.36",
+        //        "networkList": [
+        //            {
+        //                "isDefault": false,
+        //                "withdrawFeeRate": "",
+        //                "name": "erc20",
+        //                "withdrawMin": 30,
+        //                "minLimit": 0.0001,
+        //                "minDeposit": 20,
+        //                "feeAssetCode": "usdt",
+        //                "withdrawFee": "30",
+        //                "type": 1,
+        //                "coin": "usdt",
+        //                "network": "eth"
+        //            },
+        //            ...
+        //        ],
+        //        "freezeAmt": "0",
+        //        "coin": "ada"
+        //    }
+        //
+        const result = this.depositWithdrawFee (fee);
+        const networkList = this.safeValue (fee, 'networkList', []);
+        for (let j = 0; j < networkList.length; j++) {
+            const networkEntry = networkList[j];
+            const networkId = this.safeString (networkEntry, 'name');
+            const networkCode = this.safeStringUpper (this.options['inverse-networks'], networkId, networkId);
+            const withdrawFee = this.safeNumber (networkEntry, 'withdrawFee');
+            const isDefault = this.safeValue (networkEntry, 'isDefault');
+            if (withdrawFee !== undefined) {
+                if (isDefault) {
+                    result['withdraw'] = {
+                        'fee': withdrawFee,
+                        'percentage': undefined,
+                    };
+                }
+                result['networks'][networkCode] = {
+                    'withdraw': {
+                        'fee': withdrawFee,
+                        'percentage': undefined,
+                    },
+                    'deposit': {
+                        'fee': undefined,
+                        'percentage': undefined,
+                    },
+                };
+            }
+        }
+        return result;
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

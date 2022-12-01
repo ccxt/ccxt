@@ -602,7 +602,7 @@ class deribit extends \ccxt\async\deribit {
         $channel = $this->safe_string($params, 'channel', '');
         $data = $this->safe_value($params, 'data', array());
         $orders = array();
-        if ($this->is_array($data)) {
+        if (gettype($data) === 'array' && array_keys($data) === array_keys(array_keys($data))) {
             $orders = $this->parse_orders($data);
         } else {
             $order = $this->parse_order($data);
