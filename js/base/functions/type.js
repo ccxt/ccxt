@@ -4,6 +4,7 @@
 
 const isNumber          = Number.isFinite
     , isInteger         = Number.isInteger
+    , isArray           = Array.isArray
     , hasProps          = o => ((o !== undefined) && (o !== null))
     , isString          = s => (typeof s === 'string')
     , isObject          = o => ((o !== null) && (typeof o === 'object'))
@@ -40,6 +41,7 @@ module.exports = {
 
     isNumber
     , isInteger
+    , isArray
     , isObject
     , isString
     , isStringCoercible
