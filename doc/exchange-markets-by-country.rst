@@ -195,9 +195,9 @@ The ccxt library currently supports the following cryptocurrency exchange market
      
      - bybit
      - `Bybit <https://www.bybit.com/register?affiliate_id=35953>`__
-     - .. image:: https://img.shields.io/badge/2-lightgray
+     - .. image:: https://img.shields.io/badge/3-lightgray
           :target: https://bybit-exchange.github.io/docs/inverse/
-          :alt: API Version 2
+          :alt: API Version 3
      
    * - Canada
      - .. image:: https://user-images.githubusercontent.com/1294454/173489620-d49807a4-55cd-4f4e-aca9-534921298bbf.jpg
@@ -299,17 +299,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 2
      
    * - China
-     - .. image:: https://user-images.githubusercontent.com/1294454/69436317-31128c80-0d52-11ea-91d1-eb7bb5818812.jpg
-          :target: https://www.bw.com/regGetCommission/N3JuT1R3bWxKTE0
-          :alt: bw
-     
-     - bw
-     - `BW <https://www.bw.com/regGetCommission/N3JuT1R3bWxKTE0>`__
-     - .. image:: https://img.shields.io/badge/1-lightgray
-          :target: https://github.com/bw-exchange/api_docs_en/wiki
-          :alt: API Version 1
-     
-   * - China
      - .. image:: https://user-images.githubusercontent.com/51840849/87182089-1e05fa00-c2ec-11ea-8da9-cc73b45abbbc.jpg
           :target: https://www.coinex.com/register?refer_code=yw5fz
           :alt: coinex
@@ -351,17 +340,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - `LBank <https://www.lbank.info/invitevip?icode=7QCY>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://www.lbank.info/en-US/docs/index.html
-          :alt: API Version 2
-     
-   * - China
-     - .. image:: https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg
-          :target: https://www.liquid.com/sign-up/?affiliate=SbzC62lt30976
-          :alt: liquid
-     
-     - liquid
-     - `Liquid <https://www.liquid.com/sign-up/?affiliate=SbzC62lt30976>`__
-     - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://developers.liquid.com
           :alt: API Version 2
      
    * - China
@@ -737,17 +715,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/1-lightgray
           :target: https://api-doc.huobi.co.jp
           :alt: API Version 1
-     
-   * - Japan
-     - .. image:: https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg
-          :target: https://www.liquid.com/sign-up/?affiliate=SbzC62lt30976
-          :alt: liquid
-     
-     - liquid
-     - `Liquid <https://www.liquid.com/sign-up/?affiliate=SbzC62lt30976>`__
-     - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://developers.liquid.com
-          :alt: API Version 2
      
    * - Japan
      - .. image:: https://user-images.githubusercontent.com/1294454/27766927-39ca2ada-5eeb-11e7-972f-1b4199518ca6.jpg
@@ -1210,17 +1177,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/3-lightgray
           :target: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/v3-1/rest-1/rest.md
           :alt: API Version 3
-     
-   * - Taiwan
-     - .. image:: https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg
-          :target: https://www.liquid.com/sign-up/?affiliate=SbzC62lt30976
-          :alt: liquid
-     
-     - liquid
-     - `Liquid <https://www.liquid.com/sign-up/?affiliate=SbzC62lt30976>`__
-     - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://developers.liquid.com
-          :alt: API Version 2
      
    * - Thailand
      - .. image:: https://user-images.githubusercontent.com/1294454/146103275-c39a34d9-68a4-4cd2-b1f1-c684548d311b.jpg

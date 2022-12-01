@@ -492,7 +492,6 @@ declare module 'ccxt' {
     export class btctradeua extends Exchange {}
     export class btcturk extends Exchange {}
     export class buda extends Exchange {}
-    export class bw extends Exchange {}
     export class bybit extends Exchange {}
     export class bytetrade extends Exchange {}
     export class cex extends Exchange {}
@@ -534,7 +533,6 @@ declare module 'ccxt' {
     export class latoken extends Exchange {}
     export class lbank extends Exchange {}
     export class lbank2 extends Exchange {}
-    export class liquid extends Exchange {}
     export class luno extends Exchange {}
     export class lykke extends Exchange {}
     export class mercado extends Exchange {}
@@ -614,7 +612,6 @@ declare module 'ccxt' {
         | 'btctradeua'
         | 'btcturk'
         | 'buda'
-        | 'bw'
         | 'bybit'
         | 'bytetrade'
         | 'cex'
@@ -656,7 +653,6 @@ declare module 'ccxt' {
         | 'latoken'
         | 'lbank'
         | 'lbank2'
-        | 'liquid'
         | 'luno'
         | 'lykke'
         | 'mercado'
@@ -727,6 +723,7 @@ declare module 'ccxt' {
         class bittrex extends Exchange {}
         class bitvavo extends Exchange {}
         class bybit extends Exchange {}
+        class cex extends Exchange {}
         class coinbaseprime extends Exchange {}
         class coinbasepro extends Exchange {}
         class coinex extends Exchange {}
@@ -744,6 +741,7 @@ declare module 'ccxt' {
         class idex extends Exchange {}
         class kraken extends Exchange {}
         class kucoin extends Exchange {}
+        class luno extends Exchange {}
         class mexc extends Exchange {}
         class ndax extends Exchange {}
         class okcoin extends Exchange {}
@@ -752,6 +750,7 @@ declare module 'ccxt' {
         class phemex extends Exchange {}
         class ripio extends Exchange {}
         class upbit extends Exchange {}
+        class wazirx extends Exchange {}
         class whitebit extends Exchange {}
         class zb extends Exchange {}
         class zipmex extends Exchange {}

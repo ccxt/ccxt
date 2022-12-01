@@ -421,13 +421,13 @@ module.exports = class mexc3 extends Exchange {
                 'FLUX1': 'FLUX', // switched places
                 'FLUX': 'FLUX1', // switched places
                 'FREE': 'FreeRossDAO', // conflict with FREE Coin
-                'GMT': 'GMT Token',
+                'GMT': 'GMT Token', // Conflict with GMT (STEPN)
+                'STEPN': 'GMT', // Conflict with GMT Token
                 'HERO': 'Step Hero', // conflict with Metahero
                 'MIMO': 'Mimosa',
                 'PROS': 'Pros.Finance', // conflict with Prosper
                 'SIN': 'Sin City Token',
                 'SOUL': 'Soul Swap',
-                'STEPN': 'GMT',
             },
             'exceptions': {
                 'exact': {
@@ -3603,7 +3603,7 @@ module.exports = class mexc3 extends Exchange {
             const networkId = this.safeString (depositAddress, 'network');
             const network = this.safeNetwork (networkId);
             const address = this.safeString (depositAddress, 'address', undefined);
-            const tag = this.safeString (depositAddress, 'tag', undefined);
+            const tag = this.safeString2 (depositAddress, 'tag', 'memo', undefined);
             result.push ({
                 'currency': currency['id'],
                 'network': network,
@@ -4498,7 +4498,7 @@ module.exports = class mexc3 extends Exchange {
         };
     }
 
-    handleMarginModeAndParams (methodName, params = {}) {
+    handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined) {
         /**
          * @ignore
          * @method
@@ -4510,7 +4510,7 @@ module.exports = class mexc3 extends Exchange {
         const defaultType = this.safeString (this.options, 'defaultType');
         const isMargin = this.safeValue (params, 'margin', false);
         let marginMode = undefined;
-        [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params);
+        [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
         if ((defaultType === 'margin') || (isMargin === true)) {
             marginMode = 'isolated';
         }

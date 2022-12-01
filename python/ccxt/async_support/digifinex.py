@@ -39,9 +39,10 @@ class digifinex(Exchange):
                 'CORS': None,
                 'spot': True,
                 'margin': True,
-                'swap': None,  # has but unimplemented
+                'swap': True,
                 'future': False,
                 'option': False,
+                'addMargin': False,
                 'cancelOrder': True,
                 'cancelOrders': True,
                 'createOrder': True,
@@ -59,18 +60,29 @@ class digifinex(Exchange):
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchFundingHistory': False,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
+                'fetchFundingRates': False,
+                'fetchIndexOHLCV': False,
                 'fetchLedger': True,
+                'fetchLeverage': False,
+                'fetchLeverageTiers': True,
                 'fetchMarginMode': False,
+                'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
+                'fetchMarkOHLCV': False,
                 'fetchMyTrades': True,
                 'fetchOHLCV': True,
                 'fetchOpenOrders': True,
                 'fetchOrder': True,
                 'fetchOrderBook': True,
                 'fetchOrders': True,
+                'fetchPosition': True,
                 'fetchPositionMode': False,
+                'fetchPositions': True,
+                'fetchPositionsRisk': False,
+                'fetchPremiumIndexOHLCV': False,
                 'fetchStatus': True,
                 'fetchTicker': True,
                 'fetchTickers': True,
@@ -78,8 +90,13 @@ class digifinex(Exchange):
                 'fetchTrades': True,
                 'fetchTradingFee': True,
                 'fetchTradingFees': False,
+                'fetchTransfers': True,
                 'fetchWithdrawals': True,
+                'reduceMargin': False,
+                'setLeverage': True,
+                'setMargin': False,
                 'setMarginMode': False,
+                'setPositionMode': False,
                 'transfer': True,
                 'withdraw': True,
             },
@@ -439,7 +456,7 @@ class digifinex(Exchange):
         spotMarkets = promises[0]
         swapMarkets = promises[1]
         #
-        # Spot
+        # spot and margin
         #
         #     {
         #         "symbol_list":[
@@ -460,28 +477,7 @@ class digifinex(Exchange):
         #         "code":0
         #     }
         #
-        # Margin
-        #
-        #     {
-        #         "symbol_list":[
-        #             {
-        #                     "order_types":["LIMIT"],
-        #                     "quote_asset":"USDT",
-        #                     "minimum_value":0,
-        #                     "amount_precision":2,
-        #                     "status":"TRADING",
-        #                     "minimum_amount":22,
-        #                     "liquidation_rate":0.3,
-        #                     "symbol":"TRX_USDT",
-        #                     "zone":"MAIN",
-        #                     "base_asset":"TRX",
-        #                     "price_precision":6
-        #             },
-        #         ],
-        #         "code":0
-        #     }
-        #
-        # Swap
+        # swap
         #
         #     {
         #         "code": 0,
@@ -565,7 +561,7 @@ class digifinex(Exchange):
                 'swap': swap,
                 'future': False,
                 'option': False,
-                'active': True if isAllowed else None,
+                'active': True if isAllowed else False,
                 'contract': swap,
                 'linear': isLinear,
                 'inverse': isInverse,
@@ -676,30 +672,68 @@ class digifinex(Exchange):
         return result
 
     def parse_balance(self, response):
-        balances = self.safe_value(response, 'list', [])
+        #
+        # spot and margin
+        #
+        #     {
+        #         "currency": "BTC",
+        #         "free": 4723846.89208129,
+        #         "total": 0
+        #     }
+        #
+        # swap
+        #
+        #     {
+        #         "equity": "0",
+        #         "currency": "BTC",
+        #         "margin": "0",
+        #         "frozen_margin": "0",
+        #         "frozen_money": "0",
+        #         "margin_ratio": "0",
+        #         "realized_pnl": "0",
+        #         "avail_balance": "0",
+        #         "unrealized_pnl": "0",
+        #         "time_stamp": 1661487402396
+        #     }
+        #
         result = {'info': response}
-        for i in range(0, len(balances)):
-            balance = balances[i]
+        for i in range(0, len(response)):
+            balance = response[i]
             currencyId = self.safe_string(balance, 'currency')
             code = self.safe_currency_code(currencyId)
             account = self.account()
-            account['used'] = self.safe_string(balance, 'frozen')
-            account['free'] = self.safe_string(balance, 'free')
-            account['total'] = self.safe_string(balance, 'total')
+            free = self.safe_string_2(balance, 'free', 'avail_balance')
+            total = self.safe_string_2(balance, 'total', 'equity')
+            account['free'] = free
+            account['used'] = Precise.string_sub(total, free)
+            account['total'] = total
             result[code] = account
         return self.safe_balance(result)
 
     async def fetch_balance(self, params={}):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
+        see https://docs.digifinex.com/en-ww/spot/v3/rest.html#spot-account-assets
+        see https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-assets
+        see https://docs.digifinex.com/en-ww/swap/v2/rest.html#accountbalance
         :param dict params: extra parameters specific to the digifinex api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
-        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
-        type = self.safe_string(params, 'type', defaultType)
-        params = self.omit(params, 'type')
-        method = 'privateSpotGet' + self.capitalize(type) + 'Assets'
-        response = await getattr(self, method)(params)
+        await self.load_markets()
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateSpotGetSpotAssets',
+            'margin': 'privateSpotGetMarginAssets',
+            'swap': 'privateSwapGetAccountBalance',
+        })
+        marginMode, query = self.handle_margin_mode_and_params('fetchBalance', params)
+        if marginMode is not None:
+            method = 'privateSpotGetMarginAssets'
+            marketType = 'margin'
+        response = await getattr(self, method)(query)
+        #
+        # spot and margin
         #
         #     {
         #         "code": 0,
@@ -708,14 +742,41 @@ class digifinex(Exchange):
         #                 "currency": "BTC",
         #                 "free": 4723846.89208129,
         #                 "total": 0
-        #             }
+        #             },
+        #             ...
         #         ]
         #     }
-        return self.parse_balance(response)
+        #
+        # swap
+        #
+        #     {
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "equity": "0",
+        #                 "currency": "BTC",
+        #                 "margin": "0",
+        #                 "frozen_margin": "0",
+        #                 "frozen_money": "0",
+        #                 "margin_ratio": "0",
+        #                 "realized_pnl": "0",
+        #                 "avail_balance": "0",
+        #                 "unrealized_pnl": "0",
+        #                 "time_stamp": 1661487402396
+        #             },
+        #             ...
+        #         ]
+        #     }
+        #
+        balanceRequest = 'data' if (marketType == 'swap') else 'list'
+        balances = self.safe_value(response, balanceRequest, [])
+        return self.parse_balance(balances)
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-orderbook
+        see https://docs.digifinex.com/en-ww/swap/v2/rest.html#orderbook
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the digifinex api endpoint
@@ -723,12 +784,20 @@ class digifinex(Exchange):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
-            'symbol': market['id'],
-        }
+        marketType, query = self.handle_market_type_and_params('fetchOrderBook', market, params)
+        request = {}
+        method = None
+        if marketType == 'swap':
+            method = 'publicSwapGetPublicDepth'
+            request['instrument_id'] = market['id']
+        else:
+            method = 'publicSpotGetOrderBook'
+            request['symbol'] = market['id']
         if limit is not None:
-            request['limit'] = limit  # default 10, max 150
-        response = await self.publicSpotGetOrderBook(self.extend(request, params))
+            request['limit'] = limit
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        # spot
         #
         #     {
         #         "bids": [
@@ -745,19 +814,60 @@ class digifinex(Exchange):
         #         "code":0
         #     }
         #
-        timestamp = self.safe_timestamp(response, 'date')
-        return self.parse_order_book(response, market['symbol'], timestamp)
+        # swap
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "instrument_id": "BTCUSDTPERP",
+        #             "timestamp": 1667975290425,
+        #             "asks": [
+        #                 ["18384.7",3492],
+        #                 ["18402.7",5000],
+        #                 ["18406.7",5000],
+        #             ],
+        #             "bids": [
+        #                 ["18366.2",4395],
+        #                 ["18364.3",3070],
+        #                 ["18359.4",5000],
+        #             ]
+        #         }
+        #     }
+        #
+        timestamp = None
+        orderBook = None
+        if marketType == 'swap':
+            orderBook = self.safe_value(response, 'data', {})
+            timestamp = self.safe_integer(orderBook, 'timestamp')
+        else:
+            orderBook = response
+            timestamp = self.safe_timestamp(response, 'date')
+        return self.parse_order_book(orderBook, market['symbol'], timestamp)
 
     async def fetch_tickers(self, symbols=None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        see https://docs.digifinex.com/en-ww/spot/v3/rest.html#ticker-price
+        see https://docs.digifinex.com/en-ww/swap/v2/rest.html#tickers
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the digifinex api endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         symbols = self.market_symbols(symbols)
-        response = await self.publicSpotGetTicker(params)
+        first = self.safe_string(symbols, 0)
+        market = None
+        if first is not None:
+            market = self.market(first)
+        type = None
+        type, params = self.handle_market_type_and_params('fetchTickers', market, params)
+        method = 'publicSpotGetTicker'
+        request = {}
+        if type == 'swap':
+            method = 'publicSwapGetPublicTickers'
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # spot
         #
         #    {
         #        "ticker": [{
@@ -775,8 +885,37 @@ class digifinex(Exchange):
         #        "code": 0
         #    }
         #
+        # swap
+        #
+        #     {
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "instrument_id": "SUSHIUSDTPERP",
+        #                 "index_price": "1.1297",
+        #                 "mark_price": "1.1289",
+        #                 "max_buy_price": "1.1856",
+        #                 "min_sell_price": "1.0726",
+        #                 "best_bid": "1.1278",
+        #                 "best_bid_size": "500",
+        #                 "best_ask": "1.1302",
+        #                 "best_ask_size": "471",
+        #                 "high_24h": "1.2064",
+        #                 "open_24h": "1.1938",
+        #                 "low_24h": "1.1239",
+        #                 "last": "1.1302",
+        #                 "last_qty": "29",
+        #                 "volume_24h": "4946163",
+        #                 "price_change_percent": "-0.053275255486681085",
+        #                 "open_interest": "-",
+        #                 "timestamp": 1663222782100
+        #             },
+        #             ...
+        #         ]
+        #     }
+        #
         result = {}
-        tickers = self.safe_value(response, 'ticker', [])
+        tickers = self.safe_value_2(response, 'ticker', 'data', [])
         date = self.safe_integer(response, 'date')
         for i in range(0, len(tickers)):
             rawTicker = self.extend({
@@ -790,16 +929,24 @@ class digifinex(Exchange):
     async def fetch_ticker(self, symbol, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        see https://docs.digifinex.com/en-ww/spot/v3/rest.html#ticker-price
+        see https://docs.digifinex.com/en-ww/swap/v2/rest.html#ticker
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the digifinex api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
-            'symbol': market['id'],
-        }
-        response = await self.publicSpotGetTicker(self.extend(request, params))
+        method = 'publicSpotGetTicker'
+        request = {}
+        if market['swap']:
+            method = 'publicSwapGetPublicTicker'
+            request['instrument_id'] = market['id']
+        else:
+            request['symbol'] = market['id']
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # spot
         #
         #    {
         #        "ticker": [{
@@ -817,15 +964,46 @@ class digifinex(Exchange):
         #        "code": 0
         #    }
         #
+        # swap
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "instrument_id": "BTCUSDTPERP",
+        #             "index_price": "20141.9967",
+        #             "mark_price": "20139.3404",
+        #             "max_buy_price": "21146.4838",
+        #             "min_sell_price": "19132.2725",
+        #             "best_bid": "20140.0998",
+        #             "best_bid_size": "3116",
+        #             "best_ask": "20140.0999",
+        #             "best_ask_size": "9004",
+        #             "high_24h": "20410.6496",
+        #             "open_24h": "20308.6998",
+        #             "low_24h": "19600",
+        #             "last": "20140.0999",
+        #             "last_qty": "2",
+        #             "volume_24h": "49382816",
+        #             "price_change_percent": "-0.008301855936636448",
+        #             "open_interest": "-",
+        #             "timestamp": 1663221614998
+        #         }
+        #     }
+        #
         date = self.safe_integer(response, 'date')
         tickers = self.safe_value(response, 'ticker', [])
+        data = self.safe_value(response, 'data', {})
         firstTicker = self.safe_value(tickers, 0, {})
-        result = self.extend({'date': date}, firstTicker)
+        result = None
+        if market['swap']:
+            result = data
+        else:
+            result = self.extend({'date': date}, firstTicker)
         return self.parse_ticker(result, market)
 
     def parse_ticker(self, ticker, market=None):
         #
-        # fetchTicker, fetchTickers
+        # spot: fetchTicker, fetchTickers
         #
         #     {
         #         "last":0.021957,
@@ -840,37 +1018,62 @@ class digifinex(Exchange):
         #         "date"1564518452,  # injected from fetchTicker/fetchTickers
         #     }
         #
-        marketId = self.safe_string_upper(ticker, 'symbol')
-        symbol = self.safe_symbol(marketId, market, '_')
+        # swap: fetchTicker, fetchTickers
+        #
+        #     {
+        #         "instrument_id": "BTCUSDTPERP",
+        #         "index_price": "20141.9967",
+        #         "mark_price": "20139.3404",
+        #         "max_buy_price": "21146.4838",
+        #         "min_sell_price": "19132.2725",
+        #         "best_bid": "20140.0998",
+        #         "best_bid_size": "3116",
+        #         "best_ask": "20140.0999",
+        #         "best_ask_size": "9004",
+        #         "high_24h": "20410.6496",
+        #         "open_24h": "20308.6998",
+        #         "low_24h": "19600",
+        #         "last": "20140.0999",
+        #         "last_qty": "2",
+        #         "volume_24h": "49382816",
+        #         "price_change_percent": "-0.008301855936636448",
+        #         "open_interest": "-",
+        #         "timestamp": 1663221614998
+        #     }
+        #
+        marketId = self.safe_string_upper_2(ticker, 'symbol', 'instrument_id')
+        symbol = self.safe_symbol(marketId, market)
+        market = self.safe_market(marketId)
         timestamp = self.safe_timestamp(ticker, 'date')
+        if market['swap']:
+            timestamp = self.safe_integer(ticker, 'timestamp')
         last = self.safe_string(ticker, 'last')
-        percentage = self.safe_string(ticker, 'change')
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
-            'high': self.safe_string(ticker, 'high'),
-            'low': self.safe_string(ticker, 'low'),
-            'bid': self.safe_string(ticker, 'buy'),
-            'bidVolume': None,
-            'ask': self.safe_string(ticker, 'sell'),
-            'askVolume': None,
+            'high': self.safe_string_2(ticker, 'high', 'high_24h'),
+            'low': self.safe_string_2(ticker, 'low', 'low_24h'),
+            'bid': self.safe_string_2(ticker, 'buy', 'best_bid'),
+            'bidVolume': self.safe_string(ticker, 'best_bid_size'),
+            'ask': self.safe_string_2(ticker, 'sell', 'best_ask'),
+            'askVolume': self.safe_string(ticker, 'best_ask_size'),
             'vwap': None,
-            'open': None,
+            'open': self.safe_string(ticker, 'open_24h'),
             'close': last,
             'last': last,
             'previousClose': None,
             'change': None,
-            'percentage': percentage,
+            'percentage': self.safe_string_2(ticker, 'change', 'price_change_percent'),
             'average': None,
-            'baseVolume': self.safe_string(ticker, 'vol'),
-            'quoteVolume': self.safe_string(ticker, 'base_vol'),
+            'baseVolume': self.safe_string(ticker, 'base_vol'),
+            'quoteVolume': self.safe_string_2(ticker, 'vol', 'volume_24h'),
             'info': ticker,
         }, market)
 
     def parse_trade(self, trade, market=None):
         #
-        # fetchTrades(public)
+        # spot: fetchTrades
         #
         #     {
         #         "date":1564520003,
@@ -880,7 +1083,18 @@ class digifinex(Exchange):
         #         "price":0.02193,
         #     }
         #
-        # fetchMyTrades(private)
+        # swap: fetchTrades
+        #
+        #     {
+        #         "instrument_id": "BTCUSDTPERP",
+        #         "trade_id": "1595190773677035521",
+        #         "direction": "4",
+        #         "volume": "4",
+        #         "price": "16188.3",
+        #         "trade_time": 1669158092314
+        #     }
+        #
+        # spot: fetchMyTrades
         #
         #     {
         #         "symbol": "BTC_USDT",
@@ -895,23 +1109,76 @@ class digifinex(Exchange):
         #         "is_maker": True
         #     }
         #
-        id = self.safe_string(trade, 'id')
+        # swap: fetchMyTrades
+        #
+        #     {
+        #         "trade_id": "1590136768424841218",
+        #         "instrument_id": "BTCUSDTPERP",
+        #         "order_id": "1590136768156405760",
+        #         "type": 1,
+        #         "order_type": 8,
+        #         "price": "18514.5",
+        #         "size": "1",
+        #         "fee": "0.00925725",
+        #         "close_profit": "0",
+        #         "leverage": "20",
+        #         "trade_type": 0,
+        #         "match_role": 1,
+        #         "trade_time": 1667953123562
+        #     }
+        #
+        id = self.safe_string_2(trade, 'id', 'trade_id')
         orderId = self.safe_string(trade, 'order_id')
+        priceString = self.safe_string(trade, 'price')
+        amountString = self.safe_string_n(trade, ['amount', 'volume', 'size'])
+        marketId = self.safe_string_upper_2(trade, 'symbol', 'instrument_id')
+        symbol = self.safe_symbol(marketId, market)
+        if market is None:
+            market = self.safe_market(marketId)
         timestamp = self.safe_timestamp_2(trade, 'date', 'timestamp')
         side = self.safe_string_2(trade, 'type', 'side')
-        parts = side.split('_')
-        side = self.safe_string(parts, 0)
-        type = self.safe_string(parts, 1)
-        priceString = self.safe_string(trade, 'price')
-        amountString = self.safe_string(trade, 'amount')
-        marketId = self.safe_string(trade, 'symbol')
-        symbol = self.safe_symbol(marketId, market, '_')
-        takerOrMaker = self.safe_value(trade, 'is_maker')
-        feeCostString = self.safe_string(trade, 'fee')
+        type = None
+        takerOrMaker = None
+        if market['type'] == 'swap':
+            timestamp = self.safe_integer(trade, 'trade_time')
+            orderType = self.safe_string(trade, 'order_type')
+            tradeRole = self.safe_string(trade, 'match_role')
+            direction = self.safe_string(trade, 'direction')
+            if orderType is not None:
+                type = 'limit' if (orderType == '0') else None
+            if tradeRole == '1':
+                takerOrMaker = 'taker'
+            elif tradeRole == '2':
+                takerOrMaker = 'maker'
+            else:
+                takerOrMaker = None
+            if (side == '1') or (direction == '1'):
+                # side = 'open long'
+                side = 'buy'
+            elif (side == '2') or (direction == '2'):
+                # side = 'open short'
+                side = 'sell'
+            elif (side == '3') or (direction == '3'):
+                # side = 'close long'
+                side = 'sell'
+            elif (side == '4') or (direction == '4'):
+                # side = 'close short'
+                side = 'buy'
+        else:
+            parts = side.split('_')
+            side = self.safe_string(parts, 0)
+            type = self.safe_string(parts, 1)
+            if type is None:
+                type = 'limit'
+            isMaker = self.safe_value(trade, 'is_maker')
+            takerOrMaker = 'maker' if isMaker else 'taker'
         fee = None
+        feeCostString = self.safe_string(trade, 'fee')
         if feeCostString is not None:
             feeCurrencyId = self.safe_string(trade, 'fee_currency')
-            feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
+            feeCurrencyCode = None
+            if feeCurrencyId is not None:
+                feeCurrencyCode = self.safe_currency_code(feeCurrencyId)
             fee = {
                 'cost': feeCostString,
                 'currency': feeCurrencyCode,
@@ -973,6 +1240,8 @@ class digifinex(Exchange):
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         """
         get the list of most recent trades for a particular symbol
+        see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-recent-trades
+        see https://docs.digifinex.com/en-ww/swap/v2/rest.html#recenttrades
         :param str symbol: unified symbol of the market to fetch trades for
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
@@ -981,12 +1250,18 @@ class digifinex(Exchange):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
-            'symbol': market['id'],
-        }
+        method = 'publicSpotGetTrades'
+        request = {}
+        if market['swap']:
+            method = 'publicSwapGetPublicTrades'
+            request['instrument_id'] = market['id']
+        else:
+            request['symbol'] = market['id']
         if limit is not None:
-            request['limit'] = limit  # default 100, max 500
-        response = await self.publicSpotGetTrades(self.extend(request, params))
+            request['limit'] = limit
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # spot
         #
         #     {
         #         "data":[
@@ -1009,6 +1284,23 @@ class digifinex(Exchange):
         #         "date": 1564520003,
         #     }
         #
+        # swap
+        #
+        #     {
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "instrument_id": "BTCUSDTPERP",
+        #                 "trade_id": "1595190773677035521",
+        #                 "direction": "4",
+        #                 "volume": "4",
+        #                 "price": "16188.3",
+        #                 "trade_time": 1669158092314
+        #             },
+        #             ...
+        #         ]
+        #     }
+        #
         data = self.safe_value(response, 'data', [])
         return self.parse_trades(data, market, since, limit)
 
@@ -1023,18 +1315,30 @@ class digifinex(Exchange):
         #         0.029927
         #     ]
         #
-        return [
-            self.safe_timestamp(ohlcv, 0),
-            self.safe_number(ohlcv, 5),  # open
-            self.safe_number(ohlcv, 3),  # high
-            self.safe_number(ohlcv, 4),  # low
-            self.safe_number(ohlcv, 2),  # close
-            self.safe_number(ohlcv, 1),  # volume
-        ]
+        if market['swap']:
+            return [
+                self.safe_integer(ohlcv, 0),
+                self.safe_number(ohlcv, 1),  # open
+                self.safe_number(ohlcv, 2),  # high
+                self.safe_number(ohlcv, 3),  # low
+                self.safe_number(ohlcv, 4),  # close
+                self.safe_number(ohlcv, 5),  # volume
+            ]
+        else:
+            return [
+                self.safe_timestamp(ohlcv, 0),
+                self.safe_number(ohlcv, 5),  # open
+                self.safe_number(ohlcv, 3),  # high
+                self.safe_number(ohlcv, 4),  # low
+                self.safe_number(ohlcv, 2),  # close
+                self.safe_number(ohlcv, 1),  # volume
+            ]
 
     async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        see https://docs.digifinex.com/en-ww/spot/v3/rest.html#get-candles-data
+        see https://docs.digifinex.com/en-ww/swap/v2/rest.html#recentcandle
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int|None since: timestamp in ms of the earliest candle to fetch
@@ -1044,23 +1348,30 @@ class digifinex(Exchange):
         """
         await self.load_markets()
         market = self.market(symbol)
-        request = {
-            'symbol': market['id'],
-            'period': self.timeframes[timeframe],
-            # 'start_time': 1564520003,  # starting timestamp, 200 candles before end_time by default
-            # 'end_time': 1564520003,  # ending timestamp, current timestamp by default
-        }
-        if since is not None:
-            startTime = int(since / 1000)
-            request['start_time'] = startTime
+        method = 'publicSpotGetKline'
+        request = {}
+        if market['swap']:
+            method = 'publicSwapGetPublicCandles'
+            request['instrument_id'] = market['id']
+            request['granularity'] = timeframe
             if limit is not None:
+                request['limit'] = limit
+        else:
+            request['symbol'] = market['id']
+            request['period'] = self.timeframes[timeframe]
+            if since is not None:
+                startTime = int(since / 1000)
+                request['start_time'] = startTime
+                if limit is not None:
+                    duration = self.parse_timeframe(timeframe)
+                    request['end_time'] = self.sum(startTime, limit * duration)
+            elif limit is not None:
+                endTime = self.seconds()
                 duration = self.parse_timeframe(timeframe)
-                request['end_time'] = self.sum(startTime, limit * duration)
-        elif limit is not None:
-            endTime = self.seconds()
-            duration = self.parse_timeframe(timeframe)
-            request['startTime'] = self.sum(endTime, -limit * duration)
-        response = await self.publicSpotGetKline(self.extend(request, params))
+                request['start_time'] = self.sum(endTime, -limit * duration)
+        response = await getattr(self, method)(self.extend(request, params))
+        #
+        # spot
         #
         #     {
         #         "code":0,
@@ -1071,8 +1382,28 @@ class digifinex(Exchange):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
-        return self.parse_ohlcvs(data, market, timeframe, since, limit)
+        # swap
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "instrument_id": "BTCUSDTPERP",
+        #             "granularity": "1m",
+        #             "candles": [
+        #                 [1588089660000,"6900","6900","6900","6900","0","0"],
+        #                 [1588089720000,"6900","6900","6900","6900","0","0"],
+        #                 [1588089780000,"6900","6900","6900","6900","0","0"],
+        #             ]
+        #         }
+        #     }
+        #
+        candles = None
+        if market['swap']:
+            data = self.safe_value(response, 'data', {})
+            candles = self.safe_value(data, 'candles', [])
+        else:
+            candles = self.safe_value(response, 'data', [])
+        return self.parse_ohlcvs(candles, market, timeframe, since, limit)
 
     async def create_order(self, symbol, type, side, amount, price=None, params={}):
         """
@@ -1153,7 +1484,7 @@ class digifinex(Exchange):
         query = self.omit(params, ['postOnly', 'post_only'])
         response = await getattr(self, method)(self.extend(request, query))
         #
-        # spot
+        # spot and margin
         #
         #     {
         #         "code": 0,
@@ -1212,7 +1543,7 @@ class digifinex(Exchange):
             request['market'] = marketType
         response = await getattr(self, method)(self.extend(request, query))
         #
-        # spot
+        # spot and margin
         #
         #     {
         #         "code": 0,
@@ -1446,7 +1777,7 @@ class digifinex(Exchange):
             request[marketIdRequest] = market['id']
         response = await getattr(self, method)(self.extend(request, query))
         #
-        # spot
+        # spot and margin
         #
         #     {
         #         "code": 0,
@@ -1540,7 +1871,7 @@ class digifinex(Exchange):
             request['limit'] = limit
         response = await getattr(self, method)(self.extend(request, query))
         #
-        # spot
+        # spot and margin
         #
         #     {
         #         "code": 0,
@@ -1628,7 +1959,7 @@ class digifinex(Exchange):
             request['market'] = marketType
         response = await getattr(self, method)(self.extend(request, query))
         #
-        # spot
+        # spot and margin
         #
         #     {
         #         "code": 0,
@@ -1684,28 +2015,45 @@ class digifinex(Exchange):
     async def fetch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         """
         fetch all trades made by the user
+        see https://docs.digifinex.com/en-ww/spot/v3/rest.html#customer-39-s-trades
+        see https://docs.digifinex.com/en-ww/swap/v2/rest.html#historytrade
         :param str|None symbol: unified market symbol
         :param int|None since: the earliest time in ms to fetch trades for
         :param int|None limit: the maximum number of trades structures to retrieve
         :param dict params: extra parameters specific to the digifinex api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html#trade-structure>`
         """
-        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
-        orderType = self.safe_string(params, 'type', defaultType)
-        params = self.omit(params, 'type')
         await self.load_markets()
         market = None
-        request = {
-            'market': orderType,
-        }
+        request = {}
         if symbol is not None:
             market = self.market(symbol)
-            request['symbol'] = market['id']
-        if since is not None:
-            request['start_time'] = int(since / 1000)  # default 3 days from now, max 30 days
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchMyTrades', market, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateSpotGetSpotMytrades',
+            'margin': 'privateSpotGetMarginMytrades',
+            'swap': 'privateSwapGetTradeHistoryTrades',
+        })
+        marginMode, query = self.handle_margin_mode_and_params('fetchMyTrades', params)
+        if marginMode is not None:
+            method = 'privateSpotGetMarginMytrades'
+            marketType = 'margin'
+        if marketType == 'swap':
+            if since is not None:
+                request['start_timestamp'] = since
+        else:
+            request['market'] = marketType
+            if since is not None:
+                request['start_time'] = int(since / 1000)  # default 3 days from now, max 30 days
+        marketIdRequest = 'instrument_id' if (marketType == 'swap') else 'symbol'
+        if symbol is not None:
+            request[marketIdRequest] = market['id']
         if limit is not None:
-            request['limit'] = limit  # default 10, max 100
-        response = await self.privateSpotGetMarketMytrades(self.extend(request, params))
+            request['limit'] = limit
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        # spot and margin
         #
         #      {
         #          "list":[
@@ -1725,7 +2073,32 @@ class digifinex(Exchange):
         #           "code": 0
         #      }
         #
-        data = self.safe_value(response, 'list', [])
+        # swap
+        #
+        #     {
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "trade_id": "1590136768424841218",
+        #                 "instrument_id": "BTCUSDTPERP",
+        #                 "order_id": "1590136768156405760",
+        #                 "type": 1,
+        #                 "order_type": 8,
+        #                 "price": "18514.5",
+        #                 "size": "1",
+        #                 "fee": "0.00925725",
+        #                 "close_profit": "0",
+        #                 "leverage": "20",
+        #                 "trade_type": 0,
+        #                 "match_role": 1,
+        #                 "trade_time": 1667953123562
+        #             },
+        #             ...
+        #         ]
+        #     }
+        #
+        responseRequest = 'data' if (marketType == 'swap') else 'list'
+        data = self.safe_value(response, responseRequest, [])
         return self.parse_trades(data, market, since, limit)
 
     def parse_ledger_entry_type(self, type):
@@ -1734,35 +2107,45 @@ class digifinex(Exchange):
 
     def parse_ledger_entry(self, item, currency=None):
         #
+        # spot and margin
+        #
         #     {
         #         "currency_mark": "BTC",
         #         "type": 100234,
-        #         "num": 28457,
+        #         "num": -10,
         #         "balance": 0.1,
         #         "time": 1546272000
         #     }
         #
-        id = self.safe_string(item, 'num')
-        account = None
-        type = self.parse_ledger_entry_type(self.safe_string(item, 'type'))
-        code = self.safe_currency_code(self.safe_string(item, 'currency_mark'), currency)
-        timestamp = self.safe_timestamp(item, 'time')
-        before = None
+        # swap
+        #
+        #     {
+        #         "currency": "USDT",
+        #         "finance_type": 17,
+        #         "change": "-3.01",
+        #         "timestamp": 1650809432000
+        #     }
+        #
+        type = self.parse_ledger_entry_type(self.safe_string_2(item, 'type', 'finance_type'))
+        code = self.safe_currency_code(self.safe_string_2(item, 'currency_mark', 'currency'), currency)
+        amount = self.safe_number_2(item, 'num', 'change')
         after = self.safe_number(item, 'balance')
-        status = 'ok'
+        timestamp = self.safe_timestamp(item, 'time')
+        if timestamp is None:
+            timestamp = self.safe_integer(item, 'timestamp')
         return {
             'info': item,
-            'id': id,
+            'id': None,
             'direction': None,
-            'account': account,
+            'account': None,
             'referenceId': None,
             'referenceAccount': None,
             'type': type,
             'currency': code,
-            'amount': None,
-            'before': before,
+            'amount': amount,
+            'before': None,
             'after': after,
-            'status': status,
+            'status': None,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'fee': None,
@@ -1771,28 +2154,44 @@ class digifinex(Exchange):
     async def fetch_ledger(self, code=None, since=None, limit=None, params={}):
         """
         fetch the history of changes, actions done by the user or operations that altered balance of the user
+        see https://docs.digifinex.com/en-ww/spot/v3/rest.html#spot-margin-otc-financial-logs
+        see https://docs.digifinex.com/en-ww/swap/v2/rest.html#bills
         :param str|None code: unified currency code, default is None
         :param int|None since: timestamp in ms of the earliest ledger entry, default is None
         :param int|None limit: max number of ledger entrys to return, default is None
         :param dict params: extra parameters specific to the digifinex api endpoint
         :returns dict: a `ledger structure <https://docs.ccxt.com/en/latest/manual.html#ledger-structure>`
         """
-        defaultType = self.safe_string(self.options, 'defaultType', 'spot')
-        orderType = self.safe_string(params, 'type', defaultType)
-        params = self.omit(params, 'type')
         await self.load_markets()
-        request = {
-            'market': orderType,
-        }
+        request = {}
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchLedger', None, params)
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateSpotGetSpotFinancelog',
+            'margin': 'privateSpotGetMarginFinancelog',
+            'swap': 'privateSwapGetAccountFinanceRecord',
+        })
+        marginMode, query = self.handle_margin_mode_and_params('fetchLedger', params)
+        if marginMode is not None:
+            method = 'privateSpotGetMarginFinancelog'
+            marketType = 'margin'
+        if marketType == 'swap':
+            if since is not None:
+                request['start_timestamp'] = since
+        else:
+            request['market'] = marketType
+            if since is not None:
+                request['start_time'] = int(since / 1000)  # default 3 days from now, max 30 days
+        currencyIdRequest = 'currency' if (marketType == 'swap') else 'currency_mark'
         currency = None
         if code is not None:
             currency = self.currency(code)
-            request['currency_mark'] = currency['id']
-        if since is not None:
-            request['start_time'] = int(since / 1000)
+            request[currencyIdRequest] = currency['id']
         if limit is not None:
-            request['limit'] = limit  # default 100, max 1000
-        response = await self.privateSpotGetMarketFinancelog(self.extend(request, params))
+            request['limit'] = limit
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        # spot and margin
         #
         #     {
         #         "code": 0,
@@ -1810,9 +2209,27 @@ class digifinex(Exchange):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
-        items = self.safe_value(data, 'finance', [])
-        return self.parse_ledger(items, currency, since, limit)
+        # swap
+        #
+        #     {
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "currency": "USDT",
+        #                 "finance_type": 17,
+        #                 "change": "3.01",
+        #                 "timestamp": 1650809432000
+        #             },
+        #         ]
+        #     }
+        #
+        ledger = None
+        if marketType == 'swap':
+            ledger = self.safe_value(response, 'data', [])
+        else:
+            data = self.safe_value(response, 'data', {})
+            ledger = self.safe_value(data, 'finance', [])
+        return self.parse_ledger(ledger, currency, since, limit)
 
     def parse_deposit_address(self, depositAddress, currency=None):
         #
@@ -2009,19 +2426,41 @@ class digifinex(Exchange):
 
     def parse_transfer(self, transfer, currency=None):
         #
+        # transfer
+        #
         #     {
         #         "code": 0
         #     }
         #
+        # fetchTransfers
+        #
+        #     {
+        #         "transfer_id": 130524,
+        #         "type": 1,
+        #         "currency": "USDT",
+        #         "amount": "24",
+        #         "timestamp": 1666505659000
+        #     }
+        #
+        fromAccount = None
+        toAccount = None
+        type = self.safe_integer(transfer, 'type')
+        if type == 1:
+            fromAccount = 'spot'
+            toAccount = 'swap'
+        elif type == 2:
+            fromAccount = 'swap'
+            toAccount = 'spot'
+        timestamp = self.safe_integer(transfer, 'timestamp')
         return {
             'info': transfer,
-            'id': None,
-            'timestamp': None,
-            'datetime': None,
-            'currency': self.safe_currency_code(None, currency),
+            'id': self.safe_string(transfer, 'transfer_id'),
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'currency': self.safe_currency_code(self.safe_string(transfer, 'currency'), currency),
             'amount': self.safe_number(transfer, 'amount'),
-            'fromAccount': self.safe_string(transfer, 'fromAccount'),
-            'toAccount': self.safe_string(transfer, 'toAccount'),
+            'fromAccount': fromAccount,
+            'toAccount': toAccount,
             'status': self.parse_transfer_status(self.safe_string(transfer, 'code')),
         }
 
@@ -2416,7 +2855,532 @@ class digifinex(Exchange):
             'taker': self.safe_number(fee, 'taker_fee_rate'),
         }
 
-    def handle_margin_mode_and_params(self, methodName, params={}):
+    async def fetch_positions(self, symbols=None, params={}):
+        """
+        fetch all open positions
+        see https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-positions
+        see https://docs.digifinex.com/en-ww/swap/v2/rest.html#positions
+        :param [str]|None symbols: list of unified market symbols
+        :param dict params: extra parameters specific to the digifinex api endpoint
+        :returns [dict]: a list of `position structures <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
+        await self.load_markets()
+        symbols = self.market_symbols(symbols)
+        request = {}
+        market = None
+        marketType = None
+        if symbols is not None:
+            symbol = None
+            if isinstance(symbols, list):
+                symbolsLength = len(symbols)
+                if symbolsLength > 1:
+                    raise BadRequest(self.id + ' fetchPositions() symbols argument cannot contain more than 1 symbol')
+                symbol = symbols[0]
+            else:
+                symbol = symbols
+            market = self.market(symbol)
+        marketType, params = self.handle_market_type_and_params('fetchPositions', market, params)
+        marginMode, query = self.handle_margin_mode_and_params('fetchPositions', params)
+        if marginMode is not None:
+            marketType = 'margin'
+        if market is not None:
+            marketIdRequest = 'instrument_id' if (marketType == 'swap') else 'symbol'
+            request[marketIdRequest] = market['id']
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateSpotGetMarginPositions',
+            'margin': 'privateSpotGetMarginPositions',
+            'swap': 'privateSwapGetAccountPositions',
+        })
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        # swap
+        #
+        #     {
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "instrument_id": "BTCUSDTPERP",
+        #                 "margin_mode": "crossed",
+        #                 "avail_position": "1",
+        #                 "avg_cost": "18369.3",
+        #                 "last": "18404.7",
+        #                 "leverage": "20",
+        #                 "liquidation_price": "451.12820512820264",
+        #                 "maint_margin_ratio": "0.005",
+        #                 "margin": "0.918465",
+        #                 "position": "1",
+        #                 "realized_pnl": "0",
+        #                 "unrealized_pnl": "0.03410000000000224",
+        #                 "unrealized_pnl_rate": "0.03712716325608732",
+        #                 "side": "long",
+        #                 "open_outstanding": "0",
+        #                 "risk_score": "0.495049504950495",
+        #                 "margin_ratio": "0.4029464788983229",
+        #                 "timestamp": 1667960497145
+        #             },
+        #             ...
+        #         ]
+        #     }
+        #
+        # margin
+        #
+        #     {
+        #         "margin": "77.71534772983289",
+        #         "code": 0,
+        #         "margin_rate": "10.284503769497306",
+        #         "positions": [
+        #             {
+        #                 "amount": 0.0010605,
+        #                 "side": "go_long",
+        #                 "entry_price": 18321.39,
+        #                 "liquidation_rate": 0.3,
+        #                 "liquidation_price": -52754.371758471,
+        #                 "unrealized_roe": -0.002784390267332,
+        #                 "symbol": "BTC_USDT",
+        #                 "unrealized_pnl": -0.010820048189999,
+        #                 "leverage_ratio": 5
+        #             },
+        #             ...
+        #         ],
+        #         "unrealized_pnl": "-0.10681600018999979"
+        #     }
+        #
+        positionRequest = 'data' if (marketType == 'swap') else 'positions'
+        positions = self.safe_value(response, positionRequest, [])
+        result = []
+        for i in range(0, len(positions)):
+            result.append(self.parse_position(positions[i], market))
+        return self.filter_by_array(result, 'symbol', symbols, False)
+
+    async def fetch_position(self, symbol, params={}):
+        """
+        see https://docs.digifinex.com/en-ww/spot/v3/rest.html#margin-positions
+        see https://docs.digifinex.com/en-ww/swap/v2/rest.html#positions
+        fetch data on a single open contract trade position
+        :param str symbol: unified market symbol of the market the position is held in
+        :param dict params: extra parameters specific to the digifinex api endpoint
+        :returns dict: a `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {}
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchPosition', market, params)
+        marginMode, query = self.handle_margin_mode_and_params('fetchPosition', params)
+        if marginMode is not None:
+            marketType = 'margin'
+        method = self.get_supported_mapping(marketType, {
+            'spot': 'privateSpotGetMarginPositions',
+            'margin': 'privateSpotGetMarginPositions',
+            'swap': 'privateSwapGetAccountPositions',
+        })
+        marketIdRequest = 'instrument_id' if (marketType == 'swap') else 'symbol'
+        request[marketIdRequest] = market['id']
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        # swap
+        #
+        #     {
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "instrument_id": "BTCUSDTPERP",
+        #                 "margin_mode": "crossed",
+        #                 "avail_position": "1",
+        #                 "avg_cost": "18369.3",
+        #                 "last": "18388.9",
+        #                 "leverage": "20",
+        #                 "liquidation_price": "383.38712921065553",
+        #                 "maint_margin_ratio": "0.005",
+        #                 "margin": "0.918465",
+        #                 "position": "1",
+        #                 "realized_pnl": "0",
+        #                 "unrealized_pnl": "0.021100000000004115",
+        #                 "unrealized_pnl_rate": "0.02297311274790451",
+        #                 "side": "long",
+        #                 "open_outstanding": "0",
+        #                 "risk_score": "0.4901960784313725",
+        #                 "margin_ratio": "0.40486964045976204",
+        #                 "timestamp": 1667960241758
+        #             }
+        #         ]
+        #     }
+        #
+        # margin
+        #
+        #     {
+        #         "margin": "77.71534772983289",
+        #         "code": 0,
+        #         "margin_rate": "10.284503769497306",
+        #         "positions": [
+        #             {
+        #                 "amount": 0.0010605,
+        #                 "side": "go_long",
+        #                 "entry_price": 18321.39,
+        #                 "liquidation_rate": 0.3,
+        #                 "liquidation_price": -52754.371758471,
+        #                 "unrealized_roe": -0.002784390267332,
+        #                 "symbol": "BTC_USDT",
+        #                 "unrealized_pnl": -0.010820048189999,
+        #                 "leverage_ratio": 5
+        #             }
+        #         ],
+        #         "unrealized_pnl": "-0.10681600018999979"
+        #     }
+        #
+        dataRequest = 'data' if (marketType == 'swap') else 'positions'
+        data = self.safe_value(response, dataRequest, [])
+        position = self.parse_position(data[0], market)
+        if marketType == 'swap':
+            return position
+        else:
+            return self.extend(position, {
+                'collateral': self.safe_number(response, 'margin'),
+                'marginRatio': self.safe_number(response, 'margin_rate'),
+            })
+
+    def parse_position(self, position, market=None):
+        #
+        # swap
+        #
+        #     {
+        #         "instrument_id": "BTCUSDTPERP",
+        #         "margin_mode": "crossed",
+        #         "avail_position": "1",
+        #         "avg_cost": "18369.3",
+        #         "last": "18388.9",
+        #         "leverage": "20",
+        #         "liquidation_price": "383.38712921065553",
+        #         "maint_margin_ratio": "0.005",
+        #         "margin": "0.918465",
+        #         "position": "1",
+        #         "realized_pnl": "0",
+        #         "unrealized_pnl": "0.021100000000004115",
+        #         "unrealized_pnl_rate": "0.02297311274790451",
+        #         "side": "long",
+        #         "open_outstanding": "0",
+        #         "risk_score": "0.4901960784313725",
+        #         "margin_ratio": "0.40486964045976204",
+        #         "timestamp": 1667960241758
+        #     }
+        #
+        # margin
+        #
+        #     {
+        #         "amount": 0.0010605,
+        #         "side": "go_long",
+        #         "entry_price": 18321.39,
+        #         "liquidation_rate": 0.3,
+        #         "liquidation_price": -52754.371758471,
+        #         "unrealized_roe": -0.002784390267332,
+        #         "symbol": "BTC_USDT",
+        #         "unrealized_pnl": -0.010820048189999,
+        #         "leverage_ratio": 5
+        #     }
+        #
+        marketId = self.safe_string_2(position, 'instrument_id', 'symbol')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
+        marginMode = self.safe_string(position, 'margin_mode')
+        if marginMode is not None:
+            marginMode = 'cross' if (marginMode == 'crossed') else 'isolated'
+        else:
+            marginMode = 'crossed'
+        timestamp = self.safe_integer(position, 'timestamp')
+        side = self.safe_string(position, 'side')
+        if side == 'go_long':
+            side = 'long'
+        elif side == 'go_short':
+            side = 'short'
+        return {
+            'info': position,
+            'id': None,
+            'symbol': symbol,
+            'notional': self.safe_number(position, 'amount'),
+            'marginMode': marginMode,
+            'liquidationPrice': self.safe_number(position, 'liquidation_price'),
+            'entryPrice': self.safe_number_2(position, 'avg_cost', 'entry_price'),
+            'unrealizedPnl': self.safe_number(position, 'unrealized_pnl'),
+            'contracts': self.safe_number(position, 'avail_position'),
+            'contractSize': self.safe_number(market, 'contractSize'),
+            'markPrice': self.safe_number(position, 'last'),
+            'side': side,
+            'hedged': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'maintenanceMargin': self.safe_number(position, 'margin'),
+            'maintenanceMarginPercentage': self.safe_number(position, 'maint_margin_ratio'),
+            'collateral': None,
+            'initialMargin': None,
+            'initialMarginPercentage': None,
+            'leverage': self.safe_number_2(position, 'leverage', 'leverage_ratio'),
+            'marginRatio': self.safe_number(position, 'margin_ratio'),
+            'percentage': None,
+        }
+
+    async def set_leverage(self, leverage, symbol=None, params={}):
+        """
+        set the level of leverage for a market
+        see https://docs.digifinex.com/en-ww/swap/v2/rest.html#setleverage
+        :param float leverage: the rate of leverage
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the digifinex api endpoint
+        :param str|None params['marginMode']: either 'cross' or 'isolated', default is cross
+        :param str|None params['side']: either 'long' or 'short', required for isolated markets only
+        :returns dict: response from the exchange
+        """
+        await self.load_markets()
+        self.check_required_symbol('setLeverage', symbol)
+        market = self.market(symbol)
+        if market['type'] != 'swap':
+            raise BadSymbol(self.id + ' setLeverage() supports swap contracts only')
+        if (leverage < 1) or (leverage > 100):
+            raise BadRequest(self.id + ' leverage should be between 1 and 100')
+        request = {
+            'instrument_id': market['id'],
+            'leverage': leverage,
+        }
+        defaultMarginMode = self.safe_string_2(self.options, 'marginMode', 'defaultMarginMode')
+        marginMode = self.safe_string_lower_2(params, 'marginMode', 'defaultMarginMode', defaultMarginMode)
+        if marginMode is not None:
+            marginMode = 'crossed' if (marginMode == 'cross') else 'isolated'
+            request['margin_mode'] = marginMode
+            params = self.omit(params, ['marginMode', 'defaultMarginMode'])
+        if marginMode == 'isolated':
+            side = self.safe_string(params, 'side')
+            if side is not None:
+                request['side'] = side
+                params = self.omit(params, 'side')
+            else:
+                self.check_required_argument('setLeverage', side, 'side', ['long', 'short'])
+        return await self.privateSwapPostAccountLeverage(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "instrument_id": "BTCUSDTPERP",
+        #             "leverage": 30,
+        #             "margin_mode": "crossed",
+        #             "side": "both"
+        #         }
+        #     }
+        #
+
+    async def fetch_transfers(self, code=None, since=None, limit=None, params={}):
+        """
+        fetch the transfer history, only transfers between spot and swap accounts are supported
+        see https://docs.digifinex.com/en-ww/swap/v2/rest.html#transferrecord
+        :param str|None code: unified currency code of the currency transferred
+        :param int|None since: the earliest time in ms to fetch transfers for
+        :param int|None limit: the maximum number of  transfers to retrieve
+        :param dict params: extra parameters specific to the digifinex api endpoint
+        :returns [dict]: a list of `transfer structures <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
+        """
+        await self.load_markets()
+        currency = None
+        request = {}
+        if code is not None:
+            currency = self.safe_currency_code(code)
+            request['currency'] = currency['id']
+        if since is not None:
+            request['start_timestamp'] = since
+        if limit is not None:
+            request['limit'] = limit  # default 20 max 100
+        response = await self.privateSwapGetAccountTransferRecord(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "transfer_id": 130524,
+        #                 "type": 1,
+        #                 "currency": "USDT",
+        #                 "amount": "24",
+        #                 "timestamp": 1666505659000
+        #             },
+        #             ...
+        #         ]
+        #     }
+        #
+        transfers = self.safe_value(response, 'data', [])
+        return self.parse_transfers(transfers, currency, since, limit)
+
+    async def fetch_leverage_tiers(self, symbols=None, params={}):
+        """
+        see https://docs.digifinex.com/en-ww/swap/v2/rest.html#instruments
+        retrieve information on the maximum leverage, for different trade sizes
+        :param [str]|None symbols: a list of unified market symbols
+        :param dict params: extra parameters specific to the digifinex api endpoint
+        :returns dict: a dictionary of `leverage tiers structures <https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure>`, indexed by market symbols
+        """
+        await self.load_markets()
+        response = await self.publicSwapGetPublicInstruments(params)
+        #
+        #     {
+        #         "code": 0,
+        #         "data": [
+        #             {
+        #                 "instrument_id": "BTCUSDTPERP",
+        #                 "type": "REAL",
+        #                 "contract_type": "PERPETUAL",
+        #                 "base_currency": "BTC",
+        #                 "quote_currency": "USDT",
+        #                 "clear_currency": "USDT",
+        #                 "contract_value": "0.001",
+        #                 "contract_value_currency": "BTC",
+        #                 "is_inverse": False,
+        #                 "is_trading": True,
+        #                 "status": "ONLINE",
+        #                 "price_precision": 1,
+        #                 "tick_size": "0.1",
+        #                 "min_order_amount": 1,
+        #                 "open_max_limits": [
+        #                     {
+        #                         "leverage": "50",
+        #                         "max_limit": "1000000"
+        #                     },
+        #                 ]
+        #             },
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        symbols = self.market_symbols(symbols)
+        return self.parse_leverage_tiers(data, symbols, 'symbol')
+
+    def parse_leverage_tiers(self, response, symbols=None, marketIdKey=None):
+        #
+        #     [
+        #         {
+        #             "instrument_id": "BTCUSDTPERP",
+        #             "type": "REAL",
+        #             "contract_type": "PERPETUAL",
+        #             "base_currency": "BTC",
+        #             "quote_currency": "USDT",
+        #             "clear_currency": "USDT",
+        #             "contract_value": "0.001",
+        #             "contract_value_currency": "BTC",
+        #             "is_inverse": False,
+        #             "is_trading": True,
+        #             "status": "ONLINE",
+        #             "price_precision": 1,
+        #             "tick_size": "0.1",
+        #             "min_order_amount": 1,
+        #             "open_max_limits": [
+        #                 {
+        #                     "leverage": "50",
+        #                     "max_limit": "1000000"
+        #                 }
+        #             ]
+        #         },
+        #     ]
+        #
+        tiers = {}
+        result = {}
+        for i in range(0, len(response)):
+            entry = response[i]
+            marketId = self.safe_string(entry, 'instrument_id')
+            market = self.safe_market(marketId)
+            symbol = self.safe_symbol(marketId, market)
+            symbolsLength = 0
+            tiers[symbol] = self.parse_market_leverage_tiers(response[i], market)
+            if symbols is not None:
+                symbolsLength = len(symbols)
+                if self.in_array(symbol, symbols):
+                    result[symbol] = self.parse_market_leverage_tiers(response[i], market)
+            if symbol is not None and (symbolsLength == 0 or self.in_array(symbols, symbol)):
+                result[symbol] = self.parse_market_leverage_tiers(response[i], market)
+        return result
+
+    async def fetch_market_leverage_tiers(self, symbol, params={}):
+        """
+        see https://docs.digifinex.com/en-ww/swap/v2/rest.html#instrument
+        retrieve information on the maximum leverage, for different trade sizes for a single market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the digifinex api endpoint
+        :returns dict: a `leverage tiers structure <https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadRequest(self.id + ' fetchMarketLeverageTiers() supports swap markets only')
+        request = {
+            'instrument_id': market['id'],
+        }
+        response = await self.publicSwapGetPublicInstrument(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "data": {
+        #             "instrument_id": "BTCUSDTPERP",
+        #             "type": "REAL",
+        #             "contract_type": "PERPETUAL",
+        #             "base_currency": "BTC",
+        #             "quote_currency": "USDT",
+        #             "clear_currency": "USDT",
+        #             "contract_value": "0.001",
+        #             "contract_value_currency": "BTC",
+        #             "is_inverse": False,
+        #             "is_trading": True,
+        #             "status": "ONLINE",
+        #             "price_precision": 1,
+        #             "tick_size": "0.1",
+        #             "min_order_amount": 1,
+        #             "open_max_limits": [
+        #                 {
+        #                     "leverage": "50",
+        #                     "max_limit": "1000000"
+        #                 }
+        #             ]
+        #         }
+        #     }
+        #
+        data = self.safe_value(response, 'data', {})
+        return self.parse_market_leverage_tiers(data, market)
+
+    def parse_market_leverage_tiers(self, info, market):
+        #
+        #     {
+        #         "instrument_id": "BTCUSDTPERP",
+        #         "type": "REAL",
+        #         "contract_type": "PERPETUAL",
+        #         "base_currency": "BTC",
+        #         "quote_currency": "USDT",
+        #         "clear_currency": "USDT",
+        #         "contract_value": "0.001",
+        #         "contract_value_currency": "BTC",
+        #         "is_inverse": False,
+        #         "is_trading": True,
+        #         "status": "ONLINE",
+        #         "price_precision": 1,
+        #         "tick_size": "0.1",
+        #         "min_order_amount": 1,
+        #         "open_max_limits": [
+        #             {
+        #                 "leverage": "50",
+        #                 "max_limit": "1000000"
+        #             }
+        #         ]
+        #     }
+        #
+        tiers = []
+        brackets = self.safe_value(info, 'open_max_limits', {})
+        for i in range(0, len(brackets)):
+            tier = brackets[i]
+            marketId = self.safe_string(info, 'instrument_id')
+            market = self.safe_market(marketId)
+            tiers.append({
+                'tier': self.sum(i, 1),
+                'currency': market['settle'],
+                'minNotional': None,
+                'maxNotional': self.safe_number(tier, 'max_limit'),
+                'maintenanceMarginRate': None,
+                'maxLeverage': self.safe_number(tier, 'leverage'),
+                'info': tier,
+            })
+        return tiers
+
+    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
         """
          * @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
@@ -2426,7 +3390,7 @@ class digifinex(Exchange):
         defaultType = self.safe_string(self.options, 'defaultType')
         isMargin = self.safe_value(params, 'margin', False)
         marginMode = None
-        marginMode, params = super(digifinex, self).handle_margin_mode_and_params(methodName, params)
+        marginMode, params = super(digifinex, self).handle_margin_mode_and_params(methodName, params, defaultValue)
         if marginMode is not None:
             if marginMode != 'cross':
                 raise NotSupported(self.id + ' only cross margin is supported')

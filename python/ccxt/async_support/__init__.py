@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.1.93'
+__version__ = '2.2.47'
 
 # -----------------------------------------------------------------------------
 
@@ -94,7 +94,6 @@ from ccxt.async_support.btcmarkets import btcmarkets                            
 from ccxt.async_support.btctradeua import btctradeua                            # noqa: F401
 from ccxt.async_support.btcturk import btcturk                                  # noqa: F401
 from ccxt.async_support.buda import buda                                        # noqa: F401
-from ccxt.async_support.bw import bw                                            # noqa: F401
 from ccxt.async_support.bybit import bybit                                      # noqa: F401
 from ccxt.async_support.bytetrade import bytetrade                              # noqa: F401
 from ccxt.async_support.cex import cex                                          # noqa: F401
@@ -136,7 +135,6 @@ from ccxt.async_support.kuna import kuna                                        
 from ccxt.async_support.latoken import latoken                                  # noqa: F401
 from ccxt.async_support.lbank import lbank                                      # noqa: F401
 from ccxt.async_support.lbank2 import lbank2                                    # noqa: F401
-from ccxt.async_support.liquid import liquid                                    # noqa: F401
 from ccxt.async_support.luno import luno                                        # noqa: F401
 from ccxt.async_support.lykke import lykke                                      # noqa: F401
 from ccxt.async_support.mercado import mercado                                  # noqa: F401
@@ -213,7 +211,6 @@ exchanges = [
     'btctradeua',
     'btcturk',
     'buda',
-    'bw',
     'bybit',
     'bytetrade',
     'cex',
@@ -255,7 +252,6 @@ exchanges = [
     'latoken',
     'lbank',
     'lbank2',
-    'liquid',
     'luno',
     'lykke',
     'mercado',
