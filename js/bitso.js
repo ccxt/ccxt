@@ -1533,7 +1533,10 @@ module.exports = class bitso extends Exchange {
             const code = this.safeCurrencyCode (currencyId);
             if ((codes === undefined) || (code in codes)) {
                 const withdrawFee = this.parseNumber (withdrawalResponse[currencyId]);
-                result[code] = result[code] === undefined ? this.depositWithdrawFee ({}) : result[code];
+                const resultValue = this.safeValue (result, code);
+                if (resultValue === undefined) {
+                    result[code] = this.depositWithdrawFee ({});
+                }
                 result[code]['withdraw']['fee'] = withdrawFee;
                 result[code]['info'][code] = withdrawFee;
             }
