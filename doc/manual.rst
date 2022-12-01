@@ -51,7 +51,7 @@ Exchanges
 
 
 
-The CCXT library currently supports the following 110 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 109 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -596,9 +596,9 @@ The CCXT library currently supports the following 110 cryptocurrency exchange ma
      
      - bybit
      - `Bybit <https://www.bybit.com/register?affiliate_id=35953>`__
-     - .. image:: https://img.shields.io/badge/2-lightgray
+     - .. image:: https://img.shields.io/badge/3-lightgray
           :target: https://bybit-exchange.github.io/docs/inverse/
-          :alt: API Version 2
+          :alt: API Version 3
      
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
@@ -1126,18 +1126,6 @@ The CCXT library currently supports the following 110 cryptocurrency exchange ma
      - `LBank <https://www.lbank.info/invitevip?icode=7QCY>`__
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://www.lbank.info/en-US/docs/index.html
-          :alt: API Version 2
-     
-     - 
-     - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg
-          :target: https://www.liquid.com/sign-up/?affiliate=SbzC62lt30976
-          :alt: liquid
-     
-     - liquid
-     - `Liquid <https://www.liquid.com/sign-up/?affiliate=SbzC62lt30976>`__
-     - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://developers.liquid.com
           :alt: API Version 2
      
      - 

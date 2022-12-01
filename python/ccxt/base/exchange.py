@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.2.40'
+__version__ = '2.2.47'
 
 # -----------------------------------------------------------------------------
 
@@ -187,6 +187,7 @@ class Exchange(object):
         '404': ExchangeNotAvailable,
         '409': ExchangeNotAvailable,
         '410': ExchangeNotAvailable,
+        '451': ExchangeNotAvailable,
         '500': ExchangeNotAvailable,
         '501': ExchangeNotAvailable,
         '502': ExchangeNotAvailable,
@@ -2497,9 +2498,10 @@ class Exchange(object):
 
     def network_code_to_id(self, networkCode, currencyCode=None):
         """
+         * @ignore
         tries to convert the provided networkCode(which is expected to be an unified network code) to a network id. In order to achieve self, derived class needs to have 'options->networks' defined.
         :param str networkCode: unified network code
-        :param str currencyCode: unified currency code, but self argument is not required by default, unless there is an exchange(like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
+        :param str|None currencyCode: unified currency code, but self argument is not required by default, unless there is an exchange(like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
         :returns [str|None]: exchange-specific network id
         """
         networkIdsByCodes = self.safe_value(self.options, 'networks', {})
@@ -2507,9 +2509,10 @@ class Exchange(object):
 
     def network_id_to_code(self, networkId, currencyCode=None):
         """
+         * @ignore
         tries to convert the provided exchange-specific networkId to an unified network Code. In order to achieve self, derived class needs to have 'options->networksById' defined.
         :param str networkId: unified network code
-        :param str currencyCode: unified currency code, but self argument is not required by default, unless there is an exchange(like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
+        :param str|None currencyCode: unified currency code, but self argument is not required by default, unless there is an exchange(like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
         :returns [str|None]: unified network code
         """
         networkCodesByIds = self.safe_value(self.options, 'networksById', {})
