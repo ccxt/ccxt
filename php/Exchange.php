@@ -285,6 +285,7 @@ class Exchange {
         'parseNumber' => 'parse_number',
         'checkOrderArguments' => 'check_order_arguments',
         'handleHttpStatusCode' => 'handle_http_status_code',
+        'getDefaultOptions' => 'get_default_options',
         'safeLedgerEntry' => 'safe_ledger_entry',
         'setMarkets' => 'set_markets',
         'safeBalance' => 'safe_balance',
@@ -1172,7 +1173,7 @@ class Exchange {
         $this->headers = array();
         $this->hostname = null; // in case of inaccessibility of the "main" domain
 
-        $this->options = array(); // exchange-specific options if any
+        $this->options = $this->get_default_options(); // exchange-specific options if any
 
         $this->skipJsonOnStatusCodes = false; // TODO: reserved, rewrite the curl routine to parse JSON body anyway
         $this->quoteJsonNumbers = true; // treat numbers in json as quoted precise strings
@@ -2473,6 +2474,15 @@ class Exchange {
 
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    public function get_default_options() {
+        return array(
+            'defaultNetworkCodeReplacements' => array(
+                'ETH' => array( 'ERC20' => 'ETH' ),
+                'TRX' => array( 'TRC20' => 'TRX' ),
+            ),
+        );
+    }
+
     public function safe_ledger_entry($entry, $currency = null) {
         $currency = $this->safe_currency(null, $currency);
         $direction = $this->safe_string($entry, 'direction');
@@ -3342,7 +3352,15 @@ class Exchange {
          * @return {[string|null]} unified network code
          */
         $networkCodesByIds = $this->safe_value($this->options, 'networksById', array());
-        return $this->safe_string($networkCodesByIds, $networkId, $networkId);
+        $networkCode = $this->safe_string($networkCodesByIds, $networkId, $networkId);
+        if ($currencyCode !== null) {
+            $defaultNetworkCodeReplacements = $this->safe_value($this->options, 'defaultNetworkCodeReplacements', array());
+            if (is_array($defaultNetworkCodeReplacements) && array_key_exists($currencyCode, $defaultNetworkCodeReplacements)) {
+                $replacementObject = $this->safe_value($defaultNetworkCodeReplacements, $currencyCode, array());
+                $networkCode = $this->safe_string($replacementObject, $networkCode, $networkCode);
+            }
+        }
+        return $networkCode;
     }
 
     public function handle_network_code_and_params($params) {
