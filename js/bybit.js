@@ -4306,13 +4306,9 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchUnifiedMarginOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchUnifiedMarginOrders() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
         const request = {
-            'symbol': market['id'],
+            // 'symbol': market['id'],
             // 'category': string, Type of derivatives product: linear or option.
             // 'baseCoin': string, Base coin. When category=option. If not passed, BTC by default; when category=linear, if BTC passed, BTCPERP & BTCUSDT returned.
             // 'orderId': string, Order ID
@@ -4323,15 +4319,21 @@ module.exports = class bybit extends Exchange {
             // 'limit': number, Data quantity per page: Max data value per page is 50, and default value at 20.
             // 'cursor': string, API pass-through. accountType + category + cursor +. If inconsistent, the following should be returned: The account type does not match the service inquiry.
         };
-        const isStop = this.safeValue (params, 'stop', false);
-        params = this.omit (params, [ 'stop' ]);
-        if (market['option']) {
-            request['category'] = 'option';
-        } else if (market['linear']) {
+        let market = undefined;
+        if (symbol === undefined) {
             request['category'] = 'linear';
         } else {
-            throw new NotSupported (this.id + ' fetchUnifiedMarginOrders() does not allow inverse market orders for ' + symbol + ' markets');
+            market = this.market (symbol);
+            if (market['option']) {
+                request['category'] = 'option';
+            } else if (market['linear']) {
+                request['category'] = 'linear';
+            } else {
+                throw new NotSupported (this.id + ' fetchUnifiedMarginOrders() does not allow inverse market orders for ' + symbol + ' markets');
+            }
         }
+        const isStop = this.safeValue (params, 'stop', false);
+        params = this.omit (params, [ 'stop' ]);
         if (isStop) {
             request['orderFilter'] = 'StopOrder';
         }
@@ -4637,22 +4639,24 @@ module.exports = class bybit extends Exchange {
         await this.loadMarkets ();
         const request = {};
         let market = undefined;
-        if (symbol !== undefined) {
+        if (symbol === undefined) {
+            request['category'] = 'linear';
+        } else {
             market = this.market (symbol);
             request['symbol'] = market['id'];
+            if (market['option']) {
+                request['category'] = 'option';
+            } else if (market['linear']) {
+                request['category'] = 'linear';
+            } else {
+                throw new NotSupported (this.id + ' fetchUnifiedMarginOpenOrders() does not allow inverse market orders for ' + symbol + ' markets');
+            }
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchUnifiedMarginOpenOrders', market, params);
         const isStop = this.safeValue (params, 'stop', false);
         const isConditional = isStop || (type === 'stop') || (type === 'conditional');
         params = this.omit (params, [ 'stop' ]);
-        if (market['option']) {
-            request['category'] = 'option';
-        } else if (market['linear']) {
-            request['category'] = 'linear';
-        } else {
-            throw new NotSupported (this.id + ' fetchUnifiedMarginOpenOrders() does not allow inverse market orders for ' + symbol + ' markets');
-        }
         if (isConditional) {
             request['orderFilter'] = 'StopOrder';
         }
