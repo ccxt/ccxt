@@ -3197,10 +3197,9 @@ module.exports = class bybit extends Exchange {
         if (isContract) {
             const feeCostString = this.safeString (order, 'cumExecFee');
             if (feeCostString !== undefined) {
-                const feeCurrency = market['linear'] ? market['quote'] : market['base'];
                 fee = {
                     'cost': feeCostString,
-                    'currency': feeCurrency,
+                    'currency': market['settle'],
                 };
             }
         }
@@ -4309,7 +4308,7 @@ module.exports = class bybit extends Exchange {
         const isInverse = subType === 'inverse';
         const isLinearSettle = isUsdcSettled || (settle === 'USDT');
         if (isInverse && isLinearSettle) {
-            throw new ArgumentsRequired (this.id + ' fetchPositions with inverse subType requires settle to not be USDT or USDC');
+            throw new ArgumentsRequired (this.id + ' cancelAllOrders with inverse subType requires settle to not be USDT or USDC');
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('cancelAllOrders', market, params);
         const enableUnifiedMargin = await this.isUnifiedMarginEnabled ();
@@ -4519,7 +4518,7 @@ module.exports = class bybit extends Exchange {
         const isUsdcSettled = settle === 'USDC';
         const isLinearSettle = isUsdcSettled || (settle === 'USDT');
         if (isInverse && isLinearSettle) {
-            throw new ArgumentsRequired (this.id + ' fetchPositions with inverse subType requires settle to not be USDT or USDC');
+            throw new ArgumentsRequired (this.id + ' fetchOrders with inverse subType requires settle to not be USDT or USDC');
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         const enableUnifiedMargin = await this.isUnifiedMarginEnabled ();
@@ -4884,7 +4883,7 @@ module.exports = class bybit extends Exchange {
         const isUsdcSettled = settle === 'USDC';
         const isLinearSettle = isUsdcSettled || (settle === 'USDT');
         if (isInverse && isLinearSettle) {
-            throw new ArgumentsRequired (this.id + ' fetchPositions with inverse subType requires settle to not be USDT or USDC');
+            throw new ArgumentsRequired (this.id + ' fetchOpenOrders with inverse subType requires settle to not be USDT or USDC');
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchOpenOrders', market, params);
         const enableUnifiedMargin = await this.isUnifiedMarginEnabled ();
@@ -5197,7 +5196,7 @@ module.exports = class bybit extends Exchange {
         const isUsdcSettled = settle === 'USDC';
         const isLinearSettle = isUsdcSettled || (settle === 'USDT');
         if (isInverse && isLinearSettle) {
-            throw new ArgumentsRequired (this.id + ' fetchPositions with inverse subType requires settle to not be USDT or USDC');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades with inverse subType requires settle to not be USDT or USDC');
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('fetchMyTrades', market, params);
         const enableUnifiedMargin = await this.isUnifiedMarginEnabled ();
@@ -6035,6 +6034,11 @@ module.exports = class bybit extends Exchange {
         const request = {
             'dataFilter': 'valid',
         };
+        let settle = undefined;
+        [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', settle);
+        if (settle !== undefined) {
+            request['settleCoin'] = settle;
+        }
         const response = await this.privateGetContractV3PrivatePositionList (this.extend (request, params));
         //
         // contract v3
@@ -6134,7 +6138,6 @@ module.exports = class bybit extends Exchange {
         } else if (isUsdcSettled) {
             return await this.fetchUSDCPositions (symbols, query);
         } else {
-            query['settleCoin'] = settle;
             return await this.fetchDerivativesPositions (symbols, query);
         }
     }
