@@ -239,6 +239,7 @@ class binance extends Exchange {
                         'loan/repay/collateral/rate' => 600, // Weight(IP) => 6000 => cost = 0.1 * 6000 = 600
                         'loan/vip/ongoing/orders' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
                         'loan/vip/repay/history' => 40, // Weight(IP) => 400 => cost = 0.1 * 400 = 40
+                        'loan/vip/collateral/account' => 600, // Weight(IP) => 6000 => cost = 0.1 * 6000 = 600
                         'fiat/orders' => 600.03, // Weight(UID) => 90000 => cost = 0.006667 * 90000 = 600.03
                         'fiat/payments' => 0.1,
                         'futures/transfer' => 1,
@@ -1934,7 +1935,7 @@ class binance extends Exchange {
                 $paramSymbols = $this->safe_value($params, 'symbols');
                 if ($paramSymbols !== null) {
                     $symbols = '';
-                    if ($this->is_array($paramSymbols)) {
+                    if (gettype($paramSymbols) === 'array' && array_keys($paramSymbols) === array_keys(array_keys($paramSymbols))) {
                         $symbols = $this->market_id($paramSymbols[0]);
                         for ($i = 1; $i < count($paramSymbols); $i++) {
                             $symbol = $paramSymbols[$i];

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.2.40'
+__version__ = '2.2.47'
 
 # -----------------------------------------------------------------------------
 
@@ -135,7 +135,6 @@ from ccxt.async_support.kuna import kuna                                        
 from ccxt.async_support.latoken import latoken                                  # noqa: F401
 from ccxt.async_support.lbank import lbank                                      # noqa: F401
 from ccxt.async_support.lbank2 import lbank2                                    # noqa: F401
-from ccxt.async_support.liquid import liquid                                    # noqa: F401
 from ccxt.async_support.luno import luno                                        # noqa: F401
 from ccxt.async_support.lykke import lykke                                      # noqa: F401
 from ccxt.async_support.mercado import mercado                                  # noqa: F401
@@ -253,7 +252,6 @@ exchanges = [
     'latoken',
     'lbank',
     'lbank2',
-    'liquid',
     'luno',
     'lykke',
     'mercado',

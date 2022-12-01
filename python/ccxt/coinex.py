@@ -2456,6 +2456,7 @@ class coinex(Exchange):
         #          code: 0,
         #          data: {
         #            coin_address: '1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq',
+        #            # coin_address: 'xxxxxxxxxxxxxx:yyyyyyyyy',  # with embedded tag/memo
         #            is_bitcoin_cash: False
         #          },
         #          message: 'Success'
@@ -2490,12 +2491,20 @@ class coinex(Exchange):
         #         is_bitcoin_cash: False
         #     }
         #
-        address = self.safe_string(depositAddress, 'coin_address')
+        coinAddress = self.safe_string(depositAddress, 'coin_address')
+        parts = coinAddress.split(':')
+        address = None
+        tag = None
+        if len(parts) > 1:
+            address = parts[0]
+            tag = parts[1]
+        else:
+            address = coinAddress
         return {
             'info': depositAddress,
             'currency': self.safe_currency_code(None, currency),
             'address': address,
-            'tag': None,
+            'tag': tag,
             'network': None,
         }
 

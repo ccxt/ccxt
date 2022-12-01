@@ -26,7 +26,7 @@ CCXT – CryptoCurrency eXchange Trading Library
      :target: https://discord.gg/ccxt
      :alt: Discord
  
-.. image:: https://img.shields.io/badge/exchanges-116-blue.svg
+.. image:: https://img.shields.io/badge/exchanges-115-blue.svg
      :target: https://github.com/ccxt/ccxt/wiki/Exchange-Markets
      :alt: Supported Exchanges
  
@@ -220,9 +220,9 @@ Certified Cryptocurrency Exchanges
      
      - bybit
      - `Bybit <https://www.bybit.com/register?affiliate_id=35953>`__
-     - .. image:: https://img.shields.io/badge/2-lightgray
+     - .. image:: https://img.shields.io/badge/3-lightgray
           :target: https://bybit-exchange.github.io/docs/inverse/
-          :alt: API Version 2
+          :alt: API Version 3
      
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
@@ -356,7 +356,7 @@ Certified Cryptocurrency Exchanges
 Supported Cryptocurrency Exchange Markets
 -----------------------------------------
 
-The CCXT library currently supports the following 110 cryptocurrency exchange markets and trading APIs:
+The CCXT library currently supports the following 109 cryptocurrency exchange markets and trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -901,9 +901,9 @@ The CCXT library currently supports the following 110 cryptocurrency exchange ma
      
      - bybit
      - `Bybit <https://www.bybit.com/register?affiliate_id=35953>`__
-     - .. image:: https://img.shields.io/badge/2-lightgray
+     - .. image:: https://img.shields.io/badge/3-lightgray
           :target: https://bybit-exchange.github.io/docs/inverse/
-          :alt: API Version 2
+          :alt: API Version 3
      
      - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
           :target: https://github.com/ccxt/ccxt/wiki/Certification
@@ -1435,18 +1435,6 @@ The CCXT library currently supports the following 110 cryptocurrency exchange ma
      
      - 
      - 
-   * - .. image:: https://user-images.githubusercontent.com/1294454/45798859-1a872600-bcb4-11e8-8746-69291ce87b04.jpg
-          :target: https://www.liquid.com/sign-up/?affiliate=SbzC62lt30976
-          :alt: liquid
-     
-     - liquid
-     - `Liquid <https://www.liquid.com/sign-up/?affiliate=SbzC62lt30976>`__
-     - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://developers.liquid.com
-          :alt: API Version 2
-     
-     - 
-     - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/27766607-8c1a69d8-5ede-11e7-930c-540b5eb9be24.jpg
           :target: https://www.luno.com/invite/44893A
           :alt: luno
@@ -1915,14 +1903,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@2.2.40/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@2.2.40/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@2.2.47/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@2.2.47/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@2.2.40/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@2.2.47/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 

@@ -187,6 +187,7 @@ module.exports = class Exchange {
                 '404': ExchangeNotAvailable,
                 '409': ExchangeNotAvailable,
                 '410': ExchangeNotAvailable,
+                '451': ExchangeNotAvailable,
                 '500': ExchangeNotAvailable,
                 '501': ExchangeNotAvailable,
                 '502': ExchangeNotAvailable,
@@ -234,7 +235,7 @@ module.exports = class Exchange {
         //         }
         //     }
         //
-        this.options = {} // exchange-specific options, if any
+        this.options = this.getDefaultOptions(); // exchange-specific options, if any
         // fetch implementation options (JS only)
         this.fetchOptions = {
             // keepalive: true, // does not work in Chrome, https://github.com/ccxt/ccxt/issues/6368
@@ -796,6 +797,15 @@ module.exports = class Exchange {
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
+
+    getDefaultOptions () {
+        return {
+            'defaultNetworkCodeReplacements': {
+                'ETH': { 'ERC20': 'ETH' },
+                'TRX': { 'TRC20': 'TRX' },
+            },
+        };
+    }
 
     safeLedgerEntry (entry, currency = undefined) {
         currency = this.safeCurrency (undefined, currency);
@@ -1647,28 +1657,68 @@ module.exports = class Exchange {
 
     networkCodeToId (networkCode, currencyCode = undefined) {
         /**
+         * @ignore
          * @method
          * @name exchange#networkCodeToId
          * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
          * @param {string} networkCode unified network code
-         * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
+         * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {[string|undefined]} exchange-specific network id
          */
         const networkIdsByCodes = this.safeValue (this.options, 'networks', {});
-        return this.safeString (networkIdsByCodes, networkCode, networkCode);
+        let networkId = this.safeString (networkIdsByCodes, networkCode);
+        // for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
+        if (networkId === undefined) {
+            if (currencyCode === undefined) {
+                // if currencyCode was not provided, then we just set passed value to networkId
+                networkId = networkCode;
+            } else {
+                // if currencyCode was provided, then we try to find if that currencyCode has a replacement (i.e. ERC20 for ETH)
+                const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
+                if (currencyCode in defaultNetworkCodeReplacements) {
+                    // if there is a replacement for the passed networkCode, then we use it to find network-id in `options->networks` object
+                    const replacementObject = defaultNetworkCodeReplacements[currencyCode]; // i.e. { 'ERC20': 'ETH' }
+                    const keys = Object.keys (replacementObject);
+                    for (let i = 0; i < keys.length; i++) {
+                        const key = keys[i];
+                        const value = replacementObject[key];
+                        // if value matches to provided unified networkCode, then we use it's key to find network-id in `options->networks` object
+                        if (value === networkCode) {
+                            networkId = this.safeString (networkIdsByCodes, key);
+                            break;
+                        }
+                    }
+                }
+                // if it wasn't found, we just set the provided value to network-id
+                if (networkId === undefined) {
+                    networkId = networkCode;
+                }
+            }
+        }
+        return networkId;
     }
 
     networkIdToCode (networkId, currencyCode = undefined) {
         /**
+         * @ignore
          * @method
          * @name exchange#networkIdToCode
          * @description tries to convert the provided exchange-specific networkId to an unified network Code. In order to achieve this, derived class needs to have 'options->networksById' defined.
          * @param {string} networkId unified network code
-         * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
+         * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {[string|undefined]} unified network code
          */
         const networkCodesByIds = this.safeValue (this.options, 'networksById', {});
-        return this.safeString (networkCodesByIds, networkId, networkId);
+        let networkCode = this.safeString (networkCodesByIds, networkId, networkId);
+        // replace mainnet network-codes (i.e. ERC20->ETH)
+        if (currencyCode !== undefined) {
+            const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
+            if (currencyCode in defaultNetworkCodeReplacements) {
+                const replacementObject = this.safeValue (defaultNetworkCodeReplacements, currencyCode, {});
+                networkCode = this.safeString (replacementObject, networkCode, networkCode);
+            }
+        }
+        return networkCode;
     }
 
     handleNetworkCodeAndParams (params) {
