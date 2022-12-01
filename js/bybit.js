@@ -2910,7 +2910,7 @@ module.exports = class bybit extends Exchange {
                 account['total'] = this.safeString2 (entry, 'total', 'walletBalance');
                 account['free'] = this.safeStringN (entry, [ 'free', 'availableBalanceWithoutConvert', 'availableBalance' ]);
                 account['used'] = this.safeString (entry, 'locked');
-                const currencyId = this.safeStringN (entry,[ 'tokenId', 'coin', 'currencyCoin' ]);
+                const currencyId = this.safeStringN (entry, [ 'tokenId', 'coin', 'currencyCoin' ]);
                 const code = this.safeCurrencyCode (currencyId);
                 result[code] = account;
             }
@@ -4279,8 +4279,8 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', []);
-        const list = this.safeValue (result, 'list', []);
-        return this.parseOrders (list, market);
+        const orders = this.safeValue (result, 'list', []);
+        return this.parseOrders (orders, market);
     }
 
     async cancelAllOrders (symbol = undefined, params = {}) {
@@ -4809,8 +4809,8 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const list = this.safeValue (result, 'list', []);
-        return this.parseOrders (list, undefined, since, limit);
+        const orders = this.safeValue (result, 'list', []);
+        return this.parseOrders (orders, market, since, limit);
     }
 
     async fetchUSDCOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -5120,8 +5120,8 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const list = this.safeValue (result, 'list', []);
-        return this.parseTrades (list, market, since, limit);
+        const trades = this.safeValue (result, 'list', []);
+        return this.parseTrades (trades, market, since, limit);
     }
 
     async fetchMyUsdcTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -6103,8 +6103,8 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result', {});
-        const list = this.safeValue (result, 'list', []);
-        return this.parsePositions (list, symbols, params);
+        const positions = this.safeValue (result, 'list', []);
+        return this.parsePositions (positions, symbols, params);
     }
 
     async fetchPositions (symbols = undefined, params = {}) {
