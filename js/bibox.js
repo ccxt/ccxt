@@ -496,7 +496,7 @@ module.exports = class bibox extends Exchange {
             percentage = percentage.replace ('%', '');
         }
         return this.safeTicker ({
-            'symbol': market['symbol'],
+            'symbol': this.safeString (market, 'symbol'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'high': this.safeString2 (ticker, 'high', 'h'),
