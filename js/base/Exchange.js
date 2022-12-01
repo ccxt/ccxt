@@ -2993,7 +2993,7 @@ module.exports = class Exchange {
             fee['deposit'] = fee['networks'][networkKeys[0]]['deposit'];
             return fee;
         }
-        const currencyCode = currency['code'];
+        const currencyCode = this.safeString (currency, 'code');
         const codeAsChain = this.safeString (defaultChains, currencyCode, currencyCode);
         for (let i = 0; i < numNetworks; i++) {
             const network = networkKeys[i];
