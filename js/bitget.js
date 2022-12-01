@@ -2089,7 +2089,9 @@ module.exports = class bitget extends Exchange {
             const currencyId = this.safeString2 (entry, 'coinId', 'marginCoin');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['used'] = this.safeString2 (entry, 'frozen', 'locked');
+            const frozen = this.safeString (entry, 'frozen');
+            const locked = this.safeString (entry, 'locked');
+            account['used'] = Precise.stringAdd (frozen, locked);
             account['free'] = this.safeString (entry, 'available');
             result[code] = account;
         }
