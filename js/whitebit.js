@@ -1118,8 +1118,8 @@ module.exports = class whitebit extends Exchange {
                         if (marginMode !== 'cross') {
                             throw new NotSupported (this.id + ' createOrder() is only available for cross margin');
                         }
-                        method = 'v4PrivatePostOrderCollateralStopLimit'
                         request['price'] = this.priceToPrecision (symbol, price);
+                        method = 'v4PrivatePostOrderCollateralStopLimit';
                     } else {
                         // stop limit order
                         method = 'v4PrivatePostOrderStopLimit';
@@ -1165,9 +1165,6 @@ module.exports = class whitebit extends Exchange {
         return this.parseOrder (this.extend (response, { 'postOnly': postOnly }));
     }
 
- {
-    }
-
     parseBalance (response) {
         const balanceKeys = Object.keys (response);
         const result = { };
@@ -1186,10 +1183,46 @@ module.exports = class whitebit extends Exchange {
         return this.safeBalance (result);
     }
 
- {
+    async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name whitebit#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} params extra parameters specific to the whitebit api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
+        await this.loadMarkets ();
+        const mainBalance = await this.v4PrivatePostMainAccountBalance (params);
+        const tradeBalance = await this.v4PrivatePostTradeAccountBalance (params);
+        const result = this.extend (mainBalance, tradeBalance);
+        // Main balance (no params)
+        //      {
+        //          "BTC": { "main_balance": "1" },
+        //          "USDT": { "main_balance": "200" },
+        //      }
+        //
+        // Main balance (with ticker params)
+        //      { "main_balance": "1" }
+        //
+        // Trade balance (no params)
+        //     {
+        //         "BTC": { "available": "0.123", "freeze": "1" },
+        //         "XMR": { "available": "3013", "freeze": "100" },
+        //     }
+        //
+        // Trade balance (with ticker params)
+        //     { "available": "0.123", "freeze": "1" }
+        //
+        const code = this.safeValue (params, 'ticker');
+        if (code === undefined) {
+            return this.parseBalance (result);
+        }
+        const hash = {};
+        hash[code] = result;
+        return this.parseBalance (hash);
     }
 
- {
+    async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name whitebit#fetchOpenOrders
