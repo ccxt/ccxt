@@ -3538,7 +3538,7 @@ class mexc3 extends Exchange {
             $networkId = $this->safe_string($depositAddress, 'network');
             $network = $this->safe_network($networkId);
             $address = $this->safe_string($depositAddress, 'address', null);
-            $tag = $this->safe_string($depositAddress, 'tag', null);
+            $tag = $this->safe_string_2($depositAddress, 'tag', 'memo', null);
             $result[] = array(
                 'currency' => $currency['id'],
                 'network' => $network,
