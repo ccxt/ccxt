@@ -159,6 +159,7 @@ module.exports = class whitebit extends Exchange {
                             'order/collateral/limit',
                             'order/collateral/market',
                             'order/collateral/trigger_market',
+                            'order/collateral/oco',
                             'order/new',
                             'order/market',
                             'order/stock_market',
@@ -981,7 +982,12 @@ module.exports = class whitebit extends Exchange {
             request['end'] = end;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // max 1440
+            // Workaround bad response with low limit and big interval
+            if (limit < 1440) {
+                request['limit'] = limit + 1; // max 1440
+            } else {
+                request['limit'] = limit; // max 1440
+            }
         }
         const response = await this.v1PublicGetKline (this.extend (request, params));
         //
@@ -995,7 +1001,14 @@ module.exports = class whitebit extends Exchange {
         //         ]
         //     }
         //
-        const result = this.safeValue (response, 'result', []);
+        const safeResult = this.safeValue (response, 'result', []);
+        const result = [];
+        for (let i = 0; i < safeResult.lenght; i++) {
+            if (i === 0) {
+                continue;
+            }
+            result.push (safeResult[i]);
+        }
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
@@ -1077,7 +1090,9 @@ module.exports = class whitebit extends Exchange {
         const isLimitOrder = type === 'limit';
         const isMarketOrder = type === 'market';
         const stopPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'activation_price' ]);
+        const stopLimitPrice = this.safeNumber (params, [ 'stop_limit_price' ]);
         const isStopOrder = (stopPrice !== undefined);
+        const isOCOOrder = isStopOrder !== undefined && stopLimitPrice !== undefined;
         const postOnly = this.isPostOnly (isMarketOrder, false, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
         if (postOnly) {
@@ -1087,12 +1102,26 @@ module.exports = class whitebit extends Exchange {
         if (isStopOrder) {
             request['activation_price'] = this.priceToPrecision (symbol, stopPrice);
             if (isLimitOrder) {
-                // stop limit order
-                method = 'v4PrivatePostOrderStopLimit';
-                request['price'] = this.priceToPrecision (symbol, price);
+                if (isOCOOrder) {
+                    if (marginMode !== undefined) {
+                        if (marginMode !== 'cross') {
+                            throw new NotSupported (this.id + ' createOrder() is only available for cross margin');
+                        }
+                        method = 'v4PrivatePostOrderCollateralOco';
+                        request['price'] = this.priceToPrecision (symbol, price);
+                        request['stop_limit_price'] = this.priceToPrecision (symbol, stopLimitPrice);
+                    }
+                } else {
+                    // stop limit order
+                    method = 'v4PrivatePostOrderStopLimit';
+                    request['price'] = this.priceToPrecision (symbol, price);
+                }
             } else {
                 if (marginMode !== undefined) {
                     // trigger market order
+                    if (marginMode !== 'cross') {
+                        throw new NotSupported (this.id + ' createOrder() is only available for cross margin');
+                    }
                     method = 'v4PrivatePostOrderCollateralTriggerMarket';
                 } else {
                     // stop market order
@@ -1426,11 +1455,7 @@ module.exports = class whitebit extends Exchange {
         const request = {
             'orderId': parseInt (id),
         };
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['market'] = market['id'];
-        }
+        // Useless symbol because of orderId already know, what market is it.
         if (limit !== undefined) {
             request['limit'] = limit; // default 50, max 100
         }
@@ -1455,7 +1480,7 @@ module.exports = class whitebit extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'records', []);
-        return this.parseTrades (data, market);
+        return this.parseTrades (data);
     }
 
     async fetchDepositAddress (code, params = {}) {
