@@ -149,7 +149,70 @@ module.exports = class coinw extends Exchange {
         //    ]
         //
         const data = this.safeValue (response, 'data');
-        console.log (data);
+        const result = [];
+        for (let i = 0; i < data.length; i++) {
+            const market = data[i];
+            const id = this.safeString (market, 'currencyPair');
+            const baseId = this.safeString (market, 'currencyBase');
+            const quoteId = this.safeString (market, 'currencyQuote');
+            const base = this.safeCurrencyCode (baseId);
+            const quote = this.safeCurrencyCode (quoteId);
+            const symbol = base + '/' + quote;
+            const type = 'spot';
+            const spot = true;
+            const amountPrecision = this.safeString (market, 'countPrecision');
+            const pricePrecision = this.safeString (market, 'pricePrecision');
+            const state = this.safeString (market, 'state');
+            result.push ({
+                'id': id,
+                'symbol': symbol,
+                'baseId': baseId,
+                'quoteId': quoteId,
+                'settleId': undefined,
+                'base': base,
+                'quote': quote,
+                'settle': undefined,
+                'type': type,
+                'spot': spot,
+                'margin': false,
+                'swap': false,
+                'future': false,
+                'option': false,
+                'active': (state === '1'),
+                'contract': false,
+                'linear': undefined,
+                'inverse': undefined,
+                'contractSize': undefined,
+                'expiry': undefined,
+                'expiryDatetime': undefined,
+                'strike': undefined,
+                'optionType': undefined,
+                'precision': {
+                    'amount': this.parseNumber (this.parsePrecision (amountPrecision)),
+                    'price': this.parseNumber (this.parsePrecision (pricePrecision)),
+                },
+                'limits': {
+                    'leverage': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'amount': {
+                        'min': this.safeNumber (market, 'minBuyAmount'),
+                        'max': this.safeNumber (market, 'maxBuyAmount'),
+                    },
+                    'price': {
+                        'min': this.safeNumber (market, 'minBuyPrice'),
+                        'max': this.safeNumber (market, 'maxBuyPrice'),
+                    },
+                    'cost': {
+                        'min': this.safeNumber (market, 'min_order_value'),
+                        'max': undefined,
+                    },
+                },
+                'info': market,
+            });
+        }
+        return result;
     }
 
     async fetchCurrencies (params = {}) {
@@ -1653,8 +1716,7 @@ module.exports = class coinw extends Exchange {
             if (method === 'GET') {
                 url += '?' + this.urlencode (sortedParams);
                 strToSign = this.urlencode (sortedParams);
-            } // else {
-            // }
+            }
             const sign = this.hmac (this.encode (strToSign), this.encode (this.secret), 'sha256');
             headers['coinw-Api-Key'] = this.apiKey;
             headers['coinw-Api-Sign'] = sign;
