@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.2.47'
+__version__ = '2.2.48'
 
 # -----------------------------------------------------------------------------
 
@@ -2513,7 +2513,30 @@ class Exchange(object):
         :returns [str|None]: exchange-specific network id
         """
         networkIdsByCodes = self.safe_value(self.options, 'networks', {})
-        return self.safe_string(networkIdsByCodes, networkCode, networkCode)
+        networkId = self.safe_string(networkIdsByCodes, networkCode)
+        # for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
+        if networkId is None:
+            if currencyCode is None:
+                # if currencyCode was not provided, then we just set passed value to networkId
+                networkId = networkCode
+            else:
+                # if currencyCode was provided, then we try to find if that currencyCode has a replacement(i.e. ERC20 for ETH)
+                defaultNetworkCodeReplacements = self.safe_value(self.options, 'defaultNetworkCodeReplacements', {})
+                if currencyCode in defaultNetworkCodeReplacements:
+                    # if there is a replacement for the passed networkCode, then we use it to find network-id in `options->networks` object
+                    replacementObject = defaultNetworkCodeReplacements[currencyCode]  # i.e. {'ERC20': 'ETH'}
+                    keys = list(replacementObject.keys())
+                    for i in range(0, len(keys)):
+                        key = keys[i]
+                        value = replacementObject[key]
+                        # if value matches to provided unified networkCode, then we use it's key to find network-id in `options->networks` object
+                        if value == networkCode:
+                            networkId = self.safe_string(networkIdsByCodes, key)
+                            break
+                # if it wasn't found, we just set the provided value to network-id
+                if networkId is None:
+                    networkId = networkCode
+        return networkId
 
     def network_id_to_code(self, networkId, currencyCode=None):
         """
@@ -2525,6 +2548,7 @@ class Exchange(object):
         """
         networkCodesByIds = self.safe_value(self.options, 'networksById', {})
         networkCode = self.safe_string(networkCodesByIds, networkId, networkId)
+        # replace mainnet network-codes(i.e. ERC20->ETH)
         if currencyCode is not None:
             defaultNetworkCodeReplacements = self.safe_value(self.options, 'defaultNetworkCodeReplacements', {})
             if currencyCode in defaultNetworkCodeReplacements:
