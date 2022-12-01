@@ -2084,13 +2084,23 @@ module.exports = class bitget extends Exchange {
 
     parseBalance (balance) {
         const result = { 'info': balance };
+        //
+        //     {
+        //       coinId: '1',
+        //       coinName: 'BTC',
+        //       available: '0.00099900',
+        //       frozen: '0.00000000',
+        //       lock: '0.00000000',
+        //       uTime: '1661595535000'
+        //     }
+        //
         for (let i = 0; i < balance.length; i++) {
             const entry = balance[i];
             const currencyId = this.safeString2 (entry, 'coinId', 'marginCoin');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
             const frozen = this.safeString (entry, 'frozen');
-            const locked = this.safeString (entry, 'locked');
+            const locked = this.safeString (entry, 'lock');
             account['used'] = Precise.stringAdd (frozen, locked);
             account['free'] = this.safeString (entry, 'available');
             result[code] = account;
