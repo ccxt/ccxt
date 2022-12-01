@@ -2402,7 +2402,8 @@ module.exports = class bibox extends Exchange {
             return;
         }
         if ('state' in response) {
-            if (this.safeNumber (response, 'state') === 0) {
+            const state = this.safeString (response, 'state');
+            if (Precise.stringEq (state, '0')) {    // this.safeNumber("0") === 0 may return false in php because of mismatched types (e.g. integer and double)
                 return;
             }
             throw new ExchangeError (this.id + ' ' + body);
