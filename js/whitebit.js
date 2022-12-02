@@ -1165,6 +1165,39 @@ module.exports = class whitebit extends Exchange {
         return this.parseOrder (this.extend (response, { 'postOnly': postOnly }));
     }
 
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name whitebit#cancelOrder
+         * @description cancels an open order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the whitebit api endpoint
+         * @param {object} params.type 'oco' - to cancel oco order
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
+        const type = this.safeString (params, 'type');
+        if (type !== undefined && type !== 'oco') {
+            throw new InvalidOrder (this.id + ' cancelOrder() only \'oco\' type is allowed');
+        }
+        let method = '';
+        if (type === 'oco') {
+            method = 'v4PrivatePostOrderOcoCancel';
+        } else {
+            method = 'v4PrivatePostOrderCancel';
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'market': market['id'],
+            'orderId': parseInt (id),
+        };
+        return await this[method] (this.extend (request, params));
+    }
+
     parseBalance (response) {
         const balanceKeys = Object.keys (response);
         const result = { };
