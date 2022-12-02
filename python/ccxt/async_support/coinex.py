@@ -1266,12 +1266,17 @@ class coinex(Exchange):
         data = self.safe_value(response, 'data', {})
         free = self.safe_value(data, 'can_transfer', {})
         total = self.safe_value(data, 'balance', {})
+        loan = self.safe_value(data, 'loan', {})
+        interest = self.safe_value(data, 'interest', {})
         #
         sellAccount = self.account()
         sellCurrencyId = self.safe_string(data, 'sell_asset_type')
         sellCurrencyCode = self.safe_currency_code(sellCurrencyId)
         sellAccount['free'] = self.safe_string(free, 'sell_type')
         sellAccount['total'] = self.safe_string(total, 'sell_type')
+        sellDebt = self.safe_string(loan, 'sell_type')
+        sellInterest = self.safe_string(interest, 'sell_type')
+        sellAccount['debt'] = Precise.string_add(sellDebt, sellInterest)
         result[sellCurrencyCode] = sellAccount
         #
         buyAccount = self.account()
@@ -1279,6 +1284,9 @@ class coinex(Exchange):
         buyCurrencyCode = self.safe_currency_code(buyCurrencyId)
         buyAccount['free'] = self.safe_string(free, 'buy_type')
         buyAccount['total'] = self.safe_string(total, 'buy_type')
+        buyDebt = self.safe_string(loan, 'buy_type')
+        buyInterest = self.safe_string(interest, 'buy_type')
+        buyAccount['debt'] = Precise.string_add(buyDebt, buyInterest)
         result[buyCurrencyCode] = buyAccount
         #
         return self.safe_balance(result)
@@ -1358,11 +1366,14 @@ class coinex(Exchange):
         :param dict params: extra parameters specific to the coinex api endpoint
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
-        accountType = self.safe_string(params, 'type', 'main')
-        params = self.omit(params, 'type')
-        if accountType == 'margin':
+        marketType = None
+        marketType, params = self.handle_market_type_and_params('fetchBalance', None, params)
+        isMargin = self.safe_value(params, 'margin', False)
+        marketType = 'margin' if isMargin else marketType
+        params = self.omit(params, 'margin')
+        if marketType == 'margin':
             return await self.fetch_margin_balance(params)
-        elif accountType == 'swap':
+        elif marketType == 'swap':
             return await self.fetch_swap_balance(params)
         else:
             return await self.fetch_spot_balance(params)
@@ -2456,6 +2467,7 @@ class coinex(Exchange):
         #          code: 0,
         #          data: {
         #            coin_address: '1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq',
+        #            # coin_address: 'xxxxxxxxxxxxxx:yyyyyyyyy',  # with embedded tag/memo
         #            is_bitcoin_cash: False
         #          },
         #          message: 'Success'
@@ -2490,12 +2502,20 @@ class coinex(Exchange):
         #         is_bitcoin_cash: False
         #     }
         #
-        address = self.safe_string(depositAddress, 'coin_address')
+        coinAddress = self.safe_string(depositAddress, 'coin_address')
+        parts = coinAddress.split(':')
+        address = None
+        tag = None
+        if len(parts) > 1:
+            address = parts[0]
+            tag = parts[1]
+        else:
+            address = coinAddress
         return {
             'info': depositAddress,
             'currency': self.safe_currency_code(None, currency),
             'address': address,
-            'tag': None,
+            'tag': tag,
             'network': None,
         }
 

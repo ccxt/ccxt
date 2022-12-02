@@ -230,6 +230,7 @@ module.exports = class binance extends Exchange {
                         'loan/repay/collateral/rate': 600, // Weight(IP): 6000 => cost = 0.1 * 6000 = 600
                         'loan/vip/ongoing/orders': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/vip/repay/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/vip/collateral/account': 600, // Weight(IP): 6000 => cost = 0.1 * 6000 = 600
                         'fiat/orders': 600.03, // Weight(UID): 90000 => cost = 0.006667 * 90000 = 600.03
                         'fiat/payments': 0.1,
                         'futures/transfer': 1,
@@ -247,6 +248,9 @@ module.exports = class binance extends Exchange {
                         'capital/deposit/subHisrec': 0.1,
                         'capital/withdraw/history': 0.1,
                         'convert/tradeFlow': 0.6667, // Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
+                        'convert/exchangeInfo': 50,
+                        'convert/assetInfo': 10,
+                        'convert/orderStatus': 0.6667,
                         'account/status': 0.1,
                         'account/apiTradingStatus': 0.1,
                         'account/apiRestrictions/ipRestriction': 0.1,
@@ -444,6 +448,8 @@ module.exports = class binance extends Exchange {
                         'loan/adjust/ltv': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'loan/customize/margin_call': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
                         'loan/vip/repay': 40, // Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
+                        'convert/getQuote': 20.001,
+                        'convert/acceptQuote': 3.3335,
                     },
                     'put': {
                         'userDataStream': 0.1,
@@ -1921,7 +1927,7 @@ module.exports = class binance extends Exchange {
             const paramSymbols = this.safeValue (params, 'symbols');
             if (paramSymbols !== undefined) {
                 let symbols = '';
-                if (this.isArray (paramSymbols)) {
+                if (Array.isArray (paramSymbols)) {
                     symbols = this.marketId (paramSymbols[0]);
                     for (let i = 1; i < paramSymbols.length; i++) {
                         const symbol = paramSymbols[i];

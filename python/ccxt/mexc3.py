@@ -432,6 +432,8 @@ class mexc3(Exchange):
                 'FLUX1': 'FLUX',  # switched places
                 'FLUX': 'FLUX1',  # switched places
                 'FREE': 'FreeRossDAO',  # conflict with FREE Coin
+                'GMT': 'GMT Token',  # Conflict with GMT(STEPN)
+                'STEPN': 'GMT',  # Conflict with GMT Token
                 'HERO': 'Step Hero',  # conflict with Metahero
                 'MIMO': 'Mimosa',
                 'PROS': 'Pros.Finance',  # conflict with Prosper
@@ -3362,7 +3364,7 @@ class mexc3(Exchange):
             networkId = self.safe_string(depositAddress, 'network')
             network = self.safe_network(networkId)
             address = self.safe_string(depositAddress, 'address', None)
-            tag = self.safe_string(depositAddress, 'tag', None)
+            tag = self.safe_string_2(depositAddress, 'tag', 'memo', None)
             result.append({
                 'currency': currency['id'],
                 'network': network,

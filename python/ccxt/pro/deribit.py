@@ -556,7 +556,7 @@ class deribit(Exchange, ccxt.async_support.deribit):
         channel = self.safe_string(params, 'channel', '')
         data = self.safe_value(params, 'data', {})
         orders = []
-        if self.is_array(data):
+        if isinstance(data, list):
             orders = self.parse_orders(data)
         else:
             order = self.parse_order(data)

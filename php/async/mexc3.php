@@ -428,6 +428,8 @@ class mexc3 extends Exchange {
                 'FLUX1' => 'FLUX', // switched places
                 'FLUX' => 'FLUX1', // switched places
                 'FREE' => 'FreeRossDAO', // conflict with FREE Coin
+                'GMT' => 'GMT Token', // Conflict with GMT (STEPN)
+                'STEPN' => 'GMT', // Conflict with GMT Token
                 'HERO' => 'Step Hero', // conflict with Metahero
                 'MIMO' => 'Mimosa',
                 'PROS' => 'Pros.Finance', // conflict with Prosper
@@ -3623,7 +3625,7 @@ class mexc3 extends Exchange {
                 $networkId = $this->safe_string($depositAddress, 'network');
                 $network = $this->safe_network($networkId);
                 $address = $this->safe_string($depositAddress, 'address', null);
-                $tag = $this->safe_string($depositAddress, 'tag', null);
+                $tag = $this->safe_string_2($depositAddress, 'tag', 'memo', null);
                 $result[] = array(
                     'currency' => $currency['id'],
                     'network' => $network,
