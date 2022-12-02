@@ -2885,12 +2885,37 @@ module.exports = class bybit extends Exchange {
         //             "serviceCash": "0"
         //         }
         //     ]
+        // spot
+        //     {
+        //       retCode: '0',
+        //       retMsg: 'OK',
+        //       result: {
+        //         balances: [
+        //           {
+        //             coin: 'BTC',
+        //             coinId: 'BTC',
+        //             total: '0.00977041118',
+        //             free: '0.00877041118',
+        //             locked: '0.001'
+        //           },
+        //           {
+        //             coin: 'EOS',
+        //             coinId: 'EOS',
+        //             total: '2000',
+        //             free: '2000',
+        //             locked: '0'
+        //           }
+        //         ]
+        //       },
+        //       retExtInfo: {},
+        //       time: '1670002625754'
+        //  }
         //
         const result = {
             'info': response,
         };
         const responseResult = this.safeValue (response, 'result', {});
-        const currencyList = this.safeValueN (responseResult, [ 'loanAccountList', 'list', 'coin' ]);
+        const currencyList = this.safeValueN (responseResult, [ 'loanAccountList', 'list', 'coin', 'balances' ]);
         if (currencyList === undefined) {
             // usdc wallet
             const code = 'USDC';
@@ -2920,10 +2945,39 @@ module.exports = class bybit extends Exchange {
 
     async fetchSpotBalance (params = {}) {
         await this.loadMarkets ();
-        // here the margin account is the same as the spot account
-        // so we will default to loading the margin account
-        const response = await this.privateGetSpotV3PrivateCrossMarginAccount (params);
-        //
+        let marginMode = undefined;
+        [ marginMode, params ] = this.handleMarginModeAndParams ('fetchBalance', params);
+        let method = 'privateGetSpotV3PrivateAccount';
+        if (marginMode !== undefined) {
+            method = 'privateGetSpotV3PrivateCrossMarginAccount';
+        }
+        const response = await this[method] (params);
+        // spot wallet
+        //     {
+        //       retCode: '0',
+        //       retMsg: 'OK',
+        //       result: {
+        //         balances: [
+        //           {
+        //             coin: 'BTC',
+        //             coinId: 'BTC',
+        //             total: '0.00977041118',
+        //             free: '0.00877041118',
+        //             locked: '0.001'
+        //           },
+        //           {
+        //             coin: 'EOS',
+        //             coinId: 'EOS',
+        //             total: '2000',
+        //             free: '2000',
+        //             locked: '0'
+        //           }
+        //         ]
+        //       },
+        //       retExtInfo: {},
+        //       time: '1670002625754'
+        //     }
+        // cross
         //     {
         //         "retCode": 0,
         //         "retMsg": "success",
