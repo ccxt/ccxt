@@ -2922,12 +2922,37 @@ class bybit extends Exchange {
         //             "serviceCash" => "0"
         //         }
         //     )
+        // spot
+        //     {
+        //       retCode => '0',
+        //       retMsg => 'OK',
+        //       $result => {
+        //         balances => array(
+        //           array(
+        //             coin => 'BTC',
+        //             coinId => 'BTC',
+        //             total => '0.00977041118',
+        //             free => '0.00877041118',
+        //             locked => '0.001'
+        //           ),
+        //           array(
+        //             coin => 'EOS',
+        //             coinId => 'EOS',
+        //             total => '2000',
+        //             free => '2000',
+        //             locked => '0'
+        //           }
+        //         )
+        //       ),
+        //       retExtInfo => array(),
+        //       time => '1670002625754'
+        //  }
         //
         $result = array(
             'info' => $response,
         );
         $responseResult = $this->safe_value($response, 'result', array());
-        $currencyList = $this->safe_value_n($responseResult, array( 'loanAccountList', 'list', 'coin' ));
+        $currencyList = $this->safe_value_n($responseResult, array( 'loanAccountList', 'list', 'coin', 'balances' ));
         if ($currencyList === null) {
             // usdc wallet
             $code = 'USDC';
@@ -2958,10 +2983,39 @@ class bybit extends Exchange {
     public function fetch_spot_balance($params = array ()) {
         return Async\async(function () use ($params) {
             Async\await($this->load_markets());
-            // here the margin account is the same as the spot account
-            // so we will default to loading the margin account
-            $response = Async\await($this->privateGetSpotV3PrivateCrossMarginAccount ($params));
-            //
+            $marginMode = null;
+            list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchBalance', $params);
+            $method = 'privateGetSpotV3PrivateAccount';
+            if ($marginMode !== null) {
+                $method = 'privateGetSpotV3PrivateCrossMarginAccount';
+            }
+            $response = Async\await($this->$method ($params));
+            // spot wallet
+            //     {
+            //       retCode => '0',
+            //       retMsg => 'OK',
+            //       result => {
+            //         balances => array(
+            //           array(
+            //             coin => 'BTC',
+            //             coinId => 'BTC',
+            //             total => '0.00977041118',
+            //             free => '0.00877041118',
+            //             locked => '0.001'
+            //           ),
+            //           array(
+            //             coin => 'EOS',
+            //             coinId => 'EOS',
+            //             total => '2000',
+            //             free => '2000',
+            //             locked => '0'
+            //           }
+            //         )
+            //       ),
+            //       retExtInfo => array(),
+            //       time => '1670002625754'
+            //     }
+            // cross
             //     {
             //         "retCode" => 0,
             //         "retMsg" => "success",

@@ -2776,12 +2776,37 @@ class bybit(Exchange):
         #             "serviceCash": "0"
         #         }
         #     ]
+        # spot
+        #     {
+        #       retCode: '0',
+        #       retMsg: 'OK',
+        #       result: {
+        #         balances: [
+        #           {
+        #             coin: 'BTC',
+        #             coinId: 'BTC',
+        #             total: '0.00977041118',
+        #             free: '0.00877041118',
+        #             locked: '0.001'
+        #           },
+        #           {
+        #             coin: 'EOS',
+        #             coinId: 'EOS',
+        #             total: '2000',
+        #             free: '2000',
+        #             locked: '0'
+        #           }
+        #         ]
+        #       },
+        #       retExtInfo: {},
+        #       time: '1670002625754'
+        #  }
         #
         result = {
             'info': response,
         }
         responseResult = self.safe_value(response, 'result', {})
-        currencyList = self.safe_value_n(responseResult, ['loanAccountList', 'list', 'coin'])
+        currencyList = self.safe_value_n(responseResult, ['loanAccountList', 'list', 'coin', 'balances'])
         if currencyList is None:
             # usdc wallet
             code = 'USDC'
@@ -2807,10 +2832,38 @@ class bybit(Exchange):
 
     async def fetch_spot_balance(self, params={}):
         await self.load_markets()
-        # here the margin account is the same as the spot account
-        # so we will default to loading the margin account
-        response = await self.privateGetSpotV3PrivateCrossMarginAccount(params)
-        #
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchBalance', params)
+        method = 'privateGetSpotV3PrivateAccount'
+        if marginMode is not None:
+            method = 'privateGetSpotV3PrivateCrossMarginAccount'
+        response = await getattr(self, method)(params)
+        # spot wallet
+        #     {
+        #       retCode: '0',
+        #       retMsg: 'OK',
+        #       result: {
+        #         balances: [
+        #           {
+        #             coin: 'BTC',
+        #             coinId: 'BTC',
+        #             total: '0.00977041118',
+        #             free: '0.00877041118',
+        #             locked: '0.001'
+        #           },
+        #           {
+        #             coin: 'EOS',
+        #             coinId: 'EOS',
+        #             total: '2000',
+        #             free: '2000',
+        #             locked: '0'
+        #           }
+        #         ]
+        #       },
+        #       retExtInfo: {},
+        #       time: '1670002625754'
+        #     }
+        # cross
         #     {
         #         "retCode": 0,
         #         "retMsg": "success",
