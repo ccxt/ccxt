@@ -433,6 +433,7 @@ class bibox extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
+        // we don't set values that are not defined by the exchange
         //
         // fetchTicker
         //
@@ -459,28 +460,28 @@ class bibox extends Exchange {
         //
         //    {
         //        is_hide => '0',
-        //        high_cny => '0.0860',
-        //        amount => '0.37',
+        //        high_cny => '0.1094',
+        //        amount => '5.34',
         //        coin_symbol => 'BIX',
-        //        $last => '0.00000069',
+        //        $last => '0.00000080',
         //        currency_symbol => 'BTC',
-        //        change => '-0.00000004',
-        //        low_cny => '0.0791',
-        //        base_last_cny => '0.07909660',
+        //        change => '+0.00000001',
+        //        low_cny => '0.1080',
+        //        base_last_cny => '0.10935854',
         //        area_id => '7',
-        //        percent => '-5.48%',
-        //        last_cny => '0.0791',
-        //        high => '0.00000075',
-        //        low => '0.00000069',
+        //        percent => '+1.27%',
+        //        last_cny => '0.1094',
+        //        high => '0.00000080',
+        //        low => '0.00000079',
         //        pair_type => '0',
-        //        last_usd => '0.0112',
-        //        vol24H => '510573',
+        //        last_usd => '0.0155',
+        //        vol24H => '6697325',
         //        id => '1',
-        //        high_usd => '0.0122',
-        //        low_usd => '0.0112'
+        //        high_usd => '0.0155',
+        //        low_usd => '0.0153'
         //    }
         //
-        $timestamp = $this->safe_integer($ticker, 't');
+        $timestamp = $this->safe_integer_2($ticker, 'timestamp', 't');
         $baseId = $this->safe_string($ticker, 'coin_symbol');
         $quoteId = $this->safe_string($ticker, 'currency_symbol');
         $marketId = $this->safe_string($ticker, 's');
@@ -559,45 +560,46 @@ class bibox extends Exchange {
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         /**
-         * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * v1, fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the bibox api endpoint
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
-        $request = array();
-        $response = $this->v3PublicGetMdataMarketAll (array_merge($request, $params));
+        $request = array(
+            'cmd' => 'marketAll',
+        );
+        $response = $this->v1PublicGetMdata (array_merge($request, $params));
         //
         //    {
-        //        state => '0',
         //        $result => array(
         //            array(
         //                is_hide => '0',
-        //                high_cny => '0.0860',
-        //                amount => '0.37',
+        //                high_cny => '0.1094',
+        //                amount => '5.34',
         //                coin_symbol => 'BIX',
-        //                last => '0.00000069',
+        //                last => '0.00000080',
         //                currency_symbol => 'BTC',
-        //                change => '-0.00000004',
-        //                low_cny => '0.0791',
-        //                base_last_cny => '0.07909660',
+        //                change => '+0.00000001',
+        //                low_cny => '0.1080',
+        //                base_last_cny => '0.10935854',
         //                area_id => '7',
-        //                percent => '-5.48%',
-        //                last_cny => '0.0791',
-        //                high => '0.00000075',
-        //                low => '0.00000069',
+        //                percent => '+1.27%',
+        //                last_cny => '0.1094',
+        //                high => '0.00000080',
+        //                low => '0.00000079',
         //                pair_type => '0',
-        //                last_usd => '0.0112',
-        //                vol24H => '510573',
+        //                last_usd => '0.0155',
+        //                vol24H => '6697325',
         //                id => '1',
-        //                high_usd => '0.0122',
-        //                low_usd => '0.0112'
+        //                high_usd => '0.0155',
+        //                low_usd => '0.0153'
         //            ),
         //            ...
         //        ),
         //        cmd => 'marketAll',
-        //        ver => '3'
+        //        ver => '1.1'
         //    }
         //
         $tickers = $this->parse_tickers($response['result'], $symbols);
