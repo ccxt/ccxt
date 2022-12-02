@@ -1205,8 +1205,9 @@ module.exports = class whitebit extends Exchange {
             const mainBalance = this.safeString (balance, 'main_balance');
             const available = this.safeString (balance, 'available');
             const freeze = this.safeString (balance, 'freeze');
-            account['free'] = Precise.stringAdd (available, mainBalance);
+            account['free'] = available;
             account['used'] = freeze;
+            account['total'] = Precise.stringAdd (Precise.stringAdd (available, freeze), mainBalance);
             result[code] = account;
         }
         return this.safeBalance (result);
