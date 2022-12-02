@@ -1640,6 +1640,14 @@ class exmo extends Exchange {
         //             "error" => ""
         //          ),
         //
+        // withdraw
+        //
+        //          array(
+        //              "result":true,
+        //              "error":"",
+        //              "task_id":11775077
+        //          ),
+        //
         $id = $this->safe_string_2($transaction, 'order_id', 'task_id');
         $timestamp = $this->safe_timestamp_2($transaction, 'dt', 'created');
         $updated = $this->safe_timestamp($transaction, 'updated');
@@ -1682,7 +1690,9 @@ class exmo extends Exchange {
             $key = ($type === 'withdrawal') ? 'withdraw' : 'deposit';
             $feeCost = $this->safe_string($transaction, 'commission');
             if ($feeCost === null) {
-                $feeCost = $this->safe_string($this->options['transactionFees'][$code], $key);
+                $transactionFees = $this->safe_value($this->options, 'transactionFees', array());
+                $codeFees = $this->safe_value($transactionFees, $code, array());
+                $feeCost = $this->safe_string($codeFees, $key);
             }
             // users don't pay for cashbacks, no fees for that
             $provider = $this->safe_string($transaction, 'provider');
