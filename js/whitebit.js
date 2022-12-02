@@ -1676,6 +1676,7 @@ module.exports = class whitebit extends Exchange {
             'amount': this.numberToString (amount),
             'address': address,
         };
+        const info = this.safeValue (currency, 'info', {});
         let uniqueId = this.safeValue (params, 'uniqueId');
         if (uniqueId === undefined) {
             uniqueId = this.uuid22 ();
@@ -1688,7 +1689,7 @@ module.exports = class whitebit extends Exchange {
             }
             request['network'] = network;
         }
-        if (this.isMemo (code)) {
+        if (this.safeValue (info, 'is_memo')) {
             if (tag === undefined) {
                 throw new ArgumentsRequired (this.id + ' withdraw() requires a tag when the ticker has memo');
             }
