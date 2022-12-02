@@ -5988,12 +5988,16 @@ class bybit extends Exchange {
     public function fetch_unified_margin_positions($symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols);
             $request = array();
             $type = null;
             if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
-                throw new ArgumentsRequired($this->id . ' fetchPositions() does not accept an array of symbols');
+                if (strlen($symbols) > 1) {
+                    throw new ArgumentsRequired($this->id . ' fetchPositions() does not accept an array with more than one symbol');
+                }
+            } elseif ($symbols !== null) {
+                $symbols = array( $symbols );
             }
+            $symbols = $this->market_symbols($symbols);
             // market null
             list($type, $params) = $this->handle_market_type_and_params('fetchPositions', null, $params);
             $subType = null;
@@ -6067,11 +6071,12 @@ class bybit extends Exchange {
                 }
                 $symbol = $this->safe_string($symbols, 0);
                 $market = $this->market($symbol);
-                $type = $market['type'];
                 $request['symbol'] = $market['id'];
-            } else {
-                list($type, $params) = $this->handle_market_type_and_params('fetchUSDCPositions', null, $params);
+            } elseif ($symbols !== null) {
+                $market = $this->market($symbols);
+                $request['symbol'] = $market['id'];
             }
+            list($type, $params) = $this->handle_market_type_and_params('fetchUSDCPositions', $market, $params);
             $request['category'] = ($type === 'option') ? 'OPTION' : 'PERPETUAL';
             $response = Async\await($this->privatePostOptionUsdcOpenapiPrivateV1QueryPosition (array_merge($request, $params)));
             //
@@ -6133,6 +6138,13 @@ class bybit extends Exchange {
     public function fetch_derivatives_positions($symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             Async\await($this->load_markets());
+            if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
+                if (strlen($symbols) > 1) {
+                    throw new ArgumentsRequired($this->id . ' fetchPositions() does not accept an array with more than one symbol');
+                }
+            } elseif ($symbols !== null) {
+                $symbols = array( $symbols );
+            }
             $symbols = $this->market_symbols($symbols);
             $request = array(
                 'dataFilter' => 'valid',
@@ -6220,7 +6232,11 @@ class bybit extends Exchange {
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#position-structure position structure}
              */
             if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
-                throw new ArgumentsRequired($this->id . ' fetchPositions() does not accept an array of symbols');
+                if (strlen($symbols) > 1) {
+                    throw new ArgumentsRequired($this->id . ' fetchPositions() does not accept an array with more than one symbol');
+                }
+            } elseif ($symbols !== null) {
+                $symbols = array( $symbols );
             }
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);

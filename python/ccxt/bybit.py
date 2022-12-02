@@ -5532,11 +5532,14 @@ class bybit(Exchange):
 
     def fetch_unified_margin_positions(self, symbols=None, params={}):
         self.load_markets()
-        symbols = self.market_symbols(symbols)
         request = {}
         type = None
         if isinstance(symbols, list):
-            raise ArgumentsRequired(self.id + ' fetchPositions() does not accept an array of symbols')
+            if len(symbols) > 1:
+                raise ArgumentsRequired(self.id + ' fetchPositions() does not accept an array with more than one symbol')
+        elif symbols is not None:
+            symbols = [symbols]
+        symbols = self.market_symbols(symbols)
         # market None
         type, params = self.handle_market_type_and_params('fetchPositions', None, params)
         subType = None
@@ -5603,10 +5606,11 @@ class bybit(Exchange):
                 raise ArgumentsRequired(self.id + ' fetchUSDCPositions() takes an array with exactly one symbol')
             symbol = self.safe_string(symbols, 0)
             market = self.market(symbol)
-            type = market['type']
             request['symbol'] = market['id']
-        else:
-            type, params = self.handle_market_type_and_params('fetchUSDCPositions', None, params)
+        elif symbols is not None:
+            market = self.market(symbols)
+            request['symbol'] = market['id']
+        type, params = self.handle_market_type_and_params('fetchUSDCPositions', market, params)
         request['category'] = 'OPTION' if (type == 'option') else 'PERPETUAL'
         response = self.privatePostOptionUsdcOpenapiPrivateV1QueryPosition(self.extend(request, params))
         #
@@ -5663,6 +5667,11 @@ class bybit(Exchange):
 
     def fetch_derivatives_positions(self, symbols=None, params={}):
         self.load_markets()
+        if isinstance(symbols, list):
+            if len(symbols) > 1:
+                raise ArgumentsRequired(self.id + ' fetchPositions() does not accept an array with more than one symbol')
+        elif symbols is not None:
+            symbols = [symbols]
         symbols = self.market_symbols(symbols)
         request = {
             'dataFilter': 'valid',
@@ -5746,7 +5755,10 @@ class bybit(Exchange):
         :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         if isinstance(symbols, list):
-            raise ArgumentsRequired(self.id + ' fetchPositions() does not accept an array of symbols')
+            if len(symbols) > 1:
+                raise ArgumentsRequired(self.id + ' fetchPositions() does not accept an array with more than one symbol')
+        elif symbols is not None:
+            symbols = [symbols]
         self.load_markets()
         symbols = self.market_symbols(symbols)
         enableUnifiedMargin = self.is_unified_margin_enabled()
