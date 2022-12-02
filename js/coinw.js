@@ -24,10 +24,10 @@ module.exports = class coinw extends Exchange {
                 'swap': undefined, // has but unimplemented
                 'future': undefined,
                 'option': undefined,
-                'fetchTickers': true, // https://api.coinw.com/api/v1/public?command=returnTicker
+                'fetchTickers': true,
                 'fetchCurrencies': true,
                 'fetchMarkets': true,
-                'fetchOrderBook': true, // https://api.coinw.com/api/v1/public?command=returnOrderBook&symbol=BTC_CNYT&size=20
+                'fetchOrderBook': true,
                 'fetchTrades': true, // https://api.coinw.com/api/v1/public?command=returnTradeHistory&symbol=CWT_CNYT&start=1579238517000&end=1581916917660
                 'fetchOHLCV': true, // https://api.coinw.com/api/v1/public?currencyPair=CWT_CNYT&command=returnChartData&period=1800&start=1580992380&end=1582288440
                 'transfer': true, // https://api.coinw.com/api/v1/public?command=spotWealthTransfer
@@ -350,70 +350,6 @@ module.exports = class coinw extends Exchange {
     }
 
     parseTrade (trade, market = undefined) {
-        //
-        // fetchMyTrades
-        //
-        //    {
-        //        "i": 452361213188,
-        //        "o": 14284855094264759,       // The order id assigned by the exchange
-        //        "s": "ADA_USDT",              // trading pair code
-        //        "T": 1579458,
-        //        "t": 1653676917531,           // transaction time
-        //        "p": 0.45,                    // transaction price
-        //        "q": 10,                      // transaction volume
-        //        "l": "maker",                 // taker/maker
-        //        "f": {
-        //            "a": "ADA",               // transaction fee currency
-        //            "m": 0.010000000          // handling fee
-        //        }
-        //    }
-        //
-        // fetchTrades
-        //
-        //    {
-        //        "i": "17122255",              // transaction id
-        //        "p": "46125.7",               // transaction price
-        //        "q": "0.079045",              // transaction amount
-        //        "s": "buy",                   // taker's transaction direction
-        //        "t": "1628738748319"          // transaction time
-        //    }
-        //
-        const id = this.safeString (trade, 'i');
-        const marketId = this.safeString (trade, 's');
-        const timestamp = this.safeInteger (trade, 't');
-        const fee = this.safeValue (trade, 'f');
-        const feeCurrencyId = this.safeString (fee, 'a');
-        const amount = this.safeString (trade, 'q');
-        let transactionId = this.safeString (trade, 'T');
-        let side = 'buy';
-        const orderId = this.safeString (trade, 'o');
-        market = this.safeMarket (marketId, market);
-        if (marketId === 'buy' || marketId === 'sell') {
-            side = marketId;
-        } else if (Precise.stringLt (amount, '0')) {
-            side = 'sell';
-        }
-        if (Precise.stringLt (id, '9999999999')) {
-            transactionId = id;
-        }
-        return this.safeTrade ({
-            'info': trade,
-            'id': transactionId,
-            'order': orderId,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': market['symbol'],
-            'type': undefined,
-            'takerOrMaker': this.safeString (trade, 'l', 'taker'),
-            'side': side,
-            'price': this.safeString (trade, 'p'),
-            'amount': amount,
-            'cost': undefined,
-            'fee': {
-                'cost': this.safeString (fee, 'm'),
-                'currency': this.safeCurrencyCode (feeCurrencyId),
-            },
-        }, market);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
@@ -421,47 +357,18 @@ module.exports = class coinw extends Exchange {
          * @method
          * @name coinw#fetchTrades
          * @description get the list of most recent trades for a particular symbol
-         * @see https://coinwcom.github.io/api/spot/v4/en/#get-trades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum number of trades structures to retrieve, default = 100, max = 1000
          * @param {object} params extra parameters specific to the coinw api endpoint
          * @param {int|undefined} params.until the earliest time in ms to fetch trades for
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
-         * @param {int|undefined} params.after transaction record id, limited to return the minimum id of transaction records
-         * @param {int|undefined} params.before transaction record id, limited to return the maximum id of transaction records
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        const until = this.safeInteger (params, 'until');
-        const request = {
-            'symbol': market['id'],
-        };
-        if (limit !== undefined) {
-            request['limit'] = limit; // default = 100
-        }
-        if (since !== undefined) {
-            request['start_time'] = since;
-        }
-        if (until !== undefined) {
-            request['end_time'] = until;
-        }
-        const response = await this.v4PublicGetMarketdataTrades (this.extend (request, params));
+        // const market = this.market (symbol);
         //
-        //    [
-        //        {
-        //          "i": "17122255",        // transaction id
-        //          "p": "46125.7",         // transaction price
-        //          "q": "0.079045",        // transaction amount
-        //          "s": "buy",             // taker's transaction direction
-        //          "t": "1628738748319"    // transaction time
-        //        },
-        //        ...
-        //    ]
         //
-        return this.parseTrades (response, market, since, limit);
+        // return this.parseTrades (response, market, since, limit);
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -472,39 +379,59 @@ module.exports = class coinw extends Exchange {
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit *default=100* valid values include 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000
          * @param {object} params extra parameters specific to the coinw api endpoint
-         *
-         * EXCHANGE SPECIFIC PARAMETERS
-         * @param {int|undefined} price_scale *default=0* depth of consolidation by price, valid values include 0, 1, 2, 3, 4, 5
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrderBook requires a symbol argument');
+        }
         await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        if (limit !== undefined) {
+            limit = Math.min (20, Math.max (5, limit));
+            request['size'] = limit;
+        }
+        const response = await this.publicGetReturnOrderBook (this.extend (request, params));
         //
+        //   {
+        //       code: '200',
+        //       data: {
+        //         asks: [
+        //             [ '16910.1600', '0.2049' ]
+        //          ],
+        //         bids: [
+        //             [ '16908.6300', '0.2849' ],
+        //          ]
+        //       },
+        //       msg: 'SUCCESS'
+        //   }
         //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrderBook (data, market['symbol']);
     }
 
-    parseOHLCV (ohlcv, market = undefined) {
-        //
-        //    [
-        //        '1656702000000',      // start time
-        //        '19449.4',            // opening price
-        //        '19451.7',            // maximum price
-        //        '19290.6',            // minimum price
-        //        '19401.5',            // closing price
-        //        '73.328833',          // transaction volume
-        //        '1419466.3805812',    // transaction value
-        //        '45740585',           // first transaction id
-        //        2899                  // The total number of transactions in the range
-        //    ]
-        //
-        return [
-            this.safeInteger (ohlcv, 0),
-            this.safeNumber (ohlcv, 1),
-            this.safeNumber (ohlcv, 2),
-            this.safeNumber (ohlcv, 3),
-            this.safeNumber (ohlcv, 4),
-            this.safeNumber (ohlcv, 5),
-        ];
-    }
+    // parseOHLCV (ohlcv, market = undefined) {
+    //
+    //       {
+    //           "date":1.5809922E12,
+    //           "volume":0.0,
+    //           "high":8.803,
+    //           "low":8.803,
+    //           "close":8.803,
+    //           "open":8.803
+    //       },
+    //
+    //    return [
+    //        this.safeInteger (ohlcv, 0),
+    //        this.safeNumber (ohlcv, 1),
+    //        this.safeNumber (ohlcv, 2),
+    //        this.safeNumber (ohlcv, 3),
+    //        this.safeNumber (ohlcv, 4),
+    //        this.safeNumber (ohlcv, 5),
+    //    ];
+    // }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
