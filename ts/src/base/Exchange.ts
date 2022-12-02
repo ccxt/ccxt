@@ -684,14 +684,14 @@ export default class Exchange {
             agentOptions['rejectUnauthorized'] = false;
         }
         // js-specific http options
-        // //@ts-expect-error
+        //@ts-expect-error
         if (!this.httpAgent && defaultFetch.http && isNode) {
-            // //@ts-expect-error
+            //@ts-expect-error
             this.httpAgent = new defaultFetch.http.Agent (agentOptions)
         }
-        // //@ts-expect-error
+        //@ts-expect-error
         if (!this.httpsAgent && defaultFetch. https && isNode) {
-            // //@ts-expect-error
+            //@ts-expect-error
             this.httpsAgent = new defaultFetch.https.Agent (agentOptions)
         }
         // generate old metainfo interface

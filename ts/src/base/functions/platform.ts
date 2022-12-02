@@ -25,7 +25,7 @@ const isWindows = typeof process !== 'undefined' && process.platform === "win32"
 
 const isNode = !(isBrowser || isWebWorker)
 
-const defaultFetch = isNode ? fetchNode() .fetch : fetch
+const defaultFetch = isNode ? fetchNode().fetch : fetch
 
 // ----------------------------------------------------------------------------
 
