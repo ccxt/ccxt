@@ -2489,7 +2489,7 @@ export default class stex extends Exchange {
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const response = await this.publicGetCurrencies (params);
+        const response = await (this as any).publicGetCurrencies (params);
         //
         //     {
         //         "success": true,

@@ -684,14 +684,14 @@ export default class Exchange {
             agentOptions['rejectUnauthorized'] = false;
         }
         // js-specific http options
-        //@ts-expect-error
+        // //@ts-expect-error
         if (!this.httpAgent && defaultFetch.http && isNode) {
-            //@ts-expect-error
+            // //@ts-expect-error
             this.httpAgent = new defaultFetch.http.Agent (agentOptions)
         }
-        //@ts-expect-error
+        // //@ts-expect-error
         if (!this.httpsAgent && defaultFetch. https && isNode) {
-            //@ts-expect-error
+            // //@ts-expect-error
             this.httpsAgent = new defaultFetch.https.Agent (agentOptions)
         }
         // generate old metainfo interface
@@ -1261,6 +1261,10 @@ export default class Exchange {
                 'ping': (this as any).ping ? (this as any).ping.bind (this) : (this as any).ping,
                 'verbose': this.verbose,
                 'throttle': throttle (this.tokenBucket),
+                // add support for proxies
+                'options': {
+                    'agent': this.agent || this.httpsAgent || this.httpAgent,
+                }
             }, wsOptions);
             this.clients[url] = new WsClient (url, onMessage, onError, onClose, onConnected, options);
         }
