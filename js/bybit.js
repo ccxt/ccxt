@@ -6234,7 +6234,7 @@ module.exports = class bybit extends Exchange {
         let side = this.safeString (position, 'side');
         side = (side === 'Buy') ? 'long' : 'short';
         const notional = this.safeString (position, 'positionValue');
-        const unrealisedPnl = this.omitZero (this.safeString2 (position, 'unrealisedPnl'));
+        const unrealisedPnl = this.omitZero (this.safeString (position, 'unrealisedPnl'));
         let initialMarginString = this.safeString (position, 'positionIM');
         let maintenanceMarginString = this.safeString (position, 'positionMM');
         let timestamp = this.parse8601 (this.safeString (position, 'updated_at'));
