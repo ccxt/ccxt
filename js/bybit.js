@@ -4296,7 +4296,7 @@ module.exports = class bybit extends Exchange {
         let market = undefined;
         let settle = this.safeString (params, 'settleCoin');
         if (settle === undefined) {
-            [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', settle);
+            [ settle, params ] = this.handleOptionAndParams (params, 'cancelAllOrders', 'settle', settle);
         }
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -4506,7 +4506,7 @@ module.exports = class bybit extends Exchange {
         let market = undefined;
         let settle = this.safeString (params, 'settleCoin');
         if (settle === undefined) {
-            [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', settle);
+            [ settle, params ] = this.handleOptionAndParams (params, 'fetchOrders', 'settle', settle);
         }
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -4871,7 +4871,7 @@ module.exports = class bybit extends Exchange {
         let market = undefined;
         let settle = this.safeString (params, 'settleCoin');
         if (settle === undefined) {
-            [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', settle);
+            [ settle, params ] = this.handleOptionAndParams (params, 'fetchOpenOrders', 'settle', settle);
         }
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -5184,7 +5184,7 @@ module.exports = class bybit extends Exchange {
         let market = undefined;
         let settle = this.safeString (params, 'settleCoin');
         if (settle === undefined) {
-            [ settle, params ] = this.handleOptionAndParams (params, 'fetchPositions', 'settle', settle);
+            [ settle, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'settle', settle);
         }
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -6234,7 +6234,7 @@ module.exports = class bybit extends Exchange {
         let side = this.safeString (position, 'side');
         side = (side === 'Buy') ? 'long' : 'short';
         const notional = this.safeString (position, 'positionValue');
-        const unrealisedPnl = this.omitZero (this.safeString2 (position, 'unrealisedPnl'));
+        const unrealisedPnl = this.omitZero (this.safeString (position, 'unrealisedPnl'));
         let initialMarginString = this.safeString (position, 'positionIM');
         let maintenanceMarginString = this.safeString (position, 'positionMM');
         let timestamp = this.parse8601 (this.safeString (position, 'updated_at'));
