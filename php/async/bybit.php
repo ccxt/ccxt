@@ -5389,6 +5389,7 @@ class bybit extends Exchange {
              * @param {array} $params extra parameters specific to the bybit api endpoint
              * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
              */
+            Async\await($this->load_markets());
             list($networkCode, $query) = $this->handle_network_code_and_params($params);
             $networkId = $this->network_code_to_id($networkCode);
             $currency = $this->currency($code);

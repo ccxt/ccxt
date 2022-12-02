@@ -4975,6 +4975,7 @@ class bybit(Exchange):
         :param dict params: extra parameters specific to the bybit api endpoint
         :returns dict: an `address structure <https://docs.ccxt.com/en/latest/manual.html#address-structure>`
         """
+        await self.load_markets()
         networkCode, query = self.handle_network_code_and_params(params)
         networkId = self.network_code_to_id(networkCode)
         currency = self.currency(code)
