@@ -943,6 +943,7 @@ module.exports = class bitvavo extends Exchange {
          * @method
          * @name bitvavo#createOrder
          * @description create a trade order
+         * @see https://docs.bitvavo.com/#tag/Orders/paths/~1order/post
          * @param {string} symbol unified symbol of the market to create an order in
          * @param {string} type 'market' or 'limit'
          * @param {string} side 'buy' or 'sell'
