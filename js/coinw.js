@@ -25,7 +25,7 @@ module.exports = class coinw extends Exchange {
                 'future': undefined,
                 'option': undefined,
                 'fetchTickers': true, // https://api.coinw.com/api/v1/public?command=returnTicker
-                'fetchCurrencies': true, // https://api.coinw.com/api/v1/public?command=returnCurrencies
+                'fetchCurrencies': true,
                 'fetchMarkets': true,
                 'fetchOrderBook': true, // https://api.coinw.com/api/v1/public?command=returnOrderBook&symbol=BTC_CNYT&size=20
                 'fetchTrades': true, // https://api.coinw.com/api/v1/public?command=returnTradeHistory&symbol=CWT_CNYT&start=1579238517000&end=1581916917660
@@ -148,7 +148,7 @@ module.exports = class coinw extends Exchange {
         //        },
         //    ]
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', []);
         const dataLength = data.length;
         const result = [];
         for (let i = 0; i < dataLength; i++) {
@@ -238,7 +238,7 @@ module.exports = class coinw extends Exchange {
         //     },
         //  }
         //
-        const data = this.safeValue (response, 'data');
+        const data = this.safeValue (response, 'data', {});
         const dataKeys = Object.keys (data);
         const dataLength = dataKeys.length;
         const result = {};
@@ -274,6 +274,42 @@ module.exports = class coinw extends Exchange {
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        //   "EET_CNYT":{
+        //       "percentChange":"0",
+        //       "high24hr":"0.0",
+        //       "last":"0.008",
+        //       "highestBid":"0.007",
+        //       "id":39,
+        //       "isFrozen":0
+        //       "baseVolume":"0.0",
+        //       "lowestAsk":"0.008",
+        //       "low24hr":"0.0"
+        //   }
+        //
+        const last = this.safeString (ticker, 'last');
+        return this.safeTicker ({
+            'symbol': market['symbol'],
+            'timestamp': undefined,
+            'datetime': undefined,
+            'high': this.safeString (ticker, 'high24hr'),
+            'low': this.safeString (ticker, 'low24hr'),
+            'bid': this.safeString (ticker, 'highestBid'),
+            'bidVolume': undefined,
+            'ask': this.safeString (ticker, 'lowestAsk'),
+            'askVolume': undefined,
+            'vwap': undefined,
+            'open': undefined,
+            'close': last,
+            'last': last,
+            'previousClose': undefined,
+            'change': this.safeString (ticker, 'percentChange'),
+            'percentage': undefined,
+            'average': undefined,
+            'baseVolume': this.safeString (ticker, 'baseVolume'),
+            'quoteVolume': undefined,
+            'info': ticker,
+        }, market);
     }
 
     async fetchTickers (symbols = undefined, params = {}) {
@@ -287,42 +323,28 @@ module.exports = class coinw extends Exchange {
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const request = {
-            'cmd': 'marketAll',
-        };
-        const response = await this.v1PublicGetMdata (this.extend (request, params));
+        const response = await this.publicGetReturnTicker (params);
         //
-        //    {
-        //        result: [
-        //            {
-        //                is_hide: '0',
-        //                high_cny: '0.1094',
-        //                amount: '5.34',
-        //                coin_symbol: 'BIX',
-        //                last: '0.00000080',
-        //                currency_symbol: 'BTC',
-        //                change: '+0.00000001',
-        //                low_cny: '0.1080',
-        //                base_last_cny: '0.10935854',
-        //                area_id: '7',
-        //                percent: '+1.27%',
-        //                last_cny: '0.1094',
-        //                high: '0.00000080',
-        //                low: '0.00000079',
-        //                pair_type: '0',
-        //                last_usd: '0.0155',
-        //                vol24H: '6697325',
-        //                id: '1',
-        //                high_usd: '0.0155',
-        //                low_usd: '0.0153'
-        //            },
-        //            ...
-        //        ],
-        //        cmd: 'marketAll',
-        //        ver: '1.1'
-        //    }
+        //   {
+        //       "code":"200",
+        //       "data":{
+        //           "EET_CNYT":{
+        //               "percentChange":"0",
+        //               "high24hr":"0.0",
+        //               "last":"0.008",
+        //               "highestBid":"0.007",
+        //               "id":39,
+        //               "isFrozen":0
+        //               "baseVolume":"0.0",
+        //               "lowestAsk":"0.008",
+        //               "low24hr":"0.0"
+        //           }
+        //       },
+        //       "msg":"SUCCESS"
+        //   }
         //
-        const tickers = this.parseTickers (response['result'], symbols);
+        const data = this.safeValue (response, 'data', {});
+        const tickers = this.parseTickers (data, symbols);
         const result = this.indexBy (tickers, 'symbol');
         return this.filterByArray (result, 'symbol', symbols);
     }
