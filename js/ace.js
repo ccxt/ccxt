@@ -5,6 +5,7 @@
 const Exchange = require ('./base/Exchange');
 const { ExchangeError } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
+const FormData = require('form-data');
 
 //  ---------------------------------------------------------------------------
 
@@ -29,7 +30,7 @@ module.exports = class ace extends Exchange {
                 'cancelOrders': false,
                 'createOrder': false,
                 'editOrder': false,
-                'fetchBalance': false,
+                'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
                 'fetchBorrowRateHistory': false,
@@ -375,6 +376,66 @@ module.exports = class ace extends Exchange {
         return this.parseOrderBook (orderBook, market['symbol'], undefined, 'bids', 'asks');
     }
 
+    parseBalance (response) {
+        //
+        //     [
+        //         {
+        //             "currencyId": 4,
+        //             "amount": 6.896,
+        //             "cashAmount": 6.3855,
+        //             "uid": 123,
+        //             "currencyNameEn": "BTC"
+        //         }
+        //     ]
+        //
+        const result = {
+            'info': response,
+        };
+        for (let i = 0; i < response.length; i++) {
+            const balance = response[i];
+            const currencyId = this.safeString (balance, 'currencyNameEn');
+            const code = this.safeCurrencyCode (currencyId);
+            const amount = this.safeString (balance, 'amount');
+            const available = this.safeString (balance, 'cashAmount');
+            const account = {
+                'free': available,
+                'total': amount,
+            };
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
+    async fetchBalance (params = {}) {
+        /**
+         * @method
+         * @name ace#fetchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} params extra parameters specific to the ace api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privatePostV1CoinCustomerAccount (params);
+        const balances = this.safeValue (response, 'attachment', []);
+        //
+        //     {
+        //         "attachment":[
+        //             {
+        //                 "currencyId": 4,
+        //                 "amount": 6.896,
+        //                 "cashAmount": 6.3855,
+        //                 "uid": 123,
+        //                 "currencyNameEn": "BTC"
+        //             }
+        //         ],
+        //         message: null,
+        //         parameters: null,
+        //         status: '200'
+        //     }
+        //
+        return this.parseBalance (balances);
+    }
+
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.implodeParams (path, params);
         const query = this.omit (params, this.extractParams (path));
@@ -383,6 +444,17 @@ module.exports = class ace extends Exchange {
         }
         if (api === 'private') {
             this.checkRequiredCredentials ();
+            const nonce = this.milliseconds ();
+            body = new FormData();
+            const auth = 'ACE_SIGN' + nonce.toString () + this.phone;
+            const signature = this.hash (auth, 'md5', 'hex');
+            const splitKey = this.apiKey.split ('#');
+            const uid = (this.uid) ? this.uid : splitKey[0];
+            body.append("uid", uid);
+            body.append("timeStamp", nonce);
+            body.append("signKey", signature);
+            body.append("apiKey", this.apiKey);
+            body.append("securityKey", this.secret);
         } else if (api === 'public' && method === 'GET') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
