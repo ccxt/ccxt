@@ -26,7 +26,7 @@ module.exports = class coinw extends Exchange {
                 'option': undefined,
                 'fetchTickers': true, // https://api.coinw.com/api/v1/public?command=returnTicker
                 'fetchCurrencies': true, // https://api.coinw.com/api/v1/public?command=returnCurrencies
-                'fetchMarkets': true, // https://api.coinw.com/api/v1/public?command=returnSymbol
+                'fetchMarkets': true,
                 'fetchOrderBook': true, // https://api.coinw.com/api/v1/public?command=returnOrderBook&symbol=BTC_CNYT&size=20
                 'fetchTrades': true, // https://api.coinw.com/api/v1/public?command=returnTradeHistory&symbol=CWT_CNYT&start=1579238517000&end=1581916917660
                 'fetchOHLCV': true, // https://api.coinw.com/api/v1/public?currencyPair=CWT_CNYT&command=returnChartData&period=1800&start=1580992380&end=1582288440
@@ -149,8 +149,9 @@ module.exports = class coinw extends Exchange {
         //    ]
         //
         const data = this.safeValue (response, 'data');
+        const dataLength = data.length;
         const result = [];
-        for (let i = 0; i < data.length; i++) {
+        for (let i = 0; i < dataLength; i++) {
             const market = data[i];
             const id = this.safeString (market, 'currencyPair');
             const baseId = this.safeString (market, 'currencyBase');
@@ -238,7 +239,38 @@ module.exports = class coinw extends Exchange {
         //  }
         //
         const data = this.safeValue (response, 'data');
-        console.log (data);
+        const dataKeys = Object.keys (data);
+        const dataLength = dataKeys.length;
+        const result = {};
+        for (let i = 0; i < dataLength; i++) {
+            const dataKey = dataKeys[i];
+            const currency = data[dataKey];
+            const symbolId = this.safeString (currency, 'symbolId');
+            const code = this.safeCurrencyCode (this.safeString (currency, 'symbol'));
+            const withdraw = this.safeString (currency, 'withDraw');
+            result[code] = {
+                'id': symbolId,
+                'code': code,
+                'info': currency,
+                'name': undefined,
+                'active': undefined,
+                'deposit': undefined,
+                'withdraw': (withdraw === '1'),
+                'fee': this.safeString (currency, 'txFee'),
+                'precision': undefined,
+                'limits': {
+                    'amount': {
+                        'min': this.safeString (currency, 'minQty'),
+                        'max': this.safeString (currency, 'maxQty'),
+                    },
+                    'withdraw': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                },
+            };
+        }
+        return result;
     }
 
     parseTicker (ticker, market = undefined) {
