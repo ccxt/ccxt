@@ -4060,7 +4060,7 @@ class bybit(Exchange):
         market = None
         settle = self.safe_string(params, 'settleCoin')
         if settle is None:
-            settle, params = self.handle_option_and_params(params, 'fetchPositions', 'settle', settle)
+            settle, params = self.handle_option_and_params(params, 'cancelAllOrders', 'settle', settle)
         if symbol is not None:
             market = self.market(symbol)
             settle = market['settle']
@@ -4254,7 +4254,7 @@ class bybit(Exchange):
         market = None
         settle = self.safe_string(params, 'settleCoin')
         if settle is None:
-            settle, params = self.handle_option_and_params(params, 'fetchPositions', 'settle', settle)
+            settle, params = self.handle_option_and_params(params, 'fetchOrders', 'settle', settle)
         if symbol is not None:
             market = self.market(symbol)
             settle = market['settle']
@@ -4587,7 +4587,7 @@ class bybit(Exchange):
         market = None
         settle = self.safe_string(params, 'settleCoin')
         if settle is None:
-            settle, params = self.handle_option_and_params(params, 'fetchPositions', 'settle', settle)
+            settle, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'settle', settle)
         if symbol is not None:
             market = self.market(symbol)
             settle = market['settle']
@@ -4875,7 +4875,7 @@ class bybit(Exchange):
         market = None
         settle = self.safe_string(params, 'settleCoin')
         if settle is None:
-            settle, params = self.handle_option_and_params(params, 'fetchPositions', 'settle', settle)
+            settle, params = self.handle_option_and_params(params, 'fetchMyTrades', 'settle', settle)
         if symbol is not None:
             market = self.market(symbol)
             settle = market['settle']
@@ -5857,7 +5857,7 @@ class bybit(Exchange):
         side = self.safe_string(position, 'side')
         side = 'long' if (side == 'Buy') else 'short'
         notional = self.safe_string(position, 'positionValue')
-        unrealisedPnl = self.omit_zero(self.safe_string_2(position, 'unrealisedPnl'))
+        unrealisedPnl = self.omit_zero(self.safe_string(position, 'unrealisedPnl'))
         initialMarginString = self.safe_string(position, 'positionIM')
         maintenanceMarginString = self.safe_string(position, 'positionMM')
         timestamp = self.parse8601(self.safe_string(position, 'updated_at'))

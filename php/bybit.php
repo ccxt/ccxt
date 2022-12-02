@@ -4264,7 +4264,7 @@ class bybit extends Exchange {
         $market = null;
         $settle = $this->safe_string($params, 'settleCoin');
         if ($settle === null) {
-            list($settle, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'settle', $settle);
+            list($settle, $params) = $this->handle_option_and_params($params, 'cancelAllOrders', 'settle', $settle);
         }
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -4472,7 +4472,7 @@ class bybit extends Exchange {
         $market = null;
         $settle = $this->safe_string($params, 'settleCoin');
         if ($settle === null) {
-            list($settle, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'settle', $settle);
+            list($settle, $params) = $this->handle_option_and_params($params, 'fetchOrders', 'settle', $settle);
         }
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -4833,7 +4833,7 @@ class bybit extends Exchange {
         $market = null;
         $settle = $this->safe_string($params, 'settleCoin');
         if ($settle === null) {
-            list($settle, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'settle', $settle);
+            list($settle, $params) = $this->handle_option_and_params($params, 'fetchOpenOrders', 'settle', $settle);
         }
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -5142,7 +5142,7 @@ class bybit extends Exchange {
         $market = null;
         $settle = $this->safe_string($params, 'settleCoin');
         if ($settle === null) {
-            list($settle, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'settle', $settle);
+            list($settle, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'settle', $settle);
         }
         if ($symbol !== null) {
             $market = $this->market($symbol);
@@ -6176,7 +6176,7 @@ class bybit extends Exchange {
         $side = $this->safe_string($position, 'side');
         $side = ($side === 'Buy') ? 'long' : 'short';
         $notional = $this->safe_string($position, 'positionValue');
-        $unrealisedPnl = $this->omit_zero($this->safe_string_2($position, 'unrealisedPnl'));
+        $unrealisedPnl = $this->omit_zero($this->safe_string($position, 'unrealisedPnl'));
         $initialMarginString = $this->safe_string($position, 'positionIM');
         $maintenanceMarginString = $this->safe_string($position, 'positionMM');
         $timestamp = $this->parse8601($this->safe_string($position, 'updated_at'));
