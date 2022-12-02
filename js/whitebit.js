@@ -1092,7 +1092,7 @@ module.exports = class whitebit extends Exchange {
         const isLimitOrder = type === 'limit';
         const isMarketOrder = type === 'market';
         const stopPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'activation_price' ]);
-        const stopLimitPrice = this.safeNumber (params, [ 'stop_limit_price' ]);
+        const stopLimitPrice = this.safeNumber (params, 'stop_limit_price');
         const isStopOrder = (stopPrice !== undefined);
         const isOCOOrder = isStopOrder !== undefined && stopLimitPrice !== undefined;
         const postOnly = this.isPostOnly (isMarketOrder, false, params);
