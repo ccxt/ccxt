@@ -5896,7 +5896,7 @@ module.exports = class bybit extends Exchange {
             if (symbols.length > 1) {
                 throw new ArgumentsRequired (this.id + ' fetchPositions() does not accept an array with more than one symbol');
             }
-        } else {
+        } else if (symbols !== undefined) {
             symbols = [ symbols ];
         }
         symbols = this.marketSymbols (symbols);
@@ -5971,11 +5971,12 @@ module.exports = class bybit extends Exchange {
             }
             const symbol = this.safeString (symbols, 0);
             market = this.market (symbol);
-            type = market['type'];
             request['symbol'] = market['id'];
-        } else {
-            [ type, params ] = this.handleMarketTypeAndParams ('fetchUSDCPositions', undefined, params);
+        } else if (symbols !== undefined) {
+            market = this.market (symbols);
+            request['symbol'] = market['id'];
         }
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchUSDCPositions', market, params);
         request['category'] = (type === 'option') ? 'OPTION' : 'PERPETUAL';
         const response = await this.privatePostOptionUsdcOpenapiPrivateV1QueryPosition (this.extend (request, params));
         //
@@ -6125,7 +6126,7 @@ module.exports = class bybit extends Exchange {
             if (symbols.length > 1) {
                 throw new ArgumentsRequired (this.id + ' fetchPositions() does not accept an array with more than one symbol');
             }
-        } else {
+        } else if (symbols !== undefined) {
             symbols = [ symbols ];
         }
         await this.loadMarkets ();
