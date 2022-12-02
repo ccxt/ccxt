@@ -5890,12 +5890,16 @@ module.exports = class bybit extends Exchange {
 
     async fetchUnifiedMarginPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
         const request = {};
         let type = undefined;
         if (Array.isArray (symbols)) {
-            throw new ArgumentsRequired (this.id + ' fetchPositions() does not accept an array of symbols');
+            if (symbols.length > 1) {
+                throw new ArgumentsRequired (this.id + ' fetchPositions() does not accept an array with more than one symbol');
+            }
+        } else if (symbols !== undefined) {
+            symbols = [ symbols ];
         }
+        symbols = this.marketSymbols (symbols);
         // market undefined
         [ type, params ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
         let subType = undefined;
@@ -5967,11 +5971,12 @@ module.exports = class bybit extends Exchange {
             }
             const symbol = this.safeString (symbols, 0);
             market = this.market (symbol);
-            type = market['type'];
             request['symbol'] = market['id'];
-        } else {
-            [ type, params ] = this.handleMarketTypeAndParams ('fetchUSDCPositions', undefined, params);
+        } else if (symbols !== undefined) {
+            market = this.market (symbols);
+            request['symbol'] = market['id'];
         }
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchUSDCPositions', market, params);
         request['category'] = (type === 'option') ? 'OPTION' : 'PERPETUAL';
         const response = await this.privatePostOptionUsdcOpenapiPrivateV1QueryPosition (this.extend (request, params));
         //
@@ -6031,6 +6036,13 @@ module.exports = class bybit extends Exchange {
 
     async fetchDerivativesPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
+        if (Array.isArray (symbols)) {
+            if (symbols.length > 1) {
+                throw new ArgumentsRequired (this.id + ' fetchPositions() does not accept an array with more than one symbol');
+            }
+        } else if (symbols !== undefined) {
+            symbols = [ symbols ];
+        }
         symbols = this.marketSymbols (symbols);
         const request = {
             'dataFilter': 'valid',
@@ -6118,7 +6130,11 @@ module.exports = class bybit extends Exchange {
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         if (Array.isArray (symbols)) {
-            throw new ArgumentsRequired (this.id + ' fetchPositions() does not accept an array of symbols');
+            if (symbols.length > 1) {
+                throw new ArgumentsRequired (this.id + ' fetchPositions() does not accept an array with more than one symbol');
+            }
+        } else if (symbols !== undefined) {
+            symbols = [ symbols ];
         }
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
