@@ -1269,7 +1269,7 @@ class coinex extends Exchange {
         //                  "buy_type" => "0"
         //                  ),
         //              "loan" => array(
-        //                  "sell_type" => "0.3", // loan
+        //                  "sell_type" => "0.3", // $loan
         //                  "buy_type" => "0"
         //                  ),
         //              "interest" => array(
@@ -1290,12 +1290,17 @@ class coinex extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $free = $this->safe_value($data, 'can_transfer', array());
         $total = $this->safe_value($data, 'balance', array());
+        $loan = $this->safe_value($data, 'loan', array());
+        $interest = $this->safe_value($data, 'interest', array());
         //
         $sellAccount = $this->account();
         $sellCurrencyId = $this->safe_string($data, 'sell_asset_type');
         $sellCurrencyCode = $this->safe_currency_code($sellCurrencyId);
         $sellAccount['free'] = $this->safe_string($free, 'sell_type');
         $sellAccount['total'] = $this->safe_string($total, 'sell_type');
+        $sellDebt = $this->safe_string($loan, 'sell_type');
+        $sellInterest = $this->safe_string($interest, 'sell_type');
+        $sellAccount['debt'] = Precise::string_add($sellDebt, $sellInterest);
         $result[$sellCurrencyCode] = $sellAccount;
         //
         $buyAccount = $this->account();
@@ -1303,6 +1308,9 @@ class coinex extends Exchange {
         $buyCurrencyCode = $this->safe_currency_code($buyCurrencyId);
         $buyAccount['free'] = $this->safe_string($free, 'buy_type');
         $buyAccount['total'] = $this->safe_string($total, 'buy_type');
+        $buyDebt = $this->safe_string($loan, 'buy_type');
+        $buyInterest = $this->safe_string($interest, 'buy_type');
+        $buyAccount['debt'] = Precise::string_add($buyDebt, $buyInterest);
         $result[$buyCurrencyCode] = $buyAccount;
         //
         return $this->safe_balance($result);
@@ -1387,11 +1395,14 @@ class coinex extends Exchange {
          * @param {array} $params extra parameters specific to the coinex api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
          */
-        $accountType = $this->safe_string($params, 'type', 'main');
-        $params = $this->omit($params, 'type');
-        if ($accountType === 'margin') {
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        $isMargin = $this->safe_value($params, 'margin', false);
+        $marketType = $isMargin ? 'margin' : $marketType;
+        $params = $this->omit($params, 'margin');
+        if ($marketType === 'margin') {
             return $this->fetch_margin_balance($params);
-        } elseif ($accountType === 'swap') {
+        } elseif ($marketType === 'swap') {
             return $this->fetch_swap_balance($params);
         } else {
             return $this->fetch_spot_balance($params);

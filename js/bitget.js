@@ -673,6 +673,7 @@ module.exports = class bitget extends Exchange {
                     '40712': InsufficientFunds, // Insufficient margin
                     '40713': ExchangeError, // Cannot exceed the maximum transferable margin amount
                     '40714': ExchangeError, // No direct margin call is allowed
+                    '45110': InvalidOrder, // {"code":"45110","msg":"less than the minimum amount 5 USDT","requestTime":1669911118932,"data":null}
                     // spot
                     'invalid sign': AuthenticationError,
                     'invalid currency': BadSymbol, // invalid trading pair
@@ -2083,12 +2084,24 @@ module.exports = class bitget extends Exchange {
 
     parseBalance (balance) {
         const result = { 'info': balance };
+        //
+        //     {
+        //       coinId: '1',
+        //       coinName: 'BTC',
+        //       available: '0.00099900',
+        //       frozen: '0.00000000',
+        //       lock: '0.00000000',
+        //       uTime: '1661595535000'
+        //     }
+        //
         for (let i = 0; i < balance.length; i++) {
             const entry = balance[i];
             const currencyId = this.safeString2 (entry, 'coinId', 'marginCoin');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['used'] = this.safeString2 (entry, 'lock', 'locked');
+            const frozen = this.safeString (entry, 'frozen');
+            const locked = this.safeString (entry, 'lock');
+            account['used'] = Precise.stringAdd (frozen, locked);
             account['free'] = this.safeString (entry, 'available');
             result[code] = account;
         }
@@ -2098,6 +2111,7 @@ module.exports = class bitget extends Exchange {
     parseOrderStatus (status) {
         const statuses = {
             'new': 'open',
+            'init': 'open',
             'full_fill': 'closed',
             'filled': 'closed',
         };

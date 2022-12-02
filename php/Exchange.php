@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.2.47';
+$version = '2.2.50';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.2.47';
+    const VERSION = '2.2.50';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -3340,7 +3340,36 @@ class Exchange {
          * @return {[string|null]} exchange-specific network id
          */
         $networkIdsByCodes = $this->safe_value($this->options, 'networks', array());
-        return $this->safe_string($networkIdsByCodes, $networkCode, $networkCode);
+        $networkId = $this->safe_string($networkIdsByCodes, $networkCode);
+        // for example, if 'ETH' is passed for $networkCode, but 'ETH' $key not defined in `options->networks` object
+        if ($networkId === null) {
+            if ($currencyCode === null) {
+                // if $currencyCode was not provided, then we just set passed $value to $networkId
+                $networkId = $networkCode;
+            } else {
+                // if $currencyCode was provided, then we try to find if that $currencyCode has a replacement ($i->e. ERC20 for ETH)
+                $defaultNetworkCodeReplacements = $this->safe_value($this->options, 'defaultNetworkCodeReplacements', array());
+                if (is_array($defaultNetworkCodeReplacements) && array_key_exists($currencyCode, $defaultNetworkCodeReplacements)) {
+                    // if there is a replacement for the passed $networkCode, then we use it to find network-id in `options->networks` object
+                    $replacementObject = $defaultNetworkCodeReplacements[$currencyCode]; // $i->e. array( 'ERC20' => 'ETH' )
+                    $keys = is_array($replacementObject) ? array_keys($replacementObject) : array();
+                    for ($i = 0; $i < count($keys); $i++) {
+                        $key = $keys[$i];
+                        $value = $replacementObject[$key];
+                        // if $value matches to provided unified $networkCode, then we use it's $key to find network-id in `options->networks` object
+                        if ($value === $networkCode) {
+                            $networkId = $this->safe_string($networkIdsByCodes, $key);
+                            break;
+                        }
+                    }
+                }
+                // if it wasn't found, we just set the provided $value to network-id
+                if ($networkId === null) {
+                    $networkId = $networkCode;
+                }
+            }
+        }
+        return $networkId;
     }
 
     public function network_id_to_code($networkId, $currencyCode = null) {
@@ -3353,6 +3382,7 @@ class Exchange {
          */
         $networkCodesByIds = $this->safe_value($this->options, 'networksById', array());
         $networkCode = $this->safe_string($networkCodesByIds, $networkId, $networkId);
+        // replace mainnet network-codes (i.e. ERC20->ETH)
         if ($currencyCode !== null) {
             $defaultNetworkCodeReplacements = $this->safe_value($this->options, 'defaultNetworkCodeReplacements', array());
             if (is_array($defaultNetworkCodeReplacements) && array_key_exists($currencyCode, $defaultNetworkCodeReplacements)) {

@@ -672,6 +672,7 @@ class bitget extends Exchange {
                     '40712' => '\\ccxt\\InsufficientFunds', // Insufficient margin
                     '40713' => '\\ccxt\\ExchangeError', // Cannot exceed the maximum transferable margin amount
                     '40714' => '\\ccxt\\ExchangeError', // No direct margin call is allowed
+                    '45110' => '\\ccxt\\InvalidOrder', // array("code":"45110","msg":"less than the minimum amount 5 USDT","requestTime":1669911118932,"data":null)
                     // spot
                     'invalid sign' => '\\ccxt\\AuthenticationError',
                     'invalid currency' => '\\ccxt\\BadSymbol', // invalid trading pair
@@ -2052,12 +2053,24 @@ class bitget extends Exchange {
 
     public function parse_balance($balance) {
         $result = array( 'info' => $balance );
+        //
+        //     {
+        //       coinId => '1',
+        //       coinName => 'BTC',
+        //       available => '0.00099900',
+        //       $frozen => '0.00000000',
+        //       lock => '0.00000000',
+        //       uTime => '1661595535000'
+        //     }
+        //
         for ($i = 0; $i < count($balance); $i++) {
             $entry = $balance[$i];
             $currencyId = $this->safe_string_2($entry, 'coinId', 'marginCoin');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['used'] = $this->safe_string_2($entry, 'lock', 'locked');
+            $frozen = $this->safe_string($entry, 'frozen');
+            $locked = $this->safe_string($entry, 'lock');
+            $account['used'] = Precise::string_add($frozen, $locked);
             $account['free'] = $this->safe_string($entry, 'available');
             $result[$code] = $account;
         }
@@ -2067,6 +2080,7 @@ class bitget extends Exchange {
     public function parse_order_status($status) {
         $statuses = array(
             'new' => 'open',
+            'init' => 'open',
             'full_fill' => 'closed',
             'filled' => 'closed',
         );
