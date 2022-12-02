@@ -989,7 +989,7 @@ module.exports = class bitvavo extends Exchange {
                 cost = this.safeNumber2 (params, 'cost', 'amountQuote');
             }
             if (cost !== undefined) {
-                const precision = market['precision']['price'];
+                const precision = market['precision']['amount'];
                 request['amountQuote'] = this.decimalToPrecision (cost, TRUNCATE, precision, this.precisionMode);
             } else {
                 request['amount'] = this.amountToPrecision (symbol, amount);
