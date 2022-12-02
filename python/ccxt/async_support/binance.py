@@ -1902,7 +1902,7 @@ class binance(Exchange):
             paramSymbols = self.safe_value(params, 'symbols')
             if paramSymbols is not None:
                 symbols = ''
-                if self.is_array(paramSymbols):
+                if isinstance(paramSymbols, list):
                     symbols = self.market_id(paramSymbols[0])
                     for i in range(1, len(paramSymbols)):
                         symbol = paramSymbols[i]

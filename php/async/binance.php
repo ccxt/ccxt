@@ -1935,7 +1935,7 @@ class binance extends Exchange {
                 $paramSymbols = $this->safe_value($params, 'symbols');
                 if ($paramSymbols !== null) {
                     $symbols = '';
-                    if ($this->is_array($paramSymbols)) {
+                    if (gettype($paramSymbols) === 'array' && array_keys($paramSymbols) === array_keys(array_keys($paramSymbols))) {
                         $symbols = $this->market_id($paramSymbols[0]);
                         for ($i = 1; $i < count($paramSymbols); $i++) {
                             $symbol = $paramSymbols[$i];

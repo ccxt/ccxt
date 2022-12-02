@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.2.45';
+$version = '2.2.56';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.2.45';
+    const VERSION = '2.2.56';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -285,28 +285,7 @@ class Exchange {
         'parseNumber' => 'parse_number',
         'checkOrderArguments' => 'check_order_arguments',
         'handleHttpStatusCode' => 'handle_http_status_code',
-        'fetchAccounts' => 'fetch_accounts',
-        'fetchTrades' => 'fetch_trades',
-        'fetchDepositAddresses' => 'fetch_deposit_addresses',
-        'fetchOrderBook' => 'fetch_order_book',
-        'fetchTime' => 'fetch_time',
-        'fetchTradingLimits' => 'fetch_trading_limits',
-        'parseTicker' => 'parse_ticker',
-        'parseDepositAddress' => 'parse_deposit_address',
-        'parseTrade' => 'parse_trade',
-        'parseTransaction' => 'parse_transaction',
-        'parseTransfer' => 'parse_transfer',
-        'parseAccount' => 'parse_account',
-        'parseLedgerEntry' => 'parse_ledger_entry',
-        'parseOrder' => 'parse_order',
-        'fetchBorrowRates' => 'fetch_borrow_rates',
-        'parseMarketLeverageTiers' => 'parse_market_leverage_tiers',
-        'fetchLeverageTiers' => 'fetch_leverage_tiers',
-        'parsePosition' => 'parse_position',
-        'parseFundingRateHistory' => 'parse_funding_rate_history',
-        'findTimeframe' => 'find_timeframe',
-        'formatScientificNotationFTX' => 'format_scientific_notation_ftx',
-        'parseToInt' => 'parse_to_int',
+        'getDefaultOptions' => 'get_default_options',
         'safeLedgerEntry' => 'safe_ledger_entry',
         'setMarkets' => 'set_markets',
         'safeBalance' => 'safe_balance',
@@ -1193,7 +1172,7 @@ class Exchange {
         $this->headers = array();
         $this->hostname = null; // in case of inaccessibility of the "main" domain
 
-        $this->options = array(); // exchange-specific options if any
+        $this->options = $this->get_default_options(); // exchange-specific options if any
 
         $this->skipJsonOnStatusCodes = false; // TODO: reserved, rewrite the curl routine to parse JSON body anyway
         $this->quoteJsonNumbers = true; // treat numbers in json as quoted precise strings
@@ -1255,6 +1234,7 @@ class Exchange {
             '404' => 'ExchangeNotAvailable',
             '409' => 'ExchangeNotAvailable',
             '410' => 'ExchangeNotAvailable',
+            '451' => 'ExchangeNotAvailable',
             '500' => 'ExchangeNotAvailable',
             '501' => 'ExchangeNotAvailable',
             '502' => 'ExchangeNotAvailable',
@@ -2520,6 +2500,15 @@ class Exchange {
         return intval($convertedNumber);
     }
 
+    public function get_default_options() {
+        return array(
+            'defaultNetworkCodeReplacements' => array(
+                'ETH' => array( 'ERC20' => 'ETH' ),
+                'TRX' => array( 'TRC20' => 'TRX' ),
+            ),
+        );
+    }
+
     public function safe_ledger_entry($entry, $currency = null) {
         $currency = $this->safe_currency(null, $currency);
         $direction = $this->safe_string($entry, 'direction');
@@ -3377,7 +3366,36 @@ class Exchange {
          * @return {[string|null]} exchange-specific network id
          */
         $networkIdsByCodes = $this->safe_value($this->options, 'networks', array());
-        return $this->safe_string($networkIdsByCodes, $networkCode, $networkCode);
+        $networkId = $this->safe_string($networkIdsByCodes, $networkCode);
+        // for example, if 'ETH' is passed for $networkCode, but 'ETH' $key not defined in `options->networks` object
+        if ($networkId === null) {
+            if ($currencyCode === null) {
+                // if $currencyCode was not provided, then we just set passed $value to $networkId
+                $networkId = $networkCode;
+            } else {
+                // if $currencyCode was provided, then we try to find if that $currencyCode has a replacement ($i->e. ERC20 for ETH)
+                $defaultNetworkCodeReplacements = $this->safe_value($this->options, 'defaultNetworkCodeReplacements', array());
+                if (is_array($defaultNetworkCodeReplacements) && array_key_exists($currencyCode, $defaultNetworkCodeReplacements)) {
+                    // if there is a replacement for the passed $networkCode, then we use it to find network-id in `options->networks` object
+                    $replacementObject = $defaultNetworkCodeReplacements[$currencyCode]; // $i->e. array( 'ERC20' => 'ETH' )
+                    $keys = is_array($replacementObject) ? array_keys($replacementObject) : array();
+                    for ($i = 0; $i < count($keys); $i++) {
+                        $key = $keys[$i];
+                        $value = $replacementObject[$key];
+                        // if $value matches to provided unified $networkCode, then we use it's $key to find network-id in `options->networks` object
+                        if ($value === $networkCode) {
+                            $networkId = $this->safe_string($networkIdsByCodes, $key);
+                            break;
+                        }
+                    }
+                }
+                // if it wasn't found, we just set the provided $value to network-id
+                if ($networkId === null) {
+                    $networkId = $networkCode;
+                }
+            }
+        }
+        return $networkId;
     }
 
     public function network_id_to_code($networkId, $currencyCode = null) {
@@ -3389,7 +3407,16 @@ class Exchange {
          * @return {[string|null]} unified network code
          */
         $networkCodesByIds = $this->safe_value($this->options, 'networksById', array());
-        return $this->safe_string($networkCodesByIds, $networkId, $networkId);
+        $networkCode = $this->safe_string($networkCodesByIds, $networkId, $networkId);
+        // replace mainnet network-codes (i.e. ERC20->ETH)
+        if ($currencyCode !== null) {
+            $defaultNetworkCodeReplacements = $this->safe_value($this->options, 'defaultNetworkCodeReplacements', array());
+            if (is_array($defaultNetworkCodeReplacements) && array_key_exists($currencyCode, $defaultNetworkCodeReplacements)) {
+                $replacementObject = $this->safe_value($defaultNetworkCodeReplacements, $currencyCode, array());
+                $networkCode = $this->safe_string($replacementObject, $networkCode, $networkCode);
+            }
+        }
+        return $networkCode;
     }
 
     public function handle_network_code_and_params($params) {

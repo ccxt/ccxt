@@ -1926,7 +1926,7 @@ export default class binance extends Exchange {
             const paramSymbols = this.safeValue (params, 'symbols');
             if (paramSymbols !== undefined) {
                 let symbols = '';
-                if (this.isArray (paramSymbols)) {
+                if (Array.isArray (paramSymbols)) {
                     symbols = this.marketId (paramSymbols[0]);
                     for (let i = 1; i < paramSymbols.length; i++) {
                         const symbol = paramSymbols[i];
