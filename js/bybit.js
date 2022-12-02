@@ -5890,12 +5890,16 @@ module.exports = class bybit extends Exchange {
 
     async fetchUnifiedMarginPositions (symbols = undefined, params = {}) {
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
         const request = {};
         let type = undefined;
         if (Array.isArray (symbols)) {
-            throw new ArgumentsRequired (this.id + ' fetchPositions() does not accept an array of symbols');
+            if (symbols.length > 1) {
+                throw new ArgumentsRequired (this.id + ' fetchPositions() does not accept an array with more than one symbol');
+            }
+        } else {
+            symbols = [ symbols ];
         }
+        symbols = this.marketSymbols (symbols);
         // market undefined
         [ type, params ] = this.handleMarketTypeAndParams ('fetchPositions', undefined, params);
         let subType = undefined;
@@ -6118,7 +6122,11 @@ module.exports = class bybit extends Exchange {
          * @returns {[object]} a list of [position structure]{@link https://docs.ccxt.com/en/latest/manual.html#position-structure}
          */
         if (Array.isArray (symbols)) {
-            throw new ArgumentsRequired (this.id + ' fetchPositions() does not accept an array of symbols');
+            if (symbols.length > 1) {
+                throw new ArgumentsRequired (this.id + ' fetchPositions() does not accept an array with more than one symbol');
+            }
+        } else {
+            symbols = [ symbols ];
         }
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
