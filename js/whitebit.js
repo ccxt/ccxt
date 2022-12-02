@@ -143,10 +143,6 @@ module.exports = class whitebit extends Exchange {
                             'main-account/address',
                             'main-account/balance',
                             'main-account/create-new-address',
-                            'main-account/codes',
-                            'main-account/codes/apply',
-                            'main-account/codes/my',
-                            'main-account/codes/history',
                             'main-account/fiat-deposit-url',
                             'main-account/history',
                             'main-account/withdraw',
@@ -158,13 +154,16 @@ module.exports = class whitebit extends Exchange {
                             'trade-account/order/history',
                             'order/collateral/limit',
                             'order/collateral/market',
-                            'order/collateral/trigger_market',
+                            'order/collateral/stop-limit',
+                            'order/collateral/trigger-market',
+                            'order/collateral/oco',
                             'order/new',
                             'order/market',
                             'order/stock_market',
                             'order/stop_limit',
                             'order/stop_market',
                             'order/cancel',
+                            'order/oco-cancel',
                             'orders',
                             'profile/websocket_token',
                         ],
@@ -186,6 +185,7 @@ module.exports = class whitebit extends Exchange {
                 },
             },
             'options': {
+                'beneficiaryProviders': [ 'VISAMASTER', 'CHECKOUT', 'UAH_IBAN' ],
                 'fiatCurrencies': [ 'EUR', 'USD', 'UAH', 'TRY', 'KZT' ],
                 'accountsByType': {
                     'main': 'main',
@@ -555,6 +555,7 @@ module.exports = class whitebit extends Exchange {
          * @param {object} params extra parameters specific to the whitebit api endpoint
          * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure} indexed by market symbols
          */
+        await this.loadMarkets ();
         const response = await this.v4PublicGetAssets (params);
         //
         //      {
@@ -735,7 +736,7 @@ module.exports = class whitebit extends Exchange {
             'market': market['id'],
         };
         if (limit !== undefined) {
-            request['depth'] = limit; // default = 50, maximum = 100
+            request['limit'] = limit; // default = 50, maximum = 100
         }
         const response = await this.v4PublicGetOrderbookMarket (this.extend (request, params));
         //
@@ -979,7 +980,12 @@ module.exports = class whitebit extends Exchange {
             request['end'] = end;
         }
         if (limit !== undefined) {
-            request['limit'] = limit; // max 1440
+            // Workaround bad response with low limit and big interval
+            if (limit < 1440) {
+                request['limit'] = limit + 1; // max 1440
+            } else {
+                request['limit'] = limit; // max 1440
+            }
         }
         const response = await this.v1PublicGetKline (this.extend (request, params));
         //
@@ -993,7 +999,14 @@ module.exports = class whitebit extends Exchange {
         //         ]
         //     }
         //
-        const result = this.safeValue (response, 'result', []);
+        const safeResult = this.safeValue (response, 'result', []);
+        const result = [];
+        for (let i = 0; i < safeResult.length; i++) {
+            if (i === 0) {
+                continue;
+            }
+            result.push (safeResult[i]);
+        }
         return this.parseOHLCVs (result, market, timeframe, since, limit);
     }
 
@@ -1075,7 +1088,9 @@ module.exports = class whitebit extends Exchange {
         const isLimitOrder = type === 'limit';
         const isMarketOrder = type === 'market';
         const stopPrice = this.safeNumberN (params, [ 'triggerPrice', 'stopPrice', 'activation_price' ]);
+        const stopLimitPrice = this.safeNumber (params, 'stop_limit_price');
         const isStopOrder = (stopPrice !== undefined);
+        const isOCOOrder = isStopOrder !== undefined && stopLimitPrice !== undefined;
         const postOnly = this.isPostOnly (isMarketOrder, false, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
         if (postOnly) {
@@ -1085,12 +1100,34 @@ module.exports = class whitebit extends Exchange {
         if (isStopOrder) {
             request['activation_price'] = this.priceToPrecision (symbol, stopPrice);
             if (isLimitOrder) {
-                // stop limit order
-                method = 'v4PrivatePostOrderStopLimit';
-                request['price'] = this.priceToPrecision (symbol, price);
+                if (isOCOOrder) {
+                    if (marginMode !== undefined) {
+                        if (marginMode !== 'cross') {
+                            throw new NotSupported (this.id + ' createOrder() is only available for cross margin');
+                        }
+                        method = 'v4PrivatePostOrderCollateralOco';
+                        request['price'] = this.priceToPrecision (symbol, price);
+                        request['stop_limit_price'] = this.priceToPrecision (symbol, stopLimitPrice);
+                    }
+                } else {
+                    if (marginMode !== undefined) {
+                        if (marginMode !== 'cross') {
+                            throw new NotSupported (this.id + ' createOrder() is only available for cross margin');
+                        }
+                        request['price'] = this.priceToPrecision (symbol, price);
+                        method = 'v4PrivatePostOrderCollateralStopLimit';
+                    } else {
+                        // stop limit order
+                        method = 'v4PrivatePostOrderStopLimit';
+                        request['price'] = this.priceToPrecision (symbol, price);
+                    }
+                }
             } else {
                 if (marginMode !== undefined) {
                     // trigger market order
+                    if (marginMode !== 'cross') {
+                        throw new NotSupported (this.id + ' createOrder() is only available for cross margin');
+                    }
                     method = 'v4PrivatePostOrderCollateralTriggerMarket';
                 } else {
                     // stop market order
@@ -1121,7 +1158,7 @@ module.exports = class whitebit extends Exchange {
         }
         params = this.omit (query, [ 'triggerPrice', 'stopPrice' ]);
         const response = await this[method] (this.extend (request, params));
-        return this.parseOrder (this.extend (response, { postOnly }));
+        return this.parseOrder (this.extend (response, { 'postOnly': postOnly }));
     }
 
     async cancelOrder (id, symbol = undefined, params = {}) {
@@ -1132,10 +1169,21 @@ module.exports = class whitebit extends Exchange {
          * @param {string} id order id
          * @param {string} symbol unified symbol of the market the order was made in
          * @param {object} params extra parameters specific to the whitebit api endpoint
+         * @param {object} params.type 'oco' - to cancel oco order
          * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrder() requires a symbol argument');
+        }
+        const type = this.safeString (params, 'type');
+        if (type !== undefined && type !== 'oco') {
+            throw new InvalidOrder (this.id + ' cancelOrder() only \'oco\' type is allowed');
+        }
+        let method = '';
+        if (type === 'oco') {
+            method = 'v4PrivatePostOrderOcoCancel';
+        } else {
+            method = 'v4PrivatePostOrderCancel';
         }
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -1143,7 +1191,7 @@ module.exports = class whitebit extends Exchange {
             'market': market['id'],
             'orderId': parseInt (id),
         };
-        return await this.v4PrivatePostOrderCancel (this.extend (request, params));
+        return await this[method] (this.extend (request, params));
     }
 
     parseBalance (response) {
@@ -1154,8 +1202,11 @@ module.exports = class whitebit extends Exchange {
             const balance = response[id];
             const code = this.safeCurrencyCode (id);
             const account = this.account ();
-            account['free'] = this.safeString (balance, 'available');
-            account['used'] = this.safeString (balance, 'freeze');
+            const mainBalance = this.safeString (balance, 'main_balance');
+            const available = this.safeString (balance, 'available');
+            const freeze = this.safeString (balance, 'freeze');
+            account['free'] = Precise.stringAdd (available, mainBalance);
+            account['used'] = freeze;
             result[code] = account;
         }
         return this.safeBalance (result);
@@ -1170,14 +1221,34 @@ module.exports = class whitebit extends Exchange {
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const response = await this.v4PrivatePostTradeAccountBalance (params);
+        const mainBalance = await this.v4PrivatePostMainAccountBalance (params);
+        const tradeBalance = await this.v4PrivatePostTradeAccountBalance (params);
+        const result = this.extend (mainBalance, tradeBalance);
+        // Main balance (no params)
+        //      {
+        //          "BTC": { "main_balance": "1" },
+        //          "USDT": { "main_balance": "200" },
+        //      }
         //
+        // Main balance (with ticker params)
+        //      { "main_balance": "1" }
+        //
+        // Trade balance (no params)
         //     {
         //         "BTC": { "available": "0.123", "freeze": "1" },
         //         "XMR": { "available": "3013", "freeze": "100" },
         //     }
         //
-        return this.parseBalance (response);
+        // Trade balance (with ticker params)
+        //     { "available": "0.123", "freeze": "1" }
+        //
+        const code = this.safeValue (params, 'ticker');
+        if (code === undefined) {
+            return this.parseBalance (result);
+        }
+        const hash = {};
+        hash[code] = result;
+        return this.parseBalance (hash);
     }
 
     async fetchOpenOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
@@ -1401,11 +1472,7 @@ module.exports = class whitebit extends Exchange {
         const request = {
             'orderId': parseInt (id),
         };
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            request['market'] = market['id'];
-        }
+        // Useless symbol because of orderId already know, what market is it.
         if (limit !== undefined) {
             request['limit'] = limit; // default 50, max 100
         }
@@ -1430,7 +1497,7 @@ module.exports = class whitebit extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'records', []);
-        return this.parseTrades (data, market);
+        return this.parseTrades (data);
     }
 
     async fetchDepositAddress (code, params = {}) {
@@ -1557,20 +1624,16 @@ module.exports = class whitebit extends Exchange {
         const accountsByType = this.safeValue (this.options, 'accountsByType');
         const fromAccountId = this.safeString (accountsByType, fromAccount, fromAccount);
         const toAccountId = this.safeString (accountsByType, toAccount, toAccount);
-        const amountString = amount.toString ();
+        const amountString = this.numberToString (amount);
         const request = {
             'ticker': currency['id'],
-            'amount': this.currencyToPrecision (code, amountString),
+            'amount': amountString,
             'from': fromAccountId,
             'to': toAccountId,
         };
         const response = await this.v4PrivatePostMainAccountTransfer (this.extend (request, params));
-        //
-        //    []
-        //
-        const transfer = this.parseTransfer (response, currency);
-        return this.extend (transfer, {
-            'amount': this.currencyToPrecision (code, amountString),
+        return this.extend (this.parseTransfer (response, currency), {
+            'amount': amountString,
             'fromAccount': fromAccount,
             'toAccount': toAccount,
         });
@@ -1609,23 +1672,65 @@ module.exports = class whitebit extends Exchange {
         const currency = this.currency (code); // check if it has canDeposit
         const request = {
             'ticker': currency['id'],
-            'amount': this.currencyToPrecision (code, amount),
+            'amount': this.numberToString (amount),
             'address': address,
         };
         let uniqueId = this.safeValue (params, 'uniqueId');
         if (uniqueId === undefined) {
             uniqueId = this.uuid22 ();
+            request['uniqueId'] = uniqueId;
         }
-        request['uniqueId'] = uniqueId;
-        if (tag !== undefined) {
+        if (this.isMultinetwork (code)) {
+            const network = this.safeValue (params, 'network');
+            if (params === undefined || params['network'] === undefined) {
+                throw new ArgumentsRequired (this.id + ' withdraw() requires a network when the ticker is multinetwork');
+            }
+            request['network'] = network;
+        }
+        if (this.isMemo (code)) {
+            if (tag === undefined) {
+                throw new ArgumentsRequired (this.id + ' withdraw() requires a tag when the ticker has memo');
+            }
             request['memo'] = tag;
         }
         if (this.isFiat (code)) {
             const provider = this.safeValue (params, 'provider');
+            const partialEnable = this.safeValue (params, 'partialEnable');
+            if (partialEnable !== undefined) {
+                request['partialEnable'] = provider;
+            }
             if (provider === undefined) {
                 throw new ArgumentsRequired (this.id + ' withdraw() requires a provider when the ticker is fiat');
             }
             request['provider'] = provider;
+            if (this.hasBeneficiaryForWithdraw (code, provider)) {
+                const beneficiary = this.safeValue (params, 'beneficiary');
+                const tin = this.safeValue (beneficiary, 'tin');
+                const phone = this.safeValue (beneficiary, 'phone');
+                const firstName = this.safeValue (beneficiary, 'firstName');
+                const lastName = this.safeValue (beneficiary, 'lastName');
+                if (beneficiary === undefined) {
+                    throw new ArgumentsRequired (this.id + ' withdraw() requires a beneficiary when the provider is ' + provider);
+                }
+                request['beneficiary'] = {};
+                if (firstName === undefined || lastName === undefined) {
+                    throw new ArgumentsRequired (this.id + ' withdraw() requires a beneficiary.firstName and beneficiary.lastName when the provider is ' + provider);
+                }
+                request['beneficiary']['firstName'] = firstName;
+                request['beneficiary']['lastName'] = lastName;
+                if (provider === 'VISAMASTER') {
+                    if (phone === undefined) {
+                        throw new ArgumentsRequired (this.id + ' withdraw() requires a beneficiary.phone when the provider is ' + provider);
+                    }
+                    request['beneficiary']['phone'] = phone;
+                }
+                if (provider === 'UAH_IBAN') {
+                    if (tin === undefined) {
+                        throw new ArgumentsRequired (this.id + ' withdraw() requires a beneficiary.tin when the provider is ' + provider);
+                    }
+                    request['beneficiary']['tin'] = tin;
+                }
+            }
         }
         const response = await this.v4PrivatePostMainAccountWithdraw (this.extend (request, params));
         //
@@ -1935,11 +2040,17 @@ module.exports = class whitebit extends Exchange {
         };
     }
 
+    hasBeneficiaryForWithdraw (params) {
+        const provider = this.safeValue (params, 'provider');
+        const providers = this.safeValue (this.options, 'beneficiaryProviders', []);
+        return this.inArray (provider, providers);
+    }
+
     isMultinetwork (code) {
         const currency = this.currency (code);
         const hash = currency['networks'];
         const networks = Object.keys (hash);
-        return networks.length > 1 && networks.indexOf (code) === -1;
+        return networks.length > 1;
     }
 
     isFiat (currency) {
