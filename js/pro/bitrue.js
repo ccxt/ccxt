@@ -4,6 +4,8 @@
 
 const bitrueRest = require ('../bitrue');
 const { ArrayCacheBySymbolById } = require ('./base/Cache');
+const { ArgumentsRequired } = require ('../base/errors');
+const {inflate, gunzip} = require("./base/functions");
 
 //  ---------------------------------------------------------------------------
 
@@ -24,7 +26,10 @@ module.exports = class bitrue extends bitrueRest {
             'urls': {
                 'api': {
                     'open': 'https://open.bitrue.com',
-                    'ws': 'wss://wsapi.bitrue.com',
+                    'ws': {
+                        'public': 'wss://ws.bitrue.com/market/ws',
+                        'private': 'wss://wsapi.bitrue.com',
+                    },
                 },
             },
             'api': {
@@ -43,12 +48,10 @@ module.exports = class bitrue extends bitrueRest {
                 },
             },
             'options': {
-            },
-            'listenKey': {
-            },
-            'streaming': {
-            },
-            'exceptions': {
+                'listenKeyRefreshRate': 1800000, // 30 mins
+                'ws': {
+                    'gunzip': true,
+                },
             },
         });
     }
@@ -62,16 +65,16 @@ module.exports = class bitrue extends bitrueRest {
          * @param {dict} params extra parameters specific to the bitrue api endpoint
          * @returns {dict} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
-        await this.authenticate ();
-        const messageHash = 'balances';
-        const subscribe = {
+        const url = await this.authenticate ();
+        const messageHash = 'balance';
+        const message = {
             'event': 'sub',
             'params': {
                 'channel': 'user_balance_update',
             },
         };
-        const request = this.deepExtend (subscribe, params);
-        return await this.watch (this.options['authenticatedURL'], messageHash, request, messageHash);
+        const request = this.deepExtend (message, params);
+        return await this.watch (url, messageHash, request, messageHash);
     }
 
     handleBalance (client, message) {
@@ -100,12 +103,29 @@ module.exports = class bitrue extends bitrueRest {
         //         u: 1814396
         //     }
         //
+        //     {
+        //      e: 'BALANCE',
+        //      x: 'OutboundAccountPositionOrderEvent',
+        //      E: 1670051332478,
+        //      I: '353662845694083072',
+        //      i: 1670051332478,
+        //      B: [
+        //        {
+        //          a: 'eth',
+        //          F: '0.0400000000000000',
+        //          T: 1670051332000,
+        //          f: '-0.0100000000000000',
+        //          L: '0.0100000000000000',
+        //          l: '0.0100000000000000',
+        //          t: 1670051332000
+        //        }
+        //      ],
+        //      u: 2285311
+        //    }
+        //
         const balances = this.safeValue (message, 'B', []);
-        const timestamp = this.safeNumber (message, 'E');
         this.parseWSBalances (balances);
-        this.balance['timestamp'] = timestamp;
-        this.balance['datetime'] = this.iso8601 (timestamp);
-        const messageHash = 'balances';
+        const messageHash = 'balance';
         client.resolve (this.balance, messageHash);
     }
 
@@ -129,11 +149,23 @@ module.exports = class bitrue extends bitrueRest {
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];
             const currencyId = this.safeString (balance, 'a');
-            const currency = this.safeCurrencyCode (currencyId);
+            const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['free'] = this.safeNumber (balance, 'F', 0);
-            account['used'] = this.safeNumber (balance, 'L', 0);
-            this.balance[currency] = account;
+            const free = this.safeString (balance, 'F');
+            const used = this.safeString (balance, 'L');
+            const balanceUpdateTime = this.safeInteger (balance, 'T', 0);
+            const lockBalanceUpdateTime = this.safeInteger (balance, 't', 0);
+            const updateFree = balanceUpdateTime !== 0;
+            const updateUsed = lockBalanceUpdateTime !== 0;
+            if (updateFree || updateUsed) {
+                if (updateFree) {
+                    account['free'] = free;
+                }
+                if (updateUsed) {
+                    account['used'] = used;
+                }
+                this.balance[code] = account;
+            }
         }
         this.balance = this.safeBalance (this.balance);
     }
@@ -155,11 +187,16 @@ module.exports = class bitrue extends bitrueRest {
             const market = this.market (symbol);
             symbol = market['symbol'];
         }
-        await this.authenticate ();
+        const url = await this.authenticate ();
         const messageHash = 'orders';
-        const message = { 'event': 'sub', 'params': { 'channel': 'user_order_update' }};
+        const message = {
+            'event': 'sub',
+            'params': {
+                'channel': 'user_order_update',
+            },
+        };
         const request = this.deepExtend (message, params);
-        const orders = await this.watch (this.options['authenticatedURL'], messageHash, request, messageHash);
+        const orders = await this.watch (url, messageHash, request, messageHash);
         if (this.newUpdates) {
             limit = orders.getLimit (symbol, limit);
         }
@@ -228,7 +265,10 @@ module.exports = class bitrue extends bitrueRest {
         const timestamp = this.safeInteger (order, 'E');
         const marketId = this.safeStringUpper (order, 's');
         const typeId = this.safeString (order, 'o');
-        const sideId = this.safeString (order, 'S');
+        const sideId = this.safeInteger (order, 'S');
+        // 1: buy
+        // 2: sell
+        const side = (sideId === 1) ? 'buy' : 'sell';
         const statusId = this.safeString (order, 'X');
         const feeCurrencyId = this.safeString (order, 'N');
         return this.safeOrder ({
@@ -237,93 +277,102 @@ module.exports = class bitrue extends bitrueRest {
             'clientOrderId': this.safeString (order, 'c'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'lastTradeTimestamp': this.safeNumber (order, 'T'),
+            'lastTradeTimestamp': this.safeInteger (order, 'T'),
             'symbol': this.safeSymbol (marketId, market),
             'type': this.parseWSOrderType (typeId),
             'timeInForce': undefined,
             'postOnly': undefined,
-            'side': this.parseWSOrderSide (sideId),
-            'price': this.safeNumber (order, 'p'),
-            'stopPrice': undefined,
-            'amount': this.safeNumber (order, 'q'),
-            'cost': undefined,
+            'side': side,
+            'price': this.safeString (order, 'p'),
+            'triggerPrice': undefined,
+            'amount': this.safeString (order, 'q'),
+            'cost': this.safeString (order, 'Y'),
             'average': undefined,
-            'filled': this.safeNumber (order, 'z'),
+            'filled': this.safeString (order, 'z'),
             'remaining': undefined,
             'status': this.parseWSOrderStatus (statusId),
             'fee': {
                 'currency': this.safeCurrencyCode (feeCurrencyId),
                 'cost': this.safeNumber (order, 'n'),
-                'rate': undefined,
             },
-            'trades': [ order ],
         }, market);
     }
 
-    parseWSTrade (trade, market = undefined) {
-        //
-        //    {
-        //        e: 'ORDER',
-        //        i: 16122802798,
-        //        E: 1657882521876,
-        //        I: '302623154710888464',
-        //        u: 1814396,
-        //        s: 'btcusdt',
-        //        S: 2,
-        //        o: 1,
-        //        q: '0.0005',
-        //        p: '60000',
-        //        X: 0,
-        //        x: 1,
-        //        z: '0',
-        //        n: '0',
-        //        N: 'usdt',
-        //        O: 1657882521876,
-        //        L: '0',
-        //        l: '0',
-        //        Y: '0'
-        //    }
-        //
-        const tradeId = this.safeString (trade, 't');
-        if (tradeId === '-1') {
-            return undefined;
+    async watchOrderBook (symbol, limit = undefined, params = {}) {
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchOrderBook() requires a symbol argument');
         }
-        const timestamp = this.safeString (trade, 'I');
-        const marketId = this.safeStringUpper (trade, 's');
-        const typeId = this.safeString (trade, 'o');
-        const sideId = this.safeString (trade, 'S');
-        return this.safeTrade ({
-            'id': tradeId,
-            'info': trade,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'symbol': this.safeSymbol (marketId, market),
-            'order': this.safeString (trade, 'i'),
-            'type': this.parseWSOrderType (typeId),
-            'side': this.parseWSOrderSide (sideId),
-            'takerOrMaker': undefined,
-            'price': undefined,
-            'amount': undefined,
-            'cost': undefined,
-            'fee': undefined,
-        }, market);
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        symbol = market['symbol'];
+        const messageHash = 'orderbook:' + symbol;
+        const marketIdLowercase = market['id'].toLowerCase ();
+        const channel = 'market_' + marketIdLowercase + '_simple_depth_step0';
+        const url = this.urls['api']['ws']['public'];
+        const message = {
+            'event': 'sub',
+            'params': {
+                'cb_id': marketIdLowercase,
+                'channel': channel,
+            },
+        };
+        const request = this.deepExtend (message, params);
+        return await this.watch (url, messageHash, request, messageHash);
+    }
+
+    handleOrderBook (client, message) {
+        //
+        //     {
+        //         "channel": "market_ethbtc_simple_depth_step0",
+        //         "ts": 1670056708670,
+        //         "tick": {
+        //             "buys": [
+        //                 [
+        //                     "0.075170",
+        //                     "67.153"
+        //                 ],
+        //                 [
+        //                     "0.075169",
+        //                     "17.195"
+        //                 ],
+        //                 [
+        //                     "0.075166",
+        //                     "29.788"
+        //                 ],
+        //             ]
+        //              "asks": [
+        //                 [
+        //                     "0.075171",
+        //                     "0.256"
+        //                 ],
+        //                 [
+        //                     "0.075172",
+        //                     "0.160"
+        //                 ],
+        //             ]
+        //         }
+        //     }
+        //
+        const channel = this.safeString (message, 'channel');
+        const parts = channel.split ('_');
+        const marketId = this.safeStringUpper (parts, 1);
+        const market = this.safeMarket (marketId);
+        const symbol = market['symbol'];
+        const timestamp = this.safeInteger (message, 'ts');
+        const tick = this.safeValue (message, 'tick', {});
+        const orderbook = this.parseOrderBook (tick, symbol, timestamp, 'buys', 'asks');
+        this.orderbooks[symbol] = orderbook;
+        const messageHash = 'orderbook:' + symbol;
+        client.resolve (orderbook, messageHash);
     }
 
     parseWSOrderType (typeId) {
         const types = {
             '1': 'limit',
             '2': 'market',
-            '3': 'stopLimit',
+            '3': 'limit',
         };
         return this.safeString (types, typeId, typeId);
-    }
-
-    parseWSOrderSide (sideId) {
-        const sides = {
-            '1': 'buy',
-            '2': 'sell',
-        };
-        return this.safeString (sides, sideId, sideId);
     }
 
     parseWSOrderStatus (status) {
@@ -338,24 +387,52 @@ module.exports = class bitrue extends bitrueRest {
         return this.safeString (statuses, status, status);
     }
 
-    handleMessage (client, message) {
-        const event = this.safeString (message, 'e');
-        const handlers = {
-            'BALANCE': this.handleBalance,
-            'ORDER': this.handleOrder,
+    handlePing (client, message) {
+        this.spawn (this.pong, client, message);
+    }
+
+    async pong (client, message) {
+        //
+        //     {
+        //         "ping": 1670057540627
+        //     }
+        //
+        const time = this.safeInteger (message, 'ping');
+        const pong = {
+            'pong': time,
         };
-        const handler = this.safeValue (handlers, event);
-        if (handler !== undefined) {
-            return handler.call (this, client, message);
+        await client.send (pong);
+    }
+
+    handleMessage (client, message) {
+        if ('channel' in message) {
+            this.handleOrderBook (client, message);
+        } else if ('ping' in message) {
+            this.handlePing (client, message);
+        } else {
+            const event = this.safeString (message, 'e');
+            const handlers = {
+                'BALANCE': this.handleBalance,
+                'ORDER': this.handleOrder,
+            };
+            const handler = this.safeValue (handlers, event);
+            if (handler !== undefined) {
+                handler.call (this, client, message);
+            }
         }
     }
 
     async authenticate (params = {}) {
-        const now = this.milliseconds ();
-        const listenKey = this.safeValue (this.options, 'listenKey', {});
-        const createdAt = this.safeValue (listenKey, 'createdAt', 0);
-        if (now - createdAt > 1000 * 60 * 30) {
-            const res = await this.openPrivatePostPoseidonApiV1ListenKey ();
+        const listenKey = this.safeValue (this.options, 'listenKey');
+        if (listenKey === undefined) {
+            let response = undefined;
+            try {
+                response = await this.openPrivatePostPoseidonApiV1ListenKey (params);
+            } catch (error) {
+                this.options['listenKey'] = undefined;
+                this.options['listenKeyUrl'] = undefined;
+                return;
+            }
             //
             //     {
             //         "msg": "succ",
@@ -365,13 +442,36 @@ module.exports = class bitrue extends bitrueRest {
             //         }
             //     }
             //
-            const data = this.safeValue (res, 'data', {});
+            const data = this.safeValue (response, 'data', {});
             const key = this.safeString (data, 'listenKey');
-            this.options['listenKey'] = {
-                'key': key,
-                'createdAt': now,
-            };
-            this.options['authenticatedURL'] = this.urls['api']['ws'] + '/stream?listenKey=' + key;
+            this.options['listenKey'] = key;
+            this.options['listenKeyUrl'] = this.urls['api']['ws']['private'] + '/stream?listenKey=' + key;
+            const refreshTimeout = this.safeInteger (this.options, 'listenKeyRefreshRate', 1800000);
+            this.delay (refreshTimeout, this.keepAliveListenKey);
         }
+        return this.options['listenKeyUrl'];
+    }
+
+    async keepAliveListenKey (params = {}) {
+        const listenKey = this.safeString (this.options, 'listenKey');
+        const request = {
+            'listenKey': listenKey,
+        };
+        try {
+            await this.openPrivatePutPoseidonApiV1ListenKeyListenKey (this.extend (request, params));
+            //
+            // ಠ_ಠ
+            //     {
+            //         "msg": "succ",
+            //         "code": "200"
+            //     }
+            //
+        } catch (error) {
+            this.options['listenKey'] = undefined;
+            this.options['listenKeyUrl'] = undefined;
+            return;
+        }
+        const refreshTimeout = this.safeInteger (this.options, 'listenKeyRefreshRate', 1800000);
+        this.delay (refreshTimeout, this.keepAliveListenKey);
     }
 };
