@@ -2783,14 +2783,14 @@ module.exports = class huobi extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const result = {};
-        this.options['networkJunctionsByTitles'] = {};
-        this.options['networkTitlesByJunctions'] = {};
+        this.options['networkChainIdsByNames'] = {};
+        this.options['networkNamesByChainIds'] = {};
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
             const currencyId = this.safeString (entry, 'currency');
             const code = this.safeCurrencyCode (currencyId);
-            this.options['networkJunctionsByTitles'][code] = {};
-            this.options['networkTitlesByJunctions'][code] = {};
+            this.options['networkChainIdsByNames'][code] = {};
+            this.options['networkNamesByChainIds'][code] = {};
             const chains = this.safeValue (entry, 'chains', []);
             const networks = {};
             const instStatus = this.safeString (entry, 'instStatus');
@@ -2804,8 +2804,8 @@ module.exports = class huobi extends Exchange {
                 const chainEntry = chains[j];
                 const uniqueChainId = this.safeString (chainEntry, 'chain'); // i.e. usdterc20, trc20usdt ...
                 const title = this.safeString (chainEntry, 'displayName');
-                this.options['networkJunctionsByTitles'][code][title] = uniqueChainId;
-                this.options['networkTitlesByJunctions'][code][uniqueChainId] = title;
+                this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
+                this.options['networkNamesByChainIds'][code][uniqueChainId] = title;
                 const networkCode = this.networkIdToCode (title, code);
                 minWithdraw = this.safeNumber (chainEntry, 'minWithdrawAmt');
                 maxWithdraw = this.safeNumber (chainEntry, 'maxWithdrawAmt');
@@ -2877,11 +2877,11 @@ module.exports = class huobi extends Exchange {
         if (currencyCode === undefined) {
             throw new ArgumentsRequired (this.id + ' networkIdToCode() requires a currencyCode argument');
         }
-        const keysLength = (Object.keys (this.options['networkTitlesByJunctions'])).length;
+        const keysLength = (Object.keys (this.options['networkNamesByChainIds'])).length;
         if (keysLength === 0) {
             throw new ExchangeError (this.id + ' networkIdToCode() - markets need to be loaded at first');
         }
-        const networkTitles = this.safeValue (this.options['networkTitlesByJunctions'], currencyCode, {});
+        const networkTitles = this.safeValue (this.options['networkNamesByChainIds'], currencyCode, {});
         const networkTitle = this.safeValue (networkTitles, networkId, networkId);
         return super.networkIdToCode (networkTitle);
     }
@@ -2890,11 +2890,11 @@ module.exports = class huobi extends Exchange {
         if (currencyCode === undefined) {
             throw new ArgumentsRequired (this.id + ' networkCodeToId() requires a currencyCode argument');
         }
-        const keysLength = (Object.keys (this.options['networkJunctionsByTitles'])).length;
+        const keysLength = (Object.keys (this.options['networkChainIdsByNames'])).length;
         if (keysLength === 0) {
             throw new ExchangeError (this.id + ' networkCodeToId() - markets need to be loaded at first');
         }
-        const uniqueNetworkIds = this.safeValue (this.options['networkJunctionsByTitles'], currencyCode, {});
+        const uniqueNetworkIds = this.safeValue (this.options['networkChainIdsByNames'], currencyCode, {});
         const networkTitle = super.networkCodeToId (networkCode);
         return this.safeValue (uniqueNetworkIds, networkTitle, networkTitle);
     }
