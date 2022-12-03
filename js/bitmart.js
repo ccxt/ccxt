@@ -102,7 +102,6 @@ module.exports = class bitmart extends Exchange {
             'requiredCredentials': {
                 'apiKey': true,
                 'secret': true,
-                'uid': true,
             },
             'api': {
                 'public': {
@@ -378,6 +377,9 @@ module.exports = class bitmart extends Exchange {
                 'defaultType': 'spot', // 'spot', 'swap'
                 'fetchBalance': {
                     'type': 'spot', // 'spot', 'swap', 'account'
+                },
+                'accountsByType': {
+                    'spot': 'spot',
                 },
                 'createMarketBuyOrderRequiresPrice': true,
             },
@@ -2533,11 +2535,6 @@ module.exports = class bitmart extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument');
         }
-        let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('repayMargin', params);
-        if (marginMode === undefined) {
-            marginMode = 'isolated'; // isolated as the default marginMode
-        }
         const market = this.market (symbol);
         const currency = this.currency (code);
         const request = {
@@ -2545,6 +2542,7 @@ module.exports = class bitmart extends Exchange {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
+        params = this.omit (params, 'marginMode');
         const response = await this.privatePostSpotV1MarginIsolatedRepay (this.extend (request, params));
         //
         //     {
@@ -2581,11 +2579,6 @@ module.exports = class bitmart extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument');
         }
-        let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('borrowMargin', params);
-        if (marginMode === undefined) {
-            marginMode = 'isolated'; // isolated as the default marginMode
-        }
         const market = this.market (symbol);
         const currency = this.currency (code);
         const request = {
@@ -2593,6 +2586,7 @@ module.exports = class bitmart extends Exchange {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
+        params = this.omit (params, 'marginMode');
         const response = await this.privatePostSpotV1MarginIsolatedBorrow (this.extend (request, params));
         //
         //     {
@@ -2840,25 +2834,24 @@ module.exports = class bitmart extends Exchange {
          * @param {object} params extra parameters specific to the bitmart api endpoint
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
-        const symbol = this.safeString (params, 'symbol');
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' transfer() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
         const currency = this.currency (code);
         const amountToPrecision = this.currencyToPrecision (code, amount);
         const request = {
             'amount': amountToPrecision,
             'currency': currency['id'],
-            'symbol': market['id'],
         };
-        if ((fromAccount === 'spot') && (toAccount === 'margin')) {
+        const fromId = this.convertTypeToAccount (fromAccount);
+        const toId = this.convertTypeToAccount (toAccount);
+        if (fromAccount === 'spot') {
             request['side'] = 'in';
-        } else if ((fromAccount === 'margin') && (toAccount === 'spot')) {
+            request['symbol'] = toId;
+        } else if (toAccount === 'spot') {
             request['side'] = 'out';
+            request['symbol'] = fromId;
+        } else {
+            throw new ArgumentsRequired (this.id + ' transfer() requires either fromAccount or toAccount to be spot');
         }
-        params = this.omit (params, 'symbol');
         const response = await this.privatePostSpotV1MarginIsolatedTransfer (this.extend (request, params));
         //
         //     {
@@ -3001,17 +2994,11 @@ module.exports = class bitmart extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[string|undefined, object]} the marginMode in lowercase
          */
-        const defaultType = this.safeString (this.options, 'defaultType');
-        const isMargin = this.safeValue (params, 'margin', false);
         let marginMode = undefined;
-        [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
+        [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params, 'isolated');
         if (marginMode !== undefined) {
             if (marginMode !== 'isolated') {
                 throw new NotSupported (this.id + ' only isolated margin is supported');
-            }
-        } else {
-            if ((defaultType === 'margin') || (isMargin === true)) {
-                marginMode = 'isolated';
             }
         }
         return [ marginMode, params ];
@@ -3045,9 +3032,8 @@ module.exports = class bitmart extends Exchange {
                 body = this.json (query);
                 queryString = body;
             }
-            const auth = timestamp + '#' + this.uid + '#' + queryString;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
-            headers['X-BM-SIGN'] = signature;
+            const auth = timestamp + '#CCXT#' + queryString;
+            headers['X-BM-SIGN'] = this.hmac (this.encode (auth), this.encode (this.secret));;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
