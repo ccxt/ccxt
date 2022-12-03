@@ -1461,7 +1461,7 @@ module.exports = class bitso extends Exchange {
         //    }
         //
         const payload = this.safeValue (response, 'payload', {});
-        return this.parseDepositWithdrawFees (payload);
+        return this.parseDepositWithdrawFees (payload, codes);
     }
 
     parseDepositWithdrawFees (response, codes = undefined, currencyIdKey = undefined) {
