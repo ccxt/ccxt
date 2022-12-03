@@ -719,6 +719,7 @@ declare module 'ccxt' {
         class bitmart extends Exchange {}
         class bitmex extends Exchange {}
         class bitopro extends Exchange {}
+        class bitrue extends Exchange {}
         class bitstamp extends Exchange {}
         class bittrex extends Exchange {}
         class bitvavo extends Exchange {}
