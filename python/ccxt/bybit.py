@@ -837,6 +837,9 @@ class bybit(Exchange):
         return self.milliseconds() - self.options['timeDifference']
 
     def is_unified_margin_enabled(self, params={}):
+        #  The API key of user id must own one of permissions will be allowed to call following API endpoints.
+        # SUB UID: "Account Transfer"
+        # MASTER UID: "Account Transfer", "Subaccount Transfer", "Withdrawal"
         enableUnifiedMargin = self.safe_value(self.options, 'enableUnifiedMargin')
         if enableUnifiedMargin is None:
             response = self.privateGetUserV3PrivateQueryApi(params)
@@ -6725,7 +6728,11 @@ class bybit(Exchange):
                 # POST https://api.bybit.com/v2/private/position/switch-isolated 200 OK
                 # {"ret_code":30084,"ret_msg":"Isolated not modified","ext_code":"","ext_info":"","result":null,"time_now":"1642005219.937988","rate_limit_status":73,"rate_limit_reset_ms":1642005219894,"rate_limit":75}
                 return None
-            feedback = self.id + ' ' + body
+            feedback = None
+            if errorCode == '10005':
+                feedback = self.id + ' private api uses /user/v3/private/query-api to check if you have a unified account. The API key of user id must own one of permissions: "Account Transfer", "Subaccount Transfer", "Withdrawal" ' + body
+            else:
+                feedback = self.id + ' ' + body
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             raise ExchangeError(feedback)  # unknown message
