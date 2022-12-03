@@ -51,6 +51,8 @@ module.exports = class bitmart extends Exchange {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': true,
+                'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': undefined,
                 'fetchMarginMode': false,
                 'fetchMarkets': true,
@@ -309,6 +311,7 @@ module.exports = class bitmart extends Exchange {
                     // below Error codes used interchangeably for both failed postOnly and IOC orders depending on market price and order side
                     '50035': InvalidOrder, // {"message":"The price is low and there is no matching depth","code":50035,"trace":"677f01c7-8b88-4346-b097-b4226c75c90e","data":{}}
                     '50034': InvalidOrder, // {"message":"The price is high and there is no matching depth","code":50034,"trace":"ebfae59a-ba69-4735-86b2-0ed7b9ca14ea","data":{}}
+                    '51011': InvalidOrder, // {"message":"param not match : size * price >=5","code":51011,"trace":"525e1d27bfd34d60b2d90ba13a7c0aa9.74.16696421352220797","data":{}}
                     '53000': AccountSuspended, // 403, Your account is frozen due to security policies. Please contact customer service
                     '53001': AccountSuspended, // {"message":"Your kyc country is restricted. Please contact customer service.","code":53001,"trace":"8b445940-c123-4de9-86d7-73c5be2e7a24","data":{}}
                     '57001': BadRequest, // 405, Method Not Allowed
@@ -728,7 +731,7 @@ module.exports = class bitmart extends Exchange {
         /**
          * @method
          * @name bitmart#fetchTransactionFee
-         * @description fetch the fee for a transaction
+         * @description *DEPRECATED* please use fetchDepositWithdrawFee instead
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the bitmart api endpoint
          * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
@@ -760,6 +763,61 @@ module.exports = class bitmart extends Exchange {
             'withdraw': withdrawFees,
             'deposit': {},
         };
+    }
+
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        //
+        //    {
+        //        today_available_withdraw_BTC: '100.0000',
+        //        min_withdraw: '0.005',
+        //        withdraw_precision: '8',
+        //        withdraw_fee: '0.000500000000000000000000000000'
+        //    }
+        //
+        return {
+            'info': fee,
+            'withdraw': {
+                'fee': this.safeNumber (fee, 'withdraw_fee'),
+                'percentage': undefined,
+            },
+            'deposit': {
+                'fee': undefined,
+                'percentage': undefined,
+            },
+            'networks': {},
+        };
+    }
+
+    async fetchDepositWithdrawFee (code, params = {}) {
+        /**
+         * @method
+         * @name bitmart#fetchDepositWithdrawFee
+         * @description fetch the fee for deposits and withdrawals
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the bitmart api endpoint
+         * @returns {object} a [fee structure]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const currency = this.currency (code);
+        const request = {
+            'currency': currency['id'],
+        };
+        const response = await this.privateGetAccountV1WithdrawCharge (this.extend (request, params));
+        //
+        //     {
+        //         message: 'OK',
+        //         code: '1000',
+        //         trace: '3ecc0adf-91bd-4de7-aca1-886c1122f54f',
+        //         data: {
+        //             today_available_withdraw_BTC: '100.0000',
+        //             min_withdraw: '0.005',
+        //             withdraw_precision: '8',
+        //             withdraw_fee: '0.000500000000000000000000000000'
+        //         }
+        //     }
+        //
+        const data = response['data'];
+        return this.parseDepositWithdrawFee (data);
     }
 
     parseTicker (ticker, market = undefined) {
@@ -2849,7 +2907,7 @@ module.exports = class bitmart extends Exchange {
         };
     }
 
-    handleMarginModeAndParams (methodName, params = {}) {
+    handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined) {
         /**
          * @ignore
          * @method
@@ -2860,7 +2918,7 @@ module.exports = class bitmart extends Exchange {
         const defaultType = this.safeString (this.options, 'defaultType');
         const isMargin = this.safeValue (params, 'margin', false);
         let marginMode = undefined;
-        [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params);
+        [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
         if (marginMode !== undefined) {
             if (marginMode !== 'isolated') {
                 throw new NotSupported (this.id + ' only isolated margin is supported');

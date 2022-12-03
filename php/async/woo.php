@@ -676,6 +676,8 @@ class woo extends Exchange {
                     'active' => null,
                     'fee' => null,
                     'networks' => $resultingNetworks,
+                    'deposit' => null,
+                    'withdraw' => null,
                     'limits' => array(
                         'deposit' => array(
                             'min' => null,

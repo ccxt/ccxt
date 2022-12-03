@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.1.73'
+__version__ = '2.2.59'
 
 # -----------------------------------------------------------------------------
 
@@ -94,7 +94,6 @@ from ccxt.async_support.btcmarkets import btcmarkets                            
 from ccxt.async_support.btctradeua import btctradeua                            # noqa: F401
 from ccxt.async_support.btcturk import btcturk                                  # noqa: F401
 from ccxt.async_support.buda import buda                                        # noqa: F401
-from ccxt.async_support.bw import bw                                            # noqa: F401
 from ccxt.async_support.bybit import bybit                                      # noqa: F401
 from ccxt.async_support.bytetrade import bytetrade                              # noqa: F401
 from ccxt.async_support.cex import cex                                          # noqa: F401
@@ -116,8 +115,6 @@ from ccxt.async_support.digifinex import digifinex                              
 from ccxt.async_support.exmo import exmo                                        # noqa: F401
 from ccxt.async_support.flowbtc import flowbtc                                  # noqa: F401
 from ccxt.async_support.fmfwio import fmfwio                                    # noqa: F401
-from ccxt.async_support.ftx import ftx                                          # noqa: F401
-from ccxt.async_support.ftxus import ftxus                                      # noqa: F401
 from ccxt.async_support.gate import gate                                        # noqa: F401
 from ccxt.async_support.gateio import gateio                                    # noqa: F401
 from ccxt.async_support.gemini import gemini                                    # noqa: F401
@@ -138,7 +135,6 @@ from ccxt.async_support.kuna import kuna                                        
 from ccxt.async_support.latoken import latoken                                  # noqa: F401
 from ccxt.async_support.lbank import lbank                                      # noqa: F401
 from ccxt.async_support.lbank2 import lbank2                                    # noqa: F401
-from ccxt.async_support.liquid import liquid                                    # noqa: F401
 from ccxt.async_support.luno import luno                                        # noqa: F401
 from ccxt.async_support.lykke import lykke                                      # noqa: F401
 from ccxt.async_support.mercado import mercado                                  # noqa: F401
@@ -159,7 +155,6 @@ from ccxt.async_support.qtrade import qtrade                                    
 from ccxt.async_support.ripio import ripio                                      # noqa: F401
 from ccxt.async_support.stex import stex                                        # noqa: F401
 from ccxt.async_support.therock import therock                                  # noqa: F401
-from ccxt.async_support.tidebit import tidebit                                  # noqa: F401
 from ccxt.async_support.tidex import tidex                                      # noqa: F401
 from ccxt.async_support.timex import timex                                      # noqa: F401
 from ccxt.async_support.tokocrypto import tokocrypto                            # noqa: F401
@@ -216,7 +211,6 @@ exchanges = [
     'btctradeua',
     'btcturk',
     'buda',
-    'bw',
     'bybit',
     'bytetrade',
     'cex',
@@ -238,8 +232,6 @@ exchanges = [
     'exmo',
     'flowbtc',
     'fmfwio',
-    'ftx',
-    'ftxus',
     'gate',
     'gateio',
     'gemini',
@@ -260,7 +252,6 @@ exchanges = [
     'latoken',
     'lbank',
     'lbank2',
-    'liquid',
     'luno',
     'lykke',
     'mercado',
@@ -281,7 +272,6 @@ exchanges = [
     'ripio',
     'stex',
     'therock',
-    'tidebit',
     'tidex',
     'timex',
     'tokocrypto',

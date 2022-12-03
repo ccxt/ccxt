@@ -22,7 +22,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '2.1.73'
+__version__ = '2.2.59'
 
 # ----------------------------------------------------------------------------
 
@@ -114,7 +114,6 @@ from ccxt.btcmarkets import btcmarkets                                # noqa: F4
 from ccxt.btctradeua import btctradeua                                # noqa: F401
 from ccxt.btcturk import btcturk                                      # noqa: F401
 from ccxt.buda import buda                                            # noqa: F401
-from ccxt.bw import bw                                                # noqa: F401
 from ccxt.bybit import bybit                                          # noqa: F401
 from ccxt.bytetrade import bytetrade                                  # noqa: F401
 from ccxt.cex import cex                                              # noqa: F401
@@ -136,8 +135,6 @@ from ccxt.digifinex import digifinex                                  # noqa: F4
 from ccxt.exmo import exmo                                            # noqa: F401
 from ccxt.flowbtc import flowbtc                                      # noqa: F401
 from ccxt.fmfwio import fmfwio                                        # noqa: F401
-from ccxt.ftx import ftx                                              # noqa: F401
-from ccxt.ftxus import ftxus                                          # noqa: F401
 from ccxt.gate import gate                                            # noqa: F401
 from ccxt.gateio import gateio                                        # noqa: F401
 from ccxt.gemini import gemini                                        # noqa: F401
@@ -158,7 +155,6 @@ from ccxt.kuna import kuna                                            # noqa: F4
 from ccxt.latoken import latoken                                      # noqa: F401
 from ccxt.lbank import lbank                                          # noqa: F401
 from ccxt.lbank2 import lbank2                                        # noqa: F401
-from ccxt.liquid import liquid                                        # noqa: F401
 from ccxt.luno import luno                                            # noqa: F401
 from ccxt.lykke import lykke                                          # noqa: F401
 from ccxt.mercado import mercado                                      # noqa: F401
@@ -179,7 +175,6 @@ from ccxt.qtrade import qtrade                                        # noqa: F4
 from ccxt.ripio import ripio                                          # noqa: F401
 from ccxt.stex import stex                                            # noqa: F401
 from ccxt.therock import therock                                      # noqa: F401
-from ccxt.tidebit import tidebit                                      # noqa: F401
 from ccxt.tidex import tidex                                          # noqa: F401
 from ccxt.timex import timex                                          # noqa: F401
 from ccxt.tokocrypto import tokocrypto                                # noqa: F401
@@ -236,7 +231,6 @@ exchanges = [
     'btctradeua',
     'btcturk',
     'buda',
-    'bw',
     'bybit',
     'bytetrade',
     'cex',
@@ -258,8 +252,6 @@ exchanges = [
     'exmo',
     'flowbtc',
     'fmfwio',
-    'ftx',
-    'ftxus',
     'gate',
     'gateio',
     'gemini',
@@ -280,7 +272,6 @@ exchanges = [
     'latoken',
     'lbank',
     'lbank2',
-    'liquid',
     'luno',
     'lykke',
     'mercado',
@@ -301,7 +292,6 @@ exchanges = [
     'ripio',
     'stex',
     'therock',
-    'tidebit',
     'tidex',
     'timex',
     'tokocrypto',

@@ -1685,6 +1685,14 @@ module.exports = class exmo extends Exchange {
         //             "error": ""
         //          },
         //
+        // withdraw
+        //
+        //          {
+        //              "result":true,
+        //              "error":"",
+        //              "task_id":11775077
+        //          },
+        //
         const id = this.safeString2 (transaction, 'order_id', 'task_id');
         const timestamp = this.safeTimestamp2 (transaction, 'dt', 'created');
         const updated = this.safeTimestamp (transaction, 'updated');
@@ -1727,7 +1735,9 @@ module.exports = class exmo extends Exchange {
             const key = (type === 'withdrawal') ? 'withdraw' : 'deposit';
             let feeCost = this.safeString (transaction, 'commission');
             if (feeCost === undefined) {
-                feeCost = this.safeString (this.options['transactionFees'][code], key);
+                const transactionFees = this.safeValue (this.options, 'transactionFees', {});
+                const codeFees = this.safeValue (transactionFees, code, {});
+                feeCost = this.safeString (codeFees, key);
             }
             // users don't pay for cashbacks, no fees for that
             const provider = this.safeString (transaction, 'provider');

@@ -657,6 +657,8 @@ class woo(Exchange):
                 'active': None,
                 'fee': None,
                 'networks': resultingNetworks,
+                'deposit': None,
+                'withdraw': None,
                 'limits': {
                     'deposit': {
                         'min': None,

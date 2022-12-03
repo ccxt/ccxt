@@ -216,6 +216,7 @@ module.exports = class bitget extends Exchange {
                             'plan/placePositionsTPSL': 2,
                             'plan/modifyTPSLPlan': 2,
                             'plan/cancelPlan': 2,
+                            'plan/cancelAllPlan': 2,
                             'trace/closeTrackOrder': 2,
                             'trace/setUpCopySymbols': 2,
                         },
@@ -672,6 +673,7 @@ module.exports = class bitget extends Exchange {
                     '40712': InsufficientFunds, // Insufficient margin
                     '40713': ExchangeError, // Cannot exceed the maximum transferable margin amount
                     '40714': ExchangeError, // No direct margin call is allowed
+                    '45110': InvalidOrder, // {"code":"45110","msg":"less than the minimum amount 5 USDT","requestTime":1669911118932,"data":null}
                     // spot
                     'invalid sign': AuthenticationError,
                     'invalid currency': BadSymbol, // invalid trading pair
@@ -2082,12 +2084,24 @@ module.exports = class bitget extends Exchange {
 
     parseBalance (balance) {
         const result = { 'info': balance };
+        //
+        //     {
+        //       coinId: '1',
+        //       coinName: 'BTC',
+        //       available: '0.00099900',
+        //       frozen: '0.00000000',
+        //       lock: '0.00000000',
+        //       uTime: '1661595535000'
+        //     }
+        //
         for (let i = 0; i < balance.length; i++) {
             const entry = balance[i];
             const currencyId = this.safeString2 (entry, 'coinId', 'marginCoin');
             const code = this.safeCurrencyCode (currencyId);
             const account = this.account ();
-            account['used'] = this.safeString2 (entry, 'lock', 'locked');
+            const frozen = this.safeString (entry, 'frozen');
+            const locked = this.safeString (entry, 'lock');
+            account['used'] = Precise.stringAdd (frozen, locked);
             account['free'] = this.safeString (entry, 'available');
             result[code] = account;
         }
@@ -2097,6 +2111,7 @@ module.exports = class bitget extends Exchange {
     parseOrderStatus (status) {
         const statuses = {
             'new': 'open',
+            'init': 'open',
             'full_fill': 'closed',
             'filled': 'closed',
         };
@@ -2460,16 +2475,13 @@ module.exports = class bitget extends Exchange {
          * @name bitget#cancelAllOrders
          * @description cancel all open orders
          * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-order
+         * @see https://bitgetlimited.github.io/apidoc/en/mix/#cancel-all-trigger-order-tpsl
          * @param {string|undefined} symbol unified market symbol
          * @param {object} params extra parameters specific to the bitget api endpoint
          * @param {string} params.code marginCoin unified currency code
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
-        const code = this.safeString2 (params, 'code', 'marginCoin');
-        if (code === undefined) {
-            throw new ArgumentsRequired (this.id + ' cancelAllOrders () requires a code argument in the params');
-        }
         let market = undefined;
         let defaultSubType = this.safeString (this.options, 'defaultSubType');
         if (symbol !== undefined) {
@@ -2481,13 +2493,29 @@ module.exports = class bitget extends Exchange {
         if (marketType === 'spot') {
             throw new NotSupported (this.id + ' cancelAllOrders () does not support spot markets');
         }
-        const currency = this.currency (code);
         const request = {
-            'marginCoin': this.safeCurrencyCode (code, currency),
             'productType': productType,
         };
+        let method = undefined;
+        const stop = this.safeValue (params, 'stop');
+        const planType = this.safeString (params, 'planType');
+        if (stop !== undefined || planType !== undefined) {
+            if (planType === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelOrder() requires a planType parameter for stop orders, either normal_plan, profit_plan, loss_plan, pos_profit, pos_loss, moving_plan or track_plan');
+            }
+            method = 'privateMixPostPlanCancelAllPlan';
+            params = this.omit (params, [ 'stop' ]);
+        } else {
+            const code = this.safeString2 (params, 'code', 'marginCoin');
+            if (code === undefined) {
+                throw new ArgumentsRequired (this.id + ' cancelAllOrders () requires a code argument [marginCoin] in the params');
+            }
+            const currency = this.currency (code);
+            request['marginCoin'] = this.safeCurrencyCode (code, currency);
+            method = 'privateMixPostOrderCancelAllOrders';
+        }
         params = this.omit (query, [ 'code', 'marginCoin' ]);
-        const response = await this.privateMixPostOrderCancelAllOrders (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
         //     {
         //         "code": "00000",

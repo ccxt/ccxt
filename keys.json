@@ -1,5 +1,8 @@
 {
-    "aax":           { "skipWs": true },
+    "aax":           { "skip": true, "skipWs": true },
+    "binance":       { "skip": true, "skipWs": true },
+    "binanceusdm":   { "skip": true, "skipWs": true },
+    "binancecoinm":  { "skip": true, "skipWs": true },
     "bitcoincom":    { "skipWs": true },
     "bitmart":       { "skipWs": true },
     "bitmex":        { "skipWs": true },
@@ -16,7 +19,6 @@
     "gate":          { "skipWs": true },
     "gateio":        { "skipWs": true },
     "bequant":       { "skipWs": true },
-    "binancecoinm":  { "skipWs": true },
     "bitopro":       { "skipWs": true },
     "bitvavo":       { "skipWs": true },
     "huobi":         { "skipWs": true },
@@ -29,5 +31,10 @@
     "upbit":         { "skipWs": true },
     "zb":            { "skipWs": true },
     "tidebit":       { "skip": true },
-    "tokocrypto":    { "skip": true }
+    "tokocrypto":    { "skip": true },
+    "crex24":        { "skip": true },
+    "cex":           { "skip": true },
+    "ascendex":      { "skip": true },
+    "btcex":         { "skip": true },
+    "wazirx":        { "skipWs": true } 
 }

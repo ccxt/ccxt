@@ -472,7 +472,7 @@ class poloniex(Exchange):
         #
         timestamp = self.safe_integer(ticker, 'ts')
         marketId = self.safe_string(ticker, 'symbol')
-        market = self.market(marketId)
+        market = self.safe_market(marketId)
         close = self.safe_string(ticker, 'close')
         relativeChange = self.safe_string(ticker, 'percentChange')
         percentage = Precise.string_mul(relativeChange, '100')

@@ -178,6 +178,7 @@ class Transpiler {
             [ /\.currencyToPrecision\s/g, '.currency_to_precision'],
             [ /\.costToPrecision\s/g, '.cost_to_precision'],
             [ /\.commonCurrencyCode\s/g, '.common_currency_code'],
+            [ /\.getDefaultOptions\s/g, '.get_default_options'],
             [ /\.loadAccounts\s/g, '.load_accounts'],
             [ /\.fetchAccounts\s/g, '.fetch_accounts'],
             [ /\.loadFees\s/g, '.load_fees'],
@@ -760,6 +761,7 @@ class Transpiler {
             'hashlib': 'hashlib',
             'math': 'math',
             'json.loads': 'json',
+            'json.dumps': 'json',
             'sys': 'sys',
         }
 
@@ -769,8 +771,12 @@ class Transpiler {
 
         for (let library in pythonStandardLibraries) {
             const regex = new RegExp ("[^\\'\\\"a-zA-Z]" + library + "[^\\'\\\"a-zA-Z]")
-            if (bodyAsString.match (regex))
-                libraries.push ('import ' + pythonStandardLibraries[library])
+            if (bodyAsString.match (regex)){
+                const importStatement = 'import ' + pythonStandardLibraries[library];
+                if (!libraries.includes(importStatement)) {
+                    libraries.push (importStatement)
+                }
+            }
         }
 
         if (bodyAsString.match (/numbers\.(Real|Integral)/)) {

@@ -53,6 +53,7 @@ module.exports = class coinspot extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFee': false,
                 'fetchTradingFees': false,
@@ -221,12 +222,11 @@ module.exports = class coinspot extends Exchange {
         //     }
         //
         const symbol = this.safeSymbol (undefined, market);
-        const timestamp = this.milliseconds ();
         const last = this.safeString (ticker, 'last');
         return this.safeTicker ({
             'symbol': symbol,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': undefined,
             'low': undefined,
             'bid': this.safeString (ticker, 'bid'),
@@ -276,6 +276,50 @@ module.exports = class coinspot extends Exchange {
         //
         const ticker = this.safeValue (prices, id);
         return this.parseTicker (ticker, market);
+    }
+
+    async fetchTickers (symbols = undefined, params = {}) {
+        /**
+         * @method
+         * @name coinspot#fetchTickers
+         * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://www.coinspot.com.au/api#latestprices
+         * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * @param {object} params extra parameters specific to the coinspot api endpoint
+         * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.publicGetLatest (params);
+        //
+        //    {
+        //        "status": "ok",
+        //        "prices": {
+        //        "btc": {
+        //        "bid": "25050",
+        //        "ask": "25370",
+        //        "last": "25234"
+        //        },
+        //        "ltc": {
+        //        "bid": "79.39192993",
+        //        "ask": "87.98",
+        //        "last": "87.95"
+        //        }
+        //      }
+        //    }
+        //
+        const result = {};
+        const prices = this.safeValue (response, 'prices');
+        const ids = Object.keys (prices);
+        for (let i = 0; i < ids.length; i++) {
+            const id = ids[i];
+            const market = this.safeMarket (id);
+            if (market['spot']) {
+                const symbol = market['symbol'];
+                const ticker = prices[id];
+                result[symbol] = this.parseTicker (ticker, market);
+            }
+        }
+        return this.filterByArray (result, 'symbol', symbols);
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
