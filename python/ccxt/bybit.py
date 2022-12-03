@@ -837,6 +837,9 @@ class bybit(Exchange):
         return self.milliseconds() - self.options['timeDifference']
 
     def is_unified_margin_enabled(self, params={}):
+        #  The API key of user id must own one of permissions will be allowed to call following API endpoints.
+        # SUB UID: "Account Transfer"
+        # MASTER UID: "Account Transfer", "Subaccount Transfer", "Withdrawal"
         enableUnifiedMargin = self.safe_value(self.options, 'enableUnifiedMargin')
         if enableUnifiedMargin is None:
             response = self.privateGetUserV3PrivateQueryApi(params)
@@ -2774,12 +2777,37 @@ class bybit(Exchange):
         #             "serviceCash": "0"
         #         }
         #     ]
+        # spot
+        #     {
+        #       retCode: '0',
+        #       retMsg: 'OK',
+        #       result: {
+        #         balances: [
+        #           {
+        #             coin: 'BTC',
+        #             coinId: 'BTC',
+        #             total: '0.00977041118',
+        #             free: '0.00877041118',
+        #             locked: '0.001'
+        #           },
+        #           {
+        #             coin: 'EOS',
+        #             coinId: 'EOS',
+        #             total: '2000',
+        #             free: '2000',
+        #             locked: '0'
+        #           }
+        #         ]
+        #       },
+        #       retExtInfo: {},
+        #       time: '1670002625754'
+        #  }
         #
         result = {
             'info': response,
         }
         responseResult = self.safe_value(response, 'result', {})
-        currencyList = self.safe_value_n(responseResult, ['loanAccountList', 'list', 'coin'])
+        currencyList = self.safe_value_n(responseResult, ['loanAccountList', 'list', 'coin', 'balances'])
         if currencyList is None:
             # usdc wallet
             code = 'USDC'
@@ -2805,10 +2833,38 @@ class bybit(Exchange):
 
     def fetch_spot_balance(self, params={}):
         self.load_markets()
-        # here the margin account is the same as the spot account
-        # so we will default to loading the margin account
-        response = self.privateGetSpotV3PrivateCrossMarginAccount(params)
-        #
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchBalance', params)
+        method = 'privateGetSpotV3PrivateAccount'
+        if marginMode is not None:
+            method = 'privateGetSpotV3PrivateCrossMarginAccount'
+        response = getattr(self, method)(params)
+        # spot wallet
+        #     {
+        #       retCode: '0',
+        #       retMsg: 'OK',
+        #       result: {
+        #         balances: [
+        #           {
+        #             coin: 'BTC',
+        #             coinId: 'BTC',
+        #             total: '0.00977041118',
+        #             free: '0.00877041118',
+        #             locked: '0.001'
+        #           },
+        #           {
+        #             coin: 'EOS',
+        #             coinId: 'EOS',
+        #             total: '2000',
+        #             free: '2000',
+        #             locked: '0'
+        #           }
+        #         ]
+        #       },
+        #       retExtInfo: {},
+        #       time: '1670002625754'
+        #     }
+        # cross
         #     {
         #         "retCode": 0,
         #         "retMsg": "success",
@@ -4060,7 +4116,7 @@ class bybit(Exchange):
         market = None
         settle = self.safe_string(params, 'settleCoin')
         if settle is None:
-            settle, params = self.handle_option_and_params(params, 'fetchPositions', 'settle', settle)
+            settle, params = self.handle_option_and_params(params, 'cancelAllOrders', 'settle', settle)
         if symbol is not None:
             market = self.market(symbol)
             settle = market['settle']
@@ -4254,7 +4310,7 @@ class bybit(Exchange):
         market = None
         settle = self.safe_string(params, 'settleCoin')
         if settle is None:
-            settle, params = self.handle_option_and_params(params, 'fetchPositions', 'settle', settle)
+            settle, params = self.handle_option_and_params(params, 'fetchOrders', 'settle', settle)
         if symbol is not None:
             market = self.market(symbol)
             settle = market['settle']
@@ -4587,7 +4643,7 @@ class bybit(Exchange):
         market = None
         settle = self.safe_string(params, 'settleCoin')
         if settle is None:
-            settle, params = self.handle_option_and_params(params, 'fetchPositions', 'settle', settle)
+            settle, params = self.handle_option_and_params(params, 'fetchOpenOrders', 'settle', settle)
         if symbol is not None:
             market = self.market(symbol)
             settle = market['settle']
@@ -4875,7 +4931,7 @@ class bybit(Exchange):
         market = None
         settle = self.safe_string(params, 'settleCoin')
         if settle is None:
-            settle, params = self.handle_option_and_params(params, 'fetchPositions', 'settle', settle)
+            settle, params = self.handle_option_and_params(params, 'fetchMyTrades', 'settle', settle)
         if symbol is not None:
             market = self.market(symbol)
             settle = market['settle']
@@ -5532,11 +5588,14 @@ class bybit(Exchange):
 
     def fetch_unified_margin_positions(self, symbols=None, params={}):
         self.load_markets()
-        symbols = self.market_symbols(symbols)
         request = {}
         type = None
         if isinstance(symbols, list):
-            raise ArgumentsRequired(self.id + ' fetchPositions() does not accept an array of symbols')
+            if len(symbols) > 1:
+                raise ArgumentsRequired(self.id + ' fetchPositions() does not accept an array with more than one symbol')
+        elif symbols is not None:
+            symbols = [symbols]
+        symbols = self.market_symbols(symbols)
         # market None
         type, params = self.handle_market_type_and_params('fetchPositions', None, params)
         subType = None
@@ -5603,10 +5662,11 @@ class bybit(Exchange):
                 raise ArgumentsRequired(self.id + ' fetchUSDCPositions() takes an array with exactly one symbol')
             symbol = self.safe_string(symbols, 0)
             market = self.market(symbol)
-            type = market['type']
             request['symbol'] = market['id']
-        else:
-            type, params = self.handle_market_type_and_params('fetchUSDCPositions', None, params)
+        elif symbols is not None:
+            market = self.market(symbols)
+            request['symbol'] = market['id']
+        type, params = self.handle_market_type_and_params('fetchUSDCPositions', market, params)
         request['category'] = 'OPTION' if (type == 'option') else 'PERPETUAL'
         response = self.privatePostOptionUsdcOpenapiPrivateV1QueryPosition(self.extend(request, params))
         #
@@ -5663,6 +5723,11 @@ class bybit(Exchange):
 
     def fetch_derivatives_positions(self, symbols=None, params={}):
         self.load_markets()
+        if isinstance(symbols, list):
+            if len(symbols) > 1:
+                raise ArgumentsRequired(self.id + ' fetchPositions() does not accept an array with more than one symbol')
+        elif symbols is not None:
+            symbols = [symbols]
         symbols = self.market_symbols(symbols)
         request = {
             'dataFilter': 'valid',
@@ -5746,7 +5811,10 @@ class bybit(Exchange):
         :returns [dict]: a list of `position structure <https://docs.ccxt.com/en/latest/manual.html#position-structure>`
         """
         if isinstance(symbols, list):
-            raise ArgumentsRequired(self.id + ' fetchPositions() does not accept an array of symbols')
+            if len(symbols) > 1:
+                raise ArgumentsRequired(self.id + ' fetchPositions() does not accept an array with more than one symbol')
+        elif symbols is not None:
+            symbols = [symbols]
         self.load_markets()
         symbols = self.market_symbols(symbols)
         enableUnifiedMargin = self.is_unified_margin_enabled()
@@ -5857,7 +5925,7 @@ class bybit(Exchange):
         side = self.safe_string(position, 'side')
         side = 'long' if (side == 'Buy') else 'short'
         notional = self.safe_string(position, 'positionValue')
-        unrealisedPnl = self.omit_zero(self.safe_string_2(position, 'unrealisedPnl'))
+        unrealisedPnl = self.omit_zero(self.safe_string(position, 'unrealisedPnl'))
         initialMarginString = self.safe_string(position, 'positionIM')
         maintenanceMarginString = self.safe_string(position, 'positionMM')
         timestamp = self.parse8601(self.safe_string(position, 'updated_at'))
@@ -6660,7 +6728,11 @@ class bybit(Exchange):
                 # POST https://api.bybit.com/v2/private/position/switch-isolated 200 OK
                 # {"ret_code":30084,"ret_msg":"Isolated not modified","ext_code":"","ext_info":"","result":null,"time_now":"1642005219.937988","rate_limit_status":73,"rate_limit_reset_ms":1642005219894,"rate_limit":75}
                 return None
-            feedback = self.id + ' ' + body
+            feedback = None
+            if errorCode == '10005':
+                feedback = self.id + ' private api uses /user/v3/private/query-api to check if you have a unified account. The API key of user id must own one of permissions: "Account Transfer", "Subaccount Transfer", "Withdrawal" ' + body
+            else:
+                feedback = self.id + ' ' + body
             self.throw_broadly_matched_exception(self.exceptions['broad'], body, feedback)
             self.throw_exactly_matched_exception(self.exceptions['exact'], errorCode, feedback)
             raise ExchangeError(feedback)  # unknown message

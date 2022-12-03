@@ -32,6 +32,7 @@ Exchange::$exchanges = array(
     'bitmart',
     'bitmex',
     'bitopro',
+    'bitrue',
     'bitstamp',
     'bittrex',
     'bitvavo',
