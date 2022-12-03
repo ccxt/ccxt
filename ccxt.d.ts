@@ -451,7 +451,6 @@ declare module 'ccxt' {
     
     /* tslint:disable */
 
-    export class aax extends Exchange {}
     export class alpaca extends Exchange {}
     export class ascendex extends Exchange {}
     export class bequant extends hitbtc {}
@@ -493,7 +492,6 @@ declare module 'ccxt' {
     export class btcturk extends Exchange {}
     export class buda extends Exchange {}
     export class bybit extends Exchange {}
-    export class bytetrade extends Exchange {}
     export class cex extends Exchange {}
     export class coinbase extends Exchange {}
     export class coinbaseprime extends coinbasepro {}
@@ -571,7 +569,6 @@ declare module 'ccxt' {
     /* tslint:enable */
 
     export type ExchangeId =
-        | 'aax'
         | 'alpaca'
         | 'ascendex'
         | 'bequant'
@@ -613,7 +610,6 @@ declare module 'ccxt' {
         | 'btcturk'
         | 'buda'
         | 'bybit'
-        | 'bytetrade'
         | 'cex'
         | 'coinbase'
         | 'coinbaseprime'
@@ -706,7 +702,6 @@ declare module 'ccxt' {
     export namespace pro {
         export const exchanges: string[]
         class Exchange  extends ExchangePro {}
-        class aax extends Exchange {}
         class ascendex extends Exchange {}
         class bequant extends Exchange {}
         class binance extends Exchange {}

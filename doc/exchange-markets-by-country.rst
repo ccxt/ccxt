@@ -519,17 +519,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
           :alt: API Version 2
      
    * - Hong Kong
-     - .. image:: https://user-images.githubusercontent.com/1294454/67288762-2f04a600-f4e6-11e9-9fd6-c60641919491.jpg
-          :target: https://www.byte-trade.com
-          :alt: bytetrade
-     
-     - bytetrade
-     - `ByteTrade <https://www.byte-trade.com>`__
-     - .. image:: https://img.shields.io/badge/*-lightgray
-          :target: https://docs.byte-trade.com/#description
-          :alt: API Version *
-     
-   * - Hong Kong
      - .. image:: https://user-images.githubusercontent.com/1294454/27766555-8eaec20e-5edc-11e7-9c5b-6dc69fc42f5e.jpg
           :target: https://hitbtc.com/?ref_id=5a5d39a65d466
           :alt: hitbtc
@@ -737,17 +726,6 @@ The ccxt library currently supports the following cryptocurrency exchange market
      - .. image:: https://img.shields.io/badge/1.1-lightgray
           :target: https://exmo.me/en/api_doc?ref=131685
           :alt: API Version 1.1
-     
-   * - Malta
-     - .. image:: https://user-images.githubusercontent.com/1294454/104140087-a27f2580-53c0-11eb-87c1-5d9e81208fe9.jpg
-          :target: https://www.aax.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB
-          :alt: aax
-     
-     - aax
-     - `AAX <https://www.aax.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB>`__
-     - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://www.aax.com/apidoc/index.html
-          :alt: API Version 2
      
    * - Malta
      - .. image:: https://user-images.githubusercontent.com/1294454/55248342-a75dfe00-525a-11e9-8aa2-05e9dca943c6.jpg

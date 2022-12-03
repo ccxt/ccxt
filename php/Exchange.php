@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.2.63';
+$version = '2.2.64';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,14 +55,13 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.2.63';
+    const VERSION = '2.2.64';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
     private static $base58_decoder = null;
 
     public static $exchanges = array(
-        'aax',
         'alpaca',
         'ascendex',
         'bequant',
@@ -104,7 +103,6 @@ class Exchange {
         'btcturk',
         'buda',
         'bybit',
-        'bytetrade',
         'cex',
         'coinbase',
         'coinbaseprime',
