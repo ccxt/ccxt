@@ -1,8 +1,8 @@
 {
     "aax":           { "skip": true, "skipWs": true },
-    "binance":       { "skip": true, "skipWs": true },
-    "binanceusdm":   { "skip": true, "skipWs": true },
-    "binancecoinm":  { "skip": true, "skipWs": true },
+    "binance":       { "httpProxy": "http://51.83.140.52:11230" },
+    "binanceusdm":   { "httpProxy": "http://51.83.140.52:11230" },
+    "binancecoinm":  { "httpProxy": "http://51.83.140.52:11230" },
     "bitcoincom":    { "skipWs": true },
     "bitmart":       { "skipWs": true },
     "bitmex":        { "skipWs": true },
