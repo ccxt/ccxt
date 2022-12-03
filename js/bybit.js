@@ -827,6 +827,9 @@ module.exports = class bybit extends Exchange {
     }
 
     async isUnifiedMarginEnabled (params = {}) {
+        //  The API key of user id must own one of permissions will be allowed to call following API endpoints.
+        // SUB UID: "Account Transfer"
+        // MASTER UID: "Account Transfer", "Subaccount Transfer", "Withdrawal"
         const enableUnifiedMargin = this.safeValue (this.options, 'enableUnifiedMargin');
         if (enableUnifiedMargin === undefined) {
             const response = await this.privateGetUserV3PrivateQueryApi (params);
@@ -7186,7 +7189,12 @@ module.exports = class bybit extends Exchange {
                 // {"ret_code":30084,"ret_msg":"Isolated not modified","ext_code":"","ext_info":"","result":null,"time_now":"1642005219.937988","rate_limit_status":73,"rate_limit_reset_ms":1642005219894,"rate_limit":75}
                 return undefined;
             }
-            const feedback = this.id + ' ' + body;
+            let feedback = undefined;
+            if (errorCode === '10005') {
+                feedback = this.id + ' private api uses /user/v3/private/query-api to check if you have a unified account. The API key of user id must own one of permissions: "Account Transfer", "Subaccount Transfer", "Withdrawal" ' + body;
+            } else {
+                feedback = this.id + ' ' + body;
+            }
             this.throwBroadlyMatchedException (this.exceptions['broad'], body, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             throw new ExchangeError (feedback); // unknown message
