@@ -5,7 +5,6 @@
 const bitrueRest = require ('../bitrue');
 const { ArrayCacheBySymbolById } = require ('./base/Cache');
 const { ArgumentsRequired } = require ('../base/errors');
-const {inflate, gunzip} = require("./base/functions");
 
 //  ---------------------------------------------------------------------------
 
