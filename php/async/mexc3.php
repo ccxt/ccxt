@@ -94,8 +94,8 @@ class mexc3 extends Exchange {
                 'fetchTradingFee' => null,
                 'fetchTradingFees' => true,
                 'fetchTradingLimits' => null,
-                'fetchTransactionFee' => null,
-                'fetchTransactionFees' => null,
+                'fetchTransactionFee' => 'emulated',
+                'fetchTransactionFees' => true,
                 'fetchTransactions' => null,
                 'fetchTransfer' => true,
                 'fetchTransfers' => true,
@@ -428,12 +428,13 @@ class mexc3 extends Exchange {
                 'FLUX1' => 'FLUX', // switched places
                 'FLUX' => 'FLUX1', // switched places
                 'FREE' => 'FreeRossDAO', // conflict with FREE Coin
-                'GMT' => 'GMT Token',
+                'GMT' => 'GMT Token', // Conflict with GMT (STEPN)
+                'STEPN' => 'GMT', // Conflict with GMT Token
                 'HERO' => 'Step Hero', // conflict with Metahero
                 'MIMO' => 'Mimosa',
                 'PROS' => 'Pros.Finance', // conflict with Prosper
                 'SIN' => 'Sin City Token',
-                'STEPN' => 'GMT',
+                'SOUL' => 'Soul Swap',
             ),
             'exceptions' => array(
                 'exact' => array(
@@ -445,7 +446,8 @@ class mexc3 extends Exchange {
                     '2009' => '\\ccxt\\InvalidOrder', // array("success":false,"code":2009,"message":"Position is not exists or closed.")
                     '2011' => '\\ccxt\\BadRequest',
                     '30004' => '\\ccxt\\InsufficientFunds',
-                    '33333' => 'BadRequest', // array("msg":"Not support transfer","code":33333)
+                    '33333' => '\\ccxt\\BadRequest', // array("msg":"Not support transfer","code":33333)
+                    '44444' => '\\ccxt\\BadRequest',
                     '1002' => '\\ccxt\\InvalidOrder',
                     '30019' => '\\ccxt\\BadRequest',
                     '30005' => '\\ccxt\\InvalidOrder',
@@ -457,6 +459,7 @@ class mexc3 extends Exchange {
                     '88009' => '\\ccxt\\ExchangeError', // v3 array("msg":"Loan record does not exist","code":88009)
                     '88013' => '\\ccxt\\InvalidOrder', // array("msg":"最小交易额不能小于：5USDT","code":88013)
                     '88015' => '\\ccxt\\InsufficientFunds', // array("msg":"持仓不足","code":88015)
+                    '700003' => '\\ccxt\\InvalidNonce', // array("code":700003,"msg":"Timestamp for this request is outside of the recvWindow.")
                 ),
                 'broad' => array(
                     'Order quantity error, please try to modify.' => '\\ccxt\\BadRequest', // code:2011
@@ -3622,7 +3625,7 @@ class mexc3 extends Exchange {
                 $networkId = $this->safe_string($depositAddress, 'network');
                 $network = $this->safe_network($networkId);
                 $address = $this->safe_string($depositAddress, 'address', null);
-                $tag = $this->safe_string($depositAddress, 'tag', null);
+                $tag = $this->safe_string_2($depositAddress, 'tag', 'memo', null);
                 $result[] = array(
                     'currency' => $currency['id'],
                     'network' => $network,
@@ -4406,6 +4409,107 @@ class mexc3 extends Exchange {
         }) ();
     }
 
+    public function fetch_transaction_fees($codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * fetch deposit and withdrawal fees
+             * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+             * @param {[string]|null} $codes returns fees for all currencies if null
+             * @param {array} $params extra parameters specific to the mexc3 api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->spotPrivateGetCapitalConfigGetall ($params));
+            //
+            //    array(
+            //       {
+            //           coin => 'AGLD',
+            //           name => 'Adventure Gold',
+            //           networkList => array(
+            //               array(
+            //                   coin => 'AGLD',
+            //                   depositDesc => null,
+            //                   depositEnable => true,
+            //                   minConfirm => '0',
+            //                   name => 'Adventure Gold',
+            //                   network => 'ERC20',
+            //                   withdrawEnable => true,
+            //                   withdrawFee => '10.000000000000000000',
+            //                   withdrawIntegerMultiple => null,
+            //                   withdrawMax => '1200000.000000000000000000',
+            //                   withdrawMin => '20.000000000000000000',
+            //                   sameAddress => false,
+            //                   contract => '0x32353a6c91143bfd6c7d363b546e62a9a2489a20',
+            //                   withdrawTips => null,
+            //                   depositTips => null
+            //               }
+            //               ...
+            //           )
+            //       ),
+            //       ...
+            //    )
+            //
+            return $this->parse_transaction_fees($response, $codes);
+        }) ();
+    }
+
+    public function parse_transaction_fees($response, $codes = null) {
+        $withdrawFees = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $entry = $response[$i];
+            $currencyId = $this->safe_string($entry, 'coin');
+            $currency = $this->safe_currency($currencyId);
+            $code = $this->safe_string($currency, 'code');
+            if (($codes === null) || ($this->in_array($code, $codes))) {
+                $withdrawFees[$code] = $this->parse_transaction_fee($entry, $currency);
+            }
+        }
+        return array(
+            'withdraw' => $withdrawFees,
+            'deposit' => array(),
+            'info' => $response,
+        );
+    }
+
+    public function parse_transaction_fee($transaction, $currency = null) {
+        //
+        //    {
+        //        coin => 'AGLD',
+        //        name => 'Adventure Gold',
+        //        $networkList => array(
+        //            {
+        //                coin => 'AGLD',
+        //                depositDesc => null,
+        //                depositEnable => true,
+        //                minConfirm => '0',
+        //                name => 'Adventure Gold',
+        //                network => 'ERC20',
+        //                withdrawEnable => true,
+        //                withdrawFee => '10.000000000000000000',
+        //                withdrawIntegerMultiple => null,
+        //                withdrawMax => '1200000.000000000000000000',
+        //                withdrawMin => '20.000000000000000000',
+        //                sameAddress => false,
+        //                contract => '0x32353a6c91143bfd6c7d363b546e62a9a2489a20',
+        //                withdrawTips => null,
+        //                depositTips => null
+        //            }
+        //            ...
+        //        )
+        //    }
+        //
+        $networkList = $this->safe_value($transaction, 'networkList', array());
+        $result = array();
+        for ($j = 0; $j < count($networkList); $j++) {
+            $networkEntry = $networkList[$j];
+            $networkId = $this->safe_string($networkEntry, 'network');
+            $networkCode = $this->safe_string($this->options['networks'], $networkId, $networkId);
+            $fee = $this->safe_number($networkEntry, 'withdrawFee');
+            $result[$networkCode] = $fee;
+        }
+        return $result;
+    }
+
     public function parse_margin_loan($info, $currency = null) {
         //
         //     {
@@ -4423,7 +4527,7 @@ class mexc3 extends Exchange {
         );
     }
 
-    public function handle_margin_mode_and_params($methodName, $params = array ()) {
+    public function handle_margin_mode_and_params($methodName, $params = array (), $defaultValue = null) {
         /**
          * @ignore
          * $marginMode specified by $params["marginMode"], $this->options["marginMode"], $this->options["defaultMarginMode"], $params["margin"] = true or $this->options["defaultType"] = 'margin'
@@ -4434,7 +4538,7 @@ class mexc3 extends Exchange {
         $defaultType = $this->safe_string($this->options, 'defaultType');
         $isMargin = $this->safe_value($params, 'margin', false);
         $marginMode = null;
-        list($marginMode, $params) = parent::handle_margin_mode_and_params($methodName, $params);
+        list($marginMode, $params) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
         if (($defaultType === 'margin') || ($isMargin === true)) {
             $marginMode = 'isolated';
         }

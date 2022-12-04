@@ -49,6 +49,8 @@ class bitso(Exchange):
                 'fetchDepositAddress': True,
                 'fetchDepositAddresses': False,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -1223,9 +1225,9 @@ class bitso(Exchange):
 
     async def fetch_transaction_fees(self, codes=None, params={}):
         """
-        fetch transaction fees
+        *DEPRECATED* please use fetchDepositWithdrawFees instead
         see https://bitso.com/api_info#fees
-        :param [str]|None codes: not used by bitso fetchTransactionFees
+        :param [str]|None codes: list of unified currency codes
         :param dict params: extra parameters specific to the bitso api endpoint
         :returns [dict]: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
         """
@@ -1306,6 +1308,136 @@ class bitso(Exchange):
                     'withdraw': self.safe_number(withdrawalFees, currencyId),
                 },
             }
+        return result
+
+    async def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://bitso.com/api_info#fees
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the bitso api endpoint
+        :returns [dict]: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        await self.load_markets()
+        response = await self.privateGetFees(params)
+        #
+        #    {
+        #        success: True,
+        #        payload: {
+        #            fees: [
+        #                {
+        #                    book: 'btc_mxn',
+        #                    fee_percent: '0.6500',
+        #                    fee_decimal: '0.00650000',
+        #                    taker_fee_percent: '0.6500',
+        #                    taker_fee_decimal: '0.00650000',
+        #                    maker_fee_percent: '0.5000',
+        #                    maker_fee_decimal: '0.00500000',
+        #                    volume_currency: 'mxn',
+        #                    current_volume: '0.00',
+        #                    next_volume: '1500000.00',
+        #                    next_maker_fee_percent: '0.490',
+        #                    next_taker_fee_percent: '0.637',
+        #                    nextVolume: '1500000.00',
+        #                    nextFee: '0.490',
+        #                    nextTakerFee: '0.637'
+        #                },
+        #                ...
+        #            ],
+        #            deposit_fees: [
+        #                {
+        #                    currency: 'btc',
+        #                    method: 'rewards',
+        #                    fee: '0.00',
+        #                    is_fixed: False
+        #                },
+        #                ...
+        #            ],
+        #            withdrawal_fees: {
+        #                ada: '0.20958100',
+        #                bch: '0.00009437',
+        #                ars: '0',
+        #                btc: '0.00001209',
+        #                ...
+        #            }
+        #        }
+        #    }
+        #
+        payload = self.safe_value(response, 'payload', {})
+        return self.parse_deposit_withdraw_fees(payload, codes)
+
+    def parse_deposit_withdraw_fees(self, response, codes=None, currencyIdKey=None):
+        #
+        #    {
+        #        fees: [
+        #            {
+        #                book: 'btc_mxn',
+        #                fee_percent: '0.6500',
+        #                fee_decimal: '0.00650000',
+        #                taker_fee_percent: '0.6500',
+        #                taker_fee_decimal: '0.00650000',
+        #                maker_fee_percent: '0.5000',
+        #                maker_fee_decimal: '0.00500000',
+        #                volume_currency: 'mxn',
+        #                current_volume: '0.00',
+        #                next_volume: '1500000.00',
+        #                next_maker_fee_percent: '0.490',
+        #                next_taker_fee_percent: '0.637',
+        #                nextVolume: '1500000.00',
+        #                nextFee: '0.490',
+        #                nextTakerFee: '0.637'
+        #            },
+        #            ...
+        #        ],
+        #        deposit_fees: [
+        #            {
+        #                currency: 'btc',
+        #                method: 'rewards',
+        #                fee: '0.00',
+        #                is_fixed: False
+        #            },
+        #            ...
+        #        ],
+        #        withdrawal_fees: {
+        #            ada: '0.20958100',
+        #            bch: '0.00009437',
+        #            ars: '0',
+        #            btc: '0.00001209',
+        #            ...
+        #        }
+        #    }
+        #
+        result = {}
+        depositResponse = self.safe_value(response, 'deposit_fees', [])
+        withdrawalResponse = self.safe_value(response, 'withdrawal_fees', [])
+        for i in range(0, len(depositResponse)):
+            entry = depositResponse[i]
+            currencyId = self.safe_string(entry, 'currency')
+            code = self.safe_currency_code(currencyId)
+            if (codes is None) or (code in codes):
+                result[code] = {
+                    'deposit': {
+                        'fee': self.safe_number(entry, 'fee'),
+                        'percentage': not self.safe_value(entry, 'is_fixed'),
+                    },
+                    'withdraw': {
+                        'fee': None,
+                        'percentage': None,
+                    },
+                    'networks': {},
+                    'info': entry,
+                }
+        withdrawalKeys = list(withdrawalResponse.keys())
+        for i in range(0, len(withdrawalKeys)):
+            currencyId = withdrawalKeys[i]
+            code = self.safe_currency_code(currencyId)
+            if (codes is None) or (code in codes):
+                withdrawFee = self.parse_number(withdrawalResponse[currencyId])
+                resultValue = self.safe_value(result, code)
+                if resultValue is None:
+                    result[code] = self.deposit_withdraw_fee({})
+                result[code]['withdraw']['fee'] = withdrawFee
+                result[code]['info'][code] = withdrawFee
         return result
 
     async def withdraw(self, code, amount, address, tag=None, params={}):

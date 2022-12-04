@@ -22,6 +22,7 @@ module.exports = async (exchange, symbol) => {
         'currencycom',
         'dsx',
         'idex2', // rinkeby testnet, trades too rare
+        'luno', // requires authentication for public trades
         'ripio',
         'zipmex',
         'coinflex' // to illiquid

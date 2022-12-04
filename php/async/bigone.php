@@ -49,6 +49,7 @@ class bigone extends Exchange {
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
+                'fetchTransactionFees' => false,
                 'fetchWithdrawals' => true,
                 'transfer' => true,
                 'withdraw' => true,
@@ -131,6 +132,7 @@ class bigone extends Exchange {
                 'transfer' => array(
                     'fillResponseFromRequest' => true,
                 ),
+                'exchangeMillisecondsCorrection' => -100,
             ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
@@ -1137,13 +1139,15 @@ class bigone extends Exchange {
     }
 
     public function nonce() {
-        return $this->microseconds() * 1000;
+        $exchangeTimeCorrection = $this->safe_integer($this->options, 'exchangeMillisecondsCorrection', 0) * 1000000;
+        return $this->microseconds() * 1000 . $exchangeTimeCorrection;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $query = $this->omit($params, $this->extract_params($path));
         $baseUrl = $this->implode_hostname($this->urls['api'][$api]);
         $url = $baseUrl . '/' . $this->implode_params($path, $params);
+        $headers = array();
         if ($api === 'public') {
             if ($query) {
                 $url .= '?' . $this->urlencode($query);
@@ -1158,9 +1162,7 @@ class bigone extends Exchange {
                 // 'recv_window' => '30', // default 30
             );
             $jwt = $this->jwt($request, $this->encode($this->secret));
-            $headers = array(
-                'Authorization' => 'Bearer ' . $jwt,
-            );
+            $headers['Authorization'] = 'Bearer ' . $jwt;
             if ($method === 'GET') {
                 if ($query) {
                     $url .= '?' . $this->urlencode($query);
@@ -1170,6 +1172,7 @@ class bigone extends Exchange {
                 $body = $this->json($query);
             }
         }
+        $headers['User-Agent'] = 'ccxt/' . $this->id . '-' . $this->version;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 

@@ -14,7 +14,7 @@ class wavesexchange extends Exchange {
             'id' => 'wavesexchange',
             'name' => 'Waves.Exchange',
             'countries' => array( 'CH' ), // Switzerland
-            'certified' => true,
+            'certified' => false,
             'pro' => false,
             'has' => array(
                 'CORS' => null,
@@ -62,6 +62,7 @@ class wavesexchange extends Exchange {
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
+                'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,

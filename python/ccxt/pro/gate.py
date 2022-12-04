@@ -115,7 +115,7 @@ class gate(Exchange, ccxt.async_support.gate):
             'limit': limit,
         }
         orderbook = await self.subscribe_public(url, method, messageHash, payload, subscriptionParams)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_order_book_subscription(self, client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
@@ -442,6 +442,15 @@ class gate(Exchange, ccxt.async_support.gate):
         client.resolve(self.trades, channel)
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the gate api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']

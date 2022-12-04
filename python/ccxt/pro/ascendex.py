@@ -75,8 +75,18 @@ class ascendex(Exchange, ccxt.async_support.ascendex):
         return await self.watch(url, messageHash, message, channel)
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the ascendex api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         if (limit is None) or (limit > 1440):
             limit = 100
         interval = self.timeframes[timeframe]
@@ -135,6 +145,7 @@ class ascendex(Exchange, ccxt.async_support.ascendex):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         channel = 'trades' + ':' + market['id']
         params = self.extend(params, {
             'ch': channel,
@@ -193,7 +204,7 @@ class ascendex(Exchange, ccxt.async_support.ascendex):
             'ch': channel,
         })
         orderbook = await self.watch_public(channel, params)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     async def watch_order_book_snapshot(self, symbol, limit=None, params={}):
         await self.load_markets()
@@ -208,7 +219,7 @@ class ascendex(Exchange, ccxt.async_support.ascendex):
             'op': 'req',
         })
         orderbook = await self.watch_public(channel, params)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_order_book_snapshot(self, client, message):
         #
@@ -443,6 +454,7 @@ class ascendex(Exchange, ccxt.async_support.ascendex):
         market = None
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
         type, query = self.handle_market_type_and_params('watchOrders', market, params)
         messageHash = None
         channel = None

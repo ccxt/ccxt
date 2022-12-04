@@ -438,7 +438,7 @@ module.exports = class bybit extends bybitRest {
         }
         const marketId = this.safeString2 (ticker, 'symbol', 's');
         const symbol = this.safeSymbol (marketId, market);
-        const last = this.safeStringN (ticker, [ 'l', 'last_price', 'lastPrice' ]);
+        const last = this.safeStringN (ticker, [ 'c', 'last_price', 'lastPrice' ]);
         const open = this.safeStringN (ticker, [ 'prev_price_24h', 'o', 'prevPrice24h' ]);
         let quoteVolume = this.safeStringN (ticker, [ 'v', 'turnover24h' ]);
         if (quoteVolume === undefined) {
@@ -485,6 +485,17 @@ module.exports = class bybit extends bybitRest {
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bybit#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the bybit api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -694,7 +705,7 @@ module.exports = class bybit extends bybitRest {
             const reqParams = [ channel ];
             orderbook = await this.watchContractPublic (url, messageHash, reqParams, params);
         }
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBook (client, message) {
@@ -1256,11 +1267,17 @@ module.exports = class bybit extends bybitRest {
         const symbols = Object.keys (marketSymbols);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            const messageHash = 'usertrade:' + symbol + ':' + topic;
+            let messageHash = 'usertrade:' + symbol;
+            if (topic) {
+                messageHash += ':' + topic;
+            }
             client.resolve (trades, messageHash);
         }
         // non-symbol specific
-        const messageHash = 'usertrade:' + topic;
+        let messageHash = 'usertrade';
+        if (topic) {
+            messageHash += ':' + topic;
+        }
         client.resolve (trades, messageHash);
     }
 
@@ -1473,10 +1490,16 @@ module.exports = class bybit extends bybitRest {
         const symbols = Object.keys (marketSymbols);
         for (let i = 0; i < symbols.length; i++) {
             const symbol = symbols[i];
-            const messageHash = 'order:' + symbol + ':' + topic;
+            let messageHash = 'order:' + symbol;
+            if (topic) {
+                messageHash += ':' + topic;
+            }
             client.resolve (orders, messageHash);
         }
-        const messageHash = 'order:' + topic;
+        let messageHash = 'order';
+        if (topic) {
+            messageHash += ':' + topic;
+        }
         // non-symbol specific
         client.resolve (orders, messageHash);
     }

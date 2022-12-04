@@ -138,6 +138,7 @@ class woo(Exchange):
                         'get': {
                             'info': 1,
                             'info/{symbol}': 1,
+                            'system_info': 1,
                             'market_trades': 1,
                             'token': 1,
                             'token_network': 1,
@@ -192,6 +193,23 @@ class woo(Exchange):
                     'private': {
                         'get': {
                             'client/holding': 1,
+                        },
+                    },
+                },
+                'v3': {
+                    'private': {
+                        'get': {
+                            'algo/order/{oid}': 1,
+                            'algo/orders': 1,
+                        },
+                        'post': {
+                            'algo/order': 5,
+                        },
+                        'delete': {
+                            'algo/order/{oid}': 1,
+                            'algo/orders/pending': 1,
+                            'algo/orders/pending/{symbol}': 1,
+                            'orders/pending': 1,
                         },
                     },
                 },
@@ -639,6 +657,8 @@ class woo(Exchange):
                 'active': None,
                 'fee': None,
                 'networks': resultingNetworks,
+                'deposit': None,
+                'withdraw': None,
                 'limits': {
                     'deposit': {
                         'min': None,
@@ -1654,11 +1674,15 @@ class woo(Exchange):
             url += path
             ts = str(self.nonce())
             auth = self.urlencode(params)
-            if method == 'POST' or method == 'DELETE':
+            if version == 'v3' and (method == 'POST'):
                 body = auth
+                auth = ts + method + '/' + version + '/' + path + body
             else:
-                url += '?' + auth
-            auth += '|' + ts
+                if method == 'POST' or method == 'DELETE':
+                    body = auth
+                else:
+                    url += '?' + auth
+                auth += '|' + ts
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             headers = {
                 'x-api-key': self.apiKey,

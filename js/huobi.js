@@ -994,6 +994,7 @@ module.exports = class huobi extends Exchange {
                 // https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
                 'PNT': 'Penta',
                 'SBTC': 'Super Bitcoin',
+                'SOUL': 'Soulsaver',
                 'BIFI': 'Bitcoin File', // conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
             },
         });
@@ -1866,20 +1867,26 @@ module.exports = class huobi extends Exchange {
          * @method
          * @name huobi#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-latest-tickers-for-all-pairs
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-a-batch-of-market-data-overview
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#get-a-batch-of-market-data-overview
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-a-batch-of-market-data-overview-v2
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the huobi api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const options = this.safeValue (this.options, 'fetchTickers', {});
-        const defaultType = this.safeString (this.options, 'defaultType', 'spot');
-        let type = this.safeString (options, 'type', defaultType);
-        type = this.safeString (params, 'type', type);
+        const first = this.safeString (symbols, 0);
+        let market = undefined;
+        if (first !== undefined) {
+            market = this.market (first);
+        }
+        let type = undefined;
+        let subType = undefined;
         let method = 'spotPublicGetMarketTickers';
-        const defaultSubType = this.safeString (this.options, 'defaultSubType', 'inverse');
-        let subType = this.safeString (options, 'subType', defaultSubType);
-        subType = this.safeString (params, 'subType', subType);
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchTickers', market, params);
         const request = {};
         const future = (type === 'future');
         const swap = (type === 'swap');
@@ -2203,7 +2210,7 @@ module.exports = class huobi extends Exchange {
         if (filledPoints !== undefined) {
             if ((feeCost === undefined) || Precise.stringEquals (feeCost, '0')) {
                 const feeDeductCurrency = this.safeString (trade, 'fee-deduct-currency');
-                if (feeDeductCurrency !== '') {
+                if (feeDeductCurrency !== undefined) {
                     feeCost = filledPoints;
                     feeCurrency = this.safeCurrencyCode (feeDeductCurrency);
                 }
@@ -4172,7 +4179,7 @@ module.exports = class huobi extends Exchange {
         }
         const market = this.market (symbol);
         const request = {
-            // 'symbol': 'BTC', // optional, case-insenstive, both uppercase and lowercase are supported, "BTC", "ETH", ...
+            // 'symbol': 'BTC', // optional, case-insensitive, both uppercase and lowercase are supported, "BTC", "ETH", ...
             // 'contract_type': 'this_week', // optional, this_week, next_week, quarter, next_quarter
             'contract_code': market['id'], // optional BTC180914
             // 'client_order_id': clientOrderId, // optional, must be less than 9223372036854775807

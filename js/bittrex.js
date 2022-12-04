@@ -737,9 +737,17 @@ module.exports = class bittrex extends Exchange {
         const priceString = this.safeString (trade, 'rate');
         const amountString = this.safeString (trade, 'quantity');
         let takerOrMaker = undefined;
+        let side = this.safeStringLower2 (trade, 'takerSide', 'direction');
         const isTaker = this.safeValue (trade, 'isTaker');
         if (isTaker !== undefined) {
             takerOrMaker = isTaker ? 'taker' : 'maker';
+            if (!isTaker) { // as noted in PR #15655 this API provides confusing value - when it's 'maker' trade, then side value should reversed
+                if (side === 'buy') {
+                    side = 'sell';
+                } else if (side === 'sell') {
+                    side = 'buy';
+                }
+            }
         }
         let fee = undefined;
         const feeCostString = this.safeString (trade, 'commission');
@@ -749,7 +757,6 @@ module.exports = class bittrex extends Exchange {
                 'currency': market['quote'],
             };
         }
-        const side = this.safeStringLower2 (trade, 'takerSide', 'direction');
         return this.safeTrade ({
             'info': trade,
             'timestamp': timestamp,

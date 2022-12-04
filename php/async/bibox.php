@@ -10,7 +10,6 @@ use ccxt\ExchangeError;
 use ccxt\AuthenticationError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
-use ccxt\OrderNotFound;
 use ccxt\Precise;
 use React\Async;
 
@@ -31,6 +30,7 @@ class bibox extends Exchange {
                 'swap' => null, // has but unimplemented
                 'future' => null,
                 'option' => null,
+                'cancelAllOrders' => true,
                 'cancelOrder' => true,
                 'createMarketOrder' => null, // or they will return https://github.com/ccxt/ccxt/issues/2338
                 'createOrder' => true,
@@ -44,6 +44,8 @@ class bibox extends Exchange {
                 'fetchCurrencies' => true,
                 'fetchDepositAddress' => true,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => true,
+                'fetchDepositWithdrawFees' => false,
                 'fetchLedger' => true,
                 'fetchMarginMode' => false,
                 'fetchMarkets' => true,
@@ -52,6 +54,7 @@ class bibox extends Exchange {
                 'fetchOpenOrders' => true,
                 'fetchOrder' => true,
                 'fetchOrderBook' => true,
+                'fetchOrdersByStatus' => true,
                 'fetchPositionMode' => false,
                 'fetchTicker' => true,
                 'fetchTickers' => true,
@@ -83,14 +86,13 @@ class bibox extends Exchange {
                 'api' => array(
                     'rest' => 'https://api.{hostname}',
                 ),
-                'www' => 'https://www.bibox365.com',
+                'www' => 'https://www.{hostname}',
                 'doc' => array(
                     'https://biboxcom.github.io/en/',
                     'https://biboxcom.github.io/v3/spot/en/',
                     'https://biboxcom.github.io/api/spot/v4',
                 ),
                 'fees' => 'https://bibox.zendesk.com/hc/en-us/articles/360002336133',
-                'referral' => 'https://w2.bibox365.com/login/register?invite_code=05Kj3I',
             ),
             'api' => array(
                 'v1' => array(
@@ -319,11 +321,14 @@ class bibox extends Exchange {
                 '3025' => '\\ccxt\\AuthenticationError', // signature failed
                 '4000' => '\\ccxt\\ExchangeNotAvailable', // current network is unstable
                 '4003' => '\\ccxt\\DDoSProtection', // server busy please try again later
+                '-2004' => '\\ccxt\\InvalidOrder', // Invalid parameter 'price' => price limit
+                '-2102' => '\\ccxt\\RateLimitExceeded', // The usage limit is 10000 in 10000ms, but 10296 have been used.
             ),
             'commonCurrencies' => array(
                 'APENFT(NFT)' => 'NFT',
                 'BOX' => 'DefiBox',
                 'BPT' => 'BlockPool Token',
+                'BUSDT' => 'USDT',
                 'GMT' => 'GMT Token',
                 'KEY' => 'Bihu',
                 'MTC' => 'MTC Mesh Network', // conflict with MTC Docademic doc.com Token https://github.com/ccxt/ccxt/issues/6081 https://github.com/ccxt/ccxt/issues/3025
@@ -436,7 +441,6 @@ class bibox extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
-        // we don't set values that are not defined by the exchange
         //
         // fetchTicker
         //
@@ -463,28 +467,28 @@ class bibox extends Exchange {
         //
         //    {
         //        is_hide => '0',
-        //        high_cny => '0.1094',
-        //        amount => '5.34',
+        //        high_cny => '0.0860',
+        //        amount => '0.37',
         //        coin_symbol => 'BIX',
-        //        $last => '0.00000080',
+        //        $last => '0.00000069',
         //        currency_symbol => 'BTC',
-        //        change => '+0.00000001',
-        //        low_cny => '0.1080',
-        //        base_last_cny => '0.10935854',
+        //        change => '-0.00000004',
+        //        low_cny => '0.0791',
+        //        base_last_cny => '0.07909660',
         //        area_id => '7',
-        //        percent => '+1.27%',
-        //        last_cny => '0.1094',
-        //        high => '0.00000080',
-        //        low => '0.00000079',
+        //        percent => '-5.48%',
+        //        last_cny => '0.0791',
+        //        high => '0.00000075',
+        //        low => '0.00000069',
         //        pair_type => '0',
-        //        last_usd => '0.0155',
-        //        vol24H => '6697325',
+        //        last_usd => '0.0112',
+        //        vol24H => '510573',
         //        id => '1',
-        //        high_usd => '0.0155',
-        //        low_usd => '0.0153'
+        //        high_usd => '0.0122',
+        //        low_usd => '0.0112'
         //    }
         //
-        $timestamp = $this->safe_integer_2($ticker, 'timestamp', 't');
+        $timestamp = $this->safe_integer($ticker, 't');
         $baseId = $this->safe_string($ticker, 'coin_symbol');
         $quoteId = $this->safe_string($ticker, 'currency_symbol');
         $marketId = $this->safe_string($ticker, 's');
@@ -498,7 +502,7 @@ class bibox extends Exchange {
             $percentage = str_replace('%', '', $percentage);
         }
         return $this->safe_ticker(array(
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_string_2($ticker, 'high', 'h'),
@@ -566,46 +570,45 @@ class bibox extends Exchange {
     public function fetch_tickers($symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * v1, fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+             * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the bibox api endpoint
              * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
-            $request = array(
-                'cmd' => 'marketAll',
-            );
-            $response = Async\await($this->v1PublicGetMdata (array_merge($request, $params)));
+            $request = array();
+            $response = Async\await($this->v3PublicGetMdataMarketAll (array_merge($request, $params)));
             //
             //    {
+            //        state => '0',
             //        $result => array(
             //            array(
             //                is_hide => '0',
-            //                high_cny => '0.1094',
-            //                amount => '5.34',
+            //                high_cny => '0.0860',
+            //                amount => '0.37',
             //                coin_symbol => 'BIX',
-            //                last => '0.00000080',
+            //                last => '0.00000069',
             //                currency_symbol => 'BTC',
-            //                change => '+0.00000001',
-            //                low_cny => '0.1080',
-            //                base_last_cny => '0.10935854',
+            //                change => '-0.00000004',
+            //                low_cny => '0.0791',
+            //                base_last_cny => '0.07909660',
             //                area_id => '7',
-            //                percent => '+1.27%',
-            //                last_cny => '0.1094',
-            //                high => '0.00000080',
-            //                low => '0.00000079',
+            //                percent => '-5.48%',
+            //                last_cny => '0.0791',
+            //                high => '0.00000075',
+            //                low => '0.00000069',
             //                pair_type => '0',
-            //                last_usd => '0.0155',
-            //                vol24H => '6697325',
+            //                last_usd => '0.0112',
+            //                vol24H => '510573',
             //                id => '1',
-            //                high_usd => '0.0155',
-            //                low_usd => '0.0153'
+            //                high_usd => '0.0122',
+            //                low_usd => '0.0112'
             //            ),
             //            ...
             //        ),
             //        cmd => 'marketAll',
-            //        ver => '1.1'
+            //        ver => '3'
             //    }
             //
             $tickers = $this->parse_tickers($response['result'], $symbols);
@@ -615,45 +618,69 @@ class bibox extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
-        $timestamp = $this->safe_integer_2($trade, 'time', 'createdAt');
-        $side = $this->safe_integer_2($trade, 'side', 'order_side');
-        $side = ($side === 1) ? 'buy' : 'sell';
-        $marketId = $this->safe_string($trade, 'pair');
-        if ($marketId === null) {
-            $baseId = $this->safe_string($trade, 'coin_symbol');
-            $quoteId = $this->safe_string($trade, 'currency_symbol');
-            if (($baseId !== null) && ($quoteId !== null)) {
-                $marketId = $baseId . '_' . $quoteId;
-            }
-        }
+        //
+        // fetchMyTrades
+        //
+        //    {
+        //        "i" => 452361213188,
+        //        "o" => 14284855094264759,       // The order $id assigned by the exchange
+        //        "s" => "ADA_USDT",              // trading pair code
+        //        "T" => 1579458,
+        //        "t" => 1653676917531,           // transaction time
+        //        "p" => 0.45,                    // transaction price
+        //        "q" => 10,                      // transaction volume
+        //        "l" => "maker",                 // taker/maker
+        //        "f" => {
+        //            "a" => "ADA",               // transaction $fee currency
+        //            "m" => 0.010000000          // handling $fee
+        //        }
+        //    }
+        //
+        // fetchTrades
+        //
+        //    {
+        //        "i" => "17122255",              // transaction $id
+        //        "p" => "46125.7",               // transaction price
+        //        "q" => "0.079045",              // transaction $amount
+        //        "s" => "buy",                   // taker's transaction direction
+        //        "t" => "1628738748319"          // transaction time
+        //    }
+        //
+        $id = $this->safe_string($trade, 'i');
+        $marketId = $this->safe_string($trade, 's');
+        $timestamp = $this->safe_integer($trade, 't');
+        $fee = $this->safe_value($trade, 'f');
+        $feeCurrencyId = $this->safe_string($fee, 'a');
+        $amount = $this->safe_string($trade, 'q');
+        $transactionId = $this->safe_string($trade, 'T');
+        $side = 'buy';
+        $orderId = $this->safe_string($trade, 'o');
         $market = $this->safe_market($marketId, $market);
-        $priceString = $this->safe_string($trade, 'price');
-        $amountString = $this->safe_string($trade, 'amount');
-        $fee = null;
-        $feeCostString = $this->safe_string($trade, 'fee');
-        if ($feeCostString !== null) {
-            $feeCurrencyId = $this->safe_string($trade, 'fee_symbol');
-            $feeCurrencyCode = $this->safe_currency_code($feeCurrencyId);
-            $fee = array(
-                'cost' => Precise::string_neg($feeCostString),
-                'currency' => $feeCurrencyCode,
-            );
+        if ($marketId === 'buy' || $marketId === 'sell') {
+            $side = $marketId;
+        } elseif (Precise::string_lt($amount, '0')) {
+            $side = 'sell';
         }
-        $id = $this->safe_string($trade, 'id');
+        if (Precise::string_lt($id, '9999999999')) {
+            $transactionId = $id;
+        }
         return $this->safe_trade(array(
             'info' => $trade,
-            'id' => $id,
-            'order' => null, // Bibox does not have it (documented) yet
+            'id' => $transactionId,
+            'order' => $orderId,
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'symbol' => $market['symbol'],
-            'type' => 'limit',
-            'takerOrMaker' => null,
+            'type' => null,
+            'takerOrMaker' => $this->safe_string($trade, 'l', 'taker'),
             'side' => $side,
-            'price' => $priceString,
-            'amount' => $amountString,
+            'price' => $this->safe_string($trade, 'p'),
+            'amount' => $amount,
             'cost' => null,
-            'fee' => $fee,
+            'fee' => array(
+                'cost' => $this->safe_string($fee, 'm'),
+                'currency' => $this->safe_currency_code($feeCurrencyId),
+            ),
         ), $market);
     }
 
@@ -661,23 +688,47 @@ class bibox extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent trades for a particular $symbol
+             * @see https://biboxcom.github.io/api/spot/v4/en/#get-trades
              * @param {string} $symbol unified $symbol of the $market to fetch trades for
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
-             * @param {int|null} $limit the maximum amount of trades to fetch
+             * @param {int|null} $limit the maximum number of trades structures to retrieve, default = 100, max = 1000
              * @param {array} $params extra parameters specific to the bibox api endpoint
+             * @param {int|null} $params->until the earliest time in ms to fetch trades for
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {int|null} $params->after transaction record id, limited to return the minimum id of transaction records
+             * @param {int|null} $params->before transaction record id, limited to return the maximum id of transaction records
              * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#public-trades trade structures~
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $until = $this->safe_integer($params, 'until');
             $request = array(
-                'cmd' => 'deals',
-                'pair' => $market['id'],
+                'symbol' => $market['id'],
             );
             if ($limit !== null) {
-                $request['size'] = $limit; // default = 200
+                $request['limit'] = $limit; // default = 100
             }
-            $response = Async\await($this->v1PublicGetMdata (array_merge($request, $params)));
-            return $this->parse_trades($response['result'], $market, $since, $limit);
+            if ($since !== null) {
+                $request['start_time'] = $since;
+            }
+            if ($until !== null) {
+                $request['end_time'] = $until;
+            }
+            $response = Async\await($this->v4PublicGetMarketdataTrades (array_merge($request, $params)));
+            //
+            //    array(
+            //        array(
+            //          "i" => "17122255",        // transaction id
+            //          "p" => "46125.7",         // transaction price
+            //          "q" => "0.079045",        // transaction amount
+            //          "s" => "buy",             // taker's transaction direction
+            //          "t" => "1628738748319"    // transaction time
+            //        ),
+            //        ...
+            //    )
+            //
+            return $this->parse_trades($response, $market, $since, $limit);
         }) ();
     }
 
@@ -804,9 +855,13 @@ class bibox extends Exchange {
             //            ...
             //    }
             //
-            $result = $this->safe_value($response, 'e');
+            $result = $this->safe_value($response, 'e', array());
             if ($result === null) {
-                $result = $response || array();
+                if (gettype($response) === 'array' && array_keys($response) === array_keys(array_keys($response))) {
+                    $result = $response;
+                } else {
+                    $result = array();
+                }
             }
             return $this->parse_ohlcvs($result, $market, $timeframe, $since, $limit);
         }) ();
@@ -972,6 +1027,8 @@ class bibox extends Exchange {
                     'active' => $active,
                     'fee' => null,
                     'precision' => $precision,
+                    'withdraw' => $withdraw,
+                    'deposit' => $deposit,
                     'limits' => array(
                         'amount' => array(
                             'min' => $precision,
@@ -990,6 +1047,8 @@ class bibox extends Exchange {
 
     public function parse_balance($response) {
         //
+        // v4PrivateGetUserdataAccounts (spot)
+        //
         //    array(
         //        array(
         //            "s" => "USDT",              // asset $code
@@ -999,14 +1058,28 @@ class bibox extends Exchange {
         //        ...
         //    )
         //
+        // v3.1PrivatePostTransferMainAssets (funding)
+        //
+        //    array(
+        //        array(
+        //            coin_symbol => 'ETHW',
+        //            BTCValue => '0.00036926',
+        //            CNYValue => '53.61898578',
+        //            USDValue => '7.58403021',
+        //            $balance => '1.14228556',
+        //            freeze => '0.00000000'
+        //        ),
+        //        ...
+        //    )
+        //
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($response); $i++) {
             $balance = $response[$i];
-            $currencyId = $this->safe_string($balance, 's');
+            $currencyId = $this->safe_string_2($balance, 's', 'coin_symbol');
             $code = $this->safe_currency_code($currencyId);
             $account = $this->account();
-            $account['free'] = $this->safe_string($balance, 'a');
-            $account['used'] = $this->safe_string($balance, 'h');
+            $account['free'] = $this->safe_string_2($balance, 'a', 'balance');
+            $account['used'] = $this->safe_string_2($balance, 'h', 'freeze');
             $result[$code] = $account;
         }
         return $this->safe_balance($result);
@@ -1015,32 +1088,66 @@ class bibox extends Exchange {
     public function fetch_balance($params = array ()) {
         return Async\async(function () use ($params) {
             /**
-             * query for balance and get the amount of funds available for trading or funds locked in orders
+             * $query for balance and get the amount of funds available for trading or funds locked in orders
              * @see https://biboxcom.github.io/api/spot/v4/en/#get-accounts
+             * @see https://biboxcom.github.io/api/spot/v3/en/#wallet-assets
              * @param {array} $params extra parameters specific to the bibox api endpoint
-             * @param {str} $params->code unified $currency $code
+             * @param {str} $params->code unified $currency $code (v4 only)
+             * @param {str|null} $params->type 'funding' (v3), or 'spot' (v4)
              * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
              */
             Async\await($this->load_markets());
-            $code = $this->safe_string($params, 'code');
-            $params = $this->omit($params, 'code');
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
             $request = array();
-            if ($code !== null) {
-                $currency = $this->currency($code);
-                $request['asset'] = $currency['id'];
+            $balanceList = null;
+            if ($marketType === 'spot') {
+                $code = $this->safe_string($query, 'code');
+                $requestParams = $this->omit($query, 'code');
+                if ($code !== null) {
+                    $currency = $this->currency($code);
+                    $request['asset'] = $currency['id'];
+                }
+                $balanceList = Async\await($this->v4PrivateGetUserdataAccounts (array_merge($request, $requestParams)));
+                //
+                //    array(
+                //        array(
+                //            "s" => "USDT",              // asset $code
+                //            "a" => 2.6617573979,        // available amount
+                //            "h" => 0                    // frozen amount
+                //        ),
+                //        ...
+                //    )
+                //
+            } elseif (($marketType === 'main') || ($marketType === 'wallet') || ($marketType === 'funding')) {
+                $method = 'v3.1PrivatePostTransferMainAssets';
+                $request['select'] = 1; // 0-Total assets of each $currency, 1-Request asset details of all currencies
+                $response = Async\await($this->$method (array_merge($request, $query)));
+                //
+                //    {
+                //        $result => array(
+                //            total_btc => '0.01',
+                //            total_cny => 'xxx',
+                //            total_usd => 'xxx',
+                //            assets_list => array(
+                //                array(
+                //                    coin_symbol => 'ETHW',
+                //                    BTCValue => '0.00036926',
+                //                    CNYValue => '53.61898578',
+                //                    USDValue => '7.58403021',
+                //                    balance => '1.14228556',
+                //                    freeze => '0.00000000'
+                //                ),
+                //                ...
+                //            )
+                //        ),
+                //        cmd => 'mainAssets',
+                //        state => '0'
+                //    }
+                //
+                $result = $this->safe_value($response, 'result', array());
+                $balanceList = $this->safe_value($result, 'assets_list', array());
             }
-            $response = Async\await($this->v4PrivateGetUserdataAccounts (array_merge($request, $params)));
-            //
-            //    array(
-            //        array(
-            //            "s" => "USDT",              // asset $code
-            //            "a" => 2.6617573979,        // available amount
-            //            "h" => 0                    // frozen amount
-            //        ),
-            //        ...
-            //    )
-            //
-            return $this->parse_balance($response);
+            return $this->parse_balance($balanceList);
         }) ();
     }
 
@@ -1144,6 +1251,7 @@ class bibox extends Exchange {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
              * fetch all deposits made to an account
+             * @see https://biboxcom.github.io/api/spot/v3/en/#query-deposit-records
              * @param {string|null} $code unified $currency $code
              * @param {int|null} $since not used by bibox
              * @param {int|null} $limit the maximum number of deposits structures to retrieve, max=50, default=50
@@ -1206,66 +1314,66 @@ class bibox extends Exchange {
     public function fetch_withdrawals($code = null, $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($code, $since, $limit, $params) {
             /**
-             * fetch all $withdrawals made from an account
+             * fetch all withdrawals made from an account
+             * @see https://biboxcom.github.io/api/spot/v3/en/#query-withdrawal-records
              * @param {string|null} $code unified $currency $code
-             * @param {int|null} $since the earliest time in ms to fetch $withdrawals for
-             * @param {int|null} $limit the maximum number of $withdrawals structures to retrieve
+             * @param {int|null} $since not used by bibox
+             * @param {int|null} $limit the maximum number of deposits structures to retrieve, max=50, default=50
              * @param {array} $params extra parameters specific to the bibox api endpoint
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {int} $params->page $page number, default=1
+             * @param {string|null} $params->filter_type withdrawal record screening, -2 => failed review; -1 => user cancelled; 0 => pending review; 1 => approved (to be issued $currency); 2 => $currency issued; 3 => $currency issued complete
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structures}
              */
             Async\await($this->load_markets());
             if ($limit === null) {
-                $limit = 100;
+                $limit = 50;
             }
+            $page = $this->safe_integer($params, 'page', 1);
             $request = array(
-                'page' => 1,
+                'page' => $page,
                 'size' => $limit,
             );
             $currency = null;
             if ($code !== null) {
                 $currency = $this->currency($code);
-                $request['symbol'] = $currency['id'];
+                $request['coin_symbol'] = $currency['id'];
             }
-            $response = Async\await($this->v1PrivatePostTransfer (array(
-                'cmd' => 'transfer/transferOutList',
-                'body' => array_merge($request, $params),
-            )));
+            $method = 'v3.1PrivatePostTransferTransferOutList';
+            $response = Async\await($this->$method (array_merge($request, $params)));
             //
-            //     {
-            //         "result":array(
-            //             {
-            //                 "result":{
-            //                     "count":1,
-            //                     "page":1,
-            //                     "items":array(
-            //                         array(
-            //                             "id":612867,
-            //                             "coin_symbol":"ETH",
-            //                             "chain_type":"ETH",
-            //                             "to_address":"0xd41de7a88ab5fc59edc6669f54873576be95bff1",
-            //                             "tx_id":"0xc60950596227af3f27c3a1b5911ea1c79bae53bdce67274e48a0ce87a5ef2df8",
-            //                             "addr_remark":"binance",
-            //                             "amount":"2.34550946",
-            //                             "fee":"0.00600000",
-            //                             "createdAt":1561339330000,
-            //                             "memo":"",
-            //                             "status":3
-            //                         }
-            //                     )
-            //                 ),
-            //                 "cmd":"transfer/transferOutList"
-            //             }
-            //         )
-            //     }
+            //    {
+            //        $result => array(
+            //            count => '5',
+            //            $page => '1',
+            //            $items => array(
+            //                array(
+            //                    id => '3553023',
+            //                    coin_symbol => 'bUSDT',
+            //                    chain_type => 'BEP20(BSC)',
+            //                    to_address => '0xf1458ba28073b056e9666c4b2bbbc60451cda0fd',
+            //                    tx_id => '0x2f2319c4ae804893369aeeeef06dd429abf2833b61290ea2bd63ec0e363ebce6',
+            //                    addr_remark => '',
+            //                    amount => '54.08252000',
+            //                    fee => '0.50000000',
+            //                    createdAt => '1666324662000',
+            //                    memo => '',
+            //                    status => '3'
+            //                ),
+            //                ...
+            //            )
+            //        ),
+            //        cmd => 'transferOutList',
+            //        state => '0'
+            //    }
             //
-            $outerResults = $this->safe_value($response, 'result');
-            $firstResult = $this->safe_value($outerResults, 0, array());
-            $innerResult = $this->safe_value($firstResult, 'result', array());
-            $withdrawals = $this->safe_value($innerResult, 'items', array());
-            for ($i = 0; $i < count($withdrawals); $i++) {
-                $withdrawals[$i]['type'] = 'withdrawal';
+            $result = $this->safe_value($response, 'result');
+            $items = $this->safe_value($result, 'items');
+            for ($i = 0; $i < count($items); $i++) {
+                $items[$i]['type'] = 'withdrawal';
             }
-            return $this->parse_transactions($withdrawals, $currency, $since, $limit);
+            return $this->parse_transactions($items, $currency, $since, $limit);
         }) ();
     }
 
@@ -1273,45 +1381,45 @@ class bibox extends Exchange {
         //
         // fetchDeposits
         //
-        //     {
-        //         'id' => 1023291,
-        //         'coin_symbol' => 'ETH',
-        //         'to_address' => '0x7263....',
-        //         'amount' => '0.49170000',
-        //         'confirmCount' => '16',
-        //         'createdAt' => 1553123867000,
-        //         'status' => 2
-        //     }
+        //    {
+        //        id => '3553023',
+        //        coin_symbol => 'bUSDT',
+        //        chain_type => 'BEP20(BSC)',
+        //        to_address => '0xf1458ba28073b056e9666c4b2bbbc60451cda0fd',
+        //        tx_id => '0x2f2319c4ae804893369aeeeef06dd429abf2833b61290ea2bd63ec0e363ebce6',
+        //        addr_remark => '',                                                              // fetchWithawals only
+        //        $amount => '14.71000000',
+        //        $fee => '0.50000000',                                                            // fetchWithdrawals only
+        //        confirmCount => '14',
+        //        createdAt => '1663367581000',
+        //        memo => '',                                                                     // fetchWithdrawals only
+        //        status => '2'
+        //    }
         //
-        // fetchWithdrawals
-        //
-        //     {
-        //         'id' => 521844,
-        //         'coin_symbol' => 'ETH',
-        //         'to_address' => '0xfd4e....',
-        //         'addr_remark' => '',
-        //         'amount' => '0.39452750',
-        //         'fee' => '0.00600000',
-        //         'createdAt' => 1553226906000,
-        //         'memo' => '',
-        //         'status' => 3
-        //     }
+        //    {
+        //        id => '3553023',
+        //        coin_symbol => 'bUSDT',
+        //        chain_type => 'BEP20(BSC)',
+        //        to_address => '0xf1458ba28073b056e9666c4b2bbbc60451cda0fd',
+        //        tx_id => '0x2f2319c4ae804893369aeeeef06dd429abf2833b61290ea2bd63ec0e363ebce6',
+        //        $amount => '54.08252000',
+        //        createdAt => '1666324662000',
+        //        status => '3'
+        //    }
         //
         // withdraw
         //
         //     {
-        //         "result" => 228, // withdrawal $id
+        //         "result" => 228, // withdrawal id
         //         "cmd":"transfer/transferOut"
         //     }
         //
-        $id = $this->safe_string_2($transaction, 'id', 'result');
         $address = $this->safe_string($transaction, 'to_address');
         $currencyId = $this->safe_string($transaction, 'coin_symbol');
         $code = $this->safe_currency_code($currencyId, $currency);
         $timestamp = $this->safe_integer($transaction, 'createdAt');
         $tag = $this->safe_string($transaction, 'addr_remark');
         $type = $this->safe_string($transaction, 'type');
-        $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type);
         $amount = $this->safe_number($transaction, 'amount');
         $feeCost = $this->safe_number($transaction, 'fee');
         if ($type === 'deposit') {
@@ -1324,13 +1432,13 @@ class bibox extends Exchange {
         );
         return array(
             'info' => $transaction,
-            'id' => $id,
-            'txid' => null,
+            'id' => $this->safe_string_2($transaction, 'id', 'result'),
+            'txid' => $this->safe_string($transaction, 'tx_id'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => null,
+            'network' => $this->safe_string($transaction, 'chain_type'),
             'address' => $address,
-            'addressTo' => null,
+            'addressTo' => $address,
             'addressFrom' => null,
             'tag' => $tag,
             'tagTo' => null,
@@ -1338,7 +1446,7 @@ class bibox extends Exchange {
             'type' => $type,
             'amount' => $amount,
             'currency' => $code,
-            'status' => $status,
+            'status' => $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type),
             'updated' => null,
             'fee' => $fee,
         );
@@ -1429,6 +1537,30 @@ class bibox extends Exchange {
         }) ();
     }
 
+    public function cancel_all_orders($symbol = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $params) {
+            /**
+             * cancels all open orders
+             * @param {string} $symbol unified $market $symbol
+             * @param {array} $params extra parameters specific to the bibox api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            Async\await($this->load_markets());
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' cancelAllOrders requires a $symbol argument');
+            }
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->v4PrivateDeleteUserdataOrders (array_merge($request, $params)));
+            //
+            // array()
+            //
+            return $this->parse_orders($response, $market);
+        }) ();
+    }
+
     public function cancel_order($id, $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
@@ -1439,187 +1571,166 @@ class bibox extends Exchange {
              * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
              */
             $request = array(
-                'cmd' => 'orderpending/cancelTrade',
-                'body' => array_merge(array(
-                    'orders_id' => $id,
-                ), $params),
+                'id' => $id,
             );
-            $response = Async\await($this->v1PrivatePostOrderpending ($request));
+            $response = Async\await($this->v4PrivateDeleteUserdataOrder (array_merge($request, $params)));
             //
-            //     {
-            //         "result":array(
-            //             {
-            //                 "result":"OK", // only indicates if the server received the cancelling $request, and the cancelling result can be obtained from the order record
-            //                 "index" => 12345, // random index, specific one in a batch
-            //                 "cmd":"orderpending/cancelTrade"
-            //             }
-            //         )
-            //     }
+            //    {
+            //        "i" => 4611688217450643477, // The order $id assigned by the exchange
+            //        "I" => "", // User specified order $id
+            //        "m" => "BTC_USDT", // trading pair code
+            //        "T" => "limit", // order type
+            //        "s" => "sell", // order direction
+            //        "Q" => -0.0100, // Order amount
+            //        "P" => 10043.8500, // order price
+            //        "t" => "gtc", // Time In Force
+            //        "o" => false, // Post Only
+            //        "S" => "filled", // order status
+            //        "E" => -0.0100, // transaction volume
+            //        "e" => -100.43850000, // transaction value
+            //        "C" => 1643193746043, // creation time
+            //        "U" => 1643193746464, // update time
+            //        "n" => 2, // number of transactions
+            //        "F" => array(
+            //            {
+            //                "i" => 13, // deal $id
+            //                "t" => 1643193746464, // transaction time
+            //                "p" => 10043.85, // transaction price
+            //                "q" => -0.009, // transaction volume
+            //                "l" => "maker", // Maker / Taker transaction
+            //                "f" => array(
+            //                    "a" => "USDT", // This transaction is used to pay the transaction fee
+            //                    "m" => 0.09039465000 // The handling fee for this transaction
+            //                }
+            //            ),
+            //            {
+            //                "i" => 12,
+            //                "t" => 1643193746266,
+            //                "p" => 10043.85,
+            //                "q" => -0.001,
+            //                "l" => "maker",
+            //                "f" => {
+            //                        "a" => "USDT",
+            //                        "m" => 0.01004385000
+            //                    }
+            //                }
+            //        ),
+            //        "f" => array(
+            //            {
+            //                "a" => "USDT",  // Assets used to pay fees
+            //                "m" => 0.10043850000  // Total handling fee
+            //            }
+            //        )
+            //    }
             //
-            $outerResults = $this->safe_value($response, 'result');
-            $firstResult = $this->safe_value($outerResults, 0, array());
-            return $firstResult;
+            return $this->parse_order($response);
         }) ();
     }
 
     public function fetch_order($id, $symbol = null, $params = array ()) {
         return Async\async(function () use ($id, $symbol, $params) {
             /**
-             * fetches information on an $order made by the user
+             * fetches information on an order made by the user
              * @param {string|null} $symbol not used by bibox fetchOrder
              * @param {array} $params extra parameters specific to the bibox api endpoint
-             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
+             * @return {array} An {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
              */
             Async\await($this->load_markets());
             $request = array(
-                'cmd' => 'orderpending/order',
-                'body' => array_merge(array(
-                    'id' => (string) $id,
-                    'account_type' => 0, // 0 = spot account
-                ), $params),
+                'id' => $id,
             );
-            $response = Async\await($this->v1PrivatePostOrderpending ($request));
+            $response = Async\await($this->v4PrivateGetUserdataOrder (array_merge($request, $params)));
             //
-            //     {
-            //         "result":array(
-            //             {
-            //                 "result" => array(
-            //                     "id" => "100055558128036",
-            //                     "createdAt" => 1512756997000,
-            //                     "account_type" => 0,
-            //                     "coin_symbol" => "LTC",        // Trading Token
-            //                     "currency_symbol" => "BTC",    // Pricing Token
-            //                     "order_side" => 2,             // Trading side 1-Buy, 2-Sell
-            //                     "order_type" => 2,             // 2-limit $order
-            //                     "price" => "0.00900000",       // $order price
-            //                     "amount" => "1.00000000",      // $order amount
-            //                     "money" => "0.00900000",       // currency amount (price * amount)
-            //                     "deal_amount" => "0.00000000", // deal amount
-            //                     "deal_percent" => "0.00%",     // deal percentage
-            //                     "unexecuted" => "0.00000000",  // unexecuted amount
-            //                     "status" => 3                  // Status, -1-fail, 0,1-to be dealt, 2-dealt partly, 3-dealt totally, 4- cancelled partly, 5-cancelled totally, 6-to be cancelled
-            //                 ),
-            //                 "cmd" => "orderpending/order"
-            //             }
-            //         )
-            //     }
+            //    {
+            //        i => '14580623696203099',       // the order $id assigned by the exchange
+            //        I => '0',                       // user specified order $id
+            //        m => 'ADA_USDT',                // trading pair code
+            //        T => 'limit',                   // order type
+            //        s => 'buy',                     // order direction
+            //        Q => '4.000000',                // order amount
+            //        P => '0.300000',                // order price
+            //        t => 'gtc',                     // time in force
+            //        o => false,                     // post only
+            //        S => 'accepted',                // order status
+            //        E => '0',                       // transaction volume
+            //        e => '0',                       // transaction value
+            //        C => '1666235804233',           // creation time
+            //        U => '1666235804233',           // update time
+            //        V => '586925436933',
+            //        n => '0',                       // number of transactions
+            //        F => array(
+            //            {
+            //                i => 13,                // transaction $id
+            //                t => 1643193746464,     // transaction time
+            //                p => 10043.85,          // transaction price
+            //                q => -0.009,            // transaction volume
+            //                l => "maker",           // maker / taker transaction
+            //                f => array(
+            //                    a => "USDT",        // the asset used for the transaction to pay the handling fee
+            //                    m => 0.09039465000  // the transaction fee
+            //                }
+            //            ),
+            //            ...
+            //        ),
+            //        f => array(
+            //            {
+            //                a => "USDT",            // Assets used to pay fees
+            //                m => 0.10043850000      // Total handling fee
+            //            }
+            //        )
+            //    }
             //
-            $outerResults = $this->safe_value($response, 'result');
-            $firstResult = $this->safe_value($outerResults, 0, array());
-            $order = $this->safe_value($firstResult, 'result');
-            if ($this->is_empty($order)) {
-                throw new OrderNotFound($this->id . ' $order ' . $id . ' not found');
-            }
-            return $this->parse_order($order);
+            return $this->parse_order($response);
         }) ();
     }
 
     public function parse_order($order, $market = null) {
         //
-        // createOrder V4
-        //
         //    {
-        //        "i" => 4611688217450643477,  // The $order $id assigned by the exchange
-        //        "I" => "",  // User specified $order $id
-        //        "m" => "BTC_USDT",  // trading pair code
-        //        "T" => "limit",  // $order $type
-        //        "s" => "sell",  // $order direction
-        //        "Q" => -0.0100,  // $order $amount
-        //        "P" => 10043.8500,  // $order $price
-        //        "t" => "gtc",  // Time In Force
-        //        "o" => false,  // Post Only
-        //        "S" => "filled",  // $order $status
-        //        "E" => -0.0100,  // transaction volume
-        //        "e" => -100.43850000,  // transaction value
-        //        "C" => 1643193746043,  // creation time
-        //        "U" => 1643193746464,  // update time
-        //        "n" => 2,  // Number of transactions
-        //        "F" => array(
+        //        $i => '14580623696203099',       // the $order id assigned by the exchange
+        //        I => '0',                       // user specified $order id
+        //        m => 'ADA_USDT',                // trading pair code
+        //        T => 'limit',                   // $order type
+        //        s => 'buy',                     // $order direction
+        //        Q => '4.000000',                // $order $amount
+        //        P => '0.300000',                // $order price
+        //        t => 'gtc',                     // time in force
+        //        o => false,                     // post only
+        //        S => 'accepted',                // $order status
+        //        E => '0',                       // transaction volume
+        //        e => '0',                       // transaction value
+        //        C => '1666235804233',           // creation time
+        //        U => '1666235804233',           // update time
+        //        V => '586925436933',
+        //        n => '0',                       // number of $transactions
+        //        F => array(
         //            {
-        //                "i" => 13,  // transaction $id
-        //                "t" => 1643193746464,  // Transaction time
-        //                "p" => 10043.85,  // transaction $price
-        //                "q" => -0.009,  // transaction volume
-        //                "l" => "maker",  // Maker / Taker transaction
-        //                "f" => array(
-        //                    "a" => "USDT",  // The asset used for the transaction to pay the handling $fee
-        //                    "m" => 0.09039465000  // The transaction $fee
+        //                $i => 13,                // transaction id
+        //                t => 1643193746464,     // transaction time
+        //                p => 10043.85,          // transaction price
+        //                q => -0.009,            // transaction volume
+        //                l => "maker",           // maker / taker transaction
+        //                f => array(
+        //                    a => "USDT",        // the asset used for the transaction to pay the handling fee
+        //                    m => 0.09039465000  // the transaction fee
         //                }
         //            ),
-        //            {
-        //                "i" => 12,
-        //                "t" => 1643193746266,
-        //                "p" => 10043.85,
-        //                "q" => -0.001,
-        //                "l" => "maker",
-        //                "f" => {
-        //                    "a" => "USDT",
-        //                    "m" => 0.01004385000
-        //                }
-        //            }
+        //            ...
         //        ),
-        //        "f" => array(
+        //        f => array(
         //            {
-        //                "a" => "USDT",  // Assets used to pay $fees
-        //                "m" => 0.10043850000  // Total handling $fee
+        //                a => "USDT",            // Assets used to pay $fees
+        //                m => 0.10043850000      // Total handling fee
         //            }
         //        )
         //    }
         //
-        // fetchOrder V1, fetchOpenOrders V1, fetchClosedOrders V1
-        //
-        //     {
-        //         "id" => "100055558128036",
-        //         "createdAt" => 1512756997000,
-        //         "account_type" => 0,
-        //         "coin_symbol" => "LTC",        // Trading Token
-        //         "currency_symbol" => "BTC",    // Pricing Token
-        //         "order_side" => 2,             // Trading $side 1-Buy, 2-Sell
-        //         "order_type" => 2,             // 2-limit $order
-        //         "price" => "0.00900000",       // $order $price
-        //         "amount" => "1.00000000",      // $order $amount
-        //         "money" => "0.00900000",       // currency $amount ($price * $amount)
-        //         "deal_amount" => "0.00000000", // deal $amount
-        //         "deal_percent" => "0.00%",     // deal percentage
-        //         "unexecuted" => "0.00000000",  // unexecuted $amount
-        //         "status" => 3                  // Status,-1-fail, 0,1-to be dealt, 2-dealt partly, 3-dealt totally, 4- cancelled partly, 5-cancelled totally, 6-to be cancelled
-        //     }
-        //
         $marketId = $this->safe_string($order, 'm');
-        if ($marketId === null) {
-            $baseId = $this->safe_string($order, 'coin_symbol');
-            $quoteId = $this->safe_string($order, 'currency_symbol');
-            if (($baseId !== null) && ($quoteId !== null)) {
-                $marketId = $baseId . '_' . $quoteId;
-            }
-        }
         $market = $this->safe_market($marketId, $market);
-        $type = $this->safe_string_2($order, 'T', 'order_type');
-        if ($type !== 'limit' && $type !== 'market') {
-            if ($type === '1') {
-                $type = 'limit';
-            } elseif ($type === '2') {
-                $type = 'market';
-            }
-        }
-        $timestamp = $this->safe_integer_2($order, 'C', 'createdAt');
-        $price = $this->safe_string_2($order, 'P', 'price');
-        $average = $this->safe_string($order, 'deal_price');
-        $filled = $this->safe_string($order, 'deal_amount');
-        $amount = $this->safe_string_2($order, 'Q', 'amount');
+        $timestamp = $this->safe_integer($order, 'C');
+        $amount = $this->safe_string($order, 'Q');
         $amount = Precise::string_abs($amount);
-        $cost = $this->safe_string_2($order, 'money', 'deal_money');
-        $side = $this->safe_string_2($order, 's', 'order_side');
-        if ($side === '1') {
-            $side = 'buy';
-        } elseif ($side === '2') {
-            $side = 'sell';
-        }
-        $status = $this->parse_order_status($this->safe_string_2($order, 'S', 'status'));
-        $id = $this->safe_string_2($order, 'i', 'id');
-        $clientOrderId = $this->omit_zero($this->safe_string($order, 'I'));
-        $timeInForce = $this->safe_string_upper($order, 't');
-        $postOnly = $this->safe_value($order, 'o');
+        $side = $this->safe_string($order, 's');
         $fees = array();
         $orderFees = $this->safe_value($order, 'f', array());
         for ($i = 0; $i < count($orderFees); $i++) {
@@ -1628,41 +1739,35 @@ class bibox extends Exchange {
                 'cost' => $this->safe_string($orderFees[$i], 'm'),
             );
         }
-        $fee = null;
-        if (strlen($fees)) {
-            $fee = $this->safe_value($fees, 0);
-        } else {
-            $feeCost = $this->safe_string($order, 'fee');
-            if ($feeCost !== null) {
-                $fee = array(
-                    'cost' => $feeCost,
-                    'currency' => null,
-                );
-            }
+        $transactions = $this->safe_value($order, 'F');
+        $trades = array();
+        for ($i = 0; $i < count($transactions); $i++) {
+            $trade = $this->parse_trade($transactions[$i]);
+            $trades[] = $trade;
         }
         return $this->safe_order(array(
             'info' => $order,
-            'id' => $id,
-            'clientOrderId' => $clientOrderId,
+            'id' => $this->safe_string($order, 'i'),
+            'clientOrderId' => $this->omit_zero($this->safe_string($order, 'I')),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'lastTradeTimestamp' => null,
             'symbol' => $market['symbol'],
-            'type' => $type,
-            'timeInForce' => $timeInForce,
-            'postOnly' => $postOnly,
+            'type' => $this->safe_string($order, 'T'),
+            'timeInForce' => $this->safe_string_upper($order, 't'),
+            'postOnly' => $this->safe_value($order, 'o'),
             'side' => $side,
-            'price' => $price,
+            'price' => $this->safe_string($order, 'P'),
             'stopPrice' => null,
             'amount' => $amount,
-            'cost' => $cost,
-            'average' => $average,
-            'filled' => $filled,
+            'cost' => $this->safe_string($order, 'e'),
+            'average' => null,
+            'filled' => $this->safe_string($order, 'E'),
             'remaining' => null,
-            'status' => $status,
-            'fee' => $fee,
+            'status' => $this->parse_order_status($this->safe_string($order, 'S')),
+            'fee' => $this->safe_value($fees, 0),
             'fees' => $fees,
-            'trades' => null,
+            'trades' => $trades,
         ), $market);
     }
 
@@ -1682,198 +1787,165 @@ class bibox extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
-        return Async\async(function () use ($symbol, $since, $limit, $params) {
+    public function fetch_orders_by_status($status, $symbol = null, $since = null, $limit = null, $params = array ()) {
+        return Async\async(function () use ($status, $symbol, $since, $limit, $params) {
             /**
-             * fetch all unfilled currently open $orders
+             * fetch all unfilled currently $open orders
+             * @param $status $open or closed
              * @param {string|null} $symbol unified $market $symbol
-             * @param {int|null} $since the earliest time in ms to fetch open $orders for
-             * @param {int|null} $limit the maximum number of  open $orders structures to retrieve
+             * @param {int|null} $since the earliest time in ms to fetch orders for
+             * @param {int|null} $limit the maximum number of  $open orders structures to retrieve
              * @param {array} $params extra parameters specific to the bibox api endpoint
+             * @param {int} $params->until the latest time in ms to fetch orders for
+             *
+             * EXCHANGE SPECIFIC PARMETERS
+             * @param {string} $params->before order update id limited to return the maximum update id of the order
+             * @param {string} $params->after delegate update id limited to return the minimum update id of the order
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
             Async\await($this->load_markets());
+            $request = array();
             $market = null;
-            $pair = null;
+            $until = $this->safe_integer($params, 'until');
+            $open = ($status === 'open');
+            $unsettled = ($status === 'unsettled');
+            $params = $this->omit($params, 'until');
+            if ($until !== null) {              // The order of $request parameters must go end_time -> $limit -> start_time -> $status -> $symbol
+                $request['end_time'] = $until;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            if ($since !== null) {
+                $request['start_time'] = $since;
+            }
+            $request['status'] = ($open || $unsettled) ? 'unsettled' : 'settled';
             if ($symbol !== null) {
                 $market = $this->market($symbol);
-                $pair = $market['id'];
+                $request['symbol'] = $market['id'];
             }
-            $size = $limit ? $limit : 200;
-            $request = array(
-                'cmd' => 'orderpending/orderPendingList',
-                'body' => array_merge(array(
-                    'pair' => $pair,
-                    'account_type' => 0, // 0 - regular, 1 - margin
-                    'page' => 1,
-                    'size' => $size,
-                ), $params),
-            );
-            $response = Async\await($this->v1PrivatePostOrderpending ($request));
+            $response = Async\await($this->v4PrivateGetUserdataOrders (array_merge($request, $params)));
             //
-            //     {
-            //         "result":array(
-            //             {
-            //                 "result":{
-            //                     "count":1,
-            //                     "page":1,
-            //                     "items":array(
-            //                         array(
-            //                             "id":"100055558128036",
-            //                             "createdAt" => 1512756997000,
-            //                             "account_type":0,
-            //                             "coin_symbol":"LTC",        // Trading Token
-            //                             "currency_symbol":"BTC",    // Pricing Token
-            //                             "order_side":2,             // Trading side 1-Buy, 2-Sell
-            //                             "order_type":2,             // 2-$limit order
-            //                             "price":"0.00900000",       // order price
-            //                             "amount":"1.00000000",      // order amount
-            //                             "money":"0.00900000",       // currency amount (price * amount)
-            //                             "deal_amount":"0.00000000", // deal amount
-            //                             "deal_percent":"0.00%",     // deal percentage
-            //                             "unexecuted":"0.00000000",  // unexecuted amount
-            //                             "status":1                  // Status,-1-fail, 0,1-to be dealt, 2-dealt partly, 3-dealt totally, 4- cancelled partly, 5-cancelled totally, 6-to be cancelled
-            //                         }
-            //                     )
-            //                 ),
-            //                 "cmd":"orderpending/orderPendingList"
-            //             }
-            //         )
-            //     }
+            //    array(
+            //        {
+            //            "i" => 14589419788970785,
+            //            "I" => "0",
+            //            "m" => "ADA_USDT",
+            //            "T" => "limit",
+            //            "s" => "buy",
+            //            "Q" => 4.000000,
+            //            "P" => 0.300000,
+            //            "t" => "gtc",
+            //            "o" => false,
+            //            "S" => "accepted",
+            //            "E" => 0,
+            //            "e" => 0,
+            //            "C" => 1666373682656,
+            //            "U" => 1666373682656,
+            //            "V" => 587932155076,
+            //            "n" => 0,
+            //            "F" => array(),
+            //            "f" => array()
+            //        }
+            //    )
             //
-            $outerResults = $this->safe_value($response, 'result');
-            $firstResult = $this->safe_value($outerResults, 0, array());
-            $innerResult = $this->safe_value($firstResult, 'result', array());
-            $orders = $this->safe_value($innerResult, 'items', array());
-            return $this->parse_orders($orders, $market, $since, $limit);
+            return $this->parse_orders($response, $market, $since, $limit);
         }) ();
     }
 
-    public function fetch_closed_orders($symbol = null, $since = null, $limit = 200, $params = array ()) {
+    public function fetch_open_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * fetches information on multiple closed $orders made by the user
-             * @param {string} $symbol unified $market $symbol of the $market $orders were made in
-             * @param {int|null} $since the earliest time in ms to fetch $orders for
+             * fetches information on multiple closed orders made by the user
+             * @param {string} $symbol unified market $symbol of the market orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch orders for
+             * @param {int|null} $limit the maximum number of order structures to retrieve
+             * @param {array} $params extra parameters specific to the bibox api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
+             */
+            return Async\await($this->fetch_orders_by_status('open', $symbol, $since, $limit, $params));
+        }) ();
+    }
+
+    public function fetch_closed_orders($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * fetches information on multiple closed orders made by the user
+             * @param {string} $symbol unified market $symbol of the market orders were made in
+             * @param {int|null} $since the earliest time in ms to fetch orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the bibox api endpoint
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structures}
              */
             if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchClosedOrders() requires a `$symbol` argument');
+                throw new ArgumentsRequired($this->id . ' fetchClosedOrders requires a $symbol argument');
             }
-            Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $request = array(
-                'cmd' => 'orderpending/pendingHistoryList',
-                'body' => array_merge(array(
-                    'pair' => $market['id'],
-                    'account_type' => 0, // 0 - regular, 1 - margin
-                    'page' => 1,
-                    'size' => $limit,
-                ), $params),
-            );
-            $response = Async\await($this->v1PrivatePostOrderpending ($request));
-            //
-            //     {
-            //         "result":array(
-            //             {
-            //                 "result":{
-            //                     "count":1,
-            //                     "page":1,
-            //                     "items":array(
-            //                         array(
-            //                             "id":"100055558128036",
-            //                             "createdAt" => 1512756997000,
-            //                             "account_type":0,
-            //                             "coin_symbol":"LTC",        // Trading Token
-            //                             "currency_symbol":"BTC",    // Pricing Token
-            //                             "order_side":2,             // Trading side 1-Buy, 2-Sell
-            //                             "order_type":2,             // 2-$limit order
-            //                             "price":"0.00900000",       // order price
-            //                             "amount":"1.00000000",      // order amount
-            //                             "money":"0.00900000",       // currency amount (price * amount)
-            //                             "deal_amount":"0.00000000", // deal amount
-            //                             "deal_percent":"0.00%",     // deal percentage
-            //                             "unexecuted":"0.00000000",  // unexecuted amount
-            //                             "status":3                  // Status,-1-fail, 0,1-to be dealt, 2-dealt partly, 3-dealt totally, 4- cancelled partly, 5-cancelled totally, 6-to be cancelled
-            //                         }
-            //                     )
-            //                 ),
-            //                 "cmd":"orderpending/pendingHistoryList"
-            //             }
-            //         )
-            //     }
-            //
-            $outerResults = $this->safe_value($response, 'result');
-            $firstResult = $this->safe_value($outerResults, 0, array());
-            $innerResult = $this->safe_value($firstResult, 'result', array());
-            $orders = $this->safe_value($innerResult, 'items', array());
-            return $this->parse_orders($orders, $market, $since, $limit);
+            return Async\await($this->fetch_orders_by_status('closed', $symbol, $since, $limit, $params));
         }) ();
     }
 
     public function fetch_my_trades($symbol = null, $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
-             * fetch all $trades made by the user
-             * @param {string} $symbol unified $market $symbol
-             * @param {int|null} $since the earliest time in ms to fetch $trades for
-             * @param {int|null} $limit the maximum number of $trades structures to retrieve
+             * fetch all trades made by the user
+             * @see https://biboxcom.github.io/api/spot/v4/en/#get-fills
+             * @param {string|null} $symbol unified $market $symbol, if not given, please provide $params['order_id']
+             * @param {int|null} $since the earliest time in ms to fetch trades for
+             * @param {int|null} $limit the maximum number of trades structures to retrieve, default = 100
              * @param {array} $params extra parameters specific to the bibox api endpoint
+             * @param {int|null} $params->until the earliest time in ms to fetch trades for
+             *
+             * EXCHANGE SPECIFIC PARAMETERS
+             * @param {string|null} $params->order_id the order id assigned by the exchange only return the transaction records of the specified order, if this parameter is not specified, please specify $symbol
+             * @param {int|null} $params->after transaction record id, limited to return the minimum id of transaction records
+             * @param {int|null} $params->before transaction record id, limited to return the maximum id of transaction records
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#trade-structure trade structures}
              */
-            if ($symbol === null) {
-                throw new ArgumentsRequired($this->id . ' fetchMyTrades() requires a `$symbol` argument');
-            }
             Async\await($this->load_markets());
-            $market = $this->market($symbol);
-            $size = $limit ? $limit : 200;
-            $request = array(
-                'cmd' => 'orderpending/orderHistoryList',
-                'body' => array_merge(array(
-                    'pair' => $market['id'],
-                    'account_type' => 0, // 0 - regular, 1 - margin
-                    'page' => 1,
-                    'size' => $size,
-                    'coin_symbol' => $market['baseId'],
-                    'currency_symbol' => $market['quoteId'],
-                ), $params),
-            );
-            $response = Async\await($this->v1PrivatePostOrderpending ($request));
+            $market = null;
+            $request = array();
+            $until = $this->safe_integer($params, 'until');
+            $params = $this->omit($params, 'until');
+            if ($symbol === null) {
+                $orderId = $this->safe_string($params, 'order_id');
+                if ($orderId === null) {
+                    throw new ArgumentsRequired($this->id . ' fetchMyTrades requires either a $symbol parameter of $params["order_id"]');
+                }
+            }
+            if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $request['symbol'] = $market['id'];
+            }
+            if ($since !== null) {
+                $request['start_time'] = $since;
+            }
+            if ($limit !== null) {
+                $request['limit'] = $limit;
+            }
+            if ($until !== null) {
+                $request['end_time'] = $until;
+            }
+            $response = Async\await($this->v4PrivateGetUserdataFills (array_merge($request, $params)));
             //
-            //     {
-            //         "result":array(
-            //             {
-            //                 "result":{
-            //                     "count":1,
-            //                     "page":1,
-            //                     "items":array(
-            //                         array(
-            //                             "id":"100055558128033",
-            //                             "createdAt" => 1512756997000,
-            //                             "account_type":0,
-            //                             "coin_symbol":"LTC",
-            //                             "currency_symbol":"BTC",
-            //                             "order_side":2,
-            //                             "order_type":2,
-            //                             "price":"0.00886500",
-            //                             "amount":"1.00000000",
-            //                             "money":"0.00886500",
-            //                             "fee":0
-            //                         }
-            //                     )
-            //                 ),
-            //                 "cmd":"orderpending/orderHistoryList"
-            //             }
-            //         )
-            //     }
+            //    array(
+            //        {
+            //            "i" => 452361213188,
+            //            "o" => 14284855094264759,
+            //            "s" => "ADA_USDT",
+            //            "T" => 1579458,
+            //            "t" => 1653676917531,
+            //            "p" => 0.45,
+            //            "q" => 10,
+            //            "l" => "maker",
+            //            "f" => {
+            //                "a" => "ADA",
+            //                "m" => 0.010000000
+            //            }
+            //        }
+            //        ...
+            //    )
             //
-            $outerResults = $this->safe_value($response, 'result');
-            $firstResult = $this->safe_value($outerResults, 0, array());
-            $innerResult = $this->safe_value($firstResult, 'result', array());
-            $trades = $this->safe_value($innerResult, 'items', array());
-            return $this->parse_trades($trades, $market, $since, $limit);
+            return $this->parse_trades($response, $market, $since, $limit);
         }) ();
     }
 
@@ -1988,7 +2060,7 @@ class bibox extends Exchange {
     public function fetch_transaction_fees($codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
-             * fetch transaction fees
+             * *DEPRECATED* please use fetchDepositWithdrawFees instead
              * @param {[string]|null} $codes list of unified $currency $codes
              * @param {array} $params extra parameters specific to the bibox api endpoint
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
@@ -2045,6 +2117,81 @@ class bibox extends Exchange {
                 'deposit' => array(),
             );
         }) ();
+    }
+
+    public function fetch_deposit_withdraw_fee($code, $params = array ()) {
+        return Async\async(function () use ($code, $params) {
+            /**
+             * fetch withdrawal fees for currencies
+             * @param {string} $code unified $currency $code
+             * @param {array} $params extra parameters specific to the bibox api endpoint
+             * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+             */
+            Async\await($this->load_markets());
+            $currency = $this->currency($code);
+            $request = array(
+                'cmd' => 'transfer/coinConfig',
+                'body' => array_merge(array(
+                    'coin_symbol' => $currency['id'],
+                ), $params),
+            );
+            $response = Async\await($this->v1PrivatePostTransfer ($request));
+            //
+            //    {
+            //        "result" => array(
+            //            {
+            //                "result" => array(
+            //                    {
+            //                        "coin_symbol" => "ETH",
+            //                        "is_active" => 1,
+            //                        "original_decimals" => 18,
+            //                        "enable_deposit" => 1,
+            //                        "enable_withdraw" => 1,
+            //                        "withdraw_fee" => 0.008,
+            //                        "withdraw_min" => 0.05,
+            //                        "deposit_avg_spent" => 173700,
+            //                        "withdraw_avg_spent" => 322600
+            //                    }
+            //                ),
+            //                "cmd" => "transfer/coinConfig"
+            //            }
+            //        )
+            //    }
+            //
+            $outerResults = $this->safe_value($response, 'result', array());
+            $firstOuterResult = $this->safe_value($outerResults, 0, array());
+            $innerResults = $this->safe_value($firstOuterResult, 'result', array());
+            $firstInnerResult = $this->safe_value($innerResults, 0, array());
+            return $this->parse_deposit_withdraw_fee($firstInnerResult, $currency);
+        }) ();
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //
+        //    {
+        //        "coin_symbol" => "ETH",
+        //        "is_active" => 1,
+        //        "original_decimals" => 18,
+        //        "enable_deposit" => 1,
+        //        "enable_withdraw" => 1,
+        //        "withdraw_fee" => 0.008,
+        //        "withdraw_min" => 0.05,
+        //        "deposit_avg_spent" => 173700,
+        //        "withdraw_avg_spent" => 322600
+        //    }
+        //
+        return array(
+            'info' => $fee,
+            'withdraw' => array(
+                'fee' => $this->safe_number($fee, 'withdraw_fee'),
+                'percentage' => null,
+            ),
+            'deposit' => array(
+                'fee' => null,
+                'percentage' => null,
+            ),
+            'networks' => array(),
+        );
     }
 
     public function transfer($code, $amount, $fromAccount, $toAccount, $params = array ()) {
@@ -2265,7 +2412,8 @@ class bibox extends Exchange {
             return;
         }
         if (is_array($response) && array_key_exists('state', $response)) {
-            if ($this->safe_number($response, 'state') === 0) {
+            $state = $this->safe_string($response, 'state');
+            if (Precise::string_eq($state, '0')) {    // $this->safe_number("0") === 0 may return false in php because of mismatched types (e.g. integer and double)
                 return;
             }
             throw new ExchangeError($this->id . ' ' . $body);
@@ -2280,6 +2428,7 @@ class bibox extends Exchange {
                 }
                 throw new ExchangeError($this->id . ' ' . $body);
             } else {
+                $code = $this->safe_string($response, 'error');
                 $feedback = $this->id . ' ' . $body;
                 $this->throw_exactly_matched_exception($this->exceptions, $code, $feedback);
                 throw new ExchangeError($feedback);

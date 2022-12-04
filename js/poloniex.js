@@ -120,6 +120,7 @@ module.exports = class poloniex extends Exchange {
                         'orders': 20,
                         'orders/{id}': 4,
                         'orders/history': 20,
+                        'orders/killSwitchStatus': 4,
                         'smartorders': 20,
                         'smartorders/{id}': 4,
                         'smartorders/history': 20,
@@ -131,6 +132,8 @@ module.exports = class poloniex extends Exchange {
                         'wallets/address': 20,
                         'wallets/withdraw': 20,
                         'orders': 4,
+                        'orders/killSwitch': 4,
+                        'orders/batch': 20,
                         'smartorders': 4,
                     },
                     'delete': {
@@ -469,7 +472,7 @@ module.exports = class poloniex extends Exchange {
         //
         const timestamp = this.safeInteger (ticker, 'ts');
         const marketId = this.safeString (ticker, 'symbol');
-        market = this.market (marketId);
+        market = this.safeMarket (marketId);
         const close = this.safeString (ticker, 'close');
         const relativeChange = this.safeString (ticker, 'percentChange');
         const percentage = Precise.stringMul (relativeChange, '100');
