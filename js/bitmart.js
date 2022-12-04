@@ -102,7 +102,6 @@ module.exports = class bitmart extends Exchange {
             'requiredCredentials': {
                 'apiKey': true,
                 'secret': true,
-                'uid': true,
             },
             'api': {
                 'public': {
@@ -378,6 +377,9 @@ module.exports = class bitmart extends Exchange {
                 'defaultType': 'spot', // 'spot', 'swap'
                 'fetchBalance': {
                     'type': 'spot', // 'spot', 'swap', 'account'
+                },
+                'accountsByType': {
+                    'spot': 'spot',
                 },
                 'createMarketBuyOrderRequiresPrice': true,
             },
@@ -1461,25 +1463,55 @@ module.exports = class bitmart extends Exchange {
     }
 
     parseBalance (response, marketType) {
+        const data = this.safeValue (response, 'data', {});
         let wallet = undefined;
         if (marketType === 'swap') {
             wallet = this.safeValue (response, 'data', []);
+        } else if (marketType === 'margin') {
+            wallet = this.safeValue (data, 'symbols', []);
         } else {
-            const data = this.safeValue (response, 'data', {});
             wallet = this.safeValue (data, 'wallet', []);
         }
         const result = { 'info': response };
-        for (let i = 0; i < wallet.length; i++) {
-            const balance = wallet[i];
-            let currencyId = this.safeString2 (balance, 'id', 'currency');
-            currencyId = this.safeString (balance, 'coin_code', currencyId);
-            const code = this.safeCurrencyCode (currencyId);
-            const account = this.account ();
-            account['free'] = this.safeString2 (balance, 'available', 'available_balance');
-            account['used'] = this.safeString2 (balance, 'frozen', 'frozen_balance');
-            result[code] = account;
+        if (marketType === 'margin') {
+            for (let i = 0; i < wallet.length; i++) {
+                const entry = wallet[i];
+                const marketId = this.safeString (entry, 'symbol');
+                const symbol = this.safeSymbol (marketId, undefined, '_');
+                const base = this.safeValue (entry, 'base', {});
+                const quote = this.safeValue (entry, 'quote', {});
+                const baseCode = this.safeCurrencyCode (this.safeString (base, 'currency'));
+                const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'currency'));
+                const subResult = {};
+                subResult[baseCode] = this.parseBalanceHelper (base);
+                subResult[quoteCode] = this.parseBalanceHelper (quote);
+                result[symbol] = this.safeBalance (subResult);
+            }
+            return result;
+        } else {
+            for (let i = 0; i < wallet.length; i++) {
+                const balance = wallet[i];
+                let currencyId = this.safeString2 (balance, 'id', 'currency');
+                currencyId = this.safeString (balance, 'coin_code', currencyId);
+                const code = this.safeCurrencyCode (currencyId);
+                const account = this.account ();
+                account['free'] = this.safeString2 (balance, 'available', 'available_balance');
+                account['used'] = this.safeString2 (balance, 'frozen', 'frozen_balance');
+                result[code] = account;
+            }
+            return this.safeBalance (result);
         }
-        return this.safeBalance (result);
+    }
+
+    parseBalanceHelper (entry) {
+        const account = this.account ();
+        account['used'] = this.safeString (entry, 'frozen');
+        account['free'] = this.safeString (entry, 'available');
+        account['total'] = this.safeString (entry, 'total_asset');
+        const debt = this.safeString (entry, 'borrow_unpaid');
+        const interest = this.safeString (entry, 'interest_unpaid');
+        account['debt'] = Precise.stringAdd (debt, interest);
+        return account;
     }
 
     async fetchBalance (params = {}) {
@@ -1487,16 +1519,27 @@ module.exports = class bitmart extends Exchange {
          * @method
          * @name bitmart#fetchBalance
          * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @see https://developer-pro.bitmart.com/en/spot/#get-spot-wallet-balance
+         * @see https://developer-pro.bitmart.com/en/futures/#get-contract-assets-detail
+         * @see https://developer-pro.bitmart.com/en/spot/#get-account-balance
+         * @see https://developer-pro.bitmart.com/en/spot/#get-margin-account-details-isolated
          * @param {object} params extra parameters specific to the bitmart api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
         await this.loadMarkets ();
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
-        const method = this.getSupportedMapping (marketType, {
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        let method = this.getSupportedMapping (marketType, {
             'spot': 'privateGetSpotV1Wallet',
             'swap': 'privateGetContractPrivateAssetsDetail',
             'account': 'privateGetAccountV1Wallet',
+            'margin': 'privateGetSpotV1MarginIsolatedAccount',
         });
+        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
+        if (marginMode !== undefined) {
+            method = 'privateGetSpotV1MarginIsolatedAccount';
+            marketType = 'margin';
+        }
         const response = await this[method] (query);
         //
         // spot
@@ -1545,6 +1588,51 @@ module.exports = class bitmart extends Exchange {
         //             ...
         //         ],
         //         "trace": "f9da3a39-cf45-42e7-914d-294f565dfc33"
+        //     }
+        //
+        // margin
+        //
+        //     {
+        //         "message": "OK",
+        //         "code": 1000,
+        //         "trace": "61dd6ab265c04064b72d8bc9b205f741.71.16701055600915302",
+        //         "data": {
+        //             "symbols": [
+        //                 {
+        //                     "symbol": "BTC_USDT",
+        //                     "risk_rate": "999.00",
+        //                     "risk_level": "1",
+        //                     "buy_enabled": false,
+        //                     "sell_enabled": false,
+        //                     "liquidate_price": null,
+        //                     "liquidate_rate": "1.15",
+        //                     "base": {
+        //                         "currency": "BTC",
+        //                         "borrow_enabled": true,
+        //                         "borrowed": "0.00000000",
+        //                         "available": "0.00000000",
+        //                         "frozen": "0.00000000",
+        //                         "net_asset": "0.00000000",
+        //                         "net_assetBTC": "0.00000000",
+        //                         "total_asset": "0.00000000",
+        //                         "borrow_unpaid": "0.00000000",
+        //                         "interest_unpaid": "0.00000000"
+        //                     },
+        //                     "quote": {
+        //                         "currency": "USDT",
+        //                         "borrow_enabled": true,
+        //                         "borrowed": "0.00000000",
+        //                         "available": "20.00000000",
+        //                         "frozen": "0.00000000",
+        //                         "net_asset": "20.00000000",
+        //                         "net_assetBTC": "0.00118008",
+        //                         "total_asset": "20.00000000",
+        //                         "borrow_unpaid": "0.00000000",
+        //                         "interest_unpaid": "0.00000000"
+        //                     }
+        //                 }
+        //             ]
+        //         }
         //     }
         //
         return this.parseBalance (response, marketType);
@@ -2447,11 +2535,6 @@ module.exports = class bitmart extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument');
         }
-        let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('repayMargin', params);
-        if (marginMode === undefined) {
-            marginMode = 'isolated'; // isolated as the default marginMode
-        }
         const market = this.market (symbol);
         const currency = this.currency (code);
         const request = {
@@ -2459,6 +2542,7 @@ module.exports = class bitmart extends Exchange {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
+        params = this.omit (params, 'marginMode');
         const response = await this.privatePostSpotV1MarginIsolatedRepay (this.extend (request, params));
         //
         //     {
@@ -2495,11 +2579,6 @@ module.exports = class bitmart extends Exchange {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument');
         }
-        let marginMode = undefined;
-        [ marginMode, params ] = this.handleMarginModeAndParams ('borrowMargin', params);
-        if (marginMode === undefined) {
-            marginMode = 'isolated'; // isolated as the default marginMode
-        }
         const market = this.market (symbol);
         const currency = this.currency (code);
         const request = {
@@ -2507,6 +2586,7 @@ module.exports = class bitmart extends Exchange {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
+        params = this.omit (params, 'marginMode');
         const response = await this.privatePostSpotV1MarginIsolatedBorrow (this.extend (request, params));
         //
         //     {
@@ -2754,25 +2834,24 @@ module.exports = class bitmart extends Exchange {
          * @param {object} params extra parameters specific to the bitmart api endpoint
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
-        const symbol = this.safeString (params, 'symbol');
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' transfer() requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
         const currency = this.currency (code);
         const amountToPrecision = this.currencyToPrecision (code, amount);
         const request = {
             'amount': amountToPrecision,
             'currency': currency['id'],
-            'symbol': market['id'],
         };
-        if ((fromAccount === 'spot') && (toAccount === 'margin')) {
+        const fromId = this.convertTypeToAccount (fromAccount);
+        const toId = this.convertTypeToAccount (toAccount);
+        if (fromAccount === 'spot') {
             request['side'] = 'in';
-        } else if ((fromAccount === 'margin') && (toAccount === 'spot')) {
+            request['symbol'] = toId;
+        } else if (toAccount === 'spot') {
             request['side'] = 'out';
+            request['symbol'] = fromId;
+        } else {
+            throw new ArgumentsRequired (this.id + ' transfer() requires either fromAccount or toAccount to be spot');
         }
-        params = this.omit (params, 'symbol');
         const response = await this.privatePostSpotV1MarginIsolatedTransfer (this.extend (request, params));
         //
         //     {
@@ -2915,17 +2994,12 @@ module.exports = class bitmart extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[string|undefined, object]} the marginMode in lowercase
          */
-        const defaultType = this.safeString (this.options, 'defaultType');
-        const isMargin = this.safeValue (params, 'margin', false);
+        defaultValue = (defaultValue === undefined) ? 'isolated' : defaultValue;
         let marginMode = undefined;
         [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
         if (marginMode !== undefined) {
             if (marginMode !== 'isolated') {
                 throw new NotSupported (this.id + ' only isolated margin is supported');
-            }
-        } else {
-            if ((defaultType === 'margin') || (isMargin === true)) {
-                marginMode = 'isolated';
             }
         }
         return [ marginMode, params ];
@@ -2959,9 +3033,10 @@ module.exports = class bitmart extends Exchange {
                 body = this.json (query);
                 queryString = body;
             }
-            const auth = timestamp + '#' + this.uid + '#' + queryString;
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
-            headers['X-BM-SIGN'] = signature;
+            // The request header of X-BM-SIGN is obtained by encrypting the timestamp + "#" + memo + "#" + queryString
+            // memo is ignored by bitmart so we send "CCXT" here
+            const auth = timestamp + '#CCXT#' + queryString;
+            headers['X-BM-SIGN'] = this.hmac (this.encode (auth), this.encode (this.secret));
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
