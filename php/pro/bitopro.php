@@ -73,6 +73,7 @@ class bitopro extends \ccxt\async\bitopro {
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $messageHash = 'ORDER_BOOK' . ':' . $symbol;
             $endPart = null;
             if ($limit === null) {
@@ -81,7 +82,7 @@ class bitopro extends \ccxt\async\bitopro {
                 $endPart = $market['id'] . ':' . $limit;
             }
             $orderbook = Async\await($this->watch_public('order-books', $messageHash, $endPart));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 
@@ -134,6 +135,7 @@ class bitopro extends \ccxt\async\bitopro {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $messageHash = 'TRADE' . ':' . $symbol;
             $trades = Async\await($this->watch_public('trades', $messageHash, $market['id'], $limit));
             if ($this->newUpdates) {
@@ -192,6 +194,7 @@ class bitopro extends \ccxt\async\bitopro {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $messageHash = 'TICKER' . ':' . $symbol;
             return Async\await($this->watch_public('tickers', $messageHash, $market['id']));
         }) ();

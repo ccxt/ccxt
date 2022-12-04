@@ -410,20 +410,12 @@ class exmo(Exchange):
     def fetch_transaction_fees(self, codes=None, params={}):
         """
         fetch transaction fees
+        see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
         :param [str]|None codes: list of unified currency codes
         :param dict params: extra parameters specific to the exmo api endpoint
         :returns dict: a list of `transaction fees structures <https://docs.ccxt.com/en/latest/manual.html#fees-structure>`
         """
         self.load_markets()
-        currencyList = self.publicGetCurrencyListExtended(params)
-        #
-        #     [
-        #         {"name":"VLX","description":"Velas"},
-        #         {"name":"RUB","description":"Russian Ruble"},
-        #         {"name":"BTC","description":"Bitcoin"},
-        #         {"name":"USD","description":"US Dollar"}
-        #     ]
-        #
         cryptoList = self.publicGetPaymentsProvidersCryptoList(params)
         #
         #     {
@@ -459,24 +451,26 @@ class exmo(Exchange):
         #         ],
         #     }
         #
-        result = {
-            'info': cryptoList,
-            'withdraw': {},
-            'deposit': {},
-        }
-        for i in range(0, len(currencyList)):
-            currency = currencyList[i]
-            currencyId = self.safe_string(currency, 'name')
-            code = self.safe_currency_code(currencyId)
+        result = {}
+        cryptoListKeys = list(cryptoList.keys())
+        for i in range(0, len(cryptoListKeys)):
+            code = cryptoListKeys[i]
+            if codes is not None and not self.in_array(code, codes):
+                continue
+            result[code] = {
+                'deposit': None,
+                'withdraw': None,
+            }
+            currency = self.currency(code)
+            currencyId = self.safe_string(currency, 'id')
             providers = self.safe_value(cryptoList, currencyId, [])
             for j in range(0, len(providers)):
                 provider = providers[j]
                 type = self.safe_string(provider, 'type')
                 commissionDesc = self.safe_string(provider, 'commission_desc')
-                newFee = self.parse_fixed_float_value(commissionDesc)
-                previousFee = self.safe_number(result[type], code)
-                if (previousFee is None) or ((newFee is not None) and (newFee < previousFee)):
-                    result[type][code] = newFee
+                fee = self.parse_fixed_float_value(commissionDesc)
+                result[code][type] = fee
+            result[code]['info'] = providers
         # cache them for later use
         self.options['transactionFees'] = result
         return result
@@ -1548,6 +1542,14 @@ class exmo(Exchange):
         #             "error": ""
         #          },
         #
+        # withdraw
+        #
+        #          {
+        #              "result":true,
+        #              "error":"",
+        #              "task_id":11775077
+        #          },
+        #
         id = self.safe_string_2(transaction, 'order_id', 'task_id')
         timestamp = self.safe_timestamp_2(transaction, 'dt', 'created')
         updated = self.safe_timestamp(transaction, 'updated')
@@ -1584,7 +1586,9 @@ class exmo(Exchange):
             key = 'withdraw' if (type == 'withdrawal') else 'deposit'
             feeCost = self.safe_string(transaction, 'commission')
             if feeCost is None:
-                feeCost = self.safe_string(self.options['transactionFees'][key], code)
+                transactionFees = self.safe_value(self.options, 'transactionFees', {})
+                codeFees = self.safe_value(transactionFees, code, {})
+                feeCost = self.safe_string(codeFees, key)
             # users don't pay for cashbacks, no fees for that
             provider = self.safe_string(transaction, 'provider')
             if provider == 'cashback':

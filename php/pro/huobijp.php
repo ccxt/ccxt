@@ -61,6 +61,7 @@ class huobijp extends \ccxt\async\huobijp {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             // only supports a limit of 150 at this time
             $messageHash = 'market.' . $market['id'] . '.detail';
             $api = $this->safe_string($this->options, 'api', 'api');
@@ -126,6 +127,7 @@ class huobijp extends \ccxt\async\huobijp {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             // only supports a $limit of 150 at this time
             $messageHash = 'market.' . $market['id'] . '.trade.detail';
             $api = $this->safe_string($this->options, 'api', 'api');
@@ -194,8 +196,18 @@ class huobijp extends \ccxt\async\huobijp {
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of candles to fetch
+             * @param {array} $params extra parameters specific to the huobijp $api endpoint
+             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $interval = $this->timeframes[$timeframe];
             $messageHash = 'market.' . $market['id'] . '.kline.' . $interval;
             $api = $this->safe_string($this->options, 'api', 'api');
@@ -272,6 +284,7 @@ class huobijp extends \ccxt\async\huobijp {
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             // only supports a $limit of 150 at this time
             $limit = ($limit === null) ? 150 : $limit;
             $messageHash = 'market.' . $market['id'] . '.mbp.' . (string) $limit;
@@ -292,7 +305,7 @@ class huobijp extends \ccxt\async\huobijp {
                 'method' => array($this, 'handle_order_book_subscription'),
             );
             $orderbook = Async\await($this->watch($url, $messageHash, array_merge($request, $params), $messageHash, $subscription));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 
@@ -359,7 +372,7 @@ class huobijp extends \ccxt\async\huobijp {
                 'method' => array($this, 'handle_order_book_snapshot'),
             );
             $orderbook = Async\await($this->watch($url, $requestId, $request, $requestId, $snapshotSubscription));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 

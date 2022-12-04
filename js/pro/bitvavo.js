@@ -113,6 +113,8 @@ module.exports = class bitvavo extends bitvavoRest {
          * @param {object} params extra parameters specific to the bitvavo api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const trades = await this.watchPublic ('trades', symbol, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -149,8 +151,20 @@ module.exports = class bitvavo extends bitvavoRest {
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bitvavo#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the bitvavo api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const name = 'candles';
         const marketId = market['id'];
         const interval = this.timeframes[timeframe];
@@ -228,6 +242,7 @@ module.exports = class bitvavo extends bitvavoRest {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const name = 'book';
         const messageHash = name + '@' + market['id'];
         const url = this.urls['api']['ws'];
@@ -253,7 +268,7 @@ module.exports = class bitvavo extends bitvavoRest {
         };
         const message = this.extend (request, params);
         const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleDelta (bookside, delta) {
@@ -333,7 +348,6 @@ module.exports = class bitvavo extends bitvavoRest {
     }
 
     async watchOrderBookSnapshot (client, message, subscription) {
-        const limit = this.safeInteger (subscription, 'limit');
         const params = this.safeValue (subscription, 'params');
         const marketId = this.safeString (subscription, 'marketId');
         const name = 'getBook';
@@ -344,7 +358,7 @@ module.exports = class bitvavo extends bitvavoRest {
             'market': marketId,
         };
         const orderbook = await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBookSnapshot (client, message) {
@@ -438,6 +452,7 @@ module.exports = class bitvavo extends bitvavoRest {
         await this.loadMarkets ();
         await this.authenticate ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const marketId = market['id'];
         const url = this.urls['api']['ws'];
         const name = 'account';
@@ -476,6 +491,7 @@ module.exports = class bitvavo extends bitvavoRest {
         await this.loadMarkets ();
         await this.authenticate ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const marketId = market['id'];
         const url = this.urls['api']['ws'];
         const name = 'account';

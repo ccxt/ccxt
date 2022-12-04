@@ -113,7 +113,7 @@ module.exports = class gate extends gateRest {
             'limit': limit,
         };
         const orderbook = await this.subscribePublic (url, method, messageHash, payload, subscriptionParams);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBookSubscription (client, message, subscription) {
@@ -163,7 +163,7 @@ module.exports = class gate extends gateRest {
                     }
                 } else {
                     // throw upon failing to synchronize in maxAttempts
-                    client.subscriptions[messageHash] = undefined;
+                    delete client.subscriptions[messageHash];
                     throw new InvalidNonce (this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + maxAttempts.toString () + ' attempts');
                 }
             } else {
@@ -477,6 +477,17 @@ module.exports = class gate extends gateRest {
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the gate api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -650,6 +661,7 @@ module.exports = class gate extends gateRest {
         if (cachedTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             cachedTrades = new ArrayCacheBySymbolById (limit);
+            this.myTrades = cachedTrades;
         }
         const parsed = this.parseTrades (result);
         const marketIds = {};
@@ -793,25 +805,37 @@ module.exports = class gate extends gateRest {
          * @param {int|undefined} since the earliest time in ms to fetch orders for
          * @param {int|undefined} limit the maximum number of  orde structures to retrieve
          * @param {object} params extra parameters specific to the gate api endpoint
-         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         * @param {string} params.type spot, margin, swap, future, or option. Required if listening to all symbols.
+         * @param {boolean} params.isInverse if future, listen to inverse or linear contracts
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
          */
-        if (symbol === undefined) {
-            throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument');
-        }
         await this.loadMarkets ();
-        const market = this.market (symbol);
-        symbol = market['symbol'];
-        let type = 'spot';
-        if (market['future'] || market['swap']) {
-            type = 'futures';
-        } else if (market['option']) {
-            type = 'options';
+        let market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
         }
-        const method = type + '.orders';
+        let type = undefined;
+        let query = undefined;
+        [ type, query ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        const typeId = this.getSupportedMapping (type, {
+            'spot': 'spot',
+            'margin': 'spot',
+            'future': 'futures',
+            'swap': 'futures',
+            'option': 'options',
+        });
+        const method = typeId + '.orders';
         let messageHash = method;
-        messageHash = method + ':' + market['id'];
-        const url = this.getUrlByMarketType (market['type'], market['inverse']);
-        const payload = [ market['id'] ];
+        let payload = [ '!' + 'all' ];
+        if (symbol !== undefined) {
+            messageHash = method + ':' + market['id'];
+            payload = [ market['id'] ];
+        }
+        let subType = undefined;
+        [ subType, query ] = this.handleSubTypeAndParams ('watchOrders', market, query);
+        const isInverse = (subType === 'inverse');
+        const url = this.getUrlByMarketType (type, isInverse);
         // uid required for non spot markets
         const requiresUid = (type !== 'spot');
         const orders = await this.subscribePrivate (url, method, messageHash, payload, requiresUid);
@@ -888,6 +912,7 @@ module.exports = class gate extends gateRest {
                 const messageHash = channel + ':' + keys[i];
                 client.resolve (this.orders, messageHash);
             }
+            client.resolve (this.orders, channel);
         }
     }
 

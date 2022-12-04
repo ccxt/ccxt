@@ -993,6 +993,7 @@ class huobi extends Exchange {
                 // https://en.cryptonomist.ch/blog/eidoo/the-edo-to-pnt-upgrade-what-you-need-to-know-updated/
                 'PNT' => 'Penta',
                 'SBTC' => 'Super Bitcoin',
+                'SOUL' => 'Soulsaver',
                 'BIFI' => 'Bitcoin File', // conflict with Beefy.Finance https://github.com/ccxt/ccxt/issues/8706
             ),
         ));
@@ -1854,20 +1855,26 @@ class huobi extends Exchange {
     public function fetch_tickers($symbols = null, $params = array ()) {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * @see https://huobiapi.github.io/docs/spot/v1/en/#get-latest-$tickers-for-all-pairs
+         * @see https://huobiapi.github.io/docs/usdt_swap/v1/en/#general-get-a-batch-of-$market-data-overview
+         * @see https://huobiapi.github.io/docs/dm/v1/en/#get-a-batch-of-$market-data-overview
+         * @see https://huobiapi.github.io/docs/coin_margined_swap/v1/en/#get-a-batch-of-$market-data-overview-v2
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the huobi api endpoint
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
-        $options = $this->safe_value($this->options, 'fetchTickers', array());
-        $defaultType = $this->safe_string($this->options, 'defaultType', 'spot');
-        $type = $this->safe_string($options, 'type', $defaultType);
-        $type = $this->safe_string($params, 'type', $type);
+        $first = $this->safe_string($symbols, 0);
+        $market = null;
+        if ($first !== null) {
+            $market = $this->market($first);
+        }
+        $type = null;
+        $subType = null;
         $method = 'spotPublicGetMarketTickers';
-        $defaultSubType = $this->safe_string($this->options, 'defaultSubType', 'inverse');
-        $subType = $this->safe_string($options, 'subType', $defaultSubType);
-        $subType = $this->safe_string($params, 'subType', $subType);
+        list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchTickers', $market, $params);
         $request = array();
         $future = ($type === 'future');
         $swap = ($type === 'swap');
@@ -2189,7 +2196,7 @@ class huobi extends Exchange {
         if ($filledPoints !== null) {
             if (($feeCost === null) || Precise::string_equals($feeCost, '0')) {
                 $feeDeductCurrency = $this->safe_string($trade, 'fee-deduct-currency');
-                if ($feeDeductCurrency !== '') {
+                if ($feeDeductCurrency !== null) {
                     $feeCost = $filledPoints;
                     $feeCurrency = $this->safe_currency_code($feeDeductCurrency);
                 }
@@ -4134,7 +4141,7 @@ class huobi extends Exchange {
         }
         $market = $this->market($symbol);
         $request = array(
-            // 'symbol' => 'BTC', // optional, case-insenstive, both uppercase and lowercase are supported, "BTC", "ETH", ...
+            // 'symbol' => 'BTC', // optional, case-insensitive, both uppercase and lowercase are supported, "BTC", "ETH", ...
             // 'contract_type' => 'this_week', // optional, this_week, next_week, quarter, next_quarter
             'contract_code' => $market['id'], // optional BTC180914
             // 'client_order_id' => $clientOrderId, // optional, must be less than 9223372036854775807
@@ -6505,7 +6512,7 @@ class huobi extends Exchange {
          * @param {int|null} $since Not used by huobi api, but $response parsed by CCXT
          * @param {int|null} $limit Default：48，Data Range [1,200]
          * @param {array} $params Exchange specific parameters
-         * @param {int} $params->amount_type *required* Open interest unit. 1-cont，2-cryptocurrenty
+         * @param {int} $params->amount_type *required* Open interest unit. 1-cont，2-cryptocurrency
          * @param {int|null} $params->pair eg BTC-USDT *Only for USDT-M*
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#open-interest-structure open interest structures}
          */
@@ -6522,7 +6529,7 @@ class huobi extends Exchange {
         $market = $this->market($symbol);
         $amountType = $this->safe_number_2($params, 'amount_type', 'amountType');
         if ($amountType === null) {
-            throw new ArgumentsRequired($this->id . ' fetchOpenInterestHistory requires parameter $params->amountType to be either 1 (cont), or 2 (cryptocurrenty)');
+            throw new ArgumentsRequired($this->id . ' fetchOpenInterestHistory requires parameter $params->amountType to be either 1 (cont), or 2 (cryptocurrency)');
         }
         $request = array(
             'period' => $timeframes[$timeframe],
@@ -6608,7 +6615,7 @@ class huobi extends Exchange {
         //
         $data = $this->safe_value($response, 'data');
         $tick = $this->safe_value($data, 'tick');
-        return $this->parse_open_interests($tick, null, $since, $limit);
+        return $this->parse_open_interests($tick, $market, $since, $limit);
     }
 
     public function fetch_open_interest($symbol, $params = array ()) {
@@ -6769,7 +6776,7 @@ class huobi extends Exchange {
         //
         $timestamp = $this->safe_integer($interest, 'ts');
         $amount = $this->safe_number($interest, 'volume');
-        $value = $this->safe_value($interest, 'value');
+        $value = $this->safe_number($interest, 'value');
         return array(
             'symbol' => $this->safe_string($market, 'symbol'),
             'baseVolume' => $amount,  // deprecated

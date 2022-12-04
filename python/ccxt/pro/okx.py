@@ -108,6 +108,8 @@ class okx(Exchange, ccxt.async_support.okx):
         :param dict params: extra parameters specific to the okx api endpoint
         :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
         """
+        await self.load_markets()
+        symbol = self.symbol(symbol)
         trades = await self.subscribe('public', 'trades', symbol, params)
         if self.newUpdates:
             limit = trades.getLimit(symbol, limit)
@@ -194,6 +196,17 @@ class okx(Exchange, ccxt.async_support.okx):
         return message
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the okx api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
+        await self.load_markets()
+        symbol = self.symbol(symbol)
         interval = self.timeframes[timeframe]
         name = 'candle' + interval
         ohlcv = await self.subscribe('public', name, symbol, params)
@@ -273,7 +286,7 @@ class okx(Exchange, ccxt.async_support.okx):
         #
         depth = self.safe_string(options, 'depth', 'books')
         orderbook = await self.subscribe('public', depth, symbol, params)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_delta(self, bookside, delta):
         #
@@ -564,6 +577,7 @@ class okx(Exchange, ccxt.async_support.okx):
         :param int|None since: the earliest time in ms to fetch orders for
         :param int|None limit: the maximum number of  orde structures to retrieve
         :param dict params: extra parameters specific to the okx api endpoint
+        :param bool params['stop']: True if fetching trigger or conditional orders
         :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         await self.load_markets()
@@ -585,10 +599,12 @@ class okx(Exchange, ccxt.async_support.okx):
         # By default, receive order updates from any instrument type
         type = self.safe_string(options, 'type', 'ANY')
         type = self.safe_string(params, 'type', type)
-        params = self.omit(params, 'type')
+        isStop = self.safe_value(params, 'stop', False)
+        params = self.omit(params, ['type', 'stop'])
         market = None
         if symbol is not None:
             market = self.market(symbol)
+            symbol = market['symbol']
             type = market['type']
         if type == 'future':
             type = 'futures'
@@ -596,7 +612,8 @@ class okx(Exchange, ccxt.async_support.okx):
         request = {
             'instType': uppercaseType,
         }
-        orders = await self.subscribe('private', 'orders', symbol, self.extend(request, params))
+        channel = 'orders-algo' if isStop else 'orders'
+        orders = await self.subscribe('private', channel, symbol, self.extend(request, params))
         if self.newUpdates:
             limit = orders.getLimit(symbol, limit)
         return self.filter_by_symbol_since_limit(orders, symbol, since, limit, True)
@@ -797,6 +814,7 @@ class okx(Exchange, ccxt.async_support.okx):
                 'account': self.handle_balance,
                 # 'margin_account': self.handle_balance,
                 'orders': self.handle_orders,
+                'orders-algo': self.handle_orders,
             }
             method = self.safe_value(methods, channel)
             if method is None:

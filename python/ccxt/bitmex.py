@@ -400,6 +400,7 @@ class bitmex(Exchange):
             contract = not index
             initMargin = self.safe_string(market, 'initMargin', '1')
             maxLeverage = self.parse_number(Precise.string_div('1', initMargin))
+            multiplierString = Precise.string_abs(self.safe_string(market, 'multiplier'))
             result.append({
                 'id': id,
                 'symbol': symbol,
@@ -423,7 +424,7 @@ class bitmex(Exchange):
                 'inverse': inverse if contract else None,
                 'taker': self.safe_number(market, 'takerFee'),
                 'maker': self.safe_number(market, 'makerFee'),
-                'contractSize': self.safe_number(market, 'multiplier'),
+                'contractSize': self.parse_number(multiplierString),
                 'expiry': expiry,
                 'expiryDatetime': expiryDatetime,
                 'strike': self.safe_number(market, 'optionStrikePrice'),

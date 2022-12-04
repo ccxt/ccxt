@@ -46,6 +46,14 @@ class binance extends \ccxt\async\binance {
                 ),
             ),
             'options' => array(
+                'streamLimits' => array(
+                    'spot' => 1024,
+                    'margin' => 1024,
+                    'future' => 200,
+                    'delivery' => 200,
+                ),
+                'streamBySubscriptionsHash' => array(),
+                'streamIndex' => -1,
                 // get updates every 1000ms or 100ms
                 // or every 0ms in real-time for futures
                 'watchOrderBookRate' => 100,
@@ -79,6 +87,36 @@ class binance extends \ccxt\async\binance {
         $newValue = $this->sum($previousValue, 1);
         $this->options['requestId'][$url] = $newValue;
         return $newValue;
+    }
+
+    public function stream($type, $subscriptionHash) {
+        $streamBySubscriptionsHash = $this->safe_value($this->options, 'streamBySubscriptionsHash', array());
+        $stream = $this->safe_string($streamBySubscriptionsHash, $subscriptionHash);
+        if ($stream === null) {
+            $streamIndex = $this->safe_integer($this->options, 'streamIndex', -1);
+            $streamLimits = $this->safe_value($this->options, 'streamLimits');
+            $streamLimit = $this->safe_integer($streamLimits, $type);
+            $streamIndex = $streamIndex + 1;
+            if ($streamIndex === $streamLimit) {
+                $streamIndex = 0;
+            }
+            $this->options['streamIndex'] = $streamIndex;
+            $stream = $this->number_to_string($streamIndex);
+            $streamBySubscriptionsHash[$subscriptionHash] = $stream;
+        }
+        return $stream;
+    }
+
+    public function on_error($client, $error) {
+        $this->options['streamBySubscriptionsHash'] = array();
+        $this->options['streamIndex'] = -1;
+        parent::on_error($client, $error);
+    }
+
+    public function on_close($client, $error) {
+        $this->options['streamBySubscriptionsHash'] = array();
+        $this->options['streamIndex'] = -1;
+        parent::on_close($client, $error);
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
@@ -140,7 +178,7 @@ class binance extends \ccxt\async\binance {
             //
             $name = 'depth';
             $messageHash = $market['lowercaseId'] . '@' . $name;
-            $url = $this->urls['api']['ws'][$type]; // . '/' . $messageHash;
+            $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, $messageHash);
             $requestId = $this->request_id($url);
             $watchOrderBookRate = $this->safe_string($this->options, 'watchOrderBookRate', '100');
             $request = array(
@@ -163,7 +201,7 @@ class binance extends \ccxt\async\binance {
             $message = array_merge($request, $query);
             // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
             $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 
@@ -381,7 +419,7 @@ class binance extends \ccxt\async\binance {
             $watchTradesType = $this->safe_string_2($options, 'type', 'defaultType', $defaultType);
             $type = $this->safe_string($params, 'type', $watchTradesType);
             $query = $this->omit($params, 'type');
-            $url = $this->urls['api']['ws'][$type];
+            $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, $messageHash);
             $requestId = $this->request_id($url);
             $request = array(
                 'method' => 'SUBSCRIBE',
@@ -585,6 +623,15 @@ class binance extends \ccxt\async\binance {
 
     public function watch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
+            /**
+             * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
+             * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
+             * @param {string} $timeframe the length of time each candle represents
+             * @param {int|null} $since timestamp in ms of the earliest candle to fetch
+             * @param {int|null} $limit the maximum amount of candles to fetch
+             * @param {array} $params extra parameters specific to the binance api endpoint
+             * @return {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+             */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $marketId = $market['lowercaseId'];
@@ -596,7 +643,7 @@ class binance extends \ccxt\async\binance {
             $watchOHLCVType = $this->safe_string_2($options, 'type', 'defaultType', $defaultType);
             $type = $this->safe_string($params, 'type', $watchOHLCVType);
             $query = $this->omit($params, 'type');
-            $url = $this->urls['api']['ws'][$type];
+            $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, $messageHash);
             $requestId = $this->request_id($url);
             $request = array(
                 'method' => 'SUBSCRIBE',
@@ -689,7 +736,7 @@ class binance extends \ccxt\async\binance {
             $watchTickerType = $this->safe_string_2($options, 'type', 'defaultType', $defaultType);
             $type = $this->safe_string($params, 'type', $watchTickerType);
             $query = $this->omit($params, 'type');
-            $url = $this->urls['api']['ws'][$type];
+            $url = $this->urls['api']['ws'][$type] . '/' . $this->stream($type, $messageHash);
             $requestId = $this->request_id($url);
             $request = array(
                 'method' => 'SUBSCRIBE',
@@ -1029,7 +1076,7 @@ class binance extends \ccxt\async\binance {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * watches information on multiple $orders made by the user
-             * @param {string|null} $symbol unified market $symbol of the market $orders were made in
+             * @param {string|null} $symbol unified $market $symbol of the $market $orders were made in
              * @param {int|null} $since the earliest time in ms to fetch $orders for
              * @param {int|null} $limit the maximum number of  orde structures to retrieve
              * @param {array} $params extra parameters specific to the binance api endpoint
@@ -1037,13 +1084,16 @@ class binance extends \ccxt\async\binance {
              */
             Async\await($this->load_markets());
             Async\await($this->authenticate($params));
-            $defaultType = $this->safe_string_2($this->options, 'watchOrders', 'defaultType', 'spot');
-            $type = $this->safe_string($params, 'type', $defaultType);
-            $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
             $messageHash = 'orders';
+            $market = null;
             if ($symbol !== null) {
+                $market = $this->market($symbol);
+                $symbol = $market['symbol'];
                 $messageHash .= ':' . $symbol;
             }
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
+            $url = $this->urls['api']['ws'][$type] . '/' . $this->options[$type]['listenKey'];
             $client = $this->client($url);
             $this->set_balance_cache($client, $type);
             $message = null;

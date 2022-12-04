@@ -37,14 +37,13 @@ const Exchange  = require ('./js/base/Exchange')
 //-----------------------------------------------------------------------------
 // this is updated by vss.js when building
 
-const version = '2.0.56'
+const version = '2.2.65'
 
 Exchange.ccxtVersion = version
 
 //-----------------------------------------------------------------------------
 
 const exchanges = {
-    'aax':                     require ('./js/aax.js'),
     'alpaca':                  require ('./js/alpaca.js'),
     'ascendex':                require ('./js/ascendex.js'),
     'bequant':                 require ('./js/bequant.js'),
@@ -85,9 +84,7 @@ const exchanges = {
     'btctradeua':              require ('./js/btctradeua.js'),
     'btcturk':                 require ('./js/btcturk.js'),
     'buda':                    require ('./js/buda.js'),
-    'bw':                      require ('./js/bw.js'),
     'bybit':                   require ('./js/bybit.js'),
-    'bytetrade':               require ('./js/bytetrade.js'),
     'cex':                     require ('./js/cex.js'),
     'coinbase':                require ('./js/coinbase.js'),
     'coinbaseprime':           require ('./js/coinbaseprime.js'),
@@ -98,7 +95,6 @@ const exchanges = {
     'coinmate':                require ('./js/coinmate.js'),
     'coinone':                 require ('./js/coinone.js'),
     'coinspot':                require ('./js/coinspot.js'),
-    'crex24':                  require ('./js/crex24.js'),
     'cryptocom':               require ('./js/cryptocom.js'),
     'currencycom':             require ('./js/currencycom.js'),
     'delta':                   require ('./js/delta.js'),
@@ -107,8 +103,6 @@ const exchanges = {
     'exmo':                    require ('./js/exmo.js'),
     'flowbtc':                 require ('./js/flowbtc.js'),
     'fmfwio':                  require ('./js/fmfwio.js'),
-    'ftx':                     require ('./js/ftx.js'),
-    'ftxus':                   require ('./js/ftxus.js'),
     'gate':                    require ('./js/gate.js'),
     'gateio':                  require ('./js/gateio.js'),
     'gemini':                  require ('./js/gemini.js'),
@@ -129,7 +123,6 @@ const exchanges = {
     'latoken':                 require ('./js/latoken.js'),
     'lbank':                   require ('./js/lbank.js'),
     'lbank2':                  require ('./js/lbank2.js'),
-    'liquid':                  require ('./js/liquid.js'),
     'luno':                    require ('./js/luno.js'),
     'lykke':                   require ('./js/lykke.js'),
     'mercado':                 require ('./js/mercado.js'),
@@ -150,7 +143,6 @@ const exchanges = {
     'ripio':                   require ('./js/ripio.js'),
     'stex':                    require ('./js/stex.js'),
     'therock':                 require ('./js/therock.js'),
-    'tidebit':                 require ('./js/tidebit.js'),
     'tidex':                   require ('./js/tidex.js'),
     'timex':                   require ('./js/timex.js'),
     'tokocrypto':              require ('./js/tokocrypto.js'),
@@ -167,7 +159,6 @@ const exchanges = {
 }
 
 const pro = {
-    'aax':                     require ('./js/pro/aax.js'),
     'ascendex':                require ('./js/pro/ascendex.js'),
     'bequant':                 require ('./js/pro/bequant.js'),
     'binance':                 require ('./js/pro/binance.js'),
@@ -180,18 +171,19 @@ const pro = {
     'bitmart':                 require ('./js/pro/bitmart.js'),
     'bitmex':                  require ('./js/pro/bitmex.js'),
     'bitopro':                 require ('./js/pro/bitopro.js'),
+    'bitrue':                  require ('./js/pro/bitrue.js'),
     'bitstamp':                require ('./js/pro/bitstamp.js'),
     'bittrex':                 require ('./js/pro/bittrex.js'),
     'bitvavo':                 require ('./js/pro/bitvavo.js'),
     'bybit':                   require ('./js/pro/bybit.js'),
+    'cex':                     require ('./js/pro/cex.js'),
     'coinbaseprime':           require ('./js/pro/coinbaseprime.js'),
     'coinbasepro':             require ('./js/pro/coinbasepro.js'),
     'coinex':                  require ('./js/pro/coinex.js'),
     'cryptocom':               require ('./js/pro/cryptocom.js'),
     'currencycom':             require ('./js/pro/currencycom.js'),
+    'deribit':                 require ('./js/pro/deribit.js'),
     'exmo':                    require ('./js/pro/exmo.js'),
-    'ftx':                     require ('./js/pro/ftx.js'),
-    'ftxus':                   require ('./js/pro/ftxus.js'),
     'gate':                    require ('./js/pro/gate.js'),
     'gateio':                  require ('./js/pro/gateio.js'),
     'hitbtc':                  require ('./js/pro/hitbtc.js'),
@@ -202,6 +194,7 @@ const pro = {
     'idex':                    require ('./js/pro/idex.js'),
     'kraken':                  require ('./js/pro/kraken.js'),
     'kucoin':                  require ('./js/pro/kucoin.js'),
+    'luno':                    require ('./js/pro/luno.js'),
     'mexc':                    require ('./js/pro/mexc.js'),
     'ndax':                    require ('./js/pro/ndax.js'),
     'okcoin':                  require ('./js/pro/okcoin.js'),
@@ -210,6 +203,7 @@ const pro = {
     'phemex':                  require ('./js/pro/phemex.js'),
     'ripio':                   require ('./js/pro/ripio.js'),
     'upbit':                   require ('./js/pro/upbit.js'),
+    'wazirx':                  require ('./js/pro/wazirx.js'),
     'whitebit':                require ('./js/pro/whitebit.js'),
     'zb':                      require ('./js/pro/zb.js'),
     'zipmex':                  require ('./js/pro/zipmex.js'),
