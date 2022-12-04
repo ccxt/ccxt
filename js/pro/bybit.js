@@ -35,7 +35,7 @@ module.exports = class bybit extends bybitRest {
                             'private': 'wss://stream.{hostname}/realtime_private',
                         },
                         'spot': {
-                            'public': 'wss://stream.{hostname}/spot/quote/ws/v2',
+                            'public': 'wss://stream.{hostname}/spot/public/v3',
                             'private': 'wss://stream.{hostname}/spot/ws',
                         },
                         'usdc': {
@@ -61,7 +61,7 @@ module.exports = class bybit extends bybitRest {
                             'private': 'wss://stream-testnet.{hostname}/realtime_private',
                         },
                         'spot': {
-                            'public': 'wss://stream-testnet.{hostname}/spot/quote/ws/v2',
+                            'public': 'wss://stream-testnet.{hostname}/spot/public/v3',
                             'private': 'wss://stream-testnet.{hostname}/spot/ws',
                         },
                         'usdc': {
@@ -78,8 +78,23 @@ module.exports = class bybit extends bybitRest {
                 },
             },
             'options': {
-                'watchTicker': {
-                    'name': 'realtimes', // or bookTicker
+                'spot': {
+                    'timeframes': {
+                        '1m': '1m',
+                        '3m': '3m',
+                        '5m': '5m',
+                        '15m': '15m',
+                        '30m': '30m',
+                        '1h': '1h',
+                        '2h': '2h',
+                        '4h': '4h',
+                        '6h': '6h',
+                        '12h': '12h',
+                        '1d': '1d',
+                        '1w': '1w',
+                        '1M': '1M',
+                    },
+                    'watchTickerTopic': 'tickers', // 'tickers' for 24hr statistical ticker or 'bookticker' for Best bid price and best ask price
                 },
             },
             'streaming': {
@@ -93,6 +108,12 @@ module.exports = class bybit extends bybitRest {
                 },
             },
         });
+    }
+
+    requestId () {
+        const requestId = this.sum (this.safeInteger (this.options, 'requestId', 0), 1);
+        this.options['requestId'] = requestId;
+        return requestId;
     }
 
     getUrlByMarketType (symbol = undefined, isPrivate = false, method = undefined, params = {}) {
@@ -153,12 +174,16 @@ module.exports = class bybit extends bybitRest {
         const url = this.getUrlByMarketType (symbol, false, params);
         params = this.cleanParams (params);
         if (market['spot']) {
-            const options = this.safeValue (this.options, 'watchTicker', {});
-            const channel = this.safeString (options, 'name', 'realtimes');
-            const reqParams = {
-                'symbol': market['id'],
+            const spotOptions = this.safeValue (this.options, 'spot', {});
+            const watchTickerTopic = this.safeString (spotOptions, 'watchTickerTopic', 'tickers');
+            const request = {
+                'req_id': this.requestId (), // optional
+                'op': 'subscribe',
+                'args': [
+                    watchTickerTopic + '.' + market['id'],
+                ],
             };
-            return await this.watchSpotPublic (url, channel, messageHash, reqParams, params);
+            return await this.watch (url, messageHash, this.extend (request, params), messageHash);
         } else {
             const channel = 'instrument_info.100ms.' + market['id'];
             const reqParams = [ channel ];
@@ -181,21 +206,36 @@ module.exports = class bybit extends bybitRest {
         //     }
         // }
         //
-        //  spot realtimes
+        //  spot - tickers
         //    {
-        //        topic: 'realtimes',
-        //        params: { symbol: 'BTCUSDT', binary: 'false', symbolName: 'BTCUSDT' },
-        //        data: {
-        //          t: 1652883737410,
-        //          s: 'BTCUSDT',
-        //          o: '30422.68',
-        //          h: '30715',
-        //          l: '29288.44',
-        //          c: '29462.94',
-        //          v: '4350.340495',
-        //          qv: '130497543.0334267',
-        //          m: '-0.0315'
-        //        }
+        //        "data": {
+        //            "t": 1661742216005,
+        //            "s": "BTCUSDT",
+        //            "o": "19820",
+        //            "h": "20071.93",
+        //            "l": "19365.85",
+        //            "c": "19694.27",
+        //            "v": "9997.246174",
+        //            "qv": "197357775.97621786",
+        //            "m": "-0.0063"
+        //        },
+        //        "type": "delta",
+        //        "topic": "tickers.BTCUSDT",
+        //        "ts": 1661742216011
+        //    }
+        //  spot - bookticker
+        //    {
+        //        "data": {
+        //            "s": "BTCUSDT",
+        //            "bp": "19693.04",
+        //            "bq": "0.913957",
+        //            "ap": "19694.27",
+        //            "aq": "0.705447",
+        //            "t": 1661742216108
+        //        },
+        //        "type": "delta",
+        //        "topic": "bookticker.BTCUSDT",
+        //        "ts": 1661742216109
         //    }
         //
         // swap/futures use an incremental approach sending first the snapshot and then the updates
@@ -269,7 +309,7 @@ module.exports = class bybit extends bybitRest {
         //    }
         //
         const topic = this.safeString (message, 'topic', '');
-        if ((topic === 'realtimes') || (topic === 'bookTicker')) {
+        if ((topic.indexOf ('tickers') >= 0) || (topic.indexOf ('bookticker') >= 0) || (topic === 'realtimes') || (topic === 'bookTicker')) {
             // spot markets
             const data = this.safeValue (message, 'data');
             const ticker = this.parseWsTicker (data);
@@ -329,27 +369,27 @@ module.exports = class bybit extends bybitRest {
 
     parseWsTicker (ticker, market = undefined) {
         //
-        // spot
-        //   {
-        //          symbol: 'BTCUSDT',
-        //          bidPrice: '29150.8',
-        //          bidQty: '0.171947',
-        //          askPrice: '29156.72',
-        //          askQty: '0.017764',
-        //          time: 1652956849565
-        //   }
-        //
-        //   {
-        //          t: 1652883737410,
-        //          s: 'BTCUSDT',
-        //          o: '30422.68',
-        //          h: '30715',
-        //          l: '29288.44',
-        //          c: '29462.94',
-        //          v: '4350.340495',
-        //          qv: '130497543.0334267',
-        //          m: '-0.0315'
+        // spot - tickers
+        //    {
+        //        "t": 1661742216005,
+        //        "s": "BTCUSDT",
+        //        "o": "19820",
+        //        "h": "20071.93",
+        //        "l": "19365.85",
+        //        "c": "19694.27",
+        //        "v": "9997.246174",
+        //        "qv": "197357775.97621786",
+        //        "m": "-0.0063"
         //    }
+        //  spot - bookticker
+        //   {
+        //       "s": "BTCUSDT",
+        //       "bp": "19693.04",
+        //       "bq": "0.913957",
+        //       "ap": "19694.27",
+        //       "aq": "0.705447",
+        //       "t": 1661742216108
+        //   }
         //
         // swap
         //
@@ -450,8 +490,8 @@ module.exports = class bybit extends bybitRest {
             baseVolume = this.safeString2 (ticker, 'volume_24h_e8', 'volume24hE8');
             baseVolume = Precise.stringDiv (baseVolume, '100000000');
         }
-        const bid = this.safeStringN (ticker, [ 'bidPrice', 'bid1_price', 'bid1Price' ]);
-        const ask = this.safeStringN (ticker, [ 'askPrice', 'ask1_price', 'ask1Price' ]);
+        const bid = this.safeStringN (ticker, [ 'bp', 'bidPrice', 'bid1_price', 'bid1Price' ]);
+        const ask = this.safeStringN (ticker, [ 'ap', 'askPrice', 'ask1_price', 'ask1Price' ]);
         const high = this.safeStringN (ticker, [ 'high_price_24h', 'high24h', 'h', 'highPrice24h' ]);
         const low = this.safeStringN (ticker, [ 'low_price_24h', 'low24h', 'l', 'lowPrice24h' ]);
         let percentage = this.safeString (ticker, 'm');
@@ -467,9 +507,9 @@ module.exports = class bybit extends bybitRest {
             'high': high,
             'low': low,
             'bid': bid,
-            'bidVolume': this.safeString2 (ticker, 'bidSize', 'bidQty'),
+            'bidVolume': this.safeStringN (ticker, [ 'bq', 'bidSize', 'bidQty' ]),
             'ask': ask,
-            'askVolume': this.safeString2 (ticker, 'askSize', 'askQty'),
+            'askVolume': this.safeStringN (ticker, [ 'aq', 'askSize', 'askQty' ]),
             'vwap': undefined,
             'open': open,
             'close': last,
@@ -502,15 +542,20 @@ module.exports = class bybit extends bybitRest {
         const interval = this.timeframes[timeframe];
         const url = this.getUrlByMarketType (symbol, false, params);
         params = this.cleanParams (params);
-        const messageHash = 'kline' + ':' + timeframe + ':' + symbol;
+        let messageHash = 'kline' + ':' + timeframe + ':' + symbol;
         let ohlcv = undefined;
         if (market['spot']) {
-            const channel = 'kline';
-            const reqParams = {
-                'symbol': market['id'],
-                'klineType': timeframe, // spot uses the same timeframe as ours
+            const spotOptions = this.safeValue (this.options, 'timeframes', {});
+            const timeframeId = this.safeString (spotOptions, timeframe, timeframe);
+            messageHash = 'kline' + ':' + timeframeId + ':' + symbol;
+            const request = {
+                'req_id': 'depth00001', // optional
+                'op': 'subscribe',
+                'args': [
+                    'kline.' + timeframeId + '.' + market['id'],
+                ],
             };
-            ohlcv = await this.watchSpotPublic (url, channel, messageHash, reqParams, params);
+            ohlcv = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         } else {
             const prefix = market['linear'] ? 'candle' : 'klineV2';
             const channel = prefix + '.' + interval + '.' + market['id'];
@@ -548,23 +593,18 @@ module.exports = class bybit extends bybitRest {
         //
         // spot
         //    {
-        //        topic: 'kline',
-        //        params: {
-        //          symbol: 'LTCUSDT',
-        //          binary: 'false',
-        //          klineType: '1m',
-        //          symbolName: 'LTCUSDT'
+        //        "data": {
+        //            "t": 1661742000000,
+        //            "s": "BTCUSDT",
+        //            "c": "19685.55",
+        //            "h": "19756.95",
+        //            "l": "19674.61",
+        //            "o": "19705.38",
+        //            "v": "0.232154"
         //        },
-        //        data: {
-        //          t: 1652893440000,
-        //          s: 'LTCUSDT',
-        //          sn: 'LTCUSDT',
-        //          c: '67.92',
-        //          h: '68.05',
-        //          l: '67.92',
-        //          o: '68.05',
-        //          v: '9.71302'
-        //        }
+        //        "type": "delta",
+        //        "topic": "kline.1h.BTCUSDT",
+        //        "ts": 1661745259605
         //    }
         //
         const data = this.safeValue (message, 'data', {});
@@ -601,11 +641,11 @@ module.exports = class bybit extends bybitRest {
             }
         } else {
             // spot messages
-            const params = this.safeValue (message, 'params', {});
             const data = this.safeValue (message, 'data');
-            const marketId = this.safeString (params, 'symbol');
-            const timeframe = this.safeString (params, 'klineType');
-            const market = this.market (marketId);
+            const marketId = this.safeString (data, 's');
+            const market = this.safeMarket (marketId);
+            const topicParts = topic.split ('.');
+            const timeframeId = this.safeString (topicParts, 1);
             const parsed = this.parseWsOHLCV (data, market);
             const symbol = market['symbol'];
             let stored = this.safeValue (this.ohlcvs, symbol);
@@ -615,7 +655,7 @@ module.exports = class bybit extends bybitRest {
                 this.ohlcvs[symbol] = stored;
             }
             stored.append (parsed);
-            const messageHash = 'kline' + ':' + timeframe + ':' + symbol;
+            const messageHash = 'kline' + ':' + timeframeId + ':' + symbol;
             client.resolve (stored, messageHash);
         }
     }
@@ -682,11 +722,13 @@ module.exports = class bybit extends bybitRest {
         const messageHash = 'orderbook' + ':' + symbol;
         let orderbook = undefined;
         if (market['spot']) {
-            const channel = 'depth';
-            const reqParams = {
-                'symbol': market['id'],
+            const request = {
+                'op': 'subscribe',
+                'args': [
+                    'orderbook.40.' + market['id'],
+                ],
             };
-            orderbook = await this.watchSpotPublic (url, channel, messageHash, reqParams, params);
+            orderbook = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         } else {
             let channel = undefined;
             if (market['option']) {
@@ -711,27 +753,29 @@ module.exports = class bybit extends bybitRest {
     handleOrderBook (client, message) {
         //
         // spot snapshot
-        // {
-        //     topic: 'depth',
-        //     params: { symbol: 'BTCUSDT', binary: 'false', symbolName: 'BTCUSDT' },
-        //     data: {
-        //       s: 'BTCUSDT',
-        //       t: 1652970523792,
-        //       v: '34407758_140450607_2',
-        //       b: [
-        //            [
-        //                "9780.79",
-        //                "0.01"
-        //            ],
-        //       ],
-        //       a: [
-        //            [
-        //               "9781.21",
-        //               "0.042842"
-        //            ]
-        //       ]
+        //     {
+        //         "data": {
+        //             "s": "BTCUSDT",
+        //             "t": 1661743689733,
+        //             "b": [
+        //                 [
+        //                     "19721.9",
+        //                     "0.784806"
+        //                 ],
+        //                 ...
+        //             ],
+        //             "a": [
+        //                 [
+        //                     "19721.91",
+        //                     "0.192687"
+        //                 ],
+        //                 ...
+        //             ]
+        //         },
+        //         "type": "delta", // docs say to ignore, always snapshot
+        //         "topic": "orderbook.40.BTCUSDT",
+        //         "ts": 1661743689735
         //     }
-        //   }
         //
         // contract snapshot
         //    {
@@ -791,7 +835,8 @@ module.exports = class bybit extends bybitRest {
         //
         const topic = this.safeString (message, 'topic', '');
         const data = this.safeValue (message, 'data', {});
-        if (topic === 'depth') {
+        // v3 spot
+        if (topic.indexOf ('orderbook.40') >= 0) {
             // spot branch, we get the snapshot in every message
             const marketId = this.safeString (data, 's');
             const market = this.market (marketId);
@@ -914,10 +959,13 @@ module.exports = class bybit extends bybitRest {
         const messageHash = commonChannel + ':' + symbol;
         let trades = undefined;
         if (market['spot']) {
-            const reqParams = {
-                'symbol': market['id'],
+            const request = {
+                'op': 'subscribe',
+                'args': [
+                    'trade.' + market['id'],
+                ],
             };
-            trades = await this.watchSpotPublic (url, commonChannel, messageHash, reqParams, params);
+            trades = await this.watch (url, messageHash, this.extend (request, params), messageHash);
         } else {
             let channel = undefined;
             if (market['option']) {
@@ -954,34 +1002,30 @@ module.exports = class bybit extends bybitRest {
         //    }
         //
         // spot
-        //
         //    {
-        //        topic: 'trade',
-        //        params: { symbol: 'BTCUSDT', binary: 'false', symbolName: 'BTCUSDT' },
-        //        data: {
-        //          v: '2290000000003002848',
-        //          t: 1652967602261,
-        //          p: '29698.82',
-        //          q: '0.189531',
-        //          m: true
-        //        }
+        //        "data": {
+        //            "v": "2100000000001992601",
+        //            "t": 1661742109857,
+        //            "p": "19706.87",
+        //            "q": "0.000158",
+        //            "m": true
+        //        },
+        //        "type": "delta",
+        //        "topic": "trade.BTCUSDT",
+        //        "ts": 1661742109863
         //    }
         //
         let marketId = undefined;
-        const data = this.safeValue (message, 'data', []);
+        const data = this.safeValue (message, 'data', {});
         const topic = this.safeString (message, 'topic');
         let trades = undefined;
+        const parts = topic.split ('.');
+        marketId = this.safeString (parts, 1);
         if (!Array.isArray (data)) {
             // spot markets
-            const params = this.safeValue (message, 'params', {});
-            marketId = this.safeString (params, 'symbol');
-            // injecting marketId in trade
-            data['symbol'] = marketId;
             trades = [ data ];
         } else {
             // contract markets
-            const parts = topic.split ('.');
-            marketId = this.safeString (parts, 1);
             trades = data;
         }
         const market = this.safeMarket (marketId);
@@ -1696,19 +1740,6 @@ module.exports = class bybit extends bybitRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    async watchSpotPublic (url, channel, messageHash, reqParams = {}, params = {}) {
-        reqParams = this.extend (reqParams, {
-            'binary': false,
-        });
-        const request = {
-            'topic': channel,
-            'event': 'sub',
-            'params': reqParams,
-        };
-        const message = this.extend (request, params);
-        return await this.watch (url, messageHash, message, messageHash);
-    }
-
     async watchSpotPrivate (url, messageHash, params = {}) {
         const channel = 'private';
         // sending the authentication message automatically
@@ -1915,13 +1946,18 @@ module.exports = class bybit extends bybitRest {
             this.handleSubscriptionStatus (client, message);
             return;
         }
-        // contract public and private
         const topic = this.safeString (message, 'topic', '');
+        // spot public
+        if (topic.indexOf ('orderbook.') >= 0) {
+            this.handleOrderBook (client, message);
+            return;
+        }
+        // contract public and private spot v3
         if ((topic.indexOf ('kline') >= 0 || topic.indexOf ('candle') >= 0)) {
             this.handleOHLCV (client, message);
             return;
         }
-        if ((topic.indexOf ('realtimes') >= 0 || topic.indexOf ('instrument_info') >= 0)) {
+        if ((topic.indexOf ('tickers') >= 0 || topic.indexOf ('bookticker') >= 0 || topic.indexOf ('realtimes') >= 0 || topic.indexOf ('instrument_info') >= 0)) {
             this.handleTicker (client, message);
             return;
         }
@@ -1978,12 +2014,7 @@ module.exports = class bybit extends bybitRest {
         }
     }
 
-    ping (client) {
-        const url = client.url;
-        const timestamp = this.milliseconds ();
-        if (url.indexOf ('spot') >= 0) {
-            return { 'ping': timestamp };
-        }
+    ping () {
         return { 'op': 'ping' };
     }
 
