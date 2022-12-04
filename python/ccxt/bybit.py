@@ -3444,20 +3444,20 @@ class bybit(Exchange):
         elif timeInForce == 'ioc':
             request['timeInForce'] = 'ImmediateOrCancel'
         triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
-        stopLossPrice = self.safe_value(params, 'stopLossPrice')
+        stopLossPrice = self.safe_value(params, 'stopLossPrice', triggerPrice)
         isStopLossOrder = stopLossPrice is not None
         takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
         isTakeProfitOrder = takeProfitPrice is not None
-        if isStopLossOrder:
-            request['stopLoss'] = self.price_to_precision(symbol, stopLossPrice)
-        if isTakeProfitOrder:
-            request['takeProfit'] = self.price_to_precision(symbol, takeProfitPrice)
-        if triggerPrice is not None:
+        if isStopLossOrder or isTakeProfitOrder:
             request['triggerBy'] = 'LastPrice'
-            preciseTriggerPrice = self.price_to_precision(symbol, triggerPrice)
+            triggerAt = stopLossPrice if isStopLossOrder else takeProfitPrice
+            preciseTriggerPrice = self.price_to_precision(symbol, triggerAt)
             request['triggerPrice'] = preciseTriggerPrice
+            isBuy = side == 'buy'
+            # logical xor
+            ascending = not isBuy if stopLossPrice else isBuy
             delta = self.number_to_string(market['precision']['price'])
-            request['basePrice'] = Precise.string_sub(preciseTriggerPrice, delta) if isStopLossOrder else Precise.string_add(preciseTriggerPrice, delta)
+            request['basePrice'] = Precise.string_add(preciseTriggerPrice, delta) if ascending else Precise.string_sub(preciseTriggerPrice, delta)
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['orderLinkId'] = clientOrderId
@@ -3527,18 +3527,19 @@ class bybit(Exchange):
         elif timeInForce == 'ioc':
             request['timeInForce'] = 'ImmediateOrCancel'
         triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
-        stopLossPrice = self.safe_value(params, 'stopLossPrice')
+        stopLossPrice = self.safe_value(params, 'stopLossPrice', triggerPrice)
         isStopLossOrder = stopLossPrice is not None
         takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
         isTakeProfitOrder = takeProfitPrice is not None
-        if isStopLossOrder:
-            request['stopLoss'] = self.price_to_precision(symbol, stopLossPrice)
-        if isTakeProfitOrder:
-            request['takeProfit'] = self.price_to_precision(symbol, takeProfitPrice)
-        if triggerPrice is not None:
+        if isStopLossOrder or isTakeProfitOrder:
+            triggerAt = stopLossPrice if isStopLossOrder else takeProfitPrice
+            preciseTriggerPrice = self.price_to_precision(symbol, triggerAt)
+            isBuy = side == 'buy'
+            # logical xor
+            ascending = not isBuy if stopLossPrice else isBuy
+            request['triggerDirection'] = 2 if ascending else 1
             request['triggerBy'] = 'LastPrice'
-            request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
-            request['triggerDirection'] = 2 if (isStopLossOrder) else 1
+            request['triggerPrice'] = self.price_to_precision(symbol, preciseTriggerPrice)
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['orderLinkId'] = clientOrderId

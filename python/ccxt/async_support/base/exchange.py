@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.2.65'
+__version__ = '2.2.66'
 
 # -----------------------------------------------------------------------------
 
@@ -354,7 +354,7 @@ class Exchange(BaseExchange):
             quoteCurrencies = []
             for i in range(0, len(values)):
                 market = values[i]
-                defaultCurrencyPrecision = 8 if (self.precisionMode == DECIMAL_PLACES) else self.parse_number('0.00000001')
+                defaultCurrencyPrecision = 8 if (self.precisionMode == DECIMAL_PLACES) else self.parse_number('1e-8')
                 marketPrecision = self.safe_value(market, 'precision', {})
                 if 'base' in market:
                     currencyPrecision = self.safe_value_2(marketPrecision, 'base', 'amount', defaultCurrencyPrecision)

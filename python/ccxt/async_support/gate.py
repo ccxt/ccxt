@@ -964,7 +964,7 @@ class gate(Exchange):
             'strike': None,
             'optionType': None,
             'precision': {
-                'amount': self.parse_number('1'),
+                'amount': self.parse_number('1'),  # all contracts have self step size
                 'price': self.safe_number(market, 'order_price_round'),
             },
             'limits': {
@@ -1084,7 +1084,7 @@ class gate(Exchange):
                     'strike': strike,
                     'optionType': optionType,
                     'precision': {
-                        'amount': self.parse_number('1'),
+                        'amount': self.parse_number('1'),  # all options have self step size
                         'price': self.safe_number(market, 'order_price_round'),
                     },
                     'limits': {
@@ -1266,7 +1266,7 @@ class gate(Exchange):
                 'lowerCaseId': currencyIdLower,
                 'name': None,
                 'code': code,
-                'precision': self.parse_number('1e-6'),
+                'precision': self.parse_number('1e-4'),  # todo: as gateio is done completely in html, in withdrawal page's source it has predefined "num_need_fix(self.value, 4);" function, so users cant set lower precision than 0.0001
                 'info': entry,
                 'active': active,
                 'deposit': depositEnabled,
