@@ -1535,12 +1535,14 @@ module.exports = class bitmart extends Exchange {
             'account': 'privateGetAccountV1Wallet',
             'margin': 'privateGetSpotV1MarginIsolatedAccount',
         });
-        const [ marginMode, query ] = this.handleMarginModeAndParams ('fetchBalance', params);
-        if (marginMode !== undefined) {
+        const marginMode = this.safeString (params, 'marginMode');
+        const isMargin = this.safeValue (params, 'margin', false);
+        params = this.omit (params, [ 'margin', 'marginMode' ]);
+        if (marginMode !== undefined || isMargin) {
             method = 'privateGetSpotV1MarginIsolatedAccount';
             marketType = 'margin';
         }
-        const response = await this[method] (query);
+        const response = await this[method] (params);
         //
         // spot
         //
