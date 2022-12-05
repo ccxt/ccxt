@@ -54,7 +54,7 @@ module.exports = class ace extends Exchange {
                 'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
-                'fetchOrderTrades': false,
+                'fetchOrderTrades': true,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
                 'fetchPremiumIndexOHLCV': false,
@@ -777,6 +777,106 @@ module.exports = class ace extends Exchange {
         //     }
         //
         return this.parseOrders (orders, market, since, limit);
+    }
+
+    parseTrade (trade, market = undefined) {
+        //
+        //     {
+        //         "amount": 0.0030965,
+        //         "tradeNo": "15681920522485652100751000417788",
+        //         "price": "0.03096500",
+        //         "num": "0.10000000",
+        //         "bi": 1,
+        //         "time": "2019-09-11 16:54:12.248"
+        //     }
+        //
+        const id = this.safeString (trade, 'tradeNo');
+        const price = this.safeString (trade, 'price');
+        const amount = this.safeString (trade, 'num');
+        const datetime = this.safeString (trade, 'time');
+        return this.safeTrade ({
+            'info': trade,
+            'id': id,
+            'order': undefined,
+            'symbol': undefined,
+            'side': undefined,
+            'type': undefined,
+            'takerOrMaker': undefined,
+            'price': price,
+            'amount': amount,
+            'cost': undefined,
+            'fee': undefined,
+            'timestamp': this.parse8601 (datetime),
+            'datetime': datetime,
+        }, market);
+    }
+    
+    async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ace#fetchOrderTrades
+         * @description fetch all the trades made from a single order
+         * @param {string} id order id
+         * @param {string} symbol unified market symbol
+         * @param {int|undefined} since the earliest time in ms to fetch trades for
+         * @param {int|undefined} limit the maximum number of trades to retrieve
+         * @param {object} params extra parameters specific to the ace api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html#trade-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.safeMarket (symbol);
+        const request = {
+            'orderId': id,
+        };
+        const response = await this.privatePostV1OrderShowOrderHistory (this.extend (request, params));
+        //
+        //     {
+        //         "attachment": {
+        //             "trades": [
+        //                 {
+        //                     "amount": 0.0030965,
+        //                     "tradeNo": "15681920522485652100751000417788",
+        //                     "price": "0.03096500",
+        //                     "num": "0.10000000",
+        //                     "bi": 1,
+        //                     "time": "2019-09-11 16:54:12.248"
+        //                 },
+        //                 {
+        //                     "amount": 0.02322375,
+        //                     "tradeNo": "15682679767395912100751000467937",
+        //                     "price": "0.03096500",
+        //                     "num": "0.75000000",
+        //                     "bi": 1,
+        //                     "time": "2019-09-12 13:59:36.739"
+        //                 }
+        //             ],
+        //             "order": {
+        //                 "remainNum": "0.00000000",
+        //                 "orderNo": "15681910422154042100431100441305",
+        //                 "num": "0.85000000",
+        //                 "tradeNum": "0.85000000",
+        //                 "baseCurrencyId": 2,
+        //                 "baseCurrencyName": "Bitcoin",
+        //                 "buyOrSell": 1,
+        //                 "orderTime": "2019-09-11 16:37:22.216",
+        //                 "currencyName": "Ethereum",
+        //                 "price": "0.03096500",
+        //                 "averagePrice": "0.03096500",
+        //                 "currencyId": 4,
+        //                 "status": 2
+        //             }
+        //         },
+        //         "message": null,
+        //         "parameters": null,
+        //         "status": 200
+        //     }
+        //
+        const data = this.safeValue (response, 'attachment');
+        const trades = this.safeValue (data, 'trades');
+        if (trades === undefined) {
+            return trades;
+        }
+        return await this.parseTrades (trades, market, since, limit);
     }
 
     parseBalance (response) {
