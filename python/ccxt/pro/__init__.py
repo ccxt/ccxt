@@ -49,6 +49,7 @@ from ccxt.pro.huobipro import huobipro                                    # noqa
 from ccxt.pro.idex import idex                                            # noqa: F401
 from ccxt.pro.kraken import kraken                                        # noqa: F401
 from ccxt.pro.kucoin import kucoin                                        # noqa: F401
+from ccxt.pro.kucoinfutures import kucoinfutures                          # noqa: F401
 from ccxt.pro.mexc import mexc                                            # noqa: F401
 from ccxt.pro.ndax import ndax                                            # noqa: F401
 from ccxt.pro.okcoin import okcoin                                        # noqa: F401
@@ -79,8 +80,6 @@ exchanges = [
     'bittrex',
     'bitvavo',
     'bybit',
-    'bybitinverse',
-    'bybitlinear',
     'coinbaseprime',
     'coinbasepro',
     'coinex',
@@ -99,6 +98,7 @@ exchanges = [
     'idex',
     'kraken',
     'kucoin',
+    'kucoinfutures',
     'mexc',
     'ndax',
     'okcoin',

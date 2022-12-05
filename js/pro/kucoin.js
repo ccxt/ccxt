@@ -5,9 +5,7 @@
 const kucoinRest = require ('../kucoin.js');
 const { ExchangeError, InvalidNonce, NetworkError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
-
 //  ---------------------------------------------------------------------------
-
 function createKucoinClient (baseClass) {
     return class kucoinmixin extends baseClass {
         describe () {

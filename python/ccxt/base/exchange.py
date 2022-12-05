@@ -2995,16 +2995,24 @@ class Exchange(object):
                 return self.currencies_by_id[code]
         raise ExchangeError(self.id + ' does not have currency code ' + code)
 
-    def market(self, symbol):
-        if self.markets is None:
-            raise ExchangeError(self.id + ' markets not loaded')
-        if self.markets_by_id is None:
-            raise ExchangeError(self.id + ' markets not loaded')
+    def market_helper(self, symbol):
         if isinstance(symbol, str):
             if symbol in self.markets:
                 return self.markets[symbol]
             elif symbol in self.markets_by_id:
                 return self.markets_by_id[symbol]
+
+    def market(self, symbol):
+        # symbol = symbol + ':USDT'
+        if self.markets is None:
+            raise ExchangeError(self.id + ' markets not loaded')
+        if self.markets_by_id is None:
+            raise ExchangeError(self.id + ' markets not loaded')
+        # TEALSTREET patch for backwards compatability
+        # self.marketHelper(symbol.split(':')[0])
+        foundMarket = self.marketHelper(symbol) or self.marketHelper(symbol + ':USDT') or self.marketHelper(symbol + ':BTC')
+        if foundMarket:
+            return foundMarket
         raise BadSymbol(self.id + ' does not have market symbol ' + symbol)
 
     def handle_withdraw_tag_and_params(self, tag, params):

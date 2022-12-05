@@ -7,7 +7,7 @@ const functions = require ("../../base/functions.js")
         milliseconds,
     } = functions
     , Client = require ('./Client')
-    , WebSocket = window.WebSocket
+    , WebSocket = isNode ? require ('ws') : window.WebSocket
 
 
 

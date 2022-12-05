@@ -1779,19 +1779,29 @@ class Exchange extends \ccxt\Exchange {
         throw new ExchangeError($this->id . ' does not have currency $code ' . $code);
     }
 
-    public function market($symbol) {
-        if ($this->markets === null) {
-            throw new ExchangeError($this->id . ' markets not loaded');
-        }
-        if ($this->markets_by_id === null) {
-            throw new ExchangeError($this->id . ' markets not loaded');
-        }
+    public function market_helper($symbol) {
         if (gettype($symbol) === 'string') {
             if (is_array($this->markets) && array_key_exists($symbol, $this->markets)) {
                 return $this->markets[$symbol];
             } elseif (is_array($this->markets_by_id) && array_key_exists($symbol, $this->markets_by_id)) {
                 return $this->markets_by_id[$symbol];
             }
+        }
+    }
+
+    public function market($symbol) {
+        // $symbol = $symbol . ':USDT';
+        if ($this->markets === null) {
+            throw new ExchangeError($this->id . ' markets not loaded');
+        }
+        if ($this->markets_by_id === null) {
+            throw new ExchangeError($this->id . ' markets not loaded');
+        }
+        // TEALSTREET patch for backwards compatability
+        // $this->marketHelper (explode(':', $symbol)[0]);
+        $foundMarket = $this->marketHelper ($symbol) || $this->marketHelper ($symbol . ':USDT') || $this->marketHelper ($symbol . ':BTC');
+        if ($foundMarket) {
+            return $foundMarket;
         }
         throw new BadSymbol($this->id . ' does not have market $symbol ' . $symbol);
     }
