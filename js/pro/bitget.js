@@ -3,7 +3,7 @@
 //  ---------------------------------------------------------------------------
 
 const bitgetRest = require ('../bitget.js');
-const { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported } = require ('../base/errors');
+const { AuthenticationError, BadRequest, ArgumentsRequired, NotSupported, InvalidNonce } = require ('../base/errors');
 const Precise = require ('../base/Precise');
 const { ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp } = require ('./base/Cache');
 
@@ -345,10 +345,10 @@ module.exports = class bitget extends bitgetRest {
         const messageHash = 'orderbook' + ':' + symbol;
         const instType = market['spot'] ? 'sp' : 'mc';
         let channel = 'books';
-        if (limit !== undefined) {
-            if (limit === 5 || limit === 15) {
-                channel += limit.toString ();
-            }
+        let incrementalFeed = true;
+        if ((limit === 5) || (limit === 15)) {
+            channel += limit.toString ();
+            incrementalFeed = false;
         }
         const args = {
             'instType': instType,
@@ -356,7 +356,11 @@ module.exports = class bitget extends bitgetRest {
             'instId': this.getWsMarketId (market),
         };
         const orderbook = await this.watchPublic (messageHash, args, params);
-        return orderbook.limit (limit);
+        if (incrementalFeed) {
+            return orderbook.limit ();
+        } else {
+            return orderbook;
+        }
     }
 
     handleOrderBook (client, message) {
@@ -390,57 +394,63 @@ module.exports = class bitget extends bitgetRest {
         //   }
         //
         const arg = this.safeValue (message, 'arg');
+        const channel = this.safeString (arg, 'channel');
         const marketId = this.getMarketIdFromArg (arg);
-        const action = this.safeString (message, 'action');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
+        const messageHash = 'orderbook:' + symbol;
         const data = this.safeValue (message, 'data');
         const rawOrderBook = this.safeValue (data, 0);
         const timestamp = this.safeInteger (rawOrderBook, 'ts');
         let storedOrderBook = this.safeValue (this.orderbooks, symbol);
-        if (storedOrderBook === undefined) {
-            storedOrderBook = this.orderBook ({});
+        const incrementalBook = channel === 'books';
+        if ((storedOrderBook === undefined) && incrementalBook) {
+            storedOrderBook = this.countedOrderBook ({});
             this.orderbooks[symbol] = storedOrderBook;
-        }
-        if (action === 'snapshot') {
-            const snapshot = this.parseOrderBook (rawOrderBook, symbol, timestamp);
-            storedOrderBook.reset (snapshot);
         } else {
+            storedOrderBook = this.parseOrderBook (rawOrderBook, symbol, timestamp);
+        }
+        if (incrementalBook) {
             const asks = this.safeValue (rawOrderBook, 'asks', []);
             const bids = this.safeValue (rawOrderBook, 'bids', []);
             this.handleDeltas (storedOrderBook['asks'], asks);
             this.handleDeltas (storedOrderBook['bids'], bids);
             storedOrderBook['timestamp'] = timestamp;
             storedOrderBook['datetime'] = this.iso8601 (timestamp);
-        }
-        const checksum = this.safeValue (this.options, 'checksum', true);
-        if (checksum) {
-            const storedAsks = storedOrderBook['asks'];
-            const storedBids = storedOrderBook['bids'];
-            const asksLength = storedAsks.length;
-            const bidsLength = storedBids.length;
-            const payloadArray = [];
-            for (let i = 0; i < 25; i++) {
-                if (i < bidsLength) {
-                    payloadArray.push (storedBids[i][0]);
-                    payloadArray.push (storedBids[i][1]);
+            const checksum = this.safeValue (this.options, 'checksum', true);
+            if (checksum) {
+                const storedAsks = storedOrderBook['asks'];
+                const storedBids = storedOrderBook['bids'];
+                const asksLength = storedAsks.length;
+                const bidsLength = storedBids.length;
+                const payloadArray = [];
+                for (let i = 0; i < 25; i++) {
+                    if (i < bidsLength) {
+                        payloadArray.push (storedBids[i][2][0]);
+                        payloadArray.push (storedBids[i][2][1]);
+                    }
+                    if (i < asksLength) {
+                        payloadArray.push (storedAsks[i][2][0]);
+                        payloadArray.push (storedAsks[i][2][1]);
+                    }
                 }
-                if (i < asksLength) {
-                    payloadArray.push (storedAsks[i][0]);
-                    payloadArray.push (storedAsks[i][1]);
+                const payload = payloadArray.join (':');
+                const calculatedChecksum = this.crc32 (payload, true);
+                const responseChecksum = this.safeInteger (rawOrderBook, 'checksum');
+                if (calculatedChecksum !== responseChecksum) {
+                    const error = new InvalidNonce (this.id + ' invalid checksum');
+                    client.reject (error, messageHash);
                 }
             }
-            const payload = payloadArray.join (':');
-            const calculatedChecksum = this.crc32 (payload, true);
-            const responseChecksum = this.safeString (rawOrderBook, 'checksum');
-            console.log (payload, calculatedChecksum, responseChecksum, calculatedChecksum === responseChecksum)
         }
-        const messageHash = 'orderbook:' + symbol;
         client.resolve (storedOrderBook, messageHash);
     }
 
     handleDelta (bookside, delta) {
         const bidAsk = this.parseBidAsk (delta, 0, 1);
+        // we store the string representations in the orderbook for checksum calculation
+        // this simplifies the code for generating checksums as we do not need to do any complex number transformations
+        bidAsk.push (delta);
         bookside.storeArray (bidAsk);
     }
 
@@ -630,7 +640,7 @@ module.exports = class bitget extends bitgetRest {
         for (let i = 0; i < data.length; i++) {
             const order = data[i];
             const execType = this.safeString (order, 'execType');
-            if (execType === 'T' && isContractUpdate) {
+            if ((execType === 'T') && isContractUpdate) {
                 // partial order updates have the trade info inside
                 this.handleMyTrades (client, order);
             }
@@ -779,6 +789,7 @@ module.exports = class bitget extends bitgetRest {
             'partial-fill': 'open',
             'full-fill': 'closed',
             'filled': 'closed',
+            'cancelled': 'canceled',
         };
         return this.safeString (statuses, status, status);
     }
@@ -911,7 +922,7 @@ module.exports = class bitget extends bitgetRest {
         const side = this.safeString (trade, 'side');
         const price = this.safeString (trade, 'fillPx');
         const amount = this.safeString (trade, 'fillSz');
-        const type = this.safeString (trade, 'orderType');
+        const type = this.safeString (trade, 'ordType');
         const cost = this.safeString (trade, 'notional');
         const feeCurrency = this.safeString (trade, 'fillFeeCcy');
         const feeAmount = Precise.stringAbs (this.safeString (trade, 'fillFee'));
