@@ -1048,7 +1048,7 @@ module.exports = class bybit extends bybitRest {
         client.resolve (orders, messageHash);
     }
 
-    parseWsOrder (order, market = undefined) {
+    parseWsSpotOrder (order, market = undefined) {
         //
         //    {
         //        e: 'executionReport',
@@ -1107,10 +1107,13 @@ module.exports = class bybit extends bybitRest {
                 'currency': feeCurrencyCode,
             };
         }
+        const trades = [
+            { 'id': this.safeString (order, 't') },
+        ];
         return this.safeOrder ({
             'info': order,
             'id': id,
-            'clientOrderId': undefined,
+            'clientOrderId': this.safeString (order, 'c'),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': lastTradeTimestamp,
@@ -1122,13 +1125,13 @@ module.exports = class bybit extends bybitRest {
             'price': price,
             'stopPrice': undefined,
             'amount': amount,
-            'cost': undefined,
+            'cost': this.safeString (order, 'Z'),
             'average': undefined,
             'filled': filled,
             'remaining': undefined,
             'status': status,
             'fee': fee,
-            'trades': undefined,
+            'trades': trades,
         }, market);
     }
 
@@ -1450,6 +1453,7 @@ module.exports = class bybit extends bybitRest {
             if (topic.indexOf (keys[i]) >= 0) {
                 const method = methods[key];
                 method.call (this, client, message);
+                return;
             }
         }
         // contract auth acknowledgement
@@ -1460,7 +1464,10 @@ module.exports = class bybit extends bybitRest {
     }
 
     ping () {
-        return { 'op': 'ping' };
+        return {
+            'req_id': this.requestId (),
+            'op': 'ping',
+        };
     }
 
     handlePong (client, message) {
