@@ -511,8 +511,8 @@ class kraken extends Exchange {
     public function append_inactive_markets($result) {
         // $result should be an array to append to
         $precision = array(
-            'amount' => $this->parse_number('0.00000001'),
-            'price' => $this->parse_number('0.00000001'),
+            'amount' => $this->parse_number('1e-8'),
+            'price' => $this->parse_number('1e-8'),
         );
         $costLimits = array( 'min' => null, 'max' => null );
         $priceLimits = array( 'min' => $precision['price'], 'max' => null );
@@ -777,22 +777,20 @@ class kraken extends Exchange {
              * @param {array} $params extra parameters specific to the kraken api endpoint
              * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
              */
-            if ($symbols === null) {
-                throw new ArgumentsRequired($this->id . ' fetchTickers() requires a $symbols argument, an array of symbols');
-            }
             Async\await($this->load_markets());
-            $symbols = $this->market_symbols($symbols);
-            $marketIds = array();
-            for ($i = 0; $i < count($symbols); $i++) {
-                $symbol = $symbols[$i];
-                $market = $this->markets[$symbol];
-                if ($market['active'] && !$market['darkpool']) {
-                    $marketIds[] = $market['id'];
+            $request = array();
+            if ($symbols !== null) {
+                $symbols = $this->market_symbols($symbols);
+                $marketIds = array();
+                for ($i = 0; $i < count($symbols); $i++) {
+                    $symbol = $symbols[$i];
+                    $market = $this->markets[$symbol];
+                    if ($market['active'] && !$market['darkpool']) {
+                        $marketIds[] = $market['id'];
+                    }
                 }
+                $request['pair'] = implode(',', $marketIds);
             }
-            $request = array(
-                'pair' => implode(',', $marketIds),
-            );
             $response = Async\await($this->publicGetTicker (array_merge($request, $params)));
             $tickers = $response['result'];
             $ids = is_array($tickers) ? array_keys($tickers) : array();

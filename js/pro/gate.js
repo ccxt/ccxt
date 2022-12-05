@@ -113,7 +113,7 @@ module.exports = class gate extends gateRest {
             'limit': limit,
         };
         const orderbook = await this.subscribePublic (url, method, messageHash, payload, subscriptionParams);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBookSubscription (client, message, subscription) {
@@ -163,7 +163,7 @@ module.exports = class gate extends gateRest {
                     }
                 } else {
                     // throw upon failing to synchronize in maxAttempts
-                    client.subscriptions[messageHash] = undefined;
+                    delete client.subscriptions[messageHash];
                     throw new InvalidNonce (this.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + maxAttempts.toString () + ' attempts');
                 }
             } else {
@@ -477,6 +477,17 @@ module.exports = class gate extends gateRest {
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the gate api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
@@ -650,6 +661,7 @@ module.exports = class gate extends gateRest {
         if (cachedTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             cachedTrades = new ArrayCacheBySymbolById (limit);
+            this.myTrades = cachedTrades;
         }
         const parsed = this.parseTrades (result);
         const marketIds = {};

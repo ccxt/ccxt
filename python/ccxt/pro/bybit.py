@@ -423,7 +423,7 @@ class bybit(Exchange, ccxt.async_support.bybit):
                 timestamp = int(timestamp) if (timestamp is not None) else None
         marketId = self.safe_string_2(ticker, 'symbol', 's')
         symbol = self.safe_symbol(marketId, market)
-        last = self.safe_string_n(ticker, ['l', 'last_price', 'lastPrice'])
+        last = self.safe_string_n(ticker, ['c', 'last_price', 'lastPrice'])
         open = self.safe_string_n(ticker, ['prev_price_24h', 'o', 'prevPrice24h'])
         quoteVolume = self.safe_string_n(ticker, ['v', 'turnover24h'])
         if quoteVolume is None:
@@ -466,6 +466,15 @@ class bybit(Exchange, ccxt.async_support.bybit):
         }, market)
 
     async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+        """
+        watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        :param str symbol: unified symbol of the market to fetch OHLCV data for
+        :param str timeframe: the length of time each candle represents
+        :param int|None since: timestamp in ms of the earliest candle to fetch
+        :param int|None limit: the maximum amount of candles to fetch
+        :param dict params: extra parameters specific to the bybit api endpoint
+        :returns [[int]]: A list of candles ordered as timestamp, open, high, low, close, volume
+        """
         await self.load_markets()
         market = self.market(symbol)
         symbol = market['symbol']
@@ -658,7 +667,7 @@ class bybit(Exchange, ccxt.async_support.bybit):
                 channel = prefix + '.' + market['id']
             reqParams = [channel]
             orderbook = await self.watch_contract_public(url, messageHash, reqParams, params)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_order_book(self, client, message):
         #
@@ -1182,10 +1191,14 @@ class bybit(Exchange, ccxt.async_support.bybit):
         symbols = list(marketSymbols.keys())
         for i in range(0, len(symbols)):
             symbol = symbols[i]
-            messageHash = 'usertrade:' + symbol + ':' + topic
+            messageHash = 'usertrade:' + symbol
+            if topic:
+                messageHash += ':' + topic
             client.resolve(trades, messageHash)
         # non-symbol specific
-        messageHash = 'usertrade:' + topic
+        messageHash = 'usertrade'
+        if topic:
+            messageHash += ':' + topic
         client.resolve(trades, messageHash)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
@@ -1384,9 +1397,13 @@ class bybit(Exchange, ccxt.async_support.bybit):
         symbols = list(marketSymbols.keys())
         for i in range(0, len(symbols)):
             symbol = symbols[i]
-            messageHash = 'order:' + symbol + ':' + topic
+            messageHash = 'order:' + symbol
+            if topic:
+                messageHash += ':' + topic
             client.resolve(orders, messageHash)
-        messageHash = 'order:' + topic
+        messageHash = 'order'
+        if topic:
+            messageHash += ':' + topic
         # non-symbol specific
         client.resolve(orders, messageHash)
 

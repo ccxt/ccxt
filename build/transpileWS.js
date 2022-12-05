@@ -220,8 +220,8 @@ class CCXTProTranspiler extends Transpiler {
         log.bright.cyan ('Exporting WS TypeScript class names →', file.yellow)
         
         const commonImports = [
-            '        export const exchanges: string[];',
-            '        class Exchange  extends ExchangePro {};'
+            '        export const exchanges: string[]',
+            '        class Exchange  extends ExchangePro {}'
         ]
 
         const replacements = [
@@ -229,7 +229,7 @@ class CCXTProTranspiler extends Transpiler {
                 file:file,
                 regex: /\n\n\s+export\snamespace\spro\s{\n\s+[\s\S]+}/,
                 replacement: "\n\n    export namespace pro {\n" + commonImports.join('\n') + '\n' + Object.keys (classes).map (className => {
-                    return '        class ' + className + ' extends Exchange {};'
+                    return '        class ' + className + ' extends Exchange {}'
                 }).join ("\n") + "\n    }\n}"
             }
         ]

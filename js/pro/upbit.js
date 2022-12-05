@@ -30,6 +30,7 @@ module.exports = class upbit extends upbitRest {
     async watchPublic (symbol, channel, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const marketId = market['id'];
         const url = this.urls['api']['ws'];
         this.options[channel] = this.safeValue (this.options, channel, {});
@@ -74,6 +75,8 @@ module.exports = class upbit extends upbitRest {
          * @param {object} params extra parameters specific to the upbit api endpoint
          * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
          */
+        await this.loadMarkets ();
+        symbol = this.symbol (symbol);
         const trades = await this.watchPublic (symbol, 'trade');
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -92,7 +95,7 @@ module.exports = class upbit extends upbitRest {
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         const orderbook = await this.watchPublic (symbol, 'orderbook');
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleTicker (client, message) {

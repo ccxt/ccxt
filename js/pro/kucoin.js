@@ -225,6 +225,17 @@ module.exports = class kucoin extends kucoinFuturesRest {
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoin#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the kucoin api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const negotiation = await this.negotiate ();
         const market = this.market (symbol);
@@ -382,7 +393,7 @@ module.exports = class kucoin extends kucoinFuturesRest {
         const topic = '/' + channel + ':' + market['id'];
         const messageHash = topic;
         const orderbook = await this.subscribe (negotiation, topic, messageHash, this.handleOrderBookSubscription, symbol, params);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     retryFetchOrderBookSnapshot (client, message, subscription) {

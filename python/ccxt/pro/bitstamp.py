@@ -55,6 +55,7 @@ class bitstamp(Exchange, ccxt.async_support.bitstamp):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         options = self.safe_value(self.options, 'watchOrderBook', {})
         type = self.safe_string(options, 'type', 'order_book')
         messageHash = type + '_' + market['id']
@@ -75,7 +76,7 @@ class bitstamp(Exchange, ccxt.async_support.bitstamp):
         }
         message = self.extend(request, params)
         orderbook = await self.watch(url, messageHash, message, messageHash, subscription)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     async def fetch_order_book_snapshot(self, client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
@@ -190,6 +191,7 @@ class bitstamp(Exchange, ccxt.async_support.bitstamp):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         options = self.safe_value(self.options, 'watchTrades', {})
         type = self.safe_string(options, 'type', 'live_trades')
         messageHash = type + '_' + market['id']
@@ -310,6 +312,7 @@ class bitstamp(Exchange, ccxt.async_support.bitstamp):
             raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         channel = 'private-my_orders'
         messageHash = channel + '_' + market['id']
         subscription = {

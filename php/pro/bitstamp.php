@@ -58,6 +58,7 @@ class bitstamp extends \ccxt\async\bitstamp {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $options = $this->safe_value($this->options, 'watchOrderBook', array());
             $type = $this->safe_string($options, 'type', 'order_book');
             $messageHash = $type . '_' . $market['id'];
@@ -78,7 +79,7 @@ class bitstamp extends \ccxt\async\bitstamp {
             );
             $message = array_merge($request, $params);
             $orderbook = Async\await($this->watch($url, $messageHash, $message, $messageHash, $subscription));
-            return $orderbook->limit ($limit);
+            return $orderbook->limit ();
         }) ();
     }
 
@@ -214,6 +215,7 @@ class bitstamp extends \ccxt\async\bitstamp {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $options = $this->safe_value($this->options, 'watchTrades', array());
             $type = $this->safe_string($options, 'type', 'live_trades');
             $messageHash = $type . '_' . $market['id'];
@@ -346,6 +348,7 @@ class bitstamp extends \ccxt\async\bitstamp {
             }
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $symbol = $market['symbol'];
             $channel = 'private-my_orders';
             $messageHash = $channel . '_' . $market['id'];
             $subscription = array(

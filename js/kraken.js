@@ -500,8 +500,8 @@ module.exports = class kraken extends Exchange {
     appendInactiveMarkets (result) {
         // result should be an array to append to
         const precision = {
-            'amount': this.parseNumber ('0.00000001'),
-            'price': this.parseNumber ('0.00000001'),
+            'amount': this.parseNumber ('1e-8'),
+            'price': this.parseNumber ('1e-8'),
         };
         const costLimits = { 'min': undefined, 'max': undefined };
         const priceLimits = { 'min': precision['price'], 'max': undefined };
@@ -767,22 +767,20 @@ module.exports = class kraken extends Exchange {
          * @param {object} params extra parameters specific to the kraken api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
-        if (symbols === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchTickers() requires a symbols argument, an array of symbols');
-        }
         await this.loadMarkets ();
-        symbols = this.marketSymbols (symbols);
-        const marketIds = [];
-        for (let i = 0; i < symbols.length; i++) {
-            const symbol = symbols[i];
-            const market = this.markets[symbol];
-            if (market['active'] && !market['darkpool']) {
-                marketIds.push (market['id']);
+        const request = {};
+        if (symbols !== undefined) {
+            symbols = this.marketSymbols (symbols);
+            const marketIds = [];
+            for (let i = 0; i < symbols.length; i++) {
+                const symbol = symbols[i];
+                const market = this.markets[symbol];
+                if (market['active'] && !market['darkpool']) {
+                    marketIds.push (market['id']);
+                }
             }
+            request['pair'] = marketIds.join (',');
         }
-        const request = {
-            'pair': marketIds.join (','),
-        };
         const response = await this.publicGetTicker (this.extend (request, params));
         const tickers = response['result'];
         const ids = Object.keys (tickers);

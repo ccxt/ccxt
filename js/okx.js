@@ -92,7 +92,7 @@ module.exports = class okx extends Exchange {
                 'fetchTrades': true,
                 'fetchTradingFee': true,
                 'fetchTradingFees': false,
-                'fetchTradingLimits': undefined,
+                'fetchTradingLimits': false,
                 'fetchTransactionFee': false,
                 'fetchTransactionFees': false,
                 'fetchTransactions': false,
@@ -366,6 +366,7 @@ module.exports = class okx extends Exchange {
                     '50026': ExchangeNotAvailable, // System error, please try again later.
                     '50027': PermissionDenied, // The account is restricted from trading
                     '50028': ExchangeError, // Unable to take the order, please reach out to support center for details
+                    '50044': BadRequest, // Must select one broker type
                     // API Class
                     '50100': ExchangeError, // API frozen, please contact customer service
                     '50101': AuthenticationError, // Broker id of APIKey does not match current environment
@@ -610,8 +611,12 @@ module.exports = class okx extends Exchange {
                     '60018': BadRequest, // The {0} {1} {2} {3} {4} does not exist
                     '60019': BadRequest, // Invalid op {op}
                     '63999': ExchangeError, // Internal system error
+                    '70010': BadRequest, // Timestamp parameters need to be in Unix timestamp format in milliseconds.
+                    '70013': BadRequest, // endTs needs to be bigger than or equal to beginTs.
+                    '70016': BadRequest, // Please specify your instrument settings for at least one instType.
                 },
                 'broad': {
+                    'Internal Server Error': ExchangeNotAvailable, // {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"Internal Server Error","msg":"Internal Server Error"}
                     'server error': ExchangeNotAvailable, // {"code":500,"data":{},"detailMsg":"","error_code":"500","error_message":"server error 1236805249","msg":"server error 1236805249"}
                 },
             },
@@ -1446,7 +1451,14 @@ module.exports = class okx extends Exchange {
          * @param {object} params extra parameters specific to the okx api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        await this.loadMarkets ();
+        symbols = this.marketSymbols (symbols);
+        const first = this.safeString (symbols, 0);
+        let market = undefined;
+        if (first !== undefined) {
+            market = this.market (first);
+        }
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         return await this.fetchTickersByType (type, symbols, query);
     }
 
@@ -1608,7 +1620,7 @@ module.exports = class okx extends Exchange {
         }
         const duration = this.parseTimeframe (timeframe);
         let bar = this.timeframes[timeframe];
-        if ((timezone === 'UTC') && (duration >= 21600000)) {
+        if ((timezone === 'UTC') && (duration >= 21600)) { // if utc and timeframe >= 6h
             bar += timezone.toLowerCase ();
         }
         const request = {
@@ -1713,6 +1725,7 @@ module.exports = class okx extends Exchange {
             const rate = data[i];
             const timestamp = this.safeNumber (rate, 'fundingTime');
             rates.push ({
+                'info': rate,
                 'symbol': this.safeSymbol (this.safeString (rate, 'instId')),
                 'fundingRate': this.safeNumber (rate, 'realizedRate'),
                 'timestamp': timestamp,
@@ -2468,7 +2481,7 @@ module.exports = class okx extends Exchange {
         if ((clientOrderId !== undefined) && (clientOrderId.length < 1)) {
             clientOrderId = undefined; // fix empty clientOrderId string
         }
-        const stopPrice = this.safeNumberN (order, [ 'triggerPx', 'slTriggerPx', 'tpTriggerPx' ]);
+        const stopPrice = this.safeNumberN (order, [ 'tpTriggerPx', 'triggerPx', 'slTriggerPx' ]);
         let reduceOnly = this.safeString (order, 'reduceOnly');
         if (reduceOnly !== undefined) {
             reduceOnly = (reduceOnly === 'true');
@@ -2747,6 +2760,7 @@ module.exports = class okx extends Exchange {
          * @param {bool} params.stop True if fetching trigger or conditional orders
          * @param {string} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string|undefined} params.algoId Algo ID "'433845797218942976'"
+         * @param {int|undefined} params.until timestamp in ms to fetch orders for
          * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -2766,7 +2780,9 @@ module.exports = class okx extends Exchange {
             market = this.market (symbol);
             request['instId'] = market['id'];
         }
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchCanceledOrders', market, params);
+        let type = undefined;
+        let query = undefined;
+        [ type, query ] = this.handleMarketTypeAndParams ('fetchCanceledOrders', market, params);
         request['instType'] = this.convertToInstrumentType (type);
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
@@ -2790,6 +2806,15 @@ module.exports = class okx extends Exchange {
                     throw new ArgumentsRequired (this.id + ' fetchCanceledOrders() requires an "ordType" string parameter, "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"');
                 }
                 request['ordType'] = ordType;
+            }
+        } else {
+            if (since !== undefined) {
+                request['begin'] = since;
+            }
+            const until = this.safeInteger2 (query, 'till', 'until');
+            if (until !== undefined) {
+                request['end'] = until;
+                query = this.omit (query, [ 'until', 'till' ]);
             }
         }
         const send = this.omit (query, [ 'method', 'stop', 'ordType' ]);
@@ -2909,6 +2934,7 @@ module.exports = class okx extends Exchange {
          * @param {bool} params.stop True if fetching trigger or conditional orders
          * @param {string} params.ordType "conditional", "oco", "trigger", "move_order_stop", "iceberg", or "twap"
          * @param {string|undefined} params.algoId Algo ID "'433845797218942976'"
+         * @param {int|undefined} params.until timestamp in ms to fetch orders for
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
          */
         await this.loadMarkets ();
@@ -2928,7 +2954,9 @@ module.exports = class okx extends Exchange {
             market = this.market (symbol);
             request['instId'] = market['id'];
         }
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
+        let type = undefined;
+        let query = undefined;
+        [ type, query ] = this.handleMarketTypeAndParams ('fetchClosedOrders', market, params);
         request['instType'] = this.convertToInstrumentType (type);
         if (limit !== undefined) {
             request['limit'] = limit; // default 100, max 100
@@ -2948,6 +2976,14 @@ module.exports = class okx extends Exchange {
             }
             request['state'] = 'effective';
         } else {
+            if (since !== undefined) {
+                request['begin'] = since;
+            }
+            const until = this.safeInteger2 (query, 'till', 'until');
+            if (until !== undefined) {
+                request['end'] = until;
+                query = this.omit (query, [ 'until', 'till' ]);
+            }
             request['state'] = 'filled';
         }
         const send = this.omit (query, [ 'method', 'stop' ]);
@@ -4116,7 +4152,9 @@ module.exports = class okx extends Exchange {
                 const market = this.market (entry);
                 marketIds.push (market['id']);
             }
-            request['instId'] = marketIds.toString ();
+            if (marketIds.length > 0) {
+                request['instId'] = marketIds.join (',');
+            }
         }
         const response = await this.privateGetAccountPositions (this.extend (request, params));
         //

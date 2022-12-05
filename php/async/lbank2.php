@@ -8,6 +8,7 @@ namespace ccxt\async;
 use Exception; // a common import
 use ccxt\ArgumentsRequired;
 use ccxt\InvalidOrder;
+use ccxt\Precise;
 use React\Async;
 
 class lbank2 extends Exchange {
@@ -43,6 +44,8 @@ class lbank2 extends Exchange {
                 'fetchBorrowRates' => false,
                 'fetchBorrowRatesPerSymbol' => false,
                 'fetchClosedOrders' => false,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => false,
                 'fetchFundingRate' => false,
                 'fetchFundingRateHistory' => false,
@@ -192,8 +195,11 @@ class lbank2 extends Exchange {
                 'fetchTrades' => array(
                     'method' => 'publicGetTrades', // or 'publicGetTradesSupplement'
                 ),
-                'fetchTransactionFees' => array(
+                'fetchTransactionFees' => array(   // DEPRECATED, please use fetchDepositWithdrawFees
                     'method' => 'fetchPrivateTransactionFees', // or 'fetchPublicTransactionFees'
+                ),
+                'fetchDepositWithdrawFees' => array(
+                    'method' => 'fetchPrivateDepositWithdrawFees', // or 'fetchPublicDepositWithdrawFees'
                 ),
                 'fetchDepositAddress' => array(
                     'method' => 'fetchDepositAddressDefault', // or fetchDepositAddressSupplement
@@ -998,7 +1004,10 @@ class lbank2 extends Exchange {
                         if ($price === null) {
                             throw new InvalidOrder($this->id . " createOrder () requires the $price argument with $market buy orders to calculate total order $cost ($amount to spend), where $cost = $amount * $price-> Supply the $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or, alternatively, add .options['createMarketBuyOrderRequiresPrice'] = false to supply the $cost in the $amount argument (the exchange-specific behaviour)");
                         } else {
-                            $cost = floatval($amount) * floatval($price);
+                            $amountString = $this->number_to_string($amount);
+                            $priceString = $this->number_to_string($price);
+                            $quoteAmount = Precise::string_mul($amountString, $priceString);
+                            $cost = $this->parse_number($quoteAmount);
                             $request['price'] = $this->price_to_precision($symbol, $cost);
                         }
                     } else {
@@ -1664,14 +1673,14 @@ class lbank2 extends Exchange {
             $fee = $this->safe_string($params, 'fee');
             $params = $this->omit($params, 'fee');
             if ($fee === null) {
-                throw new ArgumentsRequired($this->id . ' withdraw () requires a $fee argument to be supplied in $params, the relevant coin $network $fee can be found by calling fetchTransactionFees (), note => if no $network param is supplied then the default $network will be used, this can also be found in fetchTransactionFees ()');
+                throw new ArgumentsRequired($this->id . ' withdraw () requires a $fee argument to be supplied in $params, the relevant coin $network $fee can be found by calling fetchDepositWithdrawFees (), note => if no $network param is supplied then the default $network will be used, this can also be found in fetchDepositWithdrawFees ()');
             }
             $currency = $this->currency($code);
             $request = array(
                 'address' => $address,
                 'coin' => $currency['id'],
                 'amount' => $amount,
-                'fee' => $fee, // the correct coin-$network $fee must be supplied, which can be found by calling fetchTransactionFees (private)
+                'fee' => $fee, // the correct coin-$network $fee must be supplied, which can be found by calling fetchDepositWithdrawFees (private)
                 // 'networkName' => defaults to the defaultNetwork of the coin which can be found in the /supplement/user_info endpoint
                 // 'memo' => memo => memo word of bts and dct
                 // 'mark' => Withdrawal Notes
@@ -1927,7 +1936,7 @@ class lbank2 extends Exchange {
     public function fetch_transaction_fees($codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
-             * fetch transaction fees
+             * *DEPRECATED* please use fetchDepositWithdrawFees instead
              * @param {[string]|null} $codes not used by lbank2 fetchTransactionFees ()
              * @param {array} $params extra parameters specific to the lbank2 api endpoint
              * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
@@ -2051,7 +2060,7 @@ class lbank2 extends Exchange {
             $withdrawFees = array();
             for ($i = 0; $i < count($result); $i++) {
                 $item = $result[$i];
-                $canWithdraw = $this->safe_string($item, 'canWithDraw');
+                $canWithdraw = $this->safe_value($item, 'canWithDraw');
                 if ($canWithdraw === 'true') {
                     $currencyId = $this->safe_string($item, 'assetCode');
                     $code = $this->safe_currency_code($currencyId);
@@ -2073,6 +2082,221 @@ class lbank2 extends Exchange {
                 'info' => $response,
             );
         }) ();
+    }
+
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * when using private endpoint, only returns information for currencies with non-zero balance, use public $method by specifying $this->options['fetchDepositWithdrawFees']['method'] = 'fetchPublicDepositWithdrawFees'
+             * @param {[string]|null} $codes array of unified currency $codes
+             * @param {array} $params extra parameters specific to the lbank2 api endpoint
+             * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+             */
+            Async\await($this->load_markets());
+            $isAuthorized = $this->check_required_credentials(false);
+            $method = null;
+            if ($isAuthorized === true) {
+                $method = $this->safe_string($params, 'method');
+                $params = $this->omit($params, 'method');
+                if ($method === null) {
+                    $options = $this->safe_value($this->options, 'fetchDepositWithdrawFees', array());
+                    $method = $this->safe_string($options, 'method', 'fetchPrivateDepositWithdrawFees');
+                }
+            } else {
+                $method = 'fetchPublicDepositWithdrawFees';
+            }
+            return Async\await($this->$method ($codes, $params));
+        }) ();
+    }
+
+    public function fetch_private_deposit_withdraw_fees($codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            // complete $response
+            // incl. for coins which null in public method
+            Async\await($this->load_markets());
+            $response = Async\await($this->privatePostSupplementUserInfo ($params));
+            //
+            //    {
+            //        "result" => "true",
+            //        "data" => array(
+            //            {
+            //                "usableAmt" => "14.36",
+            //                "assetAmt" => "14.36",
+            //                "networkList" => array(
+            //                    array(
+            //                        "isDefault" => false,
+            //                        "withdrawFeeRate" => "",
+            //                        "name" => "erc20",
+            //                        "withdrawMin" => 30,
+            //                        "minLimit" => 0.0001,
+            //                        "minDeposit" => 20,
+            //                        "feeAssetCode" => "usdt",
+            //                        "withdrawFee" => "30",
+            //                        "type" => 1,
+            //                        "coin" => "usdt",
+            //                        "network" => "eth"
+            //                    ),
+            //                    ...
+            //                ),
+            //                "freezeAmt" => "0",
+            //                "coin" => "ada"
+            //            }
+            //        ),
+            //        "code" => 0
+            //    }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_deposit_withdraw_fees($data, $codes, 'coin');
+        }) ();
+    }
+
+    public function fetch_public_deposit_withdraw_fees($codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            // extremely incomplete $response
+            // vast majority fees null
+            Async\await($this->load_markets());
+            $request = array();
+            $response = Async\await($this->publicGetWithdrawConfigs (array_merge($request, $params)));
+            //
+            //    {
+            //        result => 'true',
+            //        $data => array(
+            //            array(
+            //                amountScale => '4',
+            //                chain => 'heco',
+            //                assetCode => 'lbk',
+            //                min => '200',
+            //                transferAmtScale => '4',
+            //                canWithDraw => true,
+            //                fee => '100',
+            //                minTransfer => '0.0001',
+            //                type => '1'
+            //            ),
+            //            ...
+            //        ),
+            //        error_code => '0',
+            //        ts => '1663364435973'
+            //    }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            return $this->parse_public_deposit_withdraw_fees($data, $codes);
+        }) ();
+    }
+
+    public function parse_public_deposit_withdraw_fees($response, $codes = null) {
+        //
+        //    array(
+        //        array(
+        //            amountScale => '4',
+        //            $chain => 'heco',
+        //            assetCode => 'lbk',
+        //            min => '200',
+        //            transferAmtScale => '4',
+        //            canWithDraw => true,
+        //            $fee => '100',
+        //            minTransfer => '0.0001',
+        //            type => '1'
+        //        ),
+        //        ...
+        //    )
+        //
+        $result = array();
+        for ($i = 0; $i < count($response); $i++) {
+            $fee = $response[$i];
+            $canWithdraw = $this->safe_value($fee, 'canWithDraw');
+            if ($canWithdraw === true) {
+                $currencyId = $this->safe_string($fee, 'assetCode');
+                $code = $this->safe_currency_code($currencyId);
+                if ($codes === null || $this->in_array($code, $codes)) {
+                    $withdrawFee = $this->safe_number($fee, 'fee');
+                    if ($withdrawFee !== null) {
+                        $resultValue = $this->safe_value($result, $code);
+                        if ($resultValue === null) {
+                            $result[$code] = $this->deposit_withdraw_fee(array( $fee ));
+                        } else {
+                            $result[$code]['info'][] = $fee;
+                        }
+                        $chain = $this->safe_string($fee, 'chain');
+                        $networkCode = $this->safe_string($this->options['inverse-networks'], $chain, $chain);
+                        if ($networkCode !== null) {
+                            $result[$code]['networks'][$networkCode] = array(
+                                'withdraw' => array(
+                                    'fee' => $withdrawFee,
+                                    'percentage' => null,
+                                ),
+                                'deposit' => array(
+                                    'fee' => null,
+                                    'percentage' => null,
+                                ),
+                            );
+                        } else {
+                            $result[$code]['withdraw'] = array(
+                                'fee' => $withdrawFee,
+                                'percentage' => null,
+                            );
+                        }
+                    }
+                }
+            }
+        }
+        return $result;
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //
+        // * only used for fetchPrivateDepositWithdrawFees
+        //
+        //    {
+        //        "usableAmt" => "14.36",
+        //        "assetAmt" => "14.36",
+        //        "networkList" => array(
+        //            array(
+        //                "isDefault" => false,
+        //                "withdrawFeeRate" => "",
+        //                "name" => "erc20",
+        //                "withdrawMin" => 30,
+        //                "minLimit" => 0.0001,
+        //                "minDeposit" => 20,
+        //                "feeAssetCode" => "usdt",
+        //                "withdrawFee" => "30",
+        //                "type" => 1,
+        //                "coin" => "usdt",
+        //                "network" => "eth"
+        //            ),
+        //            ...
+        //        ),
+        //        "freezeAmt" => "0",
+        //        "coin" => "ada"
+        //    }
+        //
+        $result = $this->deposit_withdraw_fee($fee);
+        $networkList = $this->safe_value($fee, 'networkList', array());
+        for ($j = 0; $j < count($networkList); $j++) {
+            $networkEntry = $networkList[$j];
+            $networkId = $this->safe_string($networkEntry, 'name');
+            $networkCode = $this->safe_string_upper($this->options['inverse-networks'], $networkId, $networkId);
+            $withdrawFee = $this->safe_number($networkEntry, 'withdrawFee');
+            $isDefault = $this->safe_value($networkEntry, 'isDefault');
+            if ($withdrawFee !== null) {
+                if ($isDefault) {
+                    $result['withdraw'] = array(
+                        'fee' => $withdrawFee,
+                        'percentage' => null,
+                    );
+                }
+                $result['networks'][$networkCode] = array(
+                    'withdraw' => array(
+                        'fee' => $withdrawFee,
+                        'percentage' => null,
+                    ),
+                    'deposit' => array(
+                        'fee' => null,
+                        'percentage' => null,
+                    ),
+                );
+            }
+        }
+        return $result;
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
