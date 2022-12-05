@@ -118,6 +118,7 @@ class bitmart(Exchange):
             'requiredCredentials': {
                 'apiKey': True,
                 'secret': True,
+                'uid': True,
             },
             'api': {
                 'public': {
@@ -2802,7 +2803,6 @@ class bitmart(Exchange):
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [str|None, dict]: the marginMode in lowercase
         """
-        defaultValue = 'isolated' if (defaultValue is None) else defaultValue
         marginMode = None
         marginMode, params = super(bitmart, self).handle_margin_mode_and_params(methodName, params, defaultValue)
         if marginMode is not None:
@@ -2834,10 +2834,9 @@ class bitmart(Exchange):
             if not getOrDelete:
                 body = self.json(query)
                 queryString = body
-            # The request header of X-BM-SIGN is obtained by encrypting the timestamp + "#" + memo + "#" + queryString
-            # memo is ignored by bitmart so we send "CCXT" here
-            auth = timestamp + '#CCXT#' + queryString
-            headers['X-BM-SIGN'] = self.hmac(self.encode(auth), self.encode(self.secret))
+            auth = timestamp + '#' + self.uid + '#' + queryString
+            signature = self.hmac(self.encode(auth), self.encode(self.secret))
+            headers['X-BM-SIGN'] = signature
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
     def handle_errors(self, code, reason, url, method, headers, body, response, requestHeaders, requestBody):

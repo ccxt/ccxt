@@ -101,6 +101,7 @@ class bitmart extends Exchange {
             'requiredCredentials' => array(
                 'apiKey' => true,
                 'secret' => true,
+                'uid' => true,
             ),
             'api' => array(
                 'public' => array(
@@ -2926,7 +2927,6 @@ class bitmart extends Exchange {
          * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return array([string|null, object]) the $marginMode in lowercase
          */
-        $defaultValue = ($defaultValue === null) ? 'isolated' : $defaultValue;
         $marginMode = null;
         list($marginMode, $params) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
         if ($marginMode !== null) {
@@ -2965,10 +2965,9 @@ class bitmart extends Exchange {
                 $body = $this->json($query);
                 $queryString = $body;
             }
-            // The request header of X-BM-SIGN is obtained by encrypting the $timestamp . "#" . memo . "#" . $queryString
-            // memo is ignored by bitmart so we send "CCXT" here
-            $auth = $timestamp . '#CCXT#' . $queryString;
-            $headers['X-BM-SIGN'] = $this->hmac($this->encode($auth), $this->encode($this->secret));
+            $auth = $timestamp . '#' . $this->uid . '#' . $queryString;
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
+            $headers['X-BM-SIGN'] = $signature;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
