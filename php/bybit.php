@@ -4680,7 +4680,7 @@ class bybit extends Exchange {
         //         "time" => "1666734031592"
         //     }
         //
-        $result = $this->safe_value($response, 'response', array());
+        $result = $this->safe_value($response, 'result', array());
         $orders = $this->safe_value($result, 'list', array());
         return $this->parse_orders($orders, $market, $since, $limit);
     }
