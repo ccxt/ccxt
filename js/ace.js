@@ -53,7 +53,7 @@ module.exports = class ace extends Exchange {
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
                 'fetchOrderBook': true,
-                'fetchOrders': false,
+                'fetchOrders': true,
                 'fetchOrderTrades': false,
                 'fetchPositionMode': false,
                 'fetchPositions': false,
@@ -518,31 +518,89 @@ module.exports = class ace extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
+    parseOrderStatus (status) {
+        const statuses = {
+            '0': 'open',
+            '1': 'open',
+            '2': 'closed',
+        };
+        return this.safeString (statuses, status, undefined);
+    }
+
     parseOrder (order, market = undefined) {
         //
         // createOrder
-        //         "15697850529570392100421100482693",
+        //         "15697850529570392100421100482693"
         //
-        const id = order;
+        // fetchOrders
+        //         {
+        //             "uid": 0,
+        //             "orderNo": "16113081376560890227301101413941",
+        //             "orderTime": "2021-01-22 17:35:37",
+        //             "orderTimeStamp": 1611308137656,
+        //             "baseCurrencyId": 1,
+        //             "baseCurrencyNameEn": "TWD",
+        //             "currencyId": 14,
+        //             "currencyNameEn": "USDT",
+        //             "buyOrSell": "1",
+        //             "num": "6.0000000000000000",
+        //             "price": "32.5880000000000000",
+        //             "remainNum": "2.0000000000000000",
+        //             "tradeNum": "4.0000000000000000",
+        //             "tradePrice": "31.19800000000000000000",
+        //             "tradeAmount": "124.7920000000000000",
+        //             "tradeRate": "0.66666666666666666667",
+        //             "status": 1,
+        //             "type": 1
+        //         }
+        //
+        let id = undefined;
+        let timestamp = undefined;
+        let symbol = undefined;
+        let price = undefined;
+        let amount = undefined;
+        let side = undefined;
+        let type = undefined;
+        let status = undefined;
+        let filled = undefined;
+        let remaining = undefined;
+        if (typeof order === 'string') {
+            id = order;
+        } else {
+            id = this.safeString (order, 'orderNo');
+            timestamp = this.safeInteger (order, 'orderTimeStamp');
+            const orderSide = this.safeNumber (order, 'buyOrSell');
+            side = (orderSide === 1) ? 'buy' : 'sell';
+            amount = this.safeString (order, 'num');
+            price = this.safeString (order, 'price');
+            const quoteId = this.safeString (order, 'baseCurrencyNameEn');
+            const baseId = this.safeString (order, 'currencyNameEn');
+            symbol = baseId + '/' + quoteId;
+            const orderType = this.safeNumber (order, 'type');
+            type = (orderType === 1) ? 'limit' : "market";
+            filled = this.safeString (order, 'tradeNum');
+            remaining = this.safeString (order, 'remainNum');
+            status = this.parseOrderStatus (this.safeString (order, 'status'));
+        }
         return this.safeOrder ({
             'id': id,
             'clientOrderId': undefined,
-            'timestamp': undefined,
-            'datetime': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'lastTradeTimestamp': undefined,
-            'symbol': undefined,
-            'type': undefined,
+            'symbol': symbol,
+            'type': type,
             'timeInForce': undefined,
             'postOnly': undefined,
-            'side': undefined,
-            'price': undefined,
+            'side': side,
+            'price': price,
             'stopPrice': undefined,
-            'amount': undefined,
+            'amount': amount,
             'cost': undefined,
             'average': undefined,
-            'filled': undefined,
-            'remaining': undefined,
-            'status': undefined,
+            'filled': filled,
+            'remaining': remaining,
+            'status': status,
             'fee': undefined,
             'trades': undefined,
             'info': undefined,
@@ -586,6 +644,71 @@ module.exports = class ace extends Exchange {
         //
         const data = this.safeValue (response, 'attachment');
         return this.parseOrder (data, market);
+    }
+
+    async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ace#fetchOrders
+         * @description fetches information on multiple orders made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the ace api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchOrders() requires the symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const currencyToId = this.safeValue (this.options, 'currencyToId');
+        const request = {
+            'baseCurrencyId': this.safeNumber (currencyToId, market['quoteId']),
+            'tradeCurrencyId': this.safeNumber (currencyToId, market['baseId']),
+            // 'start': 0,
+        };
+        if (since !== undefined) {
+            request['startTimestamp'] = since;
+        }
+        if (limit !== undefined) {
+            request['size'] = limit;
+        }
+        const response = await this.privatePostV1OrderGetOrderList (this.extend (request, params), params);
+        let orders = this.safeValue (response, 'attachment');
+        if (orders === undefined) {
+            orders = [];
+        }
+        //
+        //     {
+        //         "attachment": [
+        //             {
+        //                 "uid": 0,
+        //                 "orderNo": "16113081376560890227301101413941",
+        //                 "orderTime": "2021-01-22 17:35:37",
+        //                 "orderTimeStamp": 1611308137656,
+        //                 "baseCurrencyId": 1,
+        //                 "baseCurrencyNameEn": "TWD",
+        //                 "currencyId": 14,
+        //                 "currencyNameEn": "USDT",
+        //                 "buyOrSell": "1",
+        //                 "num": "6.0000000000000000",
+        //                 "price": "32.5880000000000000",
+        //                 "remainNum": "2.0000000000000000",
+        //                 "tradeNum": "4.0000000000000000",
+        //                 "tradePrice": "31.19800000000000000000",
+        //                 "tradeAmount": "124.7920000000000000",
+        //                 "tradeRate": "0.66666666666666666667",
+        //                 "status": 1,
+        //                 "type": 1
+        //             }
+        //         ],
+        //         "message": null,
+        //         "parameters": null,
+        //         "status": 200
+        //     }
+        //
+        return this.parseOrders (orders, market, since, limit);
     }
 
     parseBalance (response) {
