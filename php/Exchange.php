@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.2.65';
+$version = '2.2.68';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.2.65';
+    const VERSION = '2.2.68';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2550,7 +2550,7 @@ class Exchange {
             $quoteCurrencies = array();
             for ($i = 0; $i < count($values); $i++) {
                 $market = $values[$i];
-                $defaultCurrencyPrecision = ($this->precisionMode === DECIMAL_PLACES) ? 8 : $this->parse_number('0.00000001');
+                $defaultCurrencyPrecision = ($this->precisionMode === DECIMAL_PLACES) ? 8 : $this->parse_number('1e-8');
                 $marketPrecision = $this->safe_value($market, 'precision', array());
                 if (is_array($market) && array_key_exists('base', $market)) {
                     $currencyPrecision = $this->safe_value_2($marketPrecision, 'base', 'amount', $defaultCurrencyPrecision);

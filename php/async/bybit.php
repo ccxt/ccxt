@@ -3655,22 +3655,20 @@ class bybit extends Exchange {
                 $request['timeInForce'] = 'ImmediateOrCancel';
             }
             $triggerPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
-            $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
+            $stopLossPrice = $this->safe_value($params, 'stopLossPrice', $triggerPrice);
             $isStopLossOrder = $stopLossPrice !== null;
             $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
             $isTakeProfitOrder = $takeProfitPrice !== null;
-            if ($isStopLossOrder) {
-                $request['stopLoss'] = $this->price_to_precision($symbol, $stopLossPrice);
-            }
-            if ($isTakeProfitOrder) {
-                $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfitPrice);
-            }
-            if ($triggerPrice !== null) {
+            if ($isStopLossOrder || $isTakeProfitOrder) {
                 $request['triggerBy'] = 'LastPrice';
-                $preciseTriggerPrice = $this->price_to_precision($symbol, $triggerPrice);
+                $triggerAt = $isStopLossOrder ? $stopLossPrice : $takeProfitPrice;
+                $preciseTriggerPrice = $this->price_to_precision($symbol, $triggerAt);
                 $request['triggerPrice'] = $preciseTriggerPrice;
+                $isBuy = $side === 'buy';
+                // logical xor
+                $ascending = $stopLossPrice ? !$isBuy : $isBuy;
                 $delta = $this->number_to_string($market['precision']['price']);
-                $request['basePrice'] = $isStopLossOrder ? Precise::string_sub($preciseTriggerPrice, $delta) : Precise::string_add($preciseTriggerPrice, $delta);
+                $request['basePrice'] = $ascending ? Precise::string_add($preciseTriggerPrice, $delta) : Precise::string_sub($preciseTriggerPrice, $delta);
             }
             $clientOrderId = $this->safe_string($params, 'clientOrderId');
             if ($clientOrderId !== null) {
@@ -3749,20 +3747,19 @@ class bybit extends Exchange {
                 $request['timeInForce'] = 'ImmediateOrCancel';
             }
             $triggerPrice = $this->safe_value_2($params, 'stopPrice', 'triggerPrice');
-            $stopLossPrice = $this->safe_value($params, 'stopLossPrice');
+            $stopLossPrice = $this->safe_value($params, 'stopLossPrice', $triggerPrice);
             $isStopLossOrder = $stopLossPrice !== null;
             $takeProfitPrice = $this->safe_value($params, 'takeProfitPrice');
             $isTakeProfitOrder = $takeProfitPrice !== null;
-            if ($isStopLossOrder) {
-                $request['stopLoss'] = $this->price_to_precision($symbol, $stopLossPrice);
-            }
-            if ($isTakeProfitOrder) {
-                $request['takeProfit'] = $this->price_to_precision($symbol, $takeProfitPrice);
-            }
-            if ($triggerPrice !== null) {
+            if ($isStopLossOrder || $isTakeProfitOrder) {
+                $triggerAt = $isStopLossOrder ? $stopLossPrice : $takeProfitPrice;
+                $preciseTriggerPrice = $this->price_to_precision($symbol, $triggerAt);
+                $isBuy = $side === 'buy';
+                // logical xor
+                $ascending = $stopLossPrice ? !$isBuy : $isBuy;
+                $request['triggerDirection'] = $ascending ? 2 : 1;
                 $request['triggerBy'] = 'LastPrice';
-                $request['triggerPrice'] = $this->price_to_precision($symbol, $triggerPrice);
-                $request['triggerDirection'] = ($isStopLossOrder) ? 2 : 1;
+                $request['triggerPrice'] = $this->price_to_precision($symbol, $preciseTriggerPrice);
             }
             $clientOrderId = $this->safe_string($params, 'clientOrderId');
             if ($clientOrderId !== null) {
@@ -4801,7 +4798,7 @@ class bybit extends Exchange {
             //         "time" => "1666734031592"
             //     }
             //
-            $result = $this->safe_value($response, 'response', array());
+            $result = $this->safe_value($response, 'result', array());
             $orders = $this->safe_value($result, 'list', array());
             return $this->parse_orders($orders, $market, $since, $limit);
         }) ();

@@ -221,7 +221,7 @@ class poloniex extends Exchange {
                     'futures' => 'future',
                 ),
             ),
-            'precisionMode' => DECIMAL_PLACES,
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     'You may only place orders that reduce your position.' => '\\ccxt\\InvalidOrder',
@@ -412,8 +412,8 @@ class poloniex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($symbolTradeLimit, 'quantityScale'),
-                    'price' => $this->safe_integer($symbolTradeLimit, 'priceScale'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($symbolTradeLimit, 'quantityScale'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($symbolTradeLimit, 'priceScale'))),
                 ),
                 'limits' => array(
                     'amount' => array(
