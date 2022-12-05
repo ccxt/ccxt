@@ -32,7 +32,7 @@ class kucoinfutures(kucoin):
             },
         })
 
-    def negotiate(self, params={}):
+    async def negotiate(self, params={}):
         client = self.client('ws')
         messageHash = 'negotiate'
         future = self.safe_value(client.subscriptions, messageHash)

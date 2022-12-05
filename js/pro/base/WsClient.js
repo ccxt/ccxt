@@ -8,7 +8,8 @@ const functions = require ("../../base/functions.js")
     } = functions
     , Client = require ('./Client')
     // eslint-disable-next-line
-    , WebSocket = isNode ? require ('ws') : self.WebSocket
+    // , WebSocket = isNode ? require ('ws') : window.WebSocket
+    , Websocket = window.WebSocket
 
 
 

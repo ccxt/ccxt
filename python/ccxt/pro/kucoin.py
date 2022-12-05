@@ -11,7 +11,7 @@ from ccxt.base.errors import NetworkError
 from ccxt.base.errors import InvalidNonce
 
 
-class kucoin(Exchange, ccxt.async_support.kucoinFutures):
+class kucoin(Exchange, ccxt.async_support.kucoinfutures):
 
     def describe(self):
         return self.deep_extend(super(kucoin, self).describe(), {
@@ -52,7 +52,7 @@ class kucoin(Exchange, ccxt.async_support.kucoinFutures):
             },
         })
 
-    def negotiate(self, params={}):
+    async def negotiate(self, params={}):
         client = self.client('ws')
         messageHash = 'negotiate'
         future = self.safe_value(client.subscriptions, messageHash)
@@ -95,7 +95,7 @@ class kucoin(Exchange, ccxt.async_support.kucoinFutures):
         self.options['requestId'] = requestId
         return requestId
 
-    def subscribe(self, negotiation, topic, messageHash, method, symbol, params={}):
+    async def subscribe(self, negotiation, topic, messageHash, method, symbol, params={}):
         await self.load_markets()
         # market = self.market(symbol)
         data = self.safe_value(negotiation, 'data', {})
@@ -129,7 +129,7 @@ class kucoin(Exchange, ccxt.async_support.kucoinFutures):
         subscriptionHash = topic
         return await self.watch(url, messageHash, request, subscriptionHash, subscription)
 
-    def watch_ticker(self, symbol, params={}):
+    async def watch_ticker(self, symbol, params={}):
         """
             watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
             :param str symbol: unified symbol of the market to fetch the ticker for
@@ -217,7 +217,7 @@ class kucoin(Exchange, ccxt.async_support.kucoinFutures):
             client.resolve(ticker, messageHash)
         return message
 
-    def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
+    async def watch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
         watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -280,7 +280,7 @@ class kucoin(Exchange, ccxt.async_support.kucoinFutures):
         stored.append(ohlcv)
         client.resolve(stored, topic)
 
-    def watch_trades(self, symbol, since=None, limit=None, params={}):
+    async def watch_trades(self, symbol, since=None, limit=None, params={}):
         """
             get the list of most recent trades for a particular symbol
             :param str symbol: unified symbol of the market to fetch trades for
@@ -335,7 +335,7 @@ class kucoin(Exchange, ccxt.async_support.kucoinFutures):
         client.resolve(trades, messageHash)
         return message
 
-    def watch_order_book(self, symbol, limit=None, params={}):
+    async def watch_order_book(self, symbol, limit=None, params={}):
         """
             watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
             :param str symbol: unified symbol of the market to fetch the order book for
@@ -395,7 +395,7 @@ class kucoin(Exchange, ccxt.async_support.kucoinFutures):
             e = InvalidNonce(self.id + ' failed to synchronize WebSocket feed with the snapshot for symbol ' + symbol + ' in ' + str(maxAttempts) + ' attempts')
             client.reject(e, messageHash)
 
-    def fetch_order_book_snapshot(self, client, message, subscription):
+    async def fetch_order_book_snapshot(self, client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
         limit = self.safe_integer(subscription, 'limit')
         messageHash = self.safe_string(subscription, 'messageHash')
@@ -570,7 +570,7 @@ class kucoin(Exchange, ccxt.async_support.kucoinFutures):
         #
         return message
 
-    def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
         """
             watches information on multiple orders made by the user
             :param str|None symbol: unified market symbol of the market orders were made in
@@ -685,7 +685,7 @@ class kucoin(Exchange, ccxt.async_support.kucoinFutures):
             symbolSpecificMessageHash = messageHash + ':' + symbol
             client.resolve(self.orders, symbolSpecificMessageHash)
 
-    def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
+    async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         """
             watches information on multiple trades made by the user
             :param str symbol: unified market symbol of the market orders were made in
@@ -772,7 +772,7 @@ class kucoin(Exchange, ccxt.async_support.kucoinFutures):
             'fee': fee,
         }, market)
 
-    def watch_balance(self, params={}):
+    async def watch_balance(self, params={}):
         """
             query for balance and get the amount of funds available for trading or funds locked in orders
             :param dict params: extra parameters specific to the kucoin api endpoint
@@ -837,7 +837,7 @@ class kucoin(Exchange, ccxt.async_support.kucoinFutures):
     def handle_balance_subscription(self, client, message, subscription):
         self.spawn(self.fetch_balance_snapshot, client, message)
 
-    def fetch_balance_snapshot(self, client, message):
+    async def fetch_balance_snapshot(self, client, message):
         await self.load_markets()
         self.check_required_credentials()
         messageHash = '/account/balance'
@@ -941,7 +941,7 @@ class kucoin(Exchange, ccxt.async_support.kucoinFutures):
             'type': 'ping',
         }
 
-    def watch_heartbeat(self):
+    async def watch_heartbeat(self):
         await self.load_markets()
         negotiation = await self.negotiate()
         topic = 'ping'

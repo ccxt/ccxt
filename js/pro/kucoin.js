@@ -7,6 +7,7 @@ const { ExchangeError, InvalidNonce, NetworkError } = require ('../base/errors')
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
+
 module.exports = class kucoin extends kucoinFuturesRest {
     describe () {
         return this.deepExtend (super.describe (), {
