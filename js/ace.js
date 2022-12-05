@@ -48,7 +48,7 @@ module.exports = class ace extends Exchange {
                 'fetchMarkets': true,
                 'fetchMarkOHLCV': false,
                 'fetchMyTrades': false,
-                'fetchOHLCV': false,
+                'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': false,
                 'fetchOrder': false,
@@ -139,6 +139,82 @@ module.exports = class ace extends Exchange {
                     'ETH': 'ERC20',
                     'TRX': 'TRX',
                     'TRC20': 'TRX',
+                },
+                'currencyToId': {
+                    'TWD': 1,
+                    'BTC': 2,
+                    'ETH': 4,
+                    'LTC': 7,
+                    'XRP': 10,
+                    'EOS': 11,
+                    'XLM': 12,
+                    'TRX': 13,
+                    'USDT': 14,
+                    'BNB': 17,
+                    'BTT': 19,
+                    'HWGC': 22,
+                    'GTO': 54,
+                    'USDC': 57,
+                    'MOT': 58,
+                    'UNI': 59,
+                    'MOS': 65,
+                    'MOCT': 66,
+                    'PT': 67,
+                    'DET': 70,
+                    'SOLO': 71,
+                    'QQQ': 72,
+                    'APT': 73,
+                    'HT': 74,
+                    'UNI': 75,
+                    'QTC': 76,
+                    'MCO': 79,
+                    'FTT': 81,
+                    'BAAS': 83,
+                    'OKB': 84,
+                    'DAI': 85,
+                    'MCC': 86,
+                    'TACEX': 87,
+                    'ACEX': 88,
+                    'LINK': 89,
+                    'DEC': 90,
+                    'FANSI': 91,
+                    'HWGC': 93,
+                    'KNC': 94,
+                    'COMP': 95,
+                    'DS': 96,
+                    'CRO': 97,
+                    'CREAM': 101,
+                    'YFI': 102,
+                    'WNXM': 103,
+                    'MITH': 104,
+                    'DEAC': 105,
+                    'ENJ': 107,
+                    'ANKR': 108,
+                    'MANA': 109,
+                    'SXP': 110,
+                    'CHZ': 111,
+                    'DOT': 112,
+                    'CAKE': 114,
+                    'SHIB': 115,
+                    'DOGE': 116,
+                    'MATIC': 117,
+                    'WOO': 119,
+                    'SLP': 120,
+                    'AXS': 121,
+                    'ADA': 122,
+                    'QUICK': 123,
+                    'FTM': 124,
+                    'YGG': 126,
+                    'GALA': 127,
+                    'ILV': 128,
+                    'DYDX': 129,
+                    'SOL': 130,
+                    'SAND': 131,
+                    'AVAX': 132,
+                    'LOOKS': 133,
+                    'DEP': 134,
+                    'APE': 135,
+                    'GMT': 136,
                 },
             },
             'precisionMode': TICK_SIZE,
@@ -376,6 +452,72 @@ module.exports = class ace extends Exchange {
         return this.parseOrderBook (orderBook, market['symbol'], undefined, 'bids', 'asks');
     }
 
+    parseOHLCV (ohlcv, market = undefined, timeframe = '1m', since = undefined, limit = undefined) {
+        //
+        //     {
+        //         "changeRate": 0,
+        //         "closePrice": 101000.0,
+        //         "lowPrice": 101000.0,
+        //         "highPrice": 101000.0,
+        //         "highPrice": 1573195740000L,
+        //         "openPrice": 101000.0,
+        //         "current": 101000.0,
+        //         "createTime": "2019-11-08 14:49:00"
+        //     }
+        //
+        return [
+            this.parse8601 (this.safeString (ohlcv, 'createTime')),
+            this.safeNumber (ohlcv, 'openPrice'),
+            this.safeNumber (ohlcv, 'highPrice'),
+            this.safeNumber (ohlcv, 'lowPrice'),
+            this.safeNumber (ohlcv, 'closePrice'),
+            undefined,
+        ];
+    }
+
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ace#fetchOHLCV
+         * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the ace api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const currencyToId = this.safeValue (this.options, 'currencyToId');
+        const request = {
+            'baseCurrencyId': this.safeNumber (currencyToId, market['quoteId']),
+            'tradeCurrencyId': this.safeNumber (currencyToId, market['baseId']),
+        };
+        if (limit !== undefined) {
+            request['limit'] = limit
+        }
+        const response = await this.privatePostV1KlineGetKlineMin (this.extend (request, params));
+        const data = this.safeValue (response, 'attachment', []);
+        //
+        //     {
+        //         "attachment":[
+        //                 {
+        //                     "changeRate": 0,
+        //                     "closePrice": 101000.0,
+        //                     "lowPrice": 101000.0,
+        //                     "highPrice": 101000.0,
+        //                     "highPrice": 1573195740000L,
+        //                     "openPrice": 101000.0,
+        //                     "current": 101000.0,
+        //                     "createTime": "2019-11-08 14:49:00"
+        //                 }
+        //         ]
+        //     }
+        //
+        return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
     parseBalance (response) {
         //
         //     [
@@ -445,11 +587,18 @@ module.exports = class ace extends Exchange {
         if (api === 'private') {
             this.checkRequiredCredentials ();
             const nonce = this.milliseconds ();
-            body = new FormData();
             const auth = 'ACE_SIGN' + nonce.toString () + this.phone;
             const signature = this.hash (auth, 'md5', 'hex');
             const splitKey = this.apiKey.split ('#');
             const uid = (this.uid) ? this.uid : splitKey[0];
+            body = new FormData();
+            const paramsKeys = Object.keys (params);
+            for (let i=0; i<paramsKeys.length; i++) {
+                const key = paramsKeys[i];
+                if (params[key] !== undefined) {
+                    body.append (key, params[key]);
+                }
+            }
             body.append("uid", uid);
             body.append("timeStamp", nonce);
             body.append("signKey", signature);
