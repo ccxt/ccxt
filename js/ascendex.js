@@ -1140,8 +1140,7 @@ module.exports = class ascendex extends Exchange {
         const priceString = this.safeString2 (trade, 'price', 'p');
         const amountString = this.safeString (trade, 'q');
         const buyerIsMaker = this.safeValue (trade, 'bm', false);
-        const makerOrTaker = buyerIsMaker ? 'maker' : 'taker';
-        const side = buyerIsMaker ? 'buy' : 'sell';
+        const side = buyerIsMaker ? 'sell' : 'buy';
         market = this.safeMarket (undefined, market);
         return this.safeTrade ({
             'info': trade,
@@ -1151,7 +1150,7 @@ module.exports = class ascendex extends Exchange {
             'id': undefined,
             'order': undefined,
             'type': undefined,
-            'takerOrMaker': makerOrTaker,
+            'takerOrMaker': undefined,
             'side': side,
             'price': priceString,
             'amount': amountString,
@@ -1165,6 +1164,7 @@ module.exports = class ascendex extends Exchange {
          * @method
          * @name ascendex#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://ascendex.github.io/ascendex-pro-api/#market-trades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
