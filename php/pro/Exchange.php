@@ -66,6 +66,7 @@ Exchange::$exchanges = array(
     'upbit',
     'wazirx',
     'whitebit',
+    'woo',
     'zb',
     'zipmex',
 );

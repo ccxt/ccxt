@@ -17,6 +17,7 @@ class woo extends Exchange {
             'rateLimit' => 100,
             'version' => 'v1',
             'certified' => false,
+            'pro' => true,
             'hostname' => 'woo.org',
             'has' => array(
                 'CORS' => null,
