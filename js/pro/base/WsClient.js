@@ -7,7 +7,15 @@ const functions = require ("../../base/functions.js")
         milliseconds,
     } = functions
     , Client = require ('./Client')
-    , WebSocket = window.WebSocket
+
+
+let WebSocket = null
+try {
+    WebSocket = window.WebSocket
+} catch (e) {
+    // @eslint-disable-next-line
+    // WebSocket = require ('ws')
+}
 
 
 

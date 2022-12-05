@@ -11,7 +11,7 @@ use ccxt\NetworkError;
 use ccxt\InvalidNonce;
 use React\Async;
 
-class kucoin extends \ccxt\async\kucoinFutures {
+class kucoin extends \ccxt\async\kucoinfutures {
 
     use ClientTrait;
 
