@@ -4451,7 +4451,7 @@ class bybit(Exchange):
         #         "time": "1666734031592"
         #     }
         #
-        result = self.safe_value(response, 'response', {})
+        result = self.safe_value(response, 'result', {})
         orders = self.safe_value(result, 'list', [])
         return self.parse_orders(orders, market, since, limit)
 
