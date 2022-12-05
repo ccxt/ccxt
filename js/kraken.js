@@ -500,8 +500,8 @@ module.exports = class kraken extends Exchange {
     appendInactiveMarkets (result) {
         // result should be an array to append to
         const precision = {
-            'amount': this.parseNumber ('0.00000001'),
-            'price': this.parseNumber ('0.00000001'),
+            'amount': this.parseNumber ('1e-8'),
+            'price': this.parseNumber ('1e-8'),
         };
         const costLimits = { 'min': undefined, 'max': undefined };
         const priceLimits = { 'min': precision['price'], 'max': undefined };

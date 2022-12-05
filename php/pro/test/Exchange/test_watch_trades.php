@@ -15,7 +15,8 @@ function test_watch_trades($exchange, $symbol) {
         'ripio',
         'gopax', // requires authentication for watch_order_book
         'coinflex', // too illiquid
-        'woo'
+        'woo',
+        'luno', // requires authentication for watch_trades
     );
 
     if (in_array($exchange->id, $skipped_exchanges)) {

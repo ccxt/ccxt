@@ -17,6 +17,7 @@ class bitrue extends Exchange {
             'rateLimit' => 1000,
             'certified' => false,
             'version' => 'v1',
+            'pro' => true,
             // new metainfo interface
             'has' => array(
                 'CORS' => null,
