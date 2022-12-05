@@ -402,15 +402,13 @@ module.exports = class bitget extends bitgetRest {
         const data = this.safeValue (message, 'data');
         const rawOrderBook = this.safeValue (data, 0);
         const timestamp = this.safeInteger (rawOrderBook, 'ts');
-        let storedOrderBook = this.safeValue (this.orderbooks, symbol);
         const incrementalBook = channel === 'books';
-        if ((storedOrderBook === undefined) && incrementalBook) {
-            storedOrderBook = this.countedOrderBook ({});
-            this.orderbooks[symbol] = storedOrderBook;
-        } else {
-            storedOrderBook = this.parseOrderBook (rawOrderBook, symbol, timestamp);
-        }
+        let storedOrderBook = undefined;
         if (incrementalBook) {
+            storedOrderBook = this.safeValue (this.orderbooks, symbol);
+            if (storedOrderBook === undefined) {
+                storedOrderBook = this.countedOrderBook ({});
+            }
             const asks = this.safeValue (rawOrderBook, 'asks', []);
             const bids = this.safeValue (rawOrderBook, 'bids', []);
             this.handleDeltas (storedOrderBook['asks'], asks);
@@ -442,7 +440,10 @@ module.exports = class bitget extends bitgetRest {
                     client.reject (error, messageHash);
                 }
             }
+        } else {
+            storedOrderBook = this.parseOrderBook (rawOrderBook, symbol, timestamp);
         }
+        this.orderbooks[symbol] = storedOrderBook;
         client.resolve (storedOrderBook, messageHash);
     }
 
