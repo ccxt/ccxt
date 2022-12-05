@@ -54,10 +54,6 @@ module.exports = class Exchange extends BaseExchange {
                 'ping': this.ping ? this.ping.bind (this) : this.ping,
                 'verbose': this.verbose,
                 'throttle': throttle (this.tokenBucket),
-                // add support for proxies
-                'options': {
-                    'agent': this.agent || this.httpsAgent || this.httpAgent,
-                }
             }, wsOptions);
             this.clients[url] = new WsClient (url, onMessage, onError, onClose, onConnected, options);
         }
@@ -180,5 +176,12 @@ module.exports = class Exchange extends BaseExchange {
             }
         }
         return undefined;
+    }
+
+    formatScientificNotationFTX (n) {
+        if (n === 0) {
+            return '0e-00';
+        }
+        return n.toExponential ().replace ('e-', 'e-0');
     }
 };
