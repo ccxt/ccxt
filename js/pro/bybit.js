@@ -849,12 +849,17 @@ module.exports = class bybit extends bybitRest {
             this.myTrades = new ArrayCacheBySymbolById (limit);
         }
         const trades = this.myTrades;
+        const symbols = {};
         for (let i = 0; i < data.length; i++) {
             const rawTrade = data[i];
             const parsed = this.parseWsTrade (rawTrade);
             const symbol = parsed['symbol'];
+            symbols[symbol] = true;
             trades.append (parsed);
-            const messageHash = 'usertrade:' + symbol;
+        }
+        const keys = Object.keys (symbols);
+        for (let i = 0; i < keys.length; i++) {
+            const messageHash = 'usertrade:' + keys[i];
             client.resolve (trades, messageHash);
         }
         // non-symbol specific
@@ -1446,6 +1451,7 @@ module.exports = class bybit extends bybitRest {
             'wallet': this.handleBalance,
             'outboundAccountInfo': this.handleBalance,
             'execution': this.handleMyTrades,
+            'ticketInfo': this.handleMyTrades,
         };
         const keys = Object.keys (methods);
         for (let i = 0; i < keys.length; i++) {
