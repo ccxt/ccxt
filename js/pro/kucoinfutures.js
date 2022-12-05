@@ -3,11 +3,10 @@
 //  ---------------------------------------------------------------------------
 
 const kucoinFuturesRest = require ('../kucoinfutures');
-const { createKucoinClient } = require ('./kucoin');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class kucoinfutures extends createKucoinClient (kucoinFuturesRest) {
+module.exports = class kucoinfutures extends kucoinFuturesRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
