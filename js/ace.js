@@ -28,7 +28,7 @@ module.exports = class ace extends Exchange {
                 'cancelAllOrders': false,
                 'cancelOrder': false,
                 'cancelOrders': false,
-                'createOrder': false,
+                'createOrder': true,
                 'editOrder': false,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
@@ -516,6 +516,76 @@ module.exports = class ace extends Exchange {
         //     }
         //
         return this.parseOHLCVs (data, market, timeframe, since, limit);
+    }
+
+    parseOrder (order, market = undefined) {
+        //
+        // createOrder
+        //         "15697850529570392100421100482693",
+        //
+        const id = order;
+        return this.safeOrder ({
+            'id': id,
+            'clientOrderId': undefined,
+            'timestamp': undefined,
+            'datetime': undefined,
+            'lastTradeTimestamp': undefined,
+            'symbol': undefined,
+            'type': undefined,
+            'timeInForce': undefined,
+            'postOnly': undefined,
+            'side': undefined,
+            'price': undefined,
+            'stopPrice': undefined,
+            'amount': undefined,
+            'cost': undefined,
+            'average': undefined,
+            'filled': undefined,
+            'remaining': undefined,
+            'status': undefined,
+            'fee': undefined,
+            'trades': undefined,
+            'info': undefined,
+        }, market);
+    }
+
+    async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name ace#createOrder
+         * @description create a trade order
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the ace api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const orderType = type.toUpperCase ();
+        const orderSide = side.toUpperCase ();
+        const currencyToId = this.safeValue (this.options, 'currencyToId');
+        const request = {
+            'baseCurrencyId': this.safeNumber (currencyToId, market['quoteId']),
+            'currencyId': this.safeNumber (currencyToId, market['baseId']),
+            'type': (orderType === 'LIMIT') ? 1 : 2,
+            'buyOrSell': (orderSide === 'BUY') ? 1 : 2,
+            'num': amount,
+            'price': price,
+        };
+        const response = await this.privatePostV1OrderOrder (this.extend (request, params), params);
+        //
+        //     {
+        //         "attachment": "15697850529570392100421100482693",
+        //         "message": null,
+        //         "parameters": null,
+        //         "status": 200
+        //     }
+        //
+        const data = this.safeValue (response, 'attachment');
+        return this.parseOrder (data, market);
     }
 
     parseBalance (response) {
