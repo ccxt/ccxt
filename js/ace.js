@@ -26,7 +26,7 @@ module.exports = class ace extends Exchange {
                 'future': false,
                 'option': false,
                 'cancelAllOrders': false,
-                'cancelOrder': false,
+                'cancelOrder': true,
                 'cancelOrders': false,
                 'createOrder': true,
                 'editOrder': false,
@@ -644,6 +644,32 @@ module.exports = class ace extends Exchange {
         //
         const data = this.safeValue (response, 'attachment');
         return this.parseOrder (data, market);
+    }
+
+    async cancelOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name ace#cancelOrder
+         * @description cancels an open order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the ace api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'orderNo': id,
+        };
+        const response = await this.privatePostV1OrderCancel (this.extend (request, params));
+        //
+        //     {
+        //         "attachment": 200,
+        //         "message": null,
+        //         "parameters": null,
+        //         "status": 200
+        //     }
+        //
+        return response;
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
