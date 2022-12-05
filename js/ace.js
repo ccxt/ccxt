@@ -51,7 +51,7 @@ module.exports = class ace extends Exchange {
                 'fetchOHLCV': true,
                 'fetchOpenInterestHistory': false,
                 'fetchOpenOrders': false,
-                'fetchOrder': false,
+                'fetchOrder': true,
                 'fetchOrderBook': true,
                 'fetchOrders': true,
                 'fetchOrderTrades': false,
@@ -575,7 +575,9 @@ module.exports = class ace extends Exchange {
             price = this.safeString (order, 'price');
             const quoteId = this.safeString (order, 'baseCurrencyNameEn');
             const baseId = this.safeString (order, 'currencyNameEn');
-            symbol = baseId + '/' + quoteId;
+            if (quoteId !== undefined && baseId !== undefined) {
+                symbol = baseId + '/' + quoteId;
+            }
             const orderType = this.safeNumber (order, 'type');
             type = (orderType === 1) ? 'limit' : "market";
             filled = this.safeString (order, 'tradeNum');
@@ -670,6 +672,46 @@ module.exports = class ace extends Exchange {
         //     }
         //
         return response;
+    }
+
+    async fetchOrder (id, symbol = undefined, params = {}) {
+        /**
+         * @method
+         * @name ace#fetchOrder
+         * @description fetches information on an order made by the user
+         * @param {string} symbol unified symbol of the market the order was made in
+         * @param {object} params extra parameters specific to the ace api endpoint
+         * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const request = {
+            'orderId': id,
+        };
+        const response = await this.privatePostV1OrderShowOrderStatus (this.extend (request, params));
+        //
+        //     {
+        //         "attachment": {
+        //         "remainNum": "0.00000000",
+        //         "orderNo": "15681910422154042100431100441305",
+        //         "num": "0.85000000",
+        //         "tradeNum": "0.85000000",
+        //         "baseCurrencyId": 2,
+        //         "baseCurrencyName": "Bitcoin",
+        //         "buyOrSell": 1,
+        //         "orderTime": "2019-09-11 16:37:22.216",
+        //         "currencyName": "Ethereum",
+        //         "price": "0.03096500",
+        //         "averagePrice": "0.03096500",
+        //         "currencyId": 4,
+        //         "status": 2
+        //         },
+        //         "message": null,
+        //         "parameters": null,
+        //         "status": 200
+        //     }
+        //
+        const data = this.safeValue (response, 'attachment');
+        return this.parseOrder (data, undefined);
     }
 
     async fetchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
