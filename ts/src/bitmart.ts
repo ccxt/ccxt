@@ -101,6 +101,7 @@ export default class bitmart extends Exchange {
             'requiredCredentials': {
                 'apiKey': true,
                 'secret': true,
+                'uid': true,
             },
             'api': {
                 'public': {
@@ -2995,7 +2996,6 @@ export default class bitmart extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[string|undefined, object]} the marginMode in lowercase
          */
-        defaultValue = (defaultValue === undefined) ? 'isolated' : defaultValue;
         let marginMode = undefined;
         [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
         if (marginMode !== undefined) {
@@ -3034,10 +3034,9 @@ export default class bitmart extends Exchange {
                 body = this.json (query);
                 queryString = body;
             }
-            // The request header of X-BM-SIGN is obtained by encrypting the timestamp + "#" + memo + "#" + queryString
-            // memo is ignored by bitmart so we send "CCXT" here
-            const auth = timestamp + '#CCXT#' + queryString;
-            headers['X-BM-SIGN'] = this.hmac (this.encode (auth), this.encode (this.secret));
+            const auth = timestamp + '#' + this.uid + '#' + queryString;
+            const signature = this.hmac (this.encode (auth), this.encode (this.secret));
+            headers['X-BM-SIGN'] = signature;
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }

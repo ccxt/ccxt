@@ -1160,7 +1160,25 @@ export default class bybit extends Exchange {
     }
 
     async fetchDerivativesMarkets (params) {
+        params['limit'] = 1000; // minimize number of requests
         const response = await (this as any).publicGetDerivativesV3PublicInstrumentsInfo (params);
+        const data = this.safeValue (response, 'result', {});
+        let markets = this.safeValue2 (data, 'list', 'dataList', []);
+        let paginationCursor = this.safeString (data, 'cursor');
+        if (paginationCursor !== undefined) {
+            while (paginationCursor !== undefined) {
+                params['cursor'] = paginationCursor;
+                const response = await (this as any).publicGetDerivativesV3PublicInstrumentsInfo (params);
+                const data = this.safeValue (response, 'result', {});
+                const rawMarkets = this.safeValue2 (data, 'list', 'dataList', []);
+                const rawMarketsLength = rawMarkets.length;
+                if (rawMarketsLength === 0) {
+                    break;
+                }
+                markets = this.arrayConcat (rawMarkets, markets);
+                paginationCursor = this.safeString (data, 'nextPageCursor');
+            }
+        }
         //
         //     {
         //         "retCode": 0,
@@ -1266,8 +1284,6 @@ export default class bybit extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'result', {});
-        const markets = this.safeValue2 (data, 'list', 'dataList', []);
         const result = [];
         let category = this.safeString (data, 'category');
         for (let i = 0; i < markets.length; i++) {

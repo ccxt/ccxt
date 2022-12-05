@@ -1153,7 +1153,25 @@ class bybit extends Exchange {
     }
 
     public function fetch_derivatives_markets($params) {
+        $params['limit'] = 1000; // minimize number of requests
         $response = $this->publicGetDerivativesV3PublicInstrumentsInfo ($params);
+        $data = $this->safe_value($response, 'result', array());
+        $markets = $this->safe_value_2($data, 'list', 'dataList', array());
+        $paginationCursor = $this->safe_string($data, 'cursor');
+        if ($paginationCursor !== null) {
+            while ($paginationCursor !== null) {
+                $params['cursor'] = $paginationCursor;
+                $response = $this->publicGetDerivativesV3PublicInstrumentsInfo ($params);
+                $data = $this->safe_value($response, 'result', array());
+                $rawMarkets = $this->safe_value_2($data, 'list', 'dataList', array());
+                $rawMarketsLength = count($rawMarkets);
+                if ($rawMarketsLength === 0) {
+                    break;
+                }
+                $markets = $this->array_concat($rawMarkets, $markets);
+                $paginationCursor = $this->safe_string($data, 'nextPageCursor');
+            }
+        }
         //
         //     {
         //         "retCode" => 0,
@@ -1259,8 +1277,6 @@ class bybit extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'result', array());
-        $markets = $this->safe_value_2($data, 'list', 'dataList', array());
         $result = array();
         $category = $this->safe_string($data, 'category');
         for ($i = 0; $i < count($markets); $i++) {

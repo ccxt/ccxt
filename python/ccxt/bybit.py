@@ -1150,7 +1150,22 @@ class bybit(Exchange):
         return result
 
     def fetch_derivatives_markets(self, params):
+        params['limit'] = 1000  # minimize number of requests
         response = self.publicGetDerivativesV3PublicInstrumentsInfo(params)
+        data = self.safe_value(response, 'result', {})
+        markets = self.safe_value_2(data, 'list', 'dataList', [])
+        paginationCursor = self.safe_string(data, 'cursor')
+        if paginationCursor is not None:
+            while(paginationCursor is not None):
+                params['cursor'] = paginationCursor
+                response = self.publicGetDerivativesV3PublicInstrumentsInfo(params)
+                data = self.safe_value(response, 'result', {})
+                rawMarkets = self.safe_value_2(data, 'list', 'dataList', [])
+                rawMarketsLength = len(rawMarkets)
+                if rawMarketsLength == 0:
+                    break
+                markets = self.array_concat(rawMarkets, markets)
+                paginationCursor = self.safe_string(data, 'nextPageCursor')
         #
         #     {
         #         "retCode": 0,
@@ -1256,8 +1271,6 @@ class bybit(Exchange):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'result', {})
-        markets = self.safe_value_2(data, 'list', 'dataList', [])
         result = []
         category = self.safe_string(data, 'category')
         for i in range(0, len(markets)):

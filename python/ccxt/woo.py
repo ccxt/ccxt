@@ -25,6 +25,7 @@ class woo(Exchange):
             'rateLimit': 100,
             'version': 'v1',
             'certified': False,
+            'pro': True,
             'hostname': 'woo.org',
             'has': {
                 'CORS': None,

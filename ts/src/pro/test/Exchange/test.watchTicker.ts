@@ -19,7 +19,8 @@ export default async (exchange, symbol) => {
     const skippedExchanges = [
         'cex',
         'ripio',
-        'mexc'
+        'mexc',
+        'woo'
     ]
 
     if (skippedExchanges.includes (exchange.id)) {
