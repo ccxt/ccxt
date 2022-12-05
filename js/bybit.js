@@ -1416,6 +1416,15 @@ module.exports = class bybit extends Exchange {
         //         "v": "7433.527",
         //         "qv": "619835.8676"
         //     }
+        // spot - bookticker
+        //     {
+        //         "s": "BTCUSDT",
+        //         "bp": "19693.04",
+        //         "bq": "0.913957",
+        //         "ap": "19694.27",
+        //         "aq": "0.705447",
+        //         "t": 1661742216108
+        //     }
         //
         const marketId = this.safeString (ticker, 's');
         const symbol = this.safeSymbol (marketId, market);
@@ -1427,9 +1436,9 @@ module.exports = class bybit extends Exchange {
             'high': this.safeString (ticker, 'h'),
             'low': this.safeString (ticker, 'l'),
             'bid': this.safeString (ticker, 'bp'),
-            'bidVolume': undefined,
+            'bidVolume': this.safeString (ticker, 'bq'),
             'ask': this.safeString (ticker, 'ap'),
-            'askVolume': undefined,
+            'askVolume': this.safeString (ticker, 'aq'),
             'vwap': undefined,
             'open': this.safeString (ticker, 'o'),
             'close': this.safeString (ticker, 'lp'),
