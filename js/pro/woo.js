@@ -669,7 +669,7 @@ module.exports = class woo extends wooRest {
         return { 'event': 'ping' };
     }
 
-    handlePing (client) {
+    handlePing (client, message) {
         return { 'event': 'pong' };
     }
 
