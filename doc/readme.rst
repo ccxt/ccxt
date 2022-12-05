@@ -171,7 +171,10 @@ Certified Cryptocurrency Exchanges
           :target: https://github.com/ccxt/ccxt/wiki/Certification
           :alt: CCXT Certified
      
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
      - 
    * - .. image:: https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg
           :target: http://www.bitmart.com/?r=rQCFLh
@@ -603,7 +606,10 @@ The CCXT library currently supports the following 106 cryptocurrency exchange ma
           :target: https://github.com/ccxt/ccxt/wiki/Certification
           :alt: CCXT Certified
      
-     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/30597177-ea800172-9d5e-11e7-804c-b9d4fa9b56b0.jpg
           :target: https://www.bithumb.com
           :alt: bithumb
@@ -1867,14 +1873,14 @@ JavaScript (for use with the ``<script>`` tag):
 All-in-one browser bundle (dependencies included), served from a CDN of your choice:
 
 
- * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@2.2.66/dist/ccxt.browser.js
- * unpkg: https://unpkg.com/ccxt@2.2.66/dist/ccxt.browser.js
+ * jsDelivr: https://cdn.jsdelivr.net/npm/ccxt@2.2.67/dist/ccxt.browser.js
+ * unpkg: https://unpkg.com/ccxt@2.2.67/dist/ccxt.browser.js
 
 CDNs are not updated in real-time and may have delays. Defaulting to the most recent version without specifying the version number is not recommended. Please, keep in mind that we are not responsible for the correct operation of those CDN servers.
 
 .. code-block:: HTML
 
-   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@2.2.66/dist/ccxt.browser.js"></script>
+   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/ccxt@2.2.67/dist/ccxt.browser.js"></script>
 
 Creates a global ``ccxt`` object:
 
