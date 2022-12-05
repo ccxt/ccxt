@@ -2996,7 +2996,6 @@ module.exports = class bitmart extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[string|undefined, object]} the marginMode in lowercase
          */
-        defaultValue = (defaultValue === undefined) ? 'isolated' : defaultValue;
         let marginMode = undefined;
         [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
         if (marginMode !== undefined) {
