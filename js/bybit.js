@@ -1762,7 +1762,8 @@ module.exports = class bybit extends Exchange {
         //         "ext_info": null
         //     }
         //
-        const tickerList = this.safeValue (response, 'result', []);
+        const list = this.safeValue (response, 'result', []);
+        const tickerList = this.safeValue (list, 'list');
         const tickers = {};
         for (let i = 0; i < tickerList.length; i++) {
             const ticker = this.parseTicker (tickerList[i]);
