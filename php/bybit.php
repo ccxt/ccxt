@@ -1752,7 +1752,8 @@ class bybit extends Exchange {
         //         "ext_info" => null
         //     }
         //
-        $tickerList = $this->safe_value($response, 'result', array());
+        $list = $this->safe_value($response, 'result', array());
+        $tickerList = $this->safe_value($list, 'list');
         $tickers = array();
         for ($i = 0; $i < count($tickerList); $i++) {
             $ticker = $this->parse_ticker($tickerList[$i]);

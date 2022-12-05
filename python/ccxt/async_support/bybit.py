@@ -1732,7 +1732,8 @@ class bybit(Exchange):
         #         "ext_info": null
         #     }
         #
-        tickerList = self.safe_value(response, 'result', [])
+        list = self.safe_value(response, 'result', [])
+        tickerList = self.safe_value(list, 'list')
         tickers = {}
         for i in range(0, len(tickerList)):
             ticker = self.parse_ticker(tickerList[i])

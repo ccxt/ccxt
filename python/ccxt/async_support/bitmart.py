@@ -1469,11 +1469,13 @@ class bitmart(Exchange):
             'account': 'privateGetAccountV1Wallet',
             'margin': 'privateGetSpotV1MarginIsolatedAccount',
         })
-        marginMode, query = self.handle_margin_mode_and_params('fetchBalance', params)
-        if marginMode is not None:
+        marginMode = self.safe_string(params, 'marginMode')
+        isMargin = self.safe_value(params, 'margin', False)
+        params = self.omit(params, ['margin', 'marginMode'])
+        if marginMode is not None or isMargin:
             method = 'privateGetSpotV1MarginIsolatedAccount'
             marketType = 'margin'
-        response = await getattr(self, method)(query)
+        response = await getattr(self, method)(params)
         #
         # spot
         #

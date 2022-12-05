@@ -1489,7 +1489,7 @@ class bitmart extends Exchange {
 
     public function fetch_balance($params = array ()) {
         /**
-         * $query for balance and get the amount of funds available for trading or funds locked in orders
+         * query for balance and get the amount of funds available for trading or funds locked in orders
          * @see https://developer-pro.bitmart.com/en/spot/#get-spot-wallet-balance
          * @see https://developer-pro.bitmart.com/en/futures/#get-contract-assets-detail
          * @see https://developer-pro.bitmart.com/en/spot/#get-account-balance
@@ -1506,12 +1506,14 @@ class bitmart extends Exchange {
             'account' => 'privateGetAccountV1Wallet',
             'margin' => 'privateGetSpotV1MarginIsolatedAccount',
         ));
-        list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchBalance', $params);
-        if ($marginMode !== null) {
+        $marginMode = $this->safe_string($params, 'marginMode');
+        $isMargin = $this->safe_value($params, 'margin', false);
+        $params = $this->omit($params, array( 'margin', 'marginMode' ));
+        if ($marginMode !== null || $isMargin) {
             $method = 'privateGetSpotV1MarginIsolatedAccount';
             $marketType = 'margin';
         }
-        $response = $this->$method ($query);
+        $response = $this->$method ($params);
         //
         // spot
         //
