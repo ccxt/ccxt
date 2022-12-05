@@ -38,8 +38,8 @@ module.exports = class woo extends wooRest {
                 },
             },
             'requiredCredentials': {
-                'apiKey': false,
-                'secret': false,
+                'apiKey': true,
+                'secret': true,
                 'uid': true,
             },
             'options': {
@@ -137,7 +137,7 @@ module.exports = class woo extends wooRest {
         return await this.watchPublic (topic, message);
     }
 
-    parseTicker (ticker, market = undefined) {
+    parseWsTicker (ticker, market = undefined) {
         //
         //     {
         //         symbol: 'PERP_BTC_USDT',
@@ -170,7 +170,7 @@ module.exports = class woo extends wooRest {
             'percentage': undefined,
             'average': undefined,
             'baseVolume': this.safeString (ticker, 'volume'),
-            'quoteVolume': undefined,
+            'quoteVolume': this.safeString (ticker, 'amount'),
             'info': ticker,
         }, market);
     }
@@ -198,7 +198,7 @@ module.exports = class woo extends wooRest {
         const market = this.safeMarket (marketId);
         const timestamp = this.safeInteger (message, 'ts');
         data['date'] = timestamp;
-        const ticker = this.parseTicker (data, market);
+        const ticker = this.parseWsTicker (data, market);
         ticker['symbol'] = market['symbol'];
         this.tickers[market['symbol']] = ticker;
         client.resolve (ticker, topic);
@@ -255,7 +255,7 @@ module.exports = class woo extends wooRest {
         for (let i = 0; i < data.length; i++) {
             const marketId = this.safeString (data[i], 'symbol');
             const market = this.safeMarket (marketId);
-            const ticker = this.parseTicker (this.extend (data[i], { 'date': timestamp }), market);
+            const ticker = this.parseWsTicker (this.extend (data[i], { 'date': timestamp }), market);
             this.tickers[market['symbol']] = ticker;
             result.push (ticker);
         }
@@ -364,7 +364,7 @@ module.exports = class woo extends wooRest {
         const marketId = this.safeString (data, 'symbol');
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        const trade = this.parseWsTrade (this.extend (data, { timestamp }), market);
+        const trade = this.parseWsTrade (this.extend (data, { 'timestamp': timestamp }), market);
         let tradesArray = this.safeValue (this.trades, symbol);
         if (tradesArray === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
