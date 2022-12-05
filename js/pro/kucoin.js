@@ -2,12 +2,12 @@
 
 //  ---------------------------------------------------------------------------
 
-const kucoinRest = require ('../kucoin.js');
+const kucoinFuturesRest = require ('../kucoinfutures.js');
 const { ExchangeError, InvalidNonce, NetworkError } = require ('../base/errors');
 const { ArrayCache, ArrayCacheByTimestamp, ArrayCacheBySymbolById } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
-module.exports = class kucoin extends kucoinRest {
+module.exports = class kucoin extends kucoinFuturesRest {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {

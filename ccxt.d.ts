@@ -715,7 +715,6 @@ declare module 'ccxt' {
 
     export namespace pro {
         export const exchanges: string[];
-        // @ts-ignore
         class Exchange  extends ExchangePro {};
         class aax extends Exchange {};
         class ascendex extends Exchange {};
@@ -752,6 +751,7 @@ declare module 'ccxt' {
         class idex extends Exchange {};
         class kraken extends Exchange {};
         class kucoin extends Exchange {};
+        class kucoinfutures extends Exchange {};
         class mexc extends Exchange {};
         class ndax extends Exchange {};
         class okcoin extends Exchange {};

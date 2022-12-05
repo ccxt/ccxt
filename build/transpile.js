@@ -1327,7 +1327,14 @@ class Transpiler {
             }
 
             // async or not
-            let keyword = matches[1]
+            let keyword = ''
+            try {
+                let keyword = matches[1]
+            } catch (e) {
+                console.log(className)
+                console.log(part)
+                throw e
+            }
 
             // method name
             let method = matches[2]

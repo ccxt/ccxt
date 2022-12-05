@@ -2,11 +2,11 @@
 
 //  ---------------------------------------------------------------------------
 
-const kucoinFuturesRest = require ('../kucoinfutures');
+const kucoin = require ('./kucoin');
 
 //  ---------------------------------------------------------------------------
 
-module.exports = class kucoinfutures extends kucoinFuturesRest {
+module.exports = class kucoinfutures extends kucoin {
     describe () {
         return this.deepExtend (super.describe (), {
             'has': {
@@ -28,7 +28,6 @@ module.exports = class kucoinfutures extends kucoinFuturesRest {
                 'watchOrderBook': {
                     'topic': 'contractMarket/level2',
                 },
-
             },
         });
     }
@@ -185,3 +184,4 @@ module.exports = class kucoinfutures extends kucoinFuturesRest {
         }
     }
 };
+
