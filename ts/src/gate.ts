@@ -960,7 +960,7 @@ export default class gate extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.parseNumber ('1'),
+                'amount': this.parseNumber ('1'), // all contracts have this step size
                 'price': this.safeNumber (market, 'order_price_round'),
             },
             'limits': {
@@ -1081,7 +1081,7 @@ export default class gate extends Exchange {
                     'strike': strike,
                     'optionType': optionType,
                     'precision': {
-                        'amount': this.parseNumber ('1'),
+                        'amount': this.parseNumber ('1'), // all options have this step size
                         'price': this.safeNumber (market, 'order_price_round'),
                     },
                     'limits': {
@@ -1296,7 +1296,7 @@ export default class gate extends Exchange {
                 'lowerCaseId': currencyIdLower,
                 'name': undefined,
                 'code': code,
-                'precision': this.parseNumber ('1e-6'),
+                'precision': this.parseNumber ('1e-4'), // todo: as gateio is done completely in html, in withdrawal page's source it has predefined "num_need_fix(this.value, 4);" function, so users cant set lower precision than 0.0001
                 'info': entry,
                 'active': active,
                 'deposit': depositEnabled,

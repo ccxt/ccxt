@@ -1150,7 +1150,7 @@ export default class okcoin extends Exchange {
                     'deposit': depositEnabled,
                     'withdraw': withdrawEnabled,
                     'fee': undefined, // todo: redesign
-                    'precision': this.parseNumber ('0.00000001'),
+                    'precision': this.parseNumber ('1e-8'), // todo: fix
                     'limits': {
                         'amount': { 'min': undefined, 'max': undefined },
                         'withdraw': {

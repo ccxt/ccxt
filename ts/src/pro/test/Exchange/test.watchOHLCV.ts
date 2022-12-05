@@ -21,6 +21,7 @@ export default async (exchange, symbol) => {
         'idex2', // rinkeby testnet, trades too rare
         'bitvavo',
         'zb', // supports watchOHLCV for contracts only
+        'bitget',  // timeframes structure differs from rest 
     ]
 
     if (skippedExchanges.includes (exchange.id)) {

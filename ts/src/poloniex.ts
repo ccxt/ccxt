@@ -4,7 +4,7 @@
 import { Exchange } from './base/Exchange.js';
 import { ArgumentsRequired, ExchangeError, ExchangeNotAvailable, RequestTimeout, AuthenticationError, PermissionDenied, RateLimitExceeded, InsufficientFunds, OrderNotFound, InvalidOrder, AccountSuspended, CancelPending, InvalidNonce, OnMaintenance, BadSymbol } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import { DECIMAL_PLACES } from './base/functions/number.js';
+import { TICK_SIZE } from './base/functions/number.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -221,7 +221,7 @@ export default class poloniex extends Exchange {
                     'futures': 'future',
                 },
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'You may only place orders that reduce your position.': InvalidOrder,
@@ -416,8 +416,8 @@ export default class poloniex extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.safeInteger (symbolTradeLimit, 'quantityScale'),
-                    'price': this.safeInteger (symbolTradeLimit, 'priceScale'),
+                    'amount': this.parseNumber (this.parsePrecision (this.safeString (symbolTradeLimit, 'quantityScale'))),
+                    'price': this.parseNumber (this.parsePrecision (this.safeString (symbolTradeLimit, 'priceScale'))),
                 },
                 'limits': {
                     'amount': {

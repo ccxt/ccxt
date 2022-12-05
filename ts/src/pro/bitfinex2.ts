@@ -242,7 +242,7 @@ export default class bitfinex2 extends bitfinex2Rest {
         return await this.subscribe ('ticker', symbol, params);
     }
 
-    handleMyTrade (client, message) {
+    handleMyTrade (client, message, subscription = {}) {
         //
         // trade execution
         // [

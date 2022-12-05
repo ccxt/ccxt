@@ -36,11 +36,11 @@ use \ccxt\pro\ClientTrait;
 
 include 'Throttle.php';
 
-$version = '2.2.56';
+$version = '2.2.69';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.2.56';
+    const VERSION = '2.2.69';
 
     public $streaming = array(
         'keepAlive' => 30000,
@@ -392,7 +392,7 @@ class Exchange extends \ccxt\Exchange {
             $quoteCurrencies = array();
             for ($i = 0; $i < count($values); $i++) {
                 $market = $values[$i];
-                $defaultCurrencyPrecision = ($this->precisionMode === DECIMAL_PLACES) ? 8 : $this->parse_number('0.00000001');
+                $defaultCurrencyPrecision = ($this->precisionMode === DECIMAL_PLACES) ? 8 : $this->parse_number('1e-8');
                 $marketPrecision = $this->safe_value($market, 'precision', array());
                 if (is_array($market) && array_key_exists('base', $market)) {
                     $currencyPrecision = $this->safe_value_2($marketPrecision, 'base', 'amount', $defaultCurrencyPrecision);

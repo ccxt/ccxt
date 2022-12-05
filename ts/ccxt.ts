@@ -43,7 +43,6 @@ const version = '2.1.89';
 
 //-----------------------------------------------------------------------------
 
-import aax from  './src/aax.js'
 import alpaca from  './src/alpaca.js'
 import ascendex from  './src/ascendex.js'
 import bequant from  './src/bequant.js'
@@ -85,7 +84,6 @@ import btctradeua from  './src/btctradeua.js'
 import btcturk from  './src/btcturk.js'
 import buda from  './src/buda.js'
 import bybit from  './src/bybit.js'
-import bytetrade from  './src/bytetrade.js'
 import cex from  './src/cex.js'
 import coinbase from  './src/coinbase.js'
 import coinbaseprime from  './src/coinbaseprime.js'
@@ -96,7 +94,6 @@ import coinfalcon from  './src/coinfalcon.js'
 import coinmate from  './src/coinmate.js'
 import coinone from  './src/coinone.js'
 import coinspot from  './src/coinspot.js'
-import crex24 from  './src/crex24.js'
 import cryptocom from  './src/cryptocom.js'
 import currencycom from  './src/currencycom.js'
 import delta from  './src/delta.js'
@@ -161,7 +158,6 @@ import zonda from  './src/zonda.js'
 
 
 // pro exchanges
-import aaxPro from  './src/pro/aax.js'
 import ascendexPro from  './src/pro/ascendex.js'
 import bequantPro from  './src/pro/bequant.js'
 import binancePro from  './src/pro/binance.js'
@@ -208,7 +204,6 @@ import zipmexPro from  './src/pro/zipmex.js'
 
 
 const exchanges = {
-    'aax':                    aax,
     'alpaca':                 alpaca,
     'ascendex':               ascendex,
     'bequant':                bequant,
@@ -250,7 +245,6 @@ const exchanges = {
     'btcturk':                btcturk,
     'buda':                   buda,
     'bybit':                  bybit,
-    'bytetrade':              bytetrade,
     'cex':                    cex,
     'coinbase':               coinbase,
     'coinbaseprime':          coinbaseprime,
@@ -261,7 +255,6 @@ const exchanges = {
     'coinmate':               coinmate,
     'coinone':                coinone,
     'coinspot':               coinspot,
-    'crex24':                 crex24,
     'cryptocom':              cryptocom,
     'currencycom':            currencycom,
     'delta':                  delta,
@@ -326,7 +319,6 @@ const exchanges = {
 }
 
 const pro = {
-    'aax':                    aaxPro,
     'ascendex':               ascendexPro,
     'bequant':                bequantPro,
     'binance':                binancePro,
@@ -395,7 +387,6 @@ export {
     Precise,
     functions,
     errors,
-    aax,
     alpaca,
     ascendex,
     bequant,
@@ -437,7 +428,6 @@ export {
     btcturk,
     buda,
     bybit,
-    bytetrade,
     cex,
     coinbase,
     coinbaseprime,
@@ -448,7 +438,6 @@ export {
     coinmate,
     coinone,
     coinspot,
-    crex24,
     cryptocom,
     currencycom,
     delta,

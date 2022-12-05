@@ -154,11 +154,6 @@ class IndexedOrderBookSide extends Array  {
             value: depth || Number.MAX_SAFE_INTEGER,
             writable: true,
         })
-        Object.defineProperty (this, 'hidden', {
-            __proto__: null, // make it invisible
-            value: new Map (),
-            writable: true,
-        })
         // sort upon initiation
         for (let i = 0; i < deltas.length; i++) {
             this.length = i
