@@ -84,7 +84,7 @@ module.exports = class woo extends wooRest {
         };
         const message = this.extend (request, params);
         const orderbook = await this.watchPublic (topic, message);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBook (client, message) {
