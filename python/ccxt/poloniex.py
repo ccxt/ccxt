@@ -20,7 +20,7 @@ from ccxt.base.errors import ExchangeNotAvailable
 from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.errors import RequestTimeout
-from ccxt.base.decimal_to_precision import DECIMAL_PLACES
+from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
 
 
@@ -238,7 +238,7 @@ class poloniex(Exchange):
                     'futures': 'future',
                 },
             },
-            'precisionMode': DECIMAL_PLACES,
+            'precisionMode': TICK_SIZE,
             'exceptions': {
                 'exact': {
                     'You may only place orders that reduce your position.': InvalidOrder,
@@ -422,8 +422,8 @@ class poloniex(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.safe_integer(symbolTradeLimit, 'quantityScale'),
-                    'price': self.safe_integer(symbolTradeLimit, 'priceScale'),
+                    'amount': self.parse_number(self.parse_precision(self.safe_string(symbolTradeLimit, 'quantityScale'))),
+                    'price': self.parse_number(self.parse_precision(self.safe_string(symbolTradeLimit, 'priceScale'))),
                 },
                 'limits': {
                     'amount': {

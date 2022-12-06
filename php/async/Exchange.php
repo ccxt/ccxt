@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.2.50';
+$version = '2.2.77';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.2.50';
+    const VERSION = '2.2.77';
 
     public $browser;
     public $marketsLoading = null;
@@ -320,7 +320,7 @@ class Exchange extends \ccxt\Exchange {
             $quoteCurrencies = array();
             for ($i = 0; $i < count($values); $i++) {
                 $market = $values[$i];
-                $defaultCurrencyPrecision = ($this->precisionMode === DECIMAL_PLACES) ? 8 : $this->parse_number('0.00000001');
+                $defaultCurrencyPrecision = ($this->precisionMode === DECIMAL_PLACES) ? 8 : $this->parse_number('1e-8');
                 $marketPrecision = $this->safe_value($market, 'precision', array());
                 if (is_array($market) && array_key_exists('base', $market)) {
                     $currencyPrecision = $this->safe_value_2($marketPrecision, 'base', 'amount', $defaultCurrencyPrecision);

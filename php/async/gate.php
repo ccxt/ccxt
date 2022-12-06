@@ -975,7 +975,7 @@ class gate extends Exchange {
             'strike' => null,
             'optionType' => null,
             'precision' => array(
-                'amount' => $this->parse_number('1'),
+                'amount' => $this->parse_number('1'), // all contracts have this step size
                 'price' => $this->safe_number($market, 'order_price_round'),
             ),
             'limits' => array(
@@ -1097,7 +1097,7 @@ class gate extends Exchange {
                         'strike' => $strike,
                         'optionType' => $optionType,
                         'precision' => array(
-                            'amount' => $this->parse_number('1'),
+                            'amount' => $this->parse_number('1'), // all options have this step size
                             'price' => $this->safe_number($market, 'order_price_round'),
                         ),
                         'limits' => array(
@@ -1306,7 +1306,7 @@ class gate extends Exchange {
                     'lowerCaseId' => $currencyIdLower,
                     'name' => null,
                     'code' => $code,
-                    'precision' => $this->parse_number('1e-6'),
+                    'precision' => $this->parse_number('1e-4'), // todo => as gateio is done completely in html, in withdrawal page's source it has predefined "num_need_fix($this->value, 4);" function, so users cant set lower precision than 0.0001
                     'info' => $entry,
                     'active' => $active,
                     'deposit' => $depositEnabled,

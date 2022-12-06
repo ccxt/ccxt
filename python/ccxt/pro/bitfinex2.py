@@ -224,7 +224,7 @@ class bitfinex2(Exchange, ccxt.async_support.bitfinex2):
         """
         return await self.subscribe('ticker', symbol, params)
 
-    def handle_my_trade(self, client, message):
+    def handle_my_trade(self, client, message, subscription={}):
         #
         # trade execution
         # [

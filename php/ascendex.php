@@ -1121,8 +1121,7 @@ class ascendex extends Exchange {
         $priceString = $this->safe_string_2($trade, 'price', 'p');
         $amountString = $this->safe_string($trade, 'q');
         $buyerIsMaker = $this->safe_value($trade, 'bm', false);
-        $makerOrTaker = $buyerIsMaker ? 'maker' : 'taker';
-        $side = $buyerIsMaker ? 'buy' : 'sell';
+        $side = $buyerIsMaker ? 'sell' : 'buy';
         $market = $this->safe_market(null, $market);
         return $this->safe_trade(array(
             'info' => $trade,
@@ -1132,7 +1131,7 @@ class ascendex extends Exchange {
             'id' => null,
             'order' => null,
             'type' => null,
-            'takerOrMaker' => $makerOrTaker,
+            'takerOrMaker' => null,
             'side' => $side,
             'price' => $priceString,
             'amount' => $amountString,
@@ -1144,6 +1143,7 @@ class ascendex extends Exchange {
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         /**
          * get the list of most recent $trades for a particular $symbol
+         * @see https://ascendex.github.io/ascendex-pro-api/#$market-$trades
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
          * @param {int|null} $since timestamp in ms of the earliest trade to fetch
          * @param {int|null} $limit the maximum amount of $trades to fetch

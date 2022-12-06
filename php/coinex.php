@@ -275,10 +275,6 @@ class coinex extends Exchange {
                     'max' => null,
                 ),
             ),
-            'precision' => array(
-                'amount' => $this->parse_number('0.00000001'),
-                'price' => $this->parse_number('0.00000001'),
-            ),
             'options' => array(
                 'createMarketBuyOrderRequiresPrice' => true,
                 'defaultType' => 'spot', // spot, swap, margin
@@ -300,22 +296,22 @@ class coinex extends Exchange {
 
     public function fetch_currencies($params = array ()) {
         $response = $this->publicGetCommonAssetConfig ($params);
-        //
         //     {
         //         $code => 0,
-        //         $data => {
-        //           'CET-CSC' => array(
-        //               asset => 'CET',
-        //               chain => 'CSC',
-        //               withdrawal_precision => 8,
-        //               can_deposit => true,
-        //               can_withdraw => true,
-        //               deposit_least_amount => '0.026',
-        //               withdraw_least_amount => '20',
-        //               withdraw_tx_fee => '0.026'
-        //           ),
-        //           ...
-        //           message => 'Success',
+        //         $data => array(
+        //             "USDT-ERC20" => array(
+        //                  "asset" => "USDT",
+        //                  "chain" => "ERC20",
+        //                  "withdrawal_precision" => 6,
+        //                  "can_deposit" => true,
+        //                  "can_withdraw" => true,
+        //                  "deposit_least_amount" => "4.9",
+        //                  "withdraw_least_amount" => "4.9",
+        //                  "withdraw_tx_fee" => "4.9"
+        //             ),
+        //             ...
+        //         ),
+        //         message => 'Success',
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
@@ -327,6 +323,7 @@ class coinex extends Exchange {
             $currencyId = $this->safe_string($currency, 'asset');
             $networkId = $this->safe_string($currency, 'chain');
             $code = $this->safe_currency_code($currencyId);
+            $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'withdrawal_precision')));
             if ($this->safe_value($result, $code) === null) {
                 $result[$code] = array(
                     'id' => $currencyId,
@@ -338,7 +335,7 @@ class coinex extends Exchange {
                     'deposit' => $this->safe_value($currency, 'can_deposit'),
                     'withdraw' => $this->safe_value($currency, 'can_withdraw'),
                     'fee' => $this->safe_number($currency, 'withdraw_tx_fee'),
-                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'withdrawal_precision'))),
+                    'precision' => $precision,
                     'limits' => array(
                         'amount' => array(
                             'min' => null,
@@ -379,7 +376,7 @@ class coinex extends Exchange {
                 'deposit' => $this->safe_value($currency, 'can_deposit'),
                 'withdraw' => $this->safe_value($currency, 'can_withdraw'),
                 'fee' => $this->safe_number($currency, 'withdraw_tx_fee'),
-                'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'withdrawal_precision'))),
+                'precision' => $precision,
             );
             $networks[$networkId] = $network;
             $result[$code]['networks'] = $networks;
