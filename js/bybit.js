@@ -5775,7 +5775,7 @@ module.exports = class bybit extends Exchange {
         const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
         const networkId = this.networkCodeToId (networkCode);
         if (networkId !== undefined) {
-            request['chain'] = networkId;
+            request['chain'] = networkId.toUpperCase ();
         }
         const response = await this.privatePostAssetV3PrivateWithdrawCreate (this.extend (request, query));
         //
