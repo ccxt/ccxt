@@ -2149,9 +2149,6 @@ class bybit(Exchange):
         :param int|None params['until']: timestamp in ms of the latest funding rate
         :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
         """
-        enableUnifiedMargin = self.is_unified_margin_enabled()
-        if not enableUnifiedMargin:
-            raise BadRequest(self.id + ' fetchFundingRateHistory() must enable unified margin mode')
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol')
         self.load_markets()
