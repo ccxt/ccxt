@@ -5440,7 +5440,7 @@ class bybit(Exchange):
         networkCode, query = self.handle_network_code_and_params(params)
         networkId = self.network_code_to_id(networkCode)
         if networkId is not None:
-            request['chain'] = networkId
+            request['chain'] = networkId.upper()
         response = self.privatePostAssetV3PrivateWithdrawCreate(self.extend(request, query))
         #
         #    {

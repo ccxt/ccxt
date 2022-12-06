@@ -5734,7 +5734,7 @@ class bybit extends Exchange {
         list($networkCode, $query) = $this->handle_network_code_and_params($params);
         $networkId = $this->network_code_to_id($networkCode);
         if ($networkId !== null) {
-            $request['chain'] = $networkId;
+            $request['chain'] = strtoupper($networkId);
         }
         $response = $this->privatePostAssetV3PrivateWithdrawCreate (array_merge($request, $query));
         //
