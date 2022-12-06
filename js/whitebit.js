@@ -386,11 +386,10 @@ module.exports = class whitebit extends Exchange {
             const availableDepositNetworks = this.safeValue (currencyNetworks, 'deposits', []);
             const availableWithdrawNetworks = this.safeValue (currencyNetworks, 'withdraws', []);
             const availableNetworks = this.arrayConcat (availableDepositNetworks, availableWithdrawNetworks);
-            for (let i = 0; i < availableNetworks.length; i++) {
-                if (this.inArray (availableNetworks[i], clampedNetworks)) {
-                    continue;
+            for (let k = 0; k < availableNetworks.length; k++) {
+                if (!this.inArray (availableNetworks[k], clampedNetworks)) {
+                    clampedNetworks.push (availableNetworks[k]);
                 }
-                clampedNetworks.push (availableNetworks[i]);
             }
             const limits = this.safeValue (currency, 'limits', {});
             const networks = {};
