@@ -1093,8 +1093,8 @@ module.exports = class digifinex extends Exchange {
             'change': undefined,
             'percentage': this.safeString2 (ticker, 'change', 'price_change_percent'),
             'average': undefined,
-            'baseVolume': this.safeString (ticker, 'base_vol'),
-            'quoteVolume': this.safeString2 (ticker, 'vol', 'volume_24h'),
+            'baseVolume': this.safeString (ticker, 'vol', 'volume_24h'),
+            'quoteVolume': this.safeString2 (ticker, 'base_vol'),
             'info': ticker,
         }, market);
     }
