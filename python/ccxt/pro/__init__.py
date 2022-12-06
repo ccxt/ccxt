@@ -4,7 +4,7 @@
 
 # ----------------------------------------------------------------------------
 
-__version__ = '2.2.47'
+__version__ = '2.2.67'
 
 # ----------------------------------------------------------------------------
 
@@ -14,7 +14,6 @@ from ccxt.pro.base.exchange import Exchange  # noqa: F401
 
 # CCXT Pro exchanges (now this is mainly used for importing exchanges in WS tests)
 
-from ccxt.pro.aax import aax                                              # noqa: F401
 from ccxt.pro.ascendex import ascendex                                    # noqa: F401
 from ccxt.pro.bequant import bequant                                      # noqa: F401
 from ccxt.pro.binance import binance                                      # noqa: F401
@@ -24,9 +23,11 @@ from ccxt.pro.binanceusdm import binanceusdm                              # noqa
 from ccxt.pro.bitcoincom import bitcoincom                                # noqa: F401
 from ccxt.pro.bitfinex import bitfinex                                    # noqa: F401
 from ccxt.pro.bitfinex2 import bitfinex2                                  # noqa: F401
+from ccxt.pro.bitget import bitget                                        # noqa: F401
 from ccxt.pro.bitmart import bitmart                                      # noqa: F401
 from ccxt.pro.bitmex import bitmex                                        # noqa: F401
 from ccxt.pro.bitopro import bitopro                                      # noqa: F401
+from ccxt.pro.bitrue import bitrue                                        # noqa: F401
 from ccxt.pro.bitstamp import bitstamp                                    # noqa: F401
 from ccxt.pro.bittrex import bittrex                                      # noqa: F401
 from ccxt.pro.bitvavo import bitvavo                                      # noqa: F401
@@ -64,7 +65,6 @@ from ccxt.pro.zb import zb                                                # noqa
 from ccxt.pro.zipmex import zipmex                                        # noqa: F401
 
 exchanges = [
-    'aax',
     'ascendex',
     'bequant',
     'binance',
@@ -74,9 +74,11 @@ exchanges = [
     'bitcoincom',
     'bitfinex',
     'bitfinex2',
+    'bitget',
     'bitmart',
     'bitmex',
     'bitopro',
+    'bitrue',
     'bitstamp',
     'bittrex',
     'bitvavo',

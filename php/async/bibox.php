@@ -441,7 +441,6 @@ class bibox extends Exchange {
     }
 
     public function parse_ticker($ticker, $market = null) {
-        // we don't set values that are not defined by the exchange
         //
         // fetchTicker
         //
@@ -468,28 +467,28 @@ class bibox extends Exchange {
         //
         //    {
         //        is_hide => '0',
-        //        high_cny => '0.1094',
-        //        amount => '5.34',
+        //        high_cny => '0.0860',
+        //        amount => '0.37',
         //        coin_symbol => 'BIX',
-        //        $last => '0.00000080',
+        //        $last => '0.00000069',
         //        currency_symbol => 'BTC',
-        //        change => '+0.00000001',
-        //        low_cny => '0.1080',
-        //        base_last_cny => '0.10935854',
+        //        change => '-0.00000004',
+        //        low_cny => '0.0791',
+        //        base_last_cny => '0.07909660',
         //        area_id => '7',
-        //        percent => '+1.27%',
-        //        last_cny => '0.1094',
-        //        high => '0.00000080',
-        //        low => '0.00000079',
+        //        percent => '-5.48%',
+        //        last_cny => '0.0791',
+        //        high => '0.00000075',
+        //        low => '0.00000069',
         //        pair_type => '0',
-        //        last_usd => '0.0155',
-        //        vol24H => '6697325',
+        //        last_usd => '0.0112',
+        //        vol24H => '510573',
         //        id => '1',
-        //        high_usd => '0.0155',
-        //        low_usd => '0.0153'
+        //        high_usd => '0.0122',
+        //        low_usd => '0.0112'
         //    }
         //
-        $timestamp = $this->safe_integer_2($ticker, 'timestamp', 't');
+        $timestamp = $this->safe_integer($ticker, 't');
         $baseId = $this->safe_string($ticker, 'coin_symbol');
         $quoteId = $this->safe_string($ticker, 'currency_symbol');
         $marketId = $this->safe_string($ticker, 's');
@@ -503,7 +502,7 @@ class bibox extends Exchange {
             $percentage = str_replace('%', '', $percentage);
         }
         return $this->safe_ticker(array(
-            'symbol' => $market['symbol'],
+            'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
             'high' => $this->safe_string_2($ticker, 'high', 'h'),
@@ -571,46 +570,45 @@ class bibox extends Exchange {
     public function fetch_tickers($symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * v1, fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+             * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
              * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the bibox api endpoint
              * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
             Async\await($this->load_markets());
             $symbols = $this->market_symbols($symbols);
-            $request = array(
-                'cmd' => 'marketAll',
-            );
-            $response = Async\await($this->v1PublicGetMdata (array_merge($request, $params)));
+            $request = array();
+            $response = Async\await($this->v3PublicGetMdataMarketAll (array_merge($request, $params)));
             //
             //    {
+            //        state => '0',
             //        $result => array(
             //            array(
             //                is_hide => '0',
-            //                high_cny => '0.1094',
-            //                amount => '5.34',
+            //                high_cny => '0.0860',
+            //                amount => '0.37',
             //                coin_symbol => 'BIX',
-            //                last => '0.00000080',
+            //                last => '0.00000069',
             //                currency_symbol => 'BTC',
-            //                change => '+0.00000001',
-            //                low_cny => '0.1080',
-            //                base_last_cny => '0.10935854',
+            //                change => '-0.00000004',
+            //                low_cny => '0.0791',
+            //                base_last_cny => '0.07909660',
             //                area_id => '7',
-            //                percent => '+1.27%',
-            //                last_cny => '0.1094',
-            //                high => '0.00000080',
-            //                low => '0.00000079',
+            //                percent => '-5.48%',
+            //                last_cny => '0.0791',
+            //                high => '0.00000075',
+            //                low => '0.00000069',
             //                pair_type => '0',
-            //                last_usd => '0.0155',
-            //                vol24H => '6697325',
+            //                last_usd => '0.0112',
+            //                vol24H => '510573',
             //                id => '1',
-            //                high_usd => '0.0155',
-            //                low_usd => '0.0153'
+            //                high_usd => '0.0122',
+            //                low_usd => '0.0112'
             //            ),
             //            ...
             //        ),
             //        cmd => 'marketAll',
-            //        ver => '1.1'
+            //        ver => '3'
             //    }
             //
             $tickers = $this->parse_tickers($response['result'], $symbols);
@@ -1017,7 +1015,7 @@ class bibox extends Exchange {
                 $id = $this->safe_string($currency, 'symbol');
                 $name = $currency['name']; // contains hieroglyphs causing python ASCII bug
                 $code = $this->safe_currency_code($id);
-                $precision = $this->parse_number('0.00000001');
+                $precision = $this->parse_number('1e-8');
                 $deposit = $this->safe_value($currency, 'enable_deposit');
                 $withdraw = $this->safe_value($currency, 'enable_withdraw');
                 $active = ($deposit && $withdraw);
@@ -2414,7 +2412,8 @@ class bibox extends Exchange {
             return;
         }
         if (is_array($response) && array_key_exists('state', $response)) {
-            if ($this->safe_number($response, 'state') === 0) {
+            $state = $this->safe_string($response, 'state');
+            if (Precise::string_eq($state, '0')) {    // $this->safe_number("0") === 0 may return false in php because of mismatched types (e.g. integer and double)
                 return;
             }
             throw new ExchangeError($this->id . ' ' . $body);

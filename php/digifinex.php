@@ -405,7 +405,7 @@ class digifinex extends Exchange {
                     'deposit' => $deposit,
                     'withdraw' => $withdraw,
                     'fee' => $fee,
-                    'precision' => $this->parse_number('0.00000001'), // todo fix hardcoded value
+                    'precision' => $this->parse_number('1e-8'), // todo fix hardcoded value, as some currencies have precision of 0.01
                     'limits' => array(
                         'amount' => array(
                             'min' => null,

@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.2.47'
+__version__ = '2.2.67'
 
 # -----------------------------------------------------------------------------
 
@@ -53,7 +53,6 @@ from ccxt.base.errors import RequestTimeout                           # noqa: F4
 from ccxt.base.errors import error_hierarchy                          # noqa: F401
 
 
-from ccxt.async_support.aax import aax                                          # noqa: F401
 from ccxt.async_support.alpaca import alpaca                                    # noqa: F401
 from ccxt.async_support.ascendex import ascendex                                # noqa: F401
 from ccxt.async_support.bequant import bequant                                  # noqa: F401
@@ -95,7 +94,6 @@ from ccxt.async_support.btctradeua import btctradeua                            
 from ccxt.async_support.btcturk import btcturk                                  # noqa: F401
 from ccxt.async_support.buda import buda                                        # noqa: F401
 from ccxt.async_support.bybit import bybit                                      # noqa: F401
-from ccxt.async_support.bytetrade import bytetrade                              # noqa: F401
 from ccxt.async_support.cex import cex                                          # noqa: F401
 from ccxt.async_support.coinbase import coinbase                                # noqa: F401
 from ccxt.async_support.coinbaseprime import coinbaseprime                      # noqa: F401
@@ -106,7 +104,6 @@ from ccxt.async_support.coinfalcon import coinfalcon                            
 from ccxt.async_support.coinmate import coinmate                                # noqa: F401
 from ccxt.async_support.coinone import coinone                                  # noqa: F401
 from ccxt.async_support.coinspot import coinspot                                # noqa: F401
-from ccxt.async_support.crex24 import crex24                                    # noqa: F401
 from ccxt.async_support.cryptocom import cryptocom                              # noqa: F401
 from ccxt.async_support.currencycom import currencycom                          # noqa: F401
 from ccxt.async_support.delta import delta                                      # noqa: F401
@@ -170,7 +167,6 @@ from ccxt.async_support.zipmex import zipmex                                    
 from ccxt.async_support.zonda import zonda                                      # noqa: F401
 
 exchanges = [
-    'aax',
     'alpaca',
     'ascendex',
     'bequant',
@@ -212,7 +208,6 @@ exchanges = [
     'btcturk',
     'buda',
     'bybit',
-    'bytetrade',
     'cex',
     'coinbase',
     'coinbaseprime',
@@ -223,7 +218,6 @@ exchanges = [
     'coinmate',
     'coinone',
     'coinspot',
-    'crex24',
     'cryptocom',
     'currencycom',
     'delta',

@@ -1100,8 +1100,7 @@ class ascendex(Exchange):
         priceString = self.safe_string_2(trade, 'price', 'p')
         amountString = self.safe_string(trade, 'q')
         buyerIsMaker = self.safe_value(trade, 'bm', False)
-        makerOrTaker = 'maker' if buyerIsMaker else 'taker'
-        side = 'buy' if buyerIsMaker else 'sell'
+        side = 'sell' if buyerIsMaker else 'buy'
         market = self.safe_market(None, market)
         return self.safe_trade({
             'info': trade,
@@ -1111,7 +1110,7 @@ class ascendex(Exchange):
             'id': None,
             'order': None,
             'type': None,
-            'takerOrMaker': makerOrTaker,
+            'takerOrMaker': None,
             'side': side,
             'price': priceString,
             'amount': amountString,
@@ -1122,6 +1121,7 @@ class ascendex(Exchange):
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         """
         get the list of most recent trades for a particular symbol
+        see https://ascendex.github.io/ascendex-pro-api/#market-trades
         :param str symbol: unified symbol of the market to fetch trades for
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
