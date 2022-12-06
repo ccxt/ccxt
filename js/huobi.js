@@ -838,6 +838,7 @@ module.exports = class huobi extends Exchange {
                     // err-code
                     '403': AuthenticationError,  // {"status":"error","err_code":403,"err_msg":"Incorrect Access key [Access key错误]","ts":1652774224344}
                     '1010': AccountNotEnabled, // {"status":"error","err_code":1010,"err_msg":"Account doesnt exist.","ts":1648137970490}
+                    '1003': AuthenticationError, // {code: '1003', message: 'invalid signature'}
                     '1013': BadSymbol, // {"status":"error","err_code":1013,"err_msg":"This contract symbol doesnt exist.","ts":1640550459583}
                     '1017': OrderNotFound, // {"status":"error","err_code":1017,"err_msg":"Order doesnt exist.","ts":1640550859242}
                     '1034': InvalidOrder, // {"status":"error","err_code":1034,"err_msg":"Incorrect field of order price type.","ts":1643802870182}
@@ -4735,6 +4736,7 @@ module.exports = class huobi extends Exchange {
          * @param {object} params extra parameters specific to the huobi api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
+        await this.loadMarkets ();
         const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
         const indexedAddresses = await this.fetchDepositAddressesByNetwork (code, paramsOmited);
         const selectedNetworkId = this.selectNetworkIdFromAvailableNetworks (code, networkCode, indexedAddresses);
@@ -5692,6 +5694,12 @@ module.exports = class huobi extends Exchange {
                 this.throwExactlyMatchedException (this.exceptions['exact'], message, feedback);
                 throw new ExchangeError (feedback);
             }
+        }
+        if ('code' in response) {
+            // {code: '1003', message: 'invalid signature'}
+            const feedback = this.id + ' ' + body;
+            const code = this.safeString (response, 'code');
+            this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
         }
     }
 
