@@ -2203,10 +2203,6 @@ module.exports = class bybit extends Exchange {
          * @param {int|undefined} params.until timestamp in ms of the latest funding rate
          * @returns {[object]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
-        const enableUnifiedMargin = await this.isUnifiedMarginEnabled ();
-        if (!enableUnifiedMargin) {
-            throw new BadRequest (this.id + ' fetchFundingRateHistory() must enable unified margin mode');
-        }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol');
         }
