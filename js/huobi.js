@@ -4741,8 +4741,8 @@ module.exports = class huobi extends Exchange {
         await this.loadMarkets ();
         const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
         const indexedAddresses = await this.fetchDepositAddressesByNetwork (code, paramsOmited);
-        const selectedNetworkId = this.selectNetworkIdFromAvailableNetworks (code, networkCode, indexedAddresses, true);
-        return indexedAddresses[selectedNetworkId];
+        const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks (code, networkCode, indexedAddresses, true);
+        return indexedAddresses[selectedNetworkCode];
     }
 
     async fetchWithdrawAddresses (code, note = undefined, networkCode = undefined, params = {}) {
