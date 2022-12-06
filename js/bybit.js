@@ -4716,7 +4716,7 @@ module.exports = class bybit extends Exchange {
         //         "time": "1666734031592"
         //     }
         //
-        const result = this.safeValue (response, 'response', {});
+        const result = this.safeValue (response, 'result', {});
         const orders = this.safeValue (result, 'list', []);
         return this.parseOrders (orders, market, since, limit);
     }
