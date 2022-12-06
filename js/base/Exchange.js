@@ -1718,7 +1718,7 @@ module.exports = class Exchange {
             }
         } else {
             if (responseNetworksLength === 0) {
-                throw new NotSupported (this.id + ' - no networks were returned for' + currencyCode);
+                throw new NotSupported (this.id + ' - no networks were returned for ' + currencyCode);
             } else {
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
                 const defaultNetworkCode = this.defaultNetworkCode (currencyCode);
