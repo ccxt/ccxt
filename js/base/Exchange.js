@@ -1699,17 +1699,17 @@ module.exports = class Exchange {
         return defaultNetworkCode;
     }
 
-    selectNetworkIdFromAvailableNetworks (currencyCode, networkCode, networkEntriesIndexed) {
+    selectNetworkIdFromAvailableNetworks (currencyCode, networkCode, networkEntriesIndexed, isIndexedByUnifiedNetworkCode = false) {
         // this method is used against raw & unparse network entries, which are just indexed by network id
         let chosenNetworkId = undefined;
         const availableNetworkIds = Object.keys (networkEntriesIndexed);
         const responseNetworksLength = availableNetworkIds.length;
         if (networkCode !== undefined) {
-            // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
-            const networkId = this.networkCodeToId (networkCode, currencyCode);
             if (responseNetworksLength === 0) {
                 throw new NotSupported (this.id + ' - ' + networkCode + ' network did not return any result for ' + currencyCode);
             } else {
+                // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
+                const networkId = isIndexedByUnifiedNetworkCode ? networkCode : this.networkCodeToId (networkCode, currencyCode);
                 if (networkId in networkEntriesIndexed) {
                     chosenNetworkId = networkId;
                 } else {
@@ -1722,7 +1722,7 @@ module.exports = class Exchange {
             } else {
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
                 const defaultNetworkCode = this.defaultNetworkCode (currencyCode);
-                const defaultNetworkId = this.networkCodeToId (defaultNetworkCode, currencyCode);
+                const defaultNetworkId = isIndexedByUnifiedNetworkCode ? defaultNetworkCode : this.networkCodeToId (defaultNetworkCode, currencyCode);
                 chosenNetworkId = (defaultNetworkId in networkEntriesIndexed) ? defaultNetworkId : availableNetworkIds[0];
             }
         }

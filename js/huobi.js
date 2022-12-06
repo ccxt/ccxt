@@ -911,6 +911,8 @@ module.exports = class huobi extends Exchange {
                 'defaultNetwork': 'ERC20',
                 'defaultNetworks': {
                     'ETH': 'ERC20',
+                    'BTC': 'BTC',
+                    'USDT': 'TRC20',
                 },
                 'networks': {
                     // by displaynames
@@ -4739,7 +4741,7 @@ module.exports = class huobi extends Exchange {
         await this.loadMarkets ();
         const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
         const indexedAddresses = await this.fetchDepositAddressesByNetwork (code, paramsOmited);
-        const selectedNetworkId = this.selectNetworkIdFromAvailableNetworks (code, networkCode, indexedAddresses);
+        const selectedNetworkId = this.selectNetworkIdFromAvailableNetworks (code, networkCode, indexedAddresses, true);
         return indexedAddresses[selectedNetworkId];
     }
 
