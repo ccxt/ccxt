@@ -1418,6 +1418,7 @@ class okx(Exchange):
         :param dict params: extra parameters specific to the okx api endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
+        await self.load_markets()
         symbols = self.market_symbols(symbols)
         first = self.safe_string(symbols, 0)
         market = None

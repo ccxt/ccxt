@@ -36,6 +36,7 @@ class bitrue(Exchange):
             'rateLimit': 1000,
             'certified': False,
             'version': 'v1',
+            'pro': True,
             # new metainfo interface
             'has': {
                 'CORS': None,

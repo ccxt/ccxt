@@ -288,10 +288,6 @@ class coinex(Exchange):
                     'max': None,
                 },
             },
-            'precision': {
-                'amount': self.parse_number('0.00000001'),
-                'price': self.parse_number('0.00000001'),
-            },
             'options': {
                 'createMarketBuyOrderRequiresPrice': True,
                 'defaultType': 'spot',  # spot, swap, margin
@@ -312,22 +308,22 @@ class coinex(Exchange):
 
     def fetch_currencies(self, params={}):
         response = self.publicGetCommonAssetConfig(params)
-        #
         #     {
         #         code: 0,
         #         data: {
-        #           'CET-CSC': {
-        #               asset: 'CET',
-        #               chain: 'CSC',
-        #               withdrawal_precision: 8,
-        #               can_deposit: True,
-        #               can_withdraw: True,
-        #               deposit_least_amount: '0.026',
-        #               withdraw_least_amount: '20',
-        #               withdraw_tx_fee: '0.026'
-        #           },
-        #           ...
-        #           message: 'Success',
+        #             "USDT-ERC20": {
+        #                  "asset": "USDT",
+        #                  "chain": "ERC20",
+        #                  "withdrawal_precision": 6,
+        #                  "can_deposit": True,
+        #                  "can_withdraw": True,
+        #                  "deposit_least_amount": "4.9",
+        #                  "withdraw_least_amount": "4.9",
+        #                  "withdraw_tx_fee": "4.9"
+        #             },
+        #             ...
+        #         },
+        #         message: 'Success',
         #     }
         #
         data = self.safe_value(response, 'data', [])
@@ -339,6 +335,7 @@ class coinex(Exchange):
             currencyId = self.safe_string(currency, 'asset')
             networkId = self.safe_string(currency, 'chain')
             code = self.safe_currency_code(currencyId)
+            precision = self.parse_number(self.parse_precision(self.safe_string(currency, 'withdrawal_precision')))
             if self.safe_value(result, code) is None:
                 result[code] = {
                     'id': currencyId,
@@ -350,7 +347,7 @@ class coinex(Exchange):
                     'deposit': self.safe_value(currency, 'can_deposit'),
                     'withdraw': self.safe_value(currency, 'can_withdraw'),
                     'fee': self.safe_number(currency, 'withdraw_tx_fee'),
-                    'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'withdrawal_precision'))),
+                    'precision': precision,
                     'limits': {
                         'amount': {
                             'min': None,
@@ -390,7 +387,7 @@ class coinex(Exchange):
                 'deposit': self.safe_value(currency, 'can_deposit'),
                 'withdraw': self.safe_value(currency, 'can_withdraw'),
                 'fee': self.safe_number(currency, 'withdraw_tx_fee'),
-                'precision': self.parse_number(self.parse_precision(self.safe_string(currency, 'withdrawal_precision'))),
+                'precision': precision,
             }
             networks[networkId] = network
             result[code]['networks'] = networks
