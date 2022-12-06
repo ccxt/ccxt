@@ -437,7 +437,7 @@ module.exports = class bybit extends bybitRest {
                 limit = 200;
             }
         }
-        const topics = [ 'orderbook.' + limit + '.' + market['id'] ];
+        const topics = [ 'orderbook.' + limit.toString () + '.' + market['id'] ];
         const orderbook = await this.watchTopics (url, messageHash, topics, params);
         return orderbook.limit ();
     }
