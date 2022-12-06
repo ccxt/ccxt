@@ -224,6 +224,8 @@ module.exports = class bitmex extends Exchange {
                 'XBT': 'BTC',
                 'Gwei': 'ETH',
                 'GWEI': 'ETH',
+                'LAMP': 'SOL',
+                'LAMp': 'SOL',
             },
         });
     }
