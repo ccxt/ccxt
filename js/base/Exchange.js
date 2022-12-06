@@ -877,7 +877,7 @@ module.exports = class Exchange {
             let quoteCurrencies = [];
             for (let i = 0; i < values.length; i++) {
                 const market = values[i];
-                const defaultCurrencyPrecision = (this.precisionMode === DECIMAL_PLACES) ? 8 : this.parseNumber ('0.00000001');
+                const defaultCurrencyPrecision = (this.precisionMode === DECIMAL_PLACES) ? 8 : this.parseNumber ('1e-8');
                 const marketPrecision = this.safeValue (market, 'precision', {});
                 if ('base' in market) {
                     const currencyPrecision = this.safeValue2 (marketPrecision, 'base', 'amount', defaultCurrencyPrecision);

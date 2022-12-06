@@ -1152,7 +1152,22 @@ class bybit(Exchange):
         return result
 
     async def fetch_derivatives_markets(self, params):
+        params['limit'] = 1000  # minimize number of requests
         response = await self.publicGetDerivativesV3PublicInstrumentsInfo(params)
+        data = self.safe_value(response, 'result', {})
+        markets = self.safe_value_2(data, 'list', 'dataList', [])
+        paginationCursor = self.safe_string(data, 'cursor')
+        if paginationCursor is not None:
+            while(paginationCursor is not None):
+                params['cursor'] = paginationCursor
+                response = await self.publicGetDerivativesV3PublicInstrumentsInfo(params)
+                data = self.safe_value(response, 'result', {})
+                rawMarkets = self.safe_value_2(data, 'list', 'dataList', [])
+                rawMarketsLength = len(rawMarkets)
+                if rawMarketsLength == 0:
+                    break
+                markets = self.array_concat(rawMarkets, markets)
+                paginationCursor = self.safe_string(data, 'nextPageCursor')
         #
         #     {
         #         "retCode": 0,
@@ -1258,8 +1273,6 @@ class bybit(Exchange):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'result', {})
-        markets = self.safe_value_2(data, 'list', 'dataList', [])
         result = []
         category = self.safe_string(data, 'category')
         for i in range(0, len(markets)):
@@ -1732,7 +1745,8 @@ class bybit(Exchange):
         #         "ext_info": null
         #     }
         #
-        tickerList = self.safe_value(response, 'result', [])
+        list = self.safe_value(response, 'result', [])
+        tickerList = self.safe_value(list, 'list')
         tickers = {}
         for i in range(0, len(tickerList)):
             ticker = self.parse_ticker(tickerList[i])
@@ -3446,20 +3460,20 @@ class bybit(Exchange):
         elif timeInForce == 'ioc':
             request['timeInForce'] = 'ImmediateOrCancel'
         triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
-        stopLossPrice = self.safe_value(params, 'stopLossPrice')
+        stopLossPrice = self.safe_value(params, 'stopLossPrice', triggerPrice)
         isStopLossOrder = stopLossPrice is not None
         takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
         isTakeProfitOrder = takeProfitPrice is not None
-        if isStopLossOrder:
-            request['stopLoss'] = self.price_to_precision(symbol, stopLossPrice)
-        if isTakeProfitOrder:
-            request['takeProfit'] = self.price_to_precision(symbol, takeProfitPrice)
-        if triggerPrice is not None:
+        if isStopLossOrder or isTakeProfitOrder:
             request['triggerBy'] = 'LastPrice'
-            preciseTriggerPrice = self.price_to_precision(symbol, triggerPrice)
+            triggerAt = stopLossPrice if isStopLossOrder else takeProfitPrice
+            preciseTriggerPrice = self.price_to_precision(symbol, triggerAt)
             request['triggerPrice'] = preciseTriggerPrice
+            isBuy = side == 'buy'
+            # logical xor
+            ascending = not isBuy if stopLossPrice else isBuy
             delta = self.number_to_string(market['precision']['price'])
-            request['basePrice'] = Precise.string_sub(preciseTriggerPrice, delta) if isStopLossOrder else Precise.string_add(preciseTriggerPrice, delta)
+            request['basePrice'] = Precise.string_add(preciseTriggerPrice, delta) if ascending else Precise.string_sub(preciseTriggerPrice, delta)
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['orderLinkId'] = clientOrderId
@@ -3529,18 +3543,19 @@ class bybit(Exchange):
         elif timeInForce == 'ioc':
             request['timeInForce'] = 'ImmediateOrCancel'
         triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
-        stopLossPrice = self.safe_value(params, 'stopLossPrice')
+        stopLossPrice = self.safe_value(params, 'stopLossPrice', triggerPrice)
         isStopLossOrder = stopLossPrice is not None
         takeProfitPrice = self.safe_value(params, 'takeProfitPrice')
         isTakeProfitOrder = takeProfitPrice is not None
-        if isStopLossOrder:
-            request['stopLoss'] = self.price_to_precision(symbol, stopLossPrice)
-        if isTakeProfitOrder:
-            request['takeProfit'] = self.price_to_precision(symbol, takeProfitPrice)
-        if triggerPrice is not None:
+        if isStopLossOrder or isTakeProfitOrder:
+            triggerAt = stopLossPrice if isStopLossOrder else takeProfitPrice
+            preciseTriggerPrice = self.price_to_precision(symbol, triggerAt)
+            isBuy = side == 'buy'
+            # logical xor
+            ascending = not isBuy if stopLossPrice else isBuy
+            request['triggerDirection'] = 2 if ascending else 1
             request['triggerBy'] = 'LastPrice'
-            request['triggerPrice'] = self.price_to_precision(symbol, triggerPrice)
-            request['triggerDirection'] = 2 if (isStopLossOrder) else 1
+            request['triggerPrice'] = self.price_to_precision(symbol, preciseTriggerPrice)
         clientOrderId = self.safe_string(params, 'clientOrderId')
         if clientOrderId is not None:
             request['orderLinkId'] = clientOrderId
@@ -4450,7 +4465,7 @@ class bybit(Exchange):
         #         "time": "1666734031592"
         #     }
         #
-        result = self.safe_value(response, 'response', {})
+        result = self.safe_value(response, 'result', {})
         orders = self.safe_value(result, 'list', [])
         return self.parse_orders(orders, market, since, limit)
 

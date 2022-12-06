@@ -1,4 +1,3 @@
-'use strict';
 
 //  ---------------------------------------------------------------------------
 
@@ -1161,7 +1160,25 @@ module.exports = class bybit extends Exchange {
     }
 
     async fetchDerivativesMarkets (params) {
+        params['limit'] = 1000; // minimize number of requests
         const response = await this.publicGetDerivativesV3PublicInstrumentsInfo (params);
+        const data = this.safeValue (response, 'result', {});
+        let markets = this.safeValue2 (data, 'list', 'dataList', []);
+        let paginationCursor = this.safeString (data, 'cursor');
+        if (paginationCursor !== undefined) {
+            while (paginationCursor !== undefined) {
+                params['cursor'] = paginationCursor;
+                const response = await this.publicGetDerivativesV3PublicInstrumentsInfo (params);
+                const data = this.safeValue (response, 'result', {});
+                const rawMarkets = this.safeValue2 (data, 'list', 'dataList', []);
+                const rawMarketsLength = rawMarkets.length;
+                if (rawMarketsLength === 0) {
+                    break;
+                }
+                markets = this.arrayConcat (rawMarkets, markets);
+                paginationCursor = this.safeString (data, 'nextPageCursor');
+            }
+        }
         //
         //     {
         //         "retCode": 0,
@@ -1267,8 +1284,6 @@ module.exports = class bybit extends Exchange {
         //         }
         //     }
         //
-        const data = this.safeValue (response, 'result', {});
-        const markets = this.safeValue2 (data, 'list', 'dataList', []);
         const result = [];
         let category = this.safeString (data, 'category');
         for (let i = 0; i < markets.length; i++) {
@@ -1771,7 +1786,8 @@ module.exports = class bybit extends Exchange {
         //         "ext_info": null
         //     }
         //
-        const tickerList = this.safeValue (response, 'result', []);
+        const list = this.safeValue (response, 'result', []);
+        const tickerList = this.safeValue (list, 'list');
         const tickers = {};
         for (let i = 0; i < tickerList.length; i++) {
             const ticker = this.parseTicker (tickerList[i]);
@@ -3616,22 +3632,20 @@ module.exports = class bybit extends Exchange {
             request['timeInForce'] = 'ImmediateOrCancel';
         }
         const triggerPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
-        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
         const isStopLossOrder = stopLossPrice !== undefined;
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         const isTakeProfitOrder = takeProfitPrice !== undefined;
-        if (isStopLossOrder) {
-            request['stopLoss'] = this.priceToPrecision (symbol, stopLossPrice);
-        }
-        if (isTakeProfitOrder) {
-            request['takeProfit'] = this.priceToPrecision (symbol, takeProfitPrice);
-        }
-        if (triggerPrice !== undefined) {
+        if (isStopLossOrder || isTakeProfitOrder) {
             request['triggerBy'] = 'LastPrice';
-            const preciseTriggerPrice = this.priceToPrecision (symbol, triggerPrice);
+            const triggerAt = isStopLossOrder ? stopLossPrice : takeProfitPrice;
+            const preciseTriggerPrice = this.priceToPrecision (symbol, triggerAt);
             request['triggerPrice'] = preciseTriggerPrice;
+            const isBuy = side === 'buy';
+            // logical xor
+            const ascending = stopLossPrice ? !isBuy : isBuy;
             const delta = this.numberToString (market['precision']['price']);
-            request['basePrice'] = isStopLossOrder ? Precise.stringSub (preciseTriggerPrice, delta) : Precise.stringAdd (preciseTriggerPrice, delta);
+            request['basePrice'] = ascending ? Precise.stringAdd (preciseTriggerPrice, delta) : Precise.stringSub (preciseTriggerPrice, delta);
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
@@ -3708,20 +3722,19 @@ module.exports = class bybit extends Exchange {
             request['timeInForce'] = 'ImmediateOrCancel';
         }
         const triggerPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
-        const stopLossPrice = this.safeValue (params, 'stopLossPrice');
+        const stopLossPrice = this.safeValue (params, 'stopLossPrice', triggerPrice);
         const isStopLossOrder = stopLossPrice !== undefined;
         const takeProfitPrice = this.safeValue (params, 'takeProfitPrice');
         const isTakeProfitOrder = takeProfitPrice !== undefined;
-        if (isStopLossOrder) {
-            request['stopLoss'] = this.priceToPrecision (symbol, stopLossPrice);
-        }
-        if (isTakeProfitOrder) {
-            request['takeProfit'] = this.priceToPrecision (symbol, takeProfitPrice);
-        }
-        if (triggerPrice !== undefined) {
+        if (isStopLossOrder || isTakeProfitOrder) {
+            const triggerAt = isStopLossOrder ? stopLossPrice : takeProfitPrice;
+            const preciseTriggerPrice = this.priceToPrecision (symbol, triggerAt);
+            const isBuy = side === 'buy';
+            // logical xor
+            const ascending = stopLossPrice ? !isBuy : isBuy;
+            request['triggerDirection'] = ascending ? 2 : 1;
             request['triggerBy'] = 'LastPrice';
-            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
-            request['triggerDirection'] = (isStopLossOrder) ? 2 : 1;
+            request['triggerPrice'] = this.priceToPrecision (symbol, preciseTriggerPrice);
         }
         const clientOrderId = this.safeString (params, 'clientOrderId');
         if (clientOrderId !== undefined) {
@@ -4728,7 +4741,7 @@ module.exports = class bybit extends Exchange {
         //         "time": "1666734031592"
         //     }
         //
-        const result = this.safeValue (response, 'response', {});
+        const result = this.safeValue (response, 'result', {});
         const orders = this.safeValue (result, 'list', []);
         return this.parseOrders (orders, market, since, limit);
     }

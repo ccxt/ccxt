@@ -38,6 +38,7 @@ class bitget(Exchange):
             'version': 'v1',
             'rateLimit': 50,  # up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'certified': True,
+            'pro': True,
             'has': {
                 'CORS': None,
                 'spot': True,

@@ -19,7 +19,6 @@ class Exchange extends \ccxt\async\Exchange {
 // todo: fix the conflict of ccxt.exchanges vs ccxtpro.exchanges
 
 Exchange::$exchanges = array(
-    'aax',
     'ascendex',
     'bequant',
     'binance',
@@ -29,6 +28,7 @@ Exchange::$exchanges = array(
     'bitcoincom',
     'bitfinex',
     'bitfinex2',
+    'bitget',
     'bitmart',
     'bitmex',
     'bitopro',
@@ -66,6 +66,7 @@ Exchange::$exchanges = array(
     'upbit',
     'wazirx',
     'whitebit',
+    'woo',
     'zb',
     'zipmex',
 );
