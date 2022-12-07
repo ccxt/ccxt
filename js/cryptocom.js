@@ -793,8 +793,12 @@ module.exports = class cryptocom extends Exchange {
             'future': 'derivativesPublicGetPublicGetCandlestick',
             'swap': 'derivativesPublicGetPublicGetCandlestick',
         });
-        if (marketType !== 'spot' && limit !== undefined) {
-            request['count'] = 100;
+        if (marketType !== 'spot') {
+            let reqLimit = 100;
+            if (limit !== undefined) {
+                reqLimit = limit;
+            }
+            request['count'] = reqLimit;
         }
         const response = await this[method] (this.extend (request, query));
         // {
