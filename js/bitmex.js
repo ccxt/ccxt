@@ -2700,6 +2700,7 @@ module.exports = class bitmex extends Exchange {
          * @method
          * @name bitmex#fetchDepositAddress
          * @description fetch the deposit address for a currency associated with this account
+         * @see https://www.bitmex.com/api/explorer/#!/User/User_getDepositAddress
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the bitmex api endpoint
          * @param {string} params.network deposit chain, can view all chains via this.publicGetWalletAssets, default is eth, unless the currency has a default chain within this.options['networks']
