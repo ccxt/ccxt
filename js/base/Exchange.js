@@ -1103,12 +1103,29 @@ module.exports = class Exchange {
             }
         }
         // ensure that the average field is calculated correctly
+        const inverse = this.safeValue (market, 'inverse', false);
+        const contractSize = this.numberToString (this.safeValue (market, 'contractSize', 1));
+        // inverse
+        // price = filled * contract size / cost
+        //
+        // linear
+        // price = cost / (filled * contract size)
         if (average === undefined) {
             if ((filled !== undefined) && (cost !== undefined) && Precise.stringGt (filled, '0')) {
-                average = Precise.stringDiv (cost, filled);
+                const filledTimesContractSize = Precise.stringMul (filled, contractSize);
+                if (inverse) {
+                    average = Precise.stringDiv (filledTimesContractSize, cost);
+                } else {
+                    average = Precise.stringDiv (cost, filledTimesContractSize);
+                }
             }
         }
-        // also ensure the cost field is calculated correctly
+        // similarly
+        // inverse
+        // cost = filled * contract size / price
+        //
+        // linear
+        // cost = filled * contract size * price
         const costPriceExists = (average !== undefined) || (price !== undefined);
         if (parseCost && (filled !== undefined) && costPriceExists) {
             let multiplyPrice = undefined;
@@ -1118,15 +1135,12 @@ module.exports = class Exchange {
                 multiplyPrice = average;
             }
             // contract trading
-            const contractSize = this.safeString (market, 'contractSize');
-            if (contractSize !== undefined) {
-                const inverse = this.safeValue (market, 'inverse', false);
-                if (inverse) {
-                    multiplyPrice = Precise.stringDiv ('1', multiplyPrice);
-                }
-                multiplyPrice = Precise.stringMul (multiplyPrice, contractSize);
+            const filledTimesContractSize = Precise.stringMul (filled, contractSize);
+            if (inverse) {
+                cost = Precise.stringDiv (filledTimesContractSize, multiplyPrice);
+            } else {
+                cost = Precise.stringMul (filledTimesContractSize, multiplyPrice);
             }
-            cost = Precise.stringMul (multiplyPrice, filled);
         }
         // support for market orders
         const orderType = this.safeValue (order, 'type');
@@ -2530,12 +2544,20 @@ module.exports = class Exchange {
 
     priceToPrecision (symbol, price) {
         const market = this.market (symbol);
-        return this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
+        const result = this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
+        if (result === '0') {
+            throw new ArgumentsRequired (this.id + ' price of ' + market['symbol'] + ' must be greater than minimum price precision of ' + this.numberToString (market['precision']['price']));
+        }
+        return result;
     }
 
     amountToPrecision (symbol, amount) {
         const market = this.market (symbol);
-        return this.decimalToPrecision (amount, TRUNCATE, market['precision']['amount'], this.precisionMode, this.paddingMode);
+        const result = this.decimalToPrecision (amount, TRUNCATE, market['precision']['amount'], this.precisionMode, this.paddingMode);
+        if (result === '0') {
+            throw new ArgumentsRequired (this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + this.numberToString (market['precision']['amount']));
+        }
+        return result;
     }
 
     feeToPrecision (symbol, fee) {

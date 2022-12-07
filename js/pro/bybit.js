@@ -66,7 +66,6 @@ module.exports = class bybit extends bybitRest {
                 },
             },
             'options': {
-                'unifiedMargin': false,
                 'spot': {
                     'timeframes': {
                         '1m': '1m',
@@ -122,7 +121,7 @@ module.exports = class bybit extends bybitRest {
         return requestId;
     }
 
-    getUrlByMarketType (symbol = undefined, isPrivate = false, method = undefined, params = {}) {
+    getUrlByMarketType (symbol = undefined, isPrivate = false, isUnifiedMargin = false, method = undefined, params = {}) {
         const accessibility = isPrivate ? 'private' : 'public';
         let isUsdcSettled = undefined;
         let isSpot = undefined;
@@ -130,11 +129,6 @@ module.exports = class bybit extends bybitRest {
         let isUsdtSettled = undefined;
         let market = undefined;
         let url = this.urls['api']['ws'];
-        let isUnifiedMargin = this.safeValue (params, 'unifiedMargin');
-        if (isUnifiedMargin === undefined) {
-            isUnifiedMargin = this.safeValue (this.options, 'unifiedMargin', false);
-        }
-        const margin = isUnifiedMargin ? 'unified' : 'nonUnified';
         if (symbol !== undefined) {
             market = this.market (symbol);
             isUsdcSettled = market['settle'] === 'USDC';
@@ -153,6 +147,7 @@ module.exports = class bybit extends bybitRest {
             if (isSpot) {
                 url = url[accessibility]['spot'];
             } else {
+                const margin = isUnifiedMargin ? 'unified' : 'nonUnified';
                 url = url[accessibility]['contract'][margin];
             }
         } else {
@@ -188,7 +183,7 @@ module.exports = class bybit extends bybitRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         const messageHash = 'ticker:' + market['symbol'];
-        const url = this.getUrlByMarketType (symbol, false, params);
+        const url = this.getUrlByMarketType (symbol, false, false, params);
         params = this.cleanParams (params);
         let topic = 'tickers';
         if (market['spot']) {
@@ -269,7 +264,7 @@ module.exports = class bybit extends bybitRest {
         const data = this.safeValue (message, 'data', {});
         const isSpot = data['s'] !== undefined;
         let symbol = undefined;
-        if (updateType === 'snapshot' || isSpot) {
+        if ((updateType === 'snapshot') || isSpot) {
             const parsed = this.parseTicker (data);
             symbol = parsed['symbol'];
             this.tickers[symbol] = parsed;
@@ -279,35 +274,14 @@ module.exports = class bybit extends bybitRest {
             const marketId = this.safeString (topicParts, topicLength - 1);
             const market = this.market (marketId);
             symbol = market['symbol'];
-            const update = this.parseTicker (data);
-            let ticker = this.safeValue (this.tickers, symbol, {});
-            ticker = this.updateTicker (ticker, update);
-            this.tickers[symbol] = ticker;
+            // update the info in place
+            const ticker = this.safeValue (this.tickers, symbol, {});
+            const rawTicker = this.safeValue (ticker, 'info', {});
+            const merged = this.extend (rawTicker, data);
+            this.tickers[symbol] = this.parseTicker (merged);
         }
         const messageHash = 'ticker:' + symbol;
         client.resolve (this.tickers[symbol], messageHash);
-    }
-
-    updateTicker (ticker, update) {
-        // First we update the raw ticker with the new values
-        // then we parse it again, although we could just
-        // update the changed values in the already parsed ticker
-        // doing that would lead to an inconsistent info object
-        // inside ticker
-        const rawTicker = ticker['info'];
-        const updateKeys = Object.keys (update);
-        const updateLength = updateKeys.length;
-        if (updateLength > 0) {
-            for (let i = 0; i < updateKeys.length; i++) {
-                const key = updateKeys[i];
-                if (key in rawTicker) {
-                    rawTicker[key] = update[key];
-                }
-            }
-            const parsed = this.parseTicker (rawTicker);
-            return parsed;
-        }
-        return ticker;
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -325,7 +299,7 @@ module.exports = class bybit extends bybitRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const url = this.getUrlByMarketType (symbol, false, params);
+        const url = this.getUrlByMarketType (symbol, false, false, params);
         params = this.cleanParams (params);
         let ohlcv = undefined;
         const marketType = market['spot'] ? 'spot' : 'contract';
@@ -389,13 +363,6 @@ module.exports = class bybit extends bybitRest {
         const marketId = this.safeString (topicParts, topicLength - 1);
         const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
-        let rawOHLCV = [];
-        if (!Array.isArray (data)) {
-            // spot market
-            rawOHLCV = [ data ];
-        } else {
-            rawOHLCV = data;
-        }
         const ohlcvsByTimeframe = this.safeValue (this.ohlcvs, symbol);
         if (ohlcvsByTimeframe === undefined) {
             this.ohlcvs[symbol] = {};
@@ -406,12 +373,43 @@ module.exports = class bybit extends bybitRest {
             stored = new ArrayCacheByTimestamp (limit);
             this.ohlcvs[symbol][timeframeId] = stored;
         }
-        for (let i = 0; i < rawOHLCV.length; i++) {
-            const parsed = this.parseOHLCV (rawOHLCV[i], market);
+        if (Array.isArray (data)) {
+            for (let i = 0; i < data.length; i++) {
+                const parsed = this.parseWsContractOHLCV (data[i], market);
+                stored.append (parsed);
+            }
+        } else {
+            const parsed = this.parseSpotOHLCV (data);
             stored.append (parsed);
         }
         const messageHash = 'kline' + ':' + timeframeId + ':' + symbol;
         client.resolve (stored, messageHash);
+    }
+
+    parseWsContractOHLCV (ohlcv) {
+        //
+        //     {
+        //         "start": 1670363160000,
+        //         "end": 1670363219999,
+        //         "interval": "1",
+        //         "open": "16987.5",
+        //         "close": "16987.5",
+        //         "high": "16988",
+        //         "low": "16987.5",
+        //         "volume": "23.511",
+        //         "turnover": "399396.344",
+        //         "confirm": false,
+        //         "timestamp": 1670363219614
+        //     }
+        //
+        return [
+            this.safeInteger (ohlcv, 'timestamp'),
+            this.safeNumber (ohlcv, 'open'),
+            this.safeNumber (ohlcv, 'high'),
+            this.safeNumber (ohlcv, 'low'),
+            this.safeNumber (ohlcv, 'close'),
+            this.safeNumber2 (ohlcv, 'volume', 'turnover'),
+        ];
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
@@ -427,7 +425,7 @@ module.exports = class bybit extends bybitRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const url = this.getUrlByMarketType (symbol, false, params);
+        const url = this.getUrlByMarketType (symbol, false, false, params);
         params = this.cleanParams (params);
         const messageHash = 'orderbook' + ':' + symbol;
         if (limit === undefined) {
@@ -551,7 +549,7 @@ module.exports = class bybit extends bybitRest {
         await this.loadMarkets ();
         const market = this.market (symbol);
         symbol = market['symbol'];
-        const url = this.getUrlByMarketType (symbol, false, params);
+        const url = this.getUrlByMarketType (symbol, false, false, params);
         params = this.cleanParams (params);
         const messageHash = 'trade:' + symbol;
         let topic = undefined;
@@ -607,20 +605,19 @@ module.exports = class bybit extends bybitRest {
         //        "ts": 1661742109863
         //    }
         //
-        let marketId = undefined;
         const data = this.safeValue (message, 'data', {});
         const topic = this.safeString (message, 'topic');
         let trades = undefined;
         const parts = topic.split ('.');
-        marketId = this.safeString (parts, 1);
-        if (!Array.isArray (data)) {
-            // spot markets
-            trades = [ data ];
-        } else {
+        const marketId = this.safeString (parts, 1);
+        const market = this.safeMarket (marketId);
+        if (Array.isArray (data)) {
             // contract markets
             trades = data;
+        } else {
+            // spot markets
+            trades = [ data ];
         }
-        const market = this.safeMarket (marketId);
         const symbol = market['symbol'];
         let stored = this.safeValue (this.trades, symbol);
         if (stored === undefined) {
@@ -650,6 +647,8 @@ module.exports = class bybit extends bybitRest {
         //         BT: false
         //     }
         // contract private
+        //
+        // parsed by rest implementation
         //    {
         //        "symbol": "BITUSDT",
         //        "execFee": "0.02022",
@@ -701,32 +700,23 @@ module.exports = class bybit extends bybitRest {
         //         "S": "BUY"
         //     }
         //
-        const id = this.safeStringN (trade, [ 'i', 'exec_id', 'T', 'v' ]);
-        const marketId = this.safeString2 (trade, 'symbol', 's');
+        const id = this.safeStringN (trade, [ 'i', 'T', 'v' ]);
+        const marketId = this.safeString (trade, 's');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const price = this.safeString2 (trade, 'p', 'execPrice');
-        const amount = this.safeStringN (trade, [ 'q', 'execQty', 'v' ]);
-        const cost = this.safeString (trade, 'execValue');
-        const timestamp = this.safeIntegerN (trade, [ 'execTime', 't', 'T' ]);
-        const side = this.safeStringLower2 (trade, 'side', 'S');
-        let isMaker = this.safeValue (trade, 'm');
-        if (isMaker === undefined) {
-            const lastLiquidityInd = this.safeString (trade, 'lastLiquidityInd');
-            isMaker = (lastLiquidityInd === 'MAKER');
+        const timestamp = this.safeInteger (trade, 't', 'T');
+        let side = this.safeStringLower (trade, 'S');
+        let takerOrMaker = undefined;
+        const m = this.safeValue (trade, 'm');
+        if (side === undefined) {
+            side = m ? 'buy' : 'sell';
+        } else {
+            // spot private
+            takerOrMaker = m;
         }
-        const takerOrMaker = isMaker ? 'maker' : 'taker';
-        const orderId = this.safeString2 (trade, 'o', 'order_id');
-        const type = this.safeString (trade, 'orderType');
-        let fee = undefined;
-        const feeCost = this.safeString (trade, 'execFee');
-        if (feeCost !== undefined) {
-            const feeCurrency = market['linear'] ? market['quote'] : market['base'];
-            fee = {
-                'cost': feeCost,
-                'currency': feeCurrency,
-            };
-        }
+        const price = this.safeString (trade, 'p');
+        const amount = this.safeString2 (trade, 'q', 'v');
+        const orderId = this.safeString (trade, 'o');
         return this.safeTrade ({
             'id': id,
             'info': trade,
@@ -734,24 +724,22 @@ module.exports = class bybit extends bybitRest {
             'datetime': this.iso8601 (timestamp),
             'symbol': symbol,
             'order': orderId,
-            'type': type,
+            'type': undefined,
             'side': side,
             'takerOrMaker': takerOrMaker,
             'price': price,
             'amount': amount,
-            'cost': cost,
-            'fee': fee,
+            'cost': undefined,
+            'fee': undefined,
         }, market);
     }
 
     getPrivateType (url) {
         if (url.indexOf ('spot') >= 0) {
             return 'spot';
-        }
-        if (url.indexOf ('unified') >= 0) {
+        } else if (url.indexOf ('unified') >= 0) {
             return 'unified';
-        }
-        if (url.indexOf ('contract') >= 0) {
+        } else if (url.indexOf ('contract') >= 0) {
             return 'contract';
         }
     }
@@ -769,13 +757,14 @@ module.exports = class bybit extends bybitRest {
          * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
          */
         const method = 'watchMyTrades';
-        let messageHash = 'usertrade';
+        let messageHash = 'myTrades';
         await this.loadMarkets ();
         if (symbol !== undefined) {
             symbol = this.symbol (symbol);
             messageHash += ':' + symbol;
         }
-        const url = this.getUrlByMarketType (symbol, true, method, params);
+        const isUnifiedMargin = await this.isUnifiedMarginEnabled ();
+        const url = this.getUrlByMarketType (symbol, true, isUnifiedMargin, method, params);
         await this.authenticate (url);
         const topicByMarket = {
             'spot': 'ticketInfo',
@@ -843,27 +832,32 @@ module.exports = class bybit extends bybitRest {
         //         ]
         //     }
         //
-        const data = this.safeValue (message, 'data', []);
+        const topic = this.safeString (message, 'topic');
+        const spot = topic === 'ticketInfo';
+        let data = this.safeValue (message, 'data', []);
+        // unified margin
+        data = this.safeValue (data, 'result', data);
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
             this.myTrades = new ArrayCacheBySymbolById (limit);
         }
         const trades = this.myTrades;
         const symbols = {};
+        const method = spot ? 'parseWsTrade' : 'parseTrade';
         for (let i = 0; i < data.length; i++) {
             const rawTrade = data[i];
-            const parsed = this.parseWsTrade (rawTrade);
+            const parsed = this[method] (rawTrade);
             const symbol = parsed['symbol'];
             symbols[symbol] = true;
             trades.append (parsed);
         }
         const keys = Object.keys (symbols);
         for (let i = 0; i < keys.length; i++) {
-            const messageHash = 'usertrade:' + keys[i];
+            const messageHash = 'myTrades:' + keys[i];
             client.resolve (trades, messageHash);
         }
         // non-symbol specific
-        const messageHash = 'usertrade';
+        const messageHash = 'myTrades';
         client.resolve (trades, messageHash);
     }
 
@@ -885,7 +879,8 @@ module.exports = class bybit extends bybitRest {
             symbol = this.symbol (symbol);
             messageHash += ':' + symbol;
         }
-        const url = this.getUrlByMarketType (undefined, true, method, params);
+        const isUnifiedMargin = await this.isUnifiedMarginEnabled ();
+        const url = this.getUrlByMarketType (undefined, true, isUnifiedMargin, method, params);
         await this.authenticate (url);
         const topicsByMarket = {
             'spot': [ 'order', 'stopOrder' ],
@@ -1029,13 +1024,8 @@ module.exports = class bybit extends bybitRest {
             parser = 'parseWsSpotOrder';
         } else {
             parser = 'parseContractOrder';
-            if (topic === 'user.order.contractAccount') {
-                rawOrders = this.safeValue (message, 'data', []);
-            }
-            if (topic === 'user.order.unifiedAccount') {
-                const data = this.safeValue (message, 'data', {});
-                rawOrders = this.safeValue (data, 'result', []);
-            }
+            rawOrders = this.safeValue (message, 'data', []);
+            rawOrders = this.safeValue (rawOrders, 'result', rawOrders);
         }
         const symbols = {};
         for (let i = 0; i < rawOrders.length; i++) {
@@ -1092,13 +1082,20 @@ module.exports = class bybit extends bybitRest {
         if (price === '0') {
             price = undefined; // market orders
         }
-        const amount = this.safeString (order, 'q');
         const filled = this.safeString (order, 'z');
         const status = this.parseOrderStatus (this.safeString (order, 'X'));
         const side = this.safeStringLower (order, 'S');
         const lastTradeTimestamp = this.safeString (order, 'E');
         const timeInForce = this.safeString (order, 'f');
+        let amount = undefined;
+        const cost = this.safeString (order, 'Z');
+        const q = this.safeString (order, 'q');
         let type = this.safeStringLower (order, 'o');
+        if (type.indexOf ('quote') >= 0) {
+            amount = filled;
+        } else {
+            amount = q;
+        }
         if (type.indexOf ('market') >= 0) {
             type = 'market';
         }
@@ -1112,9 +1109,6 @@ module.exports = class bybit extends bybitRest {
                 'currency': feeCurrencyCode,
             };
         }
-        const trades = [
-            { 'id': this.safeString (order, 't') },
-        ];
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -1130,13 +1124,12 @@ module.exports = class bybit extends bybitRest {
             'price': price,
             'stopPrice': undefined,
             'amount': amount,
-            'cost': this.safeString (order, 'Z'),
+            'cost': cost,
             'average': undefined,
             'filled': filled,
             'remaining': undefined,
             'status': status,
             'fee': fee,
-            'trades': trades,
         }, market);
     }
 
@@ -1150,7 +1143,8 @@ module.exports = class bybit extends bybitRest {
          */
         const method = 'watchBalance';
         const messageHash = 'balances';
-        const url = this.getUrlByMarketType (undefined, true, method, params);
+        const isUnifiedMargin = await this.isUnifiedMarginEnabled ();
+        const url = this.getUrlByMarketType (undefined, true, isUnifiedMargin, method, params);
         await this.authenticate (url);
         const topicByMarket = {
             'spot': 'outboundAccountInfo',
@@ -1447,6 +1441,7 @@ module.exports = class bybit extends bybitRest {
             'stopOrder': this.handleOrder,
             'ticker': this.handleTicker,
             'trade': this.handleTrades,
+            'publicTrade': this.handleTrades,
             'depth': this.handleOrderBook,
             'wallet': this.handleBalance,
             'outboundAccountInfo': this.handleBalance,
@@ -1462,9 +1457,9 @@ module.exports = class bybit extends bybitRest {
                 return;
             }
         }
-        // contract auth acknowledgement
-        const reqOp = this.safeString (message, 'op');
-        if (reqOp === 'auth') {
+        // unified auth acknowledgement
+        const type = this.safeString (message, 'type');
+        if ((op === 'auth') || (type === 'AUTH_RESP')) {
             this.handleAuthenticate (client, message);
         }
     }
@@ -1499,7 +1494,14 @@ module.exports = class bybit extends bybitRest {
         //        op: 'auth',
         //        conn_id: 'ce3dpomvha7dha97tvp0-2xh'
         //    }
-        client.resolve (message, 'authenticated');
+        //
+        const success = this.safeValue (message, 'success');
+        if (success) {
+            client.resolve (message, 'authenticated');
+        } else {
+            const error = new AuthenticationError (this.id + ' ' + this.json (message));
+            client.reject (error, 'authenticated');
+        }
         return message;
     }
 

@@ -583,7 +583,7 @@ module.exports = class bitget extends bitgetRest {
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
-        if (type === 'spot' && symbol === undefined) {
+        if ((type === 'spot') && (symbol === undefined)) {
             throw new ArgumentsRequired (this.id + ' watchOrders requires a symbol argument for ' + type + ' markets.');
         }
         const instType = (type === 'spot') ? 'spbl' : 'umcbl';
@@ -654,7 +654,7 @@ module.exports = class bitget extends bitgetRest {
         for (let i = 0; i < keys.length; i++) {
             const symbol = keys[i];
             const messageHash = 'order:' + symbol;
-            client.resolve (this.orders, messageHash);
+            client.resolve (stored, messageHash);
         }
     }
 
@@ -810,9 +810,16 @@ module.exports = class bitget extends bitgetRest {
         // the spot stream only provides on limit orders updates so we can't support it for spot
         await this.loadMarkets ();
         let market = undefined;
+        const args = {
+            'instType': 'umcbl',
+            'channel': 'orders',
+            'instId': 'default',
+        };
+        let messageHash = 'myTrades';
         if (symbol !== undefined) {
             market = this.market (symbol);
             symbol = market['symbol'];
+            messageHash = messageHash + ':' + symbol;
         }
         let type = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('watchMyTrades', market, params);
@@ -820,12 +827,6 @@ module.exports = class bitget extends bitgetRest {
             throw new NotSupported (this.id + ' watchMyTrades is not supported for ' + type + ' markets.');
         }
         const subscriptionHash = 'order:trades';
-        const messageHash = 'usertrade:' + symbol;
-        const args = {
-            'instType': 'umcbl',
-            'channel': 'orders',
-            'instId': 'default',
-        };
         const trades = await this.watchPrivate (messageHash, subscriptionHash, args, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
@@ -876,8 +877,10 @@ module.exports = class bitget extends bitgetRest {
         const parsed = this.parseWsMyTrade (message);
         stored.append (parsed);
         const symbol = parsed['symbol'];
-        const messageHash = 'usertrade:' + symbol;
-        client.resolve (this.myTrades, messageHash);
+        const messageHash = 'myTrades';
+        client.resolve (stored, messageHash);
+        const symbolSpecificMessageHash = 'myTrades:' + symbol;
+        client.resolve (stored, symbolSpecificMessageHash);
     }
 
     parseWsMyTrade (trade, market = undefined) {

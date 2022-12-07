@@ -1456,7 +1456,7 @@ module.exports = class bybit extends Exchange {
             'askVolume': this.safeString (ticker, 'aq'),
             'vwap': undefined,
             'open': this.safeString (ticker, 'o'),
-            'close': this.safeString (ticker, 'lp'),
+            'close': this.safeString2 (ticker, 'lp', 'c'),
             'last': undefined,
             'previousClose': undefined,
             'change': undefined,
@@ -1912,47 +1912,6 @@ module.exports = class bybit extends Exchange {
 
     parseContractOHLCV (ohlcv, market = undefined) {
         //
-        // inverse perpetual BTC/USD
-        //
-        //     {
-        //         symbol: 'BTCUSD',
-        //         interval: '1',
-        //         open_time: 1583952540,
-        //         open: '7760.5',
-        //         high: '7764',
-        //         low: '7757',
-        //         close: '7763.5',
-        //         volume: '1259766',
-        //         turnover: '162.32773718999994'
-        //     }
-        //
-        // linear perpetual BTC/USDT
-        //
-        //     {
-        //         "id":143536,
-        //         "symbol":"BTCUSDT",
-        //         "period":"15",
-        //         "start_at":1587883500,
-        //         "volume":1.035,
-        //         "open":7540.5,
-        //         "high":7541,
-        //         "low":7540.5,
-        //         "close":7541
-        //     }
-        //
-        // usdc perpetual
-        //     {
-        //         "symbol":"BTCPERP",
-        //         "volume":"0.01",
-        //         "period":"1",
-        //         "openTime":"1636358160",
-        //         "open":"66001.50",
-        //         "high":"66001.50",
-        //         "low":"66001.50",
-        //         "close":"66001.50",
-        //         "turnover":"1188.02"
-        //     }
-        //
         // Unified Margin
         //
         //     [
@@ -1965,27 +1924,13 @@ module.exports = class bybit extends Exchange {
         //         "2.4343353100000003"
         //     ]
         //
-        if (Array.isArray (ohlcv)) {
-            return [
-                this.safeNumber (ohlcv, 0),
-                this.safeNumber (ohlcv, 1),
-                this.safeNumber (ohlcv, 2),
-                this.safeNumber (ohlcv, 3),
-                this.safeNumber (ohlcv, 4),
-                this.safeNumber (ohlcv, 5),
-            ];
-        }
-        let timestamp = this.safeTimestamp2 (ohlcv, 'open_time', 'openTime');
-        if (timestamp === undefined) {
-            timestamp = this.safeTimestamp (ohlcv, 'start_at');
-        }
         return [
-            timestamp,
-            this.safeNumber (ohlcv, 'open'),
-            this.safeNumber (ohlcv, 'high'),
-            this.safeNumber (ohlcv, 'low'),
-            this.safeNumber (ohlcv, 'close'),
-            this.safeNumber2 (ohlcv, 'volume', 'turnover'),
+            this.safeNumber (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
         ];
     }
 
@@ -2541,7 +2486,11 @@ module.exports = class bybit extends Exchange {
                 lastLiquidityInd = undefined;
             }
             if (lastLiquidityInd !== undefined) {
-                takerOrMaker = (lastLiquidityInd === 'AddedLiquidity') ? 'maker' : 'taker';
+                if ((lastLiquidityInd === 'TAKER') || (lastLiquidityInd === 'MAKER')) {
+                    takerOrMaker = lastLiquidityInd.toLowerCase ();
+                } else {
+                    takerOrMaker = (lastLiquidityInd === 'AddedLiquidity') ? 'maker' : 'taker';
+                }
             }
         }
         let orderType = this.safeStringLower (trade, 'orderType');
