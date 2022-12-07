@@ -321,6 +321,7 @@ module.exports = class bkex extends Exchange {
                 settle = quote;
                 symbol = base + '/' + quote + ':' + settle;
             }
+            const linear = swap ? true : undefined;
             result.push ({
                 'id': marketId,
                 'symbol': symbol,
@@ -338,7 +339,7 @@ module.exports = class bkex extends Exchange {
                 'option': false,
                 'active': this.safeValue (market, 'supportTrade'),
                 'contract': swap,
-                'linear': undefined,
+                'linear': linear,
                 'inverse': undefined,
                 'contractSize': undefined,
                 'expiry': undefined,
