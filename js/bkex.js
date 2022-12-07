@@ -317,8 +317,8 @@ module.exports = class bkex extends Exchange {
             let settleId = undefined;
             let settle = undefined;
             if (swap) {
-                settleId = 'USDT';
-                settle = this.safeCurrencyCode (settleId);
+                settleId = quoteId;
+                settle = quote;
                 symbol = base + '/' + quote + ':' + settle;
             }
             result.push ({
