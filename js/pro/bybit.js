@@ -262,7 +262,7 @@ module.exports = class bybit extends bybitRest {
         const topic = this.safeString (message, 'topic', '');
         const updateType = this.safeString (message, 'type', '');
         const data = this.safeValue (message, 'data', {});
-        const isSpot = this.safeString ('data', 's') !== undefined;
+        const isSpot = this.safeString (data, 's') !== undefined;
         let symbol = undefined;
         let parsed = undefined;
         if ((updateType === 'snapshot') || isSpot) {
@@ -1315,8 +1315,8 @@ module.exports = class bybit extends bybitRest {
         const currencyId = this.safeStringN (balance, [ 'a', 'currencyCoin', 'coin' ]);
         const code = this.safeCurrencyCode (currencyId);
         account['free'] = this.safeStringN (balance, [ 'availableBalanceWithoutConvert', 'availableBalance', 'f' ]);
-        account['used'] = this.safeString (balance, [ 'l' ]);
-        account['total'] = this.safeString2 (balance, 'walletBalance');
+        account['used'] = this.safeString (balance, 'l');
+        account['total'] = this.safeString (balance, 'walletBalance');
         this.balance[code] = account;
     }
 
