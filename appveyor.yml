@@ -1,7 +1,6 @@
 environment:
   matrix:
     - nodejs_version: '14'
-    - php_version: '8.1'
 install:
   - ps: Install-Product node $env:nodejs_version
   - set LIB=C:\OpenSSL-Win64\lib;%LIB%
@@ -23,7 +22,7 @@ install:
   - set PATH=C:\Program Files\curl;%PATH%
   - setx PATH "%PATH%"
   - ps: Set-Service wuauserv -StartupType Manual
-  - cinst -y php --allow-empty-checksums
+  - cinst -y php --version 8.1 --allow-empty-checksums
   - cinst composer -i -y
   # - php -i
   - cd c:\tools\php81
