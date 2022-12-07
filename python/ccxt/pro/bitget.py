@@ -545,7 +545,7 @@ class bitget(Exchange, ccxt.async_support.bitget):
             messageHash += market['symbol']
         type = None
         type, params = self.handle_market_type_and_params('watchOrders', market, params)
-        if type == 'spot' and symbol is None:
+        if (type == 'spot') and (symbol is None):
             raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument for ' + type + ' markets.')
         instType = 'spbl' if (type == 'spot') else 'umcbl'
         instId = marketId if (type == 'spot') else 'default'  # different from other streams here the 'rest' id is required for spot markets, contract markets require default here
@@ -610,7 +610,7 @@ class bitget(Exchange, ccxt.async_support.bitget):
         for i in range(0, len(keys)):
             symbol = keys[i]
             messageHash = 'order:' + symbol
-            client.resolve(self.orders, messageHash)
+            client.resolve(stored, messageHash)
 
     def parse_ws_order(self, order, market=None):
         #
@@ -758,15 +758,16 @@ class bitget(Exchange, ccxt.async_support.bitget):
         # the spot stream only provides on limit orders updates so we can't support it for spot
         await self.load_markets()
         market = None
+        messageHash = 'myTrades'
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
+            messageHash = messageHash + ':' + symbol
         type = None
         type, params = self.handle_market_type_and_params('watchMyTrades', market, params)
         if type == 'spot':
             raise NotSupported(self.id + ' watchMyTrades is not supported for ' + type + ' markets.')
         subscriptionHash = 'order:trades'
-        messageHash = 'usertrade:' + symbol
         args = {
             'instType': 'umcbl',
             'channel': 'orders',
@@ -819,8 +820,10 @@ class bitget(Exchange, ccxt.async_support.bitget):
         parsed = self.parse_ws_my_trade(message)
         stored.append(parsed)
         symbol = parsed['symbol']
-        messageHash = 'usertrade:' + symbol
-        client.resolve(self.myTrades, messageHash)
+        messageHash = 'myTrades'
+        client.resolve(stored, messageHash)
+        symbolSpecificMessageHash = 'myTrades:' + symbol
+        client.resolve(stored, symbolSpecificMessageHash)
 
     def parse_ws_my_trade(self, trade, market=None):
         #

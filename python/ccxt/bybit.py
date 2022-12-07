@@ -1406,6 +1406,15 @@ class bybit(Exchange):
         #         "v": "7433.527",
         #         "qv": "619835.8676"
         #     }
+        # spot - bookticker
+        #     {
+        #         "s": "BTCUSDT",
+        #         "bp": "19693.04",
+        #         "bq": "0.913957",
+        #         "ap": "19694.27",
+        #         "aq": "0.705447",
+        #         "t": 1661742216108
+        #     }
         #
         marketId = self.safe_string(ticker, 's')
         symbol = self.safe_symbol(marketId, market)
@@ -1417,12 +1426,12 @@ class bybit(Exchange):
             'high': self.safe_string(ticker, 'h'),
             'low': self.safe_string(ticker, 'l'),
             'bid': self.safe_string(ticker, 'bp'),
-            'bidVolume': None,
+            'bidVolume': self.safe_string(ticker, 'bq'),
             'ask': self.safe_string(ticker, 'ap'),
-            'askVolume': None,
+            'askVolume': self.safe_string(ticker, 'aq'),
             'vwap': None,
             'open': self.safe_string(ticker, 'o'),
-            'close': self.safe_string(ticker, 'lp'),
+            'close': self.safe_string_2(ticker, 'lp', 'c'),
             'last': None,
             'previousClose': None,
             'change': None,
@@ -1856,47 +1865,6 @@ class bybit(Exchange):
 
     def parse_contract_ohlcv(self, ohlcv, market=None):
         #
-        # inverse perpetual BTC/USD
-        #
-        #     {
-        #         symbol: 'BTCUSD',
-        #         interval: '1',
-        #         open_time: 1583952540,
-        #         open: '7760.5',
-        #         high: '7764',
-        #         low: '7757',
-        #         close: '7763.5',
-        #         volume: '1259766',
-        #         turnover: '162.32773718999994'
-        #     }
-        #
-        # linear perpetual BTC/USDT
-        #
-        #     {
-        #         "id":143536,
-        #         "symbol":"BTCUSDT",
-        #         "period":"15",
-        #         "start_at":1587883500,
-        #         "volume":1.035,
-        #         "open":7540.5,
-        #         "high":7541,
-        #         "low":7540.5,
-        #         "close":7541
-        #     }
-        #
-        # usdc perpetual
-        #     {
-        #         "symbol":"BTCPERP",
-        #         "volume":"0.01",
-        #         "period":"1",
-        #         "openTime":"1636358160",
-        #         "open":"66001.50",
-        #         "high":"66001.50",
-        #         "low":"66001.50",
-        #         "close":"66001.50",
-        #         "turnover":"1188.02"
-        #     }
-        #
         # Unified Margin
         #
         #     [
@@ -1909,25 +1877,13 @@ class bybit(Exchange):
         #         "2.4343353100000003"
         #     ]
         #
-        if isinstance(ohlcv, list):
-            return [
-                self.safe_number(ohlcv, 0),
-                self.safe_number(ohlcv, 1),
-                self.safe_number(ohlcv, 2),
-                self.safe_number(ohlcv, 3),
-                self.safe_number(ohlcv, 4),
-                self.safe_number(ohlcv, 5),
-            ]
-        timestamp = self.safe_timestamp_2(ohlcv, 'open_time', 'openTime')
-        if timestamp is None:
-            timestamp = self.safe_timestamp(ohlcv, 'start_at')
         return [
-            timestamp,
-            self.safe_number(ohlcv, 'open'),
-            self.safe_number(ohlcv, 'high'),
-            self.safe_number(ohlcv, 'low'),
-            self.safe_number(ohlcv, 'close'),
-            self.safe_number_2(ohlcv, 'volume', 'turnover'),
+            self.safe_number(ohlcv, 0),
+            self.safe_number(ohlcv, 1),
+            self.safe_number(ohlcv, 2),
+            self.safe_number(ohlcv, 3),
+            self.safe_number(ohlcv, 4),
+            self.safe_number(ohlcv, 5),
         ]
 
     def fetch_spot_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
@@ -2440,7 +2396,10 @@ class bybit(Exchange):
             if lastLiquidityInd == 'UNKNOWN':
                 lastLiquidityInd = None
             if lastLiquidityInd is not None:
-                takerOrMaker = 'maker' if (lastLiquidityInd == 'AddedLiquidity') else 'taker'
+                if (lastLiquidityInd == 'TAKER') or (lastLiquidityInd == 'MAKER'):
+                    takerOrMaker = lastLiquidityInd.lower()
+                else:
+                    takerOrMaker = 'maker' if (lastLiquidityInd == 'AddedLiquidity') else 'taker'
         orderType = self.safe_string_lower(trade, 'orderType')
         if orderType == 'unknown':
             orderType = None
@@ -3146,7 +3105,6 @@ class bybit(Exchange):
         rawTimeInForce = self.safe_string(order, 'timeInForce')
         timeInForce = self.parse_time_in_force(rawTimeInForce)
         stopPrice = self.omit_zero(self.safe_string(order, 'triggerPrice'))
-        postOnly = (rawTimeInForce is not None) and (timeInForce == 'PO')
         return self.safe_order({
             'info': order,
             'id': id,
@@ -3157,7 +3115,7 @@ class bybit(Exchange):
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
-            'postOnly': postOnly,
+            'postOnly': None,
             'side': side,
             'price': price,
             'triggerPrice': stopPrice,
@@ -3751,8 +3709,9 @@ class bybit(Exchange):
             'symbol': market['id'],
             'orderId': id,
             'qty': self.amount_to_precision(symbol, amount),
-            'price': self.price_to_precision(symbol, price),
         }
+        if price is not None:
+            request['price'] = self.price_to_precision(symbol, price)
         triggerPrice = self.safe_value_2(params, 'stopPrice', 'triggerPrice')
         stopLossPrice = self.safe_value(params, 'stopLossPrice')
         isStopLossOrder = stopLossPrice is not None

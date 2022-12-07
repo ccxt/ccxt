@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.2.79';
+$version = '2.2.80';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.2.79';
+    const VERSION = '2.2.80';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -2776,12 +2776,29 @@ class Exchange {
             }
         }
         // ensure that the $average field is calculated correctly
+        $inverse = $this->safe_value($market, 'inverse', false);
+        $contractSize = $this->number_to_string($this->safe_value($market, 'contractSize', 1));
+        // $inverse
+        // $price = $filled * contract size / $cost
+        //
+        // linear
+        // $price = $cost / ($filled * contract size)
         if ($average === null) {
             if (($filled !== null) && ($cost !== null) && Precise::string_gt($filled, '0')) {
-                $average = Precise::string_div($cost, $filled);
+                $filledTimesContractSize = Precise::string_mul($filled, $contractSize);
+                if ($inverse) {
+                    $average = Precise::string_div($filledTimesContractSize, $cost);
+                } else {
+                    $average = Precise::string_div($cost, $filledTimesContractSize);
+                }
             }
         }
-        // also ensure the $cost field is calculated correctly
+        // similarly
+        // $inverse
+        // $cost = $filled * contract size / $price
+        //
+        // linear
+        // $cost = $filled * contract size * $price
         $costPriceExists = ($average !== null) || ($price !== null);
         if ($parseCost && ($filled !== null) && $costPriceExists) {
             $multiplyPrice = null;
@@ -2791,15 +2808,12 @@ class Exchange {
                 $multiplyPrice = $average;
             }
             // contract trading
-            $contractSize = $this->safe_string($market, 'contractSize');
-            if ($contractSize !== null) {
-                $inverse = $this->safe_value($market, 'inverse', false);
-                if ($inverse) {
-                    $multiplyPrice = Precise::string_div('1', $multiplyPrice);
-                }
-                $multiplyPrice = Precise::string_mul($multiplyPrice, $contractSize);
+            $filledTimesContractSize = Precise::string_mul($filled, $contractSize);
+            if ($inverse) {
+                $cost = Precise::string_div($filledTimesContractSize, $multiplyPrice);
+            } else {
+                $cost = Precise::string_mul($filledTimesContractSize, $multiplyPrice);
             }
-            $cost = Precise::string_mul($multiplyPrice, $filled);
         }
         // support for $market orders
         $orderType = $this->safe_value($order, 'type');
@@ -2820,16 +2834,20 @@ class Exchange {
             }
             $entry['fee'] = $fee;
         }
-        // timeInForceHandling
         $timeInForce = $this->safe_string($order, 'timeInForce');
+        $postOnly = $this->safe_value($order, 'postOnly');
+        // timeInForceHandling
         if ($timeInForce === null) {
             if ($this->safe_string($order, 'type') === 'market') {
                 $timeInForce = 'IOC';
             }
-            // allow postOnly override
-            if ($this->safe_value($order, 'postOnly', false)) {
+            // allow $postOnly override
+            if ($postOnly) {
                 $timeInForce = 'PO';
             }
+        } elseif ($postOnly === null) {
+            // $timeInForce is not null here
+            $postOnly = $timeInForce === 'PO';
         }
         return array_merge($order, array(
             'lastTradeTimestamp' => $lastTradeTimeTimestamp,
@@ -2840,6 +2858,7 @@ class Exchange {
             'filled' => $this->parse_number($filled),
             'remaining' => $this->parse_number($remaining),
             'timeInForce' => $timeInForce,
+            'postOnly' => $postOnly,
             'trades' => $trades,
         ));
     }
@@ -4198,12 +4217,20 @@ class Exchange {
 
     public function price_to_precision($symbol, $price) {
         $market = $this->market ($symbol);
-        return $this->decimal_to_precision($price, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
+        $result = $this->decimal_to_precision($price, ROUND, $market['precision']['price'], $this->precisionMode, $this->paddingMode);
+        if ($result === '0') {
+            throw new ArgumentsRequired($this->id . ' $price of ' . $market['symbol'] . ' must be greater than minimum $price precision of ' . $this->number_to_string($market['precision']['price']));
+        }
+        return $result;
     }
 
     public function amount_to_precision($symbol, $amount) {
         $market = $this->market ($symbol);
-        return $this->decimal_to_precision($amount, TRUNCATE, $market['precision']['amount'], $this->precisionMode, $this->paddingMode);
+        $result = $this->decimal_to_precision($amount, TRUNCATE, $market['precision']['amount'], $this->precisionMode, $this->paddingMode);
+        if ($result === '0') {
+            throw new ArgumentsRequired($this->id . ' $amount of ' . $market['symbol'] . ' must be greater than minimum $amount precision of ' . $this->number_to_string($market['precision']['amount']));
+        }
+        return $result;
     }
 
     public function fee_to_precision($symbol, $fee) {

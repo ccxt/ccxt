@@ -771,6 +771,11 @@ class cryptocom(Exchange):
             'future': 'derivativesPublicGetPublicGetCandlestick',
             'swap': 'derivativesPublicGetPublicGetCandlestick',
         })
+        if marketType != 'spot':
+            reqLimit = 100
+            if limit is not None:
+                reqLimit = limit
+            request['count'] = reqLimit
         response = getattr(self, method)(self.extend(request, query))
         # {
         #     "code":0,
