@@ -40,6 +40,7 @@ module.exports = class bitmex extends Exchange {
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchDepositAddress': false,
+                'fetchDepositAddressesByNetwork': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
@@ -2664,6 +2665,103 @@ module.exports = class bitmex extends Exchange {
             'enabled': enabled,
         };
         return await this.privatePostPositionIsolate (this.extend (request, params));
+    }
+
+    async fetchDepositAddressesByNetwork (code, params = {}) {
+        /**
+         * @method
+         * @name bitmex#fetchDepositAddressesByNetwork
+         * @description if the address field is blank, try using this.fetchDepositAddress
+         * @see https://www.bitmex.com/api/explorer/#!/Wallet/Wallet_getAssetsConfig
+         * @param {string} code unified currency code
+         * @param {object} params extra parameters specific to the bitmex api endpoint
+         * @returns {object} an array of [address structures]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.publicGetWalletAssets (params);
+        //
+        //    [
+        //        {
+        //            'asset': 'USDT',
+        //            'currency': 'USDt',
+        //            'currencyType': 'Crypto',
+        //            'enabled': True,
+        //            'isMarginCurrency': True,
+        //            'majorCurrency': 'USDT',
+        //            'maxWithdrawalAmount': '100000000000000',
+        //            'minDepositAmount': '1000000',
+        //            'minWithdrawalAmount': '10000000',
+        //            'name': 'USD Tether',
+        //            'networks': [
+        //                {
+        //                    'asset': 'eth',
+        //                    'depositEnabled': True,
+        //                    'maxFee': '25000000',
+        //                    'minFee': '25000000',
+        //                    'tokenAddress': '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+        //                    'withdrawalEnabled': True,
+        //                    'withdrawalFee': '25000000'
+        //                },
+        //                ...
+        //            ]
+        //        }
+        //    ]
+        //
+        for (let i = 0; i < response.length; i++) {
+            const item = response[i];
+            const currencyId = this.safeString (item, 'asset');
+            const currencyCode = this.safeCurrencyCode (currencyId);
+            if (currencyCode === code) {
+                return this.parseDepositAddressesByNetwork (item);
+            }
+        }
+        throw new BadRequest (this.id + ' fetchDepositAddressesByNetwork could not fetch a deposit address for ' + code);
+    }
+
+    parseDepositAddressesByNetwork (depositAddresses, currency = undefined) {
+        //
+        //    {
+        //        'asset': 'USDT',
+        //        'currency': 'USDt',
+        //        'currencyType': 'Crypto',
+        //        'enabled': True,
+        //        'isMarginCurrency': True,
+        //        'majorCurrency': 'USDT',
+        //        'maxWithdrawalAmount': '100000000000000',
+        //        'minDepositAmount': '1000000',
+        //        'minWithdrawalAmount': '10000000',
+        //        'name': 'USD Tether',
+        //        'networks': [
+        //            {
+        //                'asset': 'eth',
+        //                'depositEnabled': True,
+        //                'maxFee': '25000000',
+        //                'minFee': '25000000',
+        //                'tokenAddress': '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+        //                'withdrawalEnabled': True,
+        //                'withdrawalFee': '25000000'
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        const result = {};
+        const currencyId = this.safeString (depositAddresses, 'asset');
+        currency = this.safeCurrency (currencyId, currency);
+        const networks = this.safeValue (depositAddresses, 'networks');
+        for (let i = 0; i < networks.length; i++) {
+            const network = networks[i];
+            const networkId = this.safeString (network, 'asset');
+            const networkCode = this.networkIdToCode (networkId);
+            result[networkCode] = ({
+                'info': network,
+                'currency': currency['code'],
+                'network': networkCode,
+                'address': this.safeString (network, 'tokenAddress'),
+                'tag': undefined,
+            });
+        }
+        return result;
     }
 
     calculateRateLimiterCost (api, method, path, params, config = {}, context = {}) {
