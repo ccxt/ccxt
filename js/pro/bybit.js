@@ -262,7 +262,7 @@ module.exports = class bybit extends bybitRest {
         const topic = this.safeString (message, 'topic', '');
         const updateType = this.safeString (message, 'type', '');
         const data = this.safeValue (message, 'data', {});
-        const isSpot = data['s'] !== undefined;
+        const isSpot = this.safeString ('data', 's') !== undefined;
         let symbol = undefined;
         let parsed = undefined;
         if ((updateType === 'snapshot') || isSpot) {

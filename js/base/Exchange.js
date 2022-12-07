@@ -1161,16 +1161,20 @@ module.exports = class Exchange {
             }
             entry['fee'] = fee;
         }
-        // timeInForceHandling
         let timeInForce = this.safeString (order, 'timeInForce');
+        let postOnly = this.safeValue (order, 'postOnly');
+        // timeInForceHandling
         if (timeInForce === undefined) {
             if (this.safeString (order, 'type') === 'market') {
                 timeInForce = 'IOC';
             }
             // allow postOnly override
-            if (this.safeValue (order, 'postOnly', false)) {
+            if (postOnly) {
                 timeInForce = 'PO';
             }
+        } else if (postOnly === undefined) {
+            // timeInForce is not undefined here
+            postOnly = timeInForce === 'PO';
         }
         return this.extend (order, {
             'lastTradeTimestamp': lastTradeTimeTimestamp,
@@ -1181,6 +1185,7 @@ module.exports = class Exchange {
             'filled': this.parseNumber (filled),
             'remaining': this.parseNumber (remaining),
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'trades': trades,
         });
     }
