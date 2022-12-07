@@ -2151,9 +2151,6 @@ class bybit(Exchange):
         :param int|None params['until']: timestamp in ms of the latest funding rate
         :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
         """
-        enableUnifiedMargin = await self.is_unified_margin_enabled()
-        if not enableUnifiedMargin:
-            raise BadRequest(self.id + ' fetchFundingRateHistory() must enable unified margin mode')
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol')
         await self.load_markets()
@@ -5445,7 +5442,7 @@ class bybit(Exchange):
         networkCode, query = self.handle_network_code_and_params(params)
         networkId = self.network_code_to_id(networkCode)
         if networkId is not None:
-            request['chain'] = networkId
+            request['chain'] = networkId.upper()
         response = await self.privatePostAssetV3PrivateWithdrawCreate(self.extend(request, query))
         #
         #    {
