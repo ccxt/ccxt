@@ -25,7 +25,7 @@ install:
   - cinst -y php --allow-empty-checksums
   - cinst composer -i -y
   # - php -i
-  - cd c:\tools\php81
+  - cd c:\tools\php82
   - copy php.ini-production php.ini
   - echo date.timezone="UTC" >> php.ini
   - echo extension_dir=ext >> php.ini
