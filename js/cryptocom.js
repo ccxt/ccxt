@@ -793,6 +793,9 @@ module.exports = class cryptocom extends Exchange {
             'future': 'derivativesPublicGetPublicGetCandlestick',
             'swap': 'derivativesPublicGetPublicGetCandlestick',
         });
+        if (marketType !== 'spot' && limit !== undefined) {
+            request['count'] = 100;
+        }
         const response = await this[method] (this.extend (request, query));
         // {
         //     "code":0,
