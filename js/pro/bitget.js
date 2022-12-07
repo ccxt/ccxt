@@ -810,11 +810,6 @@ module.exports = class bitget extends bitgetRest {
         // the spot stream only provides on limit orders updates so we can't support it for spot
         await this.loadMarkets ();
         let market = undefined;
-        const args = {
-            'instType': 'umcbl',
-            'channel': 'orders',
-            'instId': 'default',
-        };
         let messageHash = 'myTrades';
         if (symbol !== undefined) {
             market = this.market (symbol);
@@ -827,6 +822,11 @@ module.exports = class bitget extends bitgetRest {
             throw new NotSupported (this.id + ' watchMyTrades is not supported for ' + type + ' markets.');
         }
         const subscriptionHash = 'order:trades';
+        const args = {
+            'instType': 'umcbl',
+            'channel': 'orders',
+            'instId': 'default',
+        };
         const trades = await this.watchPrivate (messageHash, subscriptionHash, args, params);
         if (this.newUpdates) {
             limit = trades.getLimit (symbol, limit);
