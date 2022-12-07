@@ -264,10 +264,10 @@ module.exports = class bybit extends bybitRest {
         const data = this.safeValue (message, 'data', {});
         const isSpot = data['s'] !== undefined;
         let symbol = undefined;
+        let parsed = undefined;
         if ((updateType === 'snapshot') || isSpot) {
-            const parsed = this.parseTicker (data);
+            parsed = this.parseTicker (data);
             symbol = parsed['symbol'];
-            this.tickers[symbol] = parsed;
         } else if (updateType === 'delta') {
             const topicParts = topic.split ('.');
             const topicLength = topicParts.length;
@@ -278,12 +278,12 @@ module.exports = class bybit extends bybitRest {
             const ticker = this.safeValue (this.tickers, symbol, {});
             const rawTicker = this.safeValue (ticker, 'info', {});
             const merged = this.extend (rawTicker, data);
-            const parsed = this.parseTicker (merged);
-            const timestamp = this.safeInteger (message, 'ts');
-            parsed['timestamp'] = timestamp;
-            parsed['datetime'] = this.iso8601 (timestamp);
-            this.tickers[symbol] = parsed;
+            parsed = this.parseTicker (merged);
         }
+        const timestamp = this.safeInteger (message, 'ts');
+        parsed['timestamp'] = timestamp;
+        parsed['datetime'] = this.iso8601 (timestamp);
+        this.tickers[symbol] = parsed;
         const messageHash = 'ticker:' + symbol;
         client.resolve (this.tickers[symbol], messageHash);
     }
