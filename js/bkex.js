@@ -259,7 +259,12 @@ module.exports = class bkex extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const spotMarkets = await this.publicSpotGetCommonSymbols (params);
+        const promises = [
+            this.publicSpotGetCommonSymbols (params),
+            this.publicSwapGetMarketSymbols (params),
+        ];
+        const resolved = await Promise.all (promises);
+        const spotMarkets = resolved[0];
         //
         //     {
         //         "code": "0",
@@ -277,7 +282,7 @@ module.exports = class bkex extends Exchange {
         //         "status": 0
         //     }
         //
-        const swapMarkets = await this.publicSwapGetMarketSymbols (params);
+        const swapMarkets = resolved[1];
         //
         //     {
         //         "code": 0,
