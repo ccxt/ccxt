@@ -243,7 +243,7 @@ class Exchange(object):
 
     # API method metainfo
     has = {
-        'publxicAPI': True,
+        'publicAPI': True,
         'privateAPI': True,
         'CORS': None,
         'spot': None,
