@@ -218,6 +218,33 @@ module.exports = class bitmex extends Exchange {
                 // https://github.com/ccxt/ccxt/issues/4789
                 'api-expires': 5, // in seconds
                 'fetchOHLCVOpenTimestamp': true,
+                'networks': {
+                    'BTC': 'btc',
+                    'ETH': 'eth',
+                    'BSC': 'bsc',
+                    'BNB': 'bsc',
+                    'TRON': 'tron',
+                    'ERC20': 'eth',
+                    'BEP20': 'bsc',
+                    'TRC20': 'tron',
+                    'TRX': 'tron',
+                    'AVAX': 'avax',
+                    'NEAR': 'near',
+                    'XTZ': 'xtz',
+                    'DOT': 'dot',
+                    'SOL': 'sol',
+                },
+                'networksById': {
+                    'btc': 'BTC',
+                    'eth': 'ETH',
+                    'bsc': 'BSC',
+                    'tron': 'TRX',
+                    'avax': 'AVAX',
+                    'near': 'NEAR',
+                    'xtz': 'XTZ',
+                    'dot': 'DOT',
+                    'sol': 'SOL',
+                },
             },
             'commonCurrencies': {
                 'USDt': 'USDT',
