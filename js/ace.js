@@ -3,9 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const Exchange = require ('./base/Exchange');
-const { ExchangeError } = require ('./base/errors');
+const { ExchangeError, ArgumentsRequired } = require ('./base/errors');
 const { TICK_SIZE } = require ('./base/functions/number');
-const FormData = require('form-data');
 
 //  ---------------------------------------------------------------------------
 
@@ -152,11 +151,11 @@ module.exports = class ace extends Exchange {
                     'USDT': 14,
                     'BNB': 17,
                     'BTT': 19,
-                    'HWGC': 22,
+                    // 'HWGC': 22,
                     'GTO': 54,
                     'USDC': 57,
                     'MOT': 58,
-                    'UNI': 59,
+                    // 'UNI': 59,
                     'MOS': 65,
                     'MOCT': 66,
                     'PT': 67,
@@ -495,7 +494,7 @@ module.exports = class ace extends Exchange {
             'tradeCurrencyId': this.safeNumber (currencyToId, market['baseId']),
         };
         if (limit !== undefined) {
-            request['limit'] = limit
+            request['limit'] = limit;
         }
         const response = await this.privatePostV1KlineGetKlineMin (this.extend (request, params));
         const data = this.safeValue (response, 'attachment', []);
@@ -579,7 +578,7 @@ module.exports = class ace extends Exchange {
                 symbol = baseId + '/' + quoteId;
             }
             const orderType = this.safeNumber (order, 'type');
-            type = (orderType === 1) ? 'limit' : "market";
+            type = (orderType === 1) ? 'limit' : 'market';
             filled = this.safeString (order, 'tradeNum');
             remaining = this.safeString (order, 'remainNum');
             status = this.parseOrderStatus (this.safeString (order, 'status'));
@@ -810,7 +809,7 @@ module.exports = class ace extends Exchange {
             'datetime': datetime,
         }, market);
     }
-    
+
     async fetchOrderTrades (id, symbol = undefined, since = undefined, limit = undefined, params = {}) {
         /**
          * @method
@@ -952,19 +951,17 @@ module.exports = class ace extends Exchange {
             const signature = this.hash (auth, 'md5', 'hex');
             const splitKey = this.apiKey.split ('#');
             const uid = (this.uid) ? this.uid : splitKey[0];
-            body = new FormData();
-            const paramsKeys = Object.keys (params);
-            for (let i=0; i<paramsKeys.length; i++) {
-                const key = paramsKeys[i];
-                if (params[key] !== undefined) {
-                    body.append (key, params[key]);
-                }
-            }
-            body.append("uid", uid);
-            body.append("timeStamp", nonce);
-            body.append("signKey", signature);
-            body.append("apiKey", this.apiKey);
-            body.append("securityKey", this.secret);
+            const data = this.extend ({
+                'uid': uid,
+                'timeStamp': nonce,
+                'signKey': signature,
+                'apiKey': this.apiKey,
+                'securityKey': this.secret,
+            }, params);
+            headers = {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            };
+            body = this.urlencode (data);
         } else if (api === 'public' && method === 'GET') {
             if (Object.keys (query).length) {
                 url += '?' + this.urlencode (query);
