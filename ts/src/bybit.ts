@@ -1431,6 +1431,15 @@ export default class bybit extends Exchange {
         //         "v": "7433.527",
         //         "qv": "619835.8676"
         //     }
+        // spot - bookticker
+        //     {
+        //         "s": "BTCUSDT",
+        //         "bp": "19693.04",
+        //         "bq": "0.913957",
+        //         "ap": "19694.27",
+        //         "aq": "0.705447",
+        //         "t": 1661742216108
+        //     }
         //
         const marketId = this.safeString (ticker, 's');
         const symbol = this.safeSymbol (marketId, market);
@@ -1442,12 +1451,12 @@ export default class bybit extends Exchange {
             'high': this.safeString (ticker, 'h'),
             'low': this.safeString (ticker, 'l'),
             'bid': this.safeString (ticker, 'bp'),
-            'bidVolume': undefined,
+            'bidVolume': this.safeString (ticker, 'bq'),
             'ask': this.safeString (ticker, 'ap'),
-            'askVolume': undefined,
+            'askVolume': this.safeString (ticker, 'aq'),
             'vwap': undefined,
             'open': this.safeString (ticker, 'o'),
-            'close': this.safeString (ticker, 'lp'),
+            'close': this.safeString2 (ticker, 'lp', 'c'),
             'last': undefined,
             'previousClose': undefined,
             'change': undefined,
@@ -1903,47 +1912,6 @@ export default class bybit extends Exchange {
 
     parseContractOHLCV (ohlcv, market = undefined) {
         //
-        // inverse perpetual BTC/USD
-        //
-        //     {
-        //         symbol: 'BTCUSD',
-        //         interval: '1',
-        //         open_time: 1583952540,
-        //         open: '7760.5',
-        //         high: '7764',
-        //         low: '7757',
-        //         close: '7763.5',
-        //         volume: '1259766',
-        //         turnover: '162.32773718999994'
-        //     }
-        //
-        // linear perpetual BTC/USDT
-        //
-        //     {
-        //         "id":143536,
-        //         "symbol":"BTCUSDT",
-        //         "period":"15",
-        //         "start_at":1587883500,
-        //         "volume":1.035,
-        //         "open":7540.5,
-        //         "high":7541,
-        //         "low":7540.5,
-        //         "close":7541
-        //     }
-        //
-        // usdc perpetual
-        //     {
-        //         "symbol":"BTCPERP",
-        //         "volume":"0.01",
-        //         "period":"1",
-        //         "openTime":"1636358160",
-        //         "open":"66001.50",
-        //         "high":"66001.50",
-        //         "low":"66001.50",
-        //         "close":"66001.50",
-        //         "turnover":"1188.02"
-        //     }
-        //
         // Unified Margin
         //
         //     [
@@ -1956,27 +1924,13 @@ export default class bybit extends Exchange {
         //         "2.4343353100000003"
         //     ]
         //
-        if (Array.isArray (ohlcv)) {
-            return [
-                this.safeNumber (ohlcv, 0),
-                this.safeNumber (ohlcv, 1),
-                this.safeNumber (ohlcv, 2),
-                this.safeNumber (ohlcv, 3),
-                this.safeNumber (ohlcv, 4),
-                this.safeNumber (ohlcv, 5),
-            ];
-        }
-        let timestamp = this.safeTimestamp2 (ohlcv, 'open_time', 'openTime');
-        if (timestamp === undefined) {
-            timestamp = this.safeTimestamp (ohlcv, 'start_at');
-        }
         return [
-            timestamp,
-            this.safeNumber (ohlcv, 'open'),
-            this.safeNumber (ohlcv, 'high'),
-            this.safeNumber (ohlcv, 'low'),
-            this.safeNumber (ohlcv, 'close'),
-            this.safeNumber2 (ohlcv, 'volume', 'turnover'),
+            this.safeNumber (ohlcv, 0),
+            this.safeNumber (ohlcv, 1),
+            this.safeNumber (ohlcv, 2),
+            this.safeNumber (ohlcv, 3),
+            this.safeNumber (ohlcv, 4),
+            this.safeNumber (ohlcv, 5),
         ];
     }
 
@@ -2219,10 +2173,6 @@ export default class bybit extends Exchange {
          * @param {int|undefined} params.until timestamp in ms of the latest funding rate
          * @returns {[object]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
          */
-        const enableUnifiedMargin = await this.isUnifiedMarginEnabled ();
-        if (!enableUnifiedMargin) {
-            throw new BadRequest (this.id + ' fetchFundingRateHistory() must enable unified margin mode');
-        }
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol');
         }
@@ -2532,7 +2482,11 @@ export default class bybit extends Exchange {
                 lastLiquidityInd = undefined;
             }
             if (lastLiquidityInd !== undefined) {
-                takerOrMaker = (lastLiquidityInd === 'AddedLiquidity') ? 'maker' : 'taker';
+                if ((lastLiquidityInd === 'TAKER') || (lastLiquidityInd === 'MAKER')) {
+                    takerOrMaker = lastLiquidityInd.toLowerCase ();
+                } else {
+                    takerOrMaker = (lastLiquidityInd === 'AddedLiquidity') ? 'maker' : 'taker';
+                }
             }
         }
         let orderType = this.safeStringLower (trade, 'orderType');
@@ -3283,7 +3237,6 @@ export default class bybit extends Exchange {
         const rawTimeInForce = this.safeString (order, 'timeInForce');
         const timeInForce = this.parseTimeInForce (rawTimeInForce);
         const stopPrice = this.omitZero (this.safeString (order, 'triggerPrice'));
-        const postOnly = (rawTimeInForce !== undefined) && (timeInForce === 'PO');
         return this.safeOrder ({
             'info': order,
             'id': id,
@@ -3294,7 +3247,7 @@ export default class bybit extends Exchange {
             'symbol': symbol,
             'type': type,
             'timeInForce': timeInForce,
-            'postOnly': postOnly,
+            'postOnly': undefined,
             'side': side,
             'price': price,
             'triggerPrice': stopPrice,
@@ -3947,8 +3900,10 @@ export default class bybit extends Exchange {
             'symbol': market['id'],
             'orderId': id,
             'qty': this.amountToPrecision (symbol, amount),
-            'price': this.priceToPrecision (symbol, price),
         };
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
         const triggerPrice = this.safeValue2 (params, 'stopPrice', 'triggerPrice');
         const stopLossPrice = this.safeValue (params, 'stopLossPrice');
         const isStopLossOrder = stopLossPrice !== undefined;
@@ -5791,7 +5746,7 @@ export default class bybit extends Exchange {
         const [ networkCode, query ] = this.handleNetworkCodeAndParams (params);
         const networkId = this.networkCodeToId (networkCode);
         if (networkId !== undefined) {
-            request['chain'] = networkId;
+            request['chain'] = networkId.toUpperCase ();
         }
         const response = await (this as any).privatePostAssetV3PrivateWithdrawCreate (this.extend (request, query));
         //

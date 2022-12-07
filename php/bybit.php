@@ -2202,10 +2202,6 @@ class bybit extends Exchange {
          * @param {int|null} $params->until $timestamp in ms of the latest funding rate
          * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
          */
-        $enableUnifiedMargin = $this->is_unified_margin_enabled();
-        if (!$enableUnifiedMargin) {
-            throw new BadRequest($this->id . ' fetchFundingRateHistory() must enable unified margin mode');
-        }
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a symbol');
         }
@@ -5738,7 +5734,7 @@ class bybit extends Exchange {
         list($networkCode, $query) = $this->handle_network_code_and_params($params);
         $networkId = $this->network_code_to_id($networkCode);
         if ($networkId !== null) {
-            $request['chain'] = $networkId;
+            $request['chain'] = strtoupper($networkId);
         }
         $response = $this->privatePostAssetV3PrivateWithdrawCreate (array_merge($request, $query));
         //
