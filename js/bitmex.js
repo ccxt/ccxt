@@ -2704,21 +2704,20 @@ module.exports = class bitmex extends Exchange {
          * @description fetch the deposit address for a currency associated with this account
          * @param {string} code unified currency code
          * @param {object} params extra parameters specific to the bitmex api endpoint
-         * @param {network} params.network deposit chain, can view all chains via this.publicGetWalletAssets, default is eth, unless the currency has a default chain within this.options['networks']
+         * @param {string} params.network deposit chain, can view all chains via this.publicGetWalletAssets, default is eth, unless the currency has a default chain within this.options['networks']
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
+        await this.loadMarkets ();
         const networkCode = this.safeStringUpper (params, 'network');
-        const networks = this.safeValue (this.options, 'networks', {});
-        let networkId = undefined;
-        if (networkCode === undefined) {
-            networkId = this.safeStringLower (networks, code, 'eth');
-        } else {
-            networkId = this.safeStringLower (networks, networkCode, networkCode);
+        if (networkCode === 'undefined') {
+            throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires params["network"]');
         }
+        const networks = this.safeValue (this.options, 'networks', {});
+        const networkId = this.safeStringLower (networks, networkCode, networkCode);
         const currency = this.currency (code);
         let currencyId = currency['id'];
         const idLength = currencyId.length;
-        currencyId = currencyId.slice (0, idLength - 1) + currencyId.slice (idLength - 1, idLength).toLowerCase ();
+        currencyId = currencyId.slice (0, idLength - 1) + currencyId.slice (idLength - 1, idLength).toLowerCase ();  // make the last letter lowercase
         params = this.omit (params, 'network');
         const request = {
             'currency': currencyId,
@@ -2730,7 +2729,7 @@ module.exports = class bitmex extends Exchange {
         //
         return {
             'currency': code,
-            'address': response,
+            'address': response.replace ('"', '').replace ('"', ''),  // Done twice because some languages only replace the first instance
             'tag': undefined,
             'network': this.networkIdToCode (networkId).toUpperCase (),
             'info': response,
