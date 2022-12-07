@@ -278,7 +278,11 @@ module.exports = class bybit extends bybitRest {
             const ticker = this.safeValue (this.tickers, symbol, {});
             const rawTicker = this.safeValue (ticker, 'info', {});
             const merged = this.extend (rawTicker, data);
-            this.tickers[symbol] = this.parseTicker (merged);
+            const parsed = this.parseTicker (merged);
+            const timestamp = this.safeInteger (message, 'ts');
+            parsed['timestamp'] = timestamp;
+            parsed['datetime'] = this.iso8601 (timestamp);
+            this.tickers[symbol] = parsed;
         }
         const messageHash = 'ticker:' + symbol;
         client.resolve (this.tickers[symbol], messageHash);
@@ -704,7 +708,7 @@ module.exports = class bybit extends bybitRest {
         const marketId = this.safeString (trade, 's');
         market = this.safeMarket (marketId, market);
         const symbol = market['symbol'];
-        const timestamp = this.safeInteger (trade, 't', 'T');
+        const timestamp = this.safeInteger2 (trade, 't', 'T');
         let side = this.safeStringLower (trade, 'S');
         let takerOrMaker = undefined;
         const m = this.safeValue (trade, 'm');
