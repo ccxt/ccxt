@@ -1,6 +1,7 @@
 environment:
   matrix:
     - nodejs_version: '14'
+    - php_version: '8.1'
 install:
   - ps: Install-Product node $env:nodejs_version
   - set LIB=C:\OpenSSL-Win64\lib;%LIB%
@@ -25,7 +26,7 @@ install:
   - cinst -y php --allow-empty-checksums
   - cinst composer -i -y
   # - php -i
-  - cd c:\tools\php82
+  - cd c:\tools\php81
   - copy php.ini-production php.ini
   - echo date.timezone="UTC" >> php.ini
   - echo extension_dir=ext >> php.ini
