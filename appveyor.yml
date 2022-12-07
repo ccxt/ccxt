@@ -22,7 +22,7 @@ install:
   - set PATH=C:\Program Files\curl;%PATH%
   - setx PATH "%PATH%"
   - ps: Set-Service wuauserv -StartupType Manual
-  - cinst -y php --version 8.1 --allow-empty-checksums
+  - cinst -y php --version 8.1.10 --allow-empty-checksums
   - cinst composer -i -y
   # - php -i
   - cd c:\tools\php81
