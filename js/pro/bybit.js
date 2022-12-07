@@ -379,7 +379,7 @@ module.exports = class bybit extends bybitRest {
         }
         if (Array.isArray (data)) {
             for (let i = 0; i < data.length; i++) {
-                const parsed = this.parseWsContractOHLCV (data[i], market);
+                const parsed = this.parseWsContractOHLCV (data[i]);
                 stored.append (parsed);
             }
         } else {
