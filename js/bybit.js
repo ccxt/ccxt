@@ -2310,8 +2310,8 @@ module.exports = class bybit extends Exchange {
             // if private response
             const isBuyer = this.safeInteger (trade, 'isBuyer');
             const isMaker = this.safeInteger (trade, 'isMaker');
-            takerOrMaker = (isMaker === 1) ? 'maker' : 'taker';
-            side = (isBuyer === 1) ? 'buy' : 'sell';
+            takerOrMaker = (isMaker === 0) ? 'maker' : 'taker';
+            side = (isBuyer === 0) ? 'buy' : 'sell';
         }
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
