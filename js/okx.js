@@ -728,7 +728,7 @@ module.exports = class okx extends Exchange {
                     'Polygon': 'POLYGON',
                     'Ripple': 'RIPPLE',
                     'Solana': 'SOLANA',
-                    'STELLAR': 'Stellar Lumens',
+                    'Stellar Lumens': 'STELLAR',
                     'Terra': 'TERRA',
                     'Terra Classic': 'TERRAC',
                     'Tezos': 'TEZOS',
@@ -1262,6 +1262,8 @@ module.exports = class okx extends Exchange {
         //
         const data = this.safeValue (response, 'data', []);
         const result = {};
+        this.options['networkChainIdsByNames'] = {};
+        this.options['networkNamesByChainIds'] = {};
         const dataByCurrencyId = this.groupBy (data, 'ccy');
         const currencyIds = Object.keys (dataByCurrencyId);
         for (let i = 0; i < currencyIds.length; i++) {
@@ -1270,6 +1272,7 @@ module.exports = class okx extends Exchange {
             const code = currency['code'];
             const chains = dataByCurrencyId[currencyId];
             const networks = {};
+            this.options['networkChainIdsByNames'][code] = {};
             let currencyActive = false;
             let depositEnabled = undefined;
             let withdrawEnabled = undefined;
@@ -1292,14 +1295,10 @@ module.exports = class okx extends Exchange {
                 } else if (!canWithdraw) {
                     withdrawEnabled = false;
                 }
-                {
-                    const parts = networkId.split ('-'); // might have two hyphens, i.e. USDT-Avalanche C-Chain
-                    let chainPart = this.safeString (parts, 1, networkId);
-                    const secondPart = this.safeString (parts, 2);
-                    if (secondPart !== undefined) {
-                        chainPart = chainPart + '-' + secondPart;
-                    }
-                    const networkCode = this.networkIdToCode (chainPart);
+                    const title = this.getChainTitleFromId (networkId);
+                    this.options['networkChainIdsByNames'][code][title] = networkId;
+                    this.options['networkNamesByChainIds'][networkId] = title;
+                    const networkCode = this.networkIdToCode (title);
                     const precision = this.parsePrecision (this.safeString (chain, 'wdTickSz'));
                     if (maxPrecision === undefined) {
                         maxPrecision = precision;
@@ -1322,7 +1321,6 @@ module.exports = class okx extends Exchange {
                         },
                         'info': chain,
                     };
-                }
             }
             const firstChain = this.safeValue (chains, 0);
             result[code] = {
@@ -1345,6 +1343,46 @@ module.exports = class okx extends Exchange {
             };
         }
         return result;
+    }
+
+    networkIdToCode (networkId, currencyCode = undefined) {
+        // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
+        const keys = Object.keys (this.options['networkNamesByChainIds']);
+        const keysLength = keys.length;
+        if (keysLength === 0) {
+            throw new ExchangeError (this.id + ' networkIdToCode() - markets need to be loaded at first');
+        }
+        let networkTitle = this.safeValue (this.options['networkNamesByChainIds'], networkId);
+        if (networkTitle === undefined) {
+            // OKX does have incosistent data from fetchCurrencies and from fetchDepositAddress. for example, in fDA, there might be present network-id "BTCK-ERC20", which is nowhere present in fetchCurrencies. the common rule for OKX seems to get the second part of chain-id to determine it
+            networkTitle = this.getChainTitleFromId (networkId);
+        }
+        // todo: implement 
+        return super.networkIdToCode (networkTitle);
+    }
+
+    networkCodeToId (networkCode, currencyCode = undefined) { // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
+        if (currencyCode === undefined) {
+            throw new ArgumentsRequired (this.id + ' networkCodeToId() requires a currencyCode argument');
+        }
+        const keys = Object.keys (this.options['networkChainIdsByNames']);
+        const keysLength = keys.length;
+        if (keysLength === 0) {
+            throw new ExchangeError (this.id + ' networkCodeToId() - markets need to be loaded at first');
+        }
+        const uniqueNetworkIds = this.safeValue (this.options['networkChainIdsByNames'], currencyCode, {});
+        const networkTitle = super.networkCodeToId (networkCode);
+        return this.safeValue (uniqueNetworkIds, networkTitle, networkTitle);
+    }
+
+    getChainTitleFromId (networkId) {
+        const parts = networkId.split ('-'); // might have two hyphens, i.e. USDT-Avalanche C-Chain
+        let title = this.safeString (parts, 1, networkId);
+        const secondPart = this.safeString (parts, 2);
+        if (secondPart !== undefined) {
+            title = title + '-' + secondPart;
+        }
+        return title;
     }
 
     async fetchOrderBook (symbol, limit = undefined, params = {}) {
@@ -3553,63 +3591,14 @@ module.exports = class okx extends Exchange {
         let tag = this.safeString2 (depositAddress, 'tag', 'pmtId');
         tag = this.safeString (depositAddress, 'memo', tag);
         const currencyId = this.safeString (depositAddress, 'ccy');
-        currency = this.safeCurrency (currencyId, currency);
-        const code = currency['code'];
-        const chain = this.safeString (depositAddress, 'chain');
-        const networks = this.safeValue (currency, 'networks', {});
-        const networksById = this.indexBy (networks, 'id');
-        let networkData = this.safeValue (networksById, chain);
-        // inconsistent naming responses from exchange
-        // with respect to network naming provided in currency info vs address chain-names and ids
-        //
-        // response from address endpoint:
-        //      {
-        //          "chain": "USDT-Polygon",
-        //          "ctAddr": "",
-        //          "ccy": "USDT",
-        //          "to":"6" ,
-        //          "addr": "0x1903441e386cc49d937f6302955b5feb4286dcfa",
-        //          "selected": true
-        //      }
-        // network information from currency['networks'] field:
-        // Polygon: {
-        //        info: {
-        //            canDep: false,
-        //            canInternal: false,
-        //            canWd: false,
-        //            ccy: 'USDT',
-        //            chain: 'USDT-Polygon-Bridge',
-        //            mainNet: false,
-        //            maxFee: '26.879528',
-        //            minFee: '13.439764',
-        //            minWd: '0.001',
-        //            name: ''
-        //        },
-        //        id: 'USDT-Polygon-Bridge',
-        //        network: 'Polygon',
-        //        active: false,
-        //        deposit: false,
-        //        withdraw: false,
-        //        fee: 13.439764,
-        //        precision: undefined,
-        //        limits: {
-        //            withdraw: {
-        //                min: 0.001,
-        //                max: undefined
-        //            }
-        //        }
-        //     },
-        //
-        if (chain === 'USDT-Polygon') {
-            networkData = this.safeValue (networksById, 'USDT-Polygon-Bridge');
-        }
-        const network = this.safeString (networkData, 'network');
+        // inconsistent naming responses from exchange, i.e. "USDT-Polygon" from address endpoint, while in currencies it was "USDT-Polygon-Bridge". also, in network in currencies might not be present in address-endpoint, and it might even provide new networks not present in currencies response.
+        const networkId = this.safeString (depositAddress, 'chain');
         this.checkAddress (address);
         return {
-            'currency': code,
+            'currency': this.safeCurrencyCode (currencyId, currency),
             'address': address,
             'tag': tag,
-            'network': network,
+            'network': this.networkIdToCode (networkId),
             'info': depositAddress,
         };
     }
@@ -3665,36 +3654,11 @@ module.exports = class okx extends Exchange {
          * @param {object} params extra parameters specific to the okx api endpoint
          * @returns {object} an [address structure]{@link https://docs.ccxt.com/en/latest/manual.html#address-structure}
          */
-        const rawNetwork = this.safeStringUpper (params, 'network');
-        const networks = this.safeValue (this.options, 'networks', {});
-        const network = this.safeString (networks, rawNetwork, rawNetwork);
-        params = this.omit (params, 'network');
-        const response = await this.fetchDepositAddressesByNetwork (code, params);
-        let result = undefined;
-        if (network === undefined) {
-            result = this.safeValue (response, code);
-            if (result === undefined) {
-                const alias = this.safeString (networks, code, code);
-                result = this.safeValue (response, alias);
-                if (result === undefined) {
-                    const defaultNetwork = this.safeString (this.options, 'defaultNetwork', 'ERC20');
-                    result = this.safeValue (response, defaultNetwork);
-                    if (result === undefined) {
-                        const values = Object.values (response);
-                        result = this.safeValue (values, 0);
-                        if (result === undefined) {
-                            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find deposit address for ' + code);
-                        }
-                    }
-                }
-            }
-            return result;
-        }
-        result = this.safeValue (response, network);
-        if (result === undefined) {
-            throw new InvalidAddress (this.id + ' fetchDepositAddress() cannot find ' + network + ' deposit address for ' + code);
-        }
-        return result;
+        await this.loadMarkets ();
+        const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
+        const indexedAddresses = await this.fetchDepositAddressesByNetwork (code, paramsOmited);
+        const selectedNetworkCode = this.selectNetworkCodeFromUnifiedNetworks (code, networkCode, indexedAddresses);
+        return indexedAddresses[selectedNetworkCode];
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
