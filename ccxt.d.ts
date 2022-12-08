@@ -748,6 +748,7 @@ declare module 'ccxt' {
         class upbit extends Exchange {}
         class wazirx extends Exchange {}
         class whitebit extends Exchange {}
+        class woo extends Exchange {}
         class zb extends Exchange {}
         class zipmex extends Exchange {}
     }

@@ -10,6 +10,7 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use React\Async;
+use React\Promise;
 
 class bkex extends Exchange {
 
@@ -122,8 +123,8 @@ class bkex extends Exchange {
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/158043180-bb079a65-69e8-45a2-b393-f094d334e610.jpg',
                 'api' => array(
-                    'public' => 'https://api.bkex.com',
-                    'private' => 'https://api.bkex.com',
+                    'spot' => 'https://api.bkex.com',
+                    'swap' => 'https://fapi.bkex.com',
                 ),
                 'www' => 'https://www.bkex.com/',
                 'doc' => array(
@@ -135,59 +136,81 @@ class bkex extends Exchange {
             ),
             'api' => array(
                 'public' => array(
-                    'get' => array(
-                        '/common/symbols' => 1,
-                        '/common/currencys' => 1,
-                        '/common/timestamp' => 1,
-                        '/q/kline' => 1,
-                        '/q/tickers' => 1,
-                        '/q/ticker/price' => 1,
-                        '/q/depth' => 1,
-                        '/q/deals' => 1,
-                        // contracts:
-                        '/contract/common/brokerInfo' => 1,
-                        '/contract/q/index' => 1,
-                        '/contract/q/depth' => 1,
-                        '/contract/q/depthMerged' => 1,
-                        '/contract/q/trades' => 1,
-                        '/contract/q/kline' => 1,
-                        '/contract/q/ticker24hr' => 1,
+                    'spot' => array(
+                        'get' => array(
+                            '/common/symbols' => 1,
+                            '/common/currencys' => 1,
+                            '/common/timestamp' => 1,
+                            '/q/kline' => 1,
+                            '/q/tickers' => 1,
+                            '/q/ticker/price' => 1,
+                            '/q/depth' => 1,
+                            '/q/deals' => 1,
+                        ),
+                    ),
+                    'swap' => array(
+                        'get' => array(
+                            '/market/candle' => 1,
+                            '/market/deals' => 1,
+                            '/market/depth' => 1,
+                            '/market/fundingRate' => 1,
+                            '/market/index' => 1,
+                            '/market/riskLimit' => 1,
+                            '/market/symbols' => 1,
+                            '/market/ticker/price' => 1,
+                            '/market/tickers' => 1,
+                            '/server/ping' => 1,
+                        ),
                     ),
                 ),
                 'private' => array(
-                    'get' => array(
-                        '/u/api/info' => 1,
-                        '/u/account/balance' => 1,
-                        '/u/wallet/address' => 1,
-                        '/u/wallet/depositRecord' => 1,
-                        '/u/wallet/withdrawRecord' => 1,
-                        '/u/order/openOrders' => 1,
-                        '/u/order/openOrder/detail' => 1,
-                        '/u/order/historyOrders' => 1,
-                        // contracts:
-                        '/contract/trade/getOrder' => 1,
-                        '/contract/trade/openOrders' => 1,
-                        '/contract/trade/historyOrders' => 1,
-                        '/contract/trade/myTrades' => 1,
-                        '/contract/trade/positions' => 1,
-                        '/contract/u/account' => 1,
+                    'spot' => array(
+                        'get' => array(
+                            '/u/api/info' => 1,
+                            '/u/account/balance' => 1,
+                            '/u/wallet/address' => 1,
+                            '/u/wallet/depositRecord' => 1,
+                            '/u/wallet/withdrawRecord' => 1,
+                            '/u/order/openOrders' => 1,
+                            '/u/order/openOrder/detail' => 1,
+                            '/u/order/historyOrders' => 1,
+                        ),
+                        'post' => array(
+                            '/u/account/transfer' => 1,
+                            '/u/wallet/withdraw' => 1,
+                            '/u/order/create' => 1,
+                            '/u/order/cancel' => 1,
+                            '/u/order/batchCreate' => 1,
+                            '/u/order/batchCancel' => 1,
+                        ),
                     ),
-                    'post' => array(
-                        '/u/account/transfer' => 1,
-                        '/u/wallet/withdraw' => 1,
-                        '/u/order/create' => 1,
-                        '/u/order/cancel' => 1,
-                        '/u/order/batchCreate' => 1,
-                        '/u/order/batchCancel' => 1,
-                        // contracts:
-                        '/contract/trade/order' => 1,
-                        '/contract/trade/orderCancel' => 1,
-                        '/contract/trade/modifyMargin' => 1,
-                        '/contract/ws/dataStream/create' => 1,
-                        '/contract/ws/dataStream/update' => 1,
-                        '/contract/ws/dataStream/delete' => 1,
-                    ),
-                    'delete' => array(
+                    'swap' => array(
+                        'get' => array(
+                            '/account/balance' => 1,
+                            '/account/balanceRecord' => 1,
+                            '/account/order' => 1,
+                            '/account/orderForced' => 1,
+                            '/account/position' => 1,
+                            '/entrust/finished' => 1,
+                            '/entrust/unFinish' => 1,
+                            '/order/finished' => 1,
+                            '/order/finishedInfo' => 1,
+                            '/order/unFinish' => 1,
+                            '/position/info' => 1,
+                        ),
+                        'post' => array(
+                            '/account/setLeverage' => 1,
+                            '/entrust/add' => 1,
+                            '/entrust/cancel' => 1,
+                            '/order/batchCancel' => 1,
+                            '/order/batchOpen' => 1,
+                            '/order/cancel' => 1,
+                            '/order/close' => 1,
+                            '/order/closeAll' => 1,
+                            '/order/open' => 1,
+                            '/position/setSpSl' => 1,
+                            '/position/update' => 1,
+                        ),
                     ),
                 ),
             ),
@@ -235,53 +258,92 @@ class bkex extends Exchange {
         return Async\async(function () use ($params) {
             /**
              * retrieves $data on all markets for bkex
+             * @see https://bkexapi.github.io/docs/api_en.htm?shell#basicInformation-1
+             * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-$market-symbols
              * @param {array} $params extra parameters specific to the exchange api endpoint
              * @return {[array]} an array of objects representing $market $data
              */
-            $response = Async\await($this->publicGetCommonSymbols ($params));
+            $promises = array(
+                $this->publicSpotGetCommonSymbols ($params),
+                $this->publicSwapGetMarketSymbols ($params),
+            );
+            $resolved = Async\await(Promise\all($promises));
+            $spotMarkets = $resolved[0];
             //
-            // {
-            //     "code" => "0",
-            //     "data" => array(
-            //         array(
-            //             "minimumOrderSize" => "0",
-            //             "minimumTradeVolume" => "0E-18",
-            //             "pricePrecision" => "11",
-            //             "supportTrade" => true,
-            //             "symbol" => "COMT_USDT",
-            //             "volumePrecision" => 0
+            //     {
+            //         "code" => "0",
+            //         "data" => array(
+            //             array(
+            //                 "minimumOrderSize" => "0",
+            //                 "minimumTradeVolume" => "0E-18",
+            //                 "pricePrecision" => "11",
+            //                 "supportTrade" => true,
+            //                 "symbol" => "COMT_USDT",
+            //                 "volumePrecision" => 0
+            //             ),
             //         ),
-            //     ),
-            //     "msg" => "success",
-            //     "status" => 0
-            // }
+            //         "msg" => "success",
+            //         "status" => 0
+            //     }
             //
-            $data = $this->safe_value($response, 'data', array());
+            $swapMarkets = $resolved[1];
+            //
+            //     {
+            //         "code" => 0,
+            //         "msg" => "success",
+            //         "data" => array(
+            //             array(
+            //                 "symbol" => "luna_usdt",
+            //                 "supportTrade" => false,
+            //                 "volumePrecision" => 0,
+            //                 "pricePrecision" => 3,
+            //                 "marketMiniAmount" => "1",
+            //                 "limitMiniAmount" => "1"
+            //             ),
+            //         )
+            //     }
+            //
+            $spotData = $this->safe_value($spotMarkets, 'data', array());
+            $swapData = $this->safe_value($swapMarkets, 'data', array());
+            $data = $this->array_concat($spotData, $swapData);
             $result = array();
             for ($i = 0; $i < count($data); $i++) {
                 $market = $data[$i];
-                $id = $this->safe_string($market, 'symbol');
+                $marketId = $this->safe_string($market, 'symbol');
+                $id = $this->safe_string_upper($market, 'symbol');
                 list($baseId, $quoteId) = explode('_', $id);
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
+                $minimumOrderSize = $this->safe_string($market, 'minimumOrderSize');
+                $type = ($minimumOrderSize !== null) ? 'spot' : 'swap';
+                $swap = ($type === 'swap');
+                $symbol = $base . '/' . $quote;
+                $settleId = null;
+                $settle = null;
+                if ($swap) {
+                    $settleId = $quoteId;
+                    $settle = $quote;
+                    $symbol = $base . '/' . $quote . ':' . $settle;
+                }
+                $linear = $swap ? true : null;
                 $result[] = array(
-                    'id' => $id,
-                    'symbol' => $base . '/' . $quote,
+                    'id' => $marketId,
+                    'symbol' => $symbol,
                     'base' => $base,
                     'quote' => $quote,
-                    'settle' => null,
+                    'settle' => $settle,
                     'baseId' => $baseId,
                     'quoteId' => $quoteId,
-                    'settleId' => null,
-                    'type' => 'spot',
-                    'spot' => true,
+                    'settleId' => $settleId,
+                    'type' => $type,
+                    'spot' => ($type === 'spot'),
                     'margin' => false,
                     'future' => false,
-                    'swap' => false,
+                    'swap' => $swap,
                     'option' => false,
                     'active' => $this->safe_value($market, 'supportTrade'),
-                    'contract' => false,
-                    'linear' => null,
+                    'contract' => $swap,
+                    'linear' => $linear,
                     'inverse' => null,
                     'contractSize' => null,
                     'expiry' => null,
@@ -298,7 +360,7 @@ class bkex extends Exchange {
                             'max' => null,
                         ),
                         'amount' => array(
-                            'min' => $this->safe_number($market, 'minimumOrderSize'),
+                            'min' => $this->safe_number_n($market, array( 'minimumOrderSize', 'marketMiniAmount', 'limitMiniAmount' )),
                             'max' => null,
                         ),
                         'price' => array(
@@ -324,7 +386,7 @@ class bkex extends Exchange {
              * @param {array} $params extra parameters specific to the bkex api endpoint
              * @return {array} an associative dictionary of currencies
              */
-            $response = Async\await($this->publicGetCommonCurrencys ($params));
+            $response = Async\await($this->publicSpotGetCommonCurrencys ($params));
             //
             // {
             //     "code" => "0",
@@ -384,7 +446,7 @@ class bkex extends Exchange {
              * @param {array} $params extra parameters specific to the bkex api endpoint
              * @return {int} the current integer timestamp in milliseconds from the exchange server
              */
-            $response = Async\await($this->publicGetCommonTimestamp ($params));
+            $response = Async\await($this->publicSpotGetCommonTimestamp ($params));
             //
             // {
             //     "code" => '0',
@@ -404,7 +466,7 @@ class bkex extends Exchange {
              * @param {array} $params extra parameters specific to the bkex api endpoint
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure status structure}
              */
-            $response = Async\await($this->publicGetCommonTimestamp ($params));
+            $response = Async\await($this->publicSpotGetCommonTimestamp ($params));
             //
             //     {
             //         "code" => '0',
@@ -457,7 +519,7 @@ class bkex extends Exchange {
                 $timerange = $limit * $duration * 1000;
                 $request['to'] = $this->sum($request['from'], $timerange);
             }
-            $response = Async\await($this->publicGetQKline ($request));
+            $response = Async\await($this->publicSpotGetQKline ($request));
             //
             // {
             //     "code" => "0",
@@ -506,7 +568,7 @@ class bkex extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicGetQTickers (array_merge($request, $params)));
+            $response = Async\await($this->publicSpotGetQTickers (array_merge($request, $params)));
             //
             // {
             //     "code" => "0",
@@ -552,7 +614,7 @@ class bkex extends Exchange {
                 $marketIds = $this->market_ids($symbols);
                 $request['symbol'] = implode(',', $marketIds);
             }
-            $response = Async\await($this->publicGetQTickers (array_merge($request, $params)));
+            $response = Async\await($this->publicSpotGetQTickers (array_merge($request, $params)));
             $tickers = $this->safe_value($response, 'data');
             return $this->parse_tickers($tickers, $symbols, $params);
         }) ();
@@ -604,6 +666,8 @@ class bkex extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
+             * @see https://bkexapi.github.io/docs/api_en.htm?shell#quotationData-4
+             * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-deep-$data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the bkex api endpoint
@@ -611,34 +675,60 @@ class bkex extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $swap = $market['swap'];
             $request = array(
                 'symbol' => $market['id'],
             );
-            if ($limit !== null) {
-                $request['depth'] = min ($limit, 50);
+            $method = 'publicSpotGetQDepth';
+            if ($swap) {
+                $method = 'publicSwapGetMarketDepth';
+            } else {
+                if ($limit !== null) {
+                    $request['depth'] = min ($limit, 50);
+                }
             }
-            $response = Async\await($this->publicGetQDepth (array_merge($request, $params)));
+            $response = Async\await($this->$method (array_merge($request, $params)));
             //
-            // {
-            //     "code" => "0",
-            //     "data" => array(
-            //       "ask" => [
-            //         ["43820.07","0.86947"],
-            //         ["43820.25","0.07503"],
-            //       ],
-            //       "bid" => [
-            //         ["43815.94","0.43743"],
-            //         ["43815.72","0.08901"],
-            //       ],
-            //       "symbol" => "BTC_USDT",
-            //       "timestamp" => 1646161595841
-            //     ),
-            //     "msg" => "success",
-            //     "status" => 0
-            // }
+            // spot
+            //
+            //     {
+            //         "code" => "0",
+            //         "data" => array(
+            //             "ask" => [
+            //                 ["43820.07","0.86947"],
+            //                 ["43820.25","0.07503"],
+            //             ],
+            //             "bid" => [
+            //                 ["43815.94","0.43743"],
+            //                 ["43815.72","0.08901"],
+            //             ],
+            //             "symbol" => "BTC_USDT",
+            //             "timestamp" => 1646161595841
+            //         ),
+            //         "msg" => "success",
+            //         "status" => 0
+            //     }
+            //
+            // $swap
+            //
+            //     {
+            //         "code" => 0,
+            //         "msg" => "success",
+            //         "data" => {
+            //             "bid" => [
+            //                 ["16803.170000","4.96"],
+            //                 ["16803.140000","11.07"],
+            //             ],
+            //             "ask" => [
+            //                 ["16803.690000","9.2"],
+            //                 ["16804.180000","9.43"],
+            //             ]
+            //         }
+            //     }
             //
             $data = $this->safe_value($response, 'data');
-            return $this->parse_order_book($data, $market['symbol'], null, 'bid', 'ask');
+            $timestamp = $this->safe_integer($data, 'timestamp');
+            return $this->parse_order_book($data, $market['symbol'], $timestamp, 'bid', 'ask');
         }) ();
     }
 
@@ -660,7 +750,7 @@ class bkex extends Exchange {
             if ($limit !== null) {
                 $request['size'] = min ($limit, 50);
             }
-            $response = Async\await($this->publicGetQDeals (array_merge($request, $params)));
+            $response = Async\await($this->publicSpotGetQDeals (array_merge($request, $params)));
             //
             // {
             //     "code" => "0",
@@ -753,7 +843,7 @@ class bkex extends Exchange {
              */
             Async\await($this->load_markets());
             $query = $this->omit($params, 'type');
-            $response = Async\await($this->privateGetUAccountBalance ($query));
+            $response = Async\await($this->privateSpotGetUAccountBalance ($query));
             //
             // {
             //     "code" => "0",
@@ -807,7 +897,7 @@ class bkex extends Exchange {
             $request = array(
                 'currency' => $currency['id'],
             );
-            $response = Async\await($this->privateGetUWalletAddress (array_merge($request, $params)));
+            $response = Async\await($this->privateSpotGetUWalletAddress (array_merge($request, $params)));
             // NOTE => You can only retrieve addresses of already generated wallets - so should already have generated that COIN deposit address in UI. Otherwise, it seems from API you can't create/obtain addresses for those coins.
             //
             // {
@@ -869,7 +959,7 @@ class bkex extends Exchange {
             if ($limit !== null) {
                 $request['Size'] = $limit; // Todo => id api-docs, 'size' is incorrectly required to be in Uppercase
             }
-            $response = Async\await($this->privateGetUWalletDepositRecord (array_merge($request, $params)));
+            $response = Async\await($this->privateSpotGetUWalletDepositRecord (array_merge($request, $params)));
             //
             // {
             //     "code" => "0",
@@ -927,7 +1017,7 @@ class bkex extends Exchange {
             if ($limit !== null) {
                 $request['Size'] = $limit; // Todo => id api-docs, 'size' is incorrectly required to be in Uppercase
             }
-            $response = Async\await($this->privateGetUWalletWithdrawRecord (array_merge($request, $params)));
+            $response = Async\await($this->privateSpotGetUWalletWithdrawRecord (array_merge($request, $params)));
             //
             // {
             //     "code" => "0",
@@ -1036,7 +1126,7 @@ class bkex extends Exchange {
             if (($type !== 'market') && ($price !== null)) {
                 $request['price'] = $this->price_to_precision($symbol, $price);
             }
-            $response = Async\await($this->privatePostUOrderCreate (array_merge($request, $params)));
+            $response = Async\await($this->privateSpotPostUOrderCreate (array_merge($request, $params)));
             //
             // {
             //     "code" => "0",
@@ -1063,7 +1153,7 @@ class bkex extends Exchange {
             $request = array(
                 'orderId' => $id,
             );
-            $response = Async\await($this->privatePostUOrderCancel (array_merge($request, $params)));
+            $response = Async\await($this->privateSpotPostUOrderCancel (array_merge($request, $params)));
             //
             // {
             //     "code" => "0",
@@ -1091,7 +1181,7 @@ class bkex extends Exchange {
             $request = array(
                 'orders' => $this->json($ids),
             );
-            $response = Async\await($this->privatePostUOrderBatchCancel (array_merge($request, $params)));
+            $response = Async\await($this->privateSpotPostUOrderBatchCancel (array_merge($request, $params)));
             // {
             //     "code" => 0,
             //     "msg" => "success",
@@ -1129,7 +1219,7 @@ class bkex extends Exchange {
             if ($limit !== null) {
                 $request['size'] = $limit; // Todo => id api-docs, 'size' is incorrectly required to be in Uppercase
             }
-            $response = Async\await($this->privateGetUOrderOpenOrders (array_merge($request, $params)));
+            $response = Async\await($this->privateSpotGetUOrderOpenOrders (array_merge($request, $params)));
             //
             // {
             //     "code" => "0",
@@ -1179,7 +1269,7 @@ class bkex extends Exchange {
             $request = array(
                 'orderId' => $id,
             );
-            $response = Async\await($this->privateGetUOrderOpenOrderDetail (array_merge($request, $params)));
+            $response = Async\await($this->privateSpotGetUOrderOpenOrderDetail (array_merge($request, $params)));
             //
             // {
             //     "code" => "0",
@@ -1232,7 +1322,7 @@ class bkex extends Exchange {
             if ($since !== null) {
                 $request['startTime'] = $since;
             }
-            $response = Async\await($this->privateGetUOrderHistoryOrders (array_merge($request, $params)));
+            $response = Async\await($this->privateSpotGetUOrderHistoryOrders (array_merge($request, $params)));
             //
             // {
             //     "code" => "0",
@@ -1380,7 +1470,7 @@ class bkex extends Exchange {
              * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->publicGetCommonCurrencys ($params));
+            $response = Async\await($this->publicSpotGetCommonCurrencys ($params));
             //
             //      {
             //          "msg" => "success",
@@ -1458,7 +1548,7 @@ class bkex extends Exchange {
              * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
              */
             Async\await($this->load_markets());
-            $response = Async\await($this->publicGetCommonCurrencys ($params));
+            $response = Async\await($this->publicSpotGetCommonCurrencys ($params));
             //
             //    {
             //        "msg" => "success",
@@ -1511,7 +1601,10 @@ class bkex extends Exchange {
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
-        $url = $this->urls['api'][$api] . '/' . $this->version . $this->implode_params($path, $params);
+        $signed = $api[0] === 'private';
+        $endpoint = $api[1];
+        $pathPart = ($endpoint === 'spot') ? $this->version : 'fapi/' . $this->version;
+        $url = $this->urls['api'][$endpoint] . '/' . $pathPart . $this->implode_params($path, $params);
         $params = $this->omit($params, $this->extract_params($path));
         $paramsSortedEncoded = '';
         if ($params) {
@@ -1520,7 +1613,7 @@ class bkex extends Exchange {
                 $url .= '?' . $paramsSortedEncoded;
             }
         }
-        if ($api === 'private') {
+        if ($signed) {
             $this->check_required_credentials();
             $signature = $this->hmac($this->encode($paramsSortedEncoded), $this->encode($this->secret), 'sha256');
             $headers = array(

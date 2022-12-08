@@ -162,6 +162,7 @@ module.exports = class bitget extends Exchange {
                         },
                         'post': {
                             'account/bills': 2,
+                            'account/sub-account-spot-assets': 200,
                             'trade/orders': 2,
                             'trade/batch-orders': 4,
                             'trade/cancel-order': 2,

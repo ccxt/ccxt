@@ -107,6 +107,7 @@ class bitmart extends Exchange {
             'requiredCredentials' => array(
                 'apiKey' => true,
                 'secret' => true,
+                'uid' => true,
             ),
             'api' => array(
                 'public' => array(
@@ -1526,7 +1527,7 @@ class bitmart extends Exchange {
     public function fetch_balance($params = array ()) {
         return Async\async(function () use ($params) {
             /**
-             * $query for balance and get the amount of funds available for trading or funds locked in orders
+             * query for balance and get the amount of funds available for trading or funds locked in orders
              * @see https://developer-pro.bitmart.com/en/spot/#get-spot-wallet-balance
              * @see https://developer-pro.bitmart.com/en/futures/#get-contract-assets-detail
              * @see https://developer-pro.bitmart.com/en/spot/#get-account-balance
@@ -1543,12 +1544,14 @@ class bitmart extends Exchange {
                 'account' => 'privateGetAccountV1Wallet',
                 'margin' => 'privateGetSpotV1MarginIsolatedAccount',
             ));
-            list($marginMode, $query) = $this->handle_margin_mode_and_params('fetchBalance', $params);
-            if ($marginMode !== null) {
+            $marginMode = $this->safe_string($params, 'marginMode');
+            $isMargin = $this->safe_value($params, 'margin', false);
+            $params = $this->omit($params, array( 'margin', 'marginMode' ));
+            if ($marginMode !== null || $isMargin) {
                 $method = 'privateGetSpotV1MarginIsolatedAccount';
                 $marketType = 'margin';
             }
-            $response = Async\await($this->$method ($query));
+            $response = Async\await($this->$method ($params));
             //
             // spot
             //
@@ -3006,7 +3009,6 @@ class bitmart extends Exchange {
          * @param {array} $params extra parameters specific to the exchange api endpoint
          * @return array([string|null, object]) the $marginMode in lowercase
          */
-        $defaultValue = ($defaultValue === null) ? 'isolated' : $defaultValue;
         $marginMode = null;
         list($marginMode, $params) = parent::handle_margin_mode_and_params($methodName, $params, $defaultValue);
         if ($marginMode !== null) {
@@ -3045,10 +3047,9 @@ class bitmart extends Exchange {
                 $body = $this->json($query);
                 $queryString = $body;
             }
-            // The request header of X-BM-SIGN is obtained by encrypting the $timestamp . "#" . memo . "#" . $queryString
-            // memo is ignored by bitmart so we send "CCXT" here
-            $auth = $timestamp . '#CCXT#' . $queryString;
-            $headers['X-BM-SIGN'] = $this->hmac($this->encode($auth), $this->encode($this->secret));
+            $auth = $timestamp . '#' . $this->uid . '#' . $queryString;
+            $signature = $this->hmac($this->encode($auth), $this->encode($this->secret));
+            $headers['X-BM-SIGN'] = $signature;
         }
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }

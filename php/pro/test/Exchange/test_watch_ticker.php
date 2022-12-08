@@ -10,7 +10,8 @@ function test_watch_ticker($exchange, $symbol) {
     $skipped_exchanges = array(
         'cex',
         'ripio',
-        'mexc'
+        'mexc',
+        'woo'
     );
 
     if (in_array($exchange->id, $skipped_exchanges)) {
