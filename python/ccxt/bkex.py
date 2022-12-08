@@ -124,8 +124,8 @@ class bkex(Exchange):
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/158043180-bb079a65-69e8-45a2-b393-f094d334e610.jpg',
                 'api': {
-                    'public': 'https://api.bkex.com',
-                    'private': 'https://api.bkex.com',
+                    'spot': 'https://api.bkex.com',
+                    'swap': 'https://fapi.bkex.com',
                 },
                 'www': 'https://www.bkex.com/',
                 'doc': [
@@ -137,59 +137,81 @@ class bkex(Exchange):
             },
             'api': {
                 'public': {
-                    'get': {
-                        '/common/symbols': 1,
-                        '/common/currencys': 1,
-                        '/common/timestamp': 1,
-                        '/q/kline': 1,
-                        '/q/tickers': 1,
-                        '/q/ticker/price': 1,
-                        '/q/depth': 1,
-                        '/q/deals': 1,
-                        # contracts:
-                        '/contract/common/brokerInfo': 1,
-                        '/contract/q/index': 1,
-                        '/contract/q/depth': 1,
-                        '/contract/q/depthMerged': 1,
-                        '/contract/q/trades': 1,
-                        '/contract/q/kline': 1,
-                        '/contract/q/ticker24hr': 1,
+                    'spot': {
+                        'get': {
+                            '/common/symbols': 1,
+                            '/common/currencys': 1,
+                            '/common/timestamp': 1,
+                            '/q/kline': 1,
+                            '/q/tickers': 1,
+                            '/q/ticker/price': 1,
+                            '/q/depth': 1,
+                            '/q/deals': 1,
+                        },
+                    },
+                    'swap': {
+                        'get': {
+                            '/market/candle': 1,
+                            '/market/deals': 1,
+                            '/market/depth': 1,
+                            '/market/fundingRate': 1,
+                            '/market/index': 1,
+                            '/market/riskLimit': 1,
+                            '/market/symbols': 1,
+                            '/market/ticker/price': 1,
+                            '/market/tickers': 1,
+                            '/server/ping': 1,
+                        },
                     },
                 },
                 'private': {
-                    'get': {
-                        '/u/api/info': 1,
-                        '/u/account/balance': 1,
-                        '/u/wallet/address': 1,
-                        '/u/wallet/depositRecord': 1,
-                        '/u/wallet/withdrawRecord': 1,
-                        '/u/order/openOrders': 1,
-                        '/u/order/openOrder/detail': 1,
-                        '/u/order/historyOrders': 1,
-                        # contracts:
-                        '/contract/trade/getOrder': 1,
-                        '/contract/trade/openOrders': 1,
-                        '/contract/trade/historyOrders': 1,
-                        '/contract/trade/myTrades': 1,
-                        '/contract/trade/positions': 1,
-                        '/contract/u/account': 1,
+                    'spot': {
+                        'get': {
+                            '/u/api/info': 1,
+                            '/u/account/balance': 1,
+                            '/u/wallet/address': 1,
+                            '/u/wallet/depositRecord': 1,
+                            '/u/wallet/withdrawRecord': 1,
+                            '/u/order/openOrders': 1,
+                            '/u/order/openOrder/detail': 1,
+                            '/u/order/historyOrders': 1,
+                        },
+                        'post': {
+                            '/u/account/transfer': 1,
+                            '/u/wallet/withdraw': 1,
+                            '/u/order/create': 1,
+                            '/u/order/cancel': 1,
+                            '/u/order/batchCreate': 1,
+                            '/u/order/batchCancel': 1,
+                        },
                     },
-                    'post': {
-                        '/u/account/transfer': 1,
-                        '/u/wallet/withdraw': 1,
-                        '/u/order/create': 1,
-                        '/u/order/cancel': 1,
-                        '/u/order/batchCreate': 1,
-                        '/u/order/batchCancel': 1,
-                        # contracts:
-                        '/contract/trade/order': 1,
-                        '/contract/trade/orderCancel': 1,
-                        '/contract/trade/modifyMargin': 1,
-                        '/contract/ws/dataStream/create': 1,
-                        '/contract/ws/dataStream/update': 1,
-                        '/contract/ws/dataStream/delete': 1,
-                    },
-                    'delete': {
+                    'swap': {
+                        'get': {
+                            '/account/balance': 1,
+                            '/account/balanceRecord': 1,
+                            '/account/order': 1,
+                            '/account/orderForced': 1,
+                            '/account/position': 1,
+                            '/entrust/finished': 1,
+                            '/entrust/unFinish': 1,
+                            '/order/finished': 1,
+                            '/order/finishedInfo': 1,
+                            '/order/unFinish': 1,
+                            '/position/info': 1,
+                        },
+                        'post': {
+                            '/account/setLeverage': 1,
+                            '/entrust/add': 1,
+                            '/entrust/cancel': 1,
+                            '/order/batchCancel': 1,
+                            '/order/batchOpen': 1,
+                            '/order/cancel': 1,
+                            '/order/close': 1,
+                            '/order/closeAll': 1,
+                            '/order/open': 1,
+                            '/position/setSpSl': 1,
+                            '/position/update': 1,
+                        },
                     },
                 },
             },
@@ -235,53 +257,90 @@ class bkex(Exchange):
     def fetch_markets(self, params={}):
         """
         retrieves data on all markets for bkex
+        see https://bkexapi.github.io/docs/api_en.htm?shell#basicInformation-1
+        see https://bkexapi.github.io/docs/api_en.htm?shell#contract-market-symbols
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of objects representing market data
         """
-        response = self.publicGetCommonSymbols(params)
+        promises = [
+            self.publicSpotGetCommonSymbols(params),
+            self.publicSwapGetMarketSymbols(params),
+        ]
+        spotMarkets = resolved[0]
         #
-        # {
-        #     "code": "0",
-        #     "data": [
-        #         {
-        #             "minimumOrderSize": "0",
-        #             "minimumTradeVolume": "0E-18",
-        #             "pricePrecision": "11",
-        #             "supportTrade": True,
-        #             "symbol": "COMT_USDT",
-        #             "volumePrecision": 0
-        #         },
-        #     ],
-        #     "msg": "success",
-        #     "status": 0
-        # }
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "minimumOrderSize": "0",
+        #                 "minimumTradeVolume": "0E-18",
+        #                 "pricePrecision": "11",
+        #                 "supportTrade": True,
+        #                 "symbol": "COMT_USDT",
+        #                 "volumePrecision": 0
+        #             },
+        #         ],
+        #         "msg": "success",
+        #         "status": 0
+        #     }
         #
-        data = self.safe_value(response, 'data', [])
+        swapMarkets = resolved[1]
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "success",
+        #         "data": [
+        #             {
+        #                 "symbol": "luna_usdt",
+        #                 "supportTrade": False,
+        #                 "volumePrecision": 0,
+        #                 "pricePrecision": 3,
+        #                 "marketMiniAmount": "1",
+        #                 "limitMiniAmount": "1"
+        #             },
+        #         ]
+        #     }
+        #
+        spotData = self.safe_value(spotMarkets, 'data', [])
+        swapData = self.safe_value(swapMarkets, 'data', [])
+        data = self.array_concat(spotData, swapData)
         result = []
         for i in range(0, len(data)):
             market = data[i]
-            id = self.safe_string(market, 'symbol')
+            marketId = self.safe_string(market, 'symbol')
+            id = self.safe_string_upper(market, 'symbol')
             baseId, quoteId = id.split('_')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
+            minimumOrderSize = self.safe_string(market, 'minimumOrderSize')
+            type = 'spot' if (minimumOrderSize is not None) else 'swap'
+            swap = (type == 'swap')
+            symbol = base + '/' + quote
+            settleId = None
+            settle = None
+            if swap:
+                settleId = quoteId
+                settle = quote
+                symbol = base + '/' + quote + ':' + settle
+            linear = True if swap else None
             result.append({
-                'id': id,
-                'symbol': base + '/' + quote,
+                'id': marketId,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': None,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': None,
-                'type': 'spot',
-                'spot': True,
+                'settleId': settleId,
+                'type': type,
+                'spot': (type == 'spot'),
                 'margin': False,
                 'future': False,
-                'swap': False,
+                'swap': swap,
                 'option': False,
                 'active': self.safe_value(market, 'supportTrade'),
-                'contract': False,
-                'linear': None,
+                'contract': swap,
+                'linear': linear,
                 'inverse': None,
                 'contractSize': None,
                 'expiry': None,
@@ -298,7 +357,7 @@ class bkex(Exchange):
                         'max': None,
                     },
                     'amount': {
-                        'min': self.safe_number(market, 'minimumOrderSize'),
+                        'min': self.safe_number_n(market, ['minimumOrderSize', 'marketMiniAmount', 'limitMiniAmount']),
                         'max': None,
                     },
                     'price': {
@@ -320,7 +379,7 @@ class bkex(Exchange):
         :param dict params: extra parameters specific to the bkex api endpoint
         :returns dict: an associative dictionary of currencies
         """
-        response = self.publicGetCommonCurrencys(params)
+        response = self.publicSpotGetCommonCurrencys(params)
         #
         # {
         #     "code": "0",
@@ -376,7 +435,7 @@ class bkex(Exchange):
         :param dict params: extra parameters specific to the bkex api endpoint
         :returns int: the current integer timestamp in milliseconds from the exchange server
         """
-        response = self.publicGetCommonTimestamp(params)
+        response = self.publicSpotGetCommonTimestamp(params)
         #
         # {
         #     "code": '0',
@@ -393,7 +452,7 @@ class bkex(Exchange):
         :param dict params: extra parameters specific to the bkex api endpoint
         :returns dict: a `status structure <https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure>`
         """
-        response = self.publicGetCommonTimestamp(params)
+        response = self.publicSpotGetCommonTimestamp(params)
         #
         #     {
         #         "code": '0',
@@ -440,7 +499,7 @@ class bkex(Exchange):
             duration = self.parse_timeframe(timeframe)
             timerange = limit * duration * 1000
             request['to'] = self.sum(request['from'], timerange)
-        response = self.publicGetQKline(request)
+        response = self.publicSpotGetQKline(request)
         #
         # {
         #     "code": "0",
@@ -485,7 +544,7 @@ class bkex(Exchange):
         request = {
             'symbol': market['id'],
         }
-        response = self.publicGetQTickers(self.extend(request, params))
+        response = self.publicSpotGetQTickers(self.extend(request, params))
         #
         # {
         #     "code": "0",
@@ -525,7 +584,7 @@ class bkex(Exchange):
         if symbols is not None:
             marketIds = self.market_ids(symbols)
             request['symbol'] = ','.join(marketIds)
-        response = self.publicGetQTickers(self.extend(request, params))
+        response = self.publicSpotGetQTickers(self.extend(request, params))
         tickers = self.safe_value(response, 'data')
         return self.parse_tickers(tickers, symbols, params)
 
@@ -585,7 +644,7 @@ class bkex(Exchange):
         }
         if limit is not None:
             request['depth'] = min(limit, 50)
-        response = self.publicGetQDepth(self.extend(request, params))
+        response = self.publicSpotGetQDepth(self.extend(request, params))
         #
         # {
         #     "code": "0",
@@ -624,7 +683,7 @@ class bkex(Exchange):
         }
         if limit is not None:
             request['size'] = min(limit, 50)
-        response = self.publicGetQDeals(self.extend(request, params))
+        response = self.publicSpotGetQDeals(self.extend(request, params))
         #
         # {
         #     "code": "0",
@@ -704,7 +763,7 @@ class bkex(Exchange):
         """
         self.load_markets()
         query = self.omit(params, 'type')
-        response = self.privateGetUAccountBalance(query)
+        response = self.privateSpotGetUAccountBalance(query)
         #
         # {
         #     "code": "0",
@@ -754,7 +813,7 @@ class bkex(Exchange):
         request = {
             'currency': currency['id'],
         }
-        response = self.privateGetUWalletAddress(self.extend(request, params))
+        response = self.privateSpotGetUWalletAddress(self.extend(request, params))
         # NOTE: You can only retrieve addresses of already generated wallets - so should already have generated that COIN deposit address in UI. Otherwise, it seems from API you can't create/obtain addresses for those coins.
         #
         # {
@@ -809,7 +868,7 @@ class bkex(Exchange):
             request['endTime'] = endTime
         if limit is not None:
             request['Size'] = limit  # Todo: id api-docs, 'size' is incorrectly required to be in Uppercase
-        response = self.privateGetUWalletDepositRecord(self.extend(request, params))
+        response = self.privateSpotGetUWalletDepositRecord(self.extend(request, params))
         #
         # {
         #     "code": "0",
@@ -860,7 +919,7 @@ class bkex(Exchange):
             request['endTime'] = endTime
         if limit is not None:
             request['Size'] = limit  # Todo: id api-docs, 'size' is incorrectly required to be in Uppercase
-        response = self.privateGetUWalletWithdrawRecord(self.extend(request, params))
+        response = self.privateSpotGetUWalletWithdrawRecord(self.extend(request, params))
         #
         # {
         #     "code": "0",
@@ -962,7 +1021,7 @@ class bkex(Exchange):
         }
         if (type != 'market') and (price is not None):
             request['price'] = self.price_to_precision(symbol, price)
-        response = self.privatePostUOrderCreate(self.extend(request, params))
+        response = self.privateSpotPostUOrderCreate(self.extend(request, params))
         #
         # {
         #     "code": "0",
@@ -986,7 +1045,7 @@ class bkex(Exchange):
         request = {
             'orderId': id,
         }
-        response = self.privatePostUOrderCancel(self.extend(request, params))
+        response = self.privateSpotPostUOrderCancel(self.extend(request, params))
         #
         # {
         #     "code": "0",
@@ -1010,7 +1069,7 @@ class bkex(Exchange):
         request = {
             'orders': self.json(ids),
         }
-        response = self.privatePostUOrderBatchCancel(self.extend(request, params))
+        response = self.privateSpotPostUOrderBatchCancel(self.extend(request, params))
         # {
         #     "code": 0,
         #     "msg": "success",
@@ -1043,7 +1102,7 @@ class bkex(Exchange):
         }
         if limit is not None:
             request['size'] = limit  # Todo: id api-docs, 'size' is incorrectly required to be in Uppercase
-        response = self.privateGetUOrderOpenOrders(self.extend(request, params))
+        response = self.privateSpotGetUOrderOpenOrders(self.extend(request, params))
         #
         # {
         #     "code": "0",
@@ -1090,7 +1149,7 @@ class bkex(Exchange):
         request = {
             'orderId': id,
         }
-        response = self.privateGetUOrderOpenOrderDetail(self.extend(request, params))
+        response = self.privateSpotGetUOrderOpenOrderDetail(self.extend(request, params))
         #
         # {
         #     "code": "0",
@@ -1137,7 +1196,7 @@ class bkex(Exchange):
             request['size'] = limit  # Todo: id api-docs, 'size' is incorrectly required to be in Uppercase
         if since is not None:
             request['startTime'] = since
-        response = self.privateGetUOrderHistoryOrders(self.extend(request, params))
+        response = self.privateSpotGetUOrderHistoryOrders(self.extend(request, params))
         #
         # {
         #     "code": "0",
@@ -1276,7 +1335,7 @@ class bkex(Exchange):
         :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
         """
         self.load_markets()
-        response = self.publicGetCommonCurrencys(params)
+        response = self.publicSpotGetCommonCurrencys(params)
         #
         #      {
         #          "msg": "success",
@@ -1347,7 +1406,7 @@ class bkex(Exchange):
         :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
         """
         self.load_markets()
-        response = self.publicGetCommonCurrencys(params)
+        response = self.publicSpotGetCommonCurrencys(params)
         #
         #    {
         #        "msg": "success",
@@ -1397,14 +1456,17 @@ class bkex(Exchange):
         return result
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
-        url = self.urls['api'][api] + '/' + self.version + self.implode_params(path, params)
+        signed = api[0] == 'private'
+        endpoint = api[1]
+        pathPart = self.version if (endpoint == 'spot') else 'fapi/' + self.version
+        url = self.urls['api'][endpoint] + '/' + pathPart + self.implode_params(path, params)
         params = self.omit(params, self.extract_params(path))
         paramsSortedEncoded = ''
         if params:
             paramsSortedEncoded = self.rawencode(self.keysort(params))
             if method == 'GET':
                 url += '?' + paramsSortedEncoded
-        if api == 'private':
+        if signed:
             self.check_required_credentials()
             signature = self.hmac(self.encode(paramsSortedEncoded), self.encode(self.secret), hashlib.sha256)
             headers = {
