@@ -91,6 +91,8 @@ module.exports = class binance extends Exchange {
                 'fetchTradingLimits': undefined,
                 'fetchTransactionFee': undefined,
                 'fetchTransactionFees': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchTransactions': false,
                 'fetchTransfers': true,
                 'fetchWithdrawal': false,
@@ -915,7 +917,101 @@ module.exports = class binance extends Exchange {
                     'EOS': 'EOS',
                     'SPL': 'SOL',
                 },
-                'reverseNetworks': {
+                'reverseNetworks': { // keeping this object for backward-compatibility
+                    'tronscan.org': 'TRC20',
+                    'etherscan.io': 'ERC20',
+                    'bscscan.com': 'BSC',
+                    'explorer.binance.org': 'BEP2',
+                    'bithomp.com': 'XRP',
+                    'bloks.io': 'EOS',
+                    'stellar.expert': 'XLM',
+                    'blockchair.com/bitcoin': 'BTC',
+                    'blockchair.com/bitcoin-cash': 'BCH',
+                    'blockchair.com/ecash': 'XEC',
+                    'explorer.litecoin.net': 'LTC',
+                    'explorer.avax.network': 'AVAX',
+                    'solscan.io': 'SOL',
+                    'polkadot.subscan.io': 'DOT',
+                    'dashboard.internetcomputer.org': 'ICP',
+                    'explorer.chiliz.com': 'CHZ',
+                    'cardanoscan.io': 'ADA',
+                    'mainnet.theoan.com': 'AION',
+                    'algoexplorer.io': 'ALGO',
+                    'explorer.ambrosus.com': 'AMB',
+                    'viewblock.io/zilliqa': 'ZIL',
+                    'viewblock.io/arweave': 'AR',
+                    'explorer.ark.io': 'ARK',
+                    'atomscan.com': 'ATOM',
+                    'www.mintscan.io': 'CTK',
+                    'explorer.bitcoindiamond.org': 'BCD',
+                    'btgexplorer.com': 'BTG',
+                    'bts.ai': 'BTS',
+                    'explorer.celo.org': 'CELO',
+                    'explorer.nervos.org': 'CKB',
+                    'cerebro.cortexlabs.ai': 'CTXC',
+                    'chainz.cryptoid.info': 'VIA',
+                    'explorer.dcrdata.org': 'DCR',
+                    'digiexplorer.info': 'DGB',
+                    'dock.subscan.io': 'DOCK',
+                    'dogechain.info': 'DOGE',
+                    'explorer.elrond.com': 'EGLD',
+                    'blockscout.com': 'ETC',
+                    'explore-fetchhub.fetch.ai': 'FET',
+                    'filfox.info': 'FIL',
+                    'fio.bloks.io': 'FIO',
+                    'explorer.firo.org': 'FIRO',
+                    'neoscan.io': 'NEO',
+                    'ftmscan.com': 'FTM',
+                    'explorer.gochain.io': 'GO',
+                    'block.gxb.io': 'GXS',
+                    'hash-hash.info': 'HBAR',
+                    'www.hiveblockexplorer.com': 'HIVE',
+                    'explorer.helium.com': 'HNT',
+                    'tracker.icon.foundation': 'ICX',
+                    'www.iostabc.com': 'IOST',
+                    'explorer.iota.org': 'IOTA',
+                    'iotexscan.io': 'IOTX',
+                    'irishub.iobscan.io': 'IRIS',
+                    'kava.mintscan.io': 'KAVA',
+                    'scope.klaytn.com': 'KLAY',
+                    'kmdexplorer.io': 'KMD',
+                    'kusama.subscan.io': 'KSM',
+                    'explorer.lto.network': 'LTO',
+                    'polygonscan.com': 'POLYGON',
+                    'explorer.ont.io': 'ONT',
+                    'minaexplorer.com': 'MINA',
+                    'nanolooker.com': 'NANO',
+                    'explorer.nebulas.io': 'NAS',
+                    'explorer.nbs.plus': 'NBS',
+                    'explorer.nebl.io': 'NEBL',
+                    'nulscan.io': 'NULS',
+                    'nxscan.com': 'NXS',
+                    'explorer.harmony.one': 'ONE',
+                    'explorer.poa.network': 'POA',
+                    'qtum.info': 'QTUM',
+                    'explorer.rsk.co': 'RSK',
+                    'www.oasisscan.com': 'ROSE',
+                    'ravencoin.network': 'RVN',
+                    'sc.tokenview.com': 'SC',
+                    'secretnodes.com': 'SCRT',
+                    'explorer.skycoin.com': 'SKY',
+                    'steemscan.com': 'STEEM',
+                    'explorer.stacks.co': 'STX',
+                    'www.thetascan.io': 'THETA',
+                    'scan.tomochain.com': 'TOMO',
+                    'explore.vechain.org': 'VET',
+                    'explorer.vite.net': 'VITE',
+                    'www.wanscan.org': 'WAN',
+                    'wavesexplorer.com': 'WAVES',
+                    'wax.eosx.io': 'WAXP',
+                    'waltonchain.pro': 'WTC',
+                    'chain.nem.ninja': 'XEM',
+                    'verge-blockchain.info': 'XVG',
+                    'explorer.yoyow.org': 'YOYOW',
+                    'explorer.zcha.in': 'ZEC',
+                    'explorer.zensystem.io': 'ZEN',
+                },
+                'networksById': {
                     'tronscan.org': 'TRC20',
                     'etherscan.io': 'ERC20',
                     'bscscan.com': 'BSC',
@@ -4446,7 +4542,7 @@ module.exports = class binance extends Exchange {
         /**
          * @method
          * @name binance#fetchTransactionFees
-         * @description fetch transaction fees
+         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
          * @param {[string]|undefined} codes not used by binance fetchTransactionFees ()
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
@@ -4554,6 +4650,131 @@ module.exports = class binance extends Exchange {
             'deposit': {},
             'info': response,
         };
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @param {[string]|undefined} codes not used by binance fetchDepositWithdrawFees ()
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.sapiGetCapitalConfigGetall (params);
+        //
+        //    [
+        //        {
+        //            coin: 'BAT',
+        //            depositAllEnable: true,
+        //            withdrawAllEnable: true,
+        //            name: 'Basic Attention Token',
+        //            free: '0',
+        //            locked: '0',
+        //            freeze: '0',
+        //            withdrawing: '0',
+        //            ipoing: '0',
+        //            ipoable: '0',
+        //            storage: '0',
+        //            isLegalMoney: false,
+        //            trading: true,
+        //            networkList: [
+        //                {
+        //                    network: 'BNB',
+        //                    coin: 'BAT',
+        //                    withdrawIntegerMultiple: '0.00000001',
+        //                    isDefault: false,
+        //                    depositEnable: true,
+        //                    withdrawEnable: true,
+        //                    depositDesc: '',
+        //                    withdrawDesc: '',
+        //                    specialTips: 'The name of this asset is Basic Attention Token (BAT). Both a MEMO and an Address are required to successfully deposit your BEP2 tokens to Binance.',
+        //                    name: 'BEP2',
+        //                    resetAddressStatus: false,
+        //                    addressRegex: '^(bnb1)[0-9a-z]{38}$',
+        //                    memoRegex: '^[0-9A-Za-z\\-_]{1,120}$',
+        //                    withdrawFee: '0.27',
+        //                    withdrawMin: '0.54',
+        //                    withdrawMax: '10000000000',
+        //                    minConfirm: '1',
+        //                    unLockConfirm: '0'
+        //                },
+        //                ...
+        //            ]
+        //        }
+        //    ]
+        //
+        return this.parseDepositWithdrawFees (response, codes, 'coin');
+    }
+
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        //
+        //    {
+        //        coin: 'BAT',
+        //        depositAllEnable: true,
+        //        withdrawAllEnable: true,
+        //        name: 'Basic Attention Token',
+        //        free: '0',
+        //        locked: '0',
+        //        freeze: '0',
+        //        withdrawing: '0',
+        //        ipoing: '0',
+        //        ipoable: '0',
+        //        storage: '0',
+        //        isLegalMoney: false,
+        //        trading: true,
+        //        networkList: [
+        //            {
+        //                network: 'BNB',
+        //                coin: 'BAT',
+        //                withdrawIntegerMultiple: '0.00000001',
+        //                isDefault: false,
+        //                depositEnable: true,
+        //                withdrawEnable: true,
+        //                depositDesc: '',
+        //                withdrawDesc: '',
+        //                specialTips: 'The name of this asset is Basic Attention Token (BAT). Both a MEMO and an Address are required to successfully deposit your BEP2 tokens to Binance.',
+        //                name: 'BEP2',
+        //                resetAddressStatus: false,
+        //                addressRegex: '^(bnb1)[0-9a-z]{38}$',
+        //                memoRegex: '^[0-9A-Za-z\\-_]{1,120}$',
+        //                withdrawFee: '0.27',
+        //                withdrawMin: '0.54',
+        //                withdrawMax: '10000000000',
+        //                minConfirm: '1',
+        //                unLockConfirm: '0'
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        const networkList = this.safeValue (fee, 'networkList', []);
+        const result = this.depositWithdrawFee (fee);
+        for (let j = 0; j < networkList.length; j++) {
+            const networkEntry = networkList[j];
+            const networkId = this.safeString (networkEntry, 'network');
+            const networkCode = this.networkIdToCode (networkId);
+            const withdrawFee = this.safeNumber (networkEntry, 'withdrawFee');
+            const isDefault = this.safeValue (networkEntry, 'isDefault');
+            if (isDefault === true) {
+                result['withdraw'] = {
+                    'fee': withdrawFee,
+                    'percentage': undefined,
+                };
+            }
+            result['networks'][networkCode] = {
+                'withdraw': {
+                    'fee': withdrawFee,
+                    'percentage': undefined,
+                },
+                'deposit': {
+                    'fee': undefined,
+                    'percentage': undefined,
+                },
+            };
+        }
+        return result;
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
