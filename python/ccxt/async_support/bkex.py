@@ -634,6 +634,8 @@ class bkex(Exchange):
     async def fetch_order_book(self, symbol, limit=None, params={}):
         """
         fetches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        see https://bkexapi.github.io/docs/api_en.htm?shell#quotationData-4
+        see https://bkexapi.github.io/docs/api_en.htm?shell#contract-deep-data
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int|None limit: the maximum amount of order book entries to return
         :param dict params: extra parameters specific to the bkex api endpoint
@@ -641,33 +643,58 @@ class bkex(Exchange):
         """
         await self.load_markets()
         market = self.market(symbol)
+        swap = market['swap']
         request = {
             'symbol': market['id'],
         }
-        if limit is not None:
-            request['depth'] = min(limit, 50)
-        response = await self.publicSpotGetQDepth(self.extend(request, params))
+        method = 'publicSpotGetQDepth'
+        if swap:
+            method = 'publicSwapGetMarketDepth'
+        else:
+            if limit is not None:
+                request['depth'] = min(limit, 50)
+        response = await getattr(self, method)(self.extend(request, params))
         #
-        # {
-        #     "code": "0",
-        #     "data": {
-        #       "ask": [
-        #         ["43820.07","0.86947"],
-        #         ["43820.25","0.07503"],
-        #       ],
-        #       "bid": [
-        #         ["43815.94","0.43743"],
-        #         ["43815.72","0.08901"],
-        #       ],
-        #       "symbol": "BTC_USDT",
-        #       "timestamp": 1646161595841
-        #     },
-        #     "msg": "success",
-        #     "status": 0
-        # }
+        # spot
+        #
+        #     {
+        #         "code": "0",
+        #         "data": {
+        #             "ask": [
+        #                 ["43820.07","0.86947"],
+        #                 ["43820.25","0.07503"],
+        #             ],
+        #             "bid": [
+        #                 ["43815.94","0.43743"],
+        #                 ["43815.72","0.08901"],
+        #             ],
+        #             "symbol": "BTC_USDT",
+        #             "timestamp": 1646161595841
+        #         },
+        #         "msg": "success",
+        #         "status": 0
+        #     }
+        #
+        # swap
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "success",
+        #         "data": {
+        #             "bid": [
+        #                 ["16803.170000","4.96"],
+        #                 ["16803.140000","11.07"],
+        #             ],
+        #             "ask": [
+        #                 ["16803.690000","9.2"],
+        #                 ["16804.180000","9.43"],
+        #             ]
+        #         }
+        #     }
         #
         data = self.safe_value(response, 'data')
-        return self.parse_order_book(data, market['symbol'], None, 'bid', 'ask')
+        timestamp = self.safe_integer(data, 'timestamp')
+        return self.parse_order_book(data, market['symbol'], timestamp, 'bid', 'ask')
 
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         """
