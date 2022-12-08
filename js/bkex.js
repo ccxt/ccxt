@@ -662,6 +662,8 @@ module.exports = class bkex extends Exchange {
          * @method
          * @name bkex#fetchOrderBook
          * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://bkexapi.github.io/docs/api_en.htm?shell#quotationData-4
+         * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-deep-data
          * @param {string} symbol unified symbol of the market to fetch the order book for
          * @param {int|undefined} limit the maximum amount of order book entries to return
          * @param {object} params extra parameters specific to the bkex api endpoint
@@ -669,31 +671,56 @@ module.exports = class bkex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const swap = market['swap'];
         const request = {
             'symbol': market['id'],
         };
-        if (limit !== undefined) {
-            request['depth'] = Math.min (limit, 50);
+        let method = 'publicSpotGetQDepth';
+        if (swap) {
+            method = 'publicSwapGetMarketDepth';
+        } else {
+            if (limit !== undefined) {
+                request['depth'] = Math.min (limit, 50);
+            }
         }
-        const response = await this.publicSpotGetQDepth (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
-        // {
-        //     "code": "0",
-        //     "data": {
-        //       "ask": [
-        //         ["43820.07","0.86947"],
-        //         ["43820.25","0.07503"],
-        //       ],
-        //       "bid": [
-        //         ["43815.94","0.43743"],
-        //         ["43815.72","0.08901"],
-        //       ],
-        //       "symbol": "BTC_USDT",
-        //       "timestamp": 1646161595841
-        //     },
-        //     "msg": "success",
-        //     "status": 0
-        // }
+        // spot
+        //
+        //     {
+        //         "code": "0",
+        //         "data": {
+        //             "ask": [
+        //                 ["43820.07","0.86947"],
+        //                 ["43820.25","0.07503"],
+        //             ],
+        //             "bid": [
+        //                 ["43815.94","0.43743"],
+        //                 ["43815.72","0.08901"],
+        //             ],
+        //             "symbol": "BTC_USDT",
+        //             "timestamp": 1646161595841
+        //         },
+        //         "msg": "success",
+        //         "status": 0
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "success",
+        //         "data": {
+        //             "bid": [
+        //                 ["16803.170000","4.96"],
+        //                 ["16803.140000","11.07"],
+        //             ],
+        //             "ask": [
+        //                 ["16803.690000","9.2"],
+        //                 ["16804.180000","9.43"],
+        //             ]
+        //         }
+        //     }
         //
         const data = this.safeValue (response, 'data');
         return this.parseOrderBook (data, market['symbol'], undefined, 'bid', 'ask');
