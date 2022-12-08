@@ -660,10 +660,13 @@ module.exports = class Exchange {
         return new Promise ((resolve, reject) => resolve (Object.values (this.markets)))
     }
 
-    filterBySinceLimit (array, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
+    filterBySinceLimit (array, since = undefined, limit = undefined, key = 'timestamp', tail = undefined) {
         const sinceIsDefined = (since !== undefined && since !== null)
         if (sinceIsDefined) {
             array = array.filter ((entry) => entry[key] >= since)
+        }
+        if (tail === undefined) {
+            tail = !sinceIsDefined;
         }
         if (limit !== undefined && limit !== null) {
             array = tail ? array.slice (-limit) : array.slice (0, limit)
@@ -671,7 +674,7 @@ module.exports = class Exchange {
         return array
     }
 
-    filterByValueSinceLimit (array, field, value = undefined, since = undefined, limit = undefined, key = 'timestamp', tail = false) {
+    filterByValueSinceLimit (array, field, value = undefined, since = undefined, limit = undefined, key = 'timestamp', tail = undefined) {
         const valueIsDefined = value !== undefined && value !== null
         const sinceIsDefined = since !== undefined && since !== null
         // single-pass filter for both symbol and since
@@ -679,6 +682,9 @@ module.exports = class Exchange {
             array = array.filter ((entry) =>
                 ((valueIsDefined ? (entry[field] === value) : true) &&
                  (sinceIsDefined ? (entry[key] >= since) : true)))
+        }
+        if (tail === undefined) {
+            tail = !sinceIsDefined;
         }
         if (limit !== undefined && limit !== null) {
             array = tail ? array.slice (-limit) : array.slice (0, limit)
@@ -2683,11 +2689,11 @@ module.exports = class Exchange {
         return currency['code'];
     }
 
-    filterBySymbolSinceLimit (array, symbol = undefined, since = undefined, limit = undefined, tail = false) {
+    filterBySymbolSinceLimit (array, symbol = undefined, since = undefined, limit = undefined, tail = undefined) {
         return this.filterByValueSinceLimit (array, 'symbol', symbol, since, limit, 'timestamp', tail);
     }
 
-    filterByCurrencySinceLimit (array, code = undefined, since = undefined, limit = undefined, tail = false) {
+    filterByCurrencySinceLimit (array, code = undefined, since = undefined, limit = undefined, tail = undefined) {
         return this.filterByValueSinceLimit (array, 'currency', code, since, limit, 'timestamp', tail);
     }
 

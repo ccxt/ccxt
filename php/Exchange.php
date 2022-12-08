@@ -1874,9 +1874,12 @@ class Exchange {
         return call_user_func($this->number, $n);
     }
 
-    public function filter_by_since_limit($array, $since = null, $limit = null, $key = 'timestamp', $tail = false) {
+    public function filter_by_since_limit($array, $since = null, $limit = null, $key = 'timestamp', $tail = null) {
         $result = array();
         $since_is_set = isset($since);
+        if (isset($tail)) {
+            $tail = !$since_is_set;
+        }
         if ($since_is_set) {
             foreach ($array as $entry) {
                 if ($entry[$key] > $since) {
@@ -1908,11 +1911,14 @@ class Exchange {
     }
 
     public function filter_by_value_since_limit($array, $field, $value = null, $since = null, $limit = null, $key = 'timestamp', $tail = false) {
-        $valueIsSet = isset($value);
-        $sinceIsSet = isset($since);
+        $value_is_set = isset($value);
+        $since_is_set = isset($since);
         $result = array();
+        if (isset($tail)) {
+            $tail = !$since_is_set;
+        }
         foreach ($array as $k => $v) {
-            if (($valueIsSet ? ($v[$field] === $value) : true) && ($sinceIsSet ? ($v[$key] >= $since) : true)) {
+            if (($value_is_set ? ($v[$field] === $value) : true) && ($since_is_set ? ($v[$key] >= $since) : true)) {
                 $result[] = $v;
             }
         }
