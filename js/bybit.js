@@ -5351,7 +5351,7 @@ module.exports = class bybit extends Exchange {
         const result = this.safeValue (response, 'result', {});
         const chains = this.safeValue (result, 'chains', []);
         const chainsIndexedById = this.indexBy (chains, 'chain');
-        const selectedNetworkId = this.selectNetworkIdFromAvailableNetworks (code, networkCode, chainsIndexedById);
+        const selectedNetworkId = this.selectNetworkIdFromRawNetworks (code, networkCode, chainsIndexedById);
         const addressObject = this.safeValue (chainsIndexedById, selectedNetworkId, {});
         return this.parseDepositAddress (addressObject, currency);
     }
