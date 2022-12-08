@@ -920,6 +920,7 @@ module.exports = class huobi extends Exchange {
                     'ALGORAND': 'ALGO',
                     'ARBITRUM': 'ARB',
                     'ARB': 'ARB',
+                    'APTOS': 'APT',
                     'AVALANCHEC': 'AVAXCCHAIN',
                     'AVAXC': 'AVAXCCHAIN',
                     'BEP20': 'BEP20',
