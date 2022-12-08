@@ -1064,8 +1064,8 @@ class digifinex(Exchange):
             'change': None,
             'percentage': self.safe_string_2(ticker, 'change', 'price_change_percent'),
             'average': None,
-            'baseVolume': self.safe_string(ticker, 'base_vol'),
-            'quoteVolume': self.safe_string_2(ticker, 'vol', 'volume_24h'),
+            'baseVolume': self.safe_string_2(ticker, 'vol', 'volume_24h'),
+            'quoteVolume': self.safe_string(ticker, 'base_vol'),
             'info': ticker,
         }, market)
 
