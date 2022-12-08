@@ -220,8 +220,26 @@ module.exports = class bkex extends Exchange {
             'options': {
                 'timeframes': {
                     'spot': {
+                        '1m': '1m',
+                        '5m': '5m',
+                        '15m': '15m',
+                        '30m': '30m',
+                        '1h': '1h',
+                        '4h': '4h',
+                        '6h': '6h',
+                        '12h': '12h',
+                        '1d': '1d',
+                        '1w': '1w',
                     },
-                    'contract': {
+                    'swap': {
+                        '1m': 'M1',
+                        '5m': 'M5',
+                        '15m': 'M15',
+                        '30m': 'M30',
+                        '1h': 'H1',
+                        '4h': 'H4',
+                        '6h': 'H6',
+                        '1d': 'D1',
                     },
                 },
                 'defaultType': 'spot', // spot, swap
@@ -488,6 +506,8 @@ module.exports = class bkex extends Exchange {
          * @method
          * @name bkex#fetchOHLCV
          * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @see https://bkexapi.github.io/docs/api_en.htm?shell#quotationData-1
+         * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-kline
          * @param {string} symbol unified symbol of the market to fetch OHLCV data for
          * @param {string} timeframe the length of time each candle represents
          * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
@@ -497,56 +517,92 @@ module.exports = class bkex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const swap = market['swap'];
         const request = {
             'symbol': market['id'],
-            'period': this.timeframes[timeframe],
         };
+        let method = 'publicSpotGetQKline';
+        if (swap) {
+            method = 'publicSwapGetMarketCandle';
+            request['period'] = this.options.timeframes.swap[timeframe];
+            if (limit !== undefined) {
+                request['count'] = limit;
+            }
+        } else {
+            request['symbol'] = market['id'];
+            request['period'] = this.options.timeframes.spot[timeframe];
+        }
         if (limit !== undefined) {
-            request['size'] = limit;
+            const limitRequest = swap ? 'count' : 'size';
+            request[limitRequest] = limit;
         }
         // their docs says that 'from/to' arguments are mandatory, however that's not true in reality
         if (since !== undefined) {
-            request['from'] = since;
+            const sinceRequest = swap ? 'start' : 'from';
+            request[sinceRequest] = since;
             // when 'since' [from] argument is set, then exchange also requires 'to' value to be set. So we have to set 'to' argument depending 'limit' amount (if limit was not provided, then exchange-default 500).
             if (limit === undefined) {
                 limit = 500;
             }
             const duration = this.parseTimeframe (timeframe);
             const timerange = limit * duration * 1000;
-            request['to'] = this.sum (request['from'], timerange);
+            const toRequest = swap ? 'end' : 'to';
+            request[toRequest] = this.sum (request[sinceRequest], timerange);
         }
-        const response = await this.publicSpotGetQKline (request);
+        const response = await this[method] (request);
         //
-        // {
-        //     "code": "0",
-        //     "data": [
-        //       {
-        //          "close": "43414.68",
-        //          "high": "43446.47",
-        //          "low": "43403.05",
-        //          "open": "43406.05",
-        //          "quoteVolume": "61500.40099",
-        //          "symbol": "BTC_USDT",
-        //          "ts": "1646152440000",
-        //          "volume": 1.41627
-        //       },
-        //     ],
-        //     "msg": "success",
-        //     "status": 0
-        // }
+        // spot
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "close": "43414.68",
+        //                 "high": "43446.47",
+        //                 "low": "43403.05",
+        //                 "open": "43406.05",
+        //                 "quoteVolume": "61500.40099",
+        //                 "symbol": "BTC_USDT",
+        //                 "ts": "1646152440000",
+        //                 "volume": 1.41627
+        //             },
+        //         ],
+        //         "msg": "success",
+        //         "status": 0
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "success",
+        //         "data": [
+        //             {
+        //                 "symbol": "btc_usdt",
+        //                 "amount": "10.26",
+        //                 "volume": "172540.9433",
+        //                 "open": "16817.29",
+        //                 "close": "1670476440000",
+        //                 "high": "16816.45",
+        //                 "low": "16817.29",
+        //                 "ts": 1670476440000
+        //             },
+        //         ]
+        //     }
         //
         const data = this.safeValue (response, 'data', []);
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
     parseOHLCV (ohlcv, market = undefined) {
+        const baseCurrencyVolume = market['swap'] ? 'amount' : 'volume';
         return [
             this.safeInteger (ohlcv, 'ts'),
             this.safeFloat (ohlcv, 'open'),
             this.safeFloat (ohlcv, 'high'),
             this.safeFloat (ohlcv, 'low'),
             this.safeFloat (ohlcv, 'close'),
-            this.safeFloat (ohlcv, 'volume'),
+            this.safeFloat (ohlcv, baseCurrencyVolume),
         ];
     }
 
