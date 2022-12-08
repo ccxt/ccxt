@@ -1550,23 +1550,21 @@ class Exchange(object):
 
     def filter_by_value_since_limit(self, array, field, value=None, since=None, limit=None, key='timestamp', tail=None):
         array = self.to_array(array)
-        sinceIsDefined = since is not None
+        if tail is None:
+            tail = since is None
         if value is not None:
             array = [entry for entry in array if entry[field] == value]
-        if sinceIsDefined:
+        if since is not None:
             array = [entry for entry in array if entry[key] >= since]
-        if tail is None:
-            tail = not sinceIsDefined
         if limit is not None:
             array = array[-limit:] if tail else array[:limit]
         return array
 
-    def filter_by_since_limit(self, array, since=None, limit=None, key='timestamp', tail=False):
+    def filter_by_since_limit(self, array, since=None, limit=None, key='timestamp', tail=None):
         array = self.to_array(array)
-        sinceIsDefined = since is not None
         if tail is None:
-            tail = not sinceIsDefined
-        if sinceIsDefined:
+            tail = since is None
+        if since is not None:
             array = [entry for entry in array if entry[key] >= since]
         if limit is not None:
             array = array[-limit:] if tail else array[:limit]
