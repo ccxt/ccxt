@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.2.82';
+$version = '2.2.83';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.2.82';
+    const VERSION = '2.2.83';
 
     public $browser;
     public $marketsLoading = null;
@@ -1208,18 +1208,26 @@ class Exchange extends \ccxt\Exchange {
         return $defaultNetworkCode;
     }
 
-    public function select_network_id_from_available_networks($currencyCode, $networkCode, $networkEntriesIndexed) {
+    public function select_network_code_from_unified_networks($currencyCode, $networkCode, $indexedNetworkEntries) {
+        return $this->selectNetworkKeyFromNetworks ($currencyCode, $networkCode, $indexedNetworkEntries, true);
+    }
+
+    public function select_network_id_from_raw_networks($currencyCode, $networkCode, $indexedNetworkEntries) {
+        return $this->selectNetworkKeyFromNetworks ($currencyCode, $networkCode, $indexedNetworkEntries, false);
+    }
+
+    public function select_network_key_from_networks($currencyCode, $networkCode, $indexedNetworkEntries, $isIndexedByUnifiedNetworkCode = false) {
         // this method is used against raw & unparse network entries, which are just indexed by network id
         $chosenNetworkId = null;
-        $availableNetworkIds = is_array($networkEntriesIndexed) ? array_keys($networkEntriesIndexed) : array();
+        $availableNetworkIds = is_array($indexedNetworkEntries) ? array_keys($indexedNetworkEntries) : array();
         $responseNetworksLength = count($availableNetworkIds);
         if ($networkCode !== null) {
-            // if $networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
-            $networkId = $this->networkCodeToId ($networkCode, $currencyCode);
             if ($responseNetworksLength === 0) {
                 throw new NotSupported($this->id . ' - ' . $networkCode . ' network did not return any result for ' . $currencyCode);
             } else {
-                if (is_array($networkEntriesIndexed) && array_key_exists($networkId, $networkEntriesIndexed)) {
+                // if $networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
+                $networkId = $isIndexedByUnifiedNetworkCode ? $networkCode : $this->networkCodeToId ($networkCode, $currencyCode);
+                if (is_array($indexedNetworkEntries) && array_key_exists($networkId, $indexedNetworkEntries)) {
                     $chosenNetworkId = $networkId;
                 } else {
                     throw new NotSupported($this->id . ' - ' . $networkId . ' network was not found for ' . $currencyCode . ', use one of ' . implode(', ', $availableNetworkIds));
@@ -1227,12 +1235,12 @@ class Exchange extends \ccxt\Exchange {
             }
         } else {
             if ($responseNetworksLength === 0) {
-                throw new NotSupported($this->id . ' - no networks were returned for' . $currencyCode);
+                throw new NotSupported($this->id . ' - no networks were returned for ' . $currencyCode);
             } else {
                 // if $networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
                 $defaultNetworkCode = $this->defaultNetworkCode ($currencyCode);
-                $defaultNetworkId = $this->networkCodeToId ($defaultNetworkCode, $currencyCode);
-                $chosenNetworkId = (is_array($networkEntriesIndexed) && array_key_exists($defaultNetworkId, $networkEntriesIndexed)) ? $defaultNetworkId : $availableNetworkIds[0];
+                $defaultNetworkId = $isIndexedByUnifiedNetworkCode ? $defaultNetworkCode : $this->networkCodeToId ($defaultNetworkCode, $currencyCode);
+                $chosenNetworkId = (is_array($indexedNetworkEntries) && array_key_exists($defaultNetworkId, $indexedNetworkEntries)) ? $defaultNetworkId : $availableNetworkIds[0];
             }
         }
         return $chosenNetworkId;

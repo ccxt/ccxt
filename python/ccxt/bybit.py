@@ -5032,7 +5032,7 @@ class bybit(Exchange):
         result = self.safe_value(response, 'result', {})
         chains = self.safe_value(result, 'chains', [])
         chainsIndexedById = self.index_by(chains, 'chain')
-        selectedNetworkId = self.select_network_id_from_available_networks(code, networkCode, chainsIndexedById)
+        selectedNetworkId = self.select_network_id_from_raw_networks(code, networkCode, chainsIndexedById)
         addressObject = self.safe_value(chainsIndexedById, selectedNetworkId, {})
         return self.parse_deposit_address(addressObject, currency)
 

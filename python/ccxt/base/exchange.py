@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.2.82'
+__version__ = '2.2.83'
 
 # -----------------------------------------------------------------------------
 
@@ -2595,29 +2595,35 @@ class Exchange(object):
                 defaultNetworkCode = defaultNetwork
         return defaultNetworkCode
 
-    def select_network_id_from_available_networks(self, currencyCode, networkCode, networkEntriesIndexed):
+    def select_network_code_from_unified_networks(self, currencyCode, networkCode, indexedNetworkEntries):
+        return self.selectNetworkKeyFromNetworks(currencyCode, networkCode, indexedNetworkEntries, True)
+
+    def select_network_id_from_raw_networks(self, currencyCode, networkCode, indexedNetworkEntries):
+        return self.selectNetworkKeyFromNetworks(currencyCode, networkCode, indexedNetworkEntries, False)
+
+    def select_network_key_from_networks(self, currencyCode, networkCode, indexedNetworkEntries, isIndexedByUnifiedNetworkCode=False):
         # self method is used against raw & unparse network entries, which are just indexed by network id
         chosenNetworkId = None
-        availableNetworkIds = list(networkEntriesIndexed.keys())
+        availableNetworkIds = list(indexedNetworkEntries.keys())
         responseNetworksLength = len(availableNetworkIds)
         if networkCode is not None:
-            # if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
-            networkId = self.networkCodeToId(networkCode, currencyCode)
             if responseNetworksLength == 0:
                 raise NotSupported(self.id + ' - ' + networkCode + ' network did not return any result for ' + currencyCode)
             else:
-                if networkId in networkEntriesIndexed:
+                # if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
+                networkId = networkCode if isIndexedByUnifiedNetworkCode else self.networkCodeToId(networkCode, currencyCode)
+                if networkId in indexedNetworkEntries:
                     chosenNetworkId = networkId
                 else:
                     raise NotSupported(self.id + ' - ' + networkId + ' network was not found for ' + currencyCode + ', use one of ' + ', '.join(availableNetworkIds))
         else:
             if responseNetworksLength == 0:
-                raise NotSupported(self.id + ' - no networks were returned for' + currencyCode)
+                raise NotSupported(self.id + ' - no networks were returned for ' + currencyCode)
             else:
                 # if networkCode was not provided by user, then we try to use the default network(if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
                 defaultNetworkCode = self.defaultNetworkCode(currencyCode)
-                defaultNetworkId = self.networkCodeToId(defaultNetworkCode, currencyCode)
-                chosenNetworkId = defaultNetworkId if (defaultNetworkId in networkEntriesIndexed) else availableNetworkIds[0]
+                defaultNetworkId = defaultNetworkCode if isIndexedByUnifiedNetworkCode else self.networkCodeToId(defaultNetworkCode, currencyCode)
+                chosenNetworkId = defaultNetworkId if (defaultNetworkId in indexedNetworkEntries) else availableNetworkIds[0]
         return chosenNetworkId
 
     def safe_number_2(self, dictionary, key1, key2, d=None):

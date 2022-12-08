@@ -10,7 +10,6 @@ use ccxt\ExchangeError;
 use ccxt\ArgumentsRequired;
 use ccxt\BadRequest;
 use ccxt\BadSymbol;
-use ccxt\InvalidAddress;
 use ccxt\InvalidOrder;
 use ccxt\NotSupported;
 use ccxt\NetworkError;
@@ -110,7 +109,7 @@ class huobi extends Exchange {
                 'fetchTransactionFees' => null,
                 'fetchTransactions' => null,
                 'fetchTransfers' => null,
-                'fetchWithdrawAddressesByNetwork' => true,
+                'fetchWithdrawAddresses' => true,
                 'fetchWithdrawal' => null,
                 'fetchWithdrawals' => true,
                 'fetchWithdrawalWhitelist' => null,
@@ -848,6 +847,7 @@ class huobi extends Exchange {
                     // err-code
                     '403' => '\\ccxt\\AuthenticationError',  // array("status":"error","err_code":403,"err_msg":"Incorrect Access key [Access key错误]","ts":1652774224344)
                     '1010' => '\\ccxt\\AccountNotEnabled', // array("status":"error","err_code":1010,"err_msg":"Account doesnt exist.","ts":1648137970490)
+                    '1003' => '\\ccxt\\AuthenticationError', // array(code => '1003', message => 'invalid signature')
                     '1013' => '\\ccxt\\BadSymbol', // array("status":"error","err_code":1013,"err_msg":"This contract symbol doesnt exist.","ts":1640550459583)
                     '1017' => '\\ccxt\\OrderNotFound', // array("status":"error","err_code":1017,"err_msg":"Order doesnt exist.","ts":1640550859242)
                     '1034' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1034,"err_msg":"Incorrect field of order price type.","ts":1643802870182)
@@ -918,14 +918,48 @@ class huobi extends Exchange {
                 'defaultType' => 'spot', // spot, future, swap
                 'defaultSubType' => 'linear', // inverse, linear
                 'defaultNetwork' => 'ERC20',
+                'defaultNetworks' => array(
+                    'ETH' => 'ERC20',
+                    'BTC' => 'BTC',
+                    'USDT' => 'TRC20',
+                ),
                 'networks' => array(
-                    'ETH' => 'erc20',
-                    'TRX' => 'trc20',
-                    'HRC20' => 'hrc20',
-                    'HECO' => 'hrc20',
-                    'HT' => 'hrc20',
-                    'ALGO' => 'algo',
-                    'OMNI' => '',
+                    // by displaynames
+                    'ALGO' => 'ALGO',
+                    'ALGORAND' => 'ALGO',
+                    'BEP20' => 'BEP20',
+                    'BSC' => 'BEP20',
+                    'ERC20' => 'ERC20',
+                    'ETH' => 'ERC20',
+                    'AVALANCHE' => 'AVAXCCHAIN',
+                    'AVAX' => 'AVAXCCHAIN',
+                    'HRC20' => 'HECO',
+                    'HECO' => 'HECO',
+                    // 'HT' => 'HECO', // HT is not acceptable networkcode for unification
+                    'TRC20' => 'TRC20',
+                    'TRX' => 'TRC20',
+                    'BTC' => 'BTC',
+                    'BITCOIN' => 'BTC',
+                    'ARBITRUM' => 'ARB',
+                    'ARB' => 'ARB',
+                    'SOLANA' => 'SOL',
+                    'SOL' => 'SOL',
+                    'SPL' => 'SOL',
+                    'PRC20' => 'PRC20',
+                    'POLYGON' => 'PRC20',
+                    'MATIC' => 'PRC20',
+                ),
+                'networksById' => array(
+                    'ALGO' => 'ALGO',
+                    'BEP20' => 'BEP20',
+                    'ERC20' => 'ERC20',
+                    'AVAXCCHAIN' => 'AVALANCHE',
+                    'HECO' => 'HRC20',
+                    'TRC20' => 'TRC20',
+                    'BTC' => 'BTC',
+                    'ARB' => 'ARBITRUM',
+                    'SOL' => 'SOLANA',
+                    'PRC20' => 'POLYGON',
                 ),
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod' => 'spot_private_get_v1_order_orders', // 'spot_private_get_v1_order_history' // https://github.com/ccxt/ccxt/pull/5392
@@ -2772,41 +2806,37 @@ class huobi extends Exchange {
             //
             $data = $this->safe_value($response, 'data', array());
             $result = array();
+            $this->options['networkChainIdsByNames'] = array();
+            $this->options['networkNamesByChainIds'] = array();
             for ($i = 0; $i < count($data); $i++) {
                 $entry = $data[$i];
                 $currencyId = $this->safe_string($entry, 'currency');
                 $code = $this->safe_currency_code($currencyId);
+                $this->options['networkChainIdsByNames'][$code] = array();
                 $chains = $this->safe_value($entry, 'chains', array());
                 $networks = array();
                 $instStatus = $this->safe_string($entry, 'instStatus');
                 $currencyActive = $instStatus === 'normal';
-                $fee = null;
                 $minPrecision = null;
                 $minWithdraw = null;
                 $maxWithdraw = null;
                 $deposit = null;
                 $withdraw = null;
                 for ($j = 0; $j < count($chains); $j++) {
-                    $chain = $chains[$j];
-                    $networkId = $this->safe_string($chain, 'chain');
-                    $baseChainProtocol = $this->safe_string($chain, 'baseChainProtocol');
-                    $huobiToken = 'h' . $currencyId;
-                    if ($baseChainProtocol === null) {
-                        if ($huobiToken === $networkId) {
-                            $baseChainProtocol = 'ERC20';
-                        } else {
-                            $baseChainProtocol = $this->safe_string($chain, 'displayName');
-                        }
-                    }
-                    $network = $this->safe_network($baseChainProtocol);
-                    $minWithdraw = $this->safe_number($chain, 'minWithdrawAmt');
-                    $maxWithdraw = $this->safe_number($chain, 'maxWithdrawAmt');
-                    $withdrawStatus = $this->safe_string($chain, 'withdrawStatus');
-                    $depositStatus = $this->safe_string($chain, 'depositStatus');
+                    $chainEntry = $chains[$j];
+                    $uniqueChainId = $this->safe_string($chainEntry, 'chain'); // $i->e. usdterc20, trc20usdt ...
+                    $title = $this->safe_string($chainEntry, 'displayName');
+                    $this->options['networkChainIdsByNames'][$code][$title] = $uniqueChainId;
+                    $this->options['networkNamesByChainIds'][$uniqueChainId] = $title;
+                    $networkCode = $this->network_id_to_code($title, $code);
+                    $minWithdraw = $this->safe_number($chainEntry, 'minWithdrawAmt');
+                    $maxWithdraw = $this->safe_number($chainEntry, 'maxWithdrawAmt');
+                    $withdrawStatus = $this->safe_string($chainEntry, 'withdrawStatus');
+                    $depositStatus = $this->safe_string($chainEntry, 'depositStatus');
                     $withdrawEnabled = ($withdrawStatus === 'allowed');
                     $depositEnabled = ($depositStatus === 'allowed');
                     $active = $withdrawEnabled && $depositEnabled;
-                    $precision = $this->parse_precision($this->safe_string($chain, 'withdrawPrecision'));
+                    $precision = $this->parse_precision($this->safe_string($chainEntry, 'withdrawPrecision'));
                     if ($precision !== null) {
                         $minPrecision = ($minPrecision === null) ? $precision : Precise::string_min($precision, $minPrecision);
                     }
@@ -2820,11 +2850,11 @@ class huobi extends Exchange {
                     } elseif (!$depositEnabled) {
                         $deposit = false;
                     }
-                    $fee = $this->safe_number($chain, 'transactFeeWithdraw');
-                    $networks[$network] = array(
-                        'info' => $chain,
-                        'id' => $networkId,
-                        'network' => $network,
+                    $fee = $this->safe_number($chainEntry, 'transactFeeWithdraw');
+                    $networks[$networkCode] = array(
+                        'info' => $chainEntry,
+                        'id' => $uniqueChainId,
+                        'network' => $networkCode,
                         'limits' => array(
                             'withdraw' => array(
                                 'min' => $minWithdraw,
@@ -2838,8 +2868,6 @@ class huobi extends Exchange {
                         'precision' => $this->parse_number($precision),
                     );
                 }
-                $networksKeys = is_array($networks) ? array_keys($networks) : array();
-                $networkLength = count($networksKeys);
                 $result[$code] = array(
                     'info' => $entry,
                     'code' => $code,
@@ -2847,7 +2875,7 @@ class huobi extends Exchange {
                     'active' => $currencyActive,
                     'deposit' => $deposit,
                     'withdraw' => $withdraw,
-                    'fee' => ($networkLength <= 1) ? $fee : null,
+                    'fee' => null,
                     'name' => null,
                     'limits' => array(
                         'amount' => array(
@@ -2855,8 +2883,8 @@ class huobi extends Exchange {
                             'max' => null,
                         ),
                         'withdraw' => array(
-                            'min' => ($networkLength <= 1) ? $minWithdraw : null,
-                            'max' => ($networkLength <= 1) ? $maxWithdraw : null,
+                            'min' => $minWithdraw,
+                            'max' => $maxWithdraw,
                         ),
                     ),
                     'precision' => $this->parse_number($minPrecision),
@@ -2865,6 +2893,31 @@ class huobi extends Exchange {
             }
             return $result;
         }) ();
+    }
+
+    public function network_id_to_code($networkId, $currencyCode = null) {
+        // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
+        $keys = is_array($this->options['networkNamesByChainIds']) ? array_keys($this->options['networkNamesByChainIds']) : array();
+        $keysLength = count($keys);
+        if ($keysLength === 0) {
+            throw new ExchangeError($this->id . ' networkIdToCode() - markets need to be loaded at first');
+        }
+        $networkTitle = $this->safe_value($this->options['networkNamesByChainIds'], $networkId, $networkId);
+        return parent::network_id_to_code($networkTitle);
+    }
+
+    public function network_code_to_id($networkCode, $currencyCode = null) {
+        if ($currencyCode === null) {
+            throw new ArgumentsRequired($this->id . ' networkCodeToId() requires a $currencyCode argument');
+        }
+        $keys = is_array($this->options['networkChainIdsByNames']) ? array_keys($this->options['networkChainIdsByNames']) : array();
+        $keysLength = count($keys);
+        if ($keysLength === 0) {
+            throw new ExchangeError($this->id . ' networkCodeToId() - markets need to be loaded at first');
+        }
+        $uniqueNetworkIds = $this->safe_value($this->options['networkChainIdsByNames'], $currencyCode, array());
+        $networkTitle = parent::network_code_to_id($networkCode);
+        return $this->safe_value($uniqueNetworkIds, $networkTitle, $networkTitle);
     }
 
     public function fetch_balance($params = array ()) {
@@ -4651,16 +4704,6 @@ class huobi extends Exchange {
         }) ();
     }
 
-    public function safe_network($networkId) {
-        $lastCharacterIndex = strlen($networkId) - 1;
-        $lastCharacter = $networkId[$lastCharacterIndex];
-        if ($lastCharacter === '1') {
-            $networkId = mb_substr($networkId, 0, $lastCharacterIndex - 0);
-        }
-        $networksById = array();
-        return $this->safe_string($networksById, $networkId, $networkId);
-    }
-
     public function parse_deposit_address($depositAddress, $currency = null) {
         //
         //     {
@@ -4675,18 +4718,14 @@ class huobi extends Exchange {
         $currencyId = $this->safe_string($depositAddress, 'currency');
         $currency = $this->safe_currency($currencyId, $currency);
         $code = $this->safe_currency_code($currencyId, $currency);
-        $networkId = $this->safe_string($depositAddress, 'chain');
-        $networks = $this->safe_value($currency, 'networks', array());
-        $networksById = $this->index_by($networks, 'id');
-        $networkValue = $this->safe_value($networksById, $networkId, $networkId);
-        $network = $this->safe_string_upper($networkValue, 'network');
         $note = $this->safe_string($depositAddress, 'note');
+        $networkId = $this->safe_string($depositAddress, 'chain');
         $this->check_address($address);
         return array(
             'currency' => $code,
             'address' => $address,
             'tag' => $tag,
-            'network' => $network,
+            'network' => $this->network_id_to_code($networkId, $code),
             'note' => $note,
             'info' => $depositAddress,
         );
@@ -4733,41 +4772,16 @@ class huobi extends Exchange {
              * @param {array} $params extra parameters specific to the huobi api endpoint
              * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#address-structure address structure}
              */
-            $rawNetwork = $this->safe_string_upper($params, 'network');
-            $networks = $this->safe_value($this->options, 'networks', array());
-            $network = $this->safe_string_upper($networks, $rawNetwork, $rawNetwork);
-            $params = $this->omit($params, 'network');
-            $response = Async\await($this->fetch_deposit_addresses_by_network($code, $params));
-            $result = null;
-            if ($network === null) {
-                $result = $this->safe_value($response, $code);
-                if ($result === null) {
-                    $alias = $this->safe_string($networks, $code, $code);
-                    $result = $this->safe_value($response, $alias);
-                    if ($result === null) {
-                        $defaultNetwork = $this->safe_string($this->options, 'defaultNetwork', 'ERC20');
-                        $result = $this->safe_value($response, $defaultNetwork);
-                        if ($result === null) {
-                            $values = is_array($response) ? array_values($response) : array();
-                            $result = $this->safe_value($values, 0);
-                            if ($result === null) {
-                                throw new InvalidAddress($this->id . ' fetchDepositAddress() cannot find deposit address for ' . $code);
-                            }
-                        }
-                    }
-                }
-                return $result;
-            }
-            $result = $this->safe_value($response, $network);
-            if ($result === null) {
-                throw new InvalidAddress($this->id . ' fetchDepositAddress() cannot find ' . $network . ' deposit address for ' . $code);
-            }
-            return $result;
+            Async\await($this->load_markets());
+            list($networkCode, $paramsOmited) = $this->handle_network_code_and_params($params);
+            $indexedAddresses = Async\await($this->fetch_deposit_addresses_by_network($code, $paramsOmited));
+            $selectedNetworkCode = $this->select_network_code_from_unified_networks($code, $networkCode, $indexedAddresses);
+            return $indexedAddresses[$selectedNetworkCode];
         }) ();
     }
 
-    public function fetch_withdraw_addresses_by_network($code, $params = array ()) {
-        return Async\async(function () use ($code, $params) {
+    public function fetch_withdraw_addresses($code, $note = null, $networkCode = null, $params = array ()) {
+        return Async\async(function () use ($code, $note, $networkCode, $params) {
             Async\await($this->load_markets());
             $currency = $this->currency($code);
             $request = array(
@@ -4781,51 +4795,25 @@ class huobi extends Exchange {
             //             {
             //                 $currency => "eth",
             //                 chain => "eth"
-            //                 note => "Binance - TRC20",
+            //                 $note => "Binance - TRC20",
             //                 addressTag => "",
-            //                 address => "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
+            //                 $address => "0xf7292eb9ba7bc50358e27f0e025a4d225a64127b",
             //             }
             //         )
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $parsed = $this->parse_deposit_addresses($data, array( $code ), false);
-            return $this->index_by($parsed, 'network');
-        }) ();
-    }
-
-    public function fetch_withdraw_address($code, $params = array ()) {
-        return Async\async(function () use ($code, $params) {
-            $rawNetwork = $this->safe_string_upper($params, 'network');
-            $networks = $this->safe_value($this->options, 'networks', array());
-            $network = $this->safe_string_upper($networks, $rawNetwork, $rawNetwork);
-            $params = $this->omit($params, 'network');
-            $response = Async\await($this->fetch_withdraw_addresses_by_network($code, $params));
-            $result = null;
-            if ($network === null) {
-                $result = $this->safe_value($response, $code);
-                if ($result === null) {
-                    $alias = $this->safe_string($networks, $code, $code);
-                    $result = $this->safe_value($response, $alias);
-                    if ($result === null) {
-                        $defaultNetwork = $this->safe_string($this->options, 'defaultNetwork', 'ERC20');
-                        $result = $this->safe_value($response, $defaultNetwork);
-                        if ($result === null) {
-                            $values = is_array($response) ? array_values($response) : array();
-                            $result = $this->safe_value($values, 0);
-                            if ($result === null) {
-                                throw new InvalidAddress($this->id . ' fetchWithdrawAddress() cannot find withdraw address for ' . $code);
-                            }
-                        }
-                    }
+            $allAddresses = $this->parse_deposit_addresses($data, array( $code ), false);
+            $addresses = array();
+            for ($i = 0; $i < count($allAddresses); $i++) {
+                $address = $allAddresses[$i];
+                $noteMatch = ($note === null) || ($address['note'] === $note);
+                $networkMatch = ($networkCode === null) || ($address['network'] === $networkCode);
+                if ($noteMatch && $networkMatch) {
+                    $addresses[] = $address;
                 }
-                return $result;
             }
-            $result = $this->safe_value($response, $network);
-            if ($result === null) {
-                throw new InvalidAddress($this->id . ' fetchWithdrawAddress() cannot find ' . $network . ' withdraw address for ' . $code);
-            }
-            return $result;
+            return $addresses;
         }) ();
     }
 
@@ -4858,7 +4846,32 @@ class huobi extends Exchange {
                 $request['size'] = $limit; // max 100
             }
             $response = Async\await($this->spotPrivateGetV1QueryDepositWithdraw (array_merge($request, $params)));
-            // return $response
+            //
+            //    {
+            //         "status" => "ok",
+            //         "data" => array(
+            //             array(
+            //                 "id" => "75115912",
+            //                 "type" => "deposit",
+            //                 "sub-type" => "NORMAL",
+            //                 "request-id" => "trc20usdt-a2e229a44ef2a948c874366230bb56aa73631cc0a03d177bd8b4c9d38262d7ff-200",
+            //                 "currency" => "usdt",
+            //                 "chain" => "trc20usdt",
+            //                 "tx-hash" => "a2e229a44ef2a948c874366230bb56aa73631cc0a03d177bd8b4c9d38262d7ff",
+            //                 "amount" => "12.000000000000000000",
+            //                 "from-addr-tag" => "",
+            //                 "address-id" => "0",
+            //                 "address" => "TRFTd1FxepQE6CnpwzUEMEbFaLm5bJK67s",
+            //                 "address-tag" => "",
+            //                 "fee" => "0",
+            //                 "state" => "safe",
+            //                 "wallet-confirm" => "2",
+            //                 "created-at" => "1621843808662",
+            //                 "updated-at" => "1621843857137"
+            //             ),
+            //         )
+            //     }
+            //
             return $this->parse_transactions($response['data'], $currency, $since, $limit);
         }) ();
     }
@@ -4892,7 +4905,30 @@ class huobi extends Exchange {
                 $request['size'] = $limit; // max 100
             }
             $response = Async\await($this->spotPrivateGetV1QueryDepositWithdraw (array_merge($request, $params)));
-            // return $response
+            //
+            //    {
+            //         "status" => "ok",
+            //         "data" => array(
+            //             array(
+            //                 "id" => "61335312",
+            //                 "type" => "withdraw",
+            //                 "sub-type" => "NORMAL",
+            //                 "currency" => "usdt",
+            //                 "chain" => "trc20usdt",
+            //                 "tx-hash" => "30a3111f2fead74fae45c6218ca3150fc33cab2aa59cfe41526b96aae79ce4ec",
+            //                 "amount" => "12.000000000000000000",
+            //                 "from-addr-tag" => "",
+            //                 "address-id" => "27321591",
+            //                 "address" => "TRf5JacJQRsF4Nm2zu11W6maDGeiEWQu9e",
+            //                 "address-tag" => "",
+            //                 "fee" => "1.000000000000000000",
+            //                 "state" => "confirmed",
+            //                 "created-at" => "1621852316553",
+            //                 "updated-at" => "1621852467041"
+            //             ),
+            //         )
+            //     }
+            //
             return $this->parse_transactions($response['data'], $currency, $since, $limit);
         }) ();
     }
@@ -4901,36 +4937,44 @@ class huobi extends Exchange {
         //
         // fetchDeposits
         //
-        //     {
-        //         'id' => 8211029,
-        //         'type' => 'deposit',
-        //         'currency' => 'eth',
-        //         'chain' => 'eth',
-        //         'tx-hash' => 'bd315....',
-        //         'amount' => 0.81162421,
-        //         'address' => '4b8b....',
-        //         'address-tag' => '',
-        //         'fee' => 0,
-        //         'state' => 'safe',
-        //         'created-at' => 1542180380965,
-        //         'updated-at' => 1542180788077
-        //     }
+        //     array(
+        //         "id" => "75115912",
+        //         "type" => "deposit",
+        //         "sub-$type" => "NORMAL",
+        //         "request-id" => "trc20usdt-a2e229a44ef2a948c874366230bb56aa73631cc0a03d177bd8b4c9d38262d7ff-200",
+        //         "currency" => "usdt",
+        //         "chain" => "trc20usdt",
+        //         "tx-hash" => "a2e229a44ef2a948c874366230bb56aa73631cc0a03d177bd8b4c9d38262d7ff",
+        //         "amount" => "2849.000000000000000000",
+        //         "from-addr-tag" => "",
+        //         "address-id" => "0",
+        //         "address" => "TRFTd1FxepQE6CnpwzUEMEbFaLm5bJK67s",
+        //         "address-tag" => "",
+        //         "fee" => "0",
+        //         "state" => "safe",
+        //         "wallet-confirm" => "2",
+        //         "created-at" => "1621843808662",
+        //         "updated-at" => "1621843857137"
+        //     ),
         //
         // fetchWithdrawals
         //
         //     {
-        //         'id' => 6908275,
-        //         'type' => 'withdraw',
-        //         'currency' => 'btc',
-        //         'chain' => 'btc',
-        //         'tx-hash' => 'c1a1a....',
-        //         'amount' => 0.80257005,
-        //         'address' => '1QR....',
-        //         'address-tag' => '',
-        //         'fee' => 0.0005,
-        //         'state' => 'confirmed',
-        //         'created-at' => 1552107295685,
-        //         'updated-at' => 1552108032859
+        //         "id" => "61335312",
+        //         "type" => "withdraw",
+        //         "sub-$type" => "NORMAL",
+        //         "currency" => "usdt",
+        //         "chain" => "trc20usdt",
+        //         "tx-hash" => "30a3111f2fead74fae45c6218ca3150fc33cab2aa59cfe41526b96aae79ce4ec",
+        //         "amount" => "12.000000000000000000",
+        //         "from-addr-tag" => "",
+        //         "address-id" => "27321591",
+        //         "address" => "TRf5JacJQRsF4Nm2zu11W6maDGeiEWQu9e",
+        //         "address-tag" => "",
+        //         "fee" => "1.000000000000000000",
+        //         "state" => "confirmed",
+        //         "created-at" => "1621852316553",
+        //         "updated-at" => "1621852467041"
         //     }
         //
         // withdraw
@@ -4950,13 +4994,14 @@ class huobi extends Exchange {
         if ($feeCost !== null) {
             $feeCost = Precise::string_abs($feeCost);
         }
+        $networkId = $this->safe_string($transaction, 'chain');
         return array(
             'info' => $transaction,
             'id' => $this->safe_string_2($transaction, 'id', 'data'),
             'txid' => $this->safe_string($transaction, 'tx-hash'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),
-            'network' => $this->safe_string_upper($transaction, 'chain'),
+            'network' => $this->network_id_to_code($networkId, $code),
             'address' => $this->safe_string($transaction, 'address'),
             'addressTo' => null,
             'addressFrom' => null,
@@ -5023,19 +5068,11 @@ class huobi extends Exchange {
             if ($tag !== null) {
                 $request['addr-tag'] = $tag; // only for XRP?
             }
-            $networks = $this->safe_value($this->options, 'networks', array());
-            $network = $this->safe_string_upper($params, 'network'); // this line allows the user to specify either ERC20 or ETH
-            $network = $this->safe_string_lower($networks, $network, $network); // handle ETH>ERC20 alias
-            if ($network !== null) {
-                // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
-                if ($network === 'erc20') {
-                    $request['chain'] = $currency['id'] . $network;
-                } else {
-                    $request['chain'] = $network . $currency['id'];
-                }
-                $params = $this->omit($params, 'network');
+            list($networkCode, $paramsOmited) = $this->handle_network_code_and_params($params);
+            if ($networkCode !== null) {
+                $request['chain'] = $this->networkPairIdFromCode ($code, $networkCode);
             }
-            $response = Async\await($this->spotPrivatePostV1DwWithdrawApiCreate (array_merge($request, $params)));
+            $response = Async\await($this->spotPrivatePostV1DwWithdrawApiCreate (array_merge($request, $paramsOmited)));
             //
             //     {
             //         "status" => "ok",
@@ -5696,6 +5733,12 @@ class huobi extends Exchange {
                 $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
                 throw new ExchangeError($feedback);
             }
+        }
+        if (is_array($response) && array_key_exists('code', $response)) {
+            // array($code => '1003', $message => 'invalid signature')
+            $feedback = $this->id . ' ' . $body;
+            $code = $this->safe_string($response, 'code');
+            $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
         }
     }
 

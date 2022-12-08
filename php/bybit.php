@@ -5306,7 +5306,7 @@ class bybit extends Exchange {
         $result = $this->safe_value($response, 'result', array());
         $chains = $this->safe_value($result, 'chains', array());
         $chainsIndexedById = $this->index_by($chains, 'chain');
-        $selectedNetworkId = $this->select_network_id_from_available_networks($code, $networkCode, $chainsIndexedById);
+        $selectedNetworkId = $this->select_network_id_from_raw_networks($code, $networkCode, $chainsIndexedById);
         $addressObject = $this->safe_value($chainsIndexedById, $selectedNetworkId, array());
         return $this->parse_deposit_address($addressObject, $currency);
     }
