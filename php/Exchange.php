@@ -1877,7 +1877,7 @@ class Exchange {
     public function filter_by_since_limit($array, $since = null, $limit = null, $key = 'timestamp', $tail = null) {
         $result = array();
         $since_is_set = isset($since);
-        if (isset($tail)) {
+        if (is_null($tail)) {
             $tail = !$since_is_set;
         }
         if ($since_is_set) {
@@ -1910,11 +1910,11 @@ class Exchange {
         return $result;
     }
 
-    public function filter_by_value_since_limit($array, $field, $value = null, $since = null, $limit = null, $key = 'timestamp', $tail = false) {
+    public function filter_by_value_since_limit($array, $field, $value = null, $since = null, $limit = null, $key = 'timestamp', $tail = null) {
         $value_is_set = isset($value);
         $since_is_set = isset($since);
         $result = array();
-        if (isset($tail)) {
+        if (is_null($tail)) {
             $tail = !$since_is_set;
         }
         foreach ($array as $k => $v) {
