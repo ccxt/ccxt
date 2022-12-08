@@ -239,8 +239,7 @@ module.exports = class ace extends Exchange {
         let response = await this.publicGetListMarketPair ();
         // temporary workaround to finx json string
         if (response.indexOf ('\'') >= 0) {
-            // this line didn't work in php
-            response = response.replace (/'/g, '"');
+            response = response.split ('\'').join ('"');
             response = this.parseJson (response);
         }
         //
