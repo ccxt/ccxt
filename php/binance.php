@@ -6346,7 +6346,7 @@ class binance extends Exchange {
         //         ),
         //     )
         //
-        return $this->parse_borrow_rate_history($response);
+        return $this->parse_borrow_rate_history($response, $code, $since, $limit);
     }
 
     public function parse_borrow_rate_history($response, $code, $since, $limit) {
