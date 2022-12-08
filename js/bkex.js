@@ -522,15 +522,18 @@ module.exports = class bkex extends Exchange {
             'symbol': market['id'],
         };
         let method = 'publicSpotGetQKline';
+        const timeframes = this.safeValue (this.options, 'timeframes');
         if (swap) {
+            const swapTimeframes = this.safeValue (timeframes, 'swap');
             method = 'publicSwapGetMarketCandle';
-            request['period'] = this.options.timeframes.swap[timeframe];
+            request['period'] = swapTimeframes[timeframe];
             if (limit !== undefined) {
                 request['count'] = limit;
             }
         } else {
+            const spotTimeframes = this.safeValue (timeframes, 'spot');
             request['symbol'] = market['id'];
-            request['period'] = this.options.timeframes.spot[timeframe];
+            request['period'] = spotTimeframes[timeframe];
         }
         if (limit !== undefined) {
             const limitRequest = swap ? 'count' : 'size';
