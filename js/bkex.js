@@ -723,7 +723,8 @@ module.exports = class bkex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data');
-        return this.parseOrderBook (data, market['symbol'], undefined, 'bid', 'ask');
+        const timestamp = this.safeInteger (data, 'timestamp');
+        return this.parseOrderBook (data, market['symbol'], timestamp, 'bid', 'ask');
     }
 
     async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
