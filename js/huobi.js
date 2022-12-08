@@ -2874,6 +2874,14 @@ module.exports = class huobi extends Exchange {
         return result;
     }
 
+    networkPairIdFromCode (currencyCode, networkId) {
+        // possible chains - usdterc20, trc20usdt, hrc20usdt, usdt, algousdt
+        if (networkId === 'erc20') {
+            return currencyCode + networkId;
+        }
+        return networkId + currencyCode;
+    }
+
     networkIdToCode (networkId, currencyCode = undefined) {
         // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
         const keys = Object.keys (this.options['networkNamesByChainIds']);
