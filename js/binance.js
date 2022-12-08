@@ -1565,7 +1565,7 @@ module.exports = class binance extends Exchange {
             const active = (isWithdrawEnabled && isDepositEnabled && trading);
             let maxDecimalPlaces = undefined;
             if (minPrecision !== undefined) {
-                maxDecimalPlaces = this.parseNumber (this.numberToString (this.precisionFromString (minPrecision)));
+                maxDecimalPlaces = parseInt (this.numberToString (this.precisionFromString (minPrecision)));
             }
             result[code] = {
                 'id': id,
