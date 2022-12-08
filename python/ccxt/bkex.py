@@ -226,8 +226,26 @@ class bkex(Exchange):
             'options': {
                 'timeframes': {
                     'spot': {
+                        '1m': '1m',
+                        '5m': '5m',
+                        '15m': '15m',
+                        '30m': '30m',
+                        '1h': '1h',
+                        '4h': '4h',
+                        '6h': '6h',
+                        '12h': '12h',
+                        '1d': '1d',
+                        '1w': '1w',
                     },
-                    'contract': {
+                    'swap': {
+                        '1m': 'M1',
+                        '5m': 'M5',
+                        '15m': 'M15',
+                        '30m': 'M30',
+                        '1h': 'H1',
+                        '4h': 'H4',
+                        '6h': 'H6',
+                        '1d': 'D1',
                     },
                 },
                 'defaultType': 'spot',  # spot, swap
@@ -475,6 +493,8 @@ class bkex(Exchange):
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+        see https://bkexapi.github.io/docs/api_en.htm?shell#quotationData-1
+        see https://bkexapi.github.io/docs/api_en.htm?shell#contract-kline
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int|None since: timestamp in ms of the earliest candle to fetch
@@ -484,52 +504,89 @@ class bkex(Exchange):
         """
         self.load_markets()
         market = self.market(symbol)
+        swap = market['swap']
         request = {
             'symbol': market['id'],
-            'period': self.timeframes[timeframe],
         }
+        method = 'publicSpotGetQKline'
+        timeframes = self.safe_value(self.options, 'timeframes')
+        if swap:
+            swapTimeframes = self.safe_value(timeframes, 'swap')
+            method = 'publicSwapGetMarketCandle'
+            request['period'] = swapTimeframes[timeframe]
+            if limit is not None:
+                request['count'] = limit
+        else:
+            spotTimeframes = self.safe_value(timeframes, 'spot')
+            request['symbol'] = market['id']
+            request['period'] = spotTimeframes[timeframe]
         if limit is not None:
-            request['size'] = limit
+            limitRequest = 'count' if swap else 'size'
+            request[limitRequest] = limit
         # their docs says that 'from/to' arguments are mandatory, however that's not True in reality
         if since is not None:
-            request['from'] = since
+            sinceRequest = 'start' if swap else 'from'
+            request[sinceRequest] = since
             # when 'since' [from] argument is set, then exchange also requires 'to' value to be set. So we have to set 'to' argument depending 'limit' amount(if limit was not provided, then exchange-default 500).
             if limit is None:
                 limit = 500
             duration = self.parse_timeframe(timeframe)
             timerange = limit * duration * 1000
-            request['to'] = self.sum(request['from'], timerange)
-        response = self.publicSpotGetQKline(request)
+            toRequest = 'end' if swap else 'to'
+            request[toRequest] = self.sum(request[sinceRequest], timerange)
+        response = getattr(self, method)(request)
         #
-        # {
-        #     "code": "0",
-        #     "data": [
-        #       {
-        #          "close": "43414.68",
-        #          "high": "43446.47",
-        #          "low": "43403.05",
-        #          "open": "43406.05",
-        #          "quoteVolume": "61500.40099",
-        #          "symbol": "BTC_USDT",
-        #          "ts": "1646152440000",
-        #          "volume": 1.41627
-        #       },
-        #     ],
-        #     "msg": "success",
-        #     "status": 0
-        # }
+        # spot
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "close": "43414.68",
+        #                 "high": "43446.47",
+        #                 "low": "43403.05",
+        #                 "open": "43406.05",
+        #                 "quoteVolume": "61500.40099",
+        #                 "symbol": "BTC_USDT",
+        #                 "ts": "1646152440000",
+        #                 "volume": 1.41627
+        #             },
+        #         ],
+        #         "msg": "success",
+        #         "status": 0
+        #     }
+        #
+        # swap
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "success",
+        #         "data": [
+        #             {
+        #                 "symbol": "btc_usdt",
+        #                 "amount": "10.26",
+        #                 "volume": "172540.9433",
+        #                 "open": "16817.29",
+        #                 "close": "1670476440000",
+        #                 "high": "16816.45",
+        #                 "low": "16817.29",
+        #                 "ts": 1670476440000
+        #             },
+        #         ]
+        #     }
         #
         data = self.safe_value(response, 'data', [])
         return self.parse_ohlcvs(data, market, timeframe, since, limit)
 
     def parse_ohlcv(self, ohlcv, market=None):
+        baseCurrencyVolume = 'amount' if market['swap'] else 'volume'
         return [
             self.safe_integer(ohlcv, 'ts'),
             self.safe_float(ohlcv, 'open'),
             self.safe_float(ohlcv, 'high'),
             self.safe_float(ohlcv, 'low'),
             self.safe_float(ohlcv, 'close'),
-            self.safe_float(ohlcv, 'volume'),
+            self.safe_float(ohlcv, baseCurrencyVolume),
         ]
 
     def fetch_ticker(self, symbol, params={}):
