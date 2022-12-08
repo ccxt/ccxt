@@ -550,7 +550,7 @@ module.exports = class okx extends Exchange {
                     '58203': InvalidAddress, // Please add a withdrawal address
                     '58204': AccountSuspended, // Withdrawal suspended
                     '58205': ExchangeError, // Withdrawal amount exceeds the upper limit
-                    '58206': ExchangeError, // Withdrawal amount is lower than the lower limit
+                    '58206': BadRequest, // Withdrawal amount is lower than the lower limit
                     '58207': InvalidAddress, // Withdrawal failed due to address error
                     '58208': ExchangeError, // Withdrawal failed. Please link your email
                     '58209': ExchangeError, // Withdrawal failed. Withdraw feature is not available for sub-accounts
@@ -1295,16 +1295,12 @@ module.exports = class okx extends Exchange {
                 } else if (!canWithdraw) {
                     withdrawEnabled = false;
                 }
-                    const title = this.getChainTitleFromId (networkId);
+                    const title = this.getSplitTitleFromNetworkId (networkId);
                     this.options['networkChainIdsByNames'][code][title] = networkId;
                     this.options['networkNamesByChainIds'][networkId] = title;
-                    const networkCode = this.networkIdToCode (title);
+                    const networkCode = this.networkIdToCode (networkId, code);
                     const precision = this.parsePrecision (this.safeString (chain, 'wdTickSz'));
-                    if (maxPrecision === undefined) {
-                        maxPrecision = precision;
-                    } else {
-                        maxPrecision = Precise.stringMin (maxPrecision, precision);
-                    }
+                    maxPrecision = (maxPrecision === undefined) ? precision : Precise.stringMin (maxPrecision, precision);
                     networks[networkCode] = {
                         'id': networkId,
                         'network': networkCode,
@@ -1353,12 +1349,12 @@ module.exports = class okx extends Exchange {
             throw new ExchangeError (this.id + ' networkIdToCode() - markets need to be loaded at first');
         }
         let networkTitle = this.safeValue (this.options['networkNamesByChainIds'], networkId);
+        // OKX does have incosistent data from fetchCurrencies and from fetchDepositAddress. for example, in fDA, there might be present network-id "BTCK-ERC20", which is nowhere present in fetchCurrencies. The common rule for OKX seems to get the second part of chain-id to determine it (unlike Huobi, OKX always includes hyphen as separator)
         if (networkTitle === undefined) {
-            // OKX does have incosistent data from fetchCurrencies and from fetchDepositAddress. for example, in fDA, there might be present network-id "BTCK-ERC20", which is nowhere present in fetchCurrencies. the common rule for OKX seems to get the second part of chain-id to determine it
-            networkTitle = this.getChainTitleFromId (networkId);
+            networkTitle = this.getSplitTitleFromNetworkId (networkId);
         }
-        // todo: implement 
-        return super.networkIdToCode (networkTitle);
+        // todo: implement
+        return super.networkIdToCode (networkTitle, currencyCode);
     }
 
     networkCodeToId (networkCode, currencyCode = undefined) { // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
@@ -1375,7 +1371,7 @@ module.exports = class okx extends Exchange {
         return this.safeValue (uniqueNetworkIds, networkTitle, networkTitle);
     }
 
-    getChainTitleFromId (networkId) {
+    getSplitTitleFromNetworkId (networkId) {
         const parts = networkId.split ('-'); // might have two hyphens, i.e. USDT-Avalanche C-Chain
         let title = this.safeString (parts, 1, networkId);
         const secondPart = this.safeString (parts, 2);
@@ -3594,11 +3590,12 @@ module.exports = class okx extends Exchange {
         // inconsistent naming responses from exchange, i.e. "USDT-Polygon" from address endpoint, while in currencies it was "USDT-Polygon-Bridge". also, in network in currencies might not be present in address-endpoint, and it might even provide new networks not present in currencies response.
         const networkId = this.safeString (depositAddress, 'chain');
         this.checkAddress (address);
+        const currencyCode = this.safeCurrencyCode (currencyId, currency);
         return {
-            'currency': this.safeCurrencyCode (currencyId, currency),
+            'currency': currencyCode,
             'address': address,
             'tag': tag,
-            'network': this.networkIdToCode (networkId),
+            'network': this.networkIdToCode (networkId, currencyCode),
             'info': depositAddress,
         };
     }
@@ -3696,14 +3693,11 @@ module.exports = class okx extends Exchange {
         } else if ('pwd' in params) {
             request['pwd'] = params['pwd'];
         }
-        const networks = this.safeValue (this.options, 'networks', {});
-        let network = this.safeStringUpper (params, 'network'); // this line allows the user to specify either ERC20 or ETH
-        network = this.safeString (networks, network, network); // handle ETH>ERC20 alias
-        if (network !== undefined) {
-            request['chain'] = currency['id'] + '-' + network;
-            params = this.omit (params, 'network');
+        const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
+        if (networkCode !== undefined) {
+            request['chain'] = this.networkCodeToId (networkCode, code);
         }
-        const query = this.omit (params, [ 'fee', 'password', 'pwd' ]);
+        const query = this.omit (paramsOmited, [ 'fee', 'password', 'pwd' ]);
         if (!('pwd' in request)) {
             throw new ExchangeError (this.id + ' withdraw() requires a password parameter or a pwd parameter, it must be the funding password, not the API passphrase');
         }

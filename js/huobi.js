@@ -918,39 +918,40 @@ module.exports = class huobi extends Exchange {
                     // by displaynames
                     'ALGO': 'ALGO',
                     'ALGORAND': 'ALGO',
+                    'ARBITRUM': 'ARB',
+                    'ARB': 'ARB',
+                    'APTOS': 'APT',
+                    'AVALANCHEC': 'AVAXCCHAIN',
+                    'AVAXC': 'AVAXCCHAIN',
                     'BEP20': 'BEP20',
                     'BSC': 'BEP20',
+                    'BTC': 'BTC',
+                    'BITCOIN': 'BTC',
                     'ERC20': 'ERC20',
                     'ETH': 'ERC20',
-                    'AVALANCHE': 'AVAXCCHAIN',
-                    'AVAX': 'AVAXCCHAIN',
                     'HRC20': 'HECO',
                     'HECO': 'HECO',
                     // 'HT': 'HECO', // HT is not acceptable networkcode for unification
-                    'TRC20': 'TRC20',
-                    'TRX': 'TRC20',
-                    'BTC': 'BTC',
-                    'BITCOIN': 'BTC',
-                    'ARBITRUM': 'ARB',
-                    'ARB': 'ARB',
-                    'SOLANA': 'SOL',
-                    'SOL': 'SOL',
-                    'SPL': 'SOL',
                     'PRC20': 'PRC20',
                     'POLYGON': 'PRC20',
                     'MATIC': 'PRC20',
+                    'SOLANA': 'SOL',
+                    'SOL': 'SOL',
+                    'SPL': 'SOL',
+                    'TRC20': 'TRC20',
+                    'TRX': 'TRC20',
                 },
                 'networksById': {
                     'ALGO': 'ALGO',
-                    'BEP20': 'BEP20',
-                    'ERC20': 'ERC20',
-                    'AVAXCCHAIN': 'AVALANCHE',
-                    'HECO': 'HRC20',
-                    'TRC20': 'TRC20',
-                    'BTC': 'BTC',
                     'ARB': 'ARBITRUM',
-                    'SOL': 'SOLANA',
+                    'AVAXCCHAIN': 'AVALANCHEC',
+                    'BEP20': 'BEP20',
+                    'BTC': 'BTC',
+                    'ERC20': 'ERC20',
+                    'HECO': 'HRC20',
                     'PRC20': 'POLYGON',
+                    'SOL': 'SOLANA',
+                    'TRC20': 'TRC20',
                 },
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod': 'spot_private_get_v1_order_orders', // 'spot_private_get_v1_order_history' // https://github.com/ccxt/ccxt/pull/5392
@@ -2808,7 +2809,7 @@ module.exports = class huobi extends Exchange {
                 const title = this.safeString (chainEntry, 'displayName');
                 this.options['networkChainIdsByNames'][code][title] = uniqueChainId;
                 this.options['networkNamesByChainIds'][uniqueChainId] = title;
-                const networkCode = this.networkIdToCode (title, code);
+                const networkCode = this.networkIdToCode (uniqueChainId, code);
                 minWithdraw = this.safeNumber (chainEntry, 'minWithdrawAmt');
                 maxWithdraw = this.safeNumber (chainEntry, 'maxWithdrawAmt');
                 const withdrawStatus = this.safeString (chainEntry, 'withdrawStatus');
@@ -2882,7 +2883,7 @@ module.exports = class huobi extends Exchange {
             throw new ExchangeError (this.id + ' networkIdToCode() - markets need to be loaded at first');
         }
         const networkTitle = this.safeValue (this.options['networkNamesByChainIds'], networkId, networkId);
-        return super.networkIdToCode (networkTitle);
+        return super.networkIdToCode (networkTitle, currencyCode);
     }
 
     networkCodeToId (networkCode, currencyCode = undefined) { // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
