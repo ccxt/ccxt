@@ -118,8 +118,8 @@ module.exports = class bkex extends Exchange {
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/158043180-bb079a65-69e8-45a2-b393-f094d334e610.jpg',
                 'api': {
-                    'public': 'https://api.bkex.com',
-                    'private': 'https://api.bkex.com',
+                    'spot': 'https://api.bkex.com',
+                    'swap': 'https://fapi.bkex.com',
                 },
                 'www': 'https://www.bkex.com/',
                 'doc': [
@@ -131,59 +131,81 @@ module.exports = class bkex extends Exchange {
             },
             'api': {
                 'public': {
-                    'get': {
-                        '/common/symbols': 1,
-                        '/common/currencys': 1,
-                        '/common/timestamp': 1,
-                        '/q/kline': 1,
-                        '/q/tickers': 1,
-                        '/q/ticker/price': 1,
-                        '/q/depth': 1,
-                        '/q/deals': 1,
-                        // contracts:
-                        '/contract/common/brokerInfo': 1,
-                        '/contract/q/index': 1,
-                        '/contract/q/depth': 1,
-                        '/contract/q/depthMerged': 1,
-                        '/contract/q/trades': 1,
-                        '/contract/q/kline': 1,
-                        '/contract/q/ticker24hr': 1,
+                    'spot': {
+                        'get': {
+                            '/common/symbols': 1,
+                            '/common/currencys': 1,
+                            '/common/timestamp': 1,
+                            '/q/kline': 1,
+                            '/q/tickers': 1,
+                            '/q/ticker/price': 1,
+                            '/q/depth': 1,
+                            '/q/deals': 1,
+                        },
+                    },
+                    'swap': {
+                        'get': {
+                            '/market/candle': 1,
+                            '/market/deals': 1,
+                            '/market/depth': 1,
+                            '/market/fundingRate': 1,
+                            '/market/index': 1,
+                            '/market/riskLimit': 1,
+                            '/market/symbols': 1,
+                            '/market/ticker/price': 1,
+                            '/market/tickers': 1,
+                            '/server/ping': 1,
+                        },
                     },
                 },
                 'private': {
-                    'get': {
-                        '/u/api/info': 1,
-                        '/u/account/balance': 1,
-                        '/u/wallet/address': 1,
-                        '/u/wallet/depositRecord': 1,
-                        '/u/wallet/withdrawRecord': 1,
-                        '/u/order/openOrders': 1,
-                        '/u/order/openOrder/detail': 1,
-                        '/u/order/historyOrders': 1,
-                        // contracts:
-                        '/contract/trade/getOrder': 1,
-                        '/contract/trade/openOrders': 1,
-                        '/contract/trade/historyOrders': 1,
-                        '/contract/trade/myTrades': 1,
-                        '/contract/trade/positions': 1,
-                        '/contract/u/account': 1,
+                    'spot': {
+                        'get': {
+                            '/u/api/info': 1,
+                            '/u/account/balance': 1,
+                            '/u/wallet/address': 1,
+                            '/u/wallet/depositRecord': 1,
+                            '/u/wallet/withdrawRecord': 1,
+                            '/u/order/openOrders': 1,
+                            '/u/order/openOrder/detail': 1,
+                            '/u/order/historyOrders': 1,
+                        },
+                        'post': {
+                            '/u/account/transfer': 1,
+                            '/u/wallet/withdraw': 1,
+                            '/u/order/create': 1,
+                            '/u/order/cancel': 1,
+                            '/u/order/batchCreate': 1,
+                            '/u/order/batchCancel': 1,
+                        },
                     },
-                    'post': {
-                        '/u/account/transfer': 1,
-                        '/u/wallet/withdraw': 1,
-                        '/u/order/create': 1,
-                        '/u/order/cancel': 1,
-                        '/u/order/batchCreate': 1,
-                        '/u/order/batchCancel': 1,
-                        // contracts:
-                        '/contract/trade/order': 1,
-                        '/contract/trade/orderCancel': 1,
-                        '/contract/trade/modifyMargin': 1,
-                        '/contract/ws/dataStream/create': 1,
-                        '/contract/ws/dataStream/update': 1,
-                        '/contract/ws/dataStream/delete': 1,
-                    },
-                    'delete': {
+                    'swap': {
+                        'get': {
+                            '/account/balance': 1,
+                            '/account/balanceRecord': 1,
+                            '/account/order': 1,
+                            '/account/orderForced': 1,
+                            '/account/position': 1,
+                            '/entrust/finished': 1,
+                            '/entrust/unFinish': 1,
+                            '/order/finished': 1,
+                            '/order/finishedInfo': 1,
+                            '/order/unFinish': 1,
+                            '/position/info': 1,
+                        },
+                        'post': {
+                            '/account/setLeverage': 1,
+                            '/entrust/add': 1,
+                            '/entrust/cancel': 1,
+                            '/order/batchCancel': 1,
+                            '/order/batchOpen': 1,
+                            '/order/cancel': 1,
+                            '/order/close': 1,
+                            '/order/closeAll': 1,
+                            '/order/open': 1,
+                            '/position/setSpSl': 1,
+                            '/position/update': 1,
+                        },
                     },
                 },
             },
@@ -232,53 +254,92 @@ module.exports = class bkex extends Exchange {
          * @method
          * @name bkex#fetchMarkets
          * @description retrieves data on all markets for bkex
+         * @see https://bkexapi.github.io/docs/api_en.htm?shell#basicInformation-1
+         * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-market-symbols
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const response = await this.publicGetCommonSymbols (params);
+        const promises = [
+            this.publicSpotGetCommonSymbols (params),
+            this.publicSwapGetMarketSymbols (params),
+        ];
+        const resolved = await Promise.all (promises);
+        const spotMarkets = resolved[0];
         //
-        // {
-        //     "code": "0",
-        //     "data": [
-        //         {
-        //             "minimumOrderSize": "0",
-        //             "minimumTradeVolume": "0E-18",
-        //             "pricePrecision": "11",
-        //             "supportTrade": true,
-        //             "symbol": "COMT_USDT",
-        //             "volumePrecision": 0
-        //         },
-        //     ],
-        //     "msg": "success",
-        //     "status": 0
-        // }
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "minimumOrderSize": "0",
+        //                 "minimumTradeVolume": "0E-18",
+        //                 "pricePrecision": "11",
+        //                 "supportTrade": true,
+        //                 "symbol": "COMT_USDT",
+        //                 "volumePrecision": 0
+        //             },
+        //         ],
+        //         "msg": "success",
+        //         "status": 0
+        //     }
         //
-        const data = this.safeValue (response, 'data', []);
+        const swapMarkets = resolved[1];
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "success",
+        //         "data": [
+        //             {
+        //                 "symbol": "luna_usdt",
+        //                 "supportTrade": false,
+        //                 "volumePrecision": 0,
+        //                 "pricePrecision": 3,
+        //                 "marketMiniAmount": "1",
+        //                 "limitMiniAmount": "1"
+        //             },
+        //         ]
+        //     }
+        //
+        const spotData = this.safeValue (spotMarkets, 'data', []);
+        const swapData = this.safeValue (swapMarkets, 'data', []);
+        const data = this.arrayConcat (spotData, swapData);
         const result = [];
         for (let i = 0; i < data.length; i++) {
             const market = data[i];
-            const id = this.safeString (market, 'symbol');
+            const marketId = this.safeString (market, 'symbol');
+            const id = this.safeStringUpper (market, 'symbol');
             const [ baseId, quoteId ] = id.split ('_');
             const base = this.safeCurrencyCode (baseId);
             const quote = this.safeCurrencyCode (quoteId);
+            const minimumOrderSize = this.safeString (market, 'minimumOrderSize');
+            const type = (minimumOrderSize !== undefined) ? 'spot' : 'swap';
+            const swap = (type === 'swap');
+            let symbol = base + '/' + quote;
+            let settleId = undefined;
+            let settle = undefined;
+            if (swap) {
+                settleId = quoteId;
+                settle = quote;
+                symbol = base + '/' + quote + ':' + settle;
+            }
+            const linear = swap ? true : undefined;
             result.push ({
-                'id': id,
-                'symbol': base + '/' + quote,
+                'id': marketId,
+                'symbol': symbol,
                 'base': base,
                 'quote': quote,
-                'settle': undefined,
+                'settle': settle,
                 'baseId': baseId,
                 'quoteId': quoteId,
-                'settleId': undefined,
-                'type': 'spot',
-                'spot': true,
+                'settleId': settleId,
+                'type': type,
+                'spot': (type === 'spot'),
                 'margin': false,
                 'future': false,
-                'swap': false,
+                'swap': swap,
                 'option': false,
                 'active': this.safeValue (market, 'supportTrade'),
-                'contract': false,
-                'linear': undefined,
+                'contract': swap,
+                'linear': linear,
                 'inverse': undefined,
                 'contractSize': undefined,
                 'expiry': undefined,
@@ -295,7 +356,7 @@ module.exports = class bkex extends Exchange {
                         'max': undefined,
                     },
                     'amount': {
-                        'min': this.safeNumber (market, 'minimumOrderSize'),
+                        'min': this.safeNumberN (market, [ 'minimumOrderSize', 'marketMiniAmount', 'limitMiniAmount' ]),
                         'max': undefined,
                     },
                     'price': {
@@ -321,7 +382,7 @@ module.exports = class bkex extends Exchange {
          * @param {object} params extra parameters specific to the bkex api endpoint
          * @returns {object} an associative dictionary of currencies
          */
-        const response = await this.publicGetCommonCurrencys (params);
+        const response = await this.publicSpotGetCommonCurrencys (params);
         //
         // {
         //     "code": "0",
@@ -381,7 +442,7 @@ module.exports = class bkex extends Exchange {
          * @param {object} params extra parameters specific to the bkex api endpoint
          * @returns {int} the current integer timestamp in milliseconds from the exchange server
          */
-        const response = await this.publicGetCommonTimestamp (params);
+        const response = await this.publicSpotGetCommonTimestamp (params);
         //
         // {
         //     "code": '0',
@@ -401,7 +462,7 @@ module.exports = class bkex extends Exchange {
          * @param {object} params extra parameters specific to the bkex api endpoint
          * @returns {object} a [status structure]{@link https://docs.ccxt.com/en/latest/manual.html#exchange-status-structure}
          */
-        const response = await this.publicGetCommonTimestamp (params);
+        const response = await this.publicSpotGetCommonTimestamp (params);
         //
         //     {
         //         "code": '0',
@@ -454,7 +515,7 @@ module.exports = class bkex extends Exchange {
             const timerange = limit * duration * 1000;
             request['to'] = this.sum (request['from'], timerange);
         }
-        const response = await this.publicGetQKline (request);
+        const response = await this.publicSpotGetQKline (request);
         //
         // {
         //     "code": "0",
@@ -503,7 +564,7 @@ module.exports = class bkex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicGetQTickers (this.extend (request, params));
+        const response = await this.publicSpotGetQTickers (this.extend (request, params));
         //
         // {
         //     "code": "0",
@@ -549,7 +610,7 @@ module.exports = class bkex extends Exchange {
             const marketIds = this.marketIds (symbols);
             request['symbol'] = marketIds.join (',');
         }
-        const response = await this.publicGetQTickers (this.extend (request, params));
+        const response = await this.publicSpotGetQTickers (this.extend (request, params));
         const tickers = this.safeValue (response, 'data');
         return this.parseTickers (tickers, symbols, params);
     }
@@ -614,7 +675,7 @@ module.exports = class bkex extends Exchange {
         if (limit !== undefined) {
             request['depth'] = Math.min (limit, 50);
         }
-        const response = await this.publicGetQDepth (this.extend (request, params));
+        const response = await this.publicSpotGetQDepth (this.extend (request, params));
         //
         // {
         //     "code": "0",
@@ -657,7 +718,7 @@ module.exports = class bkex extends Exchange {
         if (limit !== undefined) {
             request['size'] = Math.min (limit, 50);
         }
-        const response = await this.publicGetQDeals (this.extend (request, params));
+        const response = await this.publicSpotGetQDeals (this.extend (request, params));
         //
         // {
         //     "code": "0",
@@ -750,7 +811,7 @@ module.exports = class bkex extends Exchange {
          */
         await this.loadMarkets ();
         const query = this.omit (params, 'type');
-        const response = await this.privateGetUAccountBalance (query);
+        const response = await this.privateSpotGetUAccountBalance (query);
         //
         // {
         //     "code": "0",
@@ -804,7 +865,7 @@ module.exports = class bkex extends Exchange {
         const request = {
             'currency': currency['id'],
         };
-        const response = await this.privateGetUWalletAddress (this.extend (request, params));
+        const response = await this.privateSpotGetUWalletAddress (this.extend (request, params));
         // NOTE: You can only retrieve addresses of already generated wallets - so should already have generated that COIN deposit address in UI. Otherwise, it seems from API you can't create/obtain addresses for those coins.
         //
         // {
@@ -866,7 +927,7 @@ module.exports = class bkex extends Exchange {
         if (limit !== undefined) {
             request['Size'] = limit; // Todo: id api-docs, 'size' is incorrectly required to be in Uppercase
         }
-        const response = await this.privateGetUWalletDepositRecord (this.extend (request, params));
+        const response = await this.privateSpotGetUWalletDepositRecord (this.extend (request, params));
         //
         // {
         //     "code": "0",
@@ -924,7 +985,7 @@ module.exports = class bkex extends Exchange {
         if (limit !== undefined) {
             request['Size'] = limit; // Todo: id api-docs, 'size' is incorrectly required to be in Uppercase
         }
-        const response = await this.privateGetUWalletWithdrawRecord (this.extend (request, params));
+        const response = await this.privateSpotGetUWalletWithdrawRecord (this.extend (request, params));
         //
         // {
         //     "code": "0",
@@ -1033,7 +1094,7 @@ module.exports = class bkex extends Exchange {
         if ((type !== 'market') && (price !== undefined)) {
             request['price'] = this.priceToPrecision (symbol, price);
         }
-        const response = await this.privatePostUOrderCreate (this.extend (request, params));
+        const response = await this.privateSpotPostUOrderCreate (this.extend (request, params));
         //
         // {
         //     "code": "0",
@@ -1060,7 +1121,7 @@ module.exports = class bkex extends Exchange {
         const request = {
             'orderId': id,
         };
-        const response = await this.privatePostUOrderCancel (this.extend (request, params));
+        const response = await this.privateSpotPostUOrderCancel (this.extend (request, params));
         //
         // {
         //     "code": "0",
@@ -1088,7 +1149,7 @@ module.exports = class bkex extends Exchange {
         const request = {
             'orders': this.json (ids),
         };
-        const response = await this.privatePostUOrderBatchCancel (this.extend (request, params));
+        const response = await this.privateSpotPostUOrderBatchCancel (this.extend (request, params));
         // {
         //     "code": 0,
         //     "msg": "success",
@@ -1126,7 +1187,7 @@ module.exports = class bkex extends Exchange {
         if (limit !== undefined) {
             request['size'] = limit; // Todo: id api-docs, 'size' is incorrectly required to be in Uppercase
         }
-        const response = await this.privateGetUOrderOpenOrders (this.extend (request, params));
+        const response = await this.privateSpotGetUOrderOpenOrders (this.extend (request, params));
         //
         // {
         //     "code": "0",
@@ -1176,7 +1237,7 @@ module.exports = class bkex extends Exchange {
         const request = {
             'orderId': id,
         };
-        const response = await this.privateGetUOrderOpenOrderDetail (this.extend (request, params));
+        const response = await this.privateSpotGetUOrderOpenOrderDetail (this.extend (request, params));
         //
         // {
         //     "code": "0",
@@ -1229,7 +1290,7 @@ module.exports = class bkex extends Exchange {
         if (since !== undefined) {
             request['startTime'] = since;
         }
-        const response = await this.privateGetUOrderHistoryOrders (this.extend (request, params));
+        const response = await this.privateSpotGetUOrderHistoryOrders (this.extend (request, params));
         //
         // {
         //     "code": "0",
@@ -1377,7 +1438,7 @@ module.exports = class bkex extends Exchange {
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const response = await this.publicGetCommonCurrencys (params);
+        const response = await this.publicSpotGetCommonCurrencys (params);
         //
         //      {
         //          "msg": "success",
@@ -1455,7 +1516,7 @@ module.exports = class bkex extends Exchange {
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
         await this.loadMarkets ();
-        const response = await this.publicGetCommonCurrencys (params);
+        const response = await this.publicSpotGetCommonCurrencys (params);
         //
         //    {
         //        "msg": "success",
@@ -1507,7 +1568,10 @@ module.exports = class bkex extends Exchange {
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
-        let url = this.urls['api'][api] + '/' + this.version + this.implodeParams (path, params);
+        const signed = api[0] === 'private';
+        const endpoint = api[1];
+        const pathPart = (endpoint === 'spot') ? this.version : 'fapi/' + this.version;
+        let url = this.urls['api'][endpoint] + '/' + pathPart + this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
         let paramsSortedEncoded = '';
         if (Object.keys (params).length) {
@@ -1516,7 +1580,7 @@ module.exports = class bkex extends Exchange {
                 url += '?' + paramsSortedEncoded;
             }
         }
-        if (api === 'private') {
+        if (signed) {
             this.checkRequiredCredentials ();
             const signature = this.hmac (this.encode (paramsSortedEncoded), this.encode (this.secret), 'sha256');
             headers = {
