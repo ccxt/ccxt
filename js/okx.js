@@ -626,14 +626,118 @@ module.exports = class okx extends Exchange {
             'precisionMode': TICK_SIZE,
             'options': {
                 'defaultNetwork': 'ERC20',
-                'networks': {
+                'defaultNetworks': {
                     'ETH': 'ERC20',
-                    'TRX': 'TRC20',
-                    'OMNI': 'Omni',
-                    'SOLANA': 'Solana',
+                    'BTC': 'BTC',
+                    'USDT': 'TRC20',
+                },
+                'networks': {
+                    // by displaynames
+                    'ACALA': 'Acala',
+                    'ALGORAND': 'Algorand', // 'ALGO'
+                    'ARBITRUM': 'Arbitrum one', // 'ARB'
+                    'ARWEAVE': 'Arweave',
+                    'ASTAR': 'Astar',
+                    'APTOS': 'Aptos', // 'APT'
+                    'AVALANCHEC': 'Avalanche C-Chain', // 'AVAXC'
+                    'AVALANCHEX': 'Avalanche X-Chain', // 'AVAXX'
+                    'BEP20': 'BSC',
+                    'BSC': 'BSC',
+                    'BSV': 'Bitcoin SV',
+                    'BCH': 'BitcoinCash',
+                    'BTC': 'Bitcoin',
+                    'BITCOIN': 'Bitcoin',
+                    'CARDANO': 'Cardano',
+                    'CELO': 'CELO',
+                    'CHILIZ': 'Chiliz',
+                    'COSMOS': 'Cosmos',
+                    'DOGECOIN': 'Dogecoin', // 'DOGE'
+                    'ELROND': 'Elrond',
+                    'EOS': 'EOS',
+                    'ERC20': 'ERC20',
+                    'ETH': 'ERC20',
+                    'ETC': 'Ethereum Classic',
+                    'ETHW': 'EthereumPow',
+                    'FILECOIN': 'Filecoin',
+                    // 'HRC20' & 'HECO' - not available
+                    'KLAYTN': 'Klaytn',
+                    'KUSAMA': 'Kusama',
+                    // 'LIGHTNING': 'BTC-Lightning', // not yet well determined for unification
+                    'LITECOIN': 'Litecoin', // 'LTC'
+                    'MONERO': 'Monero', // 'XMR'
+                    'MOONRIVER': 'Moonriver',
+                    'NEAR': 'NEAR',
+                    'OKC': 'OKC',
+                    'ONTOLOGY': 'Ontology',
+                    'OPTIMISM': 'Optimism',
+                    'POLKADOT': 'Polkadot',
+                    'PRC20': 'Polygon',
                     'POLYGON': 'Polygon',
-                    'OEC': 'OEC',
-                    'ALGO': 'ALGO', // temporarily unavailable
+                    'MATIC': 'Polygon',
+                    'RIPPLE': 'Ripple', // 'XRP'
+                    'SOLANA': 'Solana',
+                    'SOL': 'Solana',
+                    'SPL': 'Solana',
+                    'STELLAR': 'Stellar Lumens',
+                    'TERRA': 'Terra',
+                    'TERRAC': 'Terra Classic',
+                    'TEZOS': 'Tezos', // 'XZT'
+                    'TON': 'TON',
+                    'TRC20': 'TRC20',
+                    'TRON': 'TRC20',
+                    'TRX': 'TRC20',
+                    'WAVES': 'WAVES',
+                    'ZCASH': 'Zcash',
+                    'ZILLIQA': 'Zilliqa',
+                    'WAX': 'Wax',
+                },
+                'networksById': {
+                    'Acala': 'ACALA',
+                    'Algorand': 'ALGORAND',
+                    'Arbitrum one': 'ARBITRUM',
+                    'Arweave': 'ARWEAVE',
+                    'Astar': 'ASTAR',
+                    'Aptos': 'APTOS',
+                    'Avalanche C-Chain': 'AVALANCHEC',
+                    'Avalanche X-Chain': 'AVALANCHEX',
+                    'BSC': 'BSC',
+                    'Bitcoin SV': 'BSV',
+                    'BitcoinCash': 'BCH',
+                    'Bitcoin': 'BITCOIN',
+                    'Cardano': 'CARDANO',
+                    'CELO': 'CELO',
+                    'Chiliz': 'CHILIZ',
+                    'Cosmos': 'COSMOS',
+                    'Dogecoin': 'DOGECOIN',
+                    'Elrond': 'ELROND',
+                    'EOS': 'EOS',
+                    'ERC20': 'ERC20',
+                    'Ethereum Classic': 'ETC',
+                    'EthereumPow': 'ETHW',
+                    'Filecoin': 'FILECOIN',
+                    'Klaytn': 'KLAYTN',
+                    'Kusama': 'KUSAMA',
+                    'Litecoin': 'LITECOIN',
+                    'Monero': 'MONERO',
+                    'Moonriver': 'MOONRIVER',
+                    'NEAR': 'NEAR',
+                    'OKC': 'OKC',
+                    'Ontology': 'ONTOLOGY',
+                    'Optimism': 'OPTIMISM',
+                    'Polkadot': 'POLKADOT',
+                    'Polygon': 'POLYGON',
+                    'Ripple': 'RIPPLE',
+                    'Solana': 'SOLANA',
+                    'STELLAR': 'Stellar Lumens',
+                    'Terra': 'TERRA',
+                    'Terra Classic': 'TERRAC',
+                    'Tezos': 'TEZOS',
+                    'TON': 'TON',
+                    'TRC20': 'TRC20',
+                    'WAVES': 'WAVES',
+                    'Zcash': 'ZCASH',
+                    'Zilliqa': 'ZILLIQA',
+                    'Wax': 'WAX',
                 },
                 'fetchOpenInterestHistory': {
                     'timeframes': {
@@ -1092,15 +1196,6 @@ module.exports = class okx extends Exchange {
         return this.parseMarkets (data);
     }
 
-    safeNetwork (networkId) {
-        const networksById = {
-            'Bitcoin': 'BTC',
-            'Omni': 'OMNI',
-            'TRON': 'TRC20',
-        };
-        return this.safeString (networksById, networkId, networkId);
-    }
-
     async fetchCurrencies (params = {}) {
         /**
          * @method
@@ -1197,10 +1292,14 @@ module.exports = class okx extends Exchange {
                 } else if (!canWithdraw) {
                     withdrawEnabled = false;
                 }
-                if ((networkId !== undefined) && (networkId.indexOf ('-') >= 0)) {
-                    const parts = networkId.split ('-');
-                    const chainPart = this.safeString (parts, 1, networkId);
-                    const networkCode = this.safeNetwork (chainPart);
+                {
+                    const parts = networkId.split ('-'); // might have two hyphens, i.e. USDT-Avalanche C-Chain
+                    let chainPart = this.safeString (parts, 1, networkId);
+                    const secondPart = this.safeString (parts, 2);
+                    if (secondPart !== undefined) {
+                        chainPart = chainPart + '-' + secondPart;
+                    }
+                    const networkCode = this.networkIdToCode (chainPart);
                     const precision = this.parsePrecision (this.safeString (chain, 'wdTickSz'));
                     if (maxPrecision === undefined) {
                         maxPrecision = precision;
