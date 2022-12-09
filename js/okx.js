@@ -631,6 +631,7 @@ module.exports = class okx extends Exchange {
                     'BTC': 'BTC',
                     'USDT': 'TRC20',
                 },
+                'hasUniqueNetworkIds': true,
                 'networks': {
                     // by displaynames
                     'ACALA': 'Acala',
@@ -749,7 +750,6 @@ module.exports = class okx extends Exchange {
                     'Zilliqa': 'ZILLIQA',
                     'Wax': 'WAX',
                 },
-                'hasUniqueNetworkIds': true,
                 'fetchOpenInterestHistory': {
                     'timeframes': {
                         '5m': '5m',
