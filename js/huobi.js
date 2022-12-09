@@ -953,6 +953,7 @@ module.exports = class huobi extends Exchange {
                     'SOL': 'SOLANA',
                     'TRC20': 'TRC20',
                 },
+                'hasUniqueNetworkIds': true,
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod': 'spot_private_get_v1_order_orders', // 'spot_private_get_v1_order_history' // https://github.com/ccxt/ccxt/pull/5392
                 'createMarketBuyOrderRequiresPrice': true,
@@ -2873,31 +2874,6 @@ module.exports = class huobi extends Exchange {
             };
         }
         return result;
-    }
-
-    networkIdToCode (networkId, currencyCode = undefined) {
-        // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
-        const keys = Object.keys (this.options['networkNamesByChainIds']);
-        const keysLength = keys.length;
-        if (keysLength === 0) {
-            throw new ExchangeError (this.id + ' networkIdToCode() - markets need to be loaded at first');
-        }
-        const networkTitle = this.safeValue (this.options['networkNamesByChainIds'], networkId, networkId);
-        return super.networkIdToCode (networkTitle, currencyCode);
-    }
-
-    networkCodeToId (networkCode, currencyCode = undefined) { // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
-        if (currencyCode === undefined) {
-            throw new ArgumentsRequired (this.id + ' networkCodeToId() requires a currencyCode argument');
-        }
-        const keys = Object.keys (this.options['networkChainIdsByNames']);
-        const keysLength = keys.length;
-        if (keysLength === 0) {
-            throw new ExchangeError (this.id + ' networkCodeToId() - markets need to be loaded at first');
-        }
-        const uniqueNetworkIds = this.safeValue (this.options['networkChainIdsByNames'], currencyCode, {});
-        const networkTitle = super.networkCodeToId (networkCode);
-        return this.safeValue (uniqueNetworkIds, networkTitle, networkTitle);
     }
 
     async fetchBalance (params = {}) {

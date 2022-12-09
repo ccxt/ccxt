@@ -805,6 +805,7 @@ module.exports = class Exchange {
                 'ETH': { 'ERC20': 'ETH' },
                 'TRX': { 'TRC20': 'TRX' },
             },
+            'hasUniqueNetworkIds': false,
         };
     }
 
@@ -1685,6 +1686,17 @@ module.exports = class Exchange {
          * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {[string|undefined]} exchange-specific network id
          */
+        if (this.options['hasUniqueNetworkIds']) {
+            // if exchange has flat structure from 'Currencies' endpoint with unique exchange-specific chain-ids (i.e. trc20usdt, which is combination of chain slug and currency), then at first we should get the values which were set in fetchCurrencies
+            if (currencyCode === undefined) {
+                throw new ArgumentsRequired (this.id + ' networkCodeToId() requires a currencyCode argument');
+            }
+            const keys = Object.keys (this.options['networkChainIdsByNames']);
+            const keysLength = keys.length;
+            if (keysLength === 0) {
+                throw new ExchangeError (this.id + ' networkCodeToId() - markets need to be loaded at first');
+            }
+        }
         const networkIdsByCodes = this.safeValue (this.options, 'networks', {});
         let networkId = this.safeString (networkIdsByCodes, networkCode);
         // for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
@@ -1715,7 +1727,13 @@ module.exports = class Exchange {
                 }
             }
         }
-        return networkId;
+        if (this.options['hasUniqueNetworkIds']) {
+            // at this stage, "networkId" will be just an intermediary, exchange-specific common network title i.e. 'Erc20', so we have to convert to actual networkId
+            const uniqueNetworkIds = this.safeValue (this.options['networkChainIdsByNames'], currencyCode, {});
+            return this.safeValue (uniqueNetworkIds, networkId, networkId);
+        } else {
+            return networkId;
+        }
     }
 
     networkIdToCode (networkId, currencyCode = undefined) {
@@ -1728,6 +1746,20 @@ module.exports = class Exchange {
          * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {[string|undefined]} unified network code
          */
+        if (this.options['hasUniqueNetworkIds']) {
+            // if exchange has flat structure from 'Currencies' endpoint with unique exchange-specific chain-ids (i.e. trc20usdt, which is combination of chain slug and currency), then at first we should get the values which were set in fetchCurrencies
+            const keys = Object.keys (this.options['networkNamesByChainIds']);
+            const keysLength = keys.length;
+            if (keysLength === 0) {
+                throw new ExchangeError (this.id + ' networkIdToCode() - markets need to be loaded at first');
+            }
+            let networkTitle = this.safeValue (this.options['networkNamesByChainIds'], networkId);
+            if (networkTitle === undefined) {
+                // Some exchanges (i.e. OKX) might have inconsistent data. For example, fetchDepositAddress('BTC') might return exchange specific network-id (i.e. BTCK-erc20), which was not present in fetchCurrencies for that currency. So, if it was not found in this.options['networkNamesByChainIds'], then we should just get the network-id part from that string to compare it againt the common `networksById`
+                networkTitle = this.getCommonNetworkNameFromId (networkId, currencyCode);
+            }
+            networkId = networkTitle;
+        }
         const networkCodesByIds = this.safeValue (this.options, 'networksById', {});
         let networkCode = this.safeString (networkCodesByIds, networkId, networkId);
         // replace mainnet network-codes (i.e. ERC20->ETH)
@@ -1739,6 +1771,11 @@ module.exports = class Exchange {
             }
         }
         return networkCode;
+    }
+
+    getCommonNetworkNameFromId (networkId, currencyCode = undefined) {
+        // this method is here to be overriden in derived class (i.e. OKX, HUOBI)
+        return networkId;
     }
 
     handleNetworkCodeAndParams (params) {

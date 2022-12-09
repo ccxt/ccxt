@@ -739,6 +739,7 @@ module.exports = class okx extends Exchange {
                     'Zilliqa': 'ZILLIQA',
                     'Wax': 'WAX',
                 },
+                'hasUniqueNetworkIds': true,
                 'fetchOpenInterestHistory': {
                     'timeframes': {
                         '5m': '5m',
@@ -1295,28 +1296,28 @@ module.exports = class okx extends Exchange {
                 } else if (!canWithdraw) {
                     withdrawEnabled = false;
                 }
-                    const title = this.getSplitTitleFromNetworkId (networkId);
-                    this.options['networkChainIdsByNames'][code][title] = networkId;
-                    this.options['networkNamesByChainIds'][networkId] = title;
-                    const networkCode = this.networkIdToCode (networkId, code);
-                    const precision = this.parsePrecision (this.safeString (chain, 'wdTickSz'));
-                    maxPrecision = (maxPrecision === undefined) ? precision : Precise.stringMin (maxPrecision, precision);
-                    networks[networkCode] = {
-                        'id': networkId,
-                        'network': networkCode,
-                        'active': active,
-                        'deposit': canDeposit,
-                        'withdraw': canWithdraw,
-                        'fee': this.safeNumber (chain, 'minFee'),
-                        'precision': this.parseNumber (precision),
-                        'limits': {
-                            'withdraw': {
-                                'min': this.safeNumber (chain, 'minWd'),
-                                'max': this.safeNumber (chain, 'maxWd'),
-                            },
+                const title = this.getCommonNetworkNameFromId (networkId);
+                this.options['networkChainIdsByNames'][code][title] = networkId;
+                this.options['networkNamesByChainIds'][networkId] = title;
+                const networkCode = this.networkIdToCode (networkId, code);
+                const precision = this.parsePrecision (this.safeString (chain, 'wdTickSz'));
+                maxPrecision = (maxPrecision === undefined) ? precision : Precise.stringMin (maxPrecision, precision);
+                networks[networkCode] = {
+                    'id': networkId,
+                    'network': networkCode,
+                    'active': active,
+                    'deposit': canDeposit,
+                    'withdraw': canWithdraw,
+                    'fee': this.safeNumber (chain, 'minFee'),
+                    'precision': this.parseNumber (precision),
+                    'limits': {
+                        'withdraw': {
+                            'min': this.safeNumber (chain, 'minWd'),
+                            'max': this.safeNumber (chain, 'maxWd'),
                         },
-                        'info': chain,
-                    };
+                    },
+                    'info': chain,
+                };
             }
             const firstChain = this.safeValue (chains, 0);
             result[code] = {
@@ -1341,37 +1342,7 @@ module.exports = class okx extends Exchange {
         return result;
     }
 
-    networkIdToCode (networkId, currencyCode = undefined) {
-        // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
-        const keys = Object.keys (this.options['networkNamesByChainIds']);
-        const keysLength = keys.length;
-        if (keysLength === 0) {
-            throw new ExchangeError (this.id + ' networkIdToCode() - markets need to be loaded at first');
-        }
-        let networkTitle = this.safeValue (this.options['networkNamesByChainIds'], networkId);
-        // OKX does have incosistent data from fetchCurrencies and from fetchDepositAddress. for example, in fDA, there might be present network-id "BTCK-ERC20", which is nowhere present in fetchCurrencies. The common rule for OKX seems to get the second part of chain-id to determine it (unlike Huobi, OKX always includes hyphen as separator)
-        if (networkTitle === undefined) {
-            networkTitle = this.getSplitTitleFromNetworkId (networkId);
-        }
-        // todo: implement
-        return super.networkIdToCode (networkTitle, currencyCode);
-    }
-
-    networkCodeToId (networkCode, currencyCode = undefined) { // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
-        if (currencyCode === undefined) {
-            throw new ArgumentsRequired (this.id + ' networkCodeToId() requires a currencyCode argument');
-        }
-        const keys = Object.keys (this.options['networkChainIdsByNames']);
-        const keysLength = keys.length;
-        if (keysLength === 0) {
-            throw new ExchangeError (this.id + ' networkCodeToId() - markets need to be loaded at first');
-        }
-        const uniqueNetworkIds = this.safeValue (this.options['networkChainIdsByNames'], currencyCode, {});
-        const networkTitle = super.networkCodeToId (networkCode);
-        return this.safeValue (uniqueNetworkIds, networkTitle, networkTitle);
-    }
-
-    getSplitTitleFromNetworkId (networkId) {
+    getCommonNetworkNameFromId (networkId, currencyCode = undefined) {
         const parts = networkId.split ('-'); // might have two hyphens, i.e. USDT-Avalanche C-Chain
         let title = this.safeString (parts, 1, networkId);
         const secondPart = this.safeString (parts, 2);
