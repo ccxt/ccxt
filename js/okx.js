@@ -636,10 +636,10 @@ module.exports = class okx extends Exchange {
                     // by displaynames
                     'ACALA': 'Acala',
                     'ALGORAND': 'Algorand', // 'ALGO'
-                    'ARBITRUM': 'Arbitrum one', // 'ARB'
+                    'ARBITRUM': 'Arbitrum one',
                     'ARWEAVE': 'Arweave',
                     'ASTAR': 'Astar',
-                    'APTOS': 'Aptos', // 'APT'
+                    'APTOS': 'Aptos',
                     'AVALANCHEC': 'Avalanche C-Chain', // 'AVAXC'
                     'AVALANCHEX': 'Avalanche X-Chain', // 'AVAXX'
                     'BEP20': 'BSC',
@@ -669,7 +669,7 @@ module.exports = class okx extends Exchange {
                     'KUSAMA': 'Kusama',
                     // 'LIGHTNING': 'BTC-Lightning', // not yet well determined for unification
                     'LITECOIN': 'Litecoin', // 'LTC'
-                    'MONERO': 'Monero', // 'XMR'
+                    'MONERO': 'Monero',
                     'MOONRIVER': 'Moonriver',
                     'MOONBEAM': 'Moonbeam',
                     'NEAR': 'NEAR',
@@ -680,15 +680,14 @@ module.exports = class okx extends Exchange {
                     'PRC20': 'Polygon',
                     'POLYGON': 'Polygon',
                     'MATIC': 'Polygon',
-                    'RIPPLE': 'Ripple', // 'XRP'
+                    'RIPPLE': 'Ripple',
                     'SOLANA': 'Solana',
                     'SOL': 'Solana',
                     'SPL': 'Solana',
-                    'STELLAR': 'Stellar Lumens', // 'XLM'
-                    // tbd for terra network
-                    // 'TERRA': 'Terra',
-                    // 'TERRAC': 'Terra Classic',
-                    'TEZOS': 'Tezos', // 'XZT'
+                    'STELLAR': 'Stellar Lumens',
+                    // 'TERRA': 'Terra', // tbd for terra network
+                    // 'TERRAC': 'Terra Classic', // tbd for terra network
+                    'TEZOS': 'Tezos',
                     'TON': 'TON',
                     'TRC20': 'TRC20',
                     'TRON': 'TRC20',

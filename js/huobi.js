@@ -918,10 +918,10 @@ module.exports = class huobi extends Exchange {
                 'networks': {
                     'ACALA': 'ACA',
                     'ALGORAND': 'ALGO', // 'ALGO'
-                    'ARBITRUM': 'ARB', // 'ARB'
+                    'ARBITRUM': 'ARB',
                     'ARWEAVE': 'AR',
                     'ASTAR': 'ASTR',
-                    'APTOS': 'APT', // 'APT'
+                    'APTOS': 'APT',
                     // avalanche chains for AVAX is a bit vague among AVAXCCHAIN, AVAX, C-CHAIN, CCHAIN. so, skipping for now ,
                     // 'AVALANCHEC': '', // 'AVAXC'
                     // 'AVALANCHEX': '', // 'AVAXX'
@@ -953,13 +953,13 @@ module.exports = class huobi extends Exchange {
                     'ICP': 'ICP',
                     'IOTA': 'IOTA',
                     // 'IRC20': 'IRC20', // 'IOST' // tbd, vague names
-                    'KLAYTN': 'KLAY', // 'KLAY'
+                    'KLAYTN': 'KLAY',
                     'KUSAMA': 'KSM',
                     // 'LIGHTNING': 'BTC-Lightning', // not yet well determined for unification
                     'LITECOIN': 'LTC', // 'LTC'
                     // 'LUNA': 'LUNA', // tbd, because of vague titles
                     // 'LUNC': 'LUNC',
-                    'MONERO': 'XMR', // 'XMR'
+                    'MONERO': 'XMR',
                     // 'MOONRIVER': '',
                     'MOONBEAM': 'MOONBEAM',
                     'GLMR': 'GLMR', // huobi named such, but it should have been Moonbeam actually
@@ -971,7 +971,7 @@ module.exports = class huobi extends Exchange {
                     'POLYGON': 'POLYGON',
                     'PRC20': 'POLYGON',
                     'MATIC': 'MATIC', // huobi named such, but it should be polygon actually
-                    'RIPPLE': 'XRP', // 'XRP'
+                    'RIPPLE': 'XRP',
                     'SOLANA': 'SOL',
                     'SOL': 'SOL',
                     'SPL': 'SOL',
@@ -979,7 +979,7 @@ module.exports = class huobi extends Exchange {
                     // huobi has incorrect naming for TERRA networks, as TERRA is assigned to Terra classic network, so we avoid setting it
                     // 'TERRANEW': '',
                     // 'TERRACLASSIC': 'TERRA', // USDC & TERRA - both ids
-                    'TEZOS': 'XZT', // 'XZT'
+                    'TEZOS': 'XZT',
                     'TON': 'TON',
                     'TRC20': 'TRC20',
                     'TRON': 'TRC20',
