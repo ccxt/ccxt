@@ -986,7 +986,7 @@ module.exports = class bitvavo extends Exchange {
                 const quoteAmount = Precise.stringMul (amountString, priceString);
                 cost = this.parseNumber (quoteAmount);
             } else {
-                cost = this.safeNumber2 (params, 'cost', 'amountQuote');
+                cost = this.safeNumber2 (params, 'cost');
             }
             if (cost !== undefined) {
                 const precision = market['precision']['amount'];
@@ -994,7 +994,7 @@ module.exports = class bitvavo extends Exchange {
             } else {
                 request['amount'] = this.amountToPrecision (symbol, amount);
             }
-            params = this.omit (params, [ 'cost', 'amountQuote' ]);
+            params = this.omit (params, [ 'cost' ]);
         } else if (isLimitOrder) {
             request['price'] = this.priceToPrecision (symbol, price);
             request['amount'] = this.amountToPrecision (symbol, amount);
