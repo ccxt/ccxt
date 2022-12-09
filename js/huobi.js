@@ -976,8 +976,9 @@ module.exports = class huobi extends Exchange {
                     'SOL': 'SOL',
                     'SPL': 'SOL',
                     'STELLAR': 'XLM',
-                    // 'TERRA': '',
-                    // 'TERRAC': '',
+                    // huobi has incorrect naming for TERRA networks, as TERRA is assigned to Terra classic network, so we avoid setting it
+                    // 'TERRANEW': '',
+                    // 'TERRACLASSIC': 'TERRA', // USDC & TERRA - both ids
                     'TEZOS': 'XZT', // 'XZT'
                     'TON': 'TON',
                     'TRC20': 'TRC20',
@@ -1030,6 +1031,9 @@ module.exports = class huobi extends Exchange {
                     'SOL': 'SOLANA',
                     'XLM': 'STELLAR',
                     'XZT': 'TEZOS',
+                    // huobi has 2 ids for Terra classic
+                    // 'TERRA': 'TERRACLASSIC',
+                    // 'USTC': 'TERRACLASSIC',
                     'TON': 'TON',
                     'TRC20': 'TRC20',
                     'TRX': 'TRC20',

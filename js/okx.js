@@ -670,6 +670,7 @@ module.exports = class okx extends Exchange {
                     'LITECOIN': 'Litecoin', // 'LTC'
                     'MONERO': 'Monero', // 'XMR'
                     'MOONRIVER': 'Moonriver',
+                    'MOONBEAM': 'Moonbeam',
                     'NEAR': 'NEAR',
                     'OKC': 'OKC',
                     'ONTOLOGY': 'Ontology',
@@ -683,8 +684,9 @@ module.exports = class okx extends Exchange {
                     'SOL': 'Solana',
                     'SPL': 'Solana',
                     'STELLAR': 'Stellar Lumens', // 'XLM'
-                    'TERRA': 'Terra',
-                    'TERRAC': 'Terra Classic',
+                    // tbd for terra network
+                    // 'TERRA': 'Terra',
+                    // 'TERRAC': 'Terra Classic',
                     'TEZOS': 'Tezos', // 'XZT'
                     'TON': 'TON',
                     'TRC20': 'TRC20',
@@ -726,6 +728,7 @@ module.exports = class okx extends Exchange {
                     'Litecoin': 'LITECOIN',
                     'Monero': 'MONERO',
                     'Moonriver': 'MOONRIVER',
+                    'Moonbeam': 'MOONBEAM',
                     'NEAR': 'NEAR',
                     'OKC': 'OKC',
                     'Ontology': 'ONTOLOGY',
@@ -735,8 +738,9 @@ module.exports = class okx extends Exchange {
                     'Ripple': 'RIPPLE',
                     'Solana': 'SOLANA',
                     'Stellar Lumens': 'STELLAR',
-                    'Terra': 'TERRA',
-                    'Terra Classic': 'TERRAC',
+                    // tbd for terra network
+                    // 'Terra': 'TERRA',
+                    // 'Terra Classic': 'TERRAC',
                     'Tezos': 'TEZOS',
                     'TON': 'TON',
                     'TRC20': 'TRC20',
