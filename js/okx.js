@@ -648,6 +648,7 @@ module.exports = class okx extends Exchange {
                     'BTC': 'Bitcoin',
                     'BITCOIN': 'Bitcoin',
                     'CARDANO': 'Cardano',
+                    'CASPER': 'Casper',
                     'CELO': 'CELO',
                     'CHILIZ': 'Chiliz',
                     'COSMOS': 'Cosmos',
@@ -660,6 +661,9 @@ module.exports = class okx extends Exchange {
                     'ETHW': 'EthereumPow',
                     'FILECOIN': 'Filecoin',
                     // 'HRC20' & 'HECO' - not available
+                    // 'ICP': 'Dfinity', // tbd
+                    // 'IOTA': 'MIOTA', // tbd
+                    'IOST': 'IOST',
                     'KLAYTN': 'Klaytn',
                     'KUSAMA': 'Kusama',
                     // 'LIGHTNING': 'BTC-Lightning', // not yet well determined for unification
@@ -678,7 +682,7 @@ module.exports = class okx extends Exchange {
                     'SOLANA': 'Solana',
                     'SOL': 'Solana',
                     'SPL': 'Solana',
-                    'STELLAR': 'Stellar Lumens',
+                    'STELLAR': 'Stellar Lumens', // 'XLM'
                     'TERRA': 'Terra',
                     'TERRAC': 'Terra Classic',
                     'TEZOS': 'Tezos', // 'XZT'
@@ -705,6 +709,7 @@ module.exports = class okx extends Exchange {
                     'BitcoinCash': 'BCH',
                     'Bitcoin': 'BITCOIN',
                     'Cardano': 'CARDANO',
+                    'Casper': 'CASPER',
                     'CELO': 'CELO',
                     'Chiliz': 'CHILIZ',
                     'Cosmos': 'COSMOS',
@@ -715,6 +720,7 @@ module.exports = class okx extends Exchange {
                     'Ethereum Classic': 'ETC',
                     'EthereumPow': 'ETHW',
                     'Filecoin': 'FILECOIN',
+                    'IOST': 'IOST',
                     'Klaytn': 'KLAYTN',
                     'Kusama': 'KUSAMA',
                     'Litecoin': 'LITECOIN',

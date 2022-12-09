@@ -805,7 +805,7 @@ module.exports = class Exchange {
                 'ETH': { 'ERC20': 'ETH' },
                 'TRX': { 'TRC20': 'TRX' },
             },
-            'hasUniqueNetworkIds': false,
+            'hasUniqueNetworkIds': false, // if set to `true` it means that network ID-to-CODE relation is defined in `networks|netwroksById` list by exchange-specific common title, and the actual network id, becuase each currency would have unique exchange-specific network-ID, which is impossible to be filled by hand, and in fetchCurrencies() we link them automatically through `options['networkChainIdsByNames'] && options['networkNamesByChainIds'] `. To see examples, check OKX/HUOBI implementations
         };
     }
 

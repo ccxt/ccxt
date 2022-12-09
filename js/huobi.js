@@ -914,46 +914,129 @@ module.exports = class huobi extends Exchange {
                     'BTC': 'BTC',
                     'USDT': 'TRC20',
                 },
+                'hasUniqueNetworkIds': true,
                 'networks': {
-                    // by displaynames
-                    'ALGO': 'ALGO',
-                    'ALGORAND': 'ALGO',
-                    'ARBITRUM': 'ARB',
-                    'ARB': 'ARB',
-                    'APTOS': 'APT',
-                    'AVALANCHEC': 'AVAXCCHAIN',
-                    'AVAXC': 'AVAXCCHAIN',
+                    'ACALA': 'ACA',
+                    'ALGORAND': 'ALGO', // 'ALGO'
+                    'ARBITRUM': 'ARB', // 'ARB'
+                    'ARWEAVE': 'AR',
+                    'ASTAR': 'ASTR',
+                    'APTOS': 'APT', // 'APT'
+                    // avalanche chains for AVAX is a bit vague among AVAXCCHAIN, AVAX, C-CHAIN, CCHAIN. so, skipping for now ,
+                    // 'AVALANCHEC': '', // 'AVAXC'
+                    // 'AVALANCHEX': '', // 'AVAXX'
                     'BEP20': 'BEP20',
                     'BSC': 'BEP20',
+                    'BSV': 'BSV',
+                    'BCH': 'BCC',
                     'BTC': 'BTC',
                     'BITCOIN': 'BTC',
+                    'CARDANO': 'ADA', // because huobi has probably mistakenly titled CARDANO as network id for 'kube' coin
+                    'CASPER': 'CSPR',
+                    'CELO': 'CELO',
+                    // 'CHILIZ': '', // skip for now, as huobi has messed up titles: CHZCHAIN, CHZ20, CRC20
+                    // 'COSMOS': 'ATOM1', // skip for now, as huobi has vague value
+                    'CRC20': 'CRC20',
+                    'CRONOS': 'CRC20',
+                    // 'CRO': 'CRC20',  // skip for now, as huobi has messed up title
+                    'DASH': 'DASH',
+                    'DOGECOIN': 'DOGE', // 'DOGE'
+                    'ELROND': 'EGLD',
+                    'EOS': 'EOS',
                     'ERC20': 'ERC20',
                     'ETH': 'ERC20',
+                    'ETC': 'ETC',
+                    'ETHW': 'ETHW',
+                    'FILECOIN': 'FIL',
                     'HRC20': 'HECO',
                     'HECO': 'HECO',
-                    // 'HT': 'HECO', // HT is not acceptable networkcode for unification
-                    'PRC20': 'PRC20',
-                    'POLYGON': 'PRC20',
-                    'MATIC': 'PRC20',
+                    'ICP': 'ICP',
+                    'IOTA': 'IOTA',
+                    // 'IRC20': 'IRC20', // 'IOST' // tbd, vague names
+                    'KLAYTN': 'KLAY', // 'KLAY'
+                    'KUSAMA': 'KSM',
+                    // 'LIGHTNING': 'BTC-Lightning', // not yet well determined for unification
+                    'LITECOIN': 'LTC', // 'LTC'
+                    // 'LUNA': 'LUNA', // tbd, because of vague titles
+                    // 'LUNC': 'LUNC',
+                    'MONERO': 'XMR', // 'XMR'
+                    // 'MOONRIVER': '',
+                    'MOONBEAM': 'MOONBEAM',
+                    'GLMR': 'GLMR', // huobi named such, but it should have been Moonbeam actually
+                    'NEAR': 'NEAR',
+                    'ONTOLOGY': 'ONTOLOGY',
+                    'OPTIMISM': 'OP',
+                    'POLKADOT': 'DOT',
+                    'DOT': 'DOT',
+                    'POLYGON': 'POLYGON',
+                    'PRC20': 'POLYGON',
+                    'MATIC': 'MATIC', // huobi named such, but it should be polygon actually
+                    'RIPPLE': 'XRP', // 'XRP'
                     'SOLANA': 'SOL',
                     'SOL': 'SOL',
                     'SPL': 'SOL',
+                    'STELLAR': 'XLM',
+                    // 'TERRA': '',
+                    // 'TERRAC': '',
+                    'TEZOS': 'XZT', // 'XZT'
+                    'TON': 'TON',
                     'TRC20': 'TRC20',
-                    'TRX': 'TRC20',
+                    'TRON': 'TRC20',
+                    'TRX': 'TRC20', // conflict TRX with TRC20 for ZEC coin
+                    // 'WAX': 'WAX1', // tbd, because of vague title
+                    'WAVES': 'WAVES',
+                    'ZCASH': 'ZEC', // 'ZEC'
+                    'ZILLIQA': 'ZIL',
                 },
                 'networksById': {
-                    'ALGO': 'ALGO',
+                    'ACA': 'ACALA',
+                    'ALGO': 'ALGORAND',
                     'ARB': 'ARBITRUM',
-                    'AVAXCCHAIN': 'AVALANCHEC',
+                    'AR': 'ARWEAVE',
+                    'ASTR': 'ASTAR',
+                    'APT': 'APTOS',
                     'BEP20': 'BEP20',
+                    'BSV': 'BSV',
+                    'BCC': 'BCH',
                     'BTC': 'BTC',
+                    'ADA': 'CARDANO',
+                    'CSPR': 'CASPER',
+                    'CELO': 'CELO',
+                    'CRC20': 'CRC20',
+                    'DASH': 'DASH',
+                    'DOGE': 'DOGECOIN',
+                    'EGLD': 'ELROND',
+                    'EOS': 'EOS',
                     'ERC20': 'ERC20',
+                    'ETC': 'ETC',
+                    'ETHW': 'ETHW',
+                    'FIL': 'FILECOIN',
                     'HECO': 'HRC20',
-                    'PRC20': 'POLYGON',
+                    'ICP': 'ICP',
+                    'IOTA': 'IOTA',
+                    'KLAY': 'KLAYTN',
+                    'KSM': 'KUSAMA',
+                    'LTC': 'LITECOIN',
+                    'XMR': 'MONERO',
+                    'MOONBEAM': 'MOONBEAM',
+                    'GLMR': 'GLMR',
+                    'NEAR': 'NEAR',
+                    'ONTOLOGY': 'ONTOLOGY',
+                    'OP': 'OPTIMISM',
+                    'DOT': 'POLKADOT',
+                    'POLYGON': 'POLYGON',
+                    'MATIC': 'MATIC',
+                    'RIPPLE': 'XRP',
                     'SOL': 'SOLANA',
+                    'XLM': 'STELLAR',
+                    'XZT': 'TEZOS',
+                    'TON': 'TON',
                     'TRC20': 'TRC20',
+                    'TRX': 'TRC20',
+                    'WAVES': 'WAVES',
+                    'ZEC': 'ZCASH',
+                    'ZIL': 'ZILLIQA',
                 },
-                'hasUniqueNetworkIds': true,
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod': 'spot_private_get_v1_order_orders', // 'spot_private_get_v1_order_history' // https://github.com/ccxt/ccxt/pull/5392
                 'createMarketBuyOrderRequiresPrice': true,
