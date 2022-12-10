@@ -427,7 +427,28 @@ module.exports = class digifinex extends Exchange {
                     'networks': {},
                 };
             }
-            result[code]['networks'][networkId] = network;
+            if (networkId !== undefined) {
+                result[code]['networks'][networkId] = network;
+            } else {
+                result[code]['active'] = active;
+                result[code]['fee'] = this.parseNumber (feeString);
+                result[code]['deposit'] = deposit;
+                result[code]['withdraw'] = withdraw;
+                result[code]['limits'] = {
+                    'amount': {
+                        'min': undefined,
+                        'max': undefined,
+                    },
+                    'withdraw': {
+                        'min': minWithdraw,
+                        'max': undefined,
+                    },
+                    'deposit': {
+                        'min': minDeposit,
+                        'max': undefined,
+                    },
+                };
+            }
             result[code]['precision'] = (result[code]['precision'] === undefined) ? precision : Math.max (result[code]['precision'], precision);
         }
         return result;
