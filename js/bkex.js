@@ -791,6 +791,8 @@ module.exports = class bkex extends Exchange {
          * @method
          * @name bkex#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://bkexapi.github.io/docs/api_en.htm?shell#quotationData-5
+         * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-trades-history
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
@@ -799,45 +801,68 @@ module.exports = class bkex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const swap = market['swap'];
         const request = {
             'symbol': market['id'],
         };
-        if (limit !== undefined) {
-            request['size'] = Math.min (limit, 50);
+        let method = 'publicSpotGetQDeals';
+        if (swap) {
+            method = 'publicSwapGetMarketDeals';
+        } else {
+            if (limit !== undefined) {
+                request['size'] = Math.min (limit, 50);
+            }
         }
-        const response = await this.publicSpotGetQDeals (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
-        // {
-        //     "code": "0",
-        //     "data": [
-        //       {
-        //         "direction": "S",
-        //         "price": "43930.63",
-        //         "symbol": "BTC_USDT",
-        //         "ts": "1646224171992",
-        //         "volume": 0.030653
-        //       }, // first item is most recent
-        //     ],
-        //     "msg": "success",
-        //     "status": 0
-        // }
+        // spot
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "direction": "S",
+        //                 "price": "43930.63",
+        //                 "symbol": "BTC_USDT",
+        //                 "ts": "1646224171992",
+        //                 "volume": 0.030653
+        //             }, // first item is most recent
+        //         ],
+        //         "msg": "success",
+        //         "status": 0
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "success",
+        //         "data": [
+        //             {
+        //                 "symbol": "btc_usdt",
+        //                 "amount": "0.06",
+        //                 "price": "17134.66",
+        //                 "side": "sell",
+        //                 "time": 1670651851646
+        //             },
+        //         ]
+        //     }
         //
         const trades = this.safeValue (response, 'data');
         return this.parseTrades (trades, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.safeInteger (trade, 'ts');
+        const timestamp = this.safeInteger2 (trade, 'ts', 'time');
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
-        const side = this.parseTradeSide (this.safeString (trade, 'direction'));
-        const amount = this.safeNumber (trade, 'volume');
+        const side = this.parseTradeSide (this.safeString2 (trade, 'direction', 'side'));
+        const amount = this.safeNumber2 (trade, 'volume', 'amount');
         const price = this.safeNumber (trade, 'price');
         const type = undefined;
-        const takerOrMaker = 'taker';
         let id = this.safeString (trade, 'tid');
         if (id === undefined) {
-            id = this.syntheticTradeId (market, timestamp, side, amount, price, type, takerOrMaker);
+            id = this.syntheticTradeId (market, timestamp, side, amount, price, type);
         }
         return this.safeTrade ({
             'id': id,
@@ -847,7 +872,7 @@ module.exports = class bkex extends Exchange {
             'order': undefined,
             'type': type,
             'side': side,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': undefined,
@@ -860,6 +885,8 @@ module.exports = class bkex extends Exchange {
         const sides = {
             'B': 'buy',
             'S': 'sell',
+            'buy': 'buy',
+            'sell': 'sell',
         };
         return this.safeString (sides, side, side);
     }
