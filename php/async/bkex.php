@@ -285,8 +285,8 @@ class bkex extends Exchange {
                 $this->publicSpotGetCommonSymbols ($params),
                 $this->publicSwapGetMarketSymbols ($params),
             );
-            $resolved = Async\await(Promise\all($promises));
-            $spotMarkets = $resolved[0];
+            $promises = Async\await(Promise\all($promises));
+            $spotMarkets = $promises[0];
             //
             //     {
             //         "code" => "0",
@@ -304,7 +304,7 @@ class bkex extends Exchange {
             //         "status" => 0
             //     }
             //
-            $swapMarkets = $resolved[1];
+            $swapMarkets = $promises[1];
             //
             //     {
             //         "code" => 0,

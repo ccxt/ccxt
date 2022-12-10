@@ -285,8 +285,8 @@ class bkex(Exchange):
             self.publicSpotGetCommonSymbols(params),
             self.publicSwapGetMarketSymbols(params),
         ]
-        resolved = await asyncio.gather(*promises)
-        spotMarkets = resolved[0]
+        promises = await asyncio.gather(*promises)
+        spotMarkets = promises[0]
         #
         #     {
         #         "code": "0",
@@ -304,7 +304,7 @@ class bkex(Exchange):
         #         "status": 0
         #     }
         #
-        swapMarkets = resolved[1]
+        swapMarkets = promises[1]
         #
         #     {
         #         "code": 0,

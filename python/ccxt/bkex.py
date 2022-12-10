@@ -284,7 +284,7 @@ class bkex(Exchange):
             self.publicSpotGetCommonSymbols(params),
             self.publicSwapGetMarketSymbols(params),
         ]
-        spotMarkets = resolved[0]
+        spotMarkets = promises[0]
         #
         #     {
         #         "code": "0",
@@ -302,7 +302,7 @@ class bkex(Exchange):
         #         "status": 0
         #     }
         #
-        swapMarkets = resolved[1]
+        swapMarkets = promises[1]
         #
         #     {
         #         "code": 0,
