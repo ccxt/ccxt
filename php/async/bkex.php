@@ -225,8 +225,26 @@ class bkex extends Exchange {
             'options' => array(
                 'timeframes' => array(
                     'spot' => array(
+                        '1m' => '1m',
+                        '5m' => '5m',
+                        '15m' => '15m',
+                        '30m' => '30m',
+                        '1h' => '1h',
+                        '4h' => '4h',
+                        '6h' => '6h',
+                        '12h' => '12h',
+                        '1d' => '1d',
+                        '1w' => '1w',
                     ),
-                    'contract' => array(
+                    'swap' => array(
+                        '1m' => 'M1',
+                        '5m' => 'M5',
+                        '15m' => 'M15',
+                        '30m' => 'M30',
+                        '1h' => 'H1',
+                        '4h' => 'H4',
+                        '6h' => 'H6',
+                        '1d' => 'D1',
                     ),
                 ),
                 'defaultType' => 'spot', // spot, swap
@@ -267,8 +285,8 @@ class bkex extends Exchange {
                 $this->publicSpotGetCommonSymbols ($params),
                 $this->publicSwapGetMarketSymbols ($params),
             );
-            $resolved = Async\await(Promise\all($promises));
-            $spotMarkets = $resolved[0];
+            $promises = Async\await(Promise\all($promises));
+            $spotMarkets = $promises[0];
             //
             //     {
             //         "code" => "0",
@@ -286,7 +304,7 @@ class bkex extends Exchange {
             //         "status" => 0
             //     }
             //
-            $swapMarkets = $resolved[1];
+            $swapMarkets = $promises[1];
             //
             //     {
             //         "code" => 0,
@@ -492,6 +510,8 @@ class bkex extends Exchange {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
+             * @see https://bkexapi.github.io/docs/api_en.htm?shell#quotationData-1
+             * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-kline
              * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
              * @param {string} $timeframe the length of time each candle represents
              * @param {int|null} $since timestamp in ms of the earliest candle to fetch
@@ -501,43 +521,81 @@ class bkex extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $swap = $market['swap'];
             $request = array(
                 'symbol' => $market['id'],
-                'period' => $this->timeframes[$timeframe],
             );
+            $method = 'publicSpotGetQKline';
+            $timeframes = $this->safe_value($this->options, 'timeframes');
+            if ($swap) {
+                $swapTimeframes = $this->safe_value($timeframes, 'swap');
+                $method = 'publicSwapGetMarketCandle';
+                $request['period'] = $swapTimeframes[$timeframe];
+                if ($limit !== null) {
+                    $request['count'] = $limit;
+                }
+            } else {
+                $spotTimeframes = $this->safe_value($timeframes, 'spot');
+                $request['symbol'] = $market['id'];
+                $request['period'] = $spotTimeframes[$timeframe];
+            }
             if ($limit !== null) {
-                $request['size'] = $limit;
+                $limitRequest = $swap ? 'count' : 'size';
+                $request[$limitRequest] = $limit;
             }
             // their docs says that 'from/to' arguments are mandatory, however that's not true in reality
             if ($since !== null) {
-                $request['from'] = $since;
+                $sinceRequest = $swap ? 'start' : 'from';
+                $request[$sinceRequest] = $since;
                 // when 'since' [from] argument is set, then exchange also requires 'to' value to be set. So we have to set 'to' argument depending 'limit' amount (if $limit was not provided, then exchange-default 500).
                 if ($limit === null) {
                     $limit = 500;
                 }
                 $duration = $this->parse_timeframe($timeframe);
                 $timerange = $limit * $duration * 1000;
-                $request['to'] = $this->sum($request['from'], $timerange);
+                $toRequest = $swap ? 'end' : 'to';
+                $request[$toRequest] = $this->sum($request[$sinceRequest], $timerange);
             }
-            $response = Async\await($this->publicSpotGetQKline ($request));
+            $response = Async\await($this->$method ($request));
             //
-            // {
-            //     "code" => "0",
-            //     "data" => array(
-            //       array(
-            //          "close" => "43414.68",
-            //          "high" => "43446.47",
-            //          "low" => "43403.05",
-            //          "open" => "43406.05",
-            //          "quoteVolume" => "61500.40099",
-            //          "symbol" => "BTC_USDT",
-            //          "ts" => "1646152440000",
-            //          "volume" => 1.41627
-            //       ),
-            //     ),
-            //     "msg" => "success",
-            //     "status" => 0
-            // }
+            // spot
+            //
+            //     {
+            //         "code" => "0",
+            //         "data" => array(
+            //             array(
+            //                 "close" => "43414.68",
+            //                 "high" => "43446.47",
+            //                 "low" => "43403.05",
+            //                 "open" => "43406.05",
+            //                 "quoteVolume" => "61500.40099",
+            //                 "symbol" => "BTC_USDT",
+            //                 "ts" => "1646152440000",
+            //                 "volume" => 1.41627
+            //             ),
+            //         ),
+            //         "msg" => "success",
+            //         "status" => 0
+            //     }
+            //
+            // $swap
+            //
+            //     {
+            //         "code" => 0,
+            //         "msg" => "success",
+            //         "data" => array(
+            //             array(
+            //                 "symbol" => "btc_usdt",
+            //                 "amount" => "10.26",
+            //                 "volume" => "172540.9433",
+            //                 "open" => "16817.29",
+            //                 "close" => "1670476440000",
+            //                 "high" => "16816.45",
+            //                 "low" => "16817.29",
+            //                 "ts" => 1670476440000
+            //             ),
+            //         )
+            //     }
             //
             $data = $this->safe_value($response, 'data', array());
             return $this->parse_ohlcvs($data, $market, $timeframe, $since, $limit);
@@ -545,13 +603,14 @@ class bkex extends Exchange {
     }
 
     public function parse_ohlcv($ohlcv, $market = null) {
+        $baseCurrencyVolume = $market['swap'] ? 'amount' : 'volume';
         return array(
             $this->safe_integer($ohlcv, 'ts'),
             $this->safe_float($ohlcv, 'open'),
             $this->safe_float($ohlcv, 'high'),
             $this->safe_float($ohlcv, 'low'),
             $this->safe_float($ohlcv, 'close'),
-            $this->safe_float($ohlcv, 'volume'),
+            $this->safe_float($ohlcv, $baseCurrencyVolume),
         );
     }
 
@@ -666,6 +725,8 @@ class bkex extends Exchange {
         return Async\async(function () use ($symbol, $limit, $params) {
             /**
              * fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other $data
+             * @see https://bkexapi.github.io/docs/api_en.htm?shell#quotationData-4
+             * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-deep-$data
              * @param {string} $symbol unified $symbol of the $market to fetch the order book for
              * @param {int|null} $limit the maximum amount of order book entries to return
              * @param {array} $params extra parameters specific to the bkex api endpoint
@@ -673,34 +734,60 @@ class bkex extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $swap = $market['swap'];
             $request = array(
                 'symbol' => $market['id'],
             );
-            if ($limit !== null) {
-                $request['depth'] = min ($limit, 50);
+            $method = 'publicSpotGetQDepth';
+            if ($swap) {
+                $method = 'publicSwapGetMarketDepth';
+            } else {
+                if ($limit !== null) {
+                    $request['depth'] = min ($limit, 50);
+                }
             }
-            $response = Async\await($this->publicSpotGetQDepth (array_merge($request, $params)));
+            $response = Async\await($this->$method (array_merge($request, $params)));
             //
-            // {
-            //     "code" => "0",
-            //     "data" => array(
-            //       "ask" => [
-            //         ["43820.07","0.86947"],
-            //         ["43820.25","0.07503"],
-            //       ],
-            //       "bid" => [
-            //         ["43815.94","0.43743"],
-            //         ["43815.72","0.08901"],
-            //       ],
-            //       "symbol" => "BTC_USDT",
-            //       "timestamp" => 1646161595841
-            //     ),
-            //     "msg" => "success",
-            //     "status" => 0
-            // }
+            // spot
+            //
+            //     {
+            //         "code" => "0",
+            //         "data" => array(
+            //             "ask" => [
+            //                 ["43820.07","0.86947"],
+            //                 ["43820.25","0.07503"],
+            //             ],
+            //             "bid" => [
+            //                 ["43815.94","0.43743"],
+            //                 ["43815.72","0.08901"],
+            //             ],
+            //             "symbol" => "BTC_USDT",
+            //             "timestamp" => 1646161595841
+            //         ),
+            //         "msg" => "success",
+            //         "status" => 0
+            //     }
+            //
+            // $swap
+            //
+            //     {
+            //         "code" => 0,
+            //         "msg" => "success",
+            //         "data" => {
+            //             "bid" => [
+            //                 ["16803.170000","4.96"],
+            //                 ["16803.140000","11.07"],
+            //             ],
+            //             "ask" => [
+            //                 ["16803.690000","9.2"],
+            //                 ["16804.180000","9.43"],
+            //             ]
+            //         }
+            //     }
             //
             $data = $this->safe_value($response, 'data');
-            return $this->parse_order_book($data, $market['symbol'], null, 'bid', 'ask');
+            $timestamp = $this->safe_integer($data, 'timestamp');
+            return $this->parse_order_book($data, $market['symbol'], $timestamp, 'bid', 'ask');
         }) ();
     }
 

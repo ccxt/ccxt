@@ -6442,7 +6442,7 @@ module.exports = class binance extends Exchange {
         //         },
         //     ]
         //
-        return this.parseBorrowRateHistory (response);
+        return this.parseBorrowRateHistory (response, code, since, limit);
     }
 
     parseBorrowRateHistory (response, code, since, limit) {

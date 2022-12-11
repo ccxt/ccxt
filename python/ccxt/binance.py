@@ -5991,7 +5991,7 @@ class binance(Exchange):
         #         },
         #     ]
         #
-        return self.parse_borrow_rate_history(response)
+        return self.parse_borrow_rate_history(response, code, since, limit)
 
     def parse_borrow_rate_history(self, response, code, since, limit):
         result = []

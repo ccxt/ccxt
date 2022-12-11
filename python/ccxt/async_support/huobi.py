@@ -4725,7 +4725,7 @@ class huobi(Exchange):
             request['addr-tag'] = tag  # only for XRP?
         networkCode, paramsOmited = self.handle_network_code_and_params(params)
         if networkCode is not None:
-            request['chain'] = self.networkPairIdFromCode(code, networkCode)
+            request['chain'] = self.network_code_to_id(code, networkCode)
         response = await self.spotPrivatePostV1DwWithdrawApiCreate(self.extend(request, paramsOmited))
         #
         #     {
