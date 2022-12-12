@@ -102,7 +102,7 @@ class binance extends \ccxt\async\binance {
             }
             $this->options['streamIndex'] = $streamIndex;
             $stream = $this->number_to_string($streamIndex);
-            $this->options['streamBySubscriptionsHash'][$subscriptionHash] = $stream;
+            $streamBySubscriptionsHash[$subscriptionHash] = $stream;
         }
         return $stream;
     }
