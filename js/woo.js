@@ -779,6 +779,50 @@ module.exports = class woo extends Exchange {
         );
     }
 
+    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name woo#editOrder
+         * @description edit a trade order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
+         * @param {object} params extra parameters specific to the woo api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'oid': id,
+            // 'quantity': this.amountToPrecision (symbol, amount),
+            // 'price': this.priceToPrecision (symbol, price),
+        };
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        if (amount !== undefined) {
+            request['quantity'] = this.amountToPrecision (symbol, amount);
+        }
+        const response = await this.v3PrivatePutOrderOid (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "data": {
+        //             "status": "string",
+        //             "success": true
+        //         },
+        //         "message": "string",
+        //         "success": true,
+        //         "timestamp": 0
+        //     }
+        //
+        const data = this.safeValue (response, 'data', {});
+        return this.parseOrder (data, market);
+    }
+
     async cancelOrder (id, symbol = undefined, params = {}) {
         /**
          * @method
@@ -1795,24 +1839,24 @@ module.exports = class woo extends Exchange {
     sign (path, section = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const version = section[0];
         const access = section[1];
+        const pathWithParams = this.implodeParams (path, params);
         let url = this.implodeHostname (this.urls['api'][access]);
         url += '/' + version + '/';
-        path = this.implodeParams (path, params);
         params = this.omit (params, this.extractParams (path));
         params = this.keysort (params);
         if (access === 'public') {
-            url += access + '/' + path;
+            url += access + '/' + pathWithParams;
             if (Object.keys (params).length) {
                 url += '?' + this.urlencode (params);
             }
         } else {
             this.checkRequiredCredentials ();
-            url += path;
+            url += pathWithParams;
             const ts = this.nonce ().toString ();
             let auth = this.urlencode (params);
             if (version === 'v3' && (method === 'POST')) {
                 body = auth;
-                auth = ts + method + '/' + version + '/' + path + body;
+                auth = ts + method + '/' + version + '/' + pathWithParams + body;
             } else {
                 if (method === 'POST' || method === 'DELETE') {
                     body = auth;
