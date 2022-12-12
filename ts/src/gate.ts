@@ -254,6 +254,9 @@ export default class gate extends Exchange {
                             'price_orders': 1,
                             'price_orders/{order_id}': 1,
                         },
+                        'patch': {
+                            'orders/{order_id}': 1,
+                        },
                     },
                     'margin': {
                         'get': {

@@ -265,6 +265,9 @@ class gate extends Exchange {
                             'price_orders' => 1,
                             'price_orders/{order_id}' => 1,
                         ),
+                        'patch' => array(
+                            'orders/{order_id}' => 1,
+                        ),
                     ),
                     'margin' => array(
                         'get' => array(

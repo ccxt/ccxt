@@ -754,6 +754,8 @@ class bkex(Exchange):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         """
         get the list of most recent trades for a particular symbol
+        see https://bkexapi.github.io/docs/api_en.htm?shell#quotationData-5
+        see https://bkexapi.github.io/docs/api_en.htm?shell#contract-trades-history
         :param str symbol: unified symbol of the market to fetch trades for
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
@@ -762,43 +764,65 @@ class bkex(Exchange):
         """
         self.load_markets()
         market = self.market(symbol)
+        swap = market['swap']
         request = {
             'symbol': market['id'],
         }
-        if limit is not None:
-            request['size'] = min(limit, 50)
-        response = self.publicSpotGetQDeals(self.extend(request, params))
+        method = 'publicSpotGetQDeals'
+        if swap:
+            method = 'publicSwapGetMarketDeals'
+        else:
+            if limit is not None:
+                request['size'] = min(limit, 50)
+        response = getattr(self, method)(self.extend(request, params))
         #
-        # {
-        #     "code": "0",
-        #     "data": [
-        #       {
-        #         "direction": "S",
-        #         "price": "43930.63",
-        #         "symbol": "BTC_USDT",
-        #         "ts": "1646224171992",
-        #         "volume": 0.030653
-        #       },  # first item is most recent
-        #     ],
-        #     "msg": "success",
-        #     "status": 0
-        # }
+        # spot
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "direction": "S",
+        #                 "price": "43930.63",
+        #                 "symbol": "BTC_USDT",
+        #                 "ts": "1646224171992",
+        #                 "volume": 0.030653
+        #             },  # first item is most recent
+        #         ],
+        #         "msg": "success",
+        #         "status": 0
+        #     }
+        #
+        # swap
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "success",
+        #         "data": [
+        #             {
+        #                 "symbol": "btc_usdt",
+        #                 "amount": "0.06",
+        #                 "price": "17134.66",
+        #                 "side": "sell",
+        #                 "time": 1670651851646
+        #             },
+        #         ]
+        #     }
         #
         trades = self.safe_value(response, 'data')
         return self.parse_trades(trades, market, since, limit)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'ts')
+        timestamp = self.safe_integer_2(trade, 'ts', 'time')
         marketId = self.safe_string(trade, 'symbol')
         market = self.safe_market(marketId, market)
-        side = self.parse_trade_side(self.safe_string(trade, 'direction'))
-        amount = self.safe_number(trade, 'volume')
+        side = self.parse_trade_side(self.safe_string_2(trade, 'direction', 'side'))
+        amount = self.safe_number_2(trade, 'volume', 'amount')
         price = self.safe_number(trade, 'price')
         type = None
-        takerOrMaker = 'taker'
         id = self.safe_string(trade, 'tid')
         if id is None:
-            id = self.synthetic_trade_id(market, timestamp, side, amount, price, type, takerOrMaker)
+            id = self.synthetic_trade_id(market, timestamp, side, amount, price, type)
         return self.safe_trade({
             'id': id,
             'timestamp': timestamp,
@@ -807,7 +831,7 @@ class bkex(Exchange):
             'order': None,
             'type': type,
             'side': side,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': None,
@@ -819,6 +843,8 @@ class bkex(Exchange):
         sides = {
             'B': 'buy',
             'S': 'sell',
+            'buy': 'buy',
+            'sell': 'sell',
         }
         return self.safe_string(sides, side, side)
 

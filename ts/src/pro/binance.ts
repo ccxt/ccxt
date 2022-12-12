@@ -97,7 +97,7 @@ export default class binance extends binanceRest {
             }
             this.options['streamIndex'] = streamIndex;
             stream = this.numberToString (streamIndex);
-            streamBySubscriptionsHash[subscriptionHash] = stream;
+            this.options['streamBySubscriptionsHash'][subscriptionHash] = stream;
         }
         return stream;
     }

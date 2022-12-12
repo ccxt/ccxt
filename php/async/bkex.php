@@ -795,6 +795,8 @@ class bkex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             * @see https://bkexapi.github.io/docs/api_en.htm?shell#quotationData-5
+             * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-$trades-history
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
              * @param {int|null} $limit the maximum amount of $trades to fetch
@@ -803,28 +805,52 @@ class bkex extends Exchange {
              */
             Async\await($this->load_markets());
             $market = $this->market($symbol);
+            $swap = $market['swap'];
             $request = array(
                 'symbol' => $market['id'],
             );
-            if ($limit !== null) {
-                $request['size'] = min ($limit, 50);
+            $method = 'publicSpotGetQDeals';
+            if ($swap) {
+                $method = 'publicSwapGetMarketDeals';
+            } else {
+                if ($limit !== null) {
+                    $request['size'] = min ($limit, 50);
+                }
             }
-            $response = Async\await($this->publicSpotGetQDeals (array_merge($request, $params)));
+            $response = Async\await($this->$method (array_merge($request, $params)));
             //
-            // {
-            //     "code" => "0",
-            //     "data" => array(
-            //       array(
-            //         "direction" => "S",
-            //         "price" => "43930.63",
-            //         "symbol" => "BTC_USDT",
-            //         "ts" => "1646224171992",
-            //         "volume" => 0.030653
-            //       ), // first item is most recent
-            //     ),
-            //     "msg" => "success",
-            //     "status" => 0
-            // }
+            // spot
+            //
+            //     {
+            //         "code" => "0",
+            //         "data" => array(
+            //             array(
+            //                 "direction" => "S",
+            //                 "price" => "43930.63",
+            //                 "symbol" => "BTC_USDT",
+            //                 "ts" => "1646224171992",
+            //                 "volume" => 0.030653
+            //             ), // first item is most recent
+            //         ),
+            //         "msg" => "success",
+            //         "status" => 0
+            //     }
+            //
+            // $swap
+            //
+            //     {
+            //         "code" => 0,
+            //         "msg" => "success",
+            //         "data" => array(
+            //             array(
+            //                 "symbol" => "btc_usdt",
+            //                 "amount" => "0.06",
+            //                 "price" => "17134.66",
+            //                 "side" => "sell",
+            //                 "time" => 1670651851646
+            //             ),
+            //         )
+            //     }
             //
             $trades = $this->safe_value($response, 'data');
             return $this->parse_trades($trades, $market, $since, $limit);
@@ -832,17 +858,16 @@ class bkex extends Exchange {
     }
 
     public function parse_trade($trade, $market = null) {
-        $timestamp = $this->safe_integer($trade, 'ts');
+        $timestamp = $this->safe_integer_2($trade, 'ts', 'time');
         $marketId = $this->safe_string($trade, 'symbol');
         $market = $this->safe_market($marketId, $market);
-        $side = $this->parse_trade_side($this->safe_string($trade, 'direction'));
-        $amount = $this->safe_number($trade, 'volume');
+        $side = $this->parse_trade_side($this->safe_string_2($trade, 'direction', 'side'));
+        $amount = $this->safe_number_2($trade, 'volume', 'amount');
         $price = $this->safe_number($trade, 'price');
         $type = null;
-        $takerOrMaker = 'taker';
         $id = $this->safe_string($trade, 'tid');
         if ($id === null) {
-            $id = $this->synthetic_trade_id($market, $timestamp, $side, $amount, $price, $type, $takerOrMaker);
+            $id = $this->synthetic_trade_id($market, $timestamp, $side, $amount, $price, $type);
         }
         return $this->safe_trade(array(
             'id' => $id,
@@ -852,7 +877,7 @@ class bkex extends Exchange {
             'order' => null,
             'type' => $type,
             'side' => $side,
-            'takerOrMaker' => $takerOrMaker,
+            'takerOrMaker' => null,
             'price' => $price,
             'amount' => $amount,
             'cost' => null,
@@ -865,6 +890,8 @@ class bkex extends Exchange {
         $sides = array(
             'B' => 'buy',
             'S' => 'sell',
+            'buy' => 'buy',
+            'sell' => 'sell',
         );
         return $this->safe_string($sides, $side, $side);
     }
