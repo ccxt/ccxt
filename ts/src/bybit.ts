@@ -2310,8 +2310,8 @@ export default class bybit extends Exchange {
             // if private response
             const isBuyer = this.safeInteger (trade, 'isBuyer');
             const isMaker = this.safeInteger (trade, 'isMaker');
-            takerOrMaker = (isMaker === 1) ? 'maker' : 'taker';
-            side = (isBuyer === 1) ? 'buy' : 'sell';
+            takerOrMaker = (isMaker === 0) ? 'maker' : 'taker';
+            side = (isBuyer === 0) ? 'buy' : 'sell';
         }
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
@@ -5351,7 +5351,7 @@ export default class bybit extends Exchange {
         const result = this.safeValue (response, 'result', {});
         const chains = this.safeValue (result, 'chains', []);
         const chainsIndexedById = this.indexBy (chains, 'chain');
-        const selectedNetworkId = this.selectNetworkIdFromAvailableNetworks (code, networkCode, chainsIndexedById);
+        const selectedNetworkId = this.selectNetworkIdFromRawNetworks (code, networkCode, chainsIndexedById);
         const addressObject = this.safeValue (chainsIndexedById, selectedNetworkId, {});
         return this.parseDepositAddress (addressObject, currency);
     }

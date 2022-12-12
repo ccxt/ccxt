@@ -64,6 +64,8 @@ class binance extends Exchange {
                 'fetchDepositAddresses' => false,
                 'fetchDepositAddressesByNetwork' => false,
                 'fetchDeposits' => true,
+                'fetchDepositWithdrawFee' => 'emulated',
+                'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => true,
                 'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
@@ -924,7 +926,102 @@ class binance extends Exchange {
                     'EOS' => 'EOS',
                     'SPL' => 'SOL',
                 ),
+                // keeping this object for backward-compatibility
                 'reverseNetworks' => array(
+                    'tronscan.org' => 'TRC20',
+                    'etherscan.io' => 'ERC20',
+                    'bscscan.com' => 'BSC',
+                    'explorer.binance.org' => 'BEP2',
+                    'bithomp.com' => 'XRP',
+                    'bloks.io' => 'EOS',
+                    'stellar.expert' => 'XLM',
+                    'blockchair.com/bitcoin' => 'BTC',
+                    'blockchair.com/bitcoin-cash' => 'BCH',
+                    'blockchair.com/ecash' => 'XEC',
+                    'explorer.litecoin.net' => 'LTC',
+                    'explorer.avax.network' => 'AVAX',
+                    'solscan.io' => 'SOL',
+                    'polkadot.subscan.io' => 'DOT',
+                    'dashboard.internetcomputer.org' => 'ICP',
+                    'explorer.chiliz.com' => 'CHZ',
+                    'cardanoscan.io' => 'ADA',
+                    'mainnet.theoan.com' => 'AION',
+                    'algoexplorer.io' => 'ALGO',
+                    'explorer.ambrosus.com' => 'AMB',
+                    'viewblock.io/zilliqa' => 'ZIL',
+                    'viewblock.io/arweave' => 'AR',
+                    'explorer.ark.io' => 'ARK',
+                    'atomscan.com' => 'ATOM',
+                    'www.mintscan.io' => 'CTK',
+                    'explorer.bitcoindiamond.org' => 'BCD',
+                    'btgexplorer.com' => 'BTG',
+                    'bts.ai' => 'BTS',
+                    'explorer.celo.org' => 'CELO',
+                    'explorer.nervos.org' => 'CKB',
+                    'cerebro.cortexlabs.ai' => 'CTXC',
+                    'chainz.cryptoid.info' => 'VIA',
+                    'explorer.dcrdata.org' => 'DCR',
+                    'digiexplorer.info' => 'DGB',
+                    'dock.subscan.io' => 'DOCK',
+                    'dogechain.info' => 'DOGE',
+                    'explorer.elrond.com' => 'EGLD',
+                    'blockscout.com' => 'ETC',
+                    'explore-fetchhub.fetch.ai' => 'FET',
+                    'filfox.info' => 'FIL',
+                    'fio.bloks.io' => 'FIO',
+                    'explorer.firo.org' => 'FIRO',
+                    'neoscan.io' => 'NEO',
+                    'ftmscan.com' => 'FTM',
+                    'explorer.gochain.io' => 'GO',
+                    'block.gxb.io' => 'GXS',
+                    'hash-hash.info' => 'HBAR',
+                    'www.hiveblockexplorer.com' => 'HIVE',
+                    'explorer.helium.com' => 'HNT',
+                    'tracker.icon.foundation' => 'ICX',
+                    'www.iostabc.com' => 'IOST',
+                    'explorer.iota.org' => 'IOTA',
+                    'iotexscan.io' => 'IOTX',
+                    'irishub.iobscan.io' => 'IRIS',
+                    'kava.mintscan.io' => 'KAVA',
+                    'scope.klaytn.com' => 'KLAY',
+                    'kmdexplorer.io' => 'KMD',
+                    'kusama.subscan.io' => 'KSM',
+                    'explorer.lto.network' => 'LTO',
+                    'polygonscan.com' => 'POLYGON',
+                    'explorer.ont.io' => 'ONT',
+                    'minaexplorer.com' => 'MINA',
+                    'nanolooker.com' => 'NANO',
+                    'explorer.nebulas.io' => 'NAS',
+                    'explorer.nbs.plus' => 'NBS',
+                    'explorer.nebl.io' => 'NEBL',
+                    'nulscan.io' => 'NULS',
+                    'nxscan.com' => 'NXS',
+                    'explorer.harmony.one' => 'ONE',
+                    'explorer.poa.network' => 'POA',
+                    'qtum.info' => 'QTUM',
+                    'explorer.rsk.co' => 'RSK',
+                    'www.oasisscan.com' => 'ROSE',
+                    'ravencoin.network' => 'RVN',
+                    'sc.tokenview.com' => 'SC',
+                    'secretnodes.com' => 'SCRT',
+                    'explorer.skycoin.com' => 'SKY',
+                    'steemscan.com' => 'STEEM',
+                    'explorer.stacks.co' => 'STX',
+                    'www.thetascan.io' => 'THETA',
+                    'scan.tomochain.com' => 'TOMO',
+                    'explore.vechain.org' => 'VET',
+                    'explorer.vite.net' => 'VITE',
+                    'www.wanscan.org' => 'WAN',
+                    'wavesexplorer.com' => 'WAVES',
+                    'wax.eosx.io' => 'WAXP',
+                    'waltonchain.pro' => 'WTC',
+                    'chain.nem.ninja' => 'XEM',
+                    'verge-blockchain.info' => 'XVG',
+                    'explorer.yoyow.org' => 'YOYOW',
+                    'explorer.zcha.in' => 'ZEC',
+                    'explorer.zensystem.io' => 'ZEN',
+                ),
+                'networksById' => array(
                     'tronscan.org' => 'TRC20',
                     'etherscan.io' => 'ERC20',
                     'bscscan.com' => 'BSC',
@@ -1477,7 +1574,7 @@ class binance extends Exchange {
                 $active = ($isWithdrawEnabled && $isDepositEnabled && $trading);
                 $maxDecimalPlaces = null;
                 if ($minPrecision !== null) {
-                    $maxDecimalPlaces = $this->parse_number($this->number_to_string($this->precision_from_string($minPrecision)));
+                    $maxDecimalPlaces = intval($this->number_to_string($this->precision_from_string($minPrecision)));
                 }
                 $result[$code] = array(
                     'id' => $id,
@@ -4454,7 +4551,7 @@ class binance extends Exchange {
     public function fetch_transaction_fees($codes = null, $params = array ()) {
         return Async\async(function () use ($codes, $params) {
             /**
-             * fetch transaction fees
+             * *DEPRECATED* please use fetchDepositWithdrawFees instead
              * @param {[string]|null} $codes not used by binance fetchTransactionFees ()
              * @param {array} $params extra parameters specific to the binance api endpoint
              * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#$fee-structure $fee structures}
@@ -4563,6 +4660,131 @@ class binance extends Exchange {
                 'info' => $response,
             );
         }) ();
+    }
+
+    public function fetch_deposit_withdraw_fees($codes = null, $params = array ()) {
+        return Async\async(function () use ($codes, $params) {
+            /**
+             * fetch deposit and withdraw fees
+             * @param {[string]|null} $codes not used by binance fetchDepositWithdrawFees ()
+             * @param {array} $params extra parameters specific to the binance api endpoint
+             * @return {[array]} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fee-structure fee structures}
+             */
+            Async\await($this->load_markets());
+            $response = Async\await($this->sapiGetCapitalConfigGetall ($params));
+            //
+            //    [
+            //        {
+            //            coin => 'BAT',
+            //            depositAllEnable => true,
+            //            withdrawAllEnable => true,
+            //            name => 'Basic Attention Token',
+            //            free => '0',
+            //            locked => '0',
+            //            freeze => '0',
+            //            withdrawing => '0',
+            //            ipoing => '0',
+            //            ipoable => '0',
+            //            storage => '0',
+            //            isLegalMoney => false,
+            //            trading => true,
+            //            networkList => [
+            //                array(
+            //                    network => 'BNB',
+            //                    coin => 'BAT',
+            //                    withdrawIntegerMultiple => '0.00000001',
+            //                    isDefault => false,
+            //                    depositEnable => true,
+            //                    withdrawEnable => true,
+            //                    depositDesc => '',
+            //                    withdrawDesc => '',
+            //                    specialTips => 'The name of this asset is Basic Attention Token (BAT). Both a MEMO and an Address are required to successfully deposit your BEP2 tokens to Binance.',
+            //                    name => 'BEP2',
+            //                    resetAddressStatus => false,
+            //                    addressRegex => '^(bnb1)[0-9a-z]{38}$',
+            //                    memoRegex => '^[0-9A-Za-z\\-_]array(1,120)$',
+            //                    withdrawFee => '0.27',
+            //                    withdrawMin => '0.54',
+            //                    withdrawMax => '10000000000',
+            //                    minConfirm => '1',
+            //                    unLockConfirm => '0'
+            //                ),
+            //                ...
+            //            ]
+            //        }
+            //    ]
+            //
+            return $this->parse_deposit_withdraw_fees($response, $codes, 'coin');
+        }) ();
+    }
+
+    public function parse_deposit_withdraw_fee($fee, $currency = null) {
+        //
+        //    {
+        //        coin => 'BAT',
+        //        depositAllEnable => true,
+        //        withdrawAllEnable => true,
+        //        name => 'Basic Attention Token',
+        //        free => '0',
+        //        locked => '0',
+        //        freeze => '0',
+        //        withdrawing => '0',
+        //        ipoing => '0',
+        //        ipoable => '0',
+        //        storage => '0',
+        //        isLegalMoney => false,
+        //        trading => true,
+        //        $networkList => [
+        //            array(
+        //                network => 'BNB',
+        //                coin => 'BAT',
+        //                withdrawIntegerMultiple => '0.00000001',
+        //                $isDefault => false,
+        //                depositEnable => true,
+        //                withdrawEnable => true,
+        //                depositDesc => '',
+        //                withdrawDesc => '',
+        //                specialTips => 'The name of this asset is Basic Attention Token (BAT). Both a MEMO and an Address are required to successfully deposit your BEP2 tokens to Binance.',
+        //                name => 'BEP2',
+        //                resetAddressStatus => false,
+        //                addressRegex => '^(bnb1)[0-9a-z]{38}$',
+        //                memoRegex => '^[0-9A-Za-z\\-_]array(1,120)$',
+        //                $withdrawFee => '0.27',
+        //                withdrawMin => '0.54',
+        //                withdrawMax => '10000000000',
+        //                minConfirm => '1',
+        //                unLockConfirm => '0'
+        //            ),
+        //            ...
+        //        ]
+        //    }
+        //
+        $networkList = $this->safe_value($fee, 'networkList', array());
+        $result = $this->deposit_withdraw_fee($fee);
+        for ($j = 0; $j < count($networkList); $j++) {
+            $networkEntry = $networkList[$j];
+            $networkId = $this->safe_string($networkEntry, 'network');
+            $networkCode = $this->network_id_to_code($networkId);
+            $withdrawFee = $this->safe_number($networkEntry, 'withdrawFee');
+            $isDefault = $this->safe_value($networkEntry, 'isDefault');
+            if ($isDefault === true) {
+                $result['withdraw'] = array(
+                    'fee' => $withdrawFee,
+                    'percentage' => null,
+                );
+            }
+            $result['networks'][$networkCode] = array(
+                'withdraw' => array(
+                    'fee' => $withdrawFee,
+                    'percentage' => null,
+                ),
+                'deposit' => array(
+                    'fee' => null,
+                    'percentage' => null,
+                ),
+            );
+        }
+        return $result;
     }
 
     public function withdraw($code, $amount, $address, $tag = null, $params = array ()) {
@@ -6233,7 +6455,7 @@ class binance extends Exchange {
             //         ),
             //     )
             //
-            return $this->parse_borrow_rate_history($response);
+            return $this->parse_borrow_rate_history($response, $code, $since, $limit);
         }) ();
     }
 

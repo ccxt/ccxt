@@ -2,7 +2,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.2.79'
+__version__ = '2.2.94'
 
 # -----------------------------------------------------------------------------
 
@@ -475,6 +475,7 @@ class Exchange(BaseExchange):
             'defaultNetworkCodeReplacements': {
                 'ETH': {'ERC20': 'ETH'},
                 'TRX': {'TRC20': 'TRX'},
+                'CRO': {'CRC20': 'CRONOS'},
             },
         }
 
@@ -720,10 +721,26 @@ class Exchange(BaseExchange):
             if amount is not None and filled is not None:
                 remaining = Precise.string_sub(amount, filled)
         # ensure that the average field is calculated correctly
+        inverse = self.safe_value(market, 'inverse', False)
+        contractSize = self.number_to_string(self.safe_value(market, 'contractSize', 1))
+        # inverse
+        # price = filled * contract size / cost
+        #
+        # linear
+        # price = cost / (filled * contract size)
         if average is None:
             if (filled is not None) and (cost is not None) and Precise.string_gt(filled, '0'):
-                average = Precise.string_div(cost, filled)
-        # also ensure the cost field is calculated correctly
+                filledTimesContractSize = Precise.string_mul(filled, contractSize)
+                if inverse:
+                    average = Precise.string_div(filledTimesContractSize, cost)
+                else:
+                    average = Precise.string_div(cost, filledTimesContractSize)
+        # similarly
+        # inverse
+        # cost = filled * contract size / price
+        #
+        # linear
+        # cost = filled * contract size * price
         costPriceExists = (average is not None) or (price is not None)
         if parseCost and (filled is not None) and costPriceExists:
             multiplyPrice = None
@@ -732,13 +749,11 @@ class Exchange(BaseExchange):
             else:
                 multiplyPrice = average
             # contract trading
-            contractSize = self.safe_string(market, 'contractSize')
-            if contractSize is not None:
-                inverse = self.safe_value(market, 'inverse', False)
-                if inverse:
-                    multiplyPrice = Precise.string_div('1', multiplyPrice)
-                multiplyPrice = Precise.string_mul(multiplyPrice, contractSize)
-            cost = Precise.string_mul(multiplyPrice, filled)
+            filledTimesContractSize = Precise.string_mul(filled, contractSize)
+            if inverse:
+                cost = Precise.string_div(filledTimesContractSize, multiplyPrice)
+            else:
+                cost = Precise.string_mul(filledTimesContractSize, multiplyPrice)
         # support for market orders
         orderType = self.safe_value(order, 'type')
         emptyPrice = (price is None) or Precise.string_equals(price, '0')
@@ -755,14 +770,18 @@ class Exchange(BaseExchange):
             if 'rate' in fee:
                 fee['rate'] = self.safe_number(fee, 'rate')
             entry['fee'] = fee
-        # timeInForceHandling
         timeInForce = self.safe_string(order, 'timeInForce')
+        postOnly = self.safe_value(order, 'postOnly')
+        # timeInForceHandling
         if timeInForce is None:
             if self.safe_string(order, 'type') == 'market':
                 timeInForce = 'IOC'
             # allow postOnly override
-            if self.safe_value(order, 'postOnly', False):
+            if postOnly:
                 timeInForce = 'PO'
+        elif postOnly is None:
+            # timeInForce is not None here
+            postOnly = timeInForce == 'PO'
         return self.extend(order, {
             'lastTradeTimestamp': lastTradeTimeTimestamp,
             'price': self.parse_number(price),
@@ -772,6 +791,7 @@ class Exchange(BaseExchange):
             'filled': self.parse_number(filled),
             'remaining': self.parse_number(remaining),
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'trades': trades,
         })
 
@@ -1259,29 +1279,35 @@ class Exchange(BaseExchange):
                 defaultNetworkCode = defaultNetwork
         return defaultNetworkCode
 
-    def select_network_id_from_available_networks(self, currencyCode, networkCode, networkEntriesIndexed):
+    def select_network_code_from_unified_networks(self, currencyCode, networkCode, indexedNetworkEntries):
+        return self.selectNetworkKeyFromNetworks(currencyCode, networkCode, indexedNetworkEntries, True)
+
+    def select_network_id_from_raw_networks(self, currencyCode, networkCode, indexedNetworkEntries):
+        return self.selectNetworkKeyFromNetworks(currencyCode, networkCode, indexedNetworkEntries, False)
+
+    def select_network_key_from_networks(self, currencyCode, networkCode, indexedNetworkEntries, isIndexedByUnifiedNetworkCode=False):
         # self method is used against raw & unparse network entries, which are just indexed by network id
         chosenNetworkId = None
-        availableNetworkIds = list(networkEntriesIndexed.keys())
+        availableNetworkIds = list(indexedNetworkEntries.keys())
         responseNetworksLength = len(availableNetworkIds)
         if networkCode is not None:
-            # if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
-            networkId = self.networkCodeToId(networkCode, currencyCode)
             if responseNetworksLength == 0:
                 raise NotSupported(self.id + ' - ' + networkCode + ' network did not return any result for ' + currencyCode)
             else:
-                if networkId in networkEntriesIndexed:
+                # if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
+                networkId = networkCode if isIndexedByUnifiedNetworkCode else self.networkCodeToId(networkCode, currencyCode)
+                if networkId in indexedNetworkEntries:
                     chosenNetworkId = networkId
                 else:
                     raise NotSupported(self.id + ' - ' + networkId + ' network was not found for ' + currencyCode + ', use one of ' + ', '.join(availableNetworkIds))
         else:
             if responseNetworksLength == 0:
-                raise NotSupported(self.id + ' - no networks were returned for' + currencyCode)
+                raise NotSupported(self.id + ' - no networks were returned for ' + currencyCode)
             else:
                 # if networkCode was not provided by user, then we try to use the default network(if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
                 defaultNetworkCode = self.defaultNetworkCode(currencyCode)
-                defaultNetworkId = self.networkCodeToId(defaultNetworkCode, currencyCode)
-                chosenNetworkId = defaultNetworkId if (defaultNetworkId in networkEntriesIndexed) else availableNetworkIds[0]
+                defaultNetworkId = defaultNetworkCode if isIndexedByUnifiedNetworkCode else self.networkCodeToId(defaultNetworkCode, currencyCode)
+                chosenNetworkId = defaultNetworkId if (defaultNetworkId in indexedNetworkEntries) else availableNetworkIds[0]
         return chosenNetworkId
 
     def safe_number_2(self, dictionary, key1, key2, d=None):
@@ -1879,11 +1905,17 @@ class Exchange(BaseExchange):
 
     def price_to_precision(self, symbol, price):
         market = self.market(symbol)
-        return self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
+        result = self.decimal_to_precision(price, ROUND, market['precision']['price'], self.precisionMode, self.paddingMode)
+        if result == '0':
+            raise ArgumentsRequired(self.id + ' price of ' + market['symbol'] + ' must be greater than minimum price precision of ' + self.number_to_string(market['precision']['price']))
+        return result
 
     def amount_to_precision(self, symbol, amount):
         market = self.market(symbol)
-        return self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], self.precisionMode, self.paddingMode)
+        result = self.decimal_to_precision(amount, TRUNCATE, market['precision']['amount'], self.precisionMode, self.paddingMode)
+        if result == '0':
+            raise ArgumentsRequired(self.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + self.number_to_string(market['precision']['amount']))
+        return result
 
     def fee_to_precision(self, symbol, fee):
         market = self.market(symbol)

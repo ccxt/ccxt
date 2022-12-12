@@ -589,7 +589,7 @@ class bitget extends \ccxt\async\bitget {
             }
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchOrders', $market, $params);
-            if ($type === 'spot' && $symbol === null) {
+            if (($type === 'spot') && ($symbol === null)) {
                 throw new ArgumentsRequired($this->id . ' watchOrders requires a $symbol argument for ' . $type . ' markets.');
             }
             $instType = ($type === 'spot') ? 'spbl' : 'umcbl';
@@ -661,7 +661,7 @@ class bitget extends \ccxt\async\bitget {
         for ($i = 0; $i < count($keys); $i++) {
             $symbol = $keys[$i];
             $messageHash = 'order:' . $symbol;
-            $client->resolve ($this->orders, $messageHash);
+            $client->resolve ($stored, $messageHash);
         }
     }
 
@@ -816,9 +816,11 @@ class bitget extends \ccxt\async\bitget {
             // the spot stream only provides on $limit orders updates so we can't support it for spot
             Async\await($this->load_markets());
             $market = null;
+            $messageHash = 'myTrades';
             if ($symbol !== null) {
                 $market = $this->market($symbol);
                 $symbol = $market['symbol'];
+                $messageHash = $messageHash . ':' . $symbol;
             }
             $type = null;
             list($type, $params) = $this->handle_market_type_and_params('watchMyTrades', $market, $params);
@@ -826,7 +828,6 @@ class bitget extends \ccxt\async\bitget {
                 throw new NotSupported($this->id . ' watchMyTrades is not supported for ' . $type . ' markets.');
             }
             $subscriptionHash = 'order:trades';
-            $messageHash = 'usertrade:' . $symbol;
             $args = array(
                 'instType' => 'umcbl',
                 'channel' => 'orders',
@@ -883,8 +884,10 @@ class bitget extends \ccxt\async\bitget {
         $parsed = $this->parse_ws_my_trade($message);
         $stored->append ($parsed);
         $symbol = $parsed['symbol'];
-        $messageHash = 'usertrade:' . $symbol;
-        $client->resolve ($this->myTrades, $messageHash);
+        $messageHash = 'myTrades';
+        $client->resolve ($stored, $messageHash);
+        $symbolSpecificMessageHash = 'myTrades:' . $symbol;
+        $client->resolve ($stored, $symbolSpecificMessageHash);
     }
 
     public function parse_ws_my_trade($trade, $market = null) {

@@ -1105,8 +1105,8 @@ class digifinex extends Exchange {
             'change' => null,
             'percentage' => $this->safe_string_2($ticker, 'change', 'price_change_percent'),
             'average' => null,
-            'baseVolume' => $this->safe_string($ticker, 'base_vol'),
-            'quoteVolume' => $this->safe_string_2($ticker, 'vol', 'volume_24h'),
+            'baseVolume' => $this->safe_string_2($ticker, 'vol', 'volume_24h'),
+            'quoteVolume' => $this->safe_string($ticker, 'base_vol'),
             'info' => $ticker,
         ), $market);
     }
