@@ -1730,7 +1730,14 @@ module.exports = class Exchange {
          * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {[string|undefined]} unified network code
          */
-        const networkCodesByIds = this.safeValue (this.options, 'networksById', {});
+        const defaultCodes = {
+            'ERC20': 'ETH',
+            'TRC20': 'TRX',
+            'BEP20': 'BSC',
+            'BEP2': 'BNB',
+        };
+        let networkCodesByIds = this.safeValue (this.options, 'networksById', {});
+        networkCodesByIds = this.extend (defaultCodes, networkCodesByIds);
         let networkCode = this.safeString (networkCodesByIds, networkId, networkId);
         // replace mainnet network-codes (i.e. ERC20->ETH)
         if (currencyCode !== undefined) {
