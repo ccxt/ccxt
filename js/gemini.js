@@ -1317,7 +1317,7 @@ module.exports = class gemini extends Exchange {
     }
 
     nonce () {
-        return this.milliseconds ();
+        return this.seconds ();
     }
 
     async fetchTransactions (code = undefined, since = undefined, limit = undefined, params = {}) {
