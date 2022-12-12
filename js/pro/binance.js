@@ -99,7 +99,7 @@ module.exports = class binance extends binanceRest {
             }
             this.options['streamIndex'] = streamIndex;
             stream = this.numberToString (normalizedIndex);
-            streamBySubscriptionsHash[subscriptionHash] = this.numberToString (streamIndex);
+            streamBySubscriptionsHash[subscriptionHash] = stream;
         }
         return stream;
     }
