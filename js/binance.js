@@ -55,6 +55,8 @@ module.exports = class binance extends Exchange {
                 'fetchDepositAddresses': false,
                 'fetchDepositAddressesByNetwork': false,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -141,6 +143,7 @@ module.exports = class binance extends Exchange {
                 'api': {
                     'wapi': 'https://api.binance.com/wapi/v3',
                     'sapi': 'https://api.binance.com/sapi/v1',
+                    'sapiV2': 'https://api.binance.com/sapi/v2',
                     'sapiV3': 'https://api.binance.com/sapi/v3',
                     'dapiPublic': 'https://dapi.binance.com/dapi/v1',
                     'dapiPrivate': 'https://dapi.binance.com/dapi/v1',
@@ -230,6 +233,7 @@ module.exports = class binance extends Exchange {
                         'loan/repay/collateral/rate': 600, // Weight(IP): 6000 => cost = 0.1 * 6000 = 600
                         'loan/vip/ongoing/orders': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
                         'loan/vip/repay/history': 40, // Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/vip/collateral/account': 600, // Weight(IP): 6000 => cost = 0.1 * 6000 = 600
                         'fiat/orders': 600.03, // Weight(UID): 90000 => cost = 0.006667 * 90000 = 600.03
                         'fiat/payments': 0.1,
                         'futures/transfer': 1,
@@ -466,6 +470,12 @@ module.exports = class binance extends Exchange {
                         'broker/subAccountApi': 1,
                         'broker/subAccountApi/ipRestriction/ipList': 1,
                         'algo/futures/order': 0.1,
+                    },
+                },
+                'sapiV2': {
+                    'get': {
+                        'sub-account/futures/account': 0.1,
+                        'sub-account/futures/positionRisk': 0.1,
                     },
                 },
                 'sapiV3': {
@@ -907,7 +917,102 @@ module.exports = class binance extends Exchange {
                     'EOS': 'EOS',
                     'SPL': 'SOL',
                 },
+                // keeping this object for backward-compatibility
                 'reverseNetworks': {
+                    'tronscan.org': 'TRC20',
+                    'etherscan.io': 'ERC20',
+                    'bscscan.com': 'BSC',
+                    'explorer.binance.org': 'BEP2',
+                    'bithomp.com': 'XRP',
+                    'bloks.io': 'EOS',
+                    'stellar.expert': 'XLM',
+                    'blockchair.com/bitcoin': 'BTC',
+                    'blockchair.com/bitcoin-cash': 'BCH',
+                    'blockchair.com/ecash': 'XEC',
+                    'explorer.litecoin.net': 'LTC',
+                    'explorer.avax.network': 'AVAX',
+                    'solscan.io': 'SOL',
+                    'polkadot.subscan.io': 'DOT',
+                    'dashboard.internetcomputer.org': 'ICP',
+                    'explorer.chiliz.com': 'CHZ',
+                    'cardanoscan.io': 'ADA',
+                    'mainnet.theoan.com': 'AION',
+                    'algoexplorer.io': 'ALGO',
+                    'explorer.ambrosus.com': 'AMB',
+                    'viewblock.io/zilliqa': 'ZIL',
+                    'viewblock.io/arweave': 'AR',
+                    'explorer.ark.io': 'ARK',
+                    'atomscan.com': 'ATOM',
+                    'www.mintscan.io': 'CTK',
+                    'explorer.bitcoindiamond.org': 'BCD',
+                    'btgexplorer.com': 'BTG',
+                    'bts.ai': 'BTS',
+                    'explorer.celo.org': 'CELO',
+                    'explorer.nervos.org': 'CKB',
+                    'cerebro.cortexlabs.ai': 'CTXC',
+                    'chainz.cryptoid.info': 'VIA',
+                    'explorer.dcrdata.org': 'DCR',
+                    'digiexplorer.info': 'DGB',
+                    'dock.subscan.io': 'DOCK',
+                    'dogechain.info': 'DOGE',
+                    'explorer.elrond.com': 'EGLD',
+                    'blockscout.com': 'ETC',
+                    'explore-fetchhub.fetch.ai': 'FET',
+                    'filfox.info': 'FIL',
+                    'fio.bloks.io': 'FIO',
+                    'explorer.firo.org': 'FIRO',
+                    'neoscan.io': 'NEO',
+                    'ftmscan.com': 'FTM',
+                    'explorer.gochain.io': 'GO',
+                    'block.gxb.io': 'GXS',
+                    'hash-hash.info': 'HBAR',
+                    'www.hiveblockexplorer.com': 'HIVE',
+                    'explorer.helium.com': 'HNT',
+                    'tracker.icon.foundation': 'ICX',
+                    'www.iostabc.com': 'IOST',
+                    'explorer.iota.org': 'IOTA',
+                    'iotexscan.io': 'IOTX',
+                    'irishub.iobscan.io': 'IRIS',
+                    'kava.mintscan.io': 'KAVA',
+                    'scope.klaytn.com': 'KLAY',
+                    'kmdexplorer.io': 'KMD',
+                    'kusama.subscan.io': 'KSM',
+                    'explorer.lto.network': 'LTO',
+                    'polygonscan.com': 'POLYGON',
+                    'explorer.ont.io': 'ONT',
+                    'minaexplorer.com': 'MINA',
+                    'nanolooker.com': 'NANO',
+                    'explorer.nebulas.io': 'NAS',
+                    'explorer.nbs.plus': 'NBS',
+                    'explorer.nebl.io': 'NEBL',
+                    'nulscan.io': 'NULS',
+                    'nxscan.com': 'NXS',
+                    'explorer.harmony.one': 'ONE',
+                    'explorer.poa.network': 'POA',
+                    'qtum.info': 'QTUM',
+                    'explorer.rsk.co': 'RSK',
+                    'www.oasisscan.com': 'ROSE',
+                    'ravencoin.network': 'RVN',
+                    'sc.tokenview.com': 'SC',
+                    'secretnodes.com': 'SCRT',
+                    'explorer.skycoin.com': 'SKY',
+                    'steemscan.com': 'STEEM',
+                    'explorer.stacks.co': 'STX',
+                    'www.thetascan.io': 'THETA',
+                    'scan.tomochain.com': 'TOMO',
+                    'explore.vechain.org': 'VET',
+                    'explorer.vite.net': 'VITE',
+                    'www.wanscan.org': 'WAN',
+                    'wavesexplorer.com': 'WAVES',
+                    'wax.eosx.io': 'WAXP',
+                    'waltonchain.pro': 'WTC',
+                    'chain.nem.ninja': 'XEM',
+                    'verge-blockchain.info': 'XVG',
+                    'explorer.yoyow.org': 'YOYOW',
+                    'explorer.zcha.in': 'ZEC',
+                    'explorer.zensystem.io': 'ZEN',
+                },
+                'networksById': {
                     'tronscan.org': 'TRC20',
                     'etherscan.io': 'ERC20',
                     'bscscan.com': 'BSC',
@@ -1103,6 +1208,7 @@ module.exports = class binance extends Exchange {
                     '-1128': BadRequest, // {"code":-1128,"msg":"{"code":-1128,"msg":"Combination of optional parameters invalid."}"}
                     '-1130': BadRequest, // {"code":-1130,"msg":"Data sent for paramter %s is not valid."}
                     '-1131': BadRequest, // {"code":-1131,"msg":"recvWindow must be less than 60000"}
+                    '-1135': BadRequest, // This error code will occur if a parameter requiring a JSON object is invalid.
                     '-1136': BadRequest, // {"code":-1136,"msg":"Invalid newOrderRespType"}
                     '-2008': AuthenticationError, // {"code":-2008,"msg":"Invalid Api-Key ID."}
                     '-2010': ExchangeError, // {"code":-2010,"msg":"generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc..."}
@@ -1460,7 +1566,7 @@ module.exports = class binance extends Exchange {
             const active = (isWithdrawEnabled && isDepositEnabled && trading);
             let maxDecimalPlaces = undefined;
             if (minPrecision !== undefined) {
-                maxDecimalPlaces = this.parseNumber (this.numberToString (this.precisionFromString (minPrecision)));
+                maxDecimalPlaces = parseInt (this.numberToString (this.precisionFromString (minPrecision)));
             }
             result[code] = {
                 'id': id,
@@ -1926,7 +2032,7 @@ module.exports = class binance extends Exchange {
             const paramSymbols = this.safeValue (params, 'symbols');
             if (paramSymbols !== undefined) {
                 let symbols = '';
-                if (this.isArray (paramSymbols)) {
+                if (Array.isArray (paramSymbols)) {
                     symbols = this.marketId (paramSymbols[0]);
                     for (let i = 1; i < paramSymbols.length; i++) {
                         const symbol = paramSymbols[i];
@@ -4437,7 +4543,7 @@ module.exports = class binance extends Exchange {
         /**
          * @method
          * @name binance#fetchTransactionFees
-         * @description fetch transaction fees
+         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
          * @param {[string]|undefined} codes not used by binance fetchTransactionFees ()
          * @param {object} params extra parameters specific to the binance api endpoint
          * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
@@ -4545,6 +4651,131 @@ module.exports = class binance extends Exchange {
             'deposit': {},
             'info': response,
         };
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @param {[string]|undefined} codes not used by binance fetchDepositWithdrawFees ()
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.sapiGetCapitalConfigGetall (params);
+        //
+        //    [
+        //        {
+        //            coin: 'BAT',
+        //            depositAllEnable: true,
+        //            withdrawAllEnable: true,
+        //            name: 'Basic Attention Token',
+        //            free: '0',
+        //            locked: '0',
+        //            freeze: '0',
+        //            withdrawing: '0',
+        //            ipoing: '0',
+        //            ipoable: '0',
+        //            storage: '0',
+        //            isLegalMoney: false,
+        //            trading: true,
+        //            networkList: [
+        //                {
+        //                    network: 'BNB',
+        //                    coin: 'BAT',
+        //                    withdrawIntegerMultiple: '0.00000001',
+        //                    isDefault: false,
+        //                    depositEnable: true,
+        //                    withdrawEnable: true,
+        //                    depositDesc: '',
+        //                    withdrawDesc: '',
+        //                    specialTips: 'The name of this asset is Basic Attention Token (BAT). Both a MEMO and an Address are required to successfully deposit your BEP2 tokens to Binance.',
+        //                    name: 'BEP2',
+        //                    resetAddressStatus: false,
+        //                    addressRegex: '^(bnb1)[0-9a-z]{38}$',
+        //                    memoRegex: '^[0-9A-Za-z\\-_]{1,120}$',
+        //                    withdrawFee: '0.27',
+        //                    withdrawMin: '0.54',
+        //                    withdrawMax: '10000000000',
+        //                    minConfirm: '1',
+        //                    unLockConfirm: '0'
+        //                },
+        //                ...
+        //            ]
+        //        }
+        //    ]
+        //
+        return this.parseDepositWithdrawFees (response, codes, 'coin');
+    }
+
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        //
+        //    {
+        //        coin: 'BAT',
+        //        depositAllEnable: true,
+        //        withdrawAllEnable: true,
+        //        name: 'Basic Attention Token',
+        //        free: '0',
+        //        locked: '0',
+        //        freeze: '0',
+        //        withdrawing: '0',
+        //        ipoing: '0',
+        //        ipoable: '0',
+        //        storage: '0',
+        //        isLegalMoney: false,
+        //        trading: true,
+        //        networkList: [
+        //            {
+        //                network: 'BNB',
+        //                coin: 'BAT',
+        //                withdrawIntegerMultiple: '0.00000001',
+        //                isDefault: false,
+        //                depositEnable: true,
+        //                withdrawEnable: true,
+        //                depositDesc: '',
+        //                withdrawDesc: '',
+        //                specialTips: 'The name of this asset is Basic Attention Token (BAT). Both a MEMO and an Address are required to successfully deposit your BEP2 tokens to Binance.',
+        //                name: 'BEP2',
+        //                resetAddressStatus: false,
+        //                addressRegex: '^(bnb1)[0-9a-z]{38}$',
+        //                memoRegex: '^[0-9A-Za-z\\-_]{1,120}$',
+        //                withdrawFee: '0.27',
+        //                withdrawMin: '0.54',
+        //                withdrawMax: '10000000000',
+        //                minConfirm: '1',
+        //                unLockConfirm: '0'
+        //            },
+        //            ...
+        //        ]
+        //    }
+        //
+        const networkList = this.safeValue (fee, 'networkList', []);
+        const result = this.depositWithdrawFee (fee);
+        for (let j = 0; j < networkList.length; j++) {
+            const networkEntry = networkList[j];
+            const networkId = this.safeString (networkEntry, 'network');
+            const networkCode = this.networkIdToCode (networkId);
+            const withdrawFee = this.safeNumber (networkEntry, 'withdrawFee');
+            const isDefault = this.safeValue (networkEntry, 'isDefault');
+            if (isDefault === true) {
+                result['withdraw'] = {
+                    'fee': withdrawFee,
+                    'percentage': undefined,
+                };
+            }
+            result['networks'][networkCode] = {
+                'withdraw': {
+                    'fee': withdrawFee,
+                    'percentage': undefined,
+                },
+                'deposit': {
+                    'fee': undefined,
+                    'percentage': undefined,
+                },
+            };
+        }
+        return result;
     }
 
     async withdraw (code, amount, address, tag = undefined, params = {}) {
@@ -5914,7 +6145,7 @@ module.exports = class binance extends Exchange {
             } else {
                 throw new AuthenticationError (this.id + ' userDataStream endpoint requires `apiKey` credential');
             }
-        } else if ((api === 'private') || (api === 'eapiPrivate') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV3') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
+        } else if ((api === 'private') || (api === 'eapiPrivate') || (api === 'sapi' && path !== 'system/status') || (api === 'sapiV2') || (api === 'sapiV3') || (api === 'wapi' && path !== 'systemStatus') || (api === 'dapiPrivate') || (api === 'dapiPrivateV2') || (api === 'fapiPrivate') || (api === 'fapiPrivateV2')) {
             this.checkRequiredCredentials ();
             let query = undefined;
             const defaultRecvWindow = this.safeInteger (this.options, 'recvWindow');
@@ -6211,7 +6442,7 @@ module.exports = class binance extends Exchange {
         //         },
         //     ]
         //
-        return this.parseBorrowRateHistory (response);
+        return this.parseBorrowRateHistory (response, code, since, limit);
     }
 
     parseBorrowRateHistory (response, code, since, limit) {

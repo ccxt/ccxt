@@ -178,6 +178,7 @@ class Transpiler {
             [ /\.currencyToPrecision\s/g, '.currency_to_precision'],
             [ /\.costToPrecision\s/g, '.cost_to_precision'],
             [ /\.commonCurrencyCode\s/g, '.common_currency_code'],
+            [ /\.getDefaultOptions\s/g, '.get_default_options'],
             [ /\.loadAccounts\s/g, '.load_accounts'],
             [ /\.fetchAccounts\s/g, '.fetch_accounts'],
             [ /\.loadFees\s/g, '.load_fees'],

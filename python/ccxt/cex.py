@@ -1463,7 +1463,7 @@ class cex(Exchange):
         data = self.safe_value(response, 'data', {})
         addresses = self.safe_value(data, 'addresses', [])
         chainsIndexedById = self.index_by(addresses, 'blockchain')
-        selectedNetworkId = self.select_network_id_from_available_networks(code, networkCode, chainsIndexedById)
+        selectedNetworkId = self.select_network_id_from_raw_networks(code, networkCode, chainsIndexedById)
         addressObject = self.safe_value(chainsIndexedById, selectedNetworkId, {})
         address = self.safe_string_2(addressObject, 'address', 'destination')
         self.check_address(address)

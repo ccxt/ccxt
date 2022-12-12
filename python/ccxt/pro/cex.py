@@ -624,6 +624,9 @@ class cex(Exchange, ccxt.async_support.cex):
         symbol = base + '/' + quote
         market = self.safe_market(symbol)
         remains = self.currency_from_precision(base, remains)
+        if self.orders is None:
+            limit = self.safe_integer(self.options, 'ordersLimit', 1000)
+            self.orders = ArrayCacheBySymbolById(limit)
         ordersBySymbol = self.safe_value(self.orders['hashmap'], symbol, {})
         order = self.safe_value(ordersBySymbol, orderId)
         if order is None:
@@ -788,7 +791,8 @@ class cex(Exchange, ccxt.async_support.cex):
             myOrders.append(order)
         self.orders = myOrders
         messageHash = 'orders:' + symbol
-        client.resolve(myOrders, messageHash)
+        if len(myOrders) > 0:
+            client.resolve(myOrders, messageHash)
 
     async def watch_order_book(self, symbol, limit=None, params={}):
         """

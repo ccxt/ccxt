@@ -3603,7 +3603,7 @@ module.exports = class mexc3 extends Exchange {
             const networkId = this.safeString (depositAddress, 'network');
             const network = this.safeNetwork (networkId);
             const address = this.safeString (depositAddress, 'address', undefined);
-            const tag = this.safeString (depositAddress, 'tag', undefined);
+            const tag = this.safeString2 (depositAddress, 'tag', 'memo', undefined);
             result.push ({
                 'currency': currency['id'],
                 'network': network,
