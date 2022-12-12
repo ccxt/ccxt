@@ -43,10 +43,10 @@ module.exports = class binance extends binanceRest {
             },
             'options': {
                 'streamLimits': {
-                    'spot': 1024,
-                    'margin': 1024,
-                    'future': 200,
-                    'delivery': 200,
+                    'spot': 10, // max 1024
+                    'margin': 10, // max 1024
+                    'future': 10, // max 200
+                    'delivery': 10, // max 200
                 },
                 'streamBySubscriptionsHash': {},
                 'streamIndex': -1,
@@ -93,12 +93,13 @@ module.exports = class binance extends binanceRest {
             const streamLimits = this.safeValue (this.options, 'streamLimits');
             const streamLimit = this.safeInteger (streamLimits, type);
             streamIndex = streamIndex + 1;
-            if (streamIndex === streamLimit) {
-                streamIndex = 0;
+            let normalizedIndex = streamIndex;
+            if (streamIndex >= streamLimit) {
+                normalizedIndex = streamIndex % streamLimit;
             }
             this.options['streamIndex'] = streamIndex;
-            stream = this.numberToString (streamIndex);
-            streamBySubscriptionsHash[subscriptionHash] = stream;
+            stream = this.numberToString (normalizedIndex);
+            streamBySubscriptionsHash[subscriptionHash] = this.numberToString (streamIndex);
         }
         return stream;
     }
