@@ -200,6 +200,12 @@ module.exports = class woo extends Exchange {
                         'post': {
                             'algo/order': 5,
                         },
+                        'put': {
+                            'order/{oid}': 2,
+                            'order/client/{oid}': 2,
+                            'algo/order/{oid}': 2,
+                            'algo/order/client/{oid}': 2,
+                        },
                         'delete': {
                             'algo/order/{oid}': 1,
                             'algo/orders/pending': 1,
