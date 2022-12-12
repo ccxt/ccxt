@@ -1854,7 +1854,7 @@ module.exports = class woo extends Exchange {
             url += pathWithParams;
             const ts = this.nonce ().toString ();
             let auth = this.urlencode (params);
-            if (version === 'v3' && (method === 'POST')) {
+            if (version === 'v3' && (method === 'POST' || method === 'PUT')) {
                 body = auth;
                 auth = ts + method + '/' + version + '/' + pathWithParams + body;
             } else {
