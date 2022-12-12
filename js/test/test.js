@@ -26,6 +26,7 @@ console.log ('\nTESTING', { 'exchange': exchangeId, 'symbol': exchangeSymbol || 
 // ----------------------------------------------------------------------------
 
 const proxies = [
+    '',
     'https://cors-anywhere.herokuapp.com/'
 ];
 
