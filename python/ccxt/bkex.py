@@ -59,7 +59,7 @@ class bkex(Exchange):
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': None,
                 'fetchFundingRate': None,
-                'fetchFundingRateHistory': None,
+                'fetchFundingRateHistory': True,
                 'fetchFundingRates': None,
                 'fetchIndexOHLCV': None,
                 'fetchL2OrderBook': None,
@@ -1538,6 +1538,54 @@ class bkex(Exchange):
         result = self.deposit_withdraw_fee(fee)
         result['withdraw']['fee'] = self.safe_number(fee, 'withdrawFee')
         return result
+
+    def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+        """
+        see https://bkexapi.github.io/docs/api_en.htm?shell#contract-fundingRate
+        fetches historical funding rate prices
+        :param str|None symbol: unified symbol of the market to fetch the funding rate history for
+        :param int|None since: timestamp in ms of the earliest funding rate to fetch
+        :param int|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
+        :param dict params: extra parameters specific to the bkex api endpoint
+        :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
+        self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = self.publicSwapGetMarketFundingRate(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "success",
+        #         "data": [
+        #             {
+        #                 "symbol": "btc_usdt",
+        #                 "rate": "-0.00008654",
+        #                 "time": 1670658302128
+        #             },
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        rates = []
+        for i in range(0, len(data)):
+            entry = data[i]
+            marketId = self.safe_string(entry, 'symbol')
+            symbol = self.safe_symbol(marketId)
+            timestamp = self.safe_integer(entry, 'time')
+            rates.append({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': self.safe_number(entry, 'rate'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+            })
+        sorted = self.sort_by(rates, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         signed = api[0] == 'private'

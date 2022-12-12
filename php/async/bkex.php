@@ -58,7 +58,7 @@ class bkex extends Exchange {
                 'fetchDepositWithdrawFees' => true,
                 'fetchFundingHistory' => null,
                 'fetchFundingRate' => null,
-                'fetchFundingRateHistory' => null,
+                'fetchFundingRateHistory' => true,
                 'fetchFundingRates' => null,
                 'fetchIndexOHLCV' => null,
                 'fetchL2OrderBook' => null,
@@ -1657,6 +1657,59 @@ class bkex extends Exchange {
         $result = $this->deposit_withdraw_fee($fee);
         $result['withdraw']['fee'] = $this->safe_number($fee, 'withdrawFee');
         return $result;
+    }
+
+    public function fetch_funding_rate_history($symbol = null, $since = null, $limit = null, $params = array ()) {
+        return Async\async(function () use ($symbol, $since, $limit, $params) {
+            /**
+             * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-fundingRate
+             * fetches historical funding rate prices
+             * @param {string|null} $symbol unified $symbol of the $market to fetch the funding rate history for
+             * @param {int|null} $since $timestamp in ms of the earliest funding rate to fetch
+             * @param {int|null} $limit the maximum amount of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~ to fetch
+             * @param {array} $params extra parameters specific to the bkex api endpoint
+             * @return {[array]} a list of ~@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure funding rate structures~
+             */
+            if ($symbol === null) {
+                throw new ArgumentsRequired($this->id . ' fetchFundingRateHistory() requires a $symbol argument');
+            }
+            Async\await($this->load_markets());
+            $market = $this->market($symbol);
+            $request = array(
+                'symbol' => $market['id'],
+            );
+            $response = Async\await($this->publicSwapGetMarketFundingRate (array_merge($request, $params)));
+            //
+            //     {
+            //         "code" => 0,
+            //         "msg" => "success",
+            //         "data" => array(
+            //             array(
+            //                 "symbol" => "btc_usdt",
+            //                 "rate" => "-0.00008654",
+            //                 "time" => 1670658302128
+            //             ),
+            //         )
+            //     }
+            //
+            $data = $this->safe_value($response, 'data', array());
+            $rates = array();
+            for ($i = 0; $i < count($data); $i++) {
+                $entry = $data[$i];
+                $marketId = $this->safe_string($entry, 'symbol');
+                $symbol = $this->safe_symbol($marketId);
+                $timestamp = $this->safe_integer($entry, 'time');
+                $rates[] = array(
+                    'info' => $entry,
+                    'symbol' => $symbol,
+                    'fundingRate' => $this->safe_number($entry, 'rate'),
+                    'timestamp' => $timestamp,
+                    'datetime' => $this->iso8601($timestamp),
+                );
+            }
+            $sorted = $this->sort_by($rates, 'timestamp');
+            return $this->filter_by_symbol_since_limit($sorted, $market['symbol'], $since, $limit);
+        }) ();
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
