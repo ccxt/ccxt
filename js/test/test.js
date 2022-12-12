@@ -370,13 +370,13 @@ async function tryAllProxies (exchange, proxies) {
 
     const hasHttpProxy = settings && ('httpProxy' in settings);
 
-    if (currentProxy >= 0 && !hasHttpProxy) {
-        exchange.proxy = proxies[currentProxy];
-    }
-
     for (let numRetries = 0; numRetries < maxRetries; numRetries++) {
 
         try {
+
+            if (!hasHttpProxy) {
+                exchange.proxy = proxies[currentProxy];
+            }
 
             // add random origin for proxies
             if (exchange.proxy.length > 0) {
