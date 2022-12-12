@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.2.92';
+$version = '2.2.93';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.2.92';
+    const VERSION = '2.2.93';
 
     public $browser;
     public $marketsLoading = null;
@@ -246,6 +246,7 @@ class Exchange extends \ccxt\Exchange {
             'defaultNetworkCodeReplacements' => array(
                 'ETH' => array( 'ERC20' => 'ETH' ),
                 'TRX' => array( 'TRC20' => 'TRX' ),
+                'CRO' => array( 'CRC20' => 'CRONOS' ),
             ),
         );
     }
