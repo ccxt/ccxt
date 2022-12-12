@@ -1196,6 +1196,10 @@ export default class Exchange {
         parseFundingRateHistory(info, market = undefined) {
             return undefined;
         }
+
+        parseBorrowInterest(info, market = undefined) {
+            return undefined;
+        }
         
         findTimeframe (timeframe, timeframes = undefined) {
             timeframes = timeframes || this.timeframes;
@@ -3367,7 +3371,7 @@ export default class Exchange {
         const interests = [];
         for (let i = 0; i < response.length; i++) {
             const row = response[i];
-            interests.push ((this as any).parseBorrowInterest (row, market));
+            interests.push (this.parseBorrowInterest (row, market));
         }
         return interests;
     }
