@@ -53,7 +53,7 @@ module.exports = class bkex extends Exchange {
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': undefined,
                 'fetchFundingRate': undefined,
-                'fetchFundingRateHistory': undefined,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': undefined,
                 'fetchIndexOHLCV': undefined,
                 'fetchL2OrderBook': undefined,
@@ -1652,6 +1652,59 @@ module.exports = class bkex extends Exchange {
         const result = this.depositWithdrawFee (fee);
         result['withdraw']['fee'] = this.safeNumber (fee, 'withdrawFee');
         return result;
+    }
+
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bkex#fetchFundingRateHistory
+         * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-fundingRate
+         * @description fetches historical funding rate prices
+         * @param {string|undefined} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
+         * @param {int|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @param {object} params extra parameters specific to the bkex api endpoint
+         * @returns {[object]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicSwapGetMarketFundingRate (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "success",
+        //         "data": [
+        //             {
+        //                 "symbol": "btc_usdt",
+        //                 "rate": "-0.00008654",
+        //                 "time": 1670658302128
+        //             },
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const rates = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const marketId = this.safeString (entry, 'symbol');
+            const symbol = this.safeSymbol (marketId);
+            const timestamp = this.safeInteger (entry, 'time');
+            rates.push ({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': this.safeNumber (entry, 'rate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            });
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
