@@ -5107,7 +5107,7 @@ module.exports = class huobi extends Exchange {
         }
         amount = parseFloat (this.currencyToPrecision (code, amount, networkCode));
         const withdrawOptions = this.safeValue (this.options, 'withdraw', {});
-        if (this.safeValue (withdrawOptions, 'includesFee', false)) {
+        if (this.safeValue (withdrawOptions, 'includeFee', false)) {
             let fee = this.safeNumber (params, 'fee');
             if (fee === undefined) {
                 const currencies = await this.fetchCurrencies ();
