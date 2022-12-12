@@ -129,10 +129,6 @@ class coinfalcon(Exchange):
                     'taker': 0.002,  # tiered fee starts at 0.2%
                 },
             },
-            'precision': {
-                'amount': self.parse_number('0.00000001'),
-                'price': self.parse_number('0.00000001'),
-            },
             'precisionMode': TICK_SIZE,
         })
 

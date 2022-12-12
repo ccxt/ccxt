@@ -417,7 +417,7 @@ class digifinex(Exchange):
                     'deposit': deposit,
                     'withdraw': withdraw,
                     'fee': fee,
-                    'precision': self.parse_number('0.00000001'),  # todo fix hardcoded value
+                    'precision': self.parse_number('1e-8'),  # todo fix hardcoded value, as some currencies have precision of 0.01
                     'limits': {
                         'amount': {
                             'min': None,
@@ -1066,8 +1066,8 @@ class digifinex(Exchange):
             'change': None,
             'percentage': self.safe_string_2(ticker, 'change', 'price_change_percent'),
             'average': None,
-            'baseVolume': self.safe_string(ticker, 'base_vol'),
-            'quoteVolume': self.safe_string_2(ticker, 'vol', 'volume_24h'),
+            'baseVolume': self.safe_string_2(ticker, 'vol', 'volume_24h'),
+            'quoteVolume': self.safe_string(ticker, 'base_vol'),
             'info': ticker,
         }, market)
 

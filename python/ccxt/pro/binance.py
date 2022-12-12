@@ -97,7 +97,7 @@ class binance(Exchange, ccxt.async_support.binance):
                 streamIndex = 0
             self.options['streamIndex'] = streamIndex
             stream = self.number_to_string(streamIndex)
-            streamBySubscriptionsHash[subscriptionHash] = stream
+            self.options['streamBySubscriptionsHash'][subscriptionHash] = stream
         return stream
 
     def on_error(self, client, error):

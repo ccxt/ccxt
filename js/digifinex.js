@@ -408,7 +408,7 @@ module.exports = class digifinex extends Exchange {
                     'deposit': deposit,
                     'withdraw': withdraw,
                     'fee': fee,
-                    'precision': this.parseNumber ('0.00000001'), // todo fix hardcoded value
+                    'precision': this.parseNumber ('1e-8'), // todo fix hardcoded value, as some currencies have precision of 0.01
                     'limits': {
                         'amount': {
                             'min': undefined,
@@ -1093,8 +1093,8 @@ module.exports = class digifinex extends Exchange {
             'change': undefined,
             'percentage': this.safeString2 (ticker, 'change', 'price_change_percent'),
             'average': undefined,
-            'baseVolume': this.safeString (ticker, 'base_vol'),
-            'quoteVolume': this.safeString2 (ticker, 'vol', 'volume_24h'),
+            'baseVolume': this.safeString2 (ticker, 'vol', 'volume_24h'),
+            'quoteVolume': this.safeString (ticker, 'base_vol'),
             'info': ticker,
         }, market);
     }

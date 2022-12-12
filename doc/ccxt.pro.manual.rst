@@ -54,7 +54,7 @@ The CCXT Pro heavily relies on the transpiler of CCXT for `multilanguage support
 Exchanges
 ---------
 
-The CCXT Pro library currently supports the following 44 cryptocurrency exchange markets and WebSocket trading APIs:
+The CCXT Pro library currently supports the following 46 cryptocurrency exchange markets and WebSocket trading APIs:
 
 .. list-table::
    :header-rows: 1
@@ -65,21 +65,6 @@ The CCXT Pro library currently supports the following 44 cryptocurrency exchange
      - ver
      - certified
      - pro
-   * - .. image:: https://user-images.githubusercontent.com/1294454/104140087-a27f2580-53c0-11eb-87c1-5d9e81208fe9.jpg
-          :target: https://www.aax.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB
-          :alt: aax
-     
-     - aax
-     - `AAX <https://www.aax.com/invite/sign-up?inviteCode=JXGm5Fy7R2MB>`__
-     - .. image:: https://img.shields.io/badge/2-lightgray
-          :target: https://www.aax.com/apidoc/index.html
-          :alt: API Version 2
-     
-     - 
-     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
-          :target: https://ccxt.pro
-          :alt: CCXT Pro
-     
    * - .. image:: https://user-images.githubusercontent.com/1294454/112027508-47984600-8b48-11eb-9e17-d26459cc36c6.jpg
           :target: https://ascendex.com/en-us/register?inviteCode=EL6BXBQM
           :alt: ascendex
@@ -194,6 +179,24 @@ The CCXT Pro library currently supports the following 44 cryptocurrency exchange
           :target: https://ccxt.pro
           :alt: CCXT Pro
      
+   * - .. image:: https://user-images.githubusercontent.com/1294454/195989417-4253ddb0-afbe-4a1c-9dea-9dbcd121fa5d.jpg
+          :target: https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j
+          :alt: bitget
+     
+     - bitget
+     - `Bitget <https://www.bitget.com/expressly?languageType=0&channelCode=ccxt&vipCode=tg9j>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://bitgetlimited.github.io/apidoc/en/mix
+          :alt: API Version 1
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Certified-green.svg
+          :target: https://github.com/ccxt/ccxt/wiki/Certification
+          :alt: CCXT Certified
+     
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
    * - .. image:: https://user-images.githubusercontent.com/1294454/129991357-8f47464b-d0f4-41d6-8a82-34122f0d1398.jpg
           :target: http://www.bitmart.com/?r=rQCFLh
           :alt: bitmart
@@ -236,6 +239,21 @@ The CCXT Pro library currently supports the following 44 cryptocurrency exchange
      - .. image:: https://img.shields.io/badge/3-lightgray
           :target: https://github.com/bitoex/bitopro-offical-api-docs/blob/master/v3-1/rest-1/rest.md
           :alt: API Version 3
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/139516488-243a830d-05dd-446b-91c6-c1f18fe30c63.jpg
+          :target: https://www.bitrue.com/activity/task/task-landing?inviteCode=EZWETQE&cn=900000
+          :alt: bitrue
+     
+     - bitrue
+     - `Bitrue <https://www.bitrue.com/activity/task/task-landing?inviteCode=EZWETQE&cn=900000>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://github.com/Bitrue-exchange/bitrue-official-api-docs
+          :alt: API Version 1
      
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black
@@ -725,6 +743,21 @@ The CCXT Pro library currently supports the following 44 cryptocurrency exchange
      - .. image:: https://img.shields.io/badge/2-lightgray
           :target: https://docs.wazirx.com/#public-rest-api-for-wazirx
           :alt: API Version 2
+     
+     - 
+     - .. image:: https://img.shields.io/badge/CCXT-Pro-black
+          :target: https://ccxt.pro
+          :alt: CCXT Pro
+     
+   * - .. image:: https://user-images.githubusercontent.com/1294454/150730761-1a00e5e0-d28c-480f-9e65-089ce3e6ef3b.jpg
+          :target: https://referral.woo.org/BAJS6oNmZb3vi3RGA
+          :alt: woo
+     
+     - woo
+     - `WOO X <https://referral.woo.org/BAJS6oNmZb3vi3RGA>`__
+     - .. image:: https://img.shields.io/badge/1-lightgray
+          :target: https://docs.woo.org/
+          :alt: API Version 1
      
      - 
      - .. image:: https://img.shields.io/badge/CCXT-Pro-black

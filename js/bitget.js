@@ -18,6 +18,7 @@ module.exports = class bitget extends Exchange {
             'version': 'v1',
             'rateLimit': 50, // up to 3000 requests per 5 minutes ≈ 600 requests per minute ≈ 10 requests per second ≈ 100 ms
             'certified': true,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': true,
@@ -161,6 +162,7 @@ module.exports = class bitget extends Exchange {
                         },
                         'post': {
                             'account/bills': 2,
+                            'account/sub-account-spot-assets': 200,
                             'trade/orders': 2,
                             'trade/batch-orders': 4,
                             'trade/cancel-order': 2,

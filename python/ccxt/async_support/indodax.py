@@ -260,7 +260,7 @@ class indodax(Exchange):
                 'optionType': None,
                 'percentage': True,
                 'precision': {
-                    'amount': self.parse_number(self.parse_precision('8')),
+                    'amount': self.parse_number('1e-8'),
                     'price': self.parse_number(self.parse_precision(self.safe_string(market, 'price_round'))),
                     'cost': self.parse_number(self.parse_precision(self.safe_string(market, 'volume_precision'))),
                 },

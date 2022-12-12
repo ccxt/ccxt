@@ -1515,7 +1515,7 @@ class cex extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $addresses = $this->safe_value($data, 'addresses', array());
         $chainsIndexedById = $this->index_by($addresses, 'blockchain');
-        $selectedNetworkId = $this->select_network_id_from_available_networks($code, $networkCode, $chainsIndexedById);
+        $selectedNetworkId = $this->select_network_id_from_raw_networks($code, $networkCode, $chainsIndexedById);
         $addressObject = $this->safe_value($chainsIndexedById, $selectedNetworkId, array());
         $address = $this->safe_string_2($addressObject, 'address', 'destination');
         $this->check_address($address);

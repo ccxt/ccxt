@@ -577,7 +577,7 @@ class exmo(Exchange):
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': fee,
-                'precision': self.parse_number('0.00000001'),
+                'precision': self.parse_number('1e-8'),
                 'limits': limits,
                 'info': providers,
             }
@@ -643,7 +643,7 @@ class exmo(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number('0.00000001'),
+                    'amount': self.parse_number('1e-8'),
                     'price': self.parse_number(self.parse_precision(self.safe_string(market, 'price_precision'))),
                 },
                 'limits': {
