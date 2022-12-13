@@ -405,6 +405,11 @@ module.exports = class mexc3 extends Exchange {
                     'BEP20': 'BEP20(BSC)',
                     'BSC': 'BEP20(BSC)',
                 },
+                'networksById': {
+                    'BEP20(BSC)': 'BSC',
+                    'TRC20': 'TRX',
+                    'ERC20': 'ETH',
+                },
                 'networkAliases': {
                     'BSC(BEP20)': 'BSC',
                 },
@@ -4524,7 +4529,7 @@ module.exports = class mexc3 extends Exchange {
         //       ...
         //    ]
         //
-        return this.parseDepositWithdrawFees (response, codes);
+        return this.parseDepositWithdrawFees (response, codes, 'coin');
     }
 
     parseDepositWithdrawFee (fee, currency = undefined) {
@@ -4559,7 +4564,7 @@ module.exports = class mexc3 extends Exchange {
         for (let j = 0; j < networkList.length; j++) {
             const networkEntry = networkList[j];
             const networkId = this.safeString (networkEntry, 'network');
-            const networkCode = this.safeString (this.options['networks'], networkId, networkId);
+            const networkCode = this.networkIdToCode (networkId, this.safeString (currency, 'code'));
             result['networks'][networkCode] = {
                 'withdraw': {
                     'fee': this.safeNumber (networkEntry, 'withdrawFee'),
