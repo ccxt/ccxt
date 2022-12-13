@@ -549,9 +549,11 @@ def try_all_proxies(exchange, proxies=['']):
         current_proxy = proxies.index(exchange.proxy)
     for num_retries in range(0, max_retries):
         try:
-            exchange.proxy = proxies[current_proxy]
-            dump(green(exchange.id), 'using proxy', '`' + exchange.proxy + '`')
-            current_proxy = (current_proxy + 1) % len(proxies)
+            # do not use cors proxy when using a http proxy
+            if not hasattr(exchange, "httpProxy"):
+                exchange.proxy = proxies[current_proxy]
+                dump(green(exchange.id), 'using proxy', '`' + exchange.proxy + '`')
+                current_proxy = (current_proxy + 1) % len(proxies)
             load_exchange(exchange)
             test_exchange(exchange)
         except (ccxt.RequestTimeout, ccxt.AuthenticationError, ccxt.NotSupported, ccxt.DDoSProtection, ccxt.ExchangeNotAvailable, ccxt.ExchangeError) as e:
@@ -611,6 +613,11 @@ def main():
             elif hasattr(exchange, 'alias') and exchange.alias:
                 dump(green(exchange.id), 'Skipped alias')
             else:
+
+                # add http proxy if any
+                if hasattr(exchange, 'httpProxy'):
+                    exchange.aiohttp_proxy = exchange.httpProxy
+
                 if symbol:
                     load_exchange(exchange)
                     test_symbol(exchange, symbol)
