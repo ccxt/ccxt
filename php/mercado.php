@@ -187,7 +187,6 @@ class mercado extends Exchange {
             $base = $this->safe_currency_code($baseId);
             $quote = $this->safe_currency_code($quoteId);
             $id = $quote . $base;
-            $priceLimit = '1e-5';
             $result[] = array(
                 'id' => $id,
                 'symbol' => $base . '/' . $quote,
@@ -213,8 +212,8 @@ class mercado extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->parse_number('0.00000001'),
-                    'price' => $this->parse_number('0.00001'),
+                    'amount' => $this->parse_number('1e-8'),
+                    'price' => $this->parse_number('1e-5'),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -226,7 +225,7 @@ class mercado extends Exchange {
                         'max' => null,
                     ),
                     'price' => array(
-                        'min' => $this->parse_number($priceLimit),
+                        'min' => $this->parse_number('1e-5'),
                         'max' => null,
                     ),
                     'cost' => array(

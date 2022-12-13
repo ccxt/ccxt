@@ -17,6 +17,7 @@ class bitrue extends Exchange {
             'rateLimit' => 1000,
             'certified' => false,
             'version' => 'v1',
+            'pro' => true,
             // new metainfo interface
             'has' => array(
                 'CORS' => null,
@@ -1709,10 +1710,11 @@ class bitrue extends Exchange {
         //         "fee" => 1,
         //         "ctime" => null,
         //         "coin" => "usdt_erc20",
+        //         "withdrawId" => 1156423,
         //         "addressTo" => "0x2edfae3878d7b6db70ce4abed177ab2636f60c83"
         //     }
         //
-        $id = $this->safe_string($transaction, 'id');
+        $id = $this->safe_string_2($transaction, 'id', 'withdrawId');
         $tagType = $this->safe_string($transaction, 'tagType');
         $addressTo = $this->safe_string($transaction, 'addressTo');
         $addressFrom = $this->safe_string($transaction, 'addressFrom');
@@ -1739,7 +1741,7 @@ class bitrue extends Exchange {
         $status = $this->parse_transaction_status_by_type($this->safe_string($transaction, 'status'), $type);
         $amount = $this->safe_number($transaction, 'amount');
         $network = null;
-        $currencyId = $this->safe_string($transaction, 'symbol');
+        $currencyId = $this->safe_string_2($transaction, 'symbol', 'coin');
         if ($currencyId !== null) {
             $parts = explode('_', $currencyId);
             $currencyId = $this->safe_string($parts, 0);
@@ -1817,8 +1819,23 @@ class bitrue extends Exchange {
             $request['tag'] = $tag;
         }
         $response = $this->v1PrivatePostWithdrawCommit (array_merge($request, $params));
-        //     array( id => '9a67628b16ba4988ae20d329333f16bc' )
-        return $this->parse_transaction($response, $currency);
+        //
+        //     {
+        //         "code" => 200,
+        //         "msg" => "succ",
+        //         "data" => {
+        //             "msg" => null,
+        //             "amount" => 1000,
+        //             "fee" => 1,
+        //             "ctime" => null,
+        //             "coin" => "usdt_erc20",
+        //             "withdrawId" => 1156423,
+        //             "addressTo" => "0x2edfae3878d7b6db70ce4abed177ab2636f60c83"
+        //         }
+        //     }
+        //
+        $data = $this->safe_value($response, 'data');
+        return $this->parse_transaction($data, $currency);
     }
 
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {

@@ -605,7 +605,7 @@ module.exports = class exmo extends Exchange {
                 'deposit': depositEnabled,
                 'withdraw': withdrawEnabled,
                 'fee': fee,
-                'precision': this.parseNumber ('0.00000001'),
+                'precision': this.parseNumber ('1e-8'),
                 'limits': limits,
                 'info': providers,
             };
@@ -663,7 +663,7 @@ module.exports = class exmo extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
-                'active': true,
+                'active': undefined,
                 'contract': false,
                 'linear': undefined,
                 'inverse': undefined,
@@ -675,7 +675,7 @@ module.exports = class exmo extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': this.parseNumber ('0.00000001'),
+                    'amount': this.parseNumber ('1e-8'),
                     'price': this.parseNumber (this.parsePrecision (this.safeString (market, 'price_precision'))),
                 },
                 'limits': {
@@ -1685,6 +1685,14 @@ module.exports = class exmo extends Exchange {
         //             "error": ""
         //          },
         //
+        // withdraw
+        //
+        //          {
+        //              "result":true,
+        //              "error":"",
+        //              "task_id":11775077
+        //          },
+        //
         const id = this.safeString2 (transaction, 'order_id', 'task_id');
         const timestamp = this.safeTimestamp2 (transaction, 'dt', 'created');
         const updated = this.safeTimestamp (transaction, 'updated');
@@ -1727,7 +1735,9 @@ module.exports = class exmo extends Exchange {
             const key = (type === 'withdrawal') ? 'withdraw' : 'deposit';
             let feeCost = this.safeString (transaction, 'commission');
             if (feeCost === undefined) {
-                feeCost = this.safeString (this.options['transactionFees'][code], key);
+                const transactionFees = this.safeValue (this.options, 'transactionFees', {});
+                const codeFees = this.safeValue (transactionFees, code, {});
+                feeCost = this.safeString (codeFees, key);
             }
             // users don't pay for cashbacks, no fees for that
             const provider = this.safeString (transaction, 'provider');

@@ -1144,6 +1144,7 @@ class deribit(Exchange):
         timestamp = self.safe_integer(trade, 'timestamp')
         side = self.safe_string(trade, 'direction')
         priceString = self.safe_string(trade, 'price')
+        market = self.safe_market(marketId, market)
         # Amount for inverse perpetual and futures is in USD which in ccxt is the cost
         # For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
         amount = self.safe_string(trade, 'amount')

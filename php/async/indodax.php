@@ -261,7 +261,7 @@ class indodax extends Exchange {
                     'optionType' => null,
                     'percentage' => true,
                     'precision' => array(
-                        'amount' => $this->parse_number($this->parse_precision('8')),
+                        'amount' => $this->parse_number('1e-8'),
                         'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'price_round'))),
                         'cost' => $this->parse_number($this->parse_precision($this->safe_string($market, 'volume_precision'))),
                     ),
@@ -446,6 +446,38 @@ class indodax extends Exchange {
             //
             $ticker = $this->safe_value($response, 'ticker', array());
             return $this->parse_ticker($ticker, $market);
+        }) ();
+    }
+
+    public function fetch_tickers($symbols = null, $params = array ()) {
+        return Async\async(function () use ($symbols, $params) {
+            /**
+             * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+             * @see https://github.com/btcid/indodax-official-api-docs/blob/master/Public-RestAPI.md#ticker-all
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
+             * @param {array} $params extra parameters specific to the indodax api endpoint
+             * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
+             */
+            Async\await($this->load_markets());
+            //
+            // {
+            //     "tickers" => {
+            //         "btc_idr" => {
+            //             "high" => "120009000",
+            //             "low" => "116735000",
+            //             "vol_btc" => "218.13777777",
+            //             "vol_idr" => "25800033297",
+            //             "last" => "117088000",
+            //             "buy" => "117002000",
+            //             "sell" => "117078000",
+            //             "server_time" => 1571207881
+            //         }
+            //     }
+            // }
+            //
+            $response = Async\await($this->publicGetTickerAll ($params));
+            $tickers = $this->safe_value($response, 'tickers');
+            return $this->parse_tickers($tickers, $symbols);
         }) ();
     }
 

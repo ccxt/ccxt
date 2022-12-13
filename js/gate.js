@@ -73,6 +73,7 @@ module.exports = class gate extends Exchange {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': false,
                 'createStopOrder': true,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
@@ -82,6 +83,8 @@ module.exports = class gate extends Exchange {
                 'fetchCurrencies': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -253,6 +256,9 @@ module.exports = class gate extends Exchange {
                             'orders/{order_id}': 1,
                             'price_orders': 1,
                             'price_orders/{order_id}': 1,
+                        },
+                        'patch': {
+                            'orders/{order_id}': 1,
                         },
                     },
                     'margin': {
@@ -960,7 +966,7 @@ module.exports = class gate extends Exchange {
             'strike': undefined,
             'optionType': undefined,
             'precision': {
-                'amount': this.parseNumber ('1'),
+                'amount': this.parseNumber ('1'), // all contracts have this step size
                 'price': this.safeNumber (market, 'order_price_round'),
             },
             'limits': {
@@ -1081,7 +1087,7 @@ module.exports = class gate extends Exchange {
                     'strike': strike,
                     'optionType': optionType,
                     'precision': {
-                        'amount': this.parseNumber ('1'),
+                        'amount': this.parseNumber ('1'), // all options have this step size
                         'price': this.safeNumber (market, 'order_price_round'),
                     },
                     'limits': {
@@ -1296,7 +1302,7 @@ module.exports = class gate extends Exchange {
                 'lowerCaseId': currencyIdLower,
                 'name': undefined,
                 'code': code,
-                'precision': this.parseNumber ('1e-6'),
+                'precision': this.parseNumber ('1e-4'), // todo: as gateio is done completely in html, in withdrawal page's source it has predefined "num_need_fix(this.value, 4);" function, so users cant set lower precision than 0.0001
                 'info': entry,
                 'active': active,
                 'deposit': depositEnabled,
@@ -1699,7 +1705,7 @@ module.exports = class gate extends Exchange {
         /**
          * @method
          * @name gate#fetchTransactionFees
-         * @description fetch transaction fees
+         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
          * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
          * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the gate api endpoint
@@ -1749,6 +1755,90 @@ module.exports = class gate extends Exchange {
                 'deposit': undefined,
                 'info': entry,
             };
+        }
+        return result;
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://www.gate.io/docs/developers/apiv4/en/#retrieve-withdrawal-status
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the gate api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await this.privateWalletGetWithdrawStatus (params);
+        //
+        //    [
+        //        {
+        //            "currency": "MTN",
+        //            "name": "Medicalchain",
+        //            "name_cn": "Medicalchain",
+        //            "deposit": "0",
+        //            "withdraw_percent": "0%",
+        //            "withdraw_fix": "900",
+        //            "withdraw_day_limit": "500000",
+        //            "withdraw_day_limit_remain": "500000",
+        //            "withdraw_amount_mini": "900.1",
+        //            "withdraw_eachtime_limit": "90000000000",
+        //            "withdraw_fix_on_chains": {
+        //                "ETH": "900"
+        //            }
+        //        }
+        //    ]
+        //
+        return this.parseDepositWithdrawFees (response, codes, 'currency');
+    }
+
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        //
+        //    {
+        //        "currency": "MTN",
+        //        "name": "Medicalchain",
+        //        "name_cn": "Medicalchain",
+        //        "deposit": "0",
+        //        "withdraw_percent": "0%",
+        //        "withdraw_fix": "900",
+        //        "withdraw_day_limit": "500000",
+        //        "withdraw_day_limit_remain": "500000",
+        //        "withdraw_amount_mini": "900.1",
+        //        "withdraw_eachtime_limit": "90000000000",
+        //        "withdraw_fix_on_chains": {
+        //            "ETH": "900"
+        //        }
+        //    }
+        //
+        const withdrawFixOnChains = this.safeValue (fee, 'withdraw_fix_on_chains');
+        const result = {
+            'info': fee,
+            'withdraw': {
+                'fee': this.safeNumber (fee, 'withdraw_fix'),
+                'percentage': false,
+            },
+            'deposit': {
+                'fee': this.safeNumber (fee, 'deposit'),
+                'percentage': false,
+            },
+            'networks': {},
+        };
+        if (withdrawFixOnChains !== undefined) {
+            const chainKeys = Object.keys (withdrawFixOnChains);
+            for (let i = 0; i < chainKeys.length; i++) {
+                const chainKey = chainKeys[i];
+                result['networks'][chainKey] = {
+                    'withdraw': {
+                        'fee': this.parseNumber (withdrawFixOnChains[chainKey]),
+                        'percentage': false,
+                    },
+                    'deposit': {
+                        'fee': undefined,
+                        'percentage': undefined,
+                    },
+                };
+            }
         }
         return result;
     }
@@ -2048,12 +2138,21 @@ module.exports = class gate extends Exchange {
          * @method
          * @name gate#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://www.gate.io/docs/developers/apiv4/en/#get-details-of-a-specifc-order
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers
+         * @see https://www.gate.io/docs/developers/apiv4/en/#list-futures-tickers-2
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the gate api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
-        const [ type, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        symbols = this.marketSymbols (symbols);
+        const first = this.safeString (symbols, 0);
+        let market = undefined;
+        if (first !== undefined) {
+            market = this.market (first);
+        }
+        const [ type, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         const [ request, requestParams ] = this.prepareRequest (undefined, type, query);
         const method = this.getSupportedMapping (type, {
             'spot': 'publicSpotGetTickers',
@@ -2065,11 +2164,14 @@ module.exports = class gate extends Exchange {
         return this.parseTickers (response, symbols);
     }
 
-    fetchBalanceHelper (entry) {
+    parseBalanceHelper (entry) {
         const account = this.account ();
         account['used'] = this.safeString2 (entry, 'freeze', 'locked');
         account['free'] = this.safeString (entry, 'available');
         account['total'] = this.safeString (entry, 'total');
+        if ('borrowed' in entry) {
+            account['debt'] = this.safeString (entry, 'borrowed');
+        }
         return account;
     }
 
@@ -2218,8 +2320,7 @@ module.exports = class gate extends Exchange {
         const result = {
             'info': response,
         };
-        const crossMargin = marginMode === 'cross_margin';
-        const margin = marginMode === 'margin';
+        const isolated = marginMode === 'margin';
         let data = response;
         if ('balances' in data) { // True for cross_margin
             const flatBalances = [];
@@ -2237,7 +2338,7 @@ module.exports = class gate extends Exchange {
         }
         for (let i = 0; i < data.length; i++) {
             const entry = data[i];
-            if (margin && !crossMargin) {
+            if (isolated) {
                 const marketId = this.safeString (entry, 'currency_pair');
                 const symbol = this.safeSymbol (marketId, undefined, '_');
                 const base = this.safeValue (entry, 'base', {});
@@ -2245,15 +2346,15 @@ module.exports = class gate extends Exchange {
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'currency'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'currency'));
                 const subResult = {};
-                subResult[baseCode] = this.fetchBalanceHelper (base);
-                subResult[quoteCode] = this.fetchBalanceHelper (quote);
+                subResult[baseCode] = this.parseBalanceHelper (base);
+                subResult[quoteCode] = this.parseBalanceHelper (quote);
                 result[symbol] = this.safeBalance (subResult);
             } else {
                 const code = this.safeCurrencyCode (this.safeString (entry, 'currency'));
-                result[code] = this.fetchBalanceHelper (entry);
+                result[code] = this.parseBalanceHelper (entry);
             }
         }
-        return (margin && !crossMargin) ? result : this.safeBalance (result);
+        return isolated ? result : this.safeBalance (result);
     }
 
     async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
@@ -3233,8 +3334,84 @@ module.exports = class gate extends Exchange {
         return this.parseOrder (response, market);
     }
 
+    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#editOrder
+         * @description edit a trade order, gate currently only supports the modification of the price or amount fields
+         * @see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of the currency you want to trade in units of the base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {object} params extra parameters specific to the gate api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new BadRequest (this.id + ' editOrder() supports only spot markets');
+        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('editOrder', market, params);
+        const account = this.convertTypeToAccount (marketType);
+        const isLimitOrder = (type === 'limit');
+        if (account === 'spot') {
+            if (!isLimitOrder) {
+                // exchange doesn't have market orders for spot
+                throw new InvalidOrder (this.id + ' editOrder() does not support ' + type + ' orders for ' + marketType + ' markets');
+            }
+        }
+        const request = {
+            'order_id': id,
+            'currency_pair': market['id'],
+            'account': account,
+        };
+        if (amount !== undefined) {
+            request['amount'] = this.amountToPrecision (symbol, amount);
+        }
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const response = await this.privateSpotPatchOrdersOrderId (this.extend (request, query));
+        //
+        //     {
+        //         "id": "243233276443",
+        //         "text": "apiv4",
+        //         "create_time": "1670908873",
+        //         "update_time": "1670914102",
+        //         "create_time_ms": 1670908873077,
+        //         "update_time_ms": 1670914102241,
+        //         "status": "open",
+        //         "currency_pair": "ADA_USDT",
+        //         "type": "limit",
+        //         "account": "spot",
+        //         "side": "sell",
+        //         "amount": "10",
+        //         "price": "0.6",
+        //         "time_in_force": "gtc",
+        //         "iceberg": "0",
+        //         "left": "10",
+        //         "fill_price": "0",
+        //         "filled_total": "0",
+        //         "fee": "0",
+        //         "fee_currency": "USDT",
+        //         "point_fee": "0",
+        //         "gt_fee": "0",
+        //         "gt_maker_fee": "0",
+        //         "gt_taker_fee": "0",
+        //         "gt_discount": false,
+        //         "rebated_fee": "0",
+        //         "rebated_fee_currency": "ADA"
+        //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
     parseOrderStatus (status) {
         const statuses = {
+            'open': 'open',
             '_new': 'open',
             'filled': 'closed',
             'cancelled': 'canceled',
@@ -3251,7 +3428,7 @@ module.exports = class gate extends Exchange {
     parseOrder (order, market = undefined) {
         //
         // SPOT
-        // createOrder/cancelOrder/fetchOrder
+        // createOrder/cancelOrder/fetchOrder/editOrder
         //
         //    {
         //        "id": "62364648575",
@@ -4440,37 +4617,30 @@ module.exports = class gate extends Exchange {
          * @param {string} params.id '34267567' loan id, extra parameter required for isolated margin
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
+        const marginMode = this.safeString (params, 'marginMode'); // cross or isolated
+        params = this.omit (params, 'marginMode');
+        this.checkRequiredMarginArgument ('repayMargin', symbol, marginMode);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-        }
         const request = {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
-        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
-        let method = 'privateMarginPostCrossRepayments';
-        if (marginMode === 'isolated') {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' repayMargin() requires a symbol argument for isolated margin');
-            }
-            const mode = this.safeString (params, 'mode'); // 'all' or 'partial'
-            if (mode === undefined) {
-                throw new ArgumentsRequired (this.id + ' repayMargin() requires a mode parameter for isolated margin');
-            }
-            const id = this.safeString2 (params, 'loan_id', 'id');
-            if (id === undefined) {
-                throw new ArgumentsRequired (this.id + ' repayMargin() requires an id parameter for isolated margin');
-            }
+        let method = undefined;
+        if (symbol === undefined) {
+            method = 'privateMarginPostCrossRepayments';
+        } else {
             method = 'privateMarginPostLoansLoanIdRepayment';
+            const market = this.market (symbol);
             request['currency_pair'] = market['id'];
-            request['mode'] = mode;
-            request['loan_id'] = id;
+            request['mode'] = 'partial';
+            const loanId = this.safeString2 (params, 'loan_id', 'id');
+            if (loanId === undefined) {
+                throw new ArgumentsRequired (this.id + ' repayMargin() requires loan_id param for isolated margin');
+            }
+            request['loan_id'] = loanId;
         }
-        params = this.omit (params, [ 'marginMode', 'mode', 'loan_id', 'id' ]);
+        params = this.omit (params, [ 'marginMode', 'loan_id', 'id' ]);
         let response = await this[method] (this.extend (request, params));
         //
         // Cross
@@ -4530,31 +4700,26 @@ module.exports = class gate extends Exchange {
          * @param {string} params.rate '0.0002' or '0.002' extra parameter required for isolated margin
          * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure}
          */
+        const marginMode = this.safeString (params, 'marginMode'); // cross or isolated
+        params = this.omit (params, 'marginMode');
+        this.checkRequiredMarginArgument ('borrowMargin', symbol, marginMode);
         await this.loadMarkets ();
         const currency = this.currency (code);
-        let market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
-            symbol = market['symbol'];
-        }
         const request = {
             'currency': currency['id'],
             'amount': this.currencyToPrecision (code, amount),
         };
-        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', 'marginMode', 'cross');
-        const marginMode = this.safeString (params, 'marginMode', defaultMarginMode); // cross or isolated
-        let method = 'privateMarginPostCrossLoans';
-        if (marginMode === 'isolated') {
-            if (symbol === undefined) {
-                throw new ArgumentsRequired (this.id + ' borrowMargin() requires a symbol argument for isolated margin');
-            }
+        let method = undefined;
+        if (symbol === undefined) {
+            method = 'privateMarginPostCrossLoans';
+        } else {
+            const market = this.market (symbol);
             request['currency_pair'] = market['id'];
-            const rate = this.safeString (params, 'rate');
-            if (rate === undefined) {
-                throw new ArgumentsRequired (this.id + ' borrowMargin() requires a rate parameter for isolated margin');
-            }
-            request['rate'] = rate; // Only rates '0.0002', '0.002' are supported.
             request['side'] = 'borrow';
+            // default it to 0.01% since this is a reasonable limit
+            // as it is the smallest tick size currently offered by gateio
+            request['rate'] = this.safeString (params, 'rate', '0.0001');
+            request['auto_renew'] = true;
             method = 'privateMarginPostLoans';
         }
         params = this.omit (params, [ 'marginMode', 'rate' ]);
@@ -4681,10 +4846,13 @@ module.exports = class gate extends Exchange {
                 const secondPart = this.safeString (pathParts, 1, '');
                 requiresURLEncoding = (secondPart.indexOf ('dual') >= 0) || (secondPart.indexOf ('positions') >= 0);
             }
-            if ((method === 'GET') || (method === 'DELETE') || requiresURLEncoding) {
+            if ((method === 'GET') || (method === 'DELETE') || requiresURLEncoding || (method === 'PATCH')) {
                 if (Object.keys (query).length) {
                     queryString = this.urlencode (query);
                     url += '?' + queryString;
+                }
+                if (method === 'PATCH') {
+                    body = this.json (query);
                 }
             } else {
                 const urlQueryParams = this.safeValue (query, 'query', {});

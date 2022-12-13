@@ -92,6 +92,13 @@ if (settings && (settings.skip || settings.skipWs)) {
 
 //-----------------------------------------------------------------------------
 
+if (settings && settings.httpProxy) {
+    const agent = new HttpsProxyAgent (settings.httpProxy)
+    exchange.agent = agent;
+}
+
+//-----------------------------------------------------------------------------
+
 async function testPublic (exchange, symbol) {
     await tests['watchOrderBook']   (exchange, symbol)
     await tests['watchTicker']      (exchange, symbol)
@@ -232,7 +239,10 @@ async function testExchange (exchange) {
 //-----------------------------------------------------------------------------
 
 async function test () {
-
+    if (exchange.alias) {
+        console.log ('Skipped alias')
+        process.exit ()
+    }
     await exchange.loadMarkets ()
     exchange.verbose = verbose
     await testExchange (exchange, exchangeSymbol)

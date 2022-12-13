@@ -1159,7 +1159,7 @@ class okcoin extends Exchange {
                         'deposit' => $depositEnabled,
                         'withdraw' => $withdrawEnabled,
                         'fee' => null, // todo => redesign
-                        'precision' => $this->parse_number('0.00000001'),
+                        'precision' => $this->parse_number('1e-8'), // todo => fix
                         'limits' => array(
                             'amount' => array( 'min' => null, 'max' => null ),
                             'withdraw' => array(
@@ -1325,14 +1325,19 @@ class okcoin extends Exchange {
     public function fetch_tickers($symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the okcoin api endpoint
              * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
-            $defaultType = $this->safe_string_2($this->options, 'fetchTickers', 'defaultType');
-            $type = $this->safe_string($params, 'type', $defaultType);
             $symbols = $this->market_symbols($symbols);
+            $first = $this->safe_string($symbols, 0);
+            $market = null;
+            if ($first !== null) {
+                $market = $this->market($first);
+            }
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
             return Async\await($this->fetch_tickers_by_type($type, $symbols, $this->omit($params, 'type')));
         }) ();
     }

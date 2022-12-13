@@ -190,7 +190,6 @@ class mercado(Exchange):
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
             id = quote + base
-            priceLimit = '1e-5'
             result.append({
                 'id': id,
                 'symbol': base + '/' + quote,
@@ -216,8 +215,8 @@ class mercado(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number('0.00000001'),
-                    'price': self.parse_number('0.00001'),
+                    'amount': self.parse_number('1e-8'),
+                    'price': self.parse_number('1e-5'),
                 },
                 'limits': {
                     'leverage': {
@@ -229,7 +228,7 @@ class mercado(Exchange):
                         'max': None,
                     },
                     'price': {
-                        'min': self.parse_number(priceLimit),
+                        'min': self.parse_number('1e-5'),
                         'max': None,
                     },
                     'cost': {
