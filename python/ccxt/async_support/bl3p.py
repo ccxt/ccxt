@@ -102,7 +102,6 @@ class bl3p(Exchange):
             },
             'markets': {
                 'BTC/EUR': {'id': 'BTCEUR', 'symbol': 'BTC/EUR', 'base': 'BTC', 'quote': 'EUR', 'baseId': 'BTC', 'quoteId': 'EUR', 'maker': 0.0025, 'taker': 0.0025, 'type': 'spot', 'spot': True},
-                'LTC/EUR': {'id': 'LTCEUR', 'symbol': 'LTC/EUR', 'base': 'LTC', 'quote': 'EUR', 'baseId': 'LTC', 'quoteId': 'EUR', 'maker': 0.0025, 'taker': 0.0025, 'type': 'spot', 'spot': True},
             },
             'precisionMode': TICK_SIZE,
         })
@@ -136,11 +135,11 @@ class bl3p(Exchange):
         return self.parse_balance(response)
 
     def parse_bid_ask(self, bidask, priceKey=0, amountKey=1):
-        price = self.safe_number(bidask, priceKey)
-        size = self.safe_number(bidask, amountKey)
+        price = self.safe_string(bidask, priceKey)
+        size = self.safe_string(bidask, amountKey)
         return [
-            price / 100000.0,
-            size / 100000000.0,
+            self.parse_number(Precise.string_div(price, '100000.0')),
+            self.parse_number(Precise.string_div(size, '100000000.0')),
         ]
 
     async def fetch_order_book(self, symbol, limit=None, params={}):
@@ -333,14 +332,16 @@ class bl3p(Exchange):
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         market = self.market(symbol)
+        amountString = self.number_to_string(amount)
+        priceString = self.number_to_string(price)
         order = {
             'market': market['id'],
-            'amount_int': int(amount * 100000000),
+            'amount_int': int(Precise.string_mul(amountString, '100000000')),
             'fee_currency': market['quote'],
             'type': 'bid' if (side == 'buy') else 'ask',
         }
         if type == 'limit':
-            order['price_int'] = int(price * 100000.0)
+            order['price_int'] = int(Precise.string_mul(priceString, '100000.0'))
         response = await self.privatePostMarketMoneyOrderAdd(self.extend(order, params))
         orderId = self.safe_string(response['data'], 'order_id')
         return {

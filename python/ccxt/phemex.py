@@ -415,7 +415,7 @@ class phemex(Exchange):
                 'defaultSubType': 'linear',
                 'accountsByType': {
                     'spot': 'spot',
-                    'future': 'future',
+                    'swap': 'future',
                 },
                 'transfer': {
                     'fillResponseFromRequest': True,
@@ -1023,21 +1023,24 @@ class phemex(Exchange):
         }
         duration = self.parse_timeframe(timeframe)
         now = self.seconds()
-        # the exchange does not return the last 1m candle
+        maxLimit = 2000  # maximum limit, we shouldn't sent request of more than it
+        if limit is None:
+            limit = 100  # set default, as exchange doesn't have any defaults and needs something to be set
+        else:
+            limit = min(limit, maxLimit)
         if since is not None:
-            if limit is None:
-                limit = 2000  # max 2000
+            limit = min(limit, maxLimit)
             since = int(since / 1000)
             request['from'] = since
             # time ranges ending in the future are not accepted
             # https://github.com/ccxt/ccxt/issues/8050
             request['to'] = min(now, self.sum(since, duration * limit))
-        elif limit is not None:
-            limit = min(limit, 2000)
-            request['from'] = now - duration * self.sum(limit, 1)
-            request['to'] = now
         else:
-            raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument, or a limit argument, or both')
+            if limit < maxLimit:
+                # whenever making a request with `now`, that expects current latest bar to be included, the exchange does not return the last 1m candle and thus excludes one bar. So, we have to add `1` to user's set `limit` amount to get that amount of bars back
+                limit = limit + 1
+            request['from'] = now - duration * limit
+            request['to'] = now
         self.load_markets()
         market = self.market(symbol)
         request['symbol'] = market['id']
@@ -1342,8 +1345,8 @@ class phemex(Exchange):
                         settlementCurrencyId = self.safe_string(info, 'settlementCurrency')
                         feeCurrencyCode = self.safe_currency_code(settlementCurrencyId)
                 fee = {
-                    'cost': self.parse_number(feeCostString),
-                    'rate': self.parse_number(feeRateString),
+                    'cost': feeCostString,
+                    'rate': feeRateString,
                     'currency': feeCurrencyCode,
                 }
         return self.safe_trade({
@@ -1926,7 +1929,10 @@ class phemex(Exchange):
                 params = self.omit(params, 'cost')
                 if self.options['createOrderByQuoteRequiresPrice']:
                     if price is not None:
-                        cost = amount * price
+                        amountString = self.number_to_string(amount)
+                        priceString = self.number_to_string(price)
+                        quoteAmount = Precise.string_mul(amountString, priceString)
+                        cost = self.parse_number(quoteAmount)
                     elif cost is None:
                         raise ArgumentsRequired(self.id + ' createOrder() ' + qtyType + ' requires a price argument or a cost parameter')
                 cost = amount if (cost is None) else cost
@@ -2787,6 +2793,7 @@ class phemex(Exchange):
         marginRatio = Precise.string_div(maintenanceMarginString, collateral)
         return {
             'info': position,
+            'id': None,
             'symbol': symbol,
             'contracts': self.parse_number(contracts),
             'contractSize': contractSize,
@@ -3223,6 +3230,7 @@ class phemex(Exchange):
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict params: extra parameters specific to the phemex api endpoint
+        :param str|None params['bizType']: for transferring between main and sub-acounts either 'SPOT' or 'PERPETUAL' default is 'SPOT'
         :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
         """
         self.load_markets()

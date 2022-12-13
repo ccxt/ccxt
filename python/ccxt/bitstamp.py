@@ -7,7 +7,6 @@ from ccxt.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import InvalidAddress
@@ -56,6 +55,8 @@ class bitstamp(Exchange):
                 'fetchBorrowRatesPerSymbol': False,
                 'fetchCurrencies': True,
                 'fetchDepositAddress': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -311,6 +312,8 @@ class bitstamp(Exchange):
                         'sol_address/': 1,
                         'dot_withdrawal/': 1,
                         'dot_address/': 1,
+                        'near_withdrawal/': 1,
+                        'near_address/': 1,
                     },
                 },
             },
@@ -404,6 +407,7 @@ class bitstamp(Exchange):
                     'Minimum order size is': InvalidOrder,  # Minimum order size is 5.0 EUR.
                     'Check your account balance for details.': InsufficientFunds,  # You have only 0.00100000 BTC available. Check your account balance for details.
                     'Ensure self value has at least': InvalidAddress,  # Ensure self value has at least 25 characters(it has 4).
+                    'Ensure that there are no more than': InvalidOrder,  # {"status": "error", "reason": {"amount": ["Ensure that there are no more than 0 decimal places."], "__all__": [""]}}
                 },
             },
         })
@@ -801,25 +805,36 @@ class bitstamp(Exchange):
         orderId = self.safe_string(trade, 'order_id')
         type = None
         costString = self.safe_string(trade, 'cost')
+        rawBaseId = None
+        rawQuoteId = None
+        rawMarketId = None
         if market is None:
             keys = list(trade.keys())
             for i in range(0, len(keys)):
-                if keys[i].find('_') >= 0:
-                    marketId = keys[i].replace('_', '')
+                currentKey = keys[i]
+                if currentKey != 'order_id' and currentKey.find('_') >= 0:
+                    marketId = currentKey.replace('_', '')
                     if marketId in self.markets_by_id:
                         market = self.markets_by_id[marketId]
-            # if the market is still not defined
-            # try to deduce it from used keys
-            if market is None:
-                market = self.get_market_from_trade(trade)
+                    else:
+                        rawMarketId = currentKey
+                        parts = currentKey.split('_')
+                        rawBaseId = self.safe_string(parts, 0)
+                        rawQuoteId = self.safe_string(parts, 1)
+                        market = self.safe_market(marketId)
+        # if the market is still not defined
+        # try to deduce it from used keys
+        if market is None:
+            market = self.get_market_from_trade(trade)
         feeCostString = self.safe_string(trade, 'fee')
-        feeCurrency = None
-        if market is not None:
-            priceString = self.safe_string(trade, market['marketId'], priceString)
-            amountString = self.safe_string(trade, market['baseId'], amountString)
-            costString = self.safe_string(trade, market['quoteId'], costString)
-            feeCurrency = market['quote']
-            symbol = market['symbol']
+        feeCurrency = market['quote'] if (market['quote'] is not None) else rawQuoteId
+        baseId = market['baseId'] if (market['baseId'] is not None) else rawBaseId
+        quoteId = market['quoteId'] if (market['quoteId'] is not None) else rawQuoteId
+        priceId = rawMarketId if (rawMarketId is not None) else market['marketId']
+        priceString = self.safe_string(trade, priceId, priceString)
+        amountString = self.safe_string(trade, baseId, amountString)
+        costString = self.safe_string(trade, quoteId, costString)
+        symbol = market['symbol']
         datetimeString = self.safe_string_2(trade, 'date', 'datetime')
         timestamp = None
         if datetimeString is not None:
@@ -946,7 +961,7 @@ class bitstamp(Exchange):
         duration = self.parse_timeframe(timeframe)
         if limit is None:
             if since is None:
-                raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a since argument or a limit argument')
+                request['limit'] = 1000  # we need to specify an allowed amount of `limit` if no `since` is set and there is no default limit by exchange
             else:
                 limit = 1000
                 start = int(since / 1000)
@@ -1069,31 +1084,124 @@ class bitstamp(Exchange):
         response = self.privatePostBalance(params)
         return self.parse_trading_fees(response)
 
-    def parse_transaction_fees(self, balance):
-        withdraw = {}
-        ids = list(balance.keys())
-        for i in range(0, len(ids)):
-            id = ids[i]
-            if id.find('_withdrawal_fee') >= 0:
-                currencyId = id.split('_')[0]
-                code = self.safe_currency_code(currencyId)
-                withdraw[code] = self.safe_number(balance, id)
-        return {
-            'info': balance,
-            'withdraw': withdraw,
-            'deposit': {},
-        }
-
     def fetch_transaction_fees(self, codes=None, params={}):
         """
-        fetch transaction fees
-        :param [str]|None codes: not used by bitstamp fetchTransactionFees()
+        *DEPRECATED* please use fetchDepositWithdrawFees instead
+        see https://www.bitstamp.net/api/#balance
+        :param [str]|None codes: list of unified currency codes
         :param dict params: extra parameters specific to the bitstamp api endpoint
         :returns [dict]: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
         """
         self.load_markets()
-        balance = self.privatePostBalance(params)
-        return self.parse_transaction_fees(balance)
+        response = self.privatePostBalance(params)
+        return self.parse_transaction_fees(response, codes)
+
+    def parse_transaction_fees(self, response, codes=None):
+        #
+        #  {
+        #     yfi_available: '0.00000000',
+        #     yfi_balance: '0.00000000',
+        #     yfi_reserved: '0.00000000',
+        #     yfi_withdrawal_fee: '0.00070000',
+        #     yfieur_fee: '0.000',
+        #     yfiusd_fee: '0.000',
+        #     zrx_available: '0.00000000',
+        #     zrx_balance: '0.00000000',
+        #     zrx_reserved: '0.00000000',
+        #     zrx_withdrawal_fee: '12.00000000',
+        #     zrxeur_fee: '0.000',
+        #     zrxusd_fee: '0.000',
+        #     ...
+        #  }
+        #
+        if codes is None:
+            codes = list(self.currencies.keys())
+        result = {}
+        mainCurrencyId = None
+        ids = list(response.keys())
+        for i in range(0, len(ids)):
+            id = ids[i]
+            currencyId = id.split('_')[0]
+            code = self.safe_currency_code(currencyId)
+            if codes is not None and not self.in_array(code, codes):
+                continue
+            if id.find('_available') >= 0:
+                mainCurrencyId = currencyId
+                result[code] = {
+                    'deposit': None,
+                    'withdraw': None,
+                    'info': {},
+                }
+            if currencyId == mainCurrencyId:
+                result[code]['info'][id] = self.safe_number(response, id)
+            if id.find('_withdrawal_fee') >= 0:
+                result[code]['withdraw'] = self.safe_number(response, id)
+        return result
+
+    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://www.bitstamp.net/api/#balance
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns [dict]: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        self.load_markets()
+        response = self.privatePostBalance(params)
+        #
+        #    {
+        #        yfi_available: '0.00000000',
+        #        yfi_balance: '0.00000000',
+        #        yfi_reserved: '0.00000000',
+        #        yfi_withdrawal_fee: '0.00070000',
+        #        yfieur_fee: '0.000',
+        #        yfiusd_fee: '0.000',
+        #        zrx_available: '0.00000000',
+        #        zrx_balance: '0.00000000',
+        #        zrx_reserved: '0.00000000',
+        #        zrx_withdrawal_fee: '12.00000000',
+        #        zrxeur_fee: '0.000',
+        #        zrxusd_fee: '0.000',
+        #        ...
+        #    }
+        #
+        return self.parse_deposit_withdraw_fees(response, codes)
+
+    def parse_deposit_withdraw_fees(self, response, codes=None, currencyIdKey=None):
+        #
+        #    {
+        #        yfi_available: '0.00000000',
+        #        yfi_balance: '0.00000000',
+        #        yfi_reserved: '0.00000000',
+        #        yfi_withdrawal_fee: '0.00070000',
+        #        yfieur_fee: '0.000',
+        #        yfiusd_fee: '0.000',
+        #        zrx_available: '0.00000000',
+        #        zrx_balance: '0.00000000',
+        #        zrx_reserved: '0.00000000',
+        #        zrx_withdrawal_fee: '12.00000000',
+        #        zrxeur_fee: '0.000',
+        #        zrxusd_fee: '0.000',
+        #        ...
+        #    }
+        #
+        result = {}
+        ids = list(response.keys())
+        for i in range(0, len(ids)):
+            id = ids[i]
+            currencyId = id.split('_')[0]
+            code = self.safe_currency_code(currencyId)
+            dictValue = self.safe_number(response, id)
+            if codes is not None and not self.in_array(code, codes):
+                continue
+            if id.find('_available') >= 0:
+                result[code] = self.deposit_withdraw_fee({})
+            if id.find('_withdrawal_fee') >= 0:
+                result[code]['withdraw']['fee'] = dictValue
+            resultValue = self.safe_value(result, code)
+            if resultValue is not None:
+                result[code]['info'][id] = dictValue
+        return result
 
     def create_order(self, symbol, type, side, amount, price=None, params={}):
         """
@@ -1447,8 +1555,10 @@ class bitstamp(Exchange):
         }
 
     def parse_transaction_status(self, status):
-        # withdrawals:
-        # 0(open), 1(in process), 2(finished), 3(canceled) or 4(failed).
+        #
+        #   withdrawals:
+        #   0(open), 1(in process), 2(finished), 3(canceled) or 4(failed).
+        #
         statuses = {
             '0': 'pending',  # Open
             '1': 'pending',  # In process
@@ -1459,43 +1569,44 @@ class bitstamp(Exchange):
         return self.safe_string(statuses, status, status)
 
     def parse_order(self, order, market=None):
-        # from fetch order:
-        #   {status: 'Finished',
-        #     id: 731693945,
-        #     client_order_id: '',
-        #     transactions:
-        #     [{fee: '0.000019',
-        #         price: '0.00015803',
-        #         datetime: '2018-01-07 10:45:34.132551',
-        #         btc: '0.0079015000000000',
-        #         tid: 42777395,
-        #         type: 2,
-        #         xrp: '50.00000000'}]}
         #
-        # partially filled order:
-        #   {"id": 468646390,
-        #     "client_order_id": "",
-        #     "status": "Canceled",
-        #     "transactions": [{
-        #         "eth": "0.23000000",
-        #         "fee": "0.09",
-        #         "tid": 25810126,
-        #         "usd": "69.8947000000000000",
-        #         "type": 2,
-        #         "price": "303.89000000",
-        #         "datetime": "2017-11-11 07:22:20.710567"
-        #     }]}
+        #   from fetch order:
+        #     {status: 'Finished',
+        #       id: 731693945,
+        #       client_order_id: '',
+        #       transactions:
+        #       [{fee: '0.000019',
+        #           price: '0.00015803',
+        #           datetime: '2018-01-07 10:45:34.132551',
+        #           btc: '0.0079015000000000',
+        #           tid: 42777395,
+        #           type: 2,
+        #           xrp: '50.00000000'}]}
         #
-        # from create order response:
-        #     {
-        #         price: '0.00008012',
-        #         client_order_id: '',
-        #         currency_pair: 'XRP/BTC',
-        #         datetime: '2019-01-31 21:23:36',
-        #         amount: '15.00000000',
-        #         type: '0',
-        #         id: '2814205012'
-        #     }
+        #   partially filled order:
+        #     {"id": 468646390,
+        #       "client_order_id": "",
+        #       "status": "Canceled",
+        #       "transactions": [{
+        #           "eth": "0.23000000",
+        #           "fee": "0.09",
+        #           "tid": 25810126,
+        #           "usd": "69.8947000000000000",
+        #           "type": 2,
+        #           "price": "303.89000000",
+        #           "datetime": "2017-11-11 07:22:20.710567"
+        #       }]}
+        #
+        #   from create order response:
+        #       {
+        #           price: '0.00008012',
+        #           client_order_id: '',
+        #           currency_pair: 'XRP/BTC',
+        #           datetime: '2019-01-31 21:23:36',
+        #           amount: '15.00000000',
+        #           type: '0',
+        #           id: '2814205012'
+        #       }
         #
         id = self.safe_string(order, 'id')
         clientOrderId = self.safe_string(order, 'client_order_id')
@@ -1606,13 +1717,13 @@ class bitstamp(Exchange):
             parsedTransaction = self.parse_transaction(item, currency)
             direction = None
             if 'amount' in item:
-                amount = self.safe_number(item, 'amount')
-                direction = 'in' if (amount > 0) else 'out'
+                amount = self.safe_string(item, 'amount')
+                direction = 'in' if Precise.string_gt(amount, '0') else 'out'
             elif ('currency' in parsedTransaction) and parsedTransaction['currency'] is not None:
                 currencyCode = self.safe_string(parsedTransaction, 'currency')
                 currency = self.currency(currencyCode)
-                amount = self.safe_number(item, currency['id'])
-                direction = 'in' if (amount > 0) else 'out'
+                amount = self.safe_string(item, currency['id'])
+                direction = 'in' if Precise.string_gt(amount, '0') else 'out'
             return {
                 'id': parsedTransaction['id'],
                 'info': item,
@@ -1664,6 +1775,7 @@ class bitstamp(Exchange):
         if symbol is not None:
             market = self.market(symbol)
         response = self.privatePostOpenOrdersAll(params)
+        #
         #     [
         #         {
         #             price: '0.00008012',
@@ -1682,6 +1794,11 @@ class bitstamp(Exchange):
         })
 
     def get_currency_name(self, code):
+        """
+         * @ignore
+        :param str code: Unified currency code
+        :returns str: lowercase version of code
+        """
         return code.lower()
 
     def is_fiat(self, code):
@@ -1798,6 +1915,7 @@ class bitstamp(Exchange):
         #     {"error": "No permission found"}  # fetchDepositAddress returns self on apiKeys that don't have the permission required
         #     {"status": "error", "reason": {"__all__": ["Minimum order size is 5.0 EUR."]}}
         #     reuse of a nonce gives: {status: 'error', reason: 'Invalid nonce', code: 'API0004'}
+        #
         status = self.safe_string(response, 'status')
         error = self.safe_value(response, 'error')
         if (status == 'error') or (error is not None):

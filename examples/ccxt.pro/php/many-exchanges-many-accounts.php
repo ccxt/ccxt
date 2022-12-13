@@ -2,7 +2,9 @@
 
 error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set('UTC');
-require_once 'vendor/autoload.php';
+
+$root = dirname(dirname(dirname(dirname(__FILE__))));
+include $root . '/ccxt.php';
 
 function create_exchange($exchange_id, $config) {
 
@@ -18,9 +20,9 @@ function create_exchange($exchange_id, $config) {
     );
 
 
-    $exchange_class = '\\ccxtpro\\' . $exchange_id;
+    $exchange_class = '\\ccxt\\pro\\' . $exchange_id;
     $exchange = new $exchange_class($config);
-    $markets_on_disk = "./{$id}.markets.json";
+    $markets_on_disk = "./{$exchange_id}.markets.json";
 
     $exchange->verbose = true; // this is a debug output to demonstrate which networking calls are being issued
 
@@ -47,17 +49,17 @@ function create_exchange($exchange_id, $config) {
 $exchanges = array(
     array('binance', array(
         'id' => 'binance1',
-        'apiKey' => YOUR_API_KEY_HERE,
-        'secret' => YOUR_SECRET_HERE,
+        'apiKey' => 'YOUR_API_KEY_HERE',
+        'secret' => 'YOUR_SECRET_HERE',
     )),
     array('binance', array(
         'id' => 'binance2',
-        'apiKey' => YOUR_API_KEY_HERE,
-        'secret' => YOUR_SECRET_HERE,
+        'apiKey' => 'YOUR_API_KEY_HERE',
+        'secret' => 'YOUR_SECRET_HERE',
     )),
 );
 
-function loop($exchange_id, $config) {
+$loop = function($exchange_id, $config) {
     $exchange = yield create_exchange($exchange_id, $config);
     $exchange->verbose = true;
     while (true) {
@@ -69,10 +71,6 @@ function loop($exchange_id, $config) {
 };
 
 
-$exchange = new \ccxtpro\binance();
-$kernel = $exchange::get_kernel();
 foreach ($exchanges as $exchange) {
-    $kernel->execute(loop($exchange[0], $exchange[1]));
+    \React\Async\coroutine($loop, $exchange[0], $exchange[1]);
 }
-
-$kernel->run();

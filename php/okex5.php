@@ -10,7 +10,7 @@ use Exception; // a common import
 class okex5 extends okex {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'okex5',
             'alias' => true,
         ));

@@ -6,15 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\InvalidOrder;
 
 class deribit extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'deribit',
             'name' => 'Deribit',
             'countries' => array( 'NL' ), // Netherlands
@@ -23,6 +19,7 @@ class deribit extends Exchange {
             // 20 requests per second for non-matching-engine endpoints, 1000ms / 20 = 50ms between requests
             // 5 requests per second for matching-engine endpoints, cost = (1000ms / rateLimit) / 5 = 4
             'rateLimit' => 50,
+            'pro' => true,
             'has' => array(
                 'CORS' => true,
                 'spot' => false,
@@ -128,6 +125,7 @@ class deribit extends Exchange {
                         // Supporting
                         'get_time' => 1,
                         'hello' => 1,
+                        'status' => 1,
                         'test' => 1,
                         // Subscription management
                         'subscribe' => 1,
@@ -641,23 +639,29 @@ class deribit extends Exchange {
                 $kind = $this->safe_string($market, 'kind');
                 $settlementPeriod = $this->safe_value($market, 'settlement_period');
                 $swap = ($settlementPeriod === 'perpetual');
-                $future = !$swap && ($kind === 'future');
-                $option = ($kind === 'option');
-                $symbol = $base . '/' . $quote . ':' . $settle;
+                $future = !$swap && (mb_strpos($kind, 'future') !== false);
+                $option = (mb_strpos($kind, 'option') !== false);
+                $isComboMarket = mb_strpos($kind, 'combo') !== false;
                 $expiry = $this->safe_integer($market, 'expiration_timestamp');
                 $strike = null;
                 $optionType = null;
+                $symbol = $id;
                 $type = 'swap';
-                if ($option || $future) {
-                    $symbol = $symbol . '-' . $this->yymmdd($expiry, '');
-                    if ($option) {
-                        $type = 'option';
-                        $strike = $this->safe_number($market, 'strike');
-                        $optionType = $this->safe_string($market, 'option_type');
-                        $letter = ($optionType === 'call') ? 'C' : 'P';
-                        $symbol = $symbol . '-' . $this->number_to_string($strike) . '-' . $letter;
-                    } else {
-                        $type = 'future';
+                if ($future) {
+                    $type = 'future';
+                } elseif ($option) {
+                    $type = 'option';
+                }
+                if (!$isComboMarket) {
+                    $symbol = $base . '/' . $quote . ':' . $settle;
+                    if ($option || $future) {
+                        $symbol = $symbol . '-' . $this->yymmdd($expiry, '');
+                        if ($option) {
+                            $strike = $this->safe_number($market, 'strike');
+                            $optionType = $this->safe_string($market, 'option_type');
+                            $letter = ($optionType === 'call') ? 'C' : 'P';
+                            $symbol = $symbol . '-' . $this->number_to_string($strike) . '-' . $letter;
+                        }
                     }
                 }
                 $minTradeAmount = $this->safe_number($market, 'min_trade_amount');
@@ -679,8 +683,8 @@ class deribit extends Exchange {
                     'option' => $option,
                     'active' => $this->safe_value($market, 'is_active'),
                     'contract' => true,
-                    'linear' => false,
-                    'inverse' => true,
+                    'linear' => ($settle === $quote),
+                    'inverse' => ($settle !== $quote),
                     'taker' => $this->safe_number($market, 'taker_commission'),
                     'maker' => $this->safe_number($market, 'maker_commission'),
                     'contractSize' => $this->safe_number($market, 'contract_size'),
@@ -1064,11 +1068,10 @@ class deribit extends Exchange {
         $now = $this->milliseconds();
         if ($since === null) {
             if ($limit === null) {
-                throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $since argument or a $limit argument');
-            } else {
-                $request['start_timestamp'] = $now - ($limit - 1) * $duration * 1000;
-                $request['end_timestamp'] = $now;
+                $limit = 1000; // at max, it provides 5000 bars, but we set generous default here
             }
+            $request['start_timestamp'] = $now - ($limit - 1) * $duration * 1000;
+            $request['end_timestamp'] = $now;
         } else {
             $request['start_timestamp'] = $since;
             if ($limit === null) {
@@ -1151,7 +1154,14 @@ class deribit extends Exchange {
         $timestamp = $this->safe_integer($trade, 'timestamp');
         $side = $this->safe_string($trade, 'direction');
         $priceString = $this->safe_string($trade, 'price');
-        $amountString = $this->safe_string($trade, 'amount');
+        $market = $this->safe_market($marketId, $market);
+        // Amount for inverse perpetual and futures is in USD which in ccxt is the $cost
+        // For options $amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
+        $amount = $this->safe_string($trade, 'amount');
+        $cost = Precise::string_mul($amount, $priceString);
+        if ($market['inverse']) {
+            $cost = Precise::string_div($amount, $priceString);
+        }
         $liquidity = $this->safe_string($trade, 'liquidity');
         $takerOrMaker = null;
         if ($liquidity !== null) {
@@ -1179,15 +1189,16 @@ class deribit extends Exchange {
             'side' => $side,
             'takerOrMaker' => $takerOrMaker,
             'price' => $priceString,
-            'amount' => $amountString,
-            'cost' => null,
+            'amount' => $amount,
+            'cost' => $cost,
             'fee' => $fee,
         ), $market);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {
         /**
-         * get the list of most recent $trades for a particular $symbol
+         * @see https://docs.deribit.com/#private-get_user_trades_by_currency
+         * get the list of most recent $trades for a particular $symbol->
          * @param {string} $symbol unified $symbol of the $market to fetch $trades for
          * @param {int|null} $since timestamp in ms of the earliest trade to fetch
          * @param {int|null} $limit the maximum amount of $trades to fetch
@@ -1475,17 +1486,23 @@ class deribit extends Exchange {
         //         "trades" => array(), // injected by createOrder
         //     }
         //
+        $marketId = $this->safe_string($order, 'instrument_name');
+        $market = $this->safe_market($marketId, $market);
         $timestamp = $this->safe_integer($order, 'creation_timestamp');
         $lastUpdate = $this->safe_integer($order, 'last_update_timestamp');
         $id = $this->safe_string($order, 'order_id');
         $priceString = $this->safe_string($order, 'price');
-        if ($priceString === 'market_price') {
-            // for $market orders we get a literal 'market_price' string here
-            $priceString = null;
-        }
         $averageString = $this->safe_string($order, 'average_price');
-        $amountString = $this->safe_string($order, 'amount');
+        // Inverse contracts $amount is in USD which in ccxt is the $cost
+        // For options and Linear contracts $amount is in corresponding cryptocurrency, e.g., BTC or ETH
         $filledString = $this->safe_string($order, 'filled_amount');
+        $amount = $this->safe_string($order, 'amount');
+        $cost = Precise::string_mul($filledString, $averageString);
+        if ($market['inverse']) {
+            if ($this->parse_number($averageString) !== 0) {
+                $cost = Precise::string_div($amount, $averageString);
+            }
+        }
         $lastTradeTimestamp = null;
         if ($filledString !== null) {
             $isFilledPositive = Precise::string_gt($filledString, '0');
@@ -1494,8 +1511,6 @@ class deribit extends Exchange {
             }
         }
         $status = $this->parse_order_status($this->safe_string($order, 'order_state'));
-        $marketId = $this->safe_string($order, 'instrument_name');
-        $market = $this->safe_market($marketId, $market);
         $side = $this->safe_string_lower($order, 'direction');
         $feeCostString = $this->safe_string($order, 'commission');
         $fee = null;
@@ -1510,9 +1525,6 @@ class deribit extends Exchange {
         $type = $this->parse_order_type($rawType);
         // injected in createOrder
         $trades = $this->safe_value($order, 'trades');
-        if ($trades !== null) {
-            $trades = $this->parse_trades($trades, $market);
-        }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'time_in_force'));
         $stopPrice = $this->safe_value($order, 'stop_price');
         $postOnly = $this->safe_value($order, 'post_only');
@@ -1530,8 +1542,8 @@ class deribit extends Exchange {
             'side' => $side,
             'price' => $priceString,
             'stopPrice' => $stopPrice,
-            'amount' => $amountString,
-            'cost' => null,
+            'amount' => $amount,
+            'cost' => $cost,
             'average' => $averageString,
             'filled' => $filledString,
             'remaining' => null,
@@ -1588,21 +1600,27 @@ class deribit extends Exchange {
     public function create_order($symbol, $type, $side, $amount, $price = null, $params = array ()) {
         /**
          * create a trade $order
+         * @see https://docs.deribit.com/#private-buy
          * @param {string} $symbol unified $symbol of the $market to create an $order in
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
-         * @param {float} $amount how much of currency you want to trade in units of base currency
+         * @param {float} $amount how much of currency you want to trade. For perpetual and futures the $amount is in USD. For options it is in corresponding cryptocurrency contracts currency.
          * @param {float|null} $price the $price at which the $order is to be fullfilled, in units of the quote currency, ignored in $market orders
          * @param {array} $params extra parameters specific to the deribit api endpoint
          * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#$order-structure $order structure}
          */
         $this->load_markets();
         $market = $this->market($symbol);
+        if ($market['inverse']) {
+            $amount = $this->amount_to_precision($symbol, $amount);
+        } else {
+            $amount = $this->currency_to_precision($symbol, $amount);
+        }
         $request = array(
             'instrument_name' => $market['id'],
             // for perpetual and futures the $amount is in USD
             // for options it is in corresponding cryptocurrency contracts, e.g., BTC or ETH
-            'amount' => $this->amount_to_precision($symbol, $amount),
+            'amount' => $amount,
             'type' => $type, // limit, stop_limit, $market, stop_market, default is limit
             // 'label' => 'string', // user-defined label for the $order (maximum 64 characters)
             // 'price' => $this->price_to_precision($symbol, 123.45), // only for limit and stop_limit orders
@@ -2204,6 +2222,7 @@ class deribit extends Exchange {
         $currentTime = $this->milliseconds();
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => $currentTime,
             'datetime' => $this->iso8601($currentTime),

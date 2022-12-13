@@ -6,21 +6,15 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\AuthenticationError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\InsufficientFunds;
-use \ccxt\InvalidOrder;
 
 class wavesexchange extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'wavesexchange',
             'name' => 'Waves.Exchange',
             'countries' => array( 'CH' ), // Switzerland
-            'certified' => true,
+            'certified' => false,
             'pro' => false,
             'has' => array(
                 'CORS' => null,
@@ -68,6 +62,7 @@ class wavesexchange extends Exchange {
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
+                'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
@@ -347,6 +342,7 @@ class wavesexchange extends Exchange {
                 '106957828' => '\\ccxt\\AuthenticationError',
                 '106960131' => '\\ccxt\\AuthenticationError',
                 '106981137' => '\\ccxt\\AuthenticationError',
+                '9437184' => '\\ccxt\\BadRequest', // array("error":9437184,"message":"The order is invalid => SpendAmount should be > 0","template":"The order is invalid => array({details})","params":array("details":"SpendAmount should be > 0"),"status":"OrderRejected","success":false)
                 '9437193' => '\\ccxt\\OrderNotFound',
                 '1048577' => '\\ccxt\\BadRequest',
                 '1051904' => '\\ccxt\\AuthenticationError',
@@ -1085,7 +1081,8 @@ class wavesexchange extends Exchange {
                 $address = $this->safe_string($response, 'address');
                 return array(
                     'address' => $address,
-                    'code' => $code,
+                    'code' => $code, // kept here for backward-compatibility, but will be removed soon
+                    'currency' => $code,
                     'network' => $network,
                     'tag' => null,
                     'info' => $response,
@@ -1129,7 +1126,8 @@ class wavesexchange extends Exchange {
         $address = $this->safe_string($addresses, 0);
         return array(
             'address' => $address,
-            'code' => $code,
+            'code' => $code, // kept here for backward-compatibility, but will be removed soon
+            'currency' => $code,
             'tag' => null,
             'network' => $unifiedNetwork,
             'info' => $response,

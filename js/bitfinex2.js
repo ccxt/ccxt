@@ -696,7 +696,7 @@ module.exports = class bitfinex2 extends Exchange {
             const fees = this.safeValue (feeValues, 1, []);
             const fee = this.safeNumber (fees, 1);
             const undl = this.safeValue (indexed['undl'], id, []);
-            const precision = 8; // default precision, todo: fix "magic constants"
+            const precision = '8'; // default precision, todo: fix "magic constants"
             const fid = 'f' + id;
             result[code] = {
                 'id': fid,
@@ -709,10 +709,10 @@ module.exports = class bitfinex2 extends Exchange {
                 'deposit': undefined,
                 'withdraw': undefined,
                 'fee': fee,
-                'precision': precision,
+                'precision': parseInt (precision),
                 'limits': {
                     'amount': {
-                        'min': 1 / Math.pow (10, precision),
+                        'min': this.parseNumber (this.parsePrecision (precision)),
                         'max': undefined,
                     },
                     'withdraw': {
@@ -924,7 +924,7 @@ module.exports = class bitfinex2 extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'status': this.parseTransferStatus (status),
-            'amount': this.safeNumber (transfer, 7),
+            'amount': this.safeNumber (info, 7),
             'currency': this.safeCurrencyCode (currencyId, currency),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
@@ -1013,10 +1013,10 @@ module.exports = class bitfinex2 extends Exchange {
         for (let i = 0; i < orderbook.length; i++) {
             const order = orderbook[i];
             const price = this.safeNumber (order, priceIndex);
-            const signedAmount = this.safeNumber (order, 2);
-            const amount = Math.abs (signedAmount);
-            const side = (signedAmount > 0) ? 'bids' : 'asks';
-            result[side].push ([ price, amount ]);
+            const signedAmount = this.safeString (order, 2);
+            const amount = Precise.stringAbs (signedAmount);
+            const side = Precise.stringGt (signedAmount, '0') ? 'bids' : 'asks';
+            result[side].push ([ price, this.parseNumber (amount) ]);
         }
         result['bids'] = this.sortBy (result['bids'], 0, true);
         result['asks'] = this.sortBy (result['asks'], 0);
@@ -2111,9 +2111,9 @@ module.exports = class bitfinex2 extends Exchange {
             if (currency !== undefined) {
                 code = currency['code'];
             }
-            feeCost = this.safeNumber (data, 8);
+            feeCost = this.safeString (data, 8);
             if (feeCost !== undefined) {
-                feeCost = -feeCost;
+                feeCost = Precise.stringNeg (feeCost);
             }
             amount = this.safeNumber (data, 5);
             id = this.safeValue (data, 0);
@@ -2131,17 +2131,17 @@ module.exports = class bitfinex2 extends Exchange {
             timestamp = this.safeInteger (transaction, 5);
             updated = this.safeInteger (transaction, 6);
             status = this.parseTransactionStatus (this.safeString (transaction, 9));
-            amount = this.safeNumber (transaction, 12);
+            amount = this.safeString (transaction, 12);
             if (amount !== undefined) {
-                if (amount < 0) {
+                if (Precise.stringLt (amount, '0')) {
                     type = 'withdrawal';
                 } else {
                     type = 'deposit';
                 }
             }
-            feeCost = this.safeNumber (transaction, 13);
+            feeCost = this.safeString (transaction, 13);
             if (feeCost !== undefined) {
-                feeCost = -feeCost;
+                feeCost = Precise.stringNeg (feeCost);
             }
             addressTo = this.safeString (transaction, 16);
             txid = this.safeString (transaction, 20);
@@ -2160,13 +2160,13 @@ module.exports = class bitfinex2 extends Exchange {
             'tag': tag, // refix it properly for the tag from description
             'tagTo': tag,
             'type': type,
-            'amount': amount,
+            'amount': this.parseNumber (amount),
             'currency': code,
             'status': status,
             'updated': updated,
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': this.parseNumber (feeCost),
                 'rate': undefined,
             },
         };
@@ -2527,9 +2527,9 @@ module.exports = class bitfinex2 extends Exchange {
             const errorCode = this.numberToString (response[1]);
             const errorText = response[2];
             const feedback = this.id + ' ' + errorText;
+            this.throwBroadlyMatchedException (this.exceptions['broad'], errorText, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], errorCode, feedback);
             this.throwExactlyMatchedException (this.exceptions['exact'], errorText, feedback);
-            this.throwBroadlyMatchedException (this.exceptions['broad'], errorText, feedback);
             throw new ExchangeError (this.id + ' ' + errorText + ' (#' + errorCode + ')');
         }
         return response;

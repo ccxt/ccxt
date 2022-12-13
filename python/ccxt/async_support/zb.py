@@ -148,7 +148,7 @@ class zb(Exchange):
                 'doc': 'https://www.zb.com/i/developer',
                 'fees': 'https://www.zb.com/i/rate',
                 'referral': {
-                    'url': 'https://www.zbex.club/en/register?ref=4301lera',
+                    'url': 'https://www.zb.com/en/register?ref=4301lera',
                     'discount': 0.16,
                 },
             },
@@ -3484,6 +3484,7 @@ class zb(Exchange):
         timestamp = self.safe_number(position, 'createTime')
         return {
             'info': position,
+            'id': None,
             'symbol': symbol,
             'contracts': self.parse_number(contracts),
             'contractSize': None,

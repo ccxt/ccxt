@@ -6,7 +6,6 @@
 from ccxt.async_support.base.exchange import Exchange
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
-from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.errors import DDoSProtection
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -135,6 +134,7 @@ class lbank(Exchange):
             'commonCurrencies': {
                 'GMT': 'GMT Token',
                 'PNT': 'Penta',
+                'SHINJA': 'SHINJA(1M)',
                 'VET_ERC20': 'VEN',
             },
             'options': {
@@ -352,7 +352,9 @@ class lbank(Exchange):
         id = self.safe_string(trade, 'tid')
         type = None
         side = self.safe_string(trade, 'type')
-        side = side.replace('_market', '')
+        # remove type additions from i.e. buy_maker, sell_maker, buy_ioc, sell_ioc, buy_fok, sell_fok
+        splited = side.split('_')
+        side = splited[0]
         return {
             'id': id,
             'info': self.safe_value(trade, 'info', trade),
@@ -411,7 +413,7 @@ class lbank(Exchange):
             self.safe_number(ohlcv, 5),
         ]
 
-    async def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=1000, params={}):
+    async def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=1000, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for
@@ -423,10 +425,11 @@ class lbank(Exchange):
         """
         await self.load_markets()
         market = self.market(symbol)
-        if since is None:
-            raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a `since` argument')
         if limit is None:
-            raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a `limit` argument')
+            limit = 100  # as it's defined in lbank2
+        if since is None:
+            duration = self.parse_timeframe(timeframe)
+            since = self.milliseconds() - duration * 1000 * limit
         request = {
             'symbol': market['id'],
             'type': self.timeframes[timeframe],

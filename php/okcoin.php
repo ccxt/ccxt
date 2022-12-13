@@ -6,17 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\InvalidAddress;
-use \ccxt\InvalidOrder;
-use \ccxt\NotSupported;
-use \ccxt\ExchangeNotAvailable;
 
 class okcoin extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'okcoin',
             'name' => 'OKCoin',
             'countries' => array( 'CN', 'US' ),
@@ -756,6 +750,7 @@ class okcoin extends Exchange {
                 'accountsByType' => array(
                     'spot' => '1',
                     'funding' => '6',
+                    'main' => '6',
                 ),
                 'accountsById' => array(
                     '1' => 'spot',
@@ -1149,7 +1144,7 @@ class okcoin extends Exchange {
                     'deposit' => $depositEnabled,
                     'withdraw' => $withdrawEnabled,
                     'fee' => null, // todo => redesign
-                    'precision' => $this->parse_number('0.00000001'),
+                    'precision' => $this->parse_number('1e-8'), // todo => fix
                     'limits' => array(
                         'amount' => array( 'min' => null, 'max' => null ),
                         'withdraw' => array(
@@ -1307,14 +1302,19 @@ class okcoin extends Exchange {
 
     public function fetch_tickers($symbols = null, $params = array ()) {
         /**
-         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the okcoin api endpoint
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
          */
-        $defaultType = $this->safe_string_2($this->options, 'fetchTickers', 'defaultType');
-        $type = $this->safe_string($params, 'type', $defaultType);
         $symbols = $this->market_symbols($symbols);
+        $first = $this->safe_string($symbols, 0);
+        $market = null;
+        if ($first !== null) {
+            $market = $this->market($first);
+        }
+        $type = null;
+        list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
         return $this->fetch_tickers_by_type($type, $symbols, $this->omit($params, 'type'));
     }
 
@@ -1378,32 +1378,9 @@ class okcoin extends Exchange {
         //             "side":"short", // "buy" in futures trades
         //         }
         //
-        $symbol = null;
         $marketId = $this->safe_string($trade, 'instrument_id');
-        $base = null;
-        $quote = null;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-            $base = $market['base'];
-            $quote = $market['quote'];
-        } elseif ($marketId !== null) {
-            $parts = explode('-', $marketId);
-            $numParts = count($parts);
-            if ($numParts === 2) {
-                list($baseId, $quoteId) = $parts;
-                $base = $this->safe_currency_code($baseId);
-                $quote = $this->safe_currency_code($quoteId);
-                $symbol = $base . '/' . $quote;
-            } else {
-                $symbol = $marketId;
-            }
-        }
-        if (($symbol === null) && ($market !== null)) {
-            $symbol = $market['symbol'];
-            $base = $market['base'];
-            $quote = $market['quote'];
-        }
+        $market = $this->safe_market($marketId, $market, '-');
+        $symbol = $market['symbol'];
         $timestamp = $this->parse8601($this->safe_string_2($trade, 'timestamp', 'created_at'));
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string_2($trade, 'size', 'qty');
@@ -1418,7 +1395,7 @@ class okcoin extends Exchange {
         $feeCostString = $this->safe_string($trade, 'fee');
         $fee = null;
         if ($feeCostString !== null) {
-            $feeCurrency = ($side === 'buy') ? $base : $quote;
+            $feeCurrency = ($side === 'buy') ? $market['base'] : $market['quote'];
             $fee = array(
                 // $fee is either a positive number (invitation rebate)
                 // or a negative number (transaction $fee deduction)
@@ -1816,10 +1793,7 @@ class okcoin extends Exchange {
         for ($i = 0; $i < count($info); $i++) {
             $balance = $info[$i];
             $marketId = $this->safe_string($balance, 'instrument_id');
-            $symbol = $marketId;
-            if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-                $symbol = $this->markets_by_id[$marketId]['symbol'];
-            }
+            $symbol = $this->safe_symbol($marketId);
             $balanceTimestamp = $this->parse8601($this->safe_string($balance, 'timestamp'));
             $timestamp = ($timestamp === null) ? $balanceTimestamp : max ($timestamp, $balanceTimestamp);
             $account = $this->account();
@@ -3643,7 +3617,7 @@ class okcoin extends Exchange {
 
     public function parse_ledger_entry_type($type) {
         $types = array(
-            'transfer' => 'transfer', // // funds transfer in/out
+            'transfer' => 'transfer', // funds transfer in/out
             'trade' => 'trade', // funds moved as a result of a trade, spot accounts only
             'rebate' => 'rebate', // fee rebate as per fee schedule, spot accounts only
             'match' => 'trade', // open long/open short/close long/close short (futures) or a change in the amount because of trades (swap)
@@ -3731,11 +3705,7 @@ class okcoin extends Exchange {
         $after = $this->safe_number($item, 'balance');
         $status = 'ok';
         $marketId = $this->safe_string($item, 'instrument_id');
-        $symbol = null;
-        if (is_array($this->markets_by_id) && array_key_exists($marketId, $this->markets_by_id)) {
-            $market = $this->markets_by_id[$marketId];
-            $symbol = $market['symbol'];
-        }
+        $symbol = $this->safe_symbol($marketId);
         return array(
             'info' => $item,
             'id' => $id,

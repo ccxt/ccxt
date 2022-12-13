@@ -6,13 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
 
 class coinspot extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'coinspot',
             'name' => 'CoinSpot',
             'countries' => array( 'AU' ), // Australia
@@ -55,6 +53,7 @@ class coinspot extends Exchange {
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
+                'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTradingFee' => false,
                 'fetchTradingFees' => false,
@@ -219,12 +218,11 @@ class coinspot extends Exchange {
         //     }
         //
         $symbol = $this->safe_symbol(null, $market);
-        $timestamp = $this->milliseconds();
         $last = $this->safe_string($ticker, 'last');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
+            'timestamp' => null,
+            'datetime' => null,
             'high' => null,
             'low' => null,
             'bid' => $this->safe_string($ticker, 'bid'),
@@ -272,6 +270,48 @@ class coinspot extends Exchange {
         //
         $ticker = $this->safe_value($prices, $id);
         return $this->parse_ticker($ticker, $market);
+    }
+
+    public function fetch_tickers($symbols = null, $params = array ()) {
+        /**
+         * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * @see https://www.coinspot.com.au/api#latestprices
+         * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market tickers are returned if not assigned
+         * @param {array} $params extra parameters specific to the coinspot api endpoint
+         * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
+         */
+        $this->load_markets();
+        $response = $this->publicGetLatest ($params);
+        //
+        //    {
+        //        "status" => "ok",
+        //        "prices" => {
+        //        "btc" => array(
+        //        "bid" => "25050",
+        //        "ask" => "25370",
+        //        "last" => "25234"
+        //        ),
+        //        "ltc" => {
+        //        "bid" => "79.39192993",
+        //        "ask" => "87.98",
+        //        "last" => "87.95"
+        //        }
+        //      }
+        //    }
+        //
+        $result = array();
+        $prices = $this->safe_value($response, 'prices');
+        $ids = is_array($prices) ? array_keys($prices) : array();
+        for ($i = 0; $i < count($ids); $i++) {
+            $id = $ids[$i];
+            $market = $this->safe_market($id);
+            if ($market['spot']) {
+                $symbol = $market['symbol'];
+                $ticker = $prices[$id];
+                $result[$symbol] = $this->parse_ticker($ticker, $market);
+            }
+        }
+        return $this->filter_by_array($result, 'symbol', $symbols);
     }
 
     public function fetch_trades($symbol, $since = null, $limit = null, $params = array ()) {

@@ -6,19 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\BadSymbol;
-use \ccxt\InvalidOrder;
-use \ccxt\OrderNotFound;
-use \ccxt\NotSupported;
-use \ccxt\ExchangeNotAvailable;
 
 class zb extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'zb',
             'name' => 'ZB',
             'countries' => array( 'CN' ),
@@ -133,7 +125,7 @@ class zb extends Exchange {
                 'doc' => 'https://www.zb.com/i/developer',
                 'fees' => 'https://www.zb.com/i/rate',
                 'referral' => array(
-                    'url' => 'https://www.zbex.club/en/register?ref=4301lera',
+                    'url' => 'https://www.zb.com/en/register?ref=4301lera',
                     'discount' => 0.16,
                 ),
             ),
@@ -3627,6 +3619,7 @@ class zb extends Exchange {
         $timestamp = $this->safe_number($position, 'createTime');
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $symbol,
             'contracts' => $this->parse_number($contracts),
             'contractSize' => null,
