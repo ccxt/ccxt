@@ -491,6 +491,11 @@ module.exports = class kucoin extends Exchange {
                     'HRC20': 'heco',
                     'HT': 'heco',
                 },
+                'networksById': {
+                    'BEP20': 'BSC',
+                    'ERC20': 'ETH',
+                    'TRC20': 'TRX',
+                },
             },
         });
     }
