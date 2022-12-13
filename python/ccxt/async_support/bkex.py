@@ -60,7 +60,7 @@ class bkex(Exchange):
                 'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': None,
                 'fetchFundingRate': None,
-                'fetchFundingRateHistory': None,
+                'fetchFundingRateHistory': True,
                 'fetchFundingRates': None,
                 'fetchIndexOHLCV': None,
                 'fetchL2OrderBook': None,
@@ -285,8 +285,8 @@ class bkex(Exchange):
             self.publicSpotGetCommonSymbols(params),
             self.publicSwapGetMarketSymbols(params),
         ]
-        resolved = await asyncio.gather(*promises)
-        spotMarkets = resolved[0]
+        promises = await asyncio.gather(*promises)
+        spotMarkets = promises[0]
         #
         #     {
         #         "code": "0",
@@ -304,7 +304,7 @@ class bkex(Exchange):
         #         "status": 0
         #     }
         #
-        swapMarkets = resolved[1]
+        swapMarkets = promises[1]
         #
         #     {
         #         "code": 0,
@@ -594,6 +594,8 @@ class bkex(Exchange):
     async def fetch_ticker(self, symbol, params={}):
         """
         fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+        see https://bkexapi.github.io/docs/api_en.htm?shell#quotationData-2
+        see https://bkexapi.github.io/docs/api_en.htm?shell#contract-ticker-data
         :param str symbol: unified symbol of the market to fetch the ticker for
         :param dict params: extra parameters specific to the bkex api endpoint
         :returns dict: a `ticker structure <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
@@ -603,34 +605,62 @@ class bkex(Exchange):
         request = {
             'symbol': market['id'],
         }
-        response = await self.publicSpotGetQTickers(self.extend(request, params))
+        marketType, query = self.handle_market_type_and_params('fetchTicker', market, params)
+        method = 'publicSwapGetMarketTickers' if (marketType == 'swap') else 'publicSpotGetQTickers'
+        response = await getattr(self, method)(self.extend(request, query))
         #
-        # {
-        #     "code": "0",
-        #     "data": [
-        #       {
-        #         "change": "6.52",
-        #         "close": "43573.470000",
-        #         "high": "44940.540000",
-        #         "low": "40799.840000",
-        #         "open": "40905.780000",
-        #         "quoteVolume": "225621691.5991",
-        #         "symbol": "BTC_USDT",
-        #         "ts": "1646156490781",
-        #         "volume": 5210.349
-        #       }
-        #     ],
-        #     "msg": "success",
-        #     "status": 0
-        # }
+        # spot
         #
-        tickers = self.safe_value(response, 'data')
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "change": "6.52",
+        #                 "close": "43573.470000",
+        #                 "high": "44940.540000",
+        #                 "low": "40799.840000",
+        #                 "open": "40905.780000",
+        #                 "quoteVolume": "225621691.5991",
+        #                 "symbol": "BTC_USDT",
+        #                 "ts": "1646156490781",
+        #                 "volume": 5210.349
+        #             }
+        #         ],
+        #         "msg": "success",
+        #         "status": 0
+        #     }
+        #
+        # swap
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "success",
+        #         "data": [
+        #             {
+        #                 "symbol": "btc_usdt",
+        #                 "amount": "171035.45",
+        #                 "volume": "2934757466.3859",
+        #                 "open": "17111.43",
+        #                 "close": "17135.74",
+        #                 "high": "17225.99",
+        #                 "low": "17105.77",
+        #                 "lastPrice": "17135.74",
+        #                 "lastAmount": "1.05",
+        #                 "lastTime": 1670709364912,
+        #                 "change": "0.14"
+        #             }
+        #         ]
+        #     }
+        #
+        tickers = self.safe_value(response, 'data', [])
         ticker = self.safe_value(tickers, 0)
         return self.parse_ticker(ticker, market)
 
     async def fetch_tickers(self, symbols=None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        see https://bkexapi.github.io/docs/api_en.htm?shell#quotationData-2
+        see https://bkexapi.github.io/docs/api_en.htm?shell#contract-ticker-data
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bkex api endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
@@ -640,14 +670,72 @@ class bkex(Exchange):
         if symbols is not None:
             if not isinstance(symbols, list):
                 raise BadRequest(self.id + ' fetchTickers() symbols argument should be an array')
+        market = None
         if symbols is not None:
             marketIds = self.market_ids(symbols)
-            request['symbol'] = ','.join(marketIds)
-        response = await self.publicSpotGetQTickers(self.extend(request, params))
-        tickers = self.safe_value(response, 'data')
-        return self.parse_tickers(tickers, symbols, params)
+            symbol = self.safe_string(symbols, 0)
+            market = self.market(symbol)
+            if market['swap']:
+                if isinstance(symbols, list):
+                    symbolsLength = len(symbols)
+                    if symbolsLength > 1:
+                        raise BadRequest(self.id + ' fetchTickers() symbols argument cannot contain more than 1 symbol for swap markets')
+                request['symbol'] = market['id']
+            else:
+                request['symbol'] = ','.join(marketIds)
+        marketType, query = self.handle_market_type_and_params('fetchTickers', market, params)
+        method = 'publicSwapGetMarketTickers' if (marketType == 'swap') else 'publicSpotGetQTickers'
+        response = await getattr(self, method)(self.extend(request, query))
+        #
+        # spot
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "change": "6.52",
+        #                 "close": "43573.470000",
+        #                 "high": "44940.540000",
+        #                 "low": "40799.840000",
+        #                 "open": "40905.780000",
+        #                 "quoteVolume": "225621691.5991",
+        #                 "symbol": "BTC_USDT",
+        #                 "ts": "1646156490781",
+        #                 "volume": 5210.349
+        #             }
+        #         ],
+        #         "msg": "success",
+        #         "status": 0
+        #     }
+        #
+        # swap
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "success",
+        #         "data": [
+        #             {
+        #                 "symbol": "btc_usdt",
+        #                 "amount": "171035.45",
+        #                 "volume": "2934757466.3859",
+        #                 "open": "17111.43",
+        #                 "close": "17135.74",
+        #                 "high": "17225.99",
+        #                 "low": "17105.77",
+        #                 "lastPrice": "17135.74",
+        #                 "lastAmount": "1.05",
+        #                 "lastTime": 1670709364912,
+        #                 "change": "0.14"
+        #             }
+        #         ]
+        #     }
+        #
+        tickers = self.safe_value(response, 'data', [])
+        return self.parse_tickers(tickers, symbols, query)
 
     def parse_ticker(self, ticker, market=None):
+        #
+        # spot
         #
         #    {
         #          "change":-0.46,
@@ -661,10 +749,29 @@ class bkex(Exchange):
         #          "volume":23684.9416
         #    }
         #
+        # swap
+        #
+        #     {
+        #         "symbol": "btc_usdt",
+        #         "amount": "171035.45",
+        #         "volume": "2934757466.3859",
+        #         "open": "17111.43",
+        #         "close": "17135.74",
+        #         "high": "17225.99",
+        #         "low": "17105.77",
+        #         "lastPrice": "17135.74",
+        #         "lastAmount": "1.05",
+        #         "lastTime": 1670709364912,
+        #         "change": "0.14"
+        #     }
+        #
         marketId = self.safe_string(ticker, 'symbol')
         symbol = self.safe_symbol(marketId, market)
-        timestamp = self.safe_integer(ticker, 'ts')
-        last = self.safe_string(ticker, 'close')
+        market = self.market(symbol)
+        timestamp = self.safe_integer_2(ticker, 'ts', 'lastTime')
+        baseCurrencyVolume = 'amount' if market['swap'] else 'volume'
+        quoteCurrencyVolume = 'volume' if market['swap'] else 'quoteVolume'
+        lastPrice = 'lastPrice' if market['swap'] else 'close'
         return self.safe_ticker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -677,14 +784,14 @@ class bkex(Exchange):
             'askVolume': None,
             'vwap': None,
             'open': self.safe_string(ticker, 'open'),
-            'close': last,
-            'last': last,
+            'close': self.safe_string(ticker, 'close'),
+            'last': self.safe_string(ticker, lastPrice),
             'previousClose': None,
             'change': None,
             'percentage': self.safe_string(ticker, 'change'),  # 24h percentage change(close - open) / open * 100
             'average': None,
-            'baseVolume': self.safe_string(ticker, 'volume'),
-            'quoteVolume': self.safe_string(ticker, 'quoteVolume'),
+            'baseVolume': self.safe_string(ticker, baseCurrencyVolume),
+            'quoteVolume': self.safe_string(ticker, quoteCurrencyVolume),
             'info': ticker,
         }, market)
 
@@ -756,6 +863,8 @@ class bkex(Exchange):
     async def fetch_trades(self, symbol, since=None, limit=None, params={}):
         """
         get the list of most recent trades for a particular symbol
+        see https://bkexapi.github.io/docs/api_en.htm?shell#quotationData-5
+        see https://bkexapi.github.io/docs/api_en.htm?shell#contract-trades-history
         :param str symbol: unified symbol of the market to fetch trades for
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
@@ -764,43 +873,65 @@ class bkex(Exchange):
         """
         await self.load_markets()
         market = self.market(symbol)
+        swap = market['swap']
         request = {
             'symbol': market['id'],
         }
-        if limit is not None:
-            request['size'] = min(limit, 50)
-        response = await self.publicSpotGetQDeals(self.extend(request, params))
+        method = 'publicSpotGetQDeals'
+        if swap:
+            method = 'publicSwapGetMarketDeals'
+        else:
+            if limit is not None:
+                request['size'] = min(limit, 50)
+        response = await getattr(self, method)(self.extend(request, params))
         #
-        # {
-        #     "code": "0",
-        #     "data": [
-        #       {
-        #         "direction": "S",
-        #         "price": "43930.63",
-        #         "symbol": "BTC_USDT",
-        #         "ts": "1646224171992",
-        #         "volume": 0.030653
-        #       },  # first item is most recent
-        #     ],
-        #     "msg": "success",
-        #     "status": 0
-        # }
+        # spot
+        #
+        #     {
+        #         "code": "0",
+        #         "data": [
+        #             {
+        #                 "direction": "S",
+        #                 "price": "43930.63",
+        #                 "symbol": "BTC_USDT",
+        #                 "ts": "1646224171992",
+        #                 "volume": 0.030653
+        #             },  # first item is most recent
+        #         ],
+        #         "msg": "success",
+        #         "status": 0
+        #     }
+        #
+        # swap
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "success",
+        #         "data": [
+        #             {
+        #                 "symbol": "btc_usdt",
+        #                 "amount": "0.06",
+        #                 "price": "17134.66",
+        #                 "side": "sell",
+        #                 "time": 1670651851646
+        #             },
+        #         ]
+        #     }
         #
         trades = self.safe_value(response, 'data')
         return self.parse_trades(trades, market, since, limit)
 
     def parse_trade(self, trade, market=None):
-        timestamp = self.safe_integer(trade, 'ts')
+        timestamp = self.safe_integer_2(trade, 'ts', 'time')
         marketId = self.safe_string(trade, 'symbol')
         market = self.safe_market(marketId, market)
-        side = self.parse_trade_side(self.safe_string(trade, 'direction'))
-        amount = self.safe_number(trade, 'volume')
+        side = self.parse_trade_side(self.safe_string_2(trade, 'direction', 'side'))
+        amount = self.safe_number_2(trade, 'volume', 'amount')
         price = self.safe_number(trade, 'price')
         type = None
-        takerOrMaker = 'taker'
         id = self.safe_string(trade, 'tid')
         if id is None:
-            id = self.synthetic_trade_id(market, timestamp, side, amount, price, type, takerOrMaker)
+            id = self.synthetic_trade_id(market, timestamp, side, amount, price, type)
         return self.safe_trade({
             'id': id,
             'timestamp': timestamp,
@@ -809,7 +940,7 @@ class bkex(Exchange):
             'order': None,
             'type': type,
             'side': side,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': None,
             'price': price,
             'amount': amount,
             'cost': None,
@@ -821,6 +952,8 @@ class bkex(Exchange):
         sides = {
             'B': 'buy',
             'S': 'sell',
+            'buy': 'buy',
+            'sell': 'sell',
         }
         return self.safe_string(sides, side, side)
 
@@ -1540,6 +1673,54 @@ class bkex(Exchange):
         result = self.deposit_withdraw_fee(fee)
         result['withdraw']['fee'] = self.safe_number(fee, 'withdrawFee')
         return result
+
+    async def fetch_funding_rate_history(self, symbol=None, since=None, limit=None, params={}):
+        """
+        see https://bkexapi.github.io/docs/api_en.htm?shell#contract-fundingRate
+        fetches historical funding rate prices
+        :param str|None symbol: unified symbol of the market to fetch the funding rate history for
+        :param int|None since: timestamp in ms of the earliest funding rate to fetch
+        :param int|None limit: the maximum amount of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>` to fetch
+        :param dict params: extra parameters specific to the bkex api endpoint
+        :returns [dict]: a list of `funding rate structures <https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure>`
+        """
+        if symbol is None:
+            raise ArgumentsRequired(self.id + ' fetchFundingRateHistory() requires a symbol argument')
+        await self.load_markets()
+        market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.publicSwapGetMarketFundingRate(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "success",
+        #         "data": [
+        #             {
+        #                 "symbol": "btc_usdt",
+        #                 "rate": "-0.00008654",
+        #                 "time": 1670658302128
+        #             },
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        rates = []
+        for i in range(0, len(data)):
+            entry = data[i]
+            marketId = self.safe_string(entry, 'symbol')
+            symbol = self.safe_symbol(marketId)
+            timestamp = self.safe_integer(entry, 'time')
+            rates.append({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': self.safe_number(entry, 'rate'),
+                'timestamp': timestamp,
+                'datetime': self.iso8601(timestamp),
+            })
+        sorted = self.sort_by(rates, 'timestamp')
+        return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         signed = api[0] == 'private'

@@ -1,6 +1,6 @@
 {
   "name": "ccxt",
-  "version": "2.2.91",
+  "version": "2.2.103",
   "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for 130+ exchanges",
   "main": "./ccxt.js",
   "unpkg": "dist/ccxt.browser.js",
@@ -90,6 +90,7 @@
     "eslint": "^8.8.0",
     "eslint-config-airbnb-base": "15.0.0",
     "eslint-plugin-import": "2.25.4",
+    "https-proxy-agent": "^5.0.1",
     "ololog": "1.1.155"
   },
   "author": {

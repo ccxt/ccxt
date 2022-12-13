@@ -53,7 +53,7 @@ module.exports = class bkex extends Exchange {
                 'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': undefined,
                 'fetchFundingRate': undefined,
-                'fetchFundingRateHistory': undefined,
+                'fetchFundingRateHistory': true,
                 'fetchFundingRates': undefined,
                 'fetchIndexOHLCV': undefined,
                 'fetchL2OrderBook': undefined,
@@ -277,12 +277,12 @@ module.exports = class bkex extends Exchange {
          * @param {object} params extra parameters specific to the exchange api endpoint
          * @returns {[object]} an array of objects representing market data
          */
-        const promises = [
+        let promises = [
             this.publicSpotGetCommonSymbols (params),
             this.publicSwapGetMarketSymbols (params),
         ];
-        const resolved = await Promise.all (promises);
-        const spotMarkets = resolved[0];
+        promises = await Promise.all (promises);
+        const spotMarkets = promises[0];
         //
         //     {
         //         "code": "0",
@@ -300,7 +300,7 @@ module.exports = class bkex extends Exchange {
         //         "status": 0
         //     }
         //
-        const swapMarkets = resolved[1];
+        const swapMarkets = promises[1];
         //
         //     {
         //         "code": 0,
@@ -614,6 +614,8 @@ module.exports = class bkex extends Exchange {
          * @method
          * @name bkex#fetchTicker
          * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @see https://bkexapi.github.io/docs/api_en.htm?shell#quotationData-2
+         * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-ticker-data
          * @param {string} symbol unified symbol of the market to fetch the ticker for
          * @param {object} params extra parameters specific to the bkex api endpoint
          * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
@@ -623,28 +625,54 @@ module.exports = class bkex extends Exchange {
         const request = {
             'symbol': market['id'],
         };
-        const response = await this.publicSpotGetQTickers (this.extend (request, params));
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTicker', market, params);
+        const method = (marketType === 'swap') ? 'publicSwapGetMarketTickers' : 'publicSpotGetQTickers';
+        const response = await this[method] (this.extend (request, query));
         //
-        // {
-        //     "code": "0",
-        //     "data": [
-        //       {
-        //         "change": "6.52",
-        //         "close": "43573.470000",
-        //         "high": "44940.540000",
-        //         "low": "40799.840000",
-        //         "open": "40905.780000",
-        //         "quoteVolume": "225621691.5991",
-        //         "symbol": "BTC_USDT",
-        //         "ts": "1646156490781",
-        //         "volume": 5210.349
-        //       }
-        //     ],
-        //     "msg": "success",
-        //     "status": 0
-        // }
+        // spot
         //
-        const tickers = this.safeValue (response, 'data');
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "change": "6.52",
+        //                 "close": "43573.470000",
+        //                 "high": "44940.540000",
+        //                 "low": "40799.840000",
+        //                 "open": "40905.780000",
+        //                 "quoteVolume": "225621691.5991",
+        //                 "symbol": "BTC_USDT",
+        //                 "ts": "1646156490781",
+        //                 "volume": 5210.349
+        //             }
+        //         ],
+        //         "msg": "success",
+        //         "status": 0
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "success",
+        //         "data": [
+        //             {
+        //                 "symbol": "btc_usdt",
+        //                 "amount": "171035.45",
+        //                 "volume": "2934757466.3859",
+        //                 "open": "17111.43",
+        //                 "close": "17135.74",
+        //                 "high": "17225.99",
+        //                 "low": "17105.77",
+        //                 "lastPrice": "17135.74",
+        //                 "lastAmount": "1.05",
+        //                 "lastTime": 1670709364912,
+        //                 "change": "0.14"
+        //             }
+        //         ]
+        //     }
+        //
+        const tickers = this.safeValue (response, 'data', []);
         const ticker = this.safeValue (tickers, 0);
         return this.parseTicker (ticker, market);
     }
@@ -654,6 +682,8 @@ module.exports = class bkex extends Exchange {
          * @method
          * @name bkex#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://bkexapi.github.io/docs/api_en.htm?shell#quotationData-2
+         * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-ticker-data
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the bkex api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
@@ -662,19 +692,80 @@ module.exports = class bkex extends Exchange {
         const request = {};
         if (symbols !== undefined) {
             if (!Array.isArray (symbols)) {
-                throw new BadRequest (this.id + ' fetchTickers () symbols argument should be an array');
+                throw new BadRequest (this.id + ' fetchTickers() symbols argument should be an array');
             }
         }
+        let market = undefined;
         if (symbols !== undefined) {
             const marketIds = this.marketIds (symbols);
-            request['symbol'] = marketIds.join (',');
+            const symbol = this.safeString (symbols, 0);
+            market = this.market (symbol);
+            if (market['swap']) {
+                if (Array.isArray (symbols)) {
+                    const symbolsLength = symbols.length;
+                    if (symbolsLength > 1) {
+                        throw new BadRequest (this.id + ' fetchTickers() symbols argument cannot contain more than 1 symbol for swap markets');
+                    }
+                }
+                request['symbol'] = market['id'];
+            } else {
+                request['symbol'] = marketIds.join (',');
+            }
         }
-        const response = await this.publicSpotGetQTickers (this.extend (request, params));
-        const tickers = this.safeValue (response, 'data');
-        return this.parseTickers (tickers, symbols, params);
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        const method = (marketType === 'swap') ? 'publicSwapGetMarketTickers' : 'publicSpotGetQTickers';
+        const response = await this[method] (this.extend (request, query));
+        //
+        // spot
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "change": "6.52",
+        //                 "close": "43573.470000",
+        //                 "high": "44940.540000",
+        //                 "low": "40799.840000",
+        //                 "open": "40905.780000",
+        //                 "quoteVolume": "225621691.5991",
+        //                 "symbol": "BTC_USDT",
+        //                 "ts": "1646156490781",
+        //                 "volume": 5210.349
+        //             }
+        //         ],
+        //         "msg": "success",
+        //         "status": 0
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "success",
+        //         "data": [
+        //             {
+        //                 "symbol": "btc_usdt",
+        //                 "amount": "171035.45",
+        //                 "volume": "2934757466.3859",
+        //                 "open": "17111.43",
+        //                 "close": "17135.74",
+        //                 "high": "17225.99",
+        //                 "low": "17105.77",
+        //                 "lastPrice": "17135.74",
+        //                 "lastAmount": "1.05",
+        //                 "lastTime": 1670709364912,
+        //                 "change": "0.14"
+        //             }
+        //         ]
+        //     }
+        //
+        const tickers = this.safeValue (response, 'data', []);
+        return this.parseTickers (tickers, symbols, query);
     }
 
     parseTicker (ticker, market = undefined) {
+        //
+        // spot
         //
         //    {
         //          "change":-0.46,
@@ -688,10 +779,29 @@ module.exports = class bkex extends Exchange {
         //          "volume":23684.9416
         //    }
         //
+        // swap
+        //
+        //     {
+        //         "symbol": "btc_usdt",
+        //         "amount": "171035.45",
+        //         "volume": "2934757466.3859",
+        //         "open": "17111.43",
+        //         "close": "17135.74",
+        //         "high": "17225.99",
+        //         "low": "17105.77",
+        //         "lastPrice": "17135.74",
+        //         "lastAmount": "1.05",
+        //         "lastTime": 1670709364912,
+        //         "change": "0.14"
+        //     }
+        //
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const timestamp = this.safeInteger (ticker, 'ts');
-        const last = this.safeString (ticker, 'close');
+        market = this.market (symbol);
+        const timestamp = this.safeInteger2 (ticker, 'ts', 'lastTime');
+        const baseCurrencyVolume = market['swap'] ? 'amount' : 'volume';
+        const quoteCurrencyVolume = market['swap'] ? 'volume' : 'quoteVolume';
+        const lastPrice = market['swap'] ? 'lastPrice' : 'close';
         return this.safeTicker ({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -704,14 +814,14 @@ module.exports = class bkex extends Exchange {
             'askVolume': undefined,
             'vwap': undefined,
             'open': this.safeString (ticker, 'open'),
-            'close': last,
-            'last': last,
+            'close': this.safeString (ticker, 'close'),
+            'last': this.safeString (ticker, lastPrice),
             'previousClose': undefined,
             'change': undefined,
             'percentage': this.safeString (ticker, 'change'), // 24h percentage change (close - open) / open * 100
             'average': undefined,
-            'baseVolume': this.safeString (ticker, 'volume'),
-            'quoteVolume': this.safeString (ticker, 'quoteVolume'),
+            'baseVolume': this.safeString (ticker, baseCurrencyVolume),
+            'quoteVolume': this.safeString (ticker, quoteCurrencyVolume),
             'info': ticker,
         }, market);
     }
@@ -791,6 +901,8 @@ module.exports = class bkex extends Exchange {
          * @method
          * @name bkex#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://bkexapi.github.io/docs/api_en.htm?shell#quotationData-5
+         * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-trades-history
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
@@ -799,45 +911,68 @@ module.exports = class bkex extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        const swap = market['swap'];
         const request = {
             'symbol': market['id'],
         };
-        if (limit !== undefined) {
-            request['size'] = Math.min (limit, 50);
+        let method = 'publicSpotGetQDeals';
+        if (swap) {
+            method = 'publicSwapGetMarketDeals';
+        } else {
+            if (limit !== undefined) {
+                request['size'] = Math.min (limit, 50);
+            }
         }
-        const response = await this.publicSpotGetQDeals (this.extend (request, params));
+        const response = await this[method] (this.extend (request, params));
         //
-        // {
-        //     "code": "0",
-        //     "data": [
-        //       {
-        //         "direction": "S",
-        //         "price": "43930.63",
-        //         "symbol": "BTC_USDT",
-        //         "ts": "1646224171992",
-        //         "volume": 0.030653
-        //       }, // first item is most recent
-        //     ],
-        //     "msg": "success",
-        //     "status": 0
-        // }
+        // spot
+        //
+        //     {
+        //         "code": "0",
+        //         "data": [
+        //             {
+        //                 "direction": "S",
+        //                 "price": "43930.63",
+        //                 "symbol": "BTC_USDT",
+        //                 "ts": "1646224171992",
+        //                 "volume": 0.030653
+        //             }, // first item is most recent
+        //         ],
+        //         "msg": "success",
+        //         "status": 0
+        //     }
+        //
+        // swap
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "success",
+        //         "data": [
+        //             {
+        //                 "symbol": "btc_usdt",
+        //                 "amount": "0.06",
+        //                 "price": "17134.66",
+        //                 "side": "sell",
+        //                 "time": 1670651851646
+        //             },
+        //         ]
+        //     }
         //
         const trades = this.safeValue (response, 'data');
         return this.parseTrades (trades, market, since, limit);
     }
 
     parseTrade (trade, market = undefined) {
-        const timestamp = this.safeInteger (trade, 'ts');
+        const timestamp = this.safeInteger2 (trade, 'ts', 'time');
         const marketId = this.safeString (trade, 'symbol');
         market = this.safeMarket (marketId, market);
-        const side = this.parseTradeSide (this.safeString (trade, 'direction'));
-        const amount = this.safeNumber (trade, 'volume');
+        const side = this.parseTradeSide (this.safeString2 (trade, 'direction', 'side'));
+        const amount = this.safeNumber2 (trade, 'volume', 'amount');
         const price = this.safeNumber (trade, 'price');
         const type = undefined;
-        const takerOrMaker = 'taker';
         let id = this.safeString (trade, 'tid');
         if (id === undefined) {
-            id = this.syntheticTradeId (market, timestamp, side, amount, price, type, takerOrMaker);
+            id = this.syntheticTradeId (market, timestamp, side, amount, price, type);
         }
         return this.safeTrade ({
             'id': id,
@@ -847,7 +982,7 @@ module.exports = class bkex extends Exchange {
             'order': undefined,
             'type': type,
             'side': side,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': undefined,
             'price': price,
             'amount': amount,
             'cost': undefined,
@@ -860,6 +995,8 @@ module.exports = class bkex extends Exchange {
         const sides = {
             'B': 'buy',
             'S': 'sell',
+            'buy': 'buy',
+            'sell': 'sell',
         };
         return this.safeString (sides, side, side);
     }
@@ -1652,6 +1789,59 @@ module.exports = class bkex extends Exchange {
         const result = this.depositWithdrawFee (fee);
         result['withdraw']['fee'] = this.safeNumber (fee, 'withdrawFee');
         return result;
+    }
+
+    async fetchFundingRateHistory (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name bkex#fetchFundingRateHistory
+         * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-fundingRate
+         * @description fetches historical funding rate prices
+         * @param {string|undefined} symbol unified symbol of the market to fetch the funding rate history for
+         * @param {int|undefined} since timestamp in ms of the earliest funding rate to fetch
+         * @param {int|undefined} limit the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure} to fetch
+         * @param {object} params extra parameters specific to the bkex api endpoint
+         * @returns {[object]} a list of [funding rate structures]{@link https://docs.ccxt.com/en/latest/manual.html?#funding-rate-history-structure}
+         */
+        if (symbol === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchFundingRateHistory() requires a symbol argument');
+        }
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicSwapGetMarketFundingRate (this.extend (request, params));
+        //
+        //     {
+        //         "code": 0,
+        //         "msg": "success",
+        //         "data": [
+        //             {
+        //                 "symbol": "btc_usdt",
+        //                 "rate": "-0.00008654",
+        //                 "time": 1670658302128
+        //             },
+        //         ]
+        //     }
+        //
+        const data = this.safeValue (response, 'data', []);
+        const rates = [];
+        for (let i = 0; i < data.length; i++) {
+            const entry = data[i];
+            const marketId = this.safeString (entry, 'symbol');
+            const symbol = this.safeSymbol (marketId);
+            const timestamp = this.safeInteger (entry, 'time');
+            rates.push ({
+                'info': entry,
+                'symbol': symbol,
+                'fundingRate': this.safeNumber (entry, 'rate'),
+                'timestamp': timestamp,
+                'datetime': this.iso8601 (timestamp),
+            });
+        }
+        const sorted = this.sortBy (rates, 'timestamp');
+        return this.filterBySymbolSinceLimit (sorted, market['symbol'], since, limit);
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {

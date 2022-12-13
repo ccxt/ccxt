@@ -5070,7 +5070,7 @@ class huobi extends Exchange {
             }
             list($networkCode, $paramsOmited) = $this->handle_network_code_and_params($params);
             if ($networkCode !== null) {
-                $request['chain'] = $this->networkPairIdFromCode ($code, $networkCode);
+                $request['chain'] = $this->network_code_to_id($code, $networkCode);
             }
             $response = Async\await($this->spotPrivatePostV1DwWithdrawApiCreate (array_merge($request, $paramsOmited)));
             //
