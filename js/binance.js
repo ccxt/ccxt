@@ -37,6 +37,7 @@ module.exports = class binance extends Exchange {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': false,
                 'createStopOrder': true,
+                'editOrder': true,
                 'fetchAccounts': undefined,
                 'fetchBalance': true,
                 'fetchBidsAsks': true,
@@ -2895,6 +2896,167 @@ module.exports = class binance extends Exchange {
         return this.parseTrades (response, market, since, limit);
     }
 
+    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#editOrder
+         * @description edit a trade order
+         * @see https://binance-docs.github.io/apidocs/spot/en/#cancel-an-existing-order-and-send-a-new-order-trade
+         * @param {string} id cancel order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of currency you want to trade in units of base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+            'side': side.toUpperCase (),
+            'cancelOrderId': id,
+            'cancelReplaceMode': 'STOP_ON_FAILURE',
+            // STOP_ON_FAILURE - If the cancel request fails, the new order placement will not be attempted.
+            // ALLOW_FAILURE - new order placement will be attempted even if cancel request fails.
+        };
+        const clientOrderId = this.safeString2 (params, 'newClientOrderId', 'clientOrderId');
+        const postOnly = this.safeValue (params, 'postOnly', false);
+        if (postOnly) {
+            type = 'LIMIT_MAKER';
+        }
+        const initialUppercaseType = type.toUpperCase ();
+        let uppercaseType = initialUppercaseType;
+        request['type'] = uppercaseType;
+        const stopPrice = this.safeNumber (params, 'stopPrice');
+        if (stopPrice !== undefined) {
+            if (uppercaseType === 'MARKET') {
+                uppercaseType = 'STOP_LOSS';
+            } else if (uppercaseType === 'LIMIT') {
+                uppercaseType = 'STOP_LOSS_LIMIT';
+            }
+        }
+        const validOrderTypes = this.safeValue (market['info'], 'orderTypes');
+        if (!this.inArray (uppercaseType, validOrderTypes)) {
+            if (initialUppercaseType !== uppercaseType) {
+                throw new InvalidOrder (this.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders');
+            } else {
+                throw new InvalidOrder (this.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market');
+            }
+        }
+        if (clientOrderId === undefined) {
+            const broker = this.safeValue (this.options, 'broker');
+            if (broker !== undefined) {
+                const brokerId = this.safeString (broker, 'spot');
+                if (brokerId !== undefined) {
+                    request['newClientOrderId'] = brokerId + this.uuid22 ();
+                }
+            }
+        } else {
+            request['newClientOrderId'] = clientOrderId;
+        }
+        request['newOrderRespType'] = this.safeValue (this.options['newOrderRespType'], type, 'RESULT'); // 'ACK' for order id, 'RESULT' for full order or 'FULL' for order with fills
+        let timeInForceIsRequired = false;
+        let priceIsRequired = false;
+        let stopPriceIsRequired = false;
+        let quantityIsRequired = false;
+        if (uppercaseType === 'MARKET') {
+            const quoteOrderQty = this.safeValue (this.options, 'quoteOrderQty', true);
+            if (quoteOrderQty) {
+                const quoteOrderQty = this.safeValue2 (params, 'quoteOrderQty', 'cost');
+                const precision = market['precision']['price'];
+                if (quoteOrderQty !== undefined) {
+                    request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQty, TRUNCATE, precision, this.precisionMode);
+                } else if (price !== undefined) {
+                    const amountString = this.numberToString (amount);
+                    const priceString = this.numberToString (price);
+                    const quoteOrderQuantity = Precise.stringMul (amountString, priceString);
+                    request['quoteOrderQty'] = this.decimalToPrecision (quoteOrderQuantity, TRUNCATE, precision, this.precisionMode);
+                } else {
+                    quantityIsRequired = true;
+                }
+            } else {
+                quantityIsRequired = true;
+            }
+        } else if (uppercaseType === 'LIMIT') {
+            priceIsRequired = true;
+            timeInForceIsRequired = true;
+            quantityIsRequired = true;
+        } else if ((uppercaseType === 'STOP_LOSS') || (uppercaseType === 'TAKE_PROFIT')) {
+            stopPriceIsRequired = true;
+            quantityIsRequired = true;
+        } else if ((uppercaseType === 'STOP_LOSS_LIMIT') || (uppercaseType === 'TAKE_PROFIT_LIMIT')) {
+            quantityIsRequired = true;
+            stopPriceIsRequired = true;
+            priceIsRequired = true;
+            timeInForceIsRequired = true;
+        } else if (uppercaseType === 'LIMIT_MAKER') {
+            priceIsRequired = true;
+            quantityIsRequired = true;
+        }
+        if (quantityIsRequired) {
+            request['quantity'] = this.amountToPrecision (symbol, amount);
+        }
+        if (priceIsRequired) {
+            if (price === undefined) {
+                throw new InvalidOrder (this.id + ' editOrder() requires a price argument for a ' + type + ' order');
+            }
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        if (timeInForceIsRequired) {
+            request['timeInForce'] = this.options['defaultTimeInForce']; // 'GTC' = Good To Cancel (default), 'IOC' = Immediate Or Cancel
+        }
+        if (stopPriceIsRequired) {
+            if (stopPrice === undefined) {
+                throw new InvalidOrder (this.id + ' editOrder() requires a stopPrice extra param for a ' + type + ' order');
+            } else {
+                request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
+            }
+        }
+        const requestParams = this.omit (params, [ 'quoteOrderQty', 'cost', 'stopPrice', 'newClientOrderId', 'clientOrderId', 'postOnly' ]);
+        const response = await this.privatePostOrderCancelReplace (this.extend (request, requestParams));
+        //
+        //     {
+        //         "cancelResult": "SUCCESS",
+        //         "newOrderResult": "SUCCESS",
+        //         "cancelResponse": {
+        //             "symbol": "BTCUSDT",
+        //             "origClientOrderId": "web_3f6286480b194b079870ac75fb6978b7",
+        //             "orderId": 16383156620,
+        //             "orderListId": -1,
+        //             "clientOrderId": "Azt6foVTTgHPNhqBf41TTt",
+        //             "price": "14000.00000000",
+        //             "origQty": "0.00110000",
+        //             "executedQty": "0.00000000",
+        //             "cummulativeQuoteQty": "0.00000000",
+        //             "status": "CANCELED",
+        //             "timeInForce": "GTC",
+        //             "type": "LIMIT",
+        //             "side": "BUY"
+        //         },
+        //         "newOrderResponse": {
+        //             "symbol": "BTCUSDT",
+        //             "orderId": 16383176297,
+        //             "orderListId": -1,
+        //             "clientOrderId": "x-R4BD3S8222ecb58eb9074fb1be018c",
+        //             "transactTime": 1670891847932,
+        //             "price": "13500.00000000",
+        //             "origQty": "0.00085000",
+        //             "executedQty": "0.00000000",
+        //             "cummulativeQuoteQty": "0.00000000",
+        //             "status": "NEW",
+        //             "timeInForce": "GTC",
+        //             "type": "LIMIT",
+        //             "side": "BUY",
+        //             "fills": []
+        //         }
+        //     }
+        //
+        const data = this.safeValue (response, 'newOrderResponse');
+        return this.parseOrder (data, market);
+    }
+
     parseOrderStatus (status) {
         const statuses = {
             'NEW': 'open',
@@ -2929,6 +3091,25 @@ module.exports = class binance extends Exchange {
         //         "time": 1499827319559,
         //         "updateTime": 1499827319559,
         //         "isWorking": true
+        //     }
+        //
+        // spot: editOrder
+        //
+        //     {
+        //         "symbol": "BTCUSDT",
+        //         "orderId": 16383176297,
+        //         "orderListId": -1,
+        //         "clientOrderId": "x-R4BD3S8222ecb58eb9074fb1be018c",
+        //         "transactTime": 1670891847932,
+        //         "price": "13500.00000000",
+        //         "origQty": "0.00085000",
+        //         "executedQty": "0.00000000",
+        //         "cummulativeQuoteQty": "0.00000000",
+        //         "status": "NEW",
+        //         "timeInForce": "GTC",
+        //         "type": "LIMIT",
+        //         "side": "BUY",
+        //         "fills": []
         //     }
         //
         // futures
@@ -3011,7 +3192,11 @@ module.exports = class binance extends Exchange {
         let lastTradeTimestamp = undefined;
         if ('time' in order) {
             timestamp = this.safeInteger (order, 'time');
+        } else if ('workingTime' in order) {
+            lastTradeTimestamp = this.safeInteger (order, 'transactTime');
+            timestamp = this.safeInteger (order, 'workingTime');
         } else if ('transactTime' in order) {
+            lastTradeTimestamp = this.safeInteger (order, 'transactTime');
             timestamp = this.safeInteger (order, 'transactTime');
         } else if ('updateTime' in order) {
             if (status === 'open') {
