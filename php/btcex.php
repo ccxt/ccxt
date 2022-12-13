@@ -6,14 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\AuthenticationError;
-use \ccxt\ArgumentsRequired;
 
 class btcex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'btcex',
             'name' => 'BTCEX',
             'countries' => array( 'CA' ), // Canada
@@ -89,17 +86,19 @@ class btcex extends Exchange {
                 'withdraw' => false,
             ),
             'timeframes' => array(
-                '15s' => '15',
-                '1m' => '60',
-                '5m' => '300',
-                '15m' => '900',
-                '1h' => '3600',
-                '4h' => '14400',
-                '1d' => '86400',
-                '3d' => '259200',
-                '1w' => '604800',
-                '2w' => '1209600',
-                '1M' => '2592000',
+                '1m' => '1',
+                '3m' => '3',
+                '5m' => '5',
+                '15m' => '15',
+                '1h' => '60',
+                '2h' => '120',
+                '3h' => '180',
+                '4h' => '240',
+                '6h' => '360',
+                '12h' => '720',
+                '1d' => '1D',
+                '3d' => '3D',
+                '1M' => '30D',
             ),
             'api' => array(
                 'public' => array(
@@ -1148,9 +1147,6 @@ class btcex extends Exchange {
         $type = $this->safe_string($order, 'order_type');
         // injected in createOrder
         $trades = $this->safe_value($order, 'trades');
-        if ($trades !== null) {
-            $trades = $this->parse_trades($trades, $market);
-        }
         $timeInForce = $this->parse_time_in_force($this->safe_string($order, 'time_in_force'));
         $stopPrice = $this->safe_value($order, 'trigger_price');
         $postOnly = $this->safe_value($order, 'post_only');
@@ -1575,6 +1571,7 @@ class btcex extends Exchange {
         $marginType = $this->safe_string($position, 'margin_type');
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => null,
             'datetime' => null,

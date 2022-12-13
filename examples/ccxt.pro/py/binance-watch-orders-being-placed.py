@@ -1,5 +1,5 @@
 # Python
-import ccxtpro
+import ccxt.pro
 from asyncio import run, gather
 from pprint import pprint
 
@@ -40,7 +40,7 @@ async def watch_balance_loop(exchange):
 
 
 async def main():
-    exchange = ccxtpro.binanceusdm({
+    exchange = ccxt.pro.binanceusdm({
         'apiKey': 'YOUR_API_KEY',
         'secret': 'YOUR_SECRET',
     })

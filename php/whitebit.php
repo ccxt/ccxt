@@ -6,16 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\NotSupported;
-use \ccxt\DDoSProtection;
 
 class whitebit extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'whitebit',
             'name' => 'WhiteBit',
             'version' => 'v2',
@@ -298,9 +293,10 @@ class whitebit extends Exchange {
         //         ...
         //     )
         //
-        $marginMarkets = $promises[0];
+        $marginMarketsResponse = $promises[0];
         $response = $promises[1];
         $markets = $this->safe_value($response, 'result', array());
+        $marginMarkets = $this->safe_value($marginMarketsResponse, 'result', array());
         $result = array();
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
@@ -679,7 +675,7 @@ class whitebit extends Exchange {
         //          )
         //      }
         //
-        $timestamp = $this->safe_integer($response, 'timestamp');
+        $timestamp = $this->parse_number(Precise::string_mul($this->safe_string($response, 'timestamp'), '1000'));
         return $this->parse_order_book($response, $symbol, $timestamp);
     }
 
@@ -832,7 +828,7 @@ class whitebit extends Exchange {
         $orderId = $this->safe_string_2($trade, 'dealOrderId', 'orderId');
         $cost = $this->safe_string($trade, 'deal');
         $price = $this->safe_string($trade, 'price');
-        $amount = $this->safe_string_2($trade, 'amount', 'base_volume');
+        $amount = $this->safe_string_2($trade, 'amount', 'quote_volume');
         $id = $this->safe_string_2($trade, 'id', 'tradeID');
         $side = $this->safe_string_2($trade, 'type', 'side');
         $symbol = $market['symbol'];
@@ -997,7 +993,7 @@ class whitebit extends Exchange {
         $postOnly = $this->is_post_only($isMarketOrder, false, $params);
         list($marginMode, $query) = $this->handle_margin_mode_and_params('createOrder', $params);
         if ($postOnly) {
-            throw new NotSupported($this->id . ' createOrder() does not support $postOnly orders.');
+            $request['postOnly'] = true;
         }
         $method = null;
         if ($isStopOrder) {

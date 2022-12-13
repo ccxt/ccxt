@@ -14,7 +14,7 @@ module.exports = class wavesexchange extends Exchange {
             'id': 'wavesexchange',
             'name': 'Waves.Exchange',
             'countries': [ 'CH' ], // Switzerland
-            'certified': true,
+            'certified': false,
             'pro': false,
             'has': {
                 'CORS': undefined,
@@ -62,6 +62,7 @@ module.exports = class wavesexchange extends Exchange {
                 'fetchPositionsRisk': false,
                 'fetchPremiumIndexOHLCV': false,
                 'fetchTicker': true,
+                'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTransfer': false,
                 'fetchTransfers': false,
@@ -341,6 +342,7 @@ module.exports = class wavesexchange extends Exchange {
                 '106957828': AuthenticationError,
                 '106960131': AuthenticationError,
                 '106981137': AuthenticationError,
+                '9437184': BadRequest, // {"error":9437184,"message":"The order is invalid: SpendAmount should be > 0","template":"The order is invalid: {{details}}","params":{"details":"SpendAmount should be > 0"},"status":"OrderRejected","success":false}
                 '9437193': OrderNotFound,
                 '1048577': BadRequest,
                 '1051904': AuthenticationError,
@@ -1093,7 +1095,8 @@ module.exports = class wavesexchange extends Exchange {
                 const address = this.safeString (response, 'address');
                 return {
                     'address': address,
-                    'code': code,
+                    'code': code, // kept here for backward-compatibility, but will be removed soon
+                    'currency': code,
                     'network': network,
                     'tag': undefined,
                     'info': response,
@@ -1137,7 +1140,8 @@ module.exports = class wavesexchange extends Exchange {
         const address = this.safeString (addresses, 0);
         return {
             'address': address,
-            'code': code,
+            'code': code, // kept here for backward-compatibility, but will be removed soon
+            'currency': code,
             'tag': undefined,
             'network': unifiedNetwork,
             'info': response,

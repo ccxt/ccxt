@@ -147,7 +147,7 @@ class zb(Exchange):
                 'doc': 'https://www.zb.com/i/developer',
                 'fees': 'https://www.zb.com/i/rate',
                 'referral': {
-                    'url': 'https://www.zbex.club/en/register?ref=4301lera',
+                    'url': 'https://www.zb.com/en/register?ref=4301lera',
                     'discount': 0.16,
                 },
             },
@@ -941,24 +941,23 @@ class zb(Exchange):
         """
         query for balance and get the amount of funds available for trading or funds locked in orders
         :param dict params: extra parameters specific to the zb api endpoint
+        :param str params['marginMode']: 'cross' or 'isolated'
         :returns dict: a `balance structure <https://docs.ccxt.com/en/latest/manual.html?#balance-structure>`
         """
         self.load_markets()
-        marketType, query = self.handle_market_type_and_params('fetchBalance', None, params)
-        margin = (marketType == 'margin')
+        marketType, marketTypeQuery = self.handle_market_type_and_params('fetchBalance', None, params)
+        marginMode, query = self.handle_margin_mode_and_params('fetchBalance', marketTypeQuery)
         swap = (marketType == 'swap')
-        marginMethod = None
-        defaultMargin = 'isolated' if margin else 'cross'
-        marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', defaultMargin)
-        if marginMode == 'isolated':
-            marginMethod = 'spotV1PrivateGetGetLeverAssetsInfo'
-        elif marginMode == 'cross':
-            marginMethod = 'spotV1PrivateGetGetCrossAssets'
+        marginMethod = 'spotV1PrivateGetGetCrossAssets' if (marginMode == 'cross') else 'spotV1PrivateGetGetLeverAssetsInfo'
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotV1PrivateGetGetAccountInfo',
             'swap': 'contractV2PrivateGetFundBalance',
             'margin': marginMethod,
         })
+        if marginMode == 'isolated':
+            method = 'spotV1PrivateGetGetLeverAssetsInfo'
+        elif marginMode == 'cross':
+            method = 'spotV1PrivateGetGetCrossAssets'
         request = {
             # 'futuresAccountType': 1,  # SWAP
             # 'currencyId': currency['id'],  # SWAP
@@ -1124,7 +1123,7 @@ class zb(Exchange):
         # permissions = response['result']['base']
         if swap:
             return self.parse_swap_balance(response)
-        elif margin:
+        elif marginMode is not None:
             return self.parse_margin_balance(response, marginMode)
         else:
             return self.parse_balance(response)
@@ -1750,10 +1749,12 @@ class zb(Exchange):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float|None price: the price at which the order is to be fullfilled, in units of the quote currency, ignored in market orders
         :param dict params: extra parameters specific to the zb api endpoint
+        :param str params['marginMode']: 'cross' or 'isolated'
         :returns dict: an `order structure <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
         """
         self.load_markets()
         market = self.market(symbol)
+        marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
         swap = market['swap']
         spot = market['spot']
         timeInForce = self.safe_string(params, 'timeInForce')
@@ -1773,6 +1774,7 @@ class zb(Exchange):
             raise InvalidOrder(self.id + ' createOrder() on ' + market['type'] + ' markets does not allow market orders')
         method = self.get_supported_mapping(market['type'], {
             'spot': 'spotV1PrivateGetOrder',
+            'margin': 'spotV1PrivateGetOrder',
             'swap': 'contractV2PrivatePostTradeOrder',
         })
         request = {
@@ -1797,6 +1799,11 @@ class zb(Exchange):
                 request['orderType'] = 2
             if price is not None:
                 request['price'] = self.price_to_precision(symbol, price)
+            if marginMode is not None:
+                if marginMode == 'isolated':
+                    request['acctType'] = 1
+                elif marginMode == 'cross':
+                    request['acctType'] = 2
         elif swap:
             exchangeSpecificParam = self.safe_integer(params, 'action', type) == 4
             postOnly = self.is_post_only(False, exchangeSpecificParam, params)
@@ -1844,10 +1851,10 @@ class zb(Exchange):
             extendOrderAlgos = self.safe_value(params, 'extend', None)  # OPTIONAL {"orderAlgos":[{"bizType":1,"priceType":1,"triggerPrice":"70000"},{"bizType":2,"priceType":1,"triggerPrice":"40000"}]}
             if extendOrderAlgos is not None:
                 request['extend'] = extendOrderAlgos
-        query = self.omit(params, ['takeProfitPrice', 'stopLossPrice', 'stopPrice', 'reduceOnly', 'orderType', 'triggerPrice', 'priceType', 'clientOrderId', 'extend'])
-        response = getattr(self, method)(self.extend(request, query))
+        params = self.omit(query, ['takeProfitPrice', 'stopLossPrice', 'stopPrice', 'reduceOnly', 'orderType', 'triggerPrice', 'priceType', 'clientOrderId', 'extend'])
+        response = getattr(self, method)(self.extend(request, params))
         #
-        # Spot
+        # Spot and Margin
         #
         #     {
         #         "code": 1000,
@@ -3475,6 +3482,7 @@ class zb(Exchange):
         timestamp = self.safe_number(position, 'createTime')
         return {
             'info': position,
+            'id': None,
             'symbol': symbol,
             'contracts': self.parse_number(contracts),
             'contractSize': None,
@@ -3654,15 +3662,14 @@ class zb(Exchange):
         :param str fromAccount: account to transfer from
         :param str toAccount: account to transfer to
         :param dict params: extra parameters specific to the zb api endpoint
+        :param str params['marginMode']: 'cross' or 'isolated'
         :returns dict: a `transfer structure <https://docs.ccxt.com/en/latest/manual.html#transfer-structure>`
         """
         self.load_markets()
-        marketType, query = self.handle_market_type_and_params('transfer', None, params)
+        marketType, marketTypeQuery = self.handle_market_type_and_params('transfer', None, params)
+        marginMode, query = self.handle_margin_mode_and_params('transfer', marketTypeQuery)
         currency = self.currency(code)
-        margin = (marketType == 'margin')
         swap = (marketType == 'swap')
-        side = None
-        marginMethod = None
         amountToPrecision = self.currency_to_precision(code, amount)
         request = {
             'amount': amountToPrecision,  # Swap, Cross Margin, Isolated Margin
@@ -3672,7 +3679,10 @@ class zb(Exchange):
             # 'side': side,  # Swap, 1：Deposit(zb account -> futures account)，0：Withdrawal(futures account -> zb account)
             # 'marketName': self.safe_string(params, 'marketName'),  # Isolated Margin
         }
+        method = None
+        side = None
         if swap:
+            method = 'contractV2PrivatePostFundTransferFund'
             if fromAccount == 'spot' or toAccount == 'future':
                 side = 1
             else:
@@ -3681,24 +3691,22 @@ class zb(Exchange):
             request['clientId'] = self.safe_string(params, 'clientId')
             request['side'] = side
         else:
-            defaultMargin = 'isolated' if margin else 'cross'
-            marginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', defaultMargin)
-            if marginMode == 'isolated':
+            if (marginMode == 'isolated') or (toAccount == 'isolated') or (fromAccount == 'isolated'):
                 if fromAccount == 'spot' or toAccount == 'isolated':
-                    marginMethod = 'spotV1PrivateGetTransferInLever'
+                    method = 'spotV1PrivateGetTransferInLever'
                 else:
-                    marginMethod = 'spotV1PrivateGetTransferOutLever'
-                request['marketName'] = self.safe_string(params, 'marketName')
-            elif marginMode == 'cross':
+                    method = 'spotV1PrivateGetTransferOutLever'
+                symbol = self.safe_string_2(params, 'marketName', 'symbol')
+                if symbol is None:
+                    raise ArgumentsRequired(self.id + ' transfer() requires a symbol argument for isolated margin')
+                market = self.market(symbol)
+                request['marketName'] = self.safe_symbol(market['id'], market, '_')
+            elif (marginMode == 'cross') or (toAccount == 'cross') or (fromAccount == 'cross'):
                 if fromAccount == 'spot' or toAccount == 'cross':
-                    marginMethod = 'spotV1PrivateGetTransferInCross'
+                    method = 'spotV1PrivateGetTransferInCross'
                 else:
-                    marginMethod = 'spotV1PrivateGetTransferOutCross'
+                    method = 'spotV1PrivateGetTransferOutCross'
             request['coin'] = currency['id']
-        method = self.get_supported_mapping(marketType, {
-            'swap': 'contractV2PrivatePostFundTransferFund',
-            'margin': marginMethod,
-        })
         response = getattr(self, method)(self.extend(request, query))
         #
         # Swap
@@ -3974,6 +3982,7 @@ class zb(Exchange):
         :param str|None symbol: unified market symbol, required for isolated margin
         :param dict params: extra parameters specific to the zb api endpoint
         :param str params['safePwd']: transaction password, extra parameter required for cross margin
+        :param str params['marginMode']: 'cross' or 'isolated'
         :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
         """
         self.load_markets()
@@ -3981,23 +3990,29 @@ class zb(Exchange):
         if symbol is not None:
             market = self.market(symbol)
             symbol = market['symbol']
-        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
-        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)  # cross or isolated
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('borrowMargin', params)
+        if marginMode is None:
+            if symbol is not None:
+                marginMode = 'isolated'  # default to isolated if the symbol is defined
+            else:
+                marginMode = 'cross'  # default to cross
         password = self.safe_string(params, 'safePwd', self.password)
         currency = self.currency(code)
         request = {
             'coin': currency['id'],
             'amount': self.currency_to_precision(code, amount),
+            'safePwd': password,  # transaction password
         }
         method = None
         if marginMode == 'isolated':
             if symbol is None:
                 raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument for isolated margin')
+            market = self.market(symbol)
+            request['marketName'] = self.safe_symbol(market['id'], market, '_')
             method = 'spotV1PrivateGetBorrow'
-            request['marketName'] = market['id']
         elif marginMode == 'cross':
             method = 'spotV1PrivateGetDoCrossLoan'
-            request['safePwd'] = password  # transaction password
         response = getattr(self, method)(self.extend(request, params))
         #
         #     {

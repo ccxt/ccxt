@@ -6,16 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\BadSymbol;
-use \ccxt\InvalidOrder;
 
 class coinex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'coinex',
             'name' => 'CoinEx',
             'version' => 'v1',
@@ -280,10 +275,6 @@ class coinex extends Exchange {
                     'max' => null,
                 ),
             ),
-            'precision' => array(
-                'amount' => $this->parse_number('0.00000001'),
-                'price' => $this->parse_number('0.00000001'),
-            ),
             'options' => array(
                 'createMarketBuyOrderRequiresPrice' => true,
                 'defaultType' => 'spot', // spot, swap, margin
@@ -305,22 +296,22 @@ class coinex extends Exchange {
 
     public function fetch_currencies($params = array ()) {
         $response = $this->publicGetCommonAssetConfig ($params);
-        //
         //     {
         //         $code => 0,
-        //         $data => {
-        //           'CET-CSC' => array(
-        //               asset => 'CET',
-        //               chain => 'CSC',
-        //               withdrawal_precision => 8,
-        //               can_deposit => true,
-        //               can_withdraw => true,
-        //               deposit_least_amount => '0.026',
-        //               withdraw_least_amount => '20',
-        //               withdraw_tx_fee => '0.026'
-        //           ),
-        //           ...
-        //           message => 'Success',
+        //         $data => array(
+        //             "USDT-ERC20" => array(
+        //                  "asset" => "USDT",
+        //                  "chain" => "ERC20",
+        //                  "withdrawal_precision" => 6,
+        //                  "can_deposit" => true,
+        //                  "can_withdraw" => true,
+        //                  "deposit_least_amount" => "4.9",
+        //                  "withdraw_least_amount" => "4.9",
+        //                  "withdraw_tx_fee" => "4.9"
+        //             ),
+        //             ...
+        //         ),
+        //         message => 'Success',
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
@@ -332,6 +323,7 @@ class coinex extends Exchange {
             $currencyId = $this->safe_string($currency, 'asset');
             $networkId = $this->safe_string($currency, 'chain');
             $code = $this->safe_currency_code($currencyId);
+            $precision = $this->parse_number($this->parse_precision($this->safe_string($currency, 'withdrawal_precision')));
             if ($this->safe_value($result, $code) === null) {
                 $result[$code] = array(
                     'id' => $currencyId,
@@ -343,7 +335,7 @@ class coinex extends Exchange {
                     'deposit' => $this->safe_value($currency, 'can_deposit'),
                     'withdraw' => $this->safe_value($currency, 'can_withdraw'),
                     'fee' => $this->safe_number($currency, 'withdraw_tx_fee'),
-                    'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'withdrawal_precision'))),
+                    'precision' => $precision,
                     'limits' => array(
                         'amount' => array(
                             'min' => null,
@@ -384,7 +376,7 @@ class coinex extends Exchange {
                 'deposit' => $this->safe_value($currency, 'can_deposit'),
                 'withdraw' => $this->safe_value($currency, 'can_withdraw'),
                 'fee' => $this->safe_number($currency, 'withdraw_tx_fee'),
-                'precision' => $this->parse_number($this->parse_precision($this->safe_string($currency, 'withdrawal_precision'))),
+                'precision' => $precision,
             );
             $networks[$networkId] = $network;
             $result[$code]['networks'] = $networks;
@@ -738,13 +730,20 @@ class coinex extends Exchange {
     public function fetch_tickers($symbols = null, $params = array ()) {
         /**
          * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market008_all_market_ticker
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all
          * @param {[string]|null} $symbols unified $symbols of the markets to fetch the $ticker for, all $market $tickers are returned if not assigned
          * @param {array} $params extra parameters specific to the coinex api endpoint
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
         $this->load_markets();
         $symbols = $this->market_symbols($symbols);
-        list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', null, $params);
+        $market = null;
+        if ($symbols !== null) {
+            $symbol = $this->safe_value($symbols, 0);
+            $market = $this->market($symbol);
+        }
+        list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
         $method = ($marketType === 'swap') ? 'perpetualPublicGetMarketTickerAll' : 'publicGetMarketTickerAll';
         $response = $this->$method ($query);
         //
@@ -1183,7 +1182,7 @@ class coinex extends Exchange {
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
@@ -1267,7 +1266,7 @@ class coinex extends Exchange {
         //                  "buy_type" => "0"
         //                  ),
         //              "loan" => array(
-        //                  "sell_type" => "0.3", // loan
+        //                  "sell_type" => "0.3", // $loan
         //                  "buy_type" => "0"
         //                  ),
         //              "interest" => array(
@@ -1288,12 +1287,17 @@ class coinex extends Exchange {
         $data = $this->safe_value($response, 'data', array());
         $free = $this->safe_value($data, 'can_transfer', array());
         $total = $this->safe_value($data, 'balance', array());
+        $loan = $this->safe_value($data, 'loan', array());
+        $interest = $this->safe_value($data, 'interest', array());
         //
         $sellAccount = $this->account();
         $sellCurrencyId = $this->safe_string($data, 'sell_asset_type');
         $sellCurrencyCode = $this->safe_currency_code($sellCurrencyId);
         $sellAccount['free'] = $this->safe_string($free, 'sell_type');
         $sellAccount['total'] = $this->safe_string($total, 'sell_type');
+        $sellDebt = $this->safe_string($loan, 'sell_type');
+        $sellInterest = $this->safe_string($interest, 'sell_type');
+        $sellAccount['debt'] = Precise::string_add($sellDebt, $sellInterest);
         $result[$sellCurrencyCode] = $sellAccount;
         //
         $buyAccount = $this->account();
@@ -1301,6 +1305,9 @@ class coinex extends Exchange {
         $buyCurrencyCode = $this->safe_currency_code($buyCurrencyId);
         $buyAccount['free'] = $this->safe_string($free, 'buy_type');
         $buyAccount['total'] = $this->safe_string($total, 'buy_type');
+        $buyDebt = $this->safe_string($loan, 'buy_type');
+        $buyInterest = $this->safe_string($interest, 'buy_type');
+        $buyAccount['debt'] = Precise::string_add($buyDebt, $buyInterest);
         $result[$buyCurrencyCode] = $buyAccount;
         //
         return $this->safe_balance($result);
@@ -1385,11 +1392,14 @@ class coinex extends Exchange {
          * @param {array} $params extra parameters specific to the coinex api endpoint
          * @return {array} a ~@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure balance structure~
          */
-        $accountType = $this->safe_string($params, 'type', 'main');
-        $params = $this->omit($params, 'type');
-        if ($accountType === 'margin') {
+        $marketType = null;
+        list($marketType, $params) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+        $isMargin = $this->safe_value($params, 'margin', false);
+        $marketType = $isMargin ? 'margin' : $marketType;
+        $params = $this->omit($params, 'margin');
+        if ($marketType === 'margin') {
             return $this->fetch_margin_balance($params);
-        } elseif ($accountType === 'swap') {
+        } elseif ($marketType === 'swap') {
             return $this->fetch_swap_balance($params);
         } else {
             return $this->fetch_spot_balance($params);
@@ -2549,6 +2559,7 @@ class coinex extends Exchange {
         //          $code => 0,
         //          $data => array(
         //            coin_address => '1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq',
+        //            // coin_address => 'xxxxxxxxxxxxxx:yyyyyyyyy', // with embedded tag/memo
         //            is_bitcoin_cash => false
         //          ),
         //          message => 'Success'
@@ -2588,12 +2599,21 @@ class coinex extends Exchange {
         //         is_bitcoin_cash => false
         //     }
         //
-        $address = $this->safe_string($depositAddress, 'coin_address');
+        $coinAddress = $this->safe_string($depositAddress, 'coin_address');
+        $parts = explode(':', $coinAddress);
+        $address = null;
+        $tag = null;
+        if (strlen($parts) > 1) {
+            $address = $parts[0];
+            $tag = $parts[1];
+        } else {
+            $address = $coinAddress;
+        }
         return array(
             'info' => $depositAddress,
             'currency' => $this->safe_currency_code(null, $currency),
             'address' => $address,
-            'tag' => null,
+            'tag' => $tag,
             'network' => null,
         );
     }
@@ -3021,11 +3041,10 @@ class coinex extends Exchange {
         if ($market['type'] !== 'swap') {
             throw new BadSymbol($this->id . ' setMarginMode() supports swap contracts only');
         }
-        $defaultMarginMode = $this->safe_string_2($this->options, 'defaultMarginMode', $marginMode);
         $defaultPositionType = null;
-        if ($defaultMarginMode === 'isolated') {
+        if ($marginMode === 'isolated') {
             $defaultPositionType = 1;
-        } elseif ($defaultMarginMode === 'cross') {
+        } elseif ($marginMode === 'cross') {
             $defaultPositionType = 2;
         }
         $leverage = $this->safe_integer($params, 'leverage');

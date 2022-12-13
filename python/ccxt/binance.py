@@ -78,6 +78,8 @@ class binance(Exchange):
                 'fetchDepositAddresses': False,
                 'fetchDepositAddressesByNetwork': False,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': True,
                 'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
@@ -130,6 +132,7 @@ class binance(Exchange):
                 'withdraw': True,
             },
             'timeframes': {
+                '1s': '1s',  # spot only for now
                 '1m': '1m',
                 '3m': '3m',
                 '5m': '5m',
@@ -151,8 +154,8 @@ class binance(Exchange):
                 'test': {
                     'dapiPublic': 'https://testnet.binancefuture.com/dapi/v1',
                     'dapiPrivate': 'https://testnet.binancefuture.com/dapi/v1',
-                    'vapiPublic': 'https://testnet.binanceops.com/vapi/v1',
-                    'vapiPrivate': 'https://testnet.binanceops.com/vapi/v1',
+                    'eapiPublic': 'https://testnet.binanceops.com/eapi/v1',
+                    'eapiPrivate': 'https://testnet.binanceops.com/eapi/v1',
                     'fapiPublic': 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivate': 'https://testnet.binancefuture.com/fapi/v1',
                     'fapiPrivateV2': 'https://testnet.binancefuture.com/fapi/v2',
@@ -163,11 +166,12 @@ class binance(Exchange):
                 'api': {
                     'wapi': 'https://api.binance.com/wapi/v3',
                     'sapi': 'https://api.binance.com/sapi/v1',
+                    'sapiV2': 'https://api.binance.com/sapi/v2',
                     'sapiV3': 'https://api.binance.com/sapi/v3',
                     'dapiPublic': 'https://dapi.binance.com/dapi/v1',
                     'dapiPrivate': 'https://dapi.binance.com/dapi/v1',
-                    'vapiPublic': 'https://vapi.binance.com/vapi/v1',
-                    'vapiPrivate': 'https://vapi.binance.com/vapi/v1',
+                    'eapiPublic': 'https://eapi.binance.com/eapi/v1',
+                    'eapiPrivate': 'https://eapi.binance.com/eapi/v1',
                     'dapiPrivateV2': 'https://dapi.binance.com/dapi/v2',
                     'dapiData': 'https://dapi.binance.com/futures/data',
                     'fapiPublic': 'https://fapi.binance.com/fapi/v1',
@@ -180,7 +184,7 @@ class binance(Exchange):
                 },
                 'www': 'https://www.binance.com',
                 'referral': {
-                    'url': 'https://www.binance.com/en/register?ref=D7YA7CLY',
+                    'url': 'https://accounts.binance.com/en/register?ref=D7YA7CLY',
                     'discount': 0.1,
                 },
                 'doc': [
@@ -214,6 +218,7 @@ class binance(Exchange):
                         'asset/transfer': 0.1,
                         'asset/assetDetail': 0.1,
                         'asset/tradeFee': 0.1,
+                        'asset/ledger-transfer/cloud-mining/queryByPage': 4,
                         'margin/loan': 1,
                         'margin/repay': 1,
                         'margin/account': 1,
@@ -226,6 +231,7 @@ class binance(Exchange):
                         'margin/myTrades': 1,
                         'margin/maxBorrowable': 5,  # Weight(IP): 50 => cost = 0.1 * 50 = 5
                         'margin/maxTransferable': 5,
+                        'margin/tradeCoeff': 1,
                         'margin/isolated/transfer': 0.1,
                         'margin/isolated/account': 1,
                         'margin/isolated/pair': 1,
@@ -241,15 +247,22 @@ class binance(Exchange):
                         'margin/rateLimit/order': 2,
                         'margin/dribblet': 0.1,
                         'loan/income': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
+                        'loan/ongoing/orders': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/ltv/adjustment/history': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/borrow/history': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/repay/history': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/loanable/data': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/collateral/data': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/repay/collateral/rate': 600,  # Weight(IP): 6000 => cost = 0.1 * 6000 = 600
+                        'loan/vip/ongoing/orders': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/vip/repay/history': 40,  # Weight(IP): 400 => cost = 0.1 * 400 = 40
+                        'loan/vip/collateral/account': 600,  # Weight(IP): 6000 => cost = 0.1 * 6000 = 600
                         'fiat/orders': 600.03,  # Weight(UID): 90000 => cost = 0.006667 * 90000 = 600.03
                         'fiat/payments': 0.1,
                         'futures/transfer': 1,
                         'futures/loan/borrow/history': 1,
                         'futures/loan/repay/history': 1,
                         'futures/loan/wallet': 1,
-                        'futures/loan/configs': 1,
-                        'futures/loan/calcAdjustLevel': 5,  # Weight(IP): 50 => cost = 0.1 * 50 = 5
-                        'futures/loan/calcMaxAdjustAmount': 5,
                         'futures/loan/adjustCollateral/history': 1,
                         'futures/loan/liquidationHistory': 1,
                         'rebate/taxQuery': 20.001,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
@@ -261,6 +274,9 @@ class binance(Exchange):
                         'capital/deposit/subHisrec': 0.1,
                         'capital/withdraw/history': 0.1,
                         'convert/tradeFlow': 0.6667,  # Weight(UID): 100 => cost = 0.006667 * 100 = 0.6667
+                        'convert/exchangeInfo': 50,
+                        'convert/assetInfo': 10,
+                        'convert/orderStatus': 0.6667,
                         'account/status': 0.1,
                         'account/apiTradingStatus': 0.1,
                         'account/apiRestrictions/ipRestriction': 0.1,
@@ -278,6 +294,7 @@ class binance(Exchange):
                         'sub-account/sub/transfer/history': 0.1,
                         'sub-account/transfer/subUserHistory': 0.1,
                         'sub-account/universalTransfer': 0.1,
+                        'sub-account/apiRestrictions/ipRestriction/thirdPartyList': 1,
                         'managed-subaccount/asset': 0.1,
                         'managed-subaccount/accountSnapshot': 240,
                         # lending endpoints
@@ -355,6 +372,7 @@ class binance(Exchange):
                         'pay/transactions': 20.001,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'giftcard/verify': 0.1,
                         'giftcard/cryptography/rsa-public-key': 0.1,
+                        'giftcard/buyCode/token-limit': 0.1,
                         'algo/futures/openOrders': 0.1,
                         'algo/futures/historicalOrders': 0.1,
                         'algo/futures/subOrders': 0.1,
@@ -372,11 +390,13 @@ class binance(Exchange):
                         'asset/dust-btc': 0.1,
                         'asset/transfer': 0.1,
                         'asset/get-funding-asset': 0.1,
+                        'asset/convert-transfer': 0.033335,
+                        'asset/convert-transfer/queryByPage': 0.033335,
                         'account/disableFastWithdrawSwitch': 0.1,
                         'account/enableFastWithdrawSwitch': 0.1,
                         # 'account/apiRestrictions/ipRestriction': 1, discontinued
                         # 'account/apiRestrictions/ipRestriction/ipList': 1, discontinued
-                        'capital/withdraw/apply': 0.1,
+                        'capital/withdraw/apply': 4.0002,  # Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
                         'margin/transfer': 1,  # Weight(IP): 600 => cost = 0.1 * 600 = 60
                         'margin/loan': 20.001,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
                         'margin/repay': 20.001,
@@ -386,6 +406,7 @@ class binance(Exchange):
                         'margin/isolated/transfer': 4.0002,  # Weight(UID): 600 => cost = 0.006667 * 600 = 4.0002
                         'margin/isolated/account': 2.0001,  # Weight(UID): 300 => cost = 0.006667 * 300 = 2.0001
                         'bnbBurn': 0.1,
+                        'sub-account/virtualSubAccount': 0.1,
                         'sub-account/margin/transfer': 4.0002,  # Weight(UID): 600 => cost =  0.006667 * 600 = 4.0002
                         'sub-account/margin/enable': 0.1,
                         'sub-account/futures/enable': 0.1,
@@ -394,14 +415,13 @@ class binance(Exchange):
                         'sub-account/transfer/subToSub': 0.1,
                         'sub-account/transfer/subToMaster': 0.1,
                         'sub-account/universalTransfer': 0.1,
+                        # v2 not supported yet
+                        # 'sub-account/subAccountApi/ipRestriction': 20,
                         'managed-subaccount/deposit': 0.1,
                         'managed-subaccount/withdraw': 0.1,
                         'userDataStream': 0.1,
                         'userDataStream/isolated': 0.1,
                         'futures/transfer': 0.1,
-                        'futures/loan/borrow': 20.001,  # Weight(UID): 3000 => cost = 0.006667 * 3000 = 20.001
-                        'futures/loan/repay': 20.001,
-                        'futures/loan/adjustCollateral': 20.001,
                         # lending
                         'lending/customizedFixed/purchase': 0.1,
                         'lending/daily/purchase': 0.1,
@@ -441,6 +461,7 @@ class binance(Exchange):
                         #
                         'giftcard/createCode': 0.1,
                         'giftcard/redeemCode': 0.1,
+                        'giftcard/buyCode': 0.1,
                         'algo/futures/newOrderVp': 20.001,
                         'algo/futures/newOrderTwap': 20.001,
                         # staking
@@ -448,6 +469,13 @@ class binance(Exchange):
                         'staking/redeem': 0.1,
                         'staking/setAutoStaking': 0.1,
                         'portfolio/repay': 20.001,
+                        'loan/borrow': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
+                        'loan/repay': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
+                        'loan/adjust/ltv': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
+                        'loan/customize/margin_call': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
+                        'loan/vip/repay': 40,  # Weight(UID): 6000 => cost = 0.006667 * 6000 = 40
+                        'convert/getQuote': 20.001,
+                        'convert/acceptQuote': 3.3335,
                     },
                     'put': {
                         'userDataStream': 0.1,
@@ -465,6 +493,12 @@ class binance(Exchange):
                         'broker/subAccountApi': 1,
                         'broker/subAccountApi/ipRestriction/ipList': 1,
                         'algo/futures/order': 0.1,
+                    },
+                },
+                'sapiV2': {
+                    'get': {
+                        'sub-account/futures/account': 0.1,
+                        'sub-account/futures/positionRisk': 0.1,
                     },
                 },
                 'sapiV3': {
@@ -545,6 +579,7 @@ class binance(Exchange):
                         'forceOrders': {'cost': 20, 'noSymbol': 50},
                         'adlQuantile': 5,
                         'orderAmendment': 1,
+                        'pmAccountInfo': 5,
                     },
                     'post': {
                         'positionSide/dual': 1,
@@ -635,6 +670,7 @@ class binance(Exchange):
                         'apiReferral/rebateVol': 1,
                         'apiReferral/traderSummary': 1,
                         'adlQuantile': 5,
+                        'pmAccountInfo': 5,
                     },
                     'post': {
                         'batchOrders': 5,
@@ -667,47 +703,55 @@ class binance(Exchange):
                         'positionRisk': 1,
                     },
                 },
-                'vapiPublic': {
-                    'get': [
-                        'ping',
-                        'time',
-                        'optionInfo',
-                        'exchangeInfo',
-                        'index',
-                        'ticker',
-                        'mark',
-                        'depth',
-                        'klines',
-                        'trades',
-                        'historicalTrades',
-                    ],
+                'eapiPublic': {
+                    'get': {
+                        'ping': 1,
+                        'time': 1,
+                        'exchangeInfo': 1,
+                        'index': 1,
+                        'ticker': 5,
+                        'mark': 5,
+                        'depth': 1,
+                        'klines': 1,
+                        'trades': 5,
+                        'historicalTrades': 20,
+                        'exerciseHistory': 3,
+                        'openInterest': 3,
+                    },
                 },
-                'vapiPrivate': {
-                    'get': [
-                        'account',
-                        'position',
-                        'order',
-                        'openOrders',
-                        'historyOrders',
-                        'userTrades',
-                    ],
-                    'post': [
-                        'transfer',
-                        'bill',
-                        'order',
-                        'batchOrders',
-                        'userDataStream',
-                        'openAccount',
-                    ],
-                    'put': [
-                        'userDataStream',
-                    ],
-                    'delete': [
-                        'order',
-                        'batchOrders',
-                        'allOpenOrders',
-                        'userDataStream',
-                    ],
+                'eapiPrivate': {
+                    'get': {
+                        'account': 3,
+                        'position': 5,
+                        'openOrders': {'cost': 1, 'noSymbol': 40},
+                        'historyOrders': 3,
+                        'userTrades': 5,
+                        'exerciseRecord': 5,
+                        'bill': 1,
+                        'marginAccount': 3,
+                        'mmp': 1,
+                        'countdownCancelAll': 1,
+                    },
+                    'post': {
+                        'transfer': 1,
+                        'order': 1,
+                        'batchOrders': 5,
+                        'listenKey': 1,
+                        'mmpSet': 1,
+                        'mmpReset': 1,
+                        'countdownCancelAll': 1,
+                        'countdownCancelAllHeartBeat': 10,
+                    },
+                    'put': {
+                        'listenKey': 1,
+                    },
+                    'delete': {
+                        'order': 1,
+                        'batchOrders': 1,
+                        'allOpenOrders': 1,
+                        'allOpenOrdersByUnderlying': 1,
+                        'listenKey': 1,
+                    },
                 },
                 'public': {
                     'get': {
@@ -748,6 +792,7 @@ class binance(Exchange):
                     'post': {
                         'order/oco': 1,
                         'order': 1,
+                        'order/cancelReplace': 1,
                         'order/test': 1,
                     },
                     'delete': {
@@ -876,9 +921,9 @@ class binance(Exchange):
                     'spot': 'MAIN',
                     'funding': 'FUNDING',
                     'margin': 'MARGIN',
+                    'cross': 'MARGIN',
                     'future': 'UMFUTURE',
                     'delivery': 'CMFUTURE',
-                    'mining': 'MINING',
                 },
                 'accountsById': {
                     'MAIN': 'spot',
@@ -886,7 +931,6 @@ class binance(Exchange):
                     'MARGIN': 'margin',
                     'UMFUTURE': 'future',
                     'CMFUTURE': 'delivery',
-                    'MINING': 'mining',
                 },
                 'networks': {
                     'ERC20': 'ETH',
@@ -897,7 +941,102 @@ class binance(Exchange):
                     'EOS': 'EOS',
                     'SPL': 'SOL',
                 },
+                # keeping self object for backward-compatibility
                 'reverseNetworks': {
+                    'tronscan.org': 'TRC20',
+                    'etherscan.io': 'ERC20',
+                    'bscscan.com': 'BSC',
+                    'explorer.binance.org': 'BEP2',
+                    'bithomp.com': 'XRP',
+                    'bloks.io': 'EOS',
+                    'stellar.expert': 'XLM',
+                    'blockchair.com/bitcoin': 'BTC',
+                    'blockchair.com/bitcoin-cash': 'BCH',
+                    'blockchair.com/ecash': 'XEC',
+                    'explorer.litecoin.net': 'LTC',
+                    'explorer.avax.network': 'AVAX',
+                    'solscan.io': 'SOL',
+                    'polkadot.subscan.io': 'DOT',
+                    'dashboard.internetcomputer.org': 'ICP',
+                    'explorer.chiliz.com': 'CHZ',
+                    'cardanoscan.io': 'ADA',
+                    'mainnet.theoan.com': 'AION',
+                    'algoexplorer.io': 'ALGO',
+                    'explorer.ambrosus.com': 'AMB',
+                    'viewblock.io/zilliqa': 'ZIL',
+                    'viewblock.io/arweave': 'AR',
+                    'explorer.ark.io': 'ARK',
+                    'atomscan.com': 'ATOM',
+                    'www.mintscan.io': 'CTK',
+                    'explorer.bitcoindiamond.org': 'BCD',
+                    'btgexplorer.com': 'BTG',
+                    'bts.ai': 'BTS',
+                    'explorer.celo.org': 'CELO',
+                    'explorer.nervos.org': 'CKB',
+                    'cerebro.cortexlabs.ai': 'CTXC',
+                    'chainz.cryptoid.info': 'VIA',
+                    'explorer.dcrdata.org': 'DCR',
+                    'digiexplorer.info': 'DGB',
+                    'dock.subscan.io': 'DOCK',
+                    'dogechain.info': 'DOGE',
+                    'explorer.elrond.com': 'EGLD',
+                    'blockscout.com': 'ETC',
+                    'explore-fetchhub.fetch.ai': 'FET',
+                    'filfox.info': 'FIL',
+                    'fio.bloks.io': 'FIO',
+                    'explorer.firo.org': 'FIRO',
+                    'neoscan.io': 'NEO',
+                    'ftmscan.com': 'FTM',
+                    'explorer.gochain.io': 'GO',
+                    'block.gxb.io': 'GXS',
+                    'hash-hash.info': 'HBAR',
+                    'www.hiveblockexplorer.com': 'HIVE',
+                    'explorer.helium.com': 'HNT',
+                    'tracker.icon.foundation': 'ICX',
+                    'www.iostabc.com': 'IOST',
+                    'explorer.iota.org': 'IOTA',
+                    'iotexscan.io': 'IOTX',
+                    'irishub.iobscan.io': 'IRIS',
+                    'kava.mintscan.io': 'KAVA',
+                    'scope.klaytn.com': 'KLAY',
+                    'kmdexplorer.io': 'KMD',
+                    'kusama.subscan.io': 'KSM',
+                    'explorer.lto.network': 'LTO',
+                    'polygonscan.com': 'POLYGON',
+                    'explorer.ont.io': 'ONT',
+                    'minaexplorer.com': 'MINA',
+                    'nanolooker.com': 'NANO',
+                    'explorer.nebulas.io': 'NAS',
+                    'explorer.nbs.plus': 'NBS',
+                    'explorer.nebl.io': 'NEBL',
+                    'nulscan.io': 'NULS',
+                    'nxscan.com': 'NXS',
+                    'explorer.harmony.one': 'ONE',
+                    'explorer.poa.network': 'POA',
+                    'qtum.info': 'QTUM',
+                    'explorer.rsk.co': 'RSK',
+                    'www.oasisscan.com': 'ROSE',
+                    'ravencoin.network': 'RVN',
+                    'sc.tokenview.com': 'SC',
+                    'secretnodes.com': 'SCRT',
+                    'explorer.skycoin.com': 'SKY',
+                    'steemscan.com': 'STEEM',
+                    'explorer.stacks.co': 'STX',
+                    'www.thetascan.io': 'THETA',
+                    'scan.tomochain.com': 'TOMO',
+                    'explore.vechain.org': 'VET',
+                    'explorer.vite.net': 'VITE',
+                    'www.wanscan.org': 'WAN',
+                    'wavesexplorer.com': 'WAVES',
+                    'wax.eosx.io': 'WAXP',
+                    'waltonchain.pro': 'WTC',
+                    'chain.nem.ninja': 'XEM',
+                    'verge-blockchain.info': 'XVG',
+                    'explorer.yoyow.org': 'YOYOW',
+                    'explorer.zcha.in': 'ZEC',
+                    'explorer.zensystem.io': 'ZEN',
+                },
+                'networksById': {
                     'tronscan.org': 'TRC20',
                     'etherscan.io': 'ERC20',
                     'bscscan.com': 'BSC',
@@ -1046,6 +1185,8 @@ class binance(Exchange):
                     'Market is closed.': ExchangeNotAvailable,  # {"code":-1013,"msg":"Market is closed."}
                     'Too many requests. Please try again later.': DDoSProtection,  # {"msg":"Too many requests. Please try again later.","success":false}
                     'This action disabled is on self account.': AccountSuspended,  # {"code":-2010,"msg":"This action disabled is on self account."}
+                    'This type of sub-account exceeds the maximum number limit': BadRequest,  # {"code":-9000,"msg":"This type of sub-account exceeds the maximum number limit"}
+                    'This symbol is not permitted for self account.': PermissionDenied,  # {"code":-2010,"msg":"This symbol is not permitted for self account."}
                     '-1000': ExchangeNotAvailable,  # {"code":-1000,"msg":"An unknown error occured while processing the request."}
                     '-1001': ExchangeNotAvailable,  # {"code":-1001,"msg":"'Internal error; unable to process your request. Please try again.'"}
                     '-1002': AuthenticationError,  # {"code":-1002,"msg":"'You are not authorized to execute self request.'"}
@@ -1091,6 +1232,7 @@ class binance(Exchange):
                     '-1128': BadRequest,  # {"code":-1128,"msg":"{"code":-1128,"msg":"Combination of optional parameters invalid."}"}
                     '-1130': BadRequest,  # {"code":-1130,"msg":"Data sent for paramter %s is not valid."}
                     '-1131': BadRequest,  # {"code":-1131,"msg":"recvWindow must be less than 60000"}
+                    '-1135': BadRequest,  # This error code will occur if a parameter requiring a JSON object is invalid.
                     '-1136': BadRequest,  # {"code":-1136,"msg":"Invalid newOrderRespType"}
                     '-2008': AuthenticationError,  # {"code":-2008,"msg":"Invalid Api-Key ID."}
                     '-2010': ExchangeError,  # {"code":-2010,"msg":"generic error code for createOrder -> 'Account has insufficient balance for requested action.', {"code":-2010,"msg":"Rest API trading is not enabled."}, etc..."}
@@ -1120,12 +1262,12 @@ class binance(Exchange):
                     '-3007': ExchangeError,  # {"code":-3007,"msg":"You have pending transaction, please try again later.."}
                     '-3008': InsufficientFunds,  # {"code":-3008,"msg":"Borrow not allowed. Your borrow amount has exceed maximum borrow amount."}
                     '-3009': BadRequest,  # {"code":-3009,"msg":"This asset are not allowed to transfer into margin account currently."}
-                    '-3010': ExchangeError,  # {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
+                    '-3010': BadRequest,  # {"code":-3010,"msg":"Repay not allowed. Repay amount exceeds borrow amount."}
                     '-3011': BadRequest,  # {"code":-3011,"msg":"Your input date is invalid."}
-                    '-3012': ExchangeError,  # {"code":-3012,"msg":"Borrow is banned for self asset."}
+                    '-3012': InsufficientFunds,  # {"code":-3012,"msg":"Borrow is banned for self asset."}
                     '-3013': BadRequest,  # {"code":-3013,"msg":"Borrow amount less than minimum borrow amount."}
                     '-3014': AccountSuspended,  # {"code":-3014,"msg":"Borrow is banned for self account."}
-                    '-3015': ExchangeError,  # {"code":-3015,"msg":"Repay amount exceeds borrow amount."}
+                    '-3015': BadRequest,  # {"code":-3015,"msg":"Repay amount exceeds borrow amount."}
                     '-3016': BadRequest,  # {"code":-3016,"msg":"Repay amount less than minimum repay amount."}
                     '-3017': ExchangeError,  # {"code":-3017,"msg":"This asset are not allowed to transfer into margin account currently."}
                     '-3018': AccountSuspended,  # {"code":-3018,"msg":"Transferring in has been banned for self account."}
@@ -1305,88 +1447,105 @@ class binance(Exchange):
         result = {}
         for i in range(0, len(response)):
             #
-            #     {
-            #         coin: 'LINK',
-            #         depositAllEnable: True,
-            #         withdrawAllEnable: True,
-            #         name: 'ChainLink',
-            #         free: '0.06168',
-            #         locked: '0',
-            #         freeze: '0',
-            #         withdrawing: '0',
-            #         ipoing: '0',
-            #         ipoable: '0',
-            #         storage: '0',
-            #         isLegalMoney: False,
-            #         trading: True,
-            #         networkList: [
-            #             {
-            #                 network: 'BNB',
-            #                 coin: 'LINK',
-            #                 withdrawIntegerMultiple: '0',
-            #                 isDefault: False,
-            #                 depositEnable: True,
-            #                 withdrawEnable: True,
-            #                 depositDesc: '',
-            #                 withdrawDesc: '',
-            #                 specialTips: 'Both a MEMO and an Address are required to successfully deposit your LINK BEP2 tokens to Binance.',
-            #                 name: 'BEP2',
-            #                 resetAddressStatus: False,
-            #                 addressRegex: '^(bnb1)[0-9a-z]{38}$',
-            #                 memoRegex: '^[0-9A-Za-z\\-_]{1,120}$',
-            #                 withdrawFee: '0.002',
-            #                 withdrawMin: '0.01',
-            #                 withdrawMax: '9999999',
-            #                 minConfirm: 1,
-            #                 unLockConfirm: 0
-            #             },
-            #             {
-            #                 network: 'BSC',
-            #                 coin: 'LINK',
-            #                 withdrawIntegerMultiple: '0.00000001',
-            #                 isDefault: False,
-            #                 depositEnable: True,
-            #                 withdrawEnable: True,
-            #                 depositDesc: '',
-            #                 withdrawDesc: '',
-            #                 specialTips: '',
-            #                 name: 'BEP20(BSC)',
-            #                 resetAddressStatus: False,
-            #                 addressRegex: '^(0x)[0-9A-Fa-f]{40}$',
-            #                 memoRegex: '',
-            #                 withdrawFee: '0.005',
-            #                 withdrawMin: '0.01',
-            #                 withdrawMax: '9999999',
-            #                 minConfirm: 15,
-            #                 unLockConfirm: 0
-            #             },
-            #             {
-            #                 network: 'ETH',
-            #                 coin: 'LINK',
-            #                 withdrawIntegerMultiple: '0.00000001',
-            #                 isDefault: True,
-            #                 depositEnable: True,
-            #                 withdrawEnable: True,
-            #                 depositDesc: '',
-            #                 withdrawDesc: '',
-            #                 name: 'ERC20',
-            #                 resetAddressStatus: False,
-            #                 addressRegex: '^(0x)[0-9A-Fa-f]{40}$',
-            #                 memoRegex: '',
-            #                 withdrawFee: '0.34',
-            #                 withdrawMin: '0.68',
-            #                 withdrawMax: '0',
-            #                 minConfirm: 12,
-            #                 unLockConfirm: 0
-            #             }
-            #         ]
-            #     }
+            #    {
+            #        "coin": "LINK",
+            #        "depositAllEnable": True,
+            #        "withdrawAllEnable": True,
+            #        "name": "ChainLink",
+            #        "free": "0",
+            #        "locked": "0",
+            #        "freeze": "0",
+            #        "withdrawing": "0",
+            #        "ipoing": "0",
+            #        "ipoable": "0",
+            #        "storage": "0",
+            #        "isLegalMoney": False,
+            #        "trading": True,
+            #        "networkList": [
+            #            {
+            #                "network": "BSC",
+            #                "coin": "LINK",
+            #                "withdrawIntegerMultiple": "0.00000001",
+            #                "isDefault": False,
+            #                "depositEnable": True,
+            #                "withdrawEnable": True,
+            #                "depositDesc": "",
+            #                "withdrawDesc": "",
+            #                "specialTips": "",
+            #                "specialWithdrawTips": "The network you have selected is BSC. Please ensure that the withdrawal address supports the Binance Smart Chain network. You will lose your assets if the chosen platform does not support retrievals.",
+            #                "name": "BNB Smart Chain(BEP20)",
+            #                "resetAddressStatus": False,
+            #                "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
+            #                "addressRule": "",
+            #                "memoRegex": "",
+            #                "withdrawFee": "0.012",
+            #                "withdrawMin": "0.024",
+            #                "withdrawMax": "9999999999.99999999",
+            #                "minConfirm": "15",
+            #                "unLockConfirm": "0",
+            #                "sameAddress": False,
+            #                "estimatedArrivalTime": "5",
+            #                "busy": False,
+            #                "country": "AE,BINANCE_BAHRAIN_BSC"
+            #            },
+            #            {
+            #                "network": "BNB",
+            #                "coin": "LINK",
+            #                "withdrawIntegerMultiple": "0.00000001",
+            #                "isDefault": False,
+            #                "depositEnable": True,
+            #                "withdrawEnable": True,
+            #                "depositDesc": "",
+            #                "withdrawDesc": "",
+            #                "specialTips": "Both a MEMO and an Address are required to successfully deposit your LINK BEP2 tokens to Binance.",
+            #                "specialWithdrawTips": "",
+            #                "name": "BNB Beacon Chain(BEP2)",
+            #                "resetAddressStatus": False,
+            #                "addressRegex": "^(bnb1)[0-9a-z]{38}$",
+            #                "addressRule": "",
+            #                "memoRegex": "^[0-9A-Za-z\\-_]{1,120}$",
+            #                "withdrawFee": "0.002",
+            #                "withdrawMin": "0.01",
+            #                "withdrawMax": "10000000000",
+            #                "minConfirm": "1",
+            #                "unLockConfirm": "0",
+            #                "sameAddress": True,
+            #                "estimatedArrivalTime": "5",
+            #                "busy": False,
+            #                "country": "AE,BINANCE_BAHRAIN_BSC"
+            #            },
+            #            {
+            #                "network": "ETH",
+            #                "coin": "LINK",
+            #                "withdrawIntegerMultiple": "0.00000001",
+            #                "isDefault": True,
+            #                "depositEnable": True,
+            #                "withdrawEnable": True,
+            #                "depositDesc": "",
+            #                "withdrawDesc": "",
+            #                "name": "Ethereum(ERC20)",
+            #                "resetAddressStatus": False,
+            #                "addressRegex": "^(0x)[0-9A-Fa-f]{40}$",
+            #                "addressRule": "",
+            #                "memoRegex": "",
+            #                "withdrawFee": "0.55",
+            #                "withdrawMin": "1.1",
+            #                "withdrawMax": "10000000000",
+            #                "minConfirm": "12",
+            #                "unLockConfirm": "0",
+            #                "sameAddress": False,
+            #                "estimatedArrivalTime": "5",
+            #                "busy": False,
+            #                "country": "AE,BINANCE_BAHRAIN_BSC"
+            #            }
+            #        ]
+            #    }
             #
             entry = response[i]
             id = self.safe_string(entry, 'coin')
             name = self.safe_string(entry, 'name')
             code = self.safe_currency_code(id)
-            precision = None
+            minPrecision = None
             isWithdrawEnabled = True
             isDepositEnabled = True
             networkList = self.safe_value(entry, 'networkList', [])
@@ -1405,13 +1564,21 @@ class binance(Exchange):
                 isDefault = self.safe_value(networkItem, 'isDefault')
                 if isDefault or (fee is None):
                     fee = withdrawFee
+                precisionTick = self.safe_string(networkItem, 'withdrawIntegerMultiple')
+                # avoid zero values, which are mostly from fiat or leveraged tokens : https://github.com/ccxt/ccxt/pull/14902#issuecomment-1271636731
+                # so, when there is zero instead of i.e. 0.001, then we skip those cases, because we don't know the precision - it might be because of network is suspended or other reasons
+                if not Precise.string_eq(precisionTick, '0'):
+                    minPrecision = precisionTick if (minPrecision is None) else Precise.string_min(minPrecision, precisionTick)
             trading = self.safe_value(entry, 'trading')
             active = (isWithdrawEnabled and isDepositEnabled and trading)
+            maxDecimalPlaces = None
+            if minPrecision is not None:
+                maxDecimalPlaces = int(self.number_to_string(self.precision_from_string(minPrecision)))
             result[code] = {
                 'id': id,
                 'name': name,
                 'code': code,
-                'precision': precision,
+                'precision': maxDecimalPlaces,
                 'info': entry,
                 'active': active,
                 'deposit': isDepositEnabled,
@@ -1693,8 +1860,6 @@ class binance(Exchange):
             }
             if 'PRICE_FILTER' in filtersByType:
                 filter = self.safe_value(filtersByType, 'PRICE_FILTER', {})
-                tickSize = self.safe_string(filter, 'tickSize')
-                entry['precision']['price'] = self.precision_from_string(tickSize)
                 # PRICE_FILTER reports zero values for maxPrice
                 # since they updated filter types in November 2018
                 # https://github.com/ccxt/ccxt/issues/4286
@@ -1728,7 +1893,9 @@ class binance(Exchange):
         account = self.account()
         account['used'] = self.safe_string(entry, 'locked')
         account['free'] = self.safe_string(entry, 'free')
-        account['total'] = self.safe_string(entry, 'totalAsset')
+        interest = self.safe_string(entry, 'interest')
+        debt = self.safe_string(entry, 'borrowed')
+        account['debt'] = Precise.string_add(debt, interest)
         return account
 
     def parse_balance(self, response, type=None, marginMode=None):
@@ -1737,7 +1904,8 @@ class binance(Exchange):
         }
         timestamp = None
         isolated = marginMode == 'isolated'
-        if ((type == 'spot') or (type == 'margin') or (marginMode == 'cross')) and not isolated:
+        cross = (type == 'margin') or (marginMode == 'cross')
+        if not isolated and ((type == 'spot') or cross):
             timestamp = self.safe_integer(response, 'updateTime')
             balances = self.safe_value_2(response, 'balances', 'userAssets', [])
             for i in range(0, len(balances)):
@@ -1747,6 +1915,10 @@ class binance(Exchange):
                 account = self.account()
                 account['free'] = self.safe_string(balance, 'free')
                 account['used'] = self.safe_string(balance, 'locked')
+                if cross:
+                    debt = self.safe_string(balance, 'borrowed')
+                    interest = self.safe_string(balance, 'interest')
+                    account['debt'] = Precise.string_add(debt, interest)
                 result[code] = account
         elif isolated:
             assets = self.safe_value(response, 'assets')
@@ -1825,7 +1997,7 @@ class binance(Exchange):
             options = self.safe_value(self.options, type, {})
             fetchBalanceOptions = self.safe_value(options, 'fetchBalance', {})
             method = self.safe_string(fetchBalanceOptions, 'method', 'dapiPrivateGetAccount')
-        elif type == 'margin' or marginMode == 'cross':
+        elif (type == 'margin') or (marginMode == 'cross'):
             method = 'sapiGetMarginAccount'
         elif type == 'savings':
             method = 'sapiGetLendingUnionAccount'
@@ -1836,7 +2008,7 @@ class binance(Exchange):
             paramSymbols = self.safe_value(params, 'symbols')
             if paramSymbols is not None:
                 symbols = ''
-                if self.is_array(paramSymbols):
+                if isinstance(paramSymbols, list):
                     symbols = self.market_id(paramSymbols[0])
                     for i in range(1, len(paramSymbols)):
                         symbol = paramSymbols[i]
@@ -2514,7 +2686,6 @@ class binance(Exchange):
         takerOrMaker = None
         if buyerMaker is not None:
             side = 'sell' if buyerMaker else 'buy'  # self is reversed intentionally
-            takerOrMaker = 'taker'
         elif 'side' in trade:
             side = self.safe_string_lower(trade, 'side')
         else:
@@ -2828,11 +2999,11 @@ class binance(Exchange):
         marketType = self.safe_string(params, 'type', defaultType)
         clientOrderId = self.safe_string_2(params, 'newClientOrderId', 'clientOrderId')
         postOnly = self.safe_value(params, 'postOnly', False)
-        reduceOnly = self.safe_value(params, 'reduceOnly')
         marginMode, query = self.handle_margin_mode_and_params('createOrder', params)
-        if reduceOnly is not None:
-            if (marketType != 'future') and (marketType != 'delivery'):
-                raise InvalidOrder(self.id + ' createOrder() does not support reduceOnly for ' + marketType + ' orders, reduceOnly orders are supported for future and delivery markets only')
+        request = {
+            'symbol': market['id'],
+            'side': side.upper(),
+        }
         method = 'privatePostOrder'
         if marketType == 'future':
             method = 'fapiPrivatePostOrder'
@@ -2840,8 +3011,12 @@ class binance(Exchange):
             method = 'dapiPrivatePostOrder'
         elif marketType == 'margin' or marginMode is not None:
             method = 'sapiPostMarginOrder'
-        # the next 5 lines are added to support for testing orders
-        if market['spot']:
+            reduceOnly = self.safe_value(params, 'reduceOnly')
+            if reduceOnly:
+                request['sideEffectType'] = 'AUTO_REPAY'
+                params = self.omit(params, 'reduceOnly')
+        if market['spot'] or marketType == 'margin':
+            # support for testing orders
             test = self.safe_value(query, 'test', False)
             if test:
                 method += 'Test'
@@ -2850,6 +3025,7 @@ class binance(Exchange):
                 type = 'LIMIT_MAKER'
         initialUppercaseType = type.upper()
         uppercaseType = initialUppercaseType
+        request['type'] = uppercaseType
         stopPrice = self.safe_number(query, 'stopPrice')
         if stopPrice is not None:
             if uppercaseType == 'MARKET':
@@ -2862,11 +3038,6 @@ class binance(Exchange):
                 raise InvalidOrder(self.id + ' stopPrice parameter is not allowed for ' + symbol + ' ' + type + ' orders')
             else:
                 raise InvalidOrder(self.id + ' ' + type + ' is not a valid order type for the ' + symbol + ' market')
-        request = {
-            'symbol': market['id'],
-            'type': uppercaseType,
-            'side': side.upper(),
-        }
         if marginMode == 'isolated':
             request['isIsolated'] = True
         if clientOrderId is None:
@@ -2916,7 +3087,10 @@ class binance(Exchange):
                     if quoteOrderQty is not None:
                         request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQty, TRUNCATE, precision, self.precisionMode)
                     elif price is not None:
-                        request['quoteOrderQty'] = self.decimal_to_precision(amount * price, TRUNCATE, precision, self.precisionMode)
+                        amountString = self.number_to_string(amount)
+                        priceString = self.number_to_string(price)
+                        quoteOrderQuantity = Precise.string_mul(amountString, priceString)
+                        request['quoteOrderQty'] = self.decimal_to_precision(quoteOrderQuantity, TRUNCATE, precision, self.precisionMode)
                     else:
                         quantityIsRequired = True
                 else:
@@ -3255,22 +3429,26 @@ class binance(Exchange):
             raise ArgumentsRequired(self.id + ' fetchMyTrades() requires a symbol argument')
         self.load_markets()
         market = self.market(symbol)
+        request = {
+            'symbol': market['id'],
+        }
         type = self.safe_string(params, 'type', market['type'])
         params = self.omit(params, 'type')
         method = None
         linear = (type == 'future')
         inverse = (type == 'delivery')
-        if type == 'spot':
+        marginMode = None
+        marginMode, params = self.handle_margin_mode_and_params('fetchMyTrades', params)
+        if type == 'spot' or type == 'margin':
             method = 'privateGetMyTrades'
-        elif type == 'margin':
-            method = 'sapiGetMarginMyTrades'
+            if (type == 'margin') or (marginMode is not None):
+                method = 'sapiGetMarginMyTrades'
+                if marginMode == 'isolated':
+                    request['isIsolated'] = True
         elif linear:
             method = 'fapiPrivateGetUserTrades'
         elif inverse:
             method = 'dapiPrivateGetUserTrades'
-        request = {
-            'symbol': market['id'],
-        }
         endTime = self.safe_integer_2(params, 'until', 'endTime')
         if since is not None:
             startTime = int(since)
@@ -3904,6 +4082,8 @@ class binance(Exchange):
     def transfer(self, code, amount, fromAccount, toAccount, params={}):
         """
         transfer currency internally between wallets on the same account
+        see https://binance-docs.github.io/apidocs/spot/en/#user-universal-transfer-user_data
+        see https://binance-docs.github.io/apidocs/spot/en/#isolated-margin-account-transfer-margin
         :param str code: unified currency code
         :param float amount: amount to transfer
         :param str fromAccount: account to transfer from
@@ -3913,18 +4093,63 @@ class binance(Exchange):
         """
         self.load_markets()
         currency = self.currency(code)
-        type = self.safe_string(params, 'type')
-        if type is None:
-            accountsByType = self.safe_value(self.options, 'accountsByType', {})
-            fromId = self.safe_string(accountsByType, fromAccount, fromAccount)
-            toId = self.safe_string(accountsByType, toAccount, toAccount)
-            type = fromId + '_' + toId
         request = {
             'asset': currency['id'],
             'amount': self.currency_to_precision(code, amount),
-            'type': type,
         }
-        response = self.sapiPostAssetTransfer(self.extend(request, params))
+        request['type'] = self.safe_string(params, 'type')
+        method = 'sapiPostAssetTransfer'
+        if request['type'] is None:
+            symbol = self.safe_string(params, 'symbol')
+            if symbol is not None:
+                params = self.omit(params, 'symbol')
+            fromId = self.convert_type_to_account(fromAccount).upper()
+            toId = self.convert_type_to_account(toAccount).upper()
+            if fromId == 'ISOLATED':
+                if symbol is None:
+                    raise ArgumentsRequired(self.id + ' transfer() requires params["symbol"] when fromAccount is ' + fromAccount)
+                else:
+                    fromId = self.market_id(symbol)
+            if toId == 'ISOLATED':
+                if symbol is None:
+                    raise ArgumentsRequired(self.id + ' transfer() requires params["symbol"] when toAccount is ' + toAccount)
+                else:
+                    toId = self.market_id(symbol)
+            accountsById = self.safe_value(self.options, 'accountsById', {})
+            fromIsolated = not (fromId in accountsById)
+            toIsolated = not (toId in accountsById)
+            if fromIsolated or toIsolated:  # Isolated margin transfer
+                fromFuture = fromId == 'UMFUTURE' or fromId == 'CMFUTURE'
+                toFuture = toId == 'UMFUTURE' or toId == 'CMFUTURE'
+                fromSpot = fromId == 'MAIN'
+                toSpot = toId == 'MAIN'
+                funding = fromId == 'FUNDING' or toId == 'FUNDING'
+                mining = fromId == 'MINING' or toId == 'MINING'
+                prohibitedWithIsolated = fromFuture or toFuture or mining or funding
+                if (fromIsolated or toIsolated) and prohibitedWithIsolated:
+                    raise BadRequest(self.id + ' transfer() does not allow transfers between ' + fromAccount + ' and ' + toAccount)
+                elif toSpot and fromIsolated:
+                    method = 'sapiPostMarginIsolatedTransfer'
+                    request['transFrom'] = 'ISOLATED_MARGIN'
+                    request['transTo'] = 'SPOT'
+                    request['symbol'] = fromId
+                elif fromSpot and toIsolated:
+                    method = 'sapiPostMarginIsolatedTransfer'
+                    request['transFrom'] = 'SPOT'
+                    request['transTo'] = 'ISOLATED_MARGIN'
+                    request['symbol'] = toId
+                else:
+                    if fromIsolated:
+                        request['fromSymbol'] = fromId
+                        fromId = 'ISOLATEDMARGIN'
+                    if toIsolated:
+                        request['toSymbol'] = toId
+                        toId = 'ISOLATEDMARGIN'
+                    request['type'] = fromId + '_' + toId
+            else:
+                request['type'] = fromId + '_' + toId
+        params = self.omit(params, 'type')
+        response = getattr(self, method)(self.extend(request, params))
         #
         #     {
         #         "tranId":13526853623
@@ -4061,7 +4286,7 @@ class binance(Exchange):
 
     def fetch_transaction_fees(self, codes=None, params={}):
         """
-        fetch transaction fees
+        *DEPRECATED* please use fetchDepositWithdrawFees instead
         :param [str]|None codes: not used by binance fetchTransactionFees()
         :param dict params: extra parameters specific to the binance api endpoint
         :returns [dict]: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
@@ -4167,6 +4392,125 @@ class binance(Exchange):
             'deposit': {},
             'info': response,
         }
+
+    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        :param [str]|None codes: not used by binance fetchDepositWithdrawFees()
+        :param dict params: extra parameters specific to the binance api endpoint
+        :returns [dict]: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        self.load_markets()
+        response = self.sapiGetCapitalConfigGetall(params)
+        #
+        #    [
+        #        {
+        #            coin: 'BAT',
+        #            depositAllEnable: True,
+        #            withdrawAllEnable: True,
+        #            name: 'Basic Attention Token',
+        #            free: '0',
+        #            locked: '0',
+        #            freeze: '0',
+        #            withdrawing: '0',
+        #            ipoing: '0',
+        #            ipoable: '0',
+        #            storage: '0',
+        #            isLegalMoney: False,
+        #            trading: True,
+        #            networkList: [
+        #                {
+        #                    network: 'BNB',
+        #                    coin: 'BAT',
+        #                    withdrawIntegerMultiple: '0.00000001',
+        #                    isDefault: False,
+        #                    depositEnable: True,
+        #                    withdrawEnable: True,
+        #                    depositDesc: '',
+        #                    withdrawDesc: '',
+        #                    specialTips: 'The name of self asset is Basic Attention Token(BAT). Both a MEMO and an Address are required to successfully deposit your BEP2 tokens to Binance.',
+        #                    name: 'BEP2',
+        #                    resetAddressStatus: False,
+        #                    addressRegex: '^(bnb1)[0-9a-z]{38}$',
+        #                    memoRegex: '^[0-9A-Za-z\\-_]{1,120}$',
+        #                    withdrawFee: '0.27',
+        #                    withdrawMin: '0.54',
+        #                    withdrawMax: '10000000000',
+        #                    minConfirm: '1',
+        #                    unLockConfirm: '0'
+        #                },
+        #                ...
+        #            ]
+        #        }
+        #    ]
+        #
+        return self.parse_deposit_withdraw_fees(response, codes, 'coin')
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        #    {
+        #        coin: 'BAT',
+        #        depositAllEnable: True,
+        #        withdrawAllEnable: True,
+        #        name: 'Basic Attention Token',
+        #        free: '0',
+        #        locked: '0',
+        #        freeze: '0',
+        #        withdrawing: '0',
+        #        ipoing: '0',
+        #        ipoable: '0',
+        #        storage: '0',
+        #        isLegalMoney: False,
+        #        trading: True,
+        #        networkList: [
+        #            {
+        #                network: 'BNB',
+        #                coin: 'BAT',
+        #                withdrawIntegerMultiple: '0.00000001',
+        #                isDefault: False,
+        #                depositEnable: True,
+        #                withdrawEnable: True,
+        #                depositDesc: '',
+        #                withdrawDesc: '',
+        #                specialTips: 'The name of self asset is Basic Attention Token(BAT). Both a MEMO and an Address are required to successfully deposit your BEP2 tokens to Binance.',
+        #                name: 'BEP2',
+        #                resetAddressStatus: False,
+        #                addressRegex: '^(bnb1)[0-9a-z]{38}$',
+        #                memoRegex: '^[0-9A-Za-z\\-_]{1,120}$',
+        #                withdrawFee: '0.27',
+        #                withdrawMin: '0.54',
+        #                withdrawMax: '10000000000',
+        #                minConfirm: '1',
+        #                unLockConfirm: '0'
+        #            },
+        #            ...
+        #        ]
+        #    }
+        #
+        networkList = self.safe_value(fee, 'networkList', [])
+        result = self.deposit_withdraw_fee(fee)
+        for j in range(0, len(networkList)):
+            networkEntry = networkList[j]
+            networkId = self.safe_string(networkEntry, 'network')
+            networkCode = self.network_id_to_code(networkId)
+            withdrawFee = self.safe_number(networkEntry, 'withdrawFee')
+            isDefault = self.safe_value(networkEntry, 'isDefault')
+            if isDefault is True:
+                result['withdraw'] = {
+                    'fee': withdrawFee,
+                    'percentage': None,
+                }
+            result['networks'][networkCode] = {
+                'withdraw': {
+                    'fee': withdrawFee,
+                    'percentage': None,
+                },
+                'deposit': {
+                    'fee': None,
+                    'percentage': None,
+                },
+            }
+        return result
 
     def withdraw(self, code, amount, address, tag=None, params={}):
         """
@@ -4781,6 +5125,7 @@ class binance(Exchange):
         hedged = positionSide != 'BOTH'
         return {
             'info': position,
+            'id': None,
             'symbol': symbol,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
@@ -4936,6 +5281,7 @@ class binance(Exchange):
         hedged = positionSide != 'BOTH'
         return {
             'info': position,
+            'id': None,
             'symbol': symbol,
             'contracts': contracts,
             'contractSize': contractSize,
@@ -5397,7 +5743,7 @@ class binance(Exchange):
                     body = self.urlencode(params)
             else:
                 raise AuthenticationError(self.id + ' userDataStream endpoint requires `apiKey` credential')
-        elif (api == 'private') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV3') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
+        elif (api == 'private') or (api == 'eapiPrivate') or (api == 'sapi' and path != 'system/status') or (api == 'sapiV2') or (api == 'sapiV3') or (api == 'wapi' and path != 'systemStatus') or (api == 'dapiPrivate') or (api == 'dapiPrivateV2') or (api == 'fapiPrivate') or (api == 'fapiPrivateV2'):
             self.check_required_credentials()
             query = None
             defaultRecvWindow = self.safe_integer(self.options, 'recvWindow')
@@ -5646,7 +5992,7 @@ class binance(Exchange):
         #         },
         #     ]
         #
-        return self.parse_borrow_rate_history(response)
+        return self.parse_borrow_rate_history(response, code, since, limit)
 
     def parse_borrow_rate_history(self, response, code, since, limit):
         result = []
@@ -5828,36 +6174,26 @@ class binance(Exchange):
         :param dict params: extra parameters specific to the binance api endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
         """
+        marginMode, query = self.handle_margin_mode_and_params('repayMargin', params)  # cross or isolated
+        self.check_required_margin_argument('repayMargin', symbol, marginMode)
         self.load_markets()
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            symbol = market['symbol']
         currency = self.currency(code)
         request = {
             'asset': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
-        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
-        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)  # cross or isolated
-        if marginMode == 'isolated':
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' repayMargin() requires a symbol argument for isolated margin')
-            request['isIsolated'] = 'TRUE'
+        if symbol is not None:
+            market = self.market(symbol)
             request['symbol'] = market['id']
-        params = self.omit(params, 'marginMode')
-        response = self.sapiPostMarginRepay(self.extend(request, params))
+            request['isIsolated'] = 'TRUE'
+        response = self.sapiPostMarginRepay(self.extend(request, query))
         #
         #     {
         #         "tranId": 108988250265,
         #         "clientTag":""
         #     }
         #
-        transaction = self.parse_margin_loan(response, currency)
-        return self.extend(transaction, {
-            'amount': amount,
-            'symbol': symbol,
-        })
+        return self.parse_margin_loan(response, currency)
 
     def borrow_margin(self, code, amount, symbol=None, params={}):
         """
@@ -5869,36 +6205,26 @@ class binance(Exchange):
         :param dict params: extra parameters specific to the binance api endpoint
         :returns dict: a `margin loan structure <https://docs.ccxt.com/en/latest/manual.html#margin-loan-structure>`
         """
+        marginMode, query = self.handle_margin_mode_and_params('borrowMargin', params)  # cross or isolated
+        self.check_required_margin_argument('borrowMargin', symbol, marginMode)
         self.load_markets()
-        market = None
-        if symbol is not None:
-            market = self.market(symbol)
-            symbol = market['symbol']
         currency = self.currency(code)
         request = {
             'asset': currency['id'],
             'amount': self.currency_to_precision(code, amount),
         }
-        defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
-        marginMode = self.safe_string(params, 'marginMode', defaultMarginMode)  # cross or isolated
-        if marginMode == 'isolated':
-            if symbol is None:
-                raise ArgumentsRequired(self.id + ' borrowMargin() requires a symbol argument for isolated margin')
-            request['isIsolated'] = 'TRUE'
+        if symbol is not None:
+            market = self.market(symbol)
             request['symbol'] = market['id']
-        params = self.omit(params, 'marginMode')
-        response = self.sapiPostMarginLoan(self.extend(request, params))
+            request['isIsolated'] = 'TRUE'
+        response = self.sapiPostMarginLoan(self.extend(request, query))
         #
         #     {
         #         "tranId": 108988250265,
         #         "clientTag":""
         #     }
         #
-        transaction = self.parse_margin_loan(response, currency)
-        return self.extend(transaction, {
-            'amount': amount,
-            'symbol': symbol,
-        })
+        return self.parse_margin_loan(response, currency)
 
     def parse_margin_loan(self, info, currency=None):
         #
@@ -5919,7 +6245,7 @@ class binance(Exchange):
 
     def fetch_open_interest_history(self, symbol, timeframe='5m', since=None, limit=None, params={}):
         """
-        Retrieves the open intestest history of a currency
+        Retrieves the open interest history of a currency
         :param str symbol: Unified CCXT market symbol
         :param str timeframe: "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
         :param int|None since: the time(ms) of the earliest record to retrieve as a unix timestamp
@@ -5974,10 +6300,14 @@ class binance(Exchange):
         timestamp = self.safe_integer(interest, 'timestamp')
         id = self.safe_string(interest, 'symbol')
         market = self.safe_market(id, market)
+        amount = self.safe_number(interest, 'sumOpenInterest')
+        value = self.safe_number(interest, 'sumOpenInterestValue')
         return {
             'symbol': self.safe_symbol(id),
-            'baseVolume': self.safe_number(interest, 'sumOpenInterest'),
-            'quoteVolume': self.safe_number(interest, 'sumOpenInterestValue'),
+            'baseVolume': amount,  # deprecated
+            'quoteVolume': value,  # deprecated
+            'openInterestAmount': amount,
+            'openInterestValue': value,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'info': interest,

@@ -6,20 +6,11 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\AuthenticationError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\InvalidAddress;
-use \ccxt\AddressPending;
-use \ccxt\InvalidOrder;
-use \ccxt\OrderNotFound;
-use \ccxt\DDoSProtection;
 
 class bittrex extends Exchange {
 
     public function describe() {
-        return $this->deep_extend(parent::describe (), array(
+        return $this->deep_extend(parent::describe(), array(
             'id' => 'bittrex',
             'name' => 'Bittrex',
             'countries' => array( 'US' ),
@@ -368,8 +359,8 @@ class bittrex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->parse_number('0.00000001'),
-                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'precision', '8'))),
+                    'amount' => $this->parse_number('1e-8'), // seems exchange has same amount-precision across all pairs in UI too. This is same as 'minTradeSize' digits after dot
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'precision'))),
                 ),
                 'limits' => array(
                     'leverage' => array(
@@ -491,7 +482,7 @@ class bittrex extends Exchange {
             $currency = $response[$i];
             $id = $this->safe_string($currency, 'symbol');
             $code = $this->safe_currency_code($id);
-            $precision = $this->parse_number('0.00000001'); // default $precision, todo => fix "magic constants"
+            $precision = $this->parse_number('1e-8'); // default $precision, seems exchange has same amount-$precision across all pairs in UI too. todo => fix "magic constants"
             $fee = $this->safe_number($currency, 'txFee'); // todo => redesign
             $isActive = $this->safe_string($currency, 'status');
             $result[$code] = array(
@@ -732,9 +723,17 @@ class bittrex extends Exchange {
         $priceString = $this->safe_string($trade, 'rate');
         $amountString = $this->safe_string($trade, 'quantity');
         $takerOrMaker = null;
+        $side = $this->safe_string_lower_2($trade, 'takerSide', 'direction');
         $isTaker = $this->safe_value($trade, 'isTaker');
         if ($isTaker !== null) {
             $takerOrMaker = $isTaker ? 'taker' : 'maker';
+            if (!$isTaker) { // as noted in PR #15655 this API provides confusing value - when it's 'maker' $trade, then $side value should reversed
+                if ($side === 'buy') {
+                    $side = 'sell';
+                } elseif ($side === 'sell') {
+                    $side = 'buy';
+                }
+            }
         }
         $fee = null;
         $feeCostString = $this->safe_string($trade, 'commission');
@@ -744,7 +743,6 @@ class bittrex extends Exchange {
                 'currency' => $market['quote'],
             );
         }
-        $side = $this->safe_string_lower_2($trade, 'takerSide', 'direction');
         return $this->safe_trade(array(
             'info' => $trade,
             'timestamp' => $timestamp,
@@ -1359,9 +1357,9 @@ class bittrex extends Exchange {
 
     public function fetch_deposit($id, $code = null, $params = array ()) {
         /**
-         * fetch data on a currency deposit via the deposit $id
+         * fetch data on a $currency deposit via the deposit $id
          * @param {string} $id deposit $id
-         * @param {string|null} $code filter by currency $code
+         * @param {string|null} $code filter by $currency $code
          * @param {array} $params extra parameters specific to the bittrex api endpoint
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
          */
@@ -1369,8 +1367,12 @@ class bittrex extends Exchange {
         $request = array(
             'txId' => $id,
         );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
         $response = $this->privateGetDepositsByTxIdTxId (array_merge($request, $params));
-        $transactions = $this->parse_transactions($response, $code, null, null);
+        $transactions = $this->parse_transactions($response, $currency, null, null);
         return $this->safe_value($transactions, 0);
     }
 
@@ -1436,9 +1438,9 @@ class bittrex extends Exchange {
 
     public function fetch_withdrawal($id, $code = null, $params = array ()) {
         /**
-         * fetch data on a currency withdrawal via the withdrawal $id
+         * fetch data on a $currency withdrawal via the withdrawal $id
          * @param {string} $id withdrawal $id
-         * @param {string|null} $code filter by currency $code
+         * @param {string|null} $code filter by $currency $code
          * @param {array} $params extra parameters specific to the bittrex api endpoint
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#transaction-structure transaction structure}
          */
@@ -1446,8 +1448,12 @@ class bittrex extends Exchange {
         $request = array(
             'txId' => $id,
         );
+        $currency = null;
+        if ($code !== null) {
+            $currency = $this->currency($code);
+        }
         $response = $this->privateGetWithdrawalsByTxIdTxId (array_merge($request, $params));
-        $transactions = $this->parse_transactions($response, $code, null, null);
+        $transactions = $this->parse_transactions($response, $currency, null, null);
         return $this->safe_value($transactions, 0);
     }
 

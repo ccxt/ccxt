@@ -37,7 +37,7 @@ function logExportExchanges (filename, regex, replacement) {
 
 // ----------------------------------------------------------------------------
 
-function getIncludedExchangeIds () {
+function getIncludedExchangeIds (path) {
 
     const includedIds = fs.readFileSync ('exchanges.cfg')
         .toString () // Buffer → String
@@ -46,8 +46,7 @@ function getIncludedExchangeIds () {
         .filter (exchange => exchange); // filter empty lines
 
     const isIncluded = (id) => ((includedIds.length === 0) || includedIds.includes (id))
-
-    const ids = fs.readdirSync ('./js/')
+    const ids = fs.readdirSync (path)
         .filter (file => file.match (/[a-zA-Z0-9_-]+.js$/))
         .map (file => file.slice (0, -3))
         .filter (isIncluded);
@@ -331,11 +330,9 @@ function exportSupportedAndCertifiedExchanges (exchanges, { allExchangesPaths, c
 
 // ----------------------------------------------------------------------------
 
-function exportExchangeIdsToExchangesJson (exchanges) {
+function exportExchangeIdsToExchangesJson (ids, ws) {
     log.bright ('Exporting exchange ids to'.cyan, 'exchanges.json'.yellow)
-    const ids = keys (exchanges)
-    console.log (ids)
-    fs.writeFileSync ('exchanges.json', JSON.stringify ({ ids }, null, 4))
+    fs.writeFileSync ('exchanges.json', JSON.stringify ({ ids, ws }, null, 4))
 }
 
 // ----------------------------------------------------------------------------
@@ -351,7 +348,7 @@ function exportWikiToGitHub (wikiPath, gitWikiPath) {
         'Exchange-Markets.md': 'Exchange-Markets.md',
         'Exchange-Markets-By-Country.md': 'Exchange-Markets-By-Country.md',
         'ccxt.pro.md': 'ccxt.pro.md',
-        'ccxt.pro.install.md': 'ccxt.pro.install.md',
+        // 'ccxt.pro.install.md': 'ccxt.pro.install.md',
         'ccxt.pro.manual.md': 'ccxt.pro.manual.md',
     }
 
@@ -399,7 +396,10 @@ function flatten (nested, result = []) {
 // ----------------------------------------------------------------------------
 
 function exportEverything () {
-    const ids = getIncludedExchangeIds ()
+    const ids = getIncludedExchangeIds ('./js')
+
+    const wsIds = getIncludedExchangeIds ('./js/pro')
+
     const errorHierarchy = require ('../js/base/errorHierarchy.js')
     const flat = flatten (errorHierarchy)
     flat.push ('error_hierarchy')
@@ -408,7 +408,12 @@ function exportEverything () {
         {
             file: './ccxt.js',
             regex:  /(?:const|var)\s+exchanges\s+\=\s+\{[^\}]+\}/,
-            replacement: "const exchanges = {\n" + ids.map (id => ("    '" + id + "':").padEnd (30) + " require ('./js/" + id + ".js'),").join ("\n") + "    \n}",
+            replacement: "const exchanges = {\n" + ids.map (id => ("    '" + id + "':").padEnd (30) + " require ('./js/" + id + ".js'),") .join ("\n") + "\n}",
+        },
+        {
+            file: './ccxt.js',
+            regex:  /(?:const|var)\s+pro\s+\=\s+\{[^\}]+\}/,
+            replacement: "const pro = {\n" + wsIds.map (id => ("    '" + id + "':").padEnd (30) + " require ('./js/pro/" + id + ".js'),") .join ("\n") + "\n}",
         },
         {
             file: './python/ccxt/__init__.py',
@@ -418,22 +423,22 @@ function exportEverything () {
         {
             file: './python/ccxt/__init__.py',
             regex: /(?:from ccxt\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
-            replacement: ids.map (id => ('from ccxt.' + id + ' import ' + id).padEnd (60) + '# noqa: F401').join ("\n") + "\n\nexchanges",
+            replacement: ids.map (id => ('from ccxt.' + id + ' import ' + id).padEnd (70) + '# noqa: F401').join ("\n") + "\n\nexchanges",
         },
         {
             file: './python/ccxt/__init__.py',
             regex: /(?:from ccxt\.base\.errors import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]/,
-            replacement: flat.map (error => ('from ccxt.base.errors' + ' import ' + error).padEnd (60) + '# noqa: F401').join ("\n") + "\n\n",
+            replacement: flat.map (error => ('from ccxt.base.errors' + ' import ' + error).padEnd (70) + '# noqa: F401').join ("\n") + "\n\n",
         },
         {
             file: './python/ccxt/async_support/__init__.py',
             regex: /(?:from ccxt\.base\.errors import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]/,
-            replacement: flat.map (error => ('from ccxt.base.errors' + ' import ' + error).padEnd (60) + '# noqa: F401').join ("\n") + "\n\n",
+            replacement: flat.map (error => ('from ccxt.base.errors' + ' import ' + error).padEnd (70) + '# noqa: F401').join ("\n") + "\n\n",
         },
         {
             file: './python/ccxt/async_support/__init__.py',
             regex: /(?:from ccxt\.async_support\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
-            replacement: ids.map (id => ('from ccxt.async_support.' + id + ' import ' + id).padEnd (74) + '# noqa: F401').join ("\n") + "\n\nexchanges",
+            replacement: ids.map (id => ('from ccxt.async_support.' + id + ' import ' + id).padEnd (80) + '# noqa: F401').join ("\n") + "\n\nexchanges",
         },
         {
             file: './python/ccxt/async_support/__init__.py',
@@ -444,6 +449,21 @@ function exportEverything () {
             file: './php/Exchange.php',
             regex: /public static \$exchanges \= array\s*\([^\)]+\)/,
             replacement: "public static $exchanges = array(\n        '" + ids.join ("',\n        '") + "',\n    )",
+        },
+        {
+            file: './php/pro/Exchange.php',
+            regex: /Exchange::\$exchanges \= array\s*\([^\)]+\)/,
+            replacement: "Exchange::$exchanges = array(\n    '" + wsIds.join ("',\n    '") + "',\n)",
+        },
+        {
+            file: './python/ccxt/pro/__init__.py',
+            regex: /(?:from ccxt\.pro\.[^\.]+ import [^\s]+\s+\# noqa\: F401[\r]?[\n])+[\r]?[\n]exchanges/,
+            replacement: wsIds.map (id => ('from ccxt.pro.' + id + ' import ' + id).padEnd (74) + '# noqa: F401').join ("\n") + "\n\nexchanges",
+        },
+        {
+            file: './python/ccxt/pro/__init__.py',
+            regex: /exchanges \= \[[^\]]+\]/,
+            replacement: "exchanges = [\n" + "    '" + wsIds.join ("',\n    '") + "'," + "\n]",
         },
     ]
 
@@ -474,7 +494,7 @@ function exportEverything () {
         ],
     })
 
-    exportExchangeIdsToExchangesJson (exchanges)
+    exportExchangeIdsToExchangesJson (keys(exchanges), wsIds)
     exportWikiToGitHub (wikiPath, gitWikiPath)
     exportKeywordsToPackageJson (exchanges)
 
