@@ -466,6 +466,7 @@ module.exports = class gate extends Exchange {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
                     },
                 },
+                'currencyPrecision': this.parseNumber ('1e-4'), // todo: as gateio is done completely in html, in withdrawal page's source it has predefined "num_need_fix(this.value, 4);" function, so users cant set lower precision than 0.0001
             },
             'precisionMode': TICK_SIZE,
             'fees': {
@@ -1273,44 +1274,93 @@ module.exports = class gate extends Exchange {
         }
         const response = await this.publicSpotGetCurrencies (params);
         //
-        //    {
-        //        "currency": "BCN",
-        //        "delisted": false,
-        //        "withdraw_disabled": true,
-        //        "withdraw_delayed": false,
-        //        "deposit_disabled": true,
-        //        "trade_disabled": false
-        //    }
+        //     {
+        //         "currency": "USDT_ETH",
+        //         "delisted": false,
+        //         "withdraw_disabled": false,
+        //         "withdraw_delayed": false,
+        //         "deposit_disabled": false,
+        //         "trade_disabled": false,
+        //         "chain": "ETH"
+        //     },
         //
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const currencyId = this.safeString (entry, 'currency');
-            const currencyIdLower = this.safeStringLower (entry, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const delisted = this.safeValue (entry, 'delisted');
-            const withdrawDisabled = this.safeValue (entry, 'withdraw_disabled', false);
-            const depositDisabled = this.safeValue (entry, 'deposit_disabled', false);
-            const tradeDisabled = this.safeValue (entry, 'trade_disabled', false);
-            const withdrawEnabled = !withdrawDisabled;
-            const depositEnabled = !depositDisabled;
-            const tradeEnabled = !tradeDisabled;
-            const listed = !delisted;
+            const parts = currencyId.split ('_');
+            const partFirst = this.safeString (parts, 0);
+            let currencyName = undefined;
+            // if currency contains underscore, then second part is always chain name (except _OLD suffixed coins)
+            if (currencyId.indexOf ('_OLD') > -1) {
+                currencyName = currencyId;
+            } else {
+                // however, if there is underscore, the exceptional is 'USD_USDC' inclusive currencies, i.e. USD_USDCTRX, USD_USDCSOL...
+                if (currencyId.indexOf ('USD_USDC') > -1) {
+                    currencyName = 'USD_USDC';
+                } else {
+                    currencyName = partFirst;
+                }
+            }
+            const code = this.safeCurrencyCode (currencyName);
+            // ach entry from response is actually a dedicated entry to each network, so we have to create a currency-wide object at first whenever we first encounter that currency
+            if (!(code in result)) {
+                result[code] = {
+                    'info': undefined,
+                    'id': currencyName,
+                    'lowerCaseId': currencyName.toLowerCase (),
+                    'name': undefined,
+                    'code': code,
+                    'precision': this.options['currencyPrecision'],
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'fees': [],
+                    'limits': this.limits,
+                    'networks': {},
+                };
+            }
+            // below are network-specific values
+            const listed = !this.safeValue (entry, 'delisted');
+            const withdrawEnabled = !this.safeValue (entry, 'withdraw_disabled', false);
+            const depositEnabled = !this.safeValue (entry, 'deposit_disabled', false);
+            const tradeEnabled = !this.safeValue (entry, 'trade_disabled', false);
             const active = listed && tradeEnabled && withdrawEnabled && depositEnabled;
-            result[code] = {
-                'id': currencyId,
-                'lowerCaseId': currencyIdLower,
-                'name': undefined,
-                'code': code,
-                'precision': this.parseNumber ('1e-4'), // todo: as gateio is done completely in html, in withdrawal page's source it has predefined "num_need_fix(this.value, 4);" function, so users cant set lower precision than 0.0001
-                'info': entry,
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': undefined,
-                'fees': [],
-                'limits': this.limits,
-            };
+            // if any of the property is `true` then set it to global currency's property `true` too
+            if (active && !result[code]['active']) {
+                result[code]['active'] = true;
+            }
+            if (depositEnabled && !result[code]['deposit']) {
+                result[code]['deposit'] = true;
+            }
+            if (withdrawEnabled && !result[code]['withdraw']) {
+                result[code]['withdraw'] = true;
+            }
+            const networkId = this.safeString (entry, 'chain'); // some networks are null
+            if (networkId !== undefined) {
+                const networkCode = this.networkIdToCode (networkId, code);
+                result[code]['networks'][networkCode] = {
+                    'info': entry,
+                    'id': networkId,
+                    'network': networkCode,
+                    'limits': {
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                    'active': active,
+                    'deposit': depositEnabled,
+                    'withdraw': withdrawEnabled,
+                    'fee': undefined,
+                    'precision': this.options['currencyPrecision'],
+                };
+            }
         }
         return result;
     }
