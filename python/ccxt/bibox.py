@@ -446,7 +446,6 @@ class bibox(Exchange):
         return result
 
     def parse_ticker(self, ticker, market=None):
-        # we don't set values that are not defined by the exchange
         #
         # fetchTicker
         #
@@ -473,28 +472,28 @@ class bibox(Exchange):
         #
         #    {
         #        is_hide: '0',
-        #        high_cny: '0.1094',
-        #        amount: '5.34',
+        #        high_cny: '0.0860',
+        #        amount: '0.37',
         #        coin_symbol: 'BIX',
-        #        last: '0.00000080',
+        #        last: '0.00000069',
         #        currency_symbol: 'BTC',
-        #        change: '+0.00000001',
-        #        low_cny: '0.1080',
-        #        base_last_cny: '0.10935854',
+        #        change: '-0.00000004',
+        #        low_cny: '0.0791',
+        #        base_last_cny: '0.07909660',
         #        area_id: '7',
-        #        percent: '+1.27%',
-        #        last_cny: '0.1094',
-        #        high: '0.00000080',
-        #        low: '0.00000079',
+        #        percent: '-5.48%',
+        #        last_cny: '0.0791',
+        #        high: '0.00000075',
+        #        low: '0.00000069',
         #        pair_type: '0',
-        #        last_usd: '0.0155',
-        #        vol24H: '6697325',
+        #        last_usd: '0.0112',
+        #        vol24H: '510573',
         #        id: '1',
-        #        high_usd: '0.0155',
-        #        low_usd: '0.0153'
+        #        high_usd: '0.0122',
+        #        low_usd: '0.0112'
         #    }
         #
-        timestamp = self.safe_integer_2(ticker, 'timestamp', 't')
+        timestamp = self.safe_integer(ticker, 't')
         baseId = self.safe_string(ticker, 'coin_symbol')
         quoteId = self.safe_string(ticker, 'currency_symbol')
         marketId = self.safe_string(ticker, 's')
@@ -506,7 +505,7 @@ class bibox(Exchange):
         if percentage is not None:
             percentage = percentage.replace('%', '')
         return self.safe_ticker({
-            'symbol': market['symbol'],
+            'symbol': self.safe_string(market, 'symbol'),
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'high': self.safe_string_2(ticker, 'high', 'h'),
@@ -569,46 +568,45 @@ class bibox(Exchange):
 
     def fetch_tickers(self, symbols=None, params={}):
         """
-        v1, fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the bibox api endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
-        request = {
-            'cmd': 'marketAll',
-        }
-        response = self.v1PublicGetMdata(self.extend(request, params))
+        request = {}
+        response = self.v3PublicGetMdataMarketAll(self.extend(request, params))
         #
         #    {
+        #        state: '0',
         #        result: [
         #            {
         #                is_hide: '0',
-        #                high_cny: '0.1094',
-        #                amount: '5.34',
+        #                high_cny: '0.0860',
+        #                amount: '0.37',
         #                coin_symbol: 'BIX',
-        #                last: '0.00000080',
+        #                last: '0.00000069',
         #                currency_symbol: 'BTC',
-        #                change: '+0.00000001',
-        #                low_cny: '0.1080',
-        #                base_last_cny: '0.10935854',
+        #                change: '-0.00000004',
+        #                low_cny: '0.0791',
+        #                base_last_cny: '0.07909660',
         #                area_id: '7',
-        #                percent: '+1.27%',
-        #                last_cny: '0.1094',
-        #                high: '0.00000080',
-        #                low: '0.00000079',
+        #                percent: '-5.48%',
+        #                last_cny: '0.0791',
+        #                high: '0.00000075',
+        #                low: '0.00000069',
         #                pair_type: '0',
-        #                last_usd: '0.0155',
-        #                vol24H: '6697325',
+        #                last_usd: '0.0112',
+        #                vol24H: '510573',
         #                id: '1',
-        #                high_usd: '0.0155',
-        #                low_usd: '0.0153'
+        #                high_usd: '0.0122',
+        #                low_usd: '0.0112'
         #            },
         #            ...
         #        ],
         #        cmd: 'marketAll',
-        #        ver: '1.1'
+        #        ver: '3'
         #    }
         #
         tickers = self.parse_tickers(response['result'], symbols)
@@ -981,7 +979,7 @@ class bibox(Exchange):
             id = self.safe_string(currency, 'symbol')
             name = currency['name']  # contains hieroglyphs causing python ASCII bug
             code = self.safe_currency_code(id)
-            precision = self.parse_number('0.00000001')
+            precision = self.parse_number('1e-8')
             deposit = self.safe_value(currency, 'enable_deposit')
             withdraw = self.safe_value(currency, 'enable_withdraw')
             active = (deposit and withdraw)
@@ -2258,7 +2256,8 @@ class bibox(Exchange):
         if response is None:
             return
         if 'state' in response:
-            if self.safe_number(response, 'state') == 0:
+            state = self.safe_string(response, 'state')
+            if Precise.string_eq(state, '0'):    # self.safe_number("0") == 0 may return False in php because of mismatched types(e.g. integer and double)
                 return
             raise ExchangeError(self.id + ' ' + body)
         if 'error' in response:

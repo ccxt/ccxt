@@ -678,6 +678,10 @@ class cex extends \ccxt\async\cex {
         $symbol = $base . '/' . $quote;
         $market = $this->safe_market($symbol);
         $remains = $this->currency_from_precision($base, $remains);
+        if ($this->orders === null) {
+            $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
+            $this->orders = new ArrayCacheBySymbolById ($limit);
+        }
         $ordersBySymbol = $this->safe_value($this->orders['hashmap'], $symbol, array());
         $order = $this->safe_value($ordersBySymbol, $orderId);
         if ($order === null) {
@@ -859,7 +863,9 @@ class cex extends \ccxt\async\cex {
         }
         $this->orders = $myOrders;
         $messageHash = 'orders:' . $symbol;
-        $client->resolve ($myOrders, $messageHash);
+        if (strlen($myOrders) > 0) {
+            $client->resolve ($myOrders, $messageHash);
+        }
     }
 
     public function watch_order_book($symbol, $limit = null, $params = array ()) {
