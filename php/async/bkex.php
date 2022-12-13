@@ -618,6 +618,8 @@ class bkex extends Exchange {
         return Async\async(function () use ($symbol, $params) {
             /**
              * fetches a price $ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
+             * @see https://bkexapi.github.io/docs/api_en.htm?shell#quotationData-2
+             * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-$ticker-data
              * @param {string} $symbol unified $symbol of the $market to fetch the $ticker for
              * @param {array} $params extra parameters specific to the bkex api endpoint
              * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structure}
@@ -627,28 +629,54 @@ class bkex extends Exchange {
             $request = array(
                 'symbol' => $market['id'],
             );
-            $response = Async\await($this->publicSpotGetQTickers (array_merge($request, $params)));
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchTicker', $market, $params);
+            $method = ($marketType === 'swap') ? 'publicSwapGetMarketTickers' : 'publicSpotGetQTickers';
+            $response = Async\await($this->$method (array_merge($request, $query)));
             //
-            // {
-            //     "code" => "0",
-            //     "data" => array(
-            //       {
-            //         "change" => "6.52",
-            //         "close" => "43573.470000",
-            //         "high" => "44940.540000",
-            //         "low" => "40799.840000",
-            //         "open" => "40905.780000",
-            //         "quoteVolume" => "225621691.5991",
-            //         "symbol" => "BTC_USDT",
-            //         "ts" => "1646156490781",
-            //         "volume" => 5210.349
-            //       }
-            //     ),
-            //     "msg" => "success",
-            //     "status" => 0
-            // }
+            // spot
             //
-            $tickers = $this->safe_value($response, 'data');
+            //     {
+            //         "code" => "0",
+            //         "data" => array(
+            //             {
+            //                 "change" => "6.52",
+            //                 "close" => "43573.470000",
+            //                 "high" => "44940.540000",
+            //                 "low" => "40799.840000",
+            //                 "open" => "40905.780000",
+            //                 "quoteVolume" => "225621691.5991",
+            //                 "symbol" => "BTC_USDT",
+            //                 "ts" => "1646156490781",
+            //                 "volume" => 5210.349
+            //             }
+            //         ),
+            //         "msg" => "success",
+            //         "status" => 0
+            //     }
+            //
+            // swap
+            //
+            //     {
+            //         "code" => 0,
+            //         "msg" => "success",
+            //         "data" => array(
+            //             {
+            //                 "symbol" => "btc_usdt",
+            //                 "amount" => "171035.45",
+            //                 "volume" => "2934757466.3859",
+            //                 "open" => "17111.43",
+            //                 "close" => "17135.74",
+            //                 "high" => "17225.99",
+            //                 "low" => "17105.77",
+            //                 "lastPrice" => "17135.74",
+            //                 "lastAmount" => "1.05",
+            //                 "lastTime" => 1670709364912,
+            //                 "change" => "0.14"
+            //             }
+            //         )
+            //     }
+            //
+            $tickers = $this->safe_value($response, 'data', array());
             $ticker = $this->safe_value($tickers, 0);
             return $this->parse_ticker($ticker, $market);
         }) ();
@@ -657,8 +685,10 @@ class bkex extends Exchange {
     public function fetch_tickers($symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market $tickers are returned if not assigned
+             * fetches price $tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+             * @see https://bkexapi.github.io/docs/api_en.htm?shell#quotationData-2
+             * @see https://bkexapi.github.io/docs/api_en.htm?shell#contract-ticker-data
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market $tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the bkex api endpoint
              * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
@@ -666,20 +696,81 @@ class bkex extends Exchange {
             $request = array();
             if ($symbols !== null) {
                 if (gettype($symbols) !== 'array' || array_keys($symbols) !== array_keys(array_keys($symbols))) {
-                    throw new BadRequest($this->id . ' fetchTickers () $symbols argument should be an array');
+                    throw new BadRequest($this->id . ' fetchTickers() $symbols argument should be an array');
                 }
             }
+            $market = null;
             if ($symbols !== null) {
                 $marketIds = $this->market_ids($symbols);
-                $request['symbol'] = implode(',', $marketIds);
+                $symbol = $this->safe_string($symbols, 0);
+                $market = $this->market($symbol);
+                if ($market['swap']) {
+                    if (gettype($symbols) === 'array' && array_keys($symbols) === array_keys(array_keys($symbols))) {
+                        $symbolsLength = count($symbols);
+                        if ($symbolsLength > 1) {
+                            throw new BadRequest($this->id . ' fetchTickers() $symbols argument cannot contain more than 1 $symbol for swap markets');
+                        }
+                    }
+                    $request['symbol'] = $market['id'];
+                } else {
+                    $request['symbol'] = implode(',', $marketIds);
+                }
             }
-            $response = Async\await($this->publicSpotGetQTickers (array_merge($request, $params)));
-            $tickers = $this->safe_value($response, 'data');
-            return $this->parse_tickers($tickers, $symbols, $params);
+            list($marketType, $query) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
+            $method = ($marketType === 'swap') ? 'publicSwapGetMarketTickers' : 'publicSpotGetQTickers';
+            $response = Async\await($this->$method (array_merge($request, $query)));
+            //
+            // spot
+            //
+            //     {
+            //         "code" => "0",
+            //         "data" => array(
+            //             {
+            //                 "change" => "6.52",
+            //                 "close" => "43573.470000",
+            //                 "high" => "44940.540000",
+            //                 "low" => "40799.840000",
+            //                 "open" => "40905.780000",
+            //                 "quoteVolume" => "225621691.5991",
+            //                 "symbol" => "BTC_USDT",
+            //                 "ts" => "1646156490781",
+            //                 "volume" => 5210.349
+            //             }
+            //         ),
+            //         "msg" => "success",
+            //         "status" => 0
+            //     }
+            //
+            // swap
+            //
+            //     {
+            //         "code" => 0,
+            //         "msg" => "success",
+            //         "data" => array(
+            //             {
+            //                 "symbol" => "btc_usdt",
+            //                 "amount" => "171035.45",
+            //                 "volume" => "2934757466.3859",
+            //                 "open" => "17111.43",
+            //                 "close" => "17135.74",
+            //                 "high" => "17225.99",
+            //                 "low" => "17105.77",
+            //                 "lastPrice" => "17135.74",
+            //                 "lastAmount" => "1.05",
+            //                 "lastTime" => 1670709364912,
+            //                 "change" => "0.14"
+            //             }
+            //         )
+            //     }
+            //
+            $tickers = $this->safe_value($response, 'data', array());
+            return $this->parse_tickers($tickers, $symbols, $query);
         }) ();
     }
 
     public function parse_ticker($ticker, $market = null) {
+        //
+        // spot
         //
         //    {
         //          "change":-0.46,
@@ -693,10 +784,29 @@ class bkex extends Exchange {
         //          "volume":23684.9416
         //    }
         //
+        // swap
+        //
+        //     {
+        //         "symbol" => "btc_usdt",
+        //         "amount" => "171035.45",
+        //         "volume" => "2934757466.3859",
+        //         "open" => "17111.43",
+        //         "close" => "17135.74",
+        //         "high" => "17225.99",
+        //         "low" => "17105.77",
+        //         "lastPrice" => "17135.74",
+        //         "lastAmount" => "1.05",
+        //         "lastTime" => 1670709364912,
+        //         "change" => "0.14"
+        //     }
+        //
         $marketId = $this->safe_string($ticker, 'symbol');
         $symbol = $this->safe_symbol($marketId, $market);
-        $timestamp = $this->safe_integer($ticker, 'ts');
-        $last = $this->safe_string($ticker, 'close');
+        $market = $this->market($symbol);
+        $timestamp = $this->safe_integer_2($ticker, 'ts', 'lastTime');
+        $baseCurrencyVolume = $market['swap'] ? 'amount' : 'volume';
+        $quoteCurrencyVolume = $market['swap'] ? 'volume' : 'quoteVolume';
+        $lastPrice = $market['swap'] ? 'lastPrice' : 'close';
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -709,14 +819,14 @@ class bkex extends Exchange {
             'askVolume' => null,
             'vwap' => null,
             'open' => $this->safe_string($ticker, 'open'),
-            'close' => $last,
-            'last' => $last,
+            'close' => $this->safe_string($ticker, 'close'),
+            'last' => $this->safe_string($ticker, $lastPrice),
             'previousClose' => null,
             'change' => null,
             'percentage' => $this->safe_string($ticker, 'change'), // 24h percentage change (close - open) / open * 100
             'average' => null,
-            'baseVolume' => $this->safe_string($ticker, 'volume'),
-            'quoteVolume' => $this->safe_string($ticker, 'quoteVolume'),
+            'baseVolume' => $this->safe_string($ticker, $baseCurrencyVolume),
+            'quoteVolume' => $this->safe_string($ticker, $quoteCurrencyVolume),
             'info' => $ticker,
         ), $market);
     }

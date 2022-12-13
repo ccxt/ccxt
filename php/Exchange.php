@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.2.101';
+$version = '2.2.102';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.2.101';
+    const VERSION = '2.2.102';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -431,6 +431,7 @@ class Exchange {
         'checkRequiredSymbol' => 'check_required_symbol',
         'parseDepositWithdrawFees' => 'parse_deposit_withdraw_fees',
         'depositWithdrawFee' => 'deposit_withdraw_fee',
+        'assignDefaultDepositWithdrawFees' => 'assign_default_deposit_withdraw_fees',
     );
 
     public static function split($string, $delimiters = array(' ')) {
@@ -4714,5 +4715,31 @@ class Exchange {
             ),
             'networks' => array(),
         );
+    }
+
+    public function assign_default_deposit_withdraw_fees($fee, $currency = null) {
+        /**
+         * @ignore
+         * Takes a depositWithdrawFee structure and assigns the default values for withdraw and deposit
+         * @param {array} $fee A deposit withdraw $fee structure
+         * @param {array} $currency A $currency structure, the response from $this->currency ()
+         * @return {array} A deposit withdraw $fee structure
+         */
+        $networkKeys = is_array($fee['networks']) ? array_keys($fee['networks']) : array();
+        $numNetworks = count($networkKeys);
+        if ($numNetworks === 1) {
+            $fee['withdraw'] = $fee['networks'][$networkKeys[0]]['withdraw'];
+            $fee['deposit'] = $fee['networks'][$networkKeys[0]]['deposit'];
+            return $fee;
+        }
+        $currencyCode = $this->safe_string($currency, 'code');
+        for ($i = 0; $i < $numNetworks; $i++) {
+            $network = $networkKeys[$i];
+            if ($network === $currencyCode) {
+                $fee['withdraw'] = $fee['networks'][$networkKeys[$i]]['withdraw'];
+                $fee['deposit'] = $fee['networks'][$networkKeys[$i]]['deposit'];
+            }
+        }
+        return $fee;
     }
 }
