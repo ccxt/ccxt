@@ -6,9 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\InvalidOrder;
 
 class woo extends Exchange {
 
@@ -20,6 +17,7 @@ class woo extends Exchange {
             'rateLimit' => 100,
             'version' => 'v1',
             'certified' => false,
+            'pro' => true,
             'hostname' => 'woo.org',
             'has' => array(
                 'CORS' => null,
@@ -127,12 +125,14 @@ class woo extends Exchange {
                     'pub' => array(
                         'get' => array(
                             'hist/kline' => 10,
+                            'hist/trades' => 1,
                         ),
                     ),
                     'public' => array(
                         'get' => array(
                             'info' => 1,
                             'info/{symbol}' => 1,
+                            'system_info' => 1,
                             'market_trades' => 1,
                             'token' => 1,
                             'token_network' => 1,
@@ -155,7 +155,7 @@ class woo extends Exchange {
                             'order/{oid}/trades' => 1,
                             'client/trades' => 1,
                             'client/info' => 60,
-                            'asset/deposit' => 120,
+                            'asset/deposit' => 10,
                             'asset/history' => 60,
                             'sub_account/all' => 60,
                             'sub_account/assets' => 60,
@@ -170,7 +170,7 @@ class woo extends Exchange {
                         'post' => array(
                             'order' => 5, // 2 requests per 1 second per symbol
                             'asset/main_sub_transfer' => 30, // 20 requests per 60 seconds
-                            'asset/withdraw' => 120,  // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                            'asset/withdraw' => 30,  // implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
                             'interest/repay' => 60,
                             'client/account_mode' => 120,
                             'client/leverage' => 120,
@@ -187,6 +187,23 @@ class woo extends Exchange {
                     'private' => array(
                         'get' => array(
                             'client/holding' => 1,
+                        ),
+                    ),
+                ),
+                'v3' => array(
+                    'private' => array(
+                        'get' => array(
+                            'algo/order/{oid}' => 1,
+                            'algo/orders' => 1,
+                        ),
+                        'post' => array(
+                            'algo/order' => 5,
+                        ),
+                        'delete' => array(
+                            'algo/order/{oid}' => 1,
+                            'algo/orders/pending' => 1,
+                            'algo/orders/pending/{symbol}' => 1,
+                            'orders/pending' => 1,
                         ),
                     ),
                 ),
@@ -608,6 +625,7 @@ class woo extends Exchange {
             $networks = $networksByCurrencyId[$currencyId];
             $code = $this->safe_currency_code($currencyId);
             $name = null;
+            $minPrecision = null;
             $resultingNetworks = array();
             for ($j = 0; $j < count($networks); $j++) {
                 $network = $networks[$j];
@@ -615,7 +633,10 @@ class woo extends Exchange {
                 $networkId = $this->safe_string($network, 'token');
                 $splitted = explode('_', $networkId);
                 $unifiedNetwork = $splitted[0];
-                $precision = $this->parse_number($this->parse_precision($this->safe_string($network, 'decimals')));
+                $precision = $this->parse_precision($this->safe_string($network, 'decimals'));
+                if ($precision !== null) {
+                    $minPrecision = ($minPrecision === null) ? $precision : Precise::string_min($precision, $minPrecision);
+                }
                 $resultingNetworks[$unifiedNetwork] = array(
                     'id' => $networkId,
                     'network' => $unifiedNetwork,
@@ -633,7 +654,7 @@ class woo extends Exchange {
                     'deposit' => null,
                     'withdraw' => null,
                     'fee' => null,
-                    'precision' => $precision, // will be filled down below
+                    'precision' => $this->parse_number($precision),
                     'info' => $network,
                 );
             }
@@ -641,10 +662,12 @@ class woo extends Exchange {
                 'id' => $currencyId,
                 'name' => $name,
                 'code' => $code,
-                'precision' => null,
+                'precision' => $this->parse_number($minPrecision),
                 'active' => null,
                 'fee' => null,
                 'networks' => $resultingNetworks,
+                'deposit' => null,
+                'withdraw' => null,
                 'limits' => array(
                     'deposit' => array(
                         'min' => null,
@@ -655,7 +678,7 @@ class woo extends Exchange {
                         'max' => null,
                     ),
                 ),
-                'info' => $networks, // will be filled down below
+                'info' => $networks,
             );
         }
         return $result;
@@ -702,7 +725,10 @@ class woo extends Exchange {
                         if ($price === null) {
                             throw new InvalidOrder($this->id . " createOrder() requires the $price argument for $market buy orders to calculate total order $cost-> Supply a $price argument to createOrder() call if you want the $cost to be calculated for you from $price and $amount, or alternatively, supply the total $cost value in the 'order_amount' in  exchange-specific parameters");
                         } else {
-                            $request['order_amount'] = $this->cost_to_precision($symbol, $amount * $price);
+                            $amountString = $this->number_to_string($amount);
+                            $priceString = $this->number_to_string($price);
+                            $orderAmount = Precise::string_mul($amountString, $priceString);
+                            $request['order_amount'] = $this->cost_to_precision($symbol, $orderAmount);
                         }
                     } else {
                         $request['order_amount'] = $this->cost_to_precision($symbol, $cost);
@@ -1024,7 +1050,7 @@ class woo extends Exchange {
         return $this->parse_order_book($response, $symbol, $timestamp, 'bids', 'asks', 'price', 'quantity');
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '1h', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '1m', $since = null, $limit = null, $params = array ()) {
         /**
          * fetches historical candlestick $data containing the open, high, low, and close price, and the volume of a $market
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
@@ -1731,12 +1757,17 @@ class woo extends Exchange {
             $url .= $path;
             $ts = (string) $this->nonce();
             $auth = $this->urlencode($params);
-            if ($method === 'POST' || $method === 'DELETE') {
+            if ($version === 'v3' && ($method === 'POST')) {
                 $body = $auth;
+                $auth = $ts . $method . '/' . $version . '/' . $path . $body;
             } else {
-                $url .= '?' . $auth;
+                if ($method === 'POST' || $method === 'DELETE') {
+                    $body = $auth;
+                } else {
+                    $url .= '?' . $auth;
+                }
+                $auth .= '|' . $ts;
             }
-            $auth .= '|' . $ts;
             $signature = $this->hmac($this->encode($auth), $this->encode($this->secret), 'sha256');
             $headers = array(
                 'x-api-key' => $this->apiKey,
@@ -1984,7 +2015,7 @@ class woo extends Exchange {
     public function fetch_leverage($symbol, $params = array ()) {
         $this->load_markets();
         $response = $this->v1PrivateGetClientInfo ($params);
-        // //
+        //
         //     {
         //         "success" => true,
         //         "application" => array(
@@ -2111,6 +2142,7 @@ class woo extends Exchange {
         $notional = Precise::string_mul($size, $markPrice);
         return array(
             'info' => $position,
+            'id' => null,
             'symbol' => $this->safe_string($market, 'symbol'),
             'timestamp' => $timestamp,
             'datetime' => $this->iso8601($timestamp),

@@ -39,6 +39,7 @@ module.exports = class bitmex extends Exchange {
                 'editOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
+                'fetchDepositAddress': false,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': true,
@@ -150,6 +151,8 @@ module.exports = class bitmex extends Exchange {
                         'user/wallet': 5,
                         'user/walletHistory': 5,
                         'user/walletSummary': 5,
+                        'wallet/assets': 5,
+                        'wallet/networks': 5,
                         'userEvent': 5,
                     },
                     'post': {
@@ -219,6 +222,8 @@ module.exports = class bitmex extends Exchange {
                 'USDt': 'USDT',
                 'XBt': 'BTC',
                 'XBT': 'BTC',
+                'Gwei': 'ETH',
+                'GWEI': 'ETH',
             },
         });
     }
@@ -388,6 +393,7 @@ module.exports = class bitmex extends Exchange {
             const contract = !index;
             const initMargin = this.safeString (market, 'initMargin', '1');
             const maxLeverage = this.parseNumber (Precise.stringDiv ('1', initMargin));
+            const multiplierString = Precise.stringAbs (this.safeString (market, 'multiplier'));
             result.push ({
                 'id': id,
                 'symbol': symbol,
@@ -411,7 +417,7 @@ module.exports = class bitmex extends Exchange {
                 'inverse': contract ? inverse : undefined,
                 'taker': this.safeNumber (market, 'takerFee'),
                 'maker': this.safeNumber (market, 'makerFee'),
-                'contractSize': this.safeNumber (market, 'multiplier'),
+                'contractSize': this.parseNumber (multiplierString),
                 'expiry': expiry,
                 'expiryDatetime': expiryDatetime,
                 'strike': this.safeNumber (market, 'optionStrikePrice'),
@@ -2197,12 +2203,17 @@ module.exports = class bitmex extends Exchange {
         } else if (market['quote'] === 'USDT') {
             resultValue = Precise.stringMul (value, '0.000001');
         } else {
-            const currency = this.currency (market['quote']);
+            let currency = undefined;
+            const quote = market['quote'];
+            if (quote !== undefined) {
+                currency = this.currency (market['quote']);
+            }
             if (currency !== undefined) {
                 resultValue = Precise.stringMul (value, this.numberToString (currency['precision']));
             }
         }
-        return parseFloat (resultValue);
+        resultValue = (resultValue !== undefined) ? parseFloat (resultValue) : undefined;
+        return resultValue;
     }
 
     isFiat (currency) {

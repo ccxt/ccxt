@@ -297,9 +297,10 @@ module.exports = class whitebit extends Exchange {
         //     ]
         //
         promises = await Promise.all (promises);
-        const marginMarkets = promises[0];
+        const marginMarketsResponse = promises[0];
         const response = promises[1];
         const markets = this.safeValue (response, 'result', []);
+        const marginMarkets = this.safeValue (marginMarketsResponse, 'result', []);
         const result = [];
         for (let i = 0; i < markets.length; i++) {
             const market = markets[i];
@@ -690,7 +691,7 @@ module.exports = class whitebit extends Exchange {
         //          ]
         //      }
         //
-        const timestamp = this.safeInteger (response, 'timestamp');
+        const timestamp = this.parseNumber (Precise.stringMul (this.safeString (response, 'timestamp'), '1000'));
         return this.parseOrderBook (response, symbol, timestamp);
     }
 
@@ -847,7 +848,7 @@ module.exports = class whitebit extends Exchange {
         const orderId = this.safeString2 (trade, 'dealOrderId', 'orderId');
         const cost = this.safeString (trade, 'deal');
         const price = this.safeString (trade, 'price');
-        const amount = this.safeString2 (trade, 'amount', 'base_volume');
+        const amount = this.safeString2 (trade, 'amount', 'quote_volume');
         const id = this.safeString2 (trade, 'id', 'tradeID');
         const side = this.safeString2 (trade, 'type', 'side');
         const symbol = market['symbol'];
@@ -1020,7 +1021,7 @@ module.exports = class whitebit extends Exchange {
         const postOnly = this.isPostOnly (isMarketOrder, false, params);
         const [ marginMode, query ] = this.handleMarginModeAndParams ('createOrder', params);
         if (postOnly) {
-            throw new NotSupported (this.id + ' createOrder() does not support postOnly orders.');
+            request['postOnly'] = true;
         }
         let method = undefined;
         if (isStopOrder) {

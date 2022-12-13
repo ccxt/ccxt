@@ -87,17 +87,19 @@ module.exports = class btcex extends Exchange {
                 'withdraw': false,
             },
             'timeframes': {
-                '15s': '15',
-                '1m': '60',
-                '5m': '300',
-                '15m': '900',
-                '1h': '3600',
-                '4h': '14400',
-                '1d': '86400',
-                '3d': '259200',
-                '1w': '604800',
-                '2w': '1209600',
-                '1M': '2592000',
+                '1m': '1',
+                '3m': '3',
+                '5m': '5',
+                '15m': '15',
+                '1h': '60',
+                '2h': '120',
+                '3h': '180',
+                '4h': '240',
+                '6h': '360',
+                '12h': '720',
+                '1d': '1D',
+                '3d': '3D',
+                '1M': '30D',
             },
             'api': {
                 'public': {
@@ -1145,10 +1147,7 @@ module.exports = class btcex extends Exchange {
         }
         const type = this.safeString (order, 'order_type');
         // injected in createOrder
-        let trades = this.safeValue (order, 'trades');
-        if (trades !== undefined) {
-            trades = this.parseTrades (trades, market);
-        }
+        const trades = this.safeValue (order, 'trades');
         const timeInForce = this.parseTimeInForce (this.safeString (order, 'time_in_force'));
         const stopPrice = this.safeValue (order, 'trigger_price');
         const postOnly = this.safeValue (order, 'post_only');
@@ -1573,6 +1572,7 @@ module.exports = class btcex extends Exchange {
         const marginType = this.safeString (position, 'margin_type');
         return {
             'info': position,
+            'id': undefined,
             'symbol': this.safeString (market, 'symbol'),
             'timestamp': undefined,
             'datetime': undefined,

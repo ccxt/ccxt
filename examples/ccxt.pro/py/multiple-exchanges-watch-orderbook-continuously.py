@@ -1,4 +1,4 @@
-import ccxtpro
+import ccxt.pro
 import asyncio
 import time
 
@@ -20,7 +20,7 @@ async def watch_book(exchange, ticker):
 
 async def main():
     exchange_ids = ['coinbasepro', 'okcoin', 'bittrex']
-    exchanges = [getattr(ccxtpro, exchange_id)() for exchange_id in exchange_ids]
+    exchanges = [getattr(ccxt.pro, exchange_id)() for exchange_id in exchange_ids]
     try:
         done, pending = await asyncio.wait({watch_book(exchange, 'CELO/USD') for exchange in exchanges}, return_when=asyncio.FIRST_EXCEPTION)
         for completed in done:
