@@ -54,6 +54,8 @@ class stex(Exchange):
                 'fetchDeposit': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': True,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchFundingHistory': False,
                 'fetchFundingRate': False,
                 'fetchFundingRateHistory': False,
@@ -2277,7 +2279,7 @@ class stex(Exchange):
 
     def fetch_transaction_fees(self, codes=None, params={}):
         """
-        fetch transaction fees
+        *DEPRECATED* please use fetchDepositWithdrawFees instead
         see https://apidocs.stex.com/#tag/Public/paths/~1public~1currencies/get
         :param [str]|None codes: list of unified currency codes
         :param dict params: extra parameters specific to the stex api endpoint
@@ -2335,6 +2337,122 @@ class stex(Exchange):
                 'withdraw': self.safe_number(currency, 'fee'),
                 'deposit': self.safe_number(info, 'deposit_fee_const'),
                 'info': info,
+            }
+        return result
+
+    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://apidocs.stex.com/#tag/Public/paths/~1public~1currencies/get
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the stex api endpoint
+        :returns dict: a list of `fee structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        self.load_markets()
+        response = self.publicGetCurrencies(params)
+        #
+        #     {
+        #         "success": True,
+        #         "data": [
+        #             {
+        #                 "id": 1,
+        #                 "code": "BTC",
+        #                 "name": "Bitcoin",
+        #                 "active": True,
+        #                 "delisted": False,
+        #                 "precision": 8,
+        #                 "minimum_tx_confirmations": 24,
+        #                 "minimum_withdrawal_amount": "0.009",
+        #                 "minimum_deposit_amount": "0.000003",
+        #                 "deposit_fee_currency_id": 1,
+        #                 "deposit_fee_currency_code": "ETH",
+        #                 "deposit_fee_const": "0.00001",
+        #                 "deposit_fee_percent": "0",
+        #                 "withdrawal_fee_currency_id": 1,
+        #                 "withdrawal_fee_currency_code": "ETH",
+        #                 "withdrawal_fee_const": "0.0015",
+        #                 "withdrawal_fee_percent": "0",
+        #                 "withdrawal_limit": "string",
+        #                 "block_explorer_url": "https://blockchain.info/tx/",
+        #                 "protocol_specific_settings": [
+        #                     {
+        #                         "protocol_name": "Tether OMNI",
+        #                         "protocol_id": 10,
+        #                         "active": True,
+        #                         "withdrawal_fee_currency_id": 1,
+        #                         "withdrawal_fee_const": 0.002,
+        #                         "withdrawal_fee_percent": 0,
+        #                         "block_explorer_url": "https://omniexplorer.info/search/"
+        #                     }
+        #                 ]
+        #             }
+        #             ...
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data')
+        return self.parse_deposit_withdraw_fees(data, codes, 'code')
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        #    {
+        #        "id": 1,
+        #        "code": "BTC",
+        #        "name": "Bitcoin",
+        #        "active": True,
+        #        "delisted": False,
+        #        "precision": 8,
+        #        "minimum_tx_confirmations": 24,
+        #        "minimum_withdrawal_amount": "0.009",
+        #        "minimum_deposit_amount": "0.000003",
+        #        "deposit_fee_currency_id": 1,
+        #        "deposit_fee_currency_code": "ETH",
+        #        "deposit_fee_const": "0.00001",
+        #        "deposit_fee_percent": "0",
+        #        "withdrawal_fee_currency_id": 1,
+        #        "withdrawal_fee_currency_code": "ETH",
+        #        "withdrawal_fee_const": "0.0015",
+        #        "withdrawal_fee_percent": "0",
+        #        "withdrawal_limit": "string",
+        #        "block_explorer_url": "https://blockchain.info/tx/",
+        #        "protocol_specific_settings": [
+        #            {
+        #                "protocol_name": "Tether OMNI",
+        #                "protocol_id": 10,
+        #                "active": True,
+        #                "withdrawal_fee_currency_id": 1,
+        #                "withdrawal_fee_const": 0.002,
+        #                "withdrawal_fee_percent": 0,
+        #                "block_explorer_url": "https://omniexplorer.info/search/"
+        #            }
+        #        ]
+        #    }
+        #
+        result = {
+            'withdraw': {
+                'fee': self.safe_number(fee, 'withdrawal_fee_const'),
+                'percentage': False,
+            },
+            'deposit': {
+                'fee': self.safe_number(fee, 'deposit_fee_const'),
+                'percentage': False,
+            },
+            'networks': {},
+        }
+        networks = self.safe_value(fee, 'protocol_specific_settings', [])
+        for i in range(0, len(networks)):
+            network = networks[i]
+            networkId = self.safe_string(network, 'protocol_name')
+            networkCode = self.network_id_to_code(networkId)
+            result['networks'][networkCode] = {
+                'withdraw': {
+                    'fee': self.safe_number(network, 'withdrawal_fee_const'),
+                    'percentage': False,
+                },
+                'deposit': {
+                    'fee': None,
+                    'percentage': None,
+                },
             }
         return result
 

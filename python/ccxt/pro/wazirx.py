@@ -5,7 +5,7 @@
 
 from ccxt.pro.base.exchange import Exchange
 import ccxt.async_support
-from ccxt.pro.base.cache import ArrayCacheBySymbolById, ArrayCacheByTimestamp
+from ccxt.pro.base.cache import ArrayCache, ArrayCacheBySymbolById, ArrayCacheByTimestamp
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import NotSupported
 
@@ -19,7 +19,7 @@ class wazirx(Exchange, ccxt.async_support.wazirx):
                 'watchBalance': True,
                 'watchTicker': True,
                 'watchTickers': True,
-                'watchTrades': False,
+                'watchTrades': True,
                 'watchMyTrades': True,
                 'watchOrders': True,
                 'watchOrderBook': True,
@@ -99,6 +99,19 @@ class wazirx(Exchange, ccxt.async_support.wazirx):
 
     def parse_ws_trade(self, trade, market=None):
         #
+        # trade
+        #     {
+        #         "E": 1631681323000,  Event time
+        #         "S": "buy",          Side
+        #         "a": 26946138,       Buyer order ID
+        #         "b": 26946169,       Seller order ID
+        #         "m": True,           Is buyer maker?
+        #         "p": "7.0",          Price
+        #         "q": "15.0",         Quantity
+        #         "s": "btcinr",       Symbol
+        #         "t": 17376030        Trade ID
+        #     }
+        # ownTrade
         #     {
         #         "E": 1631683058000,
         #         "S": "ask",
@@ -118,25 +131,30 @@ class wazirx(Exchange, ccxt.async_support.wazirx):
         timestamp = self.safe_integer(trade, 'E')
         marketId = self.safe_string(trade, 's')
         market = self.safe_market(marketId, market)
+        feeCost = self.safe_string(trade, 'f')
         feeCurrencyId = self.safe_string(trade, 'U')
+        isMaker = self.safe_value(trade, 'm') is True
+        fee = None
+        if feeCost is not None:
+            fee = {
+                'cost': feeCost,
+                'currency': self.safe_currency_code(feeCurrencyId),
+                'rate': None,
+            }
         return self.safe_trade({
             'id': self.safe_string(trade, 't'),
             'info': trade,
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'symbol': market['symbol'],
-            'order': self.safe_string(trade, 'o'),
+            'order': self.safe_string_n(trade, ['o']),
             'type': None,
-            'side': None,
-            'takerOrMaker': self.safe_value(trade, 'm'),
+            'side': self.safe_string(trade, 'S'),
+            'takerOrMaker': 'maker' if isMaker else 'taker',
             'price': self.safe_string(trade, 'p'),
             'amount': self.safe_string(trade, 'q'),
             'cost': None,
-            'fee': {
-                'cost': self.safe_string(trade, 'f'),
-                'currency': self.safe_currency_code(feeCurrencyId),
-                'rate': None,
-            },
+            'fee': fee,
         }, market)
 
     async def watch_ticker(self, symbol, params={}):
@@ -255,6 +273,66 @@ class wazirx(Exchange, ccxt.async_support.wazirx):
             'quoteVolume': self.safe_string(ticker, 'q'),
             'info': ticker,
         }, market)
+
+    async def watch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the wazirx api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        symbol = market['symbol']
+        messageHash = market['id'] + '@trades'
+        url = self.urls['api']['ws']
+        message = {
+            'event': 'subscribe',
+            'streams': [messageHash],
+        }
+        request = self.extend(message, params)
+        trades = await self.watch(url, messageHash, request, messageHash)
+        if self.newUpdates:
+            limit = trades.getLimit(symbol, limit)
+        return self.filter_by_since_limit(trades, since, limit, 'timestamp', True)
+
+    def handle_trades(self, client, message):
+        #
+        #     {
+        #         "data": {
+        #             "trades": [{
+        #                 "E": 1631681323000,  Event time
+        #                 "S": "buy",          Side
+        #                 "a": 26946138,       Buyer order ID
+        #                 "b": 26946169,       Seller order ID
+        #                 "m": True,           Is buyer maker?
+        #                 "p": "7.0",          Price
+        #                 "q": "15.0",         Quantity
+        #                 "s": "btcinr",       Symbol
+        #                 "t": 17376030        Trade ID
+        #             }]
+        #         },
+        #         "stream": "btcinr@trades"
+        #     }
+        #
+        data = self.safe_value(message, 'data', {})
+        rawTrades = self.safe_value(data, 'trades', [])
+        messageHash = self.safe_string(message, 'stream')
+        split = messageHash.split('@')
+        marketId = self.safe_string(split, 0)
+        market = self.safe_market(marketId)
+        symbol = self.safe_symbol(marketId, market)
+        trades = self.safe_value(self.trades, symbol)
+        if trades is None:
+            limit = self.safe_integer(self.options, 'tradesLimit', 1000)
+            trades = ArrayCache(limit)
+            self.trades[symbol] = trades
+        for i in range(0, len(rawTrades)):
+            parsedTrade = self.parse_ws_trade(rawTrades[i], market)
+            trades.append(parsedTrade)
+        client.resolve(trades, messageHash)
 
     async def watch_my_trades(self, symbol=None, since=None, limit=None, params={}):
         """
@@ -602,9 +680,17 @@ class wazirx(Exchange, ccxt.async_support.wazirx):
         #         "id": 0
         #     }
         #
+        #     {
+        #         message: 'HeartBeat message not received, closing the connection',
+        #         status: 'error'
+        #     }
+        #
         raise ExchangeError(self.id + ' ' + self.json(message))
 
     def handle_message(self, client, message):
+        status = self.safe_string(message, 'status')
+        if status == 'error':
+            return self.handle_error(client, message)
         event = self.safe_string(message, 'event')
         eventHandlers = {
             'error': self.handle_error,
@@ -619,6 +705,7 @@ class wazirx(Exchange, ccxt.async_support.wazirx):
             'ticker@arr': self.handle_ticker,
             '@depth': self.handle_order_book,
             '@kline': self.handle_ohlcv,
+            '@trades': self.handle_trades,
             'outboundAccountPosition': self.handle_balance,
             'orderUpdate': self.handle_order,
             'ownTrade': self.handle_my_trades,

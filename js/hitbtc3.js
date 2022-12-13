@@ -989,7 +989,7 @@ module.exports = class hitbtc3 extends Exchange {
         // we use clientOrderId as the order id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here: https://github.com/ccxt/ccxt/issues/5674
-        const orderId = this.safeString (trade, 'clientOrderId');
+        const orderId = this.safeString2 (trade, 'clientOrderId', 'client_order_id');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString2 (trade, 'quantity', 'qty');
         const side = this.safeString (trade, 'side');

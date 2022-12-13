@@ -175,6 +175,7 @@ class kraken(Exchange):
                 'private': {
                     'post': {
                         'AddOrder': 0,
+                        'AddOrderBatch': 0,
                         'AddExport': 3,
                         'Balance': 3,
                         'CancelAll': 3,
@@ -184,6 +185,7 @@ class kraken(Exchange):
                         'DepositAddresses': 3,
                         'DepositMethods': 3,
                         'DepositStatus': 3,
+                        'EditOrder': 0,
                         'ExportStatus': 3,
                         'GetWebSocketsToken': 3,
                         'Ledgers': 6,
@@ -506,8 +508,8 @@ class kraken(Exchange):
     def append_inactive_markets(self, result):
         # result should be an array to append to
         precision = {
-            'amount': self.parse_number('0.00000001'),
-            'price': self.parse_number('0.00000001'),
+            'amount': self.parse_number('1e-8'),
+            'price': self.parse_number('1e-8'),
         }
         costLimits = {'min': None, 'max': None}
         priceLimits = {'min': precision['price'], 'max': None}

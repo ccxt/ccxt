@@ -400,7 +400,7 @@ class phemex extends Exchange {
                 'defaultSubType' => 'linear',
                 'accountsByType' => array(
                     'spot' => 'spot',
-                    'future' => 'future',
+                    'swap' => 'future',
                 ),
                 'transfer' => array(
                     'fillResponseFromRequest' => true,
@@ -3381,6 +3381,7 @@ class phemex extends Exchange {
          * @param {string} $fromAccount account to $transfer from
          * @param {string} $toAccount account to $transfer to
          * @param {array} $params extra parameters specific to the phemex api endpoint
+         * @param {string|null} $params->bizType for transferring between main and sub-acounts either 'SPOT' or 'PERPETUAL' default is 'SPOT'
          * @return {array} a {@link https://docs.ccxt.com/en/latest/manual.html#$transfer-structure $transfer structure}
          */
         $this->load_markets();
