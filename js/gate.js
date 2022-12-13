@@ -3351,6 +3351,9 @@ module.exports = class gate extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new BadRequest (this.id + ' editOrder() supports only spot markets');
+        }
         const [ marketType, query ] = this.handleMarketTypeAndParams ('editOrder', market, params);
         const account = this.convertTypeToAccount (marketType);
         const isLimitOrder = (type === 'limit');
