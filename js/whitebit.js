@@ -223,6 +223,11 @@ module.exports = class whitebit extends Exchange {
                     'margin': 'collateral',
                     'trade': 'spot',
                 },
+                'networksById': {
+                    'BEP20': 'BSC',
+                    'ERC20': 'ETH',
+                    'TRC20': 'TRX',
+                },
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
