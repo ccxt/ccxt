@@ -5,6 +5,7 @@
 const [processPath, , exchangeId = null, exchangeSymbol = null] = process.argv.filter ((x) => !x.startsWith ('--'));
 const verbose = process.argv.includes ('--verbose') || false;
 const debug = process.argv.includes ('--debug') || false;
+const HttpsProxyAgent = require ('https-proxy-agent')
 
 // ----------------------------------------------------------------------------
 
@@ -109,6 +110,13 @@ if (settings && settings.skip) {
 if (exchange.alias) {
     console.log ('[Skipped alias]', { 'exchange': exchangeId, 'symbol': exchangeSymbol || 'all' });
     process.exit ();
+}
+
+//-----------------------------------------------------------------------------
+
+if (settings && settings.httpProxy) {
+    const agent = new HttpsProxyAgent (settings.httpProxy)
+    exchange.agent = agent;
 }
 
 //-----------------------------------------------------------------------------
@@ -360,11 +368,15 @@ async function tryAllProxies (exchange, proxies) {
         currentProxy = proxies.indexOf (settings.proxy);
     }
 
+    const hasHttpProxy = settings && ('httpProxy' in settings);
+
     for (let numRetries = 0; numRetries < maxRetries; numRetries++) {
 
         try {
 
-            exchange.proxy = proxies[currentProxy];
+            if (!hasHttpProxy) {
+                exchange.proxy = proxies[currentProxy];
+            }
 
             // add random origin for proxies
             if (exchange.proxy.length > 0) {
