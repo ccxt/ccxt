@@ -132,7 +132,7 @@ module.exports = class bitfinex extends bitfinexRest {
                 if (second !== 'tu') {
                     return;
                 }
-                const trade = this.parseTrade (message, market);
+                const trade = this.parseWsTrade (message, market);
                 stored.append (trade);
             }
             client.resolve (stored, messageHash);
@@ -140,7 +140,7 @@ module.exports = class bitfinex extends bitfinexRest {
         return message;
     }
 
-    parseTrade (trade, market = undefined) {
+    parseWsTrade (trade, market = undefined) {
         //
         // snapshot trade
         //
@@ -157,9 +157,6 @@ module.exports = class bitfinex extends bitfinexRest {
         //     // channel id, update type, seq, trade id, time, price, amount
         //     [ 2, 'tu', '28462857-BTCUSD', 413357662, 1580565041, 9374.9, 0.005 ]
         //
-        if (!Array.isArray (trade)) {
-            return super.parseTrade (trade, market);
-        }
         const tradeLength = trade.length;
         const event = this.safeString (trade, 1);
         let id = undefined;

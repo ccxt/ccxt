@@ -395,7 +395,7 @@ module.exports = class binance extends binanceRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseWsTrade (trade, market = undefined) {
         //
         // public watchTrades
         //
@@ -502,9 +502,6 @@ module.exports = class binance extends binanceRest {
         //
         const executionType = this.safeString (trade, 'x');
         const isTradeExecution = (executionType === 'TRADE');
-        if (!isTradeExecution) {
-            return super.parseTrade (trade, market);
-        }
         const id = this.safeString2 (trade, 't', 'a');
         const timestamp = this.safeInteger (trade, 'T');
         const price = this.safeFloat2 (trade, 'L', 'p');
@@ -566,7 +563,7 @@ module.exports = class binance extends binanceRest {
         const lowerCaseId = this.safeStringLower (message, 's');
         const event = this.safeString (message, 'e');
         const messageHash = lowerCaseId + '@' + event;
-        const trade = this.parseTrade (message, market);
+        const trade = this.parseWsTrade (message, market);
         let tradesArray = this.safeValue (this.trades, symbol);
         if (tradesArray === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -1340,7 +1337,7 @@ module.exports = class binance extends binanceRest {
         const messageHash = 'myTrades';
         const executionType = this.safeString (message, 'x');
         if (executionType === 'TRADE') {
-            const trade = this.parseTrade (message);
+            const trade = this.parseWsTrade (message);
             const orderId = this.safeString (trade, 'order');
             const tradeFee = this.safeValue (trade, 'fee');
             const symbol = this.safeString (trade, 'symbol');

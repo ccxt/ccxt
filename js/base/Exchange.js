@@ -1728,14 +1728,11 @@ module.exports = class Exchange {
         return result;
     }
 
-    parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}, parseTrade = undefined) {
-        if (parseTrade === undefined) {
-            parseTrade = this.parseTrade;
-        }
+    parseTrades (trades, market = undefined, since = undefined, limit = undefined, params = {}, parseTrade = 'parseTrade') {
         trades = this.toArray (trades);
         let result = [];
         for (let i = 0; i < trades.length; i++) {
-            const trade = this.extend (parseTrade (trades[i], market), params);
+            const trade = this.extend (this[parseTrade] (trades[i], market), params);
             result.push (trade);
         }
         result = this.sortBy2 (result, 'timestamp', 'id');

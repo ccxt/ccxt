@@ -299,7 +299,7 @@ module.exports = class coinbasepro extends coinbaseproRest {
         //     "side": "buy",
         //     "order_type": "limit"
         // }
-        const parsed = super.parseTrade (trade);
+        const parsed = this.parseTrade (trade);
         let feeRate = undefined;
         if ('maker_fee_rate' in trade) {
             parsed['takerOrMaker'] = 'maker';

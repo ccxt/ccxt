@@ -236,7 +236,7 @@ module.exports = class bitstamp extends bitstampRest {
         return this.filterBySinceLimit (trades, since, limit, 'timestamp', true);
     }
 
-    parseTrade (trade, market = undefined) {
+    parseWsTrade (trade, market = undefined) {
         //
         //     {
         //         buy_order_id: 1211625836466176,
@@ -252,9 +252,6 @@ module.exports = class bitstamp extends bitstampRest {
         //     }
         //
         const microtimestamp = this.safeInteger (trade, 'microtimestamp');
-        if (microtimestamp === undefined) {
-            return super.parseTrade (trade, market);
-        }
         const id = this.safeString (trade, 'id');
         const timestamp = parseInt (microtimestamp / 1000);
         const price = this.safeFloat (trade, 'price');
@@ -316,7 +313,7 @@ module.exports = class bitstamp extends bitstampRest {
         const subscription = this.safeValue (client.subscriptions, channel);
         const symbol = this.safeString (subscription, 'symbol');
         const market = this.market (symbol);
-        const trade = this.parseTrade (data, market);
+        const trade = this.parseWsTrade (data, market);
         let tradesArray = this.safeValue (this.trades, symbol);
         if (tradesArray === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
