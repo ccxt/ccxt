@@ -155,6 +155,7 @@ class kraken extends Exchange {
                 'private' => array(
                     'post' => array(
                         'AddOrder' => 0,
+                        'AddOrderBatch' => 0,
                         'AddExport' => 3,
                         'Balance' => 3,
                         'CancelAll' => 3,
@@ -164,6 +165,7 @@ class kraken extends Exchange {
                         'DepositAddresses' => 3,
                         'DepositMethods' => 3,
                         'DepositStatus' => 3,
+                        'EditOrder' => 0,
                         'ExportStatus' => 3,
                         'GetWebSocketsToken' => 3,
                         'Ledgers' => 6,
@@ -497,8 +499,8 @@ class kraken extends Exchange {
     public function append_inactive_markets($result) {
         // $result should be an array to append to
         $precision = array(
-            'amount' => $this->parse_number('0.00000001'),
-            'price' => $this->parse_number('0.00000001'),
+            'amount' => $this->parse_number('1e-8'),
+            'price' => $this->parse_number('1e-8'),
         );
         $costLimits = array( 'min' => null, 'max' => null );
         $priceLimits = array( 'min' => $precision['price'], 'max' => null );

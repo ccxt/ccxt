@@ -74,6 +74,7 @@ class gate extends Exchange {
                 'createStopLimitOrder' => true,
                 'createStopMarketOrder' => false,
                 'createStopOrder' => true,
+                'editOrder' => true,
                 'fetchBalance' => true,
                 'fetchBorrowRate' => false,
                 'fetchBorrowRateHistories' => false,
@@ -256,6 +257,9 @@ class gate extends Exchange {
                             'orders/{order_id}' => 1,
                             'price_orders' => 1,
                             'price_orders/{order_id}' => 1,
+                        ),
+                        'patch' => array(
+                            'orders/{order_id}' => 1,
                         ),
                     ),
                     'margin' => array(
@@ -961,7 +965,7 @@ class gate extends Exchange {
             'strike' => null,
             'optionType' => null,
             'precision' => array(
-                'amount' => $this->parse_number('1'),
+                'amount' => $this->parse_number('1'), // all contracts have this step size
                 'price' => $this->safe_number($market, 'order_price_round'),
             ),
             'limits' => array(
@@ -1082,7 +1086,7 @@ class gate extends Exchange {
                     'strike' => $strike,
                     'optionType' => $optionType,
                     'precision' => array(
-                        'amount' => $this->parse_number('1'),
+                        'amount' => $this->parse_number('1'), // all options have this step size
                         'price' => $this->safe_number($market, 'order_price_round'),
                     ),
                     'limits' => array(
@@ -1287,7 +1291,7 @@ class gate extends Exchange {
                 'lowerCaseId' => $currencyIdLower,
                 'name' => null,
                 'code' => $code,
-                'precision' => $this->parse_number('1e-6'),
+                'precision' => $this->parse_number('1e-4'), // todo => as gateio is done completely in html, in withdrawal page's source it has predefined "num_need_fix($this->value, 4);" function, so users cant set lower precision than 0.0001
                 'info' => $entry,
                 'active' => $active,
                 'deposit' => $depositEnabled,
@@ -3279,8 +3283,82 @@ class gate extends Exchange {
         return $this->parse_order($response, $market);
     }
 
+    public function edit_order($id, $symbol, $type, $side, $amount, $price = null, $params = array ()) {
+        /**
+         * edit a trade order, gate currently only supports the modification of the $price or $amount fields
+         * @see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order
+         * @param {string} $id order $id
+         * @param {string} $symbol unified $symbol of the $market to create an order in
+         * @param {string} $type 'market' or 'limit'
+         * @param {string} $side 'buy' or 'sell'
+         * @param {float} $amount how much of the currency you want to trade in units of the base currency
+         * @param {float|null} $price the $price at which the order is to be fullfilled, in units of the base currency, ignored in $market orders
+         * @param {array} $params extra parameters specific to the gate api endpoint
+         * @return {array} an {@link https://docs.ccxt.com/en/latest/manual.html#order-structure order structure}
+         */
+        $this->load_markets();
+        $market = $this->market($symbol);
+        if (!$market['spot']) {
+            throw new BadRequest($this->id . ' editOrder() supports only spot markets');
+        }
+        list($marketType, $query) = $this->handle_market_type_and_params('editOrder', $market, $params);
+        $account = $this->convert_type_to_account($marketType);
+        $isLimitOrder = ($type === 'limit');
+        if ($account === 'spot') {
+            if (!$isLimitOrder) {
+                // exchange doesn't have $market orders for spot
+                throw new InvalidOrder($this->id . ' editOrder() does not support ' . $type . ' orders for ' . $marketType . ' markets');
+            }
+        }
+        $request = array(
+            'order_id' => $id,
+            'currency_pair' => $market['id'],
+            'account' => $account,
+        );
+        if ($amount !== null) {
+            $request['amount'] = $this->amount_to_precision($symbol, $amount);
+        }
+        if ($price !== null) {
+            $request['price'] = $this->price_to_precision($symbol, $price);
+        }
+        $response = $this->privateSpotPatchOrdersOrderId (array_merge($request, $query));
+        //
+        //     {
+        //         "id" => "243233276443",
+        //         "text" => "apiv4",
+        //         "create_time" => "1670908873",
+        //         "update_time" => "1670914102",
+        //         "create_time_ms" => 1670908873077,
+        //         "update_time_ms" => 1670914102241,
+        //         "status" => "open",
+        //         "currency_pair" => "ADA_USDT",
+        //         "type" => "limit",
+        //         "account" => "spot",
+        //         "side" => "sell",
+        //         "amount" => "10",
+        //         "price" => "0.6",
+        //         "time_in_force" => "gtc",
+        //         "iceberg" => "0",
+        //         "left" => "10",
+        //         "fill_price" => "0",
+        //         "filled_total" => "0",
+        //         "fee" => "0",
+        //         "fee_currency" => "USDT",
+        //         "point_fee" => "0",
+        //         "gt_fee" => "0",
+        //         "gt_maker_fee" => "0",
+        //         "gt_taker_fee" => "0",
+        //         "gt_discount" => false,
+        //         "rebated_fee" => "0",
+        //         "rebated_fee_currency" => "ADA"
+        //     }
+        //
+        return $this->parse_order($response, $market);
+    }
+
     public function parse_order_status($status) {
         $statuses = array(
+            'open' => 'open',
             '_new' => 'open',
             'filled' => 'closed',
             'cancelled' => 'canceled',
@@ -3297,7 +3375,7 @@ class gate extends Exchange {
     public function parse_order($order, $market = null) {
         //
         // SPOT
-        // createOrder/cancelOrder/fetchOrder
+        // createOrder/cancelOrder/fetchOrder/editOrder
         //
         //    {
         //        "id" => "62364648575",
@@ -4692,10 +4770,13 @@ class gate extends Exchange {
                 $secondPart = $this->safe_string($pathParts, 1, '');
                 $requiresURLEncoding = (mb_strpos($secondPart, 'dual') !== false) || (mb_strpos($secondPart, 'positions') !== false);
             }
-            if (($method === 'GET') || ($method === 'DELETE') || $requiresURLEncoding) {
+            if (($method === 'GET') || ($method === 'DELETE') || $requiresURLEncoding || ($method === 'PATCH')) {
                 if ($query) {
                     $queryString = $this->urlencode($query);
                     $url .= '?' . $queryString;
+                }
+                if ($method === 'PATCH') {
+                    $body = $this->json($query);
                 }
             } else {
                 $urlQueryParams = $this->safe_value($query, 'query', array());

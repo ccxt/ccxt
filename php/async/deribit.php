@@ -1180,6 +1180,7 @@ class deribit extends Exchange {
         $timestamp = $this->safe_integer($trade, 'timestamp');
         $side = $this->safe_string($trade, 'direction');
         $priceString = $this->safe_string($trade, 'price');
+        $market = $this->safe_market($marketId, $market);
         // Amount for inverse perpetual and futures is in USD which in ccxt is the $cost
         // For options $amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
         $amount = $this->safe_string($trade, 'amount');

@@ -156,6 +156,7 @@ module.exports = class kraken extends Exchange {
                 'private': {
                     'post': {
                         'AddOrder': 0,
+                        'AddOrderBatch': 0,
                         'AddExport': 3,
                         'Balance': 3,
                         'CancelAll': 3,
@@ -165,6 +166,7 @@ module.exports = class kraken extends Exchange {
                         'DepositAddresses': 3,
                         'DepositMethods': 3,
                         'DepositStatus': 3,
+                        'EditOrder': 0,
                         'ExportStatus': 3,
                         'GetWebSocketsToken': 3,
                         'Ledgers': 6,
@@ -500,8 +502,8 @@ module.exports = class kraken extends Exchange {
     appendInactiveMarkets (result) {
         // result should be an array to append to
         const precision = {
-            'amount': this.parseNumber ('0.00000001'),
-            'price': this.parseNumber ('0.00000001'),
+            'amount': this.parseNumber ('1e-8'),
+            'price': this.parseNumber ('1e-8'),
         };
         const costLimits = { 'min': undefined, 'max': undefined };
         const priceLimits = { 'min': precision['price'], 'max': undefined };

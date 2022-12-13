@@ -126,6 +126,7 @@ module.exports = class Exchange {
                 'fetchTradingLimits': undefined,
                 'fetchTransactions': undefined,
                 'fetchTransfers': undefined,
+                'fetchWithdrawAddresses': undefined,
                 'fetchWithdrawal': undefined,
                 'fetchWithdrawals': undefined,
                 'reduceMargin': undefined,
@@ -187,6 +188,7 @@ module.exports = class Exchange {
                 '404': ExchangeNotAvailable,
                 '409': ExchangeNotAvailable,
                 '410': ExchangeNotAvailable,
+                '451': ExchangeNotAvailable,
                 '500': ExchangeNotAvailable,
                 '501': ExchangeNotAvailable,
                 '502': ExchangeNotAvailable,
@@ -203,6 +205,7 @@ module.exports = class Exchange {
                 '408': RequestTimeout,
                 '504': RequestTimeout,
                 '401': AuthenticationError,
+                '407': AuthenticationError,
                 '511': AuthenticationError,
             },
             'commonCurrencies': { // gets extended/overwritten in subclasses
@@ -234,7 +237,7 @@ module.exports = class Exchange {
         //         }
         //     }
         //
-        this.options = {} // exchange-specific options, if any
+        this.options = this.getDefaultOptions(); // exchange-specific options, if any
         // fetch implementation options (JS only)
         this.fetchOptions = {
             // keepalive: true, // does not work in Chrome, https://github.com/ccxt/ccxt/issues/6368
@@ -797,6 +800,16 @@ module.exports = class Exchange {
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM JAVASCRIPT TO PYTHON AND PHP
 
+    getDefaultOptions () {
+        return {
+            'defaultNetworkCodeReplacements': {
+                'ETH': { 'ERC20': 'ETH' },
+                'TRX': { 'TRC20': 'TRX' },
+                'CRO': { 'CRC20': 'CRONOS' },
+            },
+        };
+    }
+
     safeLedgerEntry (entry, currency = undefined) {
         currency = this.safeCurrency (undefined, currency);
         let direction = this.safeString (entry, 'direction');
@@ -867,7 +880,7 @@ module.exports = class Exchange {
             let quoteCurrencies = [];
             for (let i = 0; i < values.length; i++) {
                 const market = values[i];
-                const defaultCurrencyPrecision = (this.precisionMode === DECIMAL_PLACES) ? 8 : this.parseNumber ('0.00000001');
+                const defaultCurrencyPrecision = (this.precisionMode === DECIMAL_PLACES) ? 8 : this.parseNumber ('1e-8');
                 const marketPrecision = this.safeValue (market, 'precision', {});
                 if ('base' in market) {
                     const currencyPrecision = this.safeValue2 (marketPrecision, 'base', 'amount', defaultCurrencyPrecision);
@@ -1093,12 +1106,29 @@ module.exports = class Exchange {
             }
         }
         // ensure that the average field is calculated correctly
+        const inverse = this.safeValue (market, 'inverse', false);
+        const contractSize = this.numberToString (this.safeValue (market, 'contractSize', 1));
+        // inverse
+        // price = filled * contract size / cost
+        //
+        // linear
+        // price = cost / (filled * contract size)
         if (average === undefined) {
             if ((filled !== undefined) && (cost !== undefined) && Precise.stringGt (filled, '0')) {
-                average = Precise.stringDiv (cost, filled);
+                const filledTimesContractSize = Precise.stringMul (filled, contractSize);
+                if (inverse) {
+                    average = Precise.stringDiv (filledTimesContractSize, cost);
+                } else {
+                    average = Precise.stringDiv (cost, filledTimesContractSize);
+                }
             }
         }
-        // also ensure the cost field is calculated correctly
+        // similarly
+        // inverse
+        // cost = filled * contract size / price
+        //
+        // linear
+        // cost = filled * contract size * price
         const costPriceExists = (average !== undefined) || (price !== undefined);
         if (parseCost && (filled !== undefined) && costPriceExists) {
             let multiplyPrice = undefined;
@@ -1108,15 +1138,12 @@ module.exports = class Exchange {
                 multiplyPrice = average;
             }
             // contract trading
-            const contractSize = this.safeString (market, 'contractSize');
-            if (contractSize !== undefined) {
-                const inverse = this.safeValue (market, 'inverse', false);
-                if (inverse) {
-                    multiplyPrice = Precise.stringDiv ('1', multiplyPrice);
-                }
-                multiplyPrice = Precise.stringMul (multiplyPrice, contractSize);
+            const filledTimesContractSize = Precise.stringMul (filled, contractSize);
+            if (inverse) {
+                cost = Precise.stringDiv (filledTimesContractSize, multiplyPrice);
+            } else {
+                cost = Precise.stringMul (filledTimesContractSize, multiplyPrice);
             }
-            cost = Precise.stringMul (multiplyPrice, filled);
         }
         // support for market orders
         const orderType = this.safeValue (order, 'type');
@@ -1137,16 +1164,20 @@ module.exports = class Exchange {
             }
             entry['fee'] = fee;
         }
-        // timeInForceHandling
         let timeInForce = this.safeString (order, 'timeInForce');
+        let postOnly = this.safeValue (order, 'postOnly');
+        // timeInForceHandling
         if (timeInForce === undefined) {
             if (this.safeString (order, 'type') === 'market') {
                 timeInForce = 'IOC';
             }
             // allow postOnly override
-            if (this.safeValue (order, 'postOnly', false)) {
+            if (postOnly) {
                 timeInForce = 'PO';
             }
+        } else if (postOnly === undefined) {
+            // timeInForce is not undefined here
+            postOnly = timeInForce === 'PO';
         }
         return this.extend (order, {
             'lastTradeTimestamp': lastTradeTimeTimestamp,
@@ -1157,6 +1188,7 @@ module.exports = class Exchange {
             'filled': this.parseNumber (filled),
             'remaining': this.parseNumber (remaining),
             'timeInForce': timeInForce,
+            'postOnly': postOnly,
             'trades': trades,
         });
     }
@@ -1647,28 +1679,68 @@ module.exports = class Exchange {
 
     networkCodeToId (networkCode, currencyCode = undefined) {
         /**
+         * @ignore
          * @method
          * @name exchange#networkCodeToId
          * @description tries to convert the provided networkCode (which is expected to be an unified network code) to a network id. In order to achieve this, derived class needs to have 'options->networks' defined.
          * @param {string} networkCode unified network code
-         * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
+         * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {[string|undefined]} exchange-specific network id
          */
         const networkIdsByCodes = this.safeValue (this.options, 'networks', {});
-        return this.safeString (networkIdsByCodes, networkCode, networkCode);
+        let networkId = this.safeString (networkIdsByCodes, networkCode);
+        // for example, if 'ETH' is passed for networkCode, but 'ETH' key not defined in `options->networks` object
+        if (networkId === undefined) {
+            if (currencyCode === undefined) {
+                // if currencyCode was not provided, then we just set passed value to networkId
+                networkId = networkCode;
+            } else {
+                // if currencyCode was provided, then we try to find if that currencyCode has a replacement (i.e. ERC20 for ETH)
+                const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
+                if (currencyCode in defaultNetworkCodeReplacements) {
+                    // if there is a replacement for the passed networkCode, then we use it to find network-id in `options->networks` object
+                    const replacementObject = defaultNetworkCodeReplacements[currencyCode]; // i.e. { 'ERC20': 'ETH' }
+                    const keys = Object.keys (replacementObject);
+                    for (let i = 0; i < keys.length; i++) {
+                        const key = keys[i];
+                        const value = replacementObject[key];
+                        // if value matches to provided unified networkCode, then we use it's key to find network-id in `options->networks` object
+                        if (value === networkCode) {
+                            networkId = this.safeString (networkIdsByCodes, key);
+                            break;
+                        }
+                    }
+                }
+                // if it wasn't found, we just set the provided value to network-id
+                if (networkId === undefined) {
+                    networkId = networkCode;
+                }
+            }
+        }
+        return networkId;
     }
 
     networkIdToCode (networkId, currencyCode = undefined) {
         /**
+         * @ignore
          * @method
          * @name exchange#networkIdToCode
          * @description tries to convert the provided exchange-specific networkId to an unified network Code. In order to achieve this, derived class needs to have 'options->networksById' defined.
          * @param {string} networkId unified network code
-         * @param {string} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
+         * @param {string|undefined} currencyCode unified currency code, but this argument is not required by default, unless there is an exchange (like huobi) that needs an override of the method to be able to pass currencyCode argument additionally
          * @returns {[string|undefined]} unified network code
          */
         const networkCodesByIds = this.safeValue (this.options, 'networksById', {});
-        return this.safeString (networkCodesByIds, networkId, networkId);
+        let networkCode = this.safeString (networkCodesByIds, networkId, networkId);
+        // replace mainnet network-codes (i.e. ERC20->ETH)
+        if (currencyCode !== undefined) {
+            const defaultNetworkCodeReplacements = this.safeValue (this.options, 'defaultNetworkCodeReplacements', {});
+            if (currencyCode in defaultNetworkCodeReplacements) {
+                const replacementObject = this.safeValue (defaultNetworkCodeReplacements, currencyCode, {});
+                networkCode = this.safeString (replacementObject, networkCode, networkCode);
+            }
+        }
+        return networkCode;
     }
 
     networkCodesToIds (networkCodes = undefined) {
@@ -1717,18 +1789,26 @@ module.exports = class Exchange {
         return defaultNetworkCode;
     }
 
-    selectNetworkIdFromAvailableNetworks (currencyCode, networkCode, networkEntriesIndexed) {
+    selectNetworkCodeFromUnifiedNetworks (currencyCode, networkCode, indexedNetworkEntries) {
+        return this.selectNetworkKeyFromNetworks (currencyCode, networkCode, indexedNetworkEntries, true);
+    }
+
+    selectNetworkIdFromRawNetworks (currencyCode, networkCode, indexedNetworkEntries) {
+        return this.selectNetworkKeyFromNetworks (currencyCode, networkCode, indexedNetworkEntries, false);
+    }
+
+    selectNetworkKeyFromNetworks (currencyCode, networkCode, indexedNetworkEntries, isIndexedByUnifiedNetworkCode = false) {
         // this method is used against raw & unparse network entries, which are just indexed by network id
         let chosenNetworkId = undefined;
-        const availableNetworkIds = Object.keys (networkEntriesIndexed);
+        const availableNetworkIds = Object.keys (indexedNetworkEntries);
         const responseNetworksLength = availableNetworkIds.length;
         if (networkCode !== undefined) {
-            // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
-            const networkId = this.networkCodeToId (networkCode, currencyCode);
             if (responseNetworksLength === 0) {
                 throw new NotSupported (this.id + ' - ' + networkCode + ' network did not return any result for ' + currencyCode);
             } else {
-                if (networkId in networkEntriesIndexed) {
+                // if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
+                const networkId = isIndexedByUnifiedNetworkCode ? networkCode : this.networkCodeToId (networkCode, currencyCode);
+                if (networkId in indexedNetworkEntries) {
                     chosenNetworkId = networkId;
                 } else {
                     throw new NotSupported (this.id + ' - ' + networkId + ' network was not found for ' + currencyCode + ', use one of ' + availableNetworkIds.join (', '));
@@ -1736,12 +1816,12 @@ module.exports = class Exchange {
             }
         } else {
             if (responseNetworksLength === 0) {
-                throw new NotSupported (this.id + ' - no networks were returned for' + currencyCode);
+                throw new NotSupported (this.id + ' - no networks were returned for ' + currencyCode);
             } else {
                 // if networkCode was not provided by user, then we try to use the default network (if it was defined in "defaultNetworks"), otherwise, we just return the first network entry
                 const defaultNetworkCode = this.defaultNetworkCode (currencyCode);
-                const defaultNetworkId = this.networkCodeToId (defaultNetworkCode, currencyCode);
-                chosenNetworkId = (defaultNetworkId in networkEntriesIndexed) ? defaultNetworkId : availableNetworkIds[0];
+                const defaultNetworkId = isIndexedByUnifiedNetworkCode ? defaultNetworkCode : this.networkCodeToId (defaultNetworkCode, currencyCode);
+                chosenNetworkId = (defaultNetworkId in indexedNetworkEntries) ? defaultNetworkId : availableNetworkIds[0];
             }
         }
         return chosenNetworkId;
@@ -2501,12 +2581,20 @@ module.exports = class Exchange {
 
     priceToPrecision (symbol, price) {
         const market = this.market (symbol);
-        return this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
+        const result = this.decimalToPrecision (price, ROUND, market['precision']['price'], this.precisionMode, this.paddingMode);
+        if (result === '0') {
+            throw new ArgumentsRequired (this.id + ' price of ' + market['symbol'] + ' must be greater than minimum price precision of ' + this.numberToString (market['precision']['price']));
+        }
+        return result;
     }
 
     amountToPrecision (symbol, amount) {
         const market = this.market (symbol);
-        return this.decimalToPrecision (amount, TRUNCATE, market['precision']['amount'], this.precisionMode, this.paddingMode);
+        const result = this.decimalToPrecision (amount, TRUNCATE, market['precision']['amount'], this.precisionMode, this.paddingMode);
+        if (result === '0') {
+            throw new ArgumentsRequired (this.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + this.numberToString (market['precision']['amount']));
+        }
+        return result;
     }
 
     feeToPrecision (symbol, fee) {
@@ -2992,5 +3080,32 @@ module.exports = class Exchange {
             },
             'networks': {},
         };
+    }
+
+    assignDefaultDepositWithdrawFees (fee, currency = undefined) {
+        /**
+         * @ignore
+         * @method
+         * @description Takes a depositWithdrawFee structure and assigns the default values for withdraw and deposit
+         * @param {object} fee A deposit withdraw fee structure
+         * @param {object} currency A currency structure, the response from this.currency ()
+         * @returns {object} A deposit withdraw fee structure
+         */
+        const networkKeys = Object.keys (fee['networks']);
+        const numNetworks = networkKeys.length;
+        if (numNetworks === 1) {
+            fee['withdraw'] = fee['networks'][networkKeys[0]]['withdraw'];
+            fee['deposit'] = fee['networks'][networkKeys[0]]['deposit'];
+            return fee;
+        }
+        const currencyCode = this.safeString (currency, 'code');
+        for (let i = 0; i < numNetworks; i++) {
+            const network = networkKeys[i];
+            if (network === currencyCode) {
+                fee['withdraw'] = fee['networks'][networkKeys[i]]['withdraw'];
+                fee['deposit'] = fee['networks'][networkKeys[i]]['deposit'];
+            }
+        }
+        return fee;
     }
 };
