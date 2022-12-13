@@ -276,10 +276,6 @@ module.exports = class coinex extends Exchange {
                     'max': undefined,
                 },
             },
-            'precision': {
-                'amount': this.parseNumber ('0.00000001'),
-                'price': this.parseNumber ('0.00000001'),
-            },
             'options': {
                 'createMarketBuyOrderRequiresPrice': true,
                 'defaultType': 'spot', // spot, swap, margin
@@ -301,22 +297,22 @@ module.exports = class coinex extends Exchange {
 
     async fetchCurrencies (params = {}) {
         const response = await this.publicGetCommonAssetConfig (params);
-        //
         //     {
         //         code: 0,
         //         data: {
-        //           'CET-CSC': {
-        //               asset: 'CET',
-        //               chain: 'CSC',
-        //               withdrawal_precision: 8,
-        //               can_deposit: true,
-        //               can_withdraw: true,
-        //               deposit_least_amount: '0.026',
-        //               withdraw_least_amount: '20',
-        //               withdraw_tx_fee: '0.026'
-        //           },
-        //           ...
-        //           message: 'Success',
+        //             "USDT-ERC20": {
+        //                  "asset": "USDT",
+        //                  "chain": "ERC20",
+        //                  "withdrawal_precision": 6,
+        //                  "can_deposit": true,
+        //                  "can_withdraw": true,
+        //                  "deposit_least_amount": "4.9",
+        //                  "withdraw_least_amount": "4.9",
+        //                  "withdraw_tx_fee": "4.9"
+        //             },
+        //             ...
+        //         },
+        //         message: 'Success',
         //     }
         //
         const data = this.safeValue (response, 'data', []);
@@ -328,6 +324,7 @@ module.exports = class coinex extends Exchange {
             const currencyId = this.safeString (currency, 'asset');
             const networkId = this.safeString (currency, 'chain');
             const code = this.safeCurrencyCode (currencyId);
+            const precision = this.parseNumber (this.parsePrecision (this.safeString (currency, 'withdrawal_precision')));
             if (this.safeValue (result, code) === undefined) {
                 result[code] = {
                     'id': currencyId,
@@ -339,7 +336,7 @@ module.exports = class coinex extends Exchange {
                     'deposit': this.safeValue (currency, 'can_deposit'),
                     'withdraw': this.safeValue (currency, 'can_withdraw'),
                     'fee': this.safeNumber (currency, 'withdraw_tx_fee'),
-                    'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'withdrawal_precision'))),
+                    'precision': precision,
                     'limits': {
                         'amount': {
                             'min': undefined,
@@ -380,7 +377,7 @@ module.exports = class coinex extends Exchange {
                 'deposit': this.safeValue (currency, 'can_deposit'),
                 'withdraw': this.safeValue (currency, 'can_withdraw'),
                 'fee': this.safeNumber (currency, 'withdraw_tx_fee'),
-                'precision': this.parseNumber (this.parsePrecision (this.safeString (currency, 'withdrawal_precision'))),
+                'precision': precision,
             };
             networks[networkId] = network;
             result[code]['networks'] = networks;
@@ -740,13 +737,20 @@ module.exports = class coinex extends Exchange {
          * @method
          * @name coinex#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://viabtc.github.io/coinex_api_en_doc/spot/#docsspot001_market008_all_market_ticker
+         * @see https://viabtc.github.io/coinex_api_en_doc/futures/#docsfutures001_http009_market_ticker_all
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the coinex api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         symbols = this.marketSymbols (symbols);
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', undefined, params);
+        let market = undefined;
+        if (symbols !== undefined) {
+            const symbol = this.safeValue (symbols, 0);
+            market = this.market (symbol);
+        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
         const method = (marketType === 'swap') ? 'perpetualPublicGetMarketTickerAll' : 'publicGetMarketTickerAll';
         const response = await this[method] (query);
         //
@@ -1195,7 +1199,7 @@ module.exports = class coinex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '5m', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name coinex#fetchOHLCV
@@ -1302,12 +1306,17 @@ module.exports = class coinex extends Exchange {
         const data = this.safeValue (response, 'data', {});
         const free = this.safeValue (data, 'can_transfer', {});
         const total = this.safeValue (data, 'balance', {});
+        const loan = this.safeValue (data, 'loan', {});
+        const interest = this.safeValue (data, 'interest', {});
         //
         const sellAccount = this.account ();
         const sellCurrencyId = this.safeString (data, 'sell_asset_type');
         const sellCurrencyCode = this.safeCurrencyCode (sellCurrencyId);
         sellAccount['free'] = this.safeString (free, 'sell_type');
         sellAccount['total'] = this.safeString (total, 'sell_type');
+        const sellDebt = this.safeString (loan, 'sell_type');
+        const sellInterest = this.safeString (interest, 'sell_type');
+        sellAccount['debt'] = Precise.stringAdd (sellDebt, sellInterest);
         result[sellCurrencyCode] = sellAccount;
         //
         const buyAccount = this.account ();
@@ -1315,6 +1324,9 @@ module.exports = class coinex extends Exchange {
         const buyCurrencyCode = this.safeCurrencyCode (buyCurrencyId);
         buyAccount['free'] = this.safeString (free, 'buy_type');
         buyAccount['total'] = this.safeString (total, 'buy_type');
+        const buyDebt = this.safeString (loan, 'buy_type');
+        const buyInterest = this.safeString (interest, 'buy_type');
+        buyAccount['debt'] = Precise.stringAdd (buyDebt, buyInterest);
         result[buyCurrencyCode] = buyAccount;
         //
         return this.safeBalance (result);
@@ -1401,11 +1413,14 @@ module.exports = class coinex extends Exchange {
          * @param {object} params extra parameters specific to the coinex api endpoint
          * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
          */
-        const accountType = this.safeString (params, 'type', 'main');
-        params = this.omit (params, 'type');
-        if (accountType === 'margin') {
+        let marketType = undefined;
+        [ marketType, params ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const isMargin = this.safeValue (params, 'margin', false);
+        marketType = isMargin ? 'margin' : marketType;
+        params = this.omit (params, 'margin');
+        if (marketType === 'margin') {
             return await this.fetchMarginBalance (params);
-        } else if (accountType === 'swap') {
+        } else if (marketType === 'swap') {
             return await this.fetchSwapBalance (params);
         } else {
             return await this.fetchSpotBalance (params);
@@ -2581,6 +2596,7 @@ module.exports = class coinex extends Exchange {
         //          code: 0,
         //          data: {
         //            coin_address: '1P1JqozxioQwaqPwgMAQdNDYNyaVSqgARq',
+        //            // coin_address: 'xxxxxxxxxxxxxx:yyyyyyyyy', // with embedded tag/memo
         //            is_bitcoin_cash: false
         //          },
         //          message: 'Success'
@@ -2620,12 +2636,21 @@ module.exports = class coinex extends Exchange {
         //         is_bitcoin_cash: false
         //     }
         //
-        const address = this.safeString (depositAddress, 'coin_address');
+        const coinAddress = this.safeString (depositAddress, 'coin_address');
+        const parts = coinAddress.split (':');
+        let address = undefined;
+        let tag = undefined;
+        if (parts.length > 1) {
+            address = parts[0];
+            tag = parts[1];
+        } else {
+            address = coinAddress;
+        }
         return {
             'info': depositAddress,
             'currency': this.safeCurrencyCode (undefined, currency),
             'address': address,
-            'tag': undefined,
+            'tag': tag,
             'network': undefined,
         };
     }
@@ -3061,11 +3086,10 @@ module.exports = class coinex extends Exchange {
         if (market['type'] !== 'swap') {
             throw new BadSymbol (this.id + ' setMarginMode() supports swap contracts only');
         }
-        const defaultMarginMode = this.safeString2 (this.options, 'defaultMarginMode', marginMode);
         let defaultPositionType = undefined;
-        if (defaultMarginMode === 'isolated') {
+        if (marginMode === 'isolated') {
             defaultPositionType = 1;
-        } else if (defaultMarginMode === 'cross') {
+        } else if (marginMode === 'cross') {
             defaultPositionType = 2;
         }
         const leverage = this.safeInteger (params, 'leverage');

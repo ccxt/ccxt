@@ -6,10 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\BadRequest;
-use \ccxt\InvalidAddress;
-use \ccxt\NotSupported;
 
 class idex extends Exchange {
 

@@ -709,6 +709,7 @@ class gemini(Exchange):
     def fetch_trades(self, symbol, since=None, limit=None, params={}):
         """
         get the list of most recent trades for a particular symbol
+        see https://docs.gemini.com/rest-api/#trade-history
         :param str symbol: unified symbol of the market to fetch trades for
         :param int|None since: timestamp in ms of the earliest trade to fetch
         :param int|None limit: the maximum amount of trades to fetch
@@ -720,6 +721,10 @@ class gemini(Exchange):
         request = {
             'symbol': market['id'],
         }
+        if limit is not None:
+            request['limit_trades'] = limit
+        if since is not None:
+            request['timestamp'] = since
         response = self.publicGetV1TradesSymbol(self.extend(request, params))
         #
         #     [
@@ -1436,7 +1441,7 @@ class gemini(Exchange):
             'info': response,
         }
 
-    def fetch_ohlcv(self, symbol, timeframe='5m', since=None, limit=None, params={}):
+    def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
         """
         fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
         :param str symbol: unified symbol of the market to fetch OHLCV data for

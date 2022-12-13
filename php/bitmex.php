@@ -6,13 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
-use \ccxt\BadRequest;
-use \ccxt\BadSymbol;
-use \ccxt\InvalidOrder;
-use \ccxt\OrderNotFound;
-use \ccxt\DDoSProtection;
 
 class bitmex extends Exchange {
 
@@ -397,6 +390,7 @@ class bitmex extends Exchange {
             $contract = !$index;
             $initMargin = $this->safe_string($market, 'initMargin', '1');
             $maxLeverage = $this->parse_number(Precise::string_div('1', $initMargin));
+            $multiplierString = Precise::string_abs($this->safe_string($market, 'multiplier'));
             $result[] = array(
                 'id' => $id,
                 'symbol' => $symbol,
@@ -420,7 +414,7 @@ class bitmex extends Exchange {
                 'inverse' => $contract ? $inverse : null,
                 'taker' => $this->safe_number($market, 'takerFee'),
                 'maker' => $this->safe_number($market, 'makerFee'),
-                'contractSize' => $this->safe_number($market, 'multiplier'),
+                'contractSize' => $this->parse_number($multiplierString),
                 'expiry' => $expiry,
                 'expiryDatetime' => $expiryDatetime,
                 'strike' => $this->safe_number($market, 'optionStrikePrice'),
@@ -2170,12 +2164,17 @@ class bitmex extends Exchange {
         } elseif ($market['quote'] === 'USDT') {
             $resultValue = Precise::string_mul($value, '0.000001');
         } else {
-            $currency = $this->currency($market['quote']);
+            $currency = null;
+            $quote = $market['quote'];
+            if ($quote !== null) {
+                $currency = $this->currency($market['quote']);
+            }
             if ($currency !== null) {
                 $resultValue = Precise::string_mul($value, $this->number_to_string($currency['precision']));
             }
         }
-        return floatval($resultValue);
+        $resultValue = ($resultValue !== null) ? floatval($resultValue) : null;
+        return $resultValue;
     }
 
     public function is_fiat($currency) {

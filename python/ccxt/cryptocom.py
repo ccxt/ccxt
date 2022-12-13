@@ -14,6 +14,7 @@ from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import InsufficientFunds
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import DDoSProtection
+from ccxt.base.errors import OnMaintenance
 from ccxt.base.errors import InvalidNonce
 from ccxt.base.decimal_to_precision import TICK_SIZE
 from ccxt.base.precise import Precise
@@ -98,14 +99,20 @@ class cryptocom(Exchange):
             },
             'urls': {
                 'logo': 'https://user-images.githubusercontent.com/1294454/147792121-38ed5e36-c229-48d6-b49a-48d05fc19ed4.jpeg',
-                'test': 'https://uat-api.3ona.co/v2',
+                'test': {
+                    'spot': 'https://uat-api.3ona.co/v2',
+                    'derivatives': 'https://uat-api.3ona.co/v2',
+                },
                 'api': {
                     'spot': 'https://api.crypto.com/v2',
                     'derivatives': 'https://deriv-api.crypto.com/v1',
                 },
                 'www': 'https://crypto.com/',
                 'referral': 'https://crypto.com/exch/5835vstech',
-                'doc': 'https://exchange-docs.crypto.com/',
+                'doc': [
+                    'https://exchange-docs.crypto.com/spot/index.html',
+                    'https://exchange-docs.crypto.com/derivatives/index.html',
+                ],
                 'fees': 'https://crypto.com/exchange/document/fees-limits',
             },
             'api': {
@@ -136,6 +143,7 @@ class cryptocom(Exchange):
                             'private/create-order': 2 / 3,
                             'private/cancel-order': 2 / 3,
                             'private/cancel-all-orders': 2 / 3,
+                            'private/create-order-list': 10 / 3,
                             'private/get-order-history': 10 / 3,
                             'private/get-open-orders': 10 / 3,
                             'private/get-order-detail': 1 / 3,
@@ -160,9 +168,9 @@ class cryptocom(Exchange):
                             'private/margin/get-trades': 100,
                             'private/deriv/transfer': 10 / 3,
                             'private/deriv/get-transfer-history': 10 / 3,
-                            'private/subaccount/get-sub-accounts': 10 / 3,
-                            'private/subaccount/get-transfer-history': 10 / 3,
-                            'private/subaccount/transfer': 10 / 3,
+                            'private/get-accounts': 10 / 3,
+                            'private/get-subaccount-balances': 10 / 3,
+                            'private/create-subaccount-transfer': 10 / 3,
                             'private/otc/get-otc-user': 10 / 3,
                             'private/otc/get-instruments': 10 / 3,
                             'private/otc/request-quote': 100,
@@ -292,16 +300,27 @@ class cryptocom(Exchange):
                     '40007': BadRequest,
                     '40101': AuthenticationError,
                     '50001': BadRequest,
+                    '9010001': OnMaintenance,  # {"code":9010001,"message":"SYSTEM_MAINTENANCE","details":"Crypto.com Exchange is currently under maintenance. Please refer to https://status.crypto.com for more details."}
                 },
             },
         })
 
     def fetch_markets(self, params={}):
         """
+        see https://exchange-docs.crypto.com/spot/index.html#public-get-instruments
+        see https://exchange-docs.crypto.com/derivatives/index.html#public-get-instruments
         retrieves data on all markets for cryptocom
         :param dict params: extra parameters specific to the exchange api endpoint
         :returns [dict]: an array of objects representing market data
         """
+        promises = [self.fetch_spot_markets(params), self.fetch_derivatives_markets(params)]
+        spotMarkets = promises[0]
+        derivativeMarkets = promises[1]
+        markets = self.array_concat(spotMarkets, derivativeMarkets)
+        return markets
+
+    def fetch_spot_markets(self, params={}):
+        response = self.spotPublicGetPublicGetInstruments(params)
         #
         #    {
         #        id: 11,
@@ -319,13 +338,17 @@ class cryptocom(Exchange):
         #                    margin_trading_enabled_5x: True,
         #                    margin_trading_enabled_10x: True,
         #                    max_quantity: '100000000',
-        #                    min_quantity: '0.01'
+        #                    min_quantity: '0.01',
+        #                    max_price:'1',
+        #                    min_price:'0.00000001',
+        #                    last_update_date:1667263094857,
+        #                    quantity_tick_size:'0.1',
+        #                    price_tick_size:'0.00000001'
         #               },
         #            ]
         #        }
         #    }
         #
-        response = self.spotPublicGetPublicGetInstruments(params)
         resultResponse = self.safe_value(response, 'result', {})
         markets = self.safe_value(resultResponse, 'instruments', [])
         result = []
@@ -336,8 +359,7 @@ class cryptocom(Exchange):
             quoteId = self.safe_string(market, 'quote_currency')
             base = self.safe_currency_code(baseId)
             quote = self.safe_currency_code(quoteId)
-            priceDecimals = self.safe_string(market, 'price_decimals')
-            minPrice = self.parse_precision(priceDecimals)
+            minPrice = self.safe_string(market, 'min_price')
             minQuantity = self.safe_string(market, 'min_quantity')
             maxLeverage = self.parse_number('1')
             margin_trading_enabled_5x = self.safe_value(market, 'margin_trading_enabled_5x')
@@ -371,8 +393,8 @@ class cryptocom(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'amount': self.parse_number(self.parse_precision(self.safe_string(market, 'quantity_decimals'))),
-                    'price': self.parse_number(self.parse_precision(priceDecimals)),
+                    'amount': self.safe_number(market, 'quantity_tick_size'),
+                    'price': self.safe_number(market, 'price_tick_size'),
                 },
                 'limits': {
                     'leverage': {
@@ -385,7 +407,7 @@ class cryptocom(Exchange):
                     },
                     'price': {
                         'min': self.parse_number(minPrice),
-                        'max': None,
+                        'max': self.safe_number(market, 'max_price'),
                     },
                     'cost': {
                         'min': self.parse_number(Precise.string_mul(minQuantity, minPrice)),
@@ -394,6 +416,10 @@ class cryptocom(Exchange):
                 },
                 'info': market,
             })
+        return result
+
+    def fetch_derivatives_markets(self, params={}):
+        result = []
         futuresResponse = self.derivativesPublicGetPublicGetInstruments()
         #
         #     {
@@ -432,6 +458,8 @@ class cryptocom(Exchange):
             inst_type = self.safe_string(market, 'inst_type')
             swap = inst_type == 'PERPETUAL_SWAP'
             future = inst_type == 'FUTURE'
+            if inst_type == 'CCY_PAIR':
+                continue  # Found some inconsistencies between spot and derivatives api so use spot api for currency pairs.
             baseId = self.safe_string(market, 'base_ccy')
             quoteId = self.safe_string(market, 'quote_ccy')
             base = self.safe_currency_code(baseId)
@@ -498,13 +526,19 @@ class cryptocom(Exchange):
     def fetch_tickers(self, symbols=None, params={}):
         """
         fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+        see https://exchange-docs.crypto.com/spot/index.html#public-get-ticker
+        see https://exchange-docs.crypto.com/derivatives/index.html#public-get-tickers
         :param [str]|None symbols: unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
         :param dict params: extra parameters specific to the cryptocom api endpoint
         :returns dict: an array of `ticker structures <https://docs.ccxt.com/en/latest/manual.html#ticker-structure>`
         """
         self.load_markets()
         symbols = self.market_symbols(symbols)
-        marketType, query = self.handle_market_type_and_params('fetchTickers', None, params)
+        market = None
+        if symbols is not None:
+            symbol = self.safe_value(symbols, 0)
+            market = self.market(symbol)
+        marketType, query = self.handle_market_type_and_params('fetchTickers', market, params)
         method = self.get_supported_mapping(marketType, {
             'spot': 'spotPublicGetPublicGetTicker',
             'future': 'derivativesPublicGetPublicGetTickers',
@@ -546,16 +580,21 @@ class cryptocom(Exchange):
         if marketType != 'spot':
             raise NotSupported(self.id + ' fetchTicker() only supports spot markets')
         response = self.spotPublicGetPublicGetTicker(self.extend(request, query))
-        # {
-        #     "code":0,
-        #     "method":"public/get-ticker",
-        #     "result":{
-        #       "data": {"i":"CRO_BTC","b":0.00000890,"k":0.00001179,"a":0.00001042,"t":1591770793901,"v":14905879.59,"h":0.00,"l":0.00,"c":0.00}
-        #     }
-        # }
+        #
+        #   {
+        #       "id":"-1",
+        #       "method":"public/get-tickers",
+        #       "code":"0",
+        #       "result":{
+        #          "data":[
+        #             {"i":"BTC_USDT", "h":"20567.16", "l":"20341.39", "a":"20394.23", "v":"2236.3762", "vv":"45739074.30", "c":"-0.0036", "b":"20394.01", "k":"20394.02", "t":"1667406085934"}
+        #          ]
+        #   }
+        #
         resultResponse = self.safe_value(response, 'result', {})
         data = self.safe_value(resultResponse, 'data', {})
-        return self.parse_ticker(data, market)
+        first = self.safe_value(data, 0, {})
+        return self.parse_ticker(first, market)
 
     def fetch_orders(self, symbol=None, since=None, limit=None, params={}):
         """
@@ -732,6 +771,11 @@ class cryptocom(Exchange):
             'future': 'derivativesPublicGetPublicGetCandlestick',
             'swap': 'derivativesPublicGetPublicGetCandlestick',
         })
+        if marketType != 'spot':
+            reqLimit = 100
+            if limit is not None:
+                reqLimit = limit
+            request['count'] = reqLimit
         response = getattr(self, method)(self.extend(request, query))
         # {
         #     "code":0,

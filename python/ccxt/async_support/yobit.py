@@ -227,6 +227,7 @@ class yobit(Exchange):
                 'SBTC': 'Super Bitcoin',
                 'SMC': 'SmartCoin',
                 'SOLO': 'SoloCoin',
+                'SOUL': 'SoulCoin',
                 'STAR': 'StarCoin',
                 'SUPER': 'SuperCoin',
                 'TNS': 'Transcodium',
@@ -242,6 +243,11 @@ class yobit(Exchange):
                 # 'fetchTickersMaxLength': 2048,
                 'fetchOrdersRequiresSymbol': True,
                 'fetchTickersMaxLength': 512,
+                'networks': {
+                    'ETH': 'ERC20',
+                    'TRX': 'TRC20',
+                    'BSC': 'BEP20',
+                },
             },
             'precisionMode': TICK_SIZE,
             'exceptions': {
@@ -1076,8 +1082,16 @@ class yobit(Exchange):
         """
         await self.load_markets()
         currency = self.currency(code)
+        currencyId = currency['id']
+        networks = self.safe_value(self.options, 'networks', {})
+        network = self.safe_string_upper(params, 'network')  # self line allows the user to specify either ERC20 or ETH
+        network = self.safe_string(networks, network, network)  # handle ERC20>ETH alias
+        if network is not None:
+            if network != 'ERC20':
+                currencyId = currencyId + network.lower()
+            params = self.omit(params, 'network')
         request = {
-            'coinName': currency['id'],
+            'coinName': currencyId,
             'need_new': 0,
         }
         response = await self.privatePostGetDepositAddress(self.extend(request, params))

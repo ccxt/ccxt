@@ -120,11 +120,6 @@ module.exports = class coinone extends Exchange {
                     'maker': 0.002,
                 },
             },
-            'precision': {
-                'price': this.parseNumber ('0.0001'),
-                'amount': this.parseNumber ('0.0001'),
-                'cost': this.parseNumber ('0.00000001'),
-            },
             'precisionMode': TICK_SIZE,
             'exceptions': {
                 '405': OnMaintenance, // {"errorCode":"405","status":"maintenance","result":"error"}
@@ -208,8 +203,9 @@ module.exports = class coinone extends Exchange {
                 'strike': undefined,
                 'optionType': undefined,
                 'precision': {
-                    'amount': undefined,
-                    'price': undefined,
+                    'amount': this.parseNumber ('1e-4'),
+                    'price': this.parseNumber ('1e-4'),
+                    'cost': this.parseNumber ('1e-8'),
                 },
                 'limits': {
                     'leverage': {
@@ -310,15 +306,11 @@ module.exports = class coinone extends Exchange {
         const timestamp = this.safeTimestamp (response, 'timestamp');
         for (let i = 0; i < ids.length; i++) {
             const id = ids[i];
-            let symbol = id;
-            let market = undefined;
-            if (id in this.markets_by_id) {
-                market = this.markets_by_id[id];
-                symbol = market['symbol'];
-                const ticker = response[id];
-                result[symbol] = this.parseTicker (ticker, market);
-                result[symbol]['timestamp'] = timestamp;
-            }
+            const market = this.safeMarket (id);
+            const symbol = market['symbol'];
+            const ticker = response[id];
+            result[symbol] = this.parseTicker (ticker, market);
+            result[symbol]['timestamp'] = timestamp;
         }
         return this.filterByArray (result, 'symbol', symbols);
     }
@@ -530,7 +522,7 @@ module.exports = class coinone extends Exchange {
         //         "orderId": "8a82c561-40b4-4cb3-9bc0-9ac9ffc1d63b"
         //     }
         //
-        return this.parseOrder (response);
+        return this.parseOrder (response, market);
     }
 
     async fetchOrder (id, symbol = undefined, params = {}) {
@@ -643,24 +635,9 @@ module.exports = class coinone extends Exchange {
             }
         }
         status = this.parseOrderStatus (status);
-        let symbol = undefined;
-        let base = undefined;
-        let quote = undefined;
-        const marketId = this.safeStringLower (order, 'currency');
-        if (marketId !== undefined) {
-            if (marketId in this.markets_by_id) {
-                market = this.markets_by_id[marketId];
-            } else {
-                base = this.safeCurrencyCode (marketId);
-                quote = 'KRW';
-                symbol = base + '/' + quote;
-            }
-        }
-        if ((symbol === undefined) && (market !== undefined)) {
-            symbol = market['symbol'];
-            base = market['base'];
-            quote = market['quote'];
-        }
+        const symbol = market['symbol'];
+        const base = market['base'];
+        const quote = market['quote'];
         let fee = undefined;
         const feeCostString = this.safeString (order, 'fee');
         if (feeCostString !== undefined) {

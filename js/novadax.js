@@ -1154,11 +1154,13 @@ module.exports = class novadax extends Exchange {
         //
         const id = this.safeString (transfer, 'data');
         const status = this.safeString (transfer, 'message');
+        const currencyCode = this.safeCurrencyCode (undefined, currency);
         return {
             'info': transfer,
             'id': id,
             'amount': undefined,
-            'code': this.safeCurrencyCode (undefined, currency),
+            'code': currencyCode, // kept here for backward-compatibility, but will be removed soon
+            'currency': currencyCode,
             'fromAccount': undefined,
             'toAccount': undefined,
             'timestamp': undefined,

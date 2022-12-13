@@ -195,6 +195,7 @@ module.exports = class ascendex extends Exchange {
                             'futures/contract': 1,
                             'futures/collateral': 1,
                             'futures/pricing-data': 1,
+                            'futures/ticker': 1,
                         },
                     },
                     'private': {
@@ -729,6 +730,28 @@ module.exports = class ascendex extends Exchange {
         return this.safeBalance (result);
     }
 
+    parseMarginBalance (response) {
+        const timestamp = this.milliseconds ();
+        const result = {
+            'info': response,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+        };
+        const balances = this.safeValue (response, 'data', []);
+        for (let i = 0; i < balances.length; i++) {
+            const balance = balances[i];
+            const code = this.safeCurrencyCode (this.safeString (balance, 'asset'));
+            const account = this.account ();
+            account['free'] = this.safeString (balance, 'availableBalance');
+            account['total'] = this.safeString (balance, 'totalBalance');
+            const debt = this.safeString (balance, 'borrowed');
+            const interest = this.safeString (balance, 'interest');
+            account['debt'] = Precise.stringAdd (debt, interest);
+            result[code] = account;
+        }
+        return this.safeBalance (result);
+    }
+
     parseSwapBalance (response) {
         const timestamp = this.milliseconds ();
         const result = {
@@ -758,7 +781,12 @@ module.exports = class ascendex extends Exchange {
          */
         await this.loadMarkets ();
         await this.loadAccounts ();
-        const [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        let query = undefined;
+        let marketType = undefined;
+        [ marketType, query ] = this.handleMarketTypeAndParams ('fetchBalance', undefined, params);
+        const isMargin = this.safeValue (params, 'margin', false);
+        marketType = isMargin ? 'margin' : marketType;
+        params = this.omit (params, 'margin');
         const options = this.safeValue (this.options, 'fetchBalance', {});
         const accountsByType = this.safeValue (this.options, 'accountsByType', {});
         const accountCategory = this.safeString (accountsByType, marketType, 'cash');
@@ -822,6 +850,8 @@ module.exports = class ascendex extends Exchange {
         //
         if (marketType === 'swap') {
             return this.parseSwapBalance (response);
+        } else if (marketType === 'margin') {
+            return this.parseMarginBalance (response);
         } else {
             return this.parseBalance (response);
         }
@@ -961,17 +991,29 @@ module.exports = class ascendex extends Exchange {
          * @method
          * @name ascendex#fetchTickers
          * @description fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
+         * @see https://ascendex.github.io/ascendex-pro-api/#ticker
+         * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#ticker
          * @param {[string]|undefined} symbols unified symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
          * @param {object} params extra parameters specific to the ascendex api endpoint
          * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
          */
         await this.loadMarkets ();
         const request = {};
+        let market = undefined;
         if (symbols !== undefined) {
+            const symbol = this.safeValue (symbols, 0);
+            market = this.market (symbol);
             const marketIds = this.marketIds (symbols);
             request['symbol'] = marketIds.join (',');
         }
-        const response = await this.v1PublicGetTicker (this.extend (request, params));
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
+        let response = undefined;
+        if (type === 'spot') {
+            response = await this.v1PublicGetTicker (this.extend (request, params));
+        } else {
+            response = await this.v2PublicGetFuturesTicker (this.extend (request, params));
+        }
         //
         //     {
         //         "code":0,
@@ -991,6 +1033,9 @@ module.exports = class ascendex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', []);
+        if (!Array.isArray (data)) {
+            return this.parseTickers ([ data ], symbols);
+        }
         return this.parseTickers (data, symbols);
     }
 
@@ -1096,8 +1141,7 @@ module.exports = class ascendex extends Exchange {
         const priceString = this.safeString2 (trade, 'price', 'p');
         const amountString = this.safeString (trade, 'q');
         const buyerIsMaker = this.safeValue (trade, 'bm', false);
-        const makerOrTaker = buyerIsMaker ? 'maker' : 'taker';
-        const side = buyerIsMaker ? 'buy' : 'sell';
+        const side = buyerIsMaker ? 'sell' : 'buy';
         market = this.safeMarket (undefined, market);
         return this.safeTrade ({
             'info': trade,
@@ -1107,7 +1151,7 @@ module.exports = class ascendex extends Exchange {
             'id': undefined,
             'order': undefined,
             'type': undefined,
-            'takerOrMaker': makerOrTaker,
+            'takerOrMaker': undefined,
             'side': side,
             'price': priceString,
             'amount': amountString,
@@ -1121,6 +1165,7 @@ module.exports = class ascendex extends Exchange {
          * @method
          * @name ascendex#fetchTrades
          * @description get the list of most recent trades for a particular symbol
+         * @see https://ascendex.github.io/ascendex-pro-api/#market-trades
          * @param {string} symbol unified symbol of the market to fetch trades for
          * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
          * @param {int|undefined} limit the maximum amount of trades to fetch
@@ -2559,7 +2604,6 @@ module.exports = class ascendex extends Exchange {
         const currentTime = this.safeInteger (contract, 'time');
         const nextFundingRate = this.safeNumber (contract, 'fundingRate');
         const nextFundingRateTimestamp = this.safeInteger (contract, 'nextFundingTime');
-        const previousFundingTimestamp = undefined;
         return {
             'info': contract,
             'symbol': symbol,
@@ -2570,11 +2614,14 @@ module.exports = class ascendex extends Exchange {
             'timestamp': currentTime,
             'datetime': this.iso8601 (currentTime),
             'previousFundingRate': undefined,
-            'nextFundingRate': nextFundingRate,
-            'previousFundingTimestamp': previousFundingTimestamp,
-            'nextFundingTimestamp': nextFundingRateTimestamp,
-            'previousFundingDatetime': this.iso8601 (previousFundingTimestamp),
-            'nextFundingDatetime': this.iso8601 (nextFundingRateTimestamp),
+            'nextFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'nextFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'nextFundingDatetime': undefined,
+            'fundingRate': nextFundingRate,
+            'fundingTimestamp': nextFundingRateTimestamp,
+            'fundingDatetime': this.iso8601 (nextFundingRateTimestamp),
         };
     }
 

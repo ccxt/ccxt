@@ -6,8 +6,6 @@ namespace ccxt;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
-use \ccxt\ExchangeError;
-use \ccxt\ArgumentsRequired;
 
 class coinmate extends Exchange {
 
@@ -145,8 +143,8 @@ class coinmate extends Exchange {
                 'trading' => array(
                     'tierBased' => true,
                     'percentage' => true,
-                    'maker' => 0.12 / 100,
-                    'taker' => 0.25 / 100,
+                    'maker' => $this->parse_number('0.0012'),
+                    'taker' => $this->parse_number('0.0025'),
                     'tiers' => array(
                         'taker' => array(
                             array( $this->parse_number('0'), $this->parse_number('0.0035') ),
@@ -193,6 +191,7 @@ class coinmate extends Exchange {
                     'Not enough account balance available' => '\\ccxt\\InsufficientFunds',
                     'Incorrect order ID' => '\\ccxt\\InvalidOrder',
                     'Minimum Order Size ' => '\\ccxt\\InvalidOrder',
+                    'max allowed precision' => '\\ccxt\\InvalidOrder', // array("error":true,"errorMessage":"USDT_EUR - max allowed precision is 4 decimal places","data":null)
                     'TOO MANY REQUESTS' => '\\ccxt\\RateLimitExceeded',
                     'Access denied.' => '\\ccxt\\AuthenticationError', // array("error":true,"errorMessage":"Access denied.","data":null)
                 ),

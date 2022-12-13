@@ -52,6 +52,8 @@ class bitfinex(Exchange):
                 'fetchClosedOrders': True,
                 'fetchDepositAddress': True,
                 'fetchDeposits': None,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': True,
                 'fetchIndexOHLCV': False,
                 'fetchLeverageTiers': False,
                 'fetchMarginMode': False,
@@ -406,24 +408,72 @@ class bitfinex(Exchange):
 
     def fetch_transaction_fees(self, codes=None, params={}):
         """
-        fetch transaction fees
-        :param [str]|None codes: not used by bitfinex2 fetchTransactionFees()
+        *DEPRECATED* please use fetchDepositWithdrawFees instead
+        see https://docs.bitfinex.com/v1/reference/rest-auth-fees
+        :param [str]|None codes: list of unified currency codes
+        :param dict params: extra parameters specific to the bitfinex api endpoint
+        :returns [dict]: a list of `fees structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
+        """
+        self.load_markets()
+        result = {}
+        response = self.privatePostAccountFees(params)
+        #
+        # {
+        #     'withdraw': {
+        #         'BTC': '0.0004',
+        #     }
+        # }
+        #
+        fees = self.safe_value(response, 'withdraw')
+        ids = list(fees.keys())
+        for i in range(0, len(ids)):
+            id = ids[i]
+            code = self.safe_currency_code(id)
+            if (codes is not None) and not self.in_array(code, codes):
+                continue
+            result[code] = {
+                'withdraw': self.safe_number(fees, id),
+                'deposit': {},
+                'info': self.safe_number(fees, id),
+            }
+        return result
+
+    def fetch_deposit_withdraw_fees(self, codes=None, params={}):
+        """
+        fetch deposit and withdraw fees
+        see https://docs.bitfinex.com/v1/reference/rest-auth-fees
+        :param [str]|None codes: list of unified currency codes
         :param dict params: extra parameters specific to the bitfinex api endpoint
         :returns [dict]: a list of `fees structures <https://docs.ccxt.com/en/latest/manual.html#fee-structure>`
         """
         self.load_markets()
         response = self.privatePostAccountFees(params)
-        fees = response['withdraw']
-        withdraw = {}
-        ids = list(fees.keys())
-        for i in range(0, len(ids)):
-            id = ids[i]
-            code = self.safe_currency_code(id)
-            withdraw[code] = self.safe_number(fees, id)
+        #
+        #    {
+        #        'withdraw': {
+        #            'BTC': '0.0004',
+        #            ...
+        #        }
+        #    }
+        #
+        withdraw = self.safe_value(response, 'withdraw')
+        return self.parse_deposit_withdraw_fees(withdraw, codes)
+
+    def parse_deposit_withdraw_fee(self, fee, currency=None):
+        #
+        #    '0.0004'
+        #
         return {
-            'info': response,
-            'withdraw': withdraw,
-            'deposit': withdraw,  # only for deposits of less than $1000
+            'withdraw': {
+                'fee': self.parse_number(fee),
+                'percentage': None,
+            },
+            'deposit': {
+                'fee': None,
+                'percentage': None,
+            },
+            'networks': {},
+            'info': fee,
         }
 
     def fetch_trading_fees(self, params={}):

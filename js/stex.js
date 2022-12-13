@@ -43,6 +43,8 @@ module.exports = class stex extends Exchange {
                 'fetchDeposit': true,
                 'fetchDepositAddress': true,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': false,
                 'fetchFundingRate': false,
                 'fetchFundingRateHistory': false,
@@ -777,7 +779,7 @@ module.exports = class stex extends Exchange {
         ];
     }
 
-    async fetchOHLCV (symbol, timeframe = '1d', since = undefined, limit = undefined, params = {}) {
+    async fetchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
         /**
          * @method
          * @name stex#fetchOHLCV
@@ -1094,22 +1096,22 @@ module.exports = class stex extends Exchange {
         const marketId = this.safeString2 (order, 'currency_pair_id', 'currency_pair_name');
         const symbol = this.safeSymbol (marketId, market, '_');
         const timestamp = this.safeTimestamp (order, 'timestamp');
-        const price = this.safeNumber (order, 'price');
-        const amount = this.safeNumber (order, 'initial_amount');
-        const filled = this.safeNumber (order, 'processed_amount');
+        const price = this.safeString (order, 'price');
+        const amount = this.safeString (order, 'initial_amount');
+        const filled = this.safeString (order, 'processed_amount');
         let remaining = undefined;
         let cost = undefined;
         if (filled !== undefined) {
             if (amount !== undefined) {
-                remaining = amount - filled;
+                remaining = Precise.stringSub (amount, filled);
                 if (this.options['parseOrderToPrecision']) {
-                    remaining = parseFloat (this.amountToPrecision (symbol, remaining));
+                    remaining = this.amountToPrecision (symbol, remaining);
                 }
-                remaining = Math.max (remaining, 0.0);
+                remaining = Precise.stringMax (remaining, '0.0');
             }
             if (price !== undefined) {
                 if (cost === undefined) {
-                    cost = price * filled;
+                    cost = Precise.stringMul (price, filled);
                 }
             }
         }
@@ -1118,14 +1120,7 @@ module.exports = class stex extends Exchange {
             type = undefined;
         }
         const side = this.safeStringLower (order, 'type');
-        const rawTrades = this.safeValue (order, 'trades');
-        let trades = undefined;
-        if (rawTrades !== undefined) {
-            trades = this.parseTrades (rawTrades, market, undefined, undefined, {
-                'symbol': symbol,
-                'order': id,
-            });
-        }
+        const trades = this.safeValue (order, 'trades');
         const stopPrice = this.safeNumber (order, 'trigger_price');
         const result = {
             'info': order,
@@ -1157,7 +1152,7 @@ module.exports = class stex extends Exchange {
             if (numFees > 0) {
                 result['fees'] = [];
                 for (let i = 0; i < fees.length; i++) {
-                    const feeCost = this.safeNumber (fees[i], 'amount');
+                    const feeCost = this.safeString (fees[i], 'amount');
                     if (feeCost !== undefined) {
                         const feeCurrencyId = this.safeString (fees[i], 'currency_id');
                         const feeCurrencyCode = this.safeCurrencyCode (feeCurrencyId);
@@ -1171,7 +1166,7 @@ module.exports = class stex extends Exchange {
                 result['fee'] = undefined;
             }
         }
-        return result;
+        return this.safeOrder (result, market);
     }
 
     async createOrder (symbol, type, side, amount, price = undefined, params = {}) {
@@ -1979,7 +1974,7 @@ module.exports = class stex extends Exchange {
         //     }
         //
         const deposits = this.safeValue (response, 'data', []);
-        return this.parseTransactions (deposits, code, since, limit);
+        return this.parseTransactions (deposits, currency, since, limit);
     }
 
     async fetchWithdrawal (id, code = undefined, params = {}) {
@@ -2106,7 +2101,7 @@ module.exports = class stex extends Exchange {
         //     }
         //
         const withdrawals = this.safeValue (response, 'data', []);
-        return this.parseTransactions (withdrawals, code, since, limit);
+        return this.parseTransactions (withdrawals, currency, since, limit);
     }
 
     async transfer (code, amount, fromAccount, toAccount, params = {}) {
@@ -2420,8 +2415,77 @@ module.exports = class stex extends Exchange {
         /**
          * @method
          * @name stex#fetchTransactionFees
-         * @description fetch transaction fees
-         * @param {[string]|undefined} codes not used by stex fetchTransactionFees ()
+         * @description *DEPRECATED* please use fetchDepositWithdrawFees instead
+         * @see https://apidocs.stex.com/#tag/Public/paths/~1public~1currencies/get
+         * @param {[string]|undefined} codes list of unified currency codes
+         * @param {object} params extra parameters specific to the stex api endpoint
+         * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        //
+        //     {
+        //         "success": true,
+        //         "data": [
+        //             {
+        //                 "id": 1,
+        //                 "code": "BTC",
+        //                 "name": "Bitcoin",
+        //                 "active": true,
+        //                 "delisted": false,
+        //                 "precision": 8,
+        //                 "minimum_tx_confirmations": 24,
+        //                 "minimum_withdrawal_amount": "0.009",
+        //                 "minimum_deposit_amount": "0.000003",
+        //                 "deposit_fee_currency_id": 1,
+        //                 "deposit_fee_currency_code": "ETH",
+        //                 "deposit_fee_const": "0.00001",
+        //                 "deposit_fee_percent": "0",
+        //                 "withdrawal_fee_currency_id": 1,
+        //                 "withdrawal_fee_currency_code": "ETH",
+        //                 "withdrawal_fee_const": "0.0015",
+        //                 "withdrawal_fee_percent": "0",
+        //                 "withdrawal_limit": "string",
+        //                 "block_explorer_url": "https://blockchain.info/tx/",
+        //                 "protocol_specific_settings": [
+        //                     {
+        //                         "protocol_name": "Tether OMNI",
+        //                         "protocol_id": 10,
+        //                         "active": true,
+        //                         "withdrawal_fee_currency_id": 1,
+        //                         "withdrawal_fee_const": 0.002,
+        //                         "withdrawal_fee_percent": 0,
+        //                         "block_explorer_url": "https://omniexplorer.info/search/"
+        //                     }
+        //                 ]
+        //             }
+        //         ]
+        //     }
+        //
+        const currencyKeys = Object.keys (this.currencies);
+        const result = {};
+        for (let i = 0; i < currencyKeys.length; i++) {
+            const code = currencyKeys[i];
+            const currency = this.currencies[code];
+            if (codes !== undefined && !this.inArray (code, codes)) {
+                continue;
+            }
+            const info = this.safeValue (currency, 'info');
+            result[code] = {
+                'withdraw': this.safeNumber (currency, 'fee'),
+                'deposit': this.safeNumber (info, 'deposit_fee_const'),
+                'info': info,
+            };
+        }
+        return result;
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name stex#fetchDepositWithdrawFees
+         * @description fetch deposit and withdraw fees
+         * @see https://apidocs.stex.com/#tag/Public/paths/~1public~1currencies/get
+         * @param {[string]|undefined} codes list of unified currency codes
          * @param {object} params extra parameters specific to the stex api endpoint
          * @returns {object} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
          */
@@ -2463,23 +2527,77 @@ module.exports = class stex extends Exchange {
         //                     }
         //                 ]
         //             }
+        //             ...
         //         ]
         //     }
         //
-        const data = this.safeValue (response, 'data', []);
-        const withdrawFees = {};
-        const depositFees = {};
-        for (let i = 0; i < data.length; i++) {
-            const id = this.safeString (data[i], 'id');
-            const code = this.safeCurrencyCode (id);
-            withdrawFees[code] = this.safeNumber (data[i], 'withdrawal_fee_const');
-            depositFees[code] = this.safeNumber (data[i], 'deposit_fee_const');
-        }
-        return {
-            'withdraw': withdrawFees,
-            'deposit': depositFees,
-            'info': response,
+        const data = this.safeValue (response, 'data');
+        return this.parseDepositWithdrawFees (data, codes, 'code');
+    }
+
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        //
+        //    {
+        //        "id": 1,
+        //        "code": "BTC",
+        //        "name": "Bitcoin",
+        //        "active": true,
+        //        "delisted": false,
+        //        "precision": 8,
+        //        "minimum_tx_confirmations": 24,
+        //        "minimum_withdrawal_amount": "0.009",
+        //        "minimum_deposit_amount": "0.000003",
+        //        "deposit_fee_currency_id": 1,
+        //        "deposit_fee_currency_code": "ETH",
+        //        "deposit_fee_const": "0.00001",
+        //        "deposit_fee_percent": "0",
+        //        "withdrawal_fee_currency_id": 1,
+        //        "withdrawal_fee_currency_code": "ETH",
+        //        "withdrawal_fee_const": "0.0015",
+        //        "withdrawal_fee_percent": "0",
+        //        "withdrawal_limit": "string",
+        //        "block_explorer_url": "https://blockchain.info/tx/",
+        //        "protocol_specific_settings": [
+        //            {
+        //                "protocol_name": "Tether OMNI",
+        //                "protocol_id": 10,
+        //                "active": true,
+        //                "withdrawal_fee_currency_id": 1,
+        //                "withdrawal_fee_const": 0.002,
+        //                "withdrawal_fee_percent": 0,
+        //                "block_explorer_url": "https://omniexplorer.info/search/"
+        //            }
+        //        ]
+        //    }
+        //
+        const result = {
+            'withdraw': {
+                'fee': this.safeNumber (fee, 'withdrawal_fee_const'),
+                'percentage': false,
+            },
+            'deposit': {
+                'fee': this.safeNumber (fee, 'deposit_fee_const'),
+                'percentage': false,
+            },
+            'networks': {},
         };
+        const networks = this.safeValue (fee, 'protocol_specific_settings', []);
+        for (let i = 0; i < networks.length; i++) {
+            const network = networks[i];
+            const networkId = this.safeString (network, 'protocol_name');
+            const networkCode = this.networkIdToCode (networkId);
+            result['networks'][networkCode] = {
+                'withdraw': {
+                    'fee': this.safeNumber (network, 'withdrawal_fee_const'),
+                    'percentage': false,
+                },
+                'deposit': {
+                    'fee': undefined,
+                    'percentage': undefined,
+                },
+            };
+        }
+        return result;
     }
 
     handleErrors (httpCode, reason, url, method, headers, body, response, requestHeaders, requestBody) {
