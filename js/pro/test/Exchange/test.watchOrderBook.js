@@ -21,6 +21,7 @@ module.exports = async (exchange, symbol) => {
         'luno', // requires authentication for public orderbooks
         'ripio',
         'gopax', // requires authentication for public orderbooks
+        'woo'
     ]
 
     if (skippedExchanges.includes (exchange.id)) {

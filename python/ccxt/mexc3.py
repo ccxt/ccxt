@@ -3364,7 +3364,7 @@ class mexc3(Exchange):
             networkId = self.safe_string(depositAddress, 'network')
             network = self.safe_network(networkId)
             address = self.safe_string(depositAddress, 'address', None)
-            tag = self.safe_string(depositAddress, 'tag', None)
+            tag = self.safe_string_2(depositAddress, 'tag', 'memo', None)
             result.append({
                 'currency': currency['id'],
                 'network': network,
