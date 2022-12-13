@@ -2779,7 +2779,7 @@ export default class huobi extends Exchange {
             const market = this.market (symbol);
             const info = this.safeValue (accounts, 'info');
             const marketId = this.safeString (info, 'subtype', undefined);
-            if ((marketId === this.safeValue (market, 'id')) && (type === account['type'])) {
+            if (((marketId === this.safeValue (market, 'id')) || type === 'super-margin') && (type === account['type'])) {
                 return this.safeString (account, 'id');
             }
         }
