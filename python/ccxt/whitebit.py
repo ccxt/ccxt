@@ -822,7 +822,7 @@ class whitebit(Exchange):
         orderId = self.safe_string_2(trade, 'dealOrderId', 'orderId')
         cost = self.safe_string(trade, 'deal')
         price = self.safe_string(trade, 'price')
-        amount = self.safe_string_2(trade, 'amount', 'base_volume')
+        amount = self.safe_string_2(trade, 'amount', 'quote_volume')
         id = self.safe_string_2(trade, 'id', 'tradeID')
         side = self.safe_string_2(trade, 'type', 'side')
         symbol = market['symbol']

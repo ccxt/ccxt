@@ -673,6 +673,10 @@ module.exports = class cex extends cexRest {
         const symbol = base + '/' + quote;
         const market = this.safeMarket (symbol);
         remains = this.currencyFromPrecision (base, remains);
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheBySymbolById (limit);
+        }
         const ordersBySymbol = this.safeValue (this.orders['hashmap'], symbol, {});
         let order = this.safeValue (ordersBySymbol, orderId);
         if (order === undefined) {
@@ -854,7 +858,9 @@ module.exports = class cex extends cexRest {
         }
         this.orders = myOrders;
         const messageHash = 'orders:' + symbol;
-        client.resolve (myOrders, messageHash);
+        if (myOrders.length > 0) {
+            client.resolve (myOrders, messageHash);
+        }
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {

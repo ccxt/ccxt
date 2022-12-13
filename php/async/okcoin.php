@@ -1159,7 +1159,7 @@ class okcoin extends Exchange {
                         'deposit' => $depositEnabled,
                         'withdraw' => $withdrawEnabled,
                         'fee' => null, // todo => redesign
-                        'precision' => $this->parse_number('0.00000001'),
+                        'precision' => $this->parse_number('1e-8'), // todo => fix
                         'limits' => array(
                             'amount' => array( 'min' => null, 'max' => null ),
                             'withdraw' => array(

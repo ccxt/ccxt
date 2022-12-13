@@ -1148,7 +1148,7 @@ class okcoin(Exchange):
                     'deposit': depositEnabled,
                     'withdraw': withdrawEnabled,
                     'fee': None,  # todo: redesign
-                    'precision': self.parse_number('0.00000001'),
+                    'precision': self.parse_number('1e-8'),  # todo: fix
                     'limits': {
                         'amount': {'min': None, 'max': None},
                         'withdraw': {

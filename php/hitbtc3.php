@@ -976,7 +976,7 @@ class hitbtc3 extends Exchange {
         // we use clientOrderId as the order $id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here => https://github.com/ccxt/ccxt/issues/5674
-        $orderId = $this->safe_string($trade, 'clientOrderId');
+        $orderId = $this->safe_string_2($trade, 'clientOrderId', 'client_order_id');
         $priceString = $this->safe_string($trade, 'price');
         $amountString = $this->safe_string_2($trade, 'quantity', 'qty');
         $side = $this->safe_string($trade, 'side');
