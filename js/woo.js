@@ -1851,27 +1851,29 @@ module.exports = class woo extends Exchange {
             }
         } else {
             this.checkRequiredCredentials ();
-            url += pathWithParams;
+            let auth = '';
             const ts = this.nonce ().toString ();
-            let auth = this.urlencode (params);
-            if (version === 'v3' && (method === 'POST' || method === 'PUT')) {
+            url += path;
+            headers = {
+                'x-api-key': this.apiKey,
+                'x-api-timestamp': ts,
+            };
+            if (version === 'v3' && (method === 'POST' || method === 'PUT' || method === 'DELETE')) {
+                auth = this.json (params);
                 body = auth;
-                auth = ts + method + '/' + version + '/' + pathWithParams + body;
+                auth = ts + method + '/' + version + '/' + path + body;
+                headers['content-type'] = 'application/json';
             } else {
-                if (method === 'POST' || method === 'DELETE') {
+                auth = this.urlencode (params);
+                if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
                     body = auth;
                 } else {
                     url += '?' + auth;
                 }
                 auth += '|' + ts;
+                headers['content-type'] = 'application/x-www-form-urlencoded';
             }
-            const signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
-            headers = {
-                'x-api-key': this.apiKey,
-                'x-api-signature': signature,
-                'x-api-timestamp': ts,
-                'Content-Type': 'application/x-www-form-urlencoded',
-            };
+            headers['x-api-signature'] = this.hmac (this.encode (auth), this.encode (this.secret), 'sha256');
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
