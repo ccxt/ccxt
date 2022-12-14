@@ -1853,7 +1853,7 @@ module.exports = class woo extends Exchange {
             this.checkRequiredCredentials ();
             let auth = '';
             const ts = this.nonce ().toString ();
-            url += path;
+            url += pathWithParams;
             headers = {
                 'x-api-key': this.apiKey,
                 'x-api-timestamp': ts,
@@ -1861,7 +1861,7 @@ module.exports = class woo extends Exchange {
             if (version === 'v3' && (method === 'POST' || method === 'PUT' || method === 'DELETE')) {
                 auth = this.json (params);
                 body = auth;
-                auth = ts + method + '/' + version + '/' + path + body;
+                auth = ts + method + '/' + version + '/' + pathWithParams + body;
                 headers['content-type'] = 'application/json';
             } else {
                 auth = this.urlencode (params);
