@@ -204,6 +204,7 @@ class Exchange(object):
         '408': RequestTimeout,
         '504': RequestTimeout,
         '401': AuthenticationError,
+        '407': AuthenticationError,
         '511': AuthenticationError,
     }
     headers = None
