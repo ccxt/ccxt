@@ -93,10 +93,7 @@ module.exports = class binance extends binanceRest {
             const streamLimits = this.safeValue (this.options, 'streamLimits');
             const streamLimit = this.safeInteger (streamLimits, type);
             streamIndex = streamIndex + 1;
-            let normalizedIndex = streamIndex;
-            if (streamIndex >= streamLimit) {
-                normalizedIndex = streamIndex % streamLimit;
-            }
+            const normalizedIndex = streamIndex % streamLimit;
             this.options['streamIndex'] = streamIndex;
             stream = this.numberToString (normalizedIndex);
             this.options['streamBySubscriptionsHash'][subscriptionHash] = stream;
