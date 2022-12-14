@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '2.2.103'
+__version__ = '2.4.5'
 
 # -----------------------------------------------------------------------------
 
@@ -204,6 +204,7 @@ class Exchange(object):
         '408': RequestTimeout,
         '504': RequestTimeout,
         '401': AuthenticationError,
+        '407': AuthenticationError,
         '511': AuthenticationError,
     }
     headers = None

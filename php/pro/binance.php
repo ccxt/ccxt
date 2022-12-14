@@ -47,10 +47,10 @@ class binance extends \ccxt\async\binance {
             ),
             'options' => array(
                 'streamLimits' => array(
-                    'spot' => 1024,
-                    'margin' => 1024,
-                    'future' => 200,
-                    'delivery' => 200,
+                    'spot' => 50, // max 1024
+                    'margin' => 50, // max 1024
+                    'future' => 50, // max 200
+                    'delivery' => 50, // max 200
                 ),
                 'streamBySubscriptionsHash' => array(),
                 'streamIndex' => -1,
@@ -97,11 +97,9 @@ class binance extends \ccxt\async\binance {
             $streamLimits = $this->safe_value($this->options, 'streamLimits');
             $streamLimit = $this->safe_integer($streamLimits, $type);
             $streamIndex = $streamIndex + 1;
-            if ($streamIndex === $streamLimit) {
-                $streamIndex = 0;
-            }
+            $normalizedIndex = fmod($streamIndex, $streamLimit);
             $this->options['streamIndex'] = $streamIndex;
-            $stream = $this->number_to_string($streamIndex);
+            $stream = $this->number_to_string($normalizedIndex);
             $this->options['streamBySubscriptionsHash'][$subscriptionHash] = $stream;
         }
         return $stream;

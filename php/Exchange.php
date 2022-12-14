@@ -36,7 +36,7 @@ use Elliptic\EdDSA;
 use BN\BN;
 use Exception;
 
-$version = '2.2.103';
+$version = '2.4.5';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -55,7 +55,7 @@ const PAD_WITH_ZERO = 1;
 
 class Exchange {
 
-    const VERSION = '2.2.103';
+    const VERSION = '2.4.5';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -1252,6 +1252,7 @@ class Exchange {
             '408' => 'RequestTimeout',
             '504' => 'RequestTimeout',
             '401' => 'AuthenticationError',
+            '407' => 'AuthenticationError',
             '511' => 'AuthenticationError',
         );
         $this->verbose = false;

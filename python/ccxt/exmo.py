@@ -631,7 +631,7 @@ class exmo(Exchange):
                 'swap': False,
                 'future': False,
                 'option': False,
-                'active': True,
+                'active': None,
                 'contract': False,
                 'linear': None,
                 'inverse': None,
