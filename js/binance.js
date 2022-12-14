@@ -2913,6 +2913,9 @@ module.exports = class binance extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new NotSupported (this.id + ' editOrder() does not support ' + market['type'] + ' orders, only spot orders are accepted');
+        }
         const request = {
             'symbol': market['id'],
             'side': side.toUpperCase (),
