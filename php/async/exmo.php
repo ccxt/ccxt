@@ -673,7 +673,7 @@ class exmo extends Exchange {
                     'swap' => false,
                     'future' => false,
                     'option' => false,
-                    'active' => true,
+                    'active' => null,
                     'contract' => false,
                     'linear' => null,
                     'inverse' => null,

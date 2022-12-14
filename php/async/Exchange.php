@@ -34,11 +34,11 @@ use Exception;
 
 include 'Throttle.php';
 
-$version = '2.2.89';
+$version = '2.4.5';
 
 class Exchange extends \ccxt\Exchange {
 
-    const VERSION = '2.2.89';
+    const VERSION = '2.4.5';
 
     public $browser;
     public $marketsLoading = null;
@@ -246,6 +246,7 @@ class Exchange extends \ccxt\Exchange {
             'defaultNetworkCodeReplacements' => array(
                 'ETH' => array( 'ERC20' => 'ETH' ),
                 'TRX' => array( 'TRC20' => 'TRX' ),
+                'CRO' => array( 'CRC20' => 'CRONOS' ),
             ),
         );
     }
@@ -2567,5 +2568,31 @@ class Exchange extends \ccxt\Exchange {
             ),
             'networks' => array(),
         );
+    }
+
+    public function assign_default_deposit_withdraw_fees($fee, $currency = null) {
+        /**
+         * @ignore
+         * Takes a depositWithdrawFee structure and assigns the default values for withdraw and deposit
+         * @param {array} $fee A deposit withdraw $fee structure
+         * @param {array} $currency A $currency structure, the response from $this->currency ()
+         * @return {array} A deposit withdraw $fee structure
+         */
+        $networkKeys = is_array($fee['networks']) ? array_keys($fee['networks']) : array();
+        $numNetworks = count($networkKeys);
+        if ($numNetworks === 1) {
+            $fee['withdraw'] = $fee['networks'][$networkKeys[0]]['withdraw'];
+            $fee['deposit'] = $fee['networks'][$networkKeys[0]]['deposit'];
+            return $fee;
+        }
+        $currencyCode = $this->safe_string($currency, 'code');
+        for ($i = 0; $i < $numNetworks; $i++) {
+            $network = $networkKeys[$i];
+            if ($network === $currencyCode) {
+                $fee['withdraw'] = $fee['networks'][$networkKeys[$i]]['withdraw'];
+                $fee['deposit'] = $fee['networks'][$networkKeys[$i]]['deposit'];
+            }
+        }
+        return $fee;
     }
 }
