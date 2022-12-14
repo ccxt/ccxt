@@ -1058,11 +1058,17 @@ module.exports = class kucoinfutures extends kucoin {
         };
         const stopPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
         if (stopPrice) {
+            if (price !== undefined) {
+                request['type'] = 'limit';
+            } else {
+                request['type'] = 'market';
+            }
             request['stop'] = (side === 'buy') ? 'up' : 'down';
             const stopPriceType = this.safeString (params, 'stopPriceType', 'TP');
             request['stopPriceType'] = stopPriceType;
             request['stopPrice'] = this.priceToPrecision (symbol, stopPrice);
         }
+        type = request['type'];
         const uppercaseType = type.toUpperCase ();
         const timeInForce = this.safeStringUpper (params, 'timeInForce');
         if (uppercaseType === 'LIMIT') {

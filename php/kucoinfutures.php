@@ -1033,11 +1033,17 @@ class kucoinfutures extends kucoin {
         );
         $stopPrice = $this->safe_value_2($params, 'triggerPrice', 'stopPrice');
         if ($stopPrice) {
+            if ($price !== null) {
+                $request['type'] = 'limit';
+            } else {
+                $request['type'] = 'market';
+            }
             $request['stop'] = ($side === 'buy') ? 'up' : 'down';
             $stopPriceType = $this->safe_string($params, 'stopPriceType', 'TP');
             $request['stopPriceType'] = $stopPriceType;
             $request['stopPrice'] = $this->price_to_precision($symbol, $stopPrice);
         }
+        $type = $request['type'];
         $uppercaseType = strtoupper($type);
         $timeInForce = $this->safe_string_upper($params, 'timeInForce');
         if ($uppercaseType === 'LIMIT') {

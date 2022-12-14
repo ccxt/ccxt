@@ -1013,10 +1013,15 @@ class kucoinfutures(kucoin):
         }
         stopPrice = self.safe_value_2(params, 'triggerPrice', 'stopPrice')
         if stopPrice:
+            if price is not None:
+                request['type'] = 'limit'
+            else:
+                request['type'] = 'market'
             request['stop'] = 'up' if (side == 'buy') else 'down'
             stopPriceType = self.safe_string(params, 'stopPriceType', 'TP')
             request['stopPriceType'] = stopPriceType
             request['stopPrice'] = self.price_to_precision(symbol, stopPrice)
+        type = request['type']
         uppercaseType = type.upper()
         timeInForce = self.safe_string_upper(params, 'timeInForce')
         if uppercaseType == 'LIMIT':
