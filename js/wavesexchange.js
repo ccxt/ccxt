@@ -604,18 +604,29 @@ module.exports = class wavesexchange extends Exchange {
     }
 
     parseOrderBookSide (bookSide, market = undefined, limit = undefined) {
-        const precision = market['precision'];
+        const precision = this.safeValue (market, 'precision');
         const wavesPrecision = this.safeString (this.options, 'wavesPrecision', '8');
-        const amountPrecision = '1e' + precision['amount'].toString ();
-        const difference = Precise.stringSub (precision['amount'].toString (), precision['price'].toString ());
-        const pricePrecision = '1e' + Precise.stringSub (wavesPrecision, difference);
+        let amountPrecision = undefined;
+        let difference = undefined;
+        let pricePrecision = undefined;
+        if (precision !== undefined) {
+            amountPrecision = '1e' + precision['amount'].toString ();
+            difference = Precise.stringSub (precision['amount'].toString (), precision['price'].toString ());
+            pricePrecision = '1e' + Precise.stringSub (wavesPrecision, difference);
+        }
         const result = [];
         for (let i = 0; i < bookSide.length; i++) {
             const entry = bookSide[i];
             const entryPrice = this.safeString (entry, 'price', '0');
             const entryAmount = this.safeString (entry, 'amount', '0');
-            const price = Precise.stringDiv (entryPrice, pricePrecision);
-            const amount = Precise.stringDiv (entryAmount, amountPrecision);
+            let price = undefined;
+            let amount = undefined;
+            if ((pricePrecision !== undefined) && (entryPrice !== undefined)) {
+                price = Precise.stringDiv (entryPrice, pricePrecision);
+            }
+            if ((amountPrecision !== undefined) && (entryAmount !== undefined)) {
+                amount = Precise.stringDiv (entryAmount, amountPrecision);
+            }
             if ((limit !== undefined) && (i > limit)) {
                 break;
             }
