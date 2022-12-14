@@ -43,10 +43,10 @@ module.exports = class binance extends binanceRest {
             },
             'options': {
                 'streamLimits': {
-                    'spot': 10, // max 1024
-                    'margin': 10, // max 1024
-                    'future': 10, // max 200
-                    'delivery': 10, // max 200
+                    'spot': 50, // max 1024
+                    'margin': 50, // max 1024
+                    'future': 50, // max 200
+                    'delivery': 50, // max 200
                 },
                 'streamBySubscriptionsHash': {},
                 'streamIndex': -1,
