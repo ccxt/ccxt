@@ -73,6 +73,7 @@ module.exports = class gate extends Exchange {
                 'createStopLimitOrder': true,
                 'createStopMarketOrder': false,
                 'createStopOrder': true,
+                'editOrder': true,
                 'fetchBalance': true,
                 'fetchBorrowRate': false,
                 'fetchBorrowRateHistories': false,
@@ -256,6 +257,9 @@ module.exports = class gate extends Exchange {
                             'price_orders': 1,
                             'price_orders/{order_id}': 1,
                         },
+                        'patch': {
+                            'orders/{order_id}': 1,
+                        },
                     },
                     'margin': {
                         'get': {
@@ -428,10 +432,211 @@ module.exports = class gate extends Exchange {
                 'createOrder': {
                     'expiration': 86400, // for conditional orders
                 },
+                // gate networks and currencies are hardcoded in withdrawal page HTML (i.e. pastebin(dot)com/Lqxv3DV1 and pastebin(dot)com/mRriY4WG)
                 'networks': {
+                    'BITCOIN': 'BTC',
+                    'TRX': 'TRX',
                     'TRC20': 'TRX',
+                    'ETH': 'ETH',
                     'ERC20': 'ETH',
+                    'BEP2': 'BNB',
                     'BEP20': 'BSC',
+                    'HRC20': 'HT',
+                    'CRC20': 'CRO',
+                    'OKC': 'OKT',
+                    'LITECOIN': 'LTC',
+                    'AVALANCHEC': 'AVAX_C',
+                    'DOGECOIN': 'DOGE', // DOGEEVM is different
+                    'POLKADOT': 'DOT',
+                    'COSMOS': 'ATOM',
+                    'GATECHAIN': 'GT', // GTEVM is different (same as GRC20)
+                    'SOLANA': 'SOL',
+                    'ETHEREUMCLASSIC': 'ETC',
+                    'POLYGON': 'MATIC',
+                    'TERRANEW': 'LUNA',
+                    'TERRACLASSIC': 'LUNC',
+                    'CHILIZ': 'CHZ',
+                    'WAVES': 'WAVES',
+                    'STELLAR': 'XLM',
+                    'OPTIMISM': 'OPETH',
+                    'CARDANO': 'ADA',
+                    'ELROND': 'EGLD',
+                    'CELO': 'CELO',
+                    'ARBITRUM': 'ARB',
+                    'ARBITRUMNOVA': 'ARBNOVA',
+                    'EOS': 'EOS',
+                    'ETHW': 'ETHW',
+                    'KLAYTN': 'KLAY',
+                    'APTOS': 'APT',
+                    'ALGORAND': 'ALGO',
+                    'ECASH': 'XEC',
+                    'ZCASH': 'ZEC',
+                    'MOONRIVER': 'MOVR',
+                    'MOONBEAM': 'GLMR',
+                    'MONERO': 'XMR',
+                    'RIPPLE': 'XRP',
+                    'TEZOS': 'XTZ',
+                    'CASPER': 'CSPR',
+                    'VECHAIN': 'VET',
+                    'ARWEAVE': 'AR',
+                    'ASTAR': 'ASTR', // ASTREVM is different
+                    'INJECTIVE': 'INJ',
+                    'ACALA': 'ACA',
+                    'THEOPENNETWORK': 'TONCOIN',
+                    'FILECOIN': 'FIL',
+                    'WAX': 'WAXP',
+                    'ZILLIQA': 'ZIL',
+                    'KUSAMA': 'KSM', // KSMSM is different
+                    'KARURA': 'KAR',
+                    'KADENA': 'KDA',
+                    'BITSHARES': 'BTS',
+                    'REEF': 'REEF',
+                    'HARMONY': 'ONE',
+                    'ONTOLOGYGAS': 'ONG',
+                    'SOLARSWIPE': 'SXP',
+                    'NANO': 'NANO',
+                    'THETA': 'THETA',
+                    'NERVOS': 'CKB',
+                    'RADIX': 'XRD',
+                    'CONFLUX': 'CFX', // CFXEVM is different
+                    'PROTON': 'XPR',
+                    'CENTRIFUGE': 'CFG',
+                    'STEPAPP': 'FITFI',
+                    'SYSCOIN': 'SYS',
+                    'CHIA': 'XCH', // XCH_OLD is different
+                    'TELOS': 'TLOS', // TLOSEVM is different
+                    'POLKADEX': 'PDEX',
+                    'QTUM': 'QTUM',
+                    'CALLISTO': 'CLO',
+                    'CERTIK': 'CTK',
+                    'VERGE': 'XVG',
+                    'CLOVER': 'CLV', // CLVEVM is different
+                    'PERSISTENCE': 'XPRT',
+                    'HELIUM': 'HNT',
+                    'HATHOR': 'HTR',
+                    'BITCOINCASHSV': 'BSV',
+                    'BITCOINCASH': 'BCH', // actually, the real name is BITCOIN-CASH-ABC, but most exchanges just call it BCH
+                    // 'BITCOINCASHABC': 'BCHA', // simultaneously, BITCOIN-CASH-ABC is another IOU, which is not BCH
+                    'METAVERSEPIONEER': 'NEER',
+                    'INTERNETCOMPUTER': 'ICP',
+                    'MINA': 'MINA',
+                    'GOCHAIN': 'GO',
+                    'IOTEX': 'IOTX',
+                    'IOST': 'IOST',
+                    'KAVA': 'KAVA',
+                    'DASH': 'DASH',
+                    'METIS': 'METIS',
+                    'FANTOM': 'FTM',
+                    'TOMOCHAIN': 'TOMO',
+                    'CALAMARI': 'KMA',
+                    'OSMOSIS': 'OSMO',
+                    'THUNDERCORE': 'TT',
+                    'TARAXA': 'TARA',
+                    'RAVENCOIN': 'RVN',
+                    'FETCHAI': 'FET',
+                    'OASIS': 'ROSE',
+                    'NEAR': 'NEAR',
+                    'SIACOIN': 'SC',
+                    'HORIZEN': 'ZEN',
+                    'KARDIACHAIN': 'KAI',
+                    'BIFROST': 'BNC',
+                    'SHIDEN': 'SDN', // SDNEVM is different
+                    'BITCOINDIAMOND': 'BCD',
+                    'WEMIX': 'WEMIX',
+                    'GAS': 'GAS',
+                    'BELDEX': 'BDX',
+                    'BITCI': 'BITCI',
+                    'SONGBIRD': 'SGB',
+                    'SECRET': 'SCRT',
+                    'OASYS': 'OAS',
+                    'FINDORA': 'FRA', // FRAEVM is different
+                    'FUSION': 'FSN',
+                    'WAYIKICHAIN': 'WICC',
+                    'FLOW': 'FLOW',
+                    // BOBA: BOBA, // BOBAEVM . tbd
+                    'BITGERT': 'BRISE',
+                    'SHYFT': 'SHFT',
+                    'ETHEREUMFAIR': 'ETHF',
+                    'ONELEDGER': 'OLT',
+                    'STACKS': 'STX',
+                    'BITCOINGOLD': 'BTG',
+                    'BYTOM': 'BTM',
+                    'XDC': 'XDC',
+                    'DIGITALBITS': 'XDB',
+                    'TERNOA': 'CAPS',
+                    'NEM': 'XEM',
+                    'KILT': 'KILT',
+                    'PLCULTIMA': 'PLCU',
+                    'GRIN': 'GRIN',
+                    'BITKUB': 'KUB',
+                    'VITE': 'VITE',
+                    'ROBONOMICS': 'XRT',
+                    'CHAINX': 'PCX',
+                    'CADUCEUS': 'CMP',
+                    'PHALA': 'PHA',
+                    'SYMBOL': 'XYM',
+                    'PLATON': 'LAT',
+                    'NEBULAS': 'NAS',
+                    'NODLE': 'NAS',
+                    'PASTEL': 'PSL',
+                    'COCOSBCX': 'COCOS',
+                    'HIVE': 'HIVE',
+                    'CONSTELLATION': 'DAG',
+                    'DEEPBRAIN': 'DBC',
+                    'DEFICHAIN': 'DFI',
+                    'HANDSHAKE': 'HNS',
+                    'AETERNITY': 'AE',
+                    'SERO': 'SERO',
+                    'HPB': 'HPB',
+                    'MATRIXAI': 'MAN',
+                    'EVERSCALE': 'EVER',
+                    'QUARKCHAIN': 'QKC',
+                    'WAVESENTERPRISE': 'WEST',
+                    'MEDIBLOC': 'MED',
+                    'FLUX': 'FLUX',
+                    'DOCK': 'DOCK',
+                    'PIRATECHAIN': 'ARRR',
+                    'ICON': 'ICX',
+                    'HEDERA': 'HBAR',
+                    'INTEGRITEE': 'TEER',
+                    'AXELAR': 'WAXL',
+                    'FUSE': 'FUSE',
+                    'RIZON': 'ATOLO', // ATOLO
+                    'EDGEWARE': 'EDG',
+                    'BEAM': 'BEAM',
+                    'CHEQD': 'CHEQ',
+                    'IRIS': 'IRIS',
+                    'ABBC': 'ABBC',
+                    'SEELE': 'SEELE',
+                    'VELAS': 'VLX',
+                    'REI': 'REI',
+                    'ELASTOS': 'ELA', // ELAEVM is different
+                    'ELASTOSSMARTCHAIN': 'ESC',
+                    'AELF': 'ELF',
+                    'STEEM': 'STEEM',
+                    'BITSHARESNEW': 'NBS',
+                    'UMEE': 'UMEE',
+                    'ERGO': 'ERG',
+                    'AKASH': 'AKT',
+                    'NULS': 'NULS',
+                    'RONIN': 'RON',
+                    'ALEPHZERO': 'AZERO',
+                    'ENERGYWEB': 'EWT',
+                    'NIMIQ': 'NIM',
+                    'BAND': 'BAND',
+                    'NKN': 'NKN',
+                    'INTERLAY': 'INTERLAY',
+                    'FIRO': 'FIRO',
+                    'POLYMESH': 'POLYX',
+                    'STRATIS': 'STRAX',
+                    'HYDRA': 'HYDRA',
+                    'DECRED': 'DCR', // DCRN is different
+                    'THORCHAIN': 'RUNE',
+                    'POCKET': 'POKT',
+                    'FILECASH': 'FIC',
+                    'FIO': 'FIO',
+                    'STAFI': 'FIS',
+                    'CRUST': 'CRU',
                 },
                 'timeInForce': {
                     'GTC': 'gtc',
@@ -462,6 +667,7 @@ module.exports = class gate extends Exchange {
                         'settlementCurrencies': [ 'usdt', 'btc' ],
                     },
                 },
+                'currencyPrecision': this.parseNumber ('1e-4'), // todo: as gateio is done completely in html, in withdrawal page's source it has predefined "num_need_fix(this.value, 4);" function, so users cant set lower precision than 0.0001
             },
             'precisionMode': TICK_SIZE,
             'fees': {
@@ -1269,44 +1475,93 @@ module.exports = class gate extends Exchange {
         }
         const response = await this.publicSpotGetCurrencies (params);
         //
-        //    {
-        //        "currency": "BCN",
-        //        "delisted": false,
-        //        "withdraw_disabled": true,
-        //        "withdraw_delayed": false,
-        //        "deposit_disabled": true,
-        //        "trade_disabled": false
-        //    }
+        //     {
+        //         "currency": "USDT_ETH",
+        //         "delisted": false,
+        //         "withdraw_disabled": false,
+        //         "withdraw_delayed": false,
+        //         "deposit_disabled": false,
+        //         "trade_disabled": false,
+        //         "chain": "ETH"
+        //     },
         //
         const result = {};
         for (let i = 0; i < response.length; i++) {
             const entry = response[i];
             const currencyId = this.safeString (entry, 'currency');
-            const currencyIdLower = this.safeStringLower (entry, 'currency');
-            const code = this.safeCurrencyCode (currencyId);
-            const delisted = this.safeValue (entry, 'delisted');
-            const withdrawDisabled = this.safeValue (entry, 'withdraw_disabled', false);
-            const depositDisabled = this.safeValue (entry, 'deposit_disabled', false);
-            const tradeDisabled = this.safeValue (entry, 'trade_disabled', false);
-            const withdrawEnabled = !withdrawDisabled;
-            const depositEnabled = !depositDisabled;
-            const tradeEnabled = !tradeDisabled;
-            const listed = !delisted;
+            const parts = currencyId.split ('_');
+            const partFirst = this.safeString (parts, 0);
+            let currencyName = undefined;
+            // if currency contains underscore, then second part is always chain name (except _OLD suffixed coins)
+            if (currencyId.indexOf ('_OLD') > -1) {
+                currencyName = currencyId;
+            } else {
+                // however, if there is underscore, the exceptional is 'USD_USDC' inclusive currencies, i.e. USD_USDCTRX, USD_USDCSOL...
+                if (currencyId.indexOf ('USD_USDC') > -1) {
+                    currencyName = 'USD_USDC';
+                } else {
+                    currencyName = partFirst;
+                }
+            }
+            const code = this.safeCurrencyCode (currencyName);
+            // ach entry from response is actually a dedicated entry to each network, so we have to create a currency-wide object at first whenever we first encounter that currency
+            if (!(code in result)) {
+                result[code] = {
+                    'info': undefined,
+                    'id': currencyName,
+                    'lowerCaseId': currencyName.toLowerCase (),
+                    'name': undefined,
+                    'code': code,
+                    'precision': this.options['currencyPrecision'],
+                    'active': undefined,
+                    'deposit': undefined,
+                    'withdraw': undefined,
+                    'fee': undefined,
+                    'fees': [],
+                    'limits': this.limits,
+                    'networks': {},
+                };
+            }
+            // below are network-specific values
+            const listed = !this.safeValue (entry, 'delisted');
+            const withdrawEnabled = !this.safeValue (entry, 'withdraw_disabled', false);
+            const depositEnabled = !this.safeValue (entry, 'deposit_disabled', false);
+            const tradeEnabled = !this.safeValue (entry, 'trade_disabled', false);
             const active = listed && tradeEnabled && withdrawEnabled && depositEnabled;
-            result[code] = {
-                'id': currencyId,
-                'lowerCaseId': currencyIdLower,
-                'name': undefined,
-                'code': code,
-                'precision': this.parseNumber ('1e-4'), // todo: as gateio is done completely in html, in withdrawal page's source it has predefined "num_need_fix(this.value, 4);" function, so users cant set lower precision than 0.0001
-                'info': entry,
-                'active': active,
-                'deposit': depositEnabled,
-                'withdraw': withdrawEnabled,
-                'fee': undefined,
-                'fees': [],
-                'limits': this.limits,
-            };
+            // if any of the property is `true` then set it to global currency's property `true` too
+            if (active && !result[code]['active']) {
+                result[code]['active'] = true;
+            }
+            if (depositEnabled && !result[code]['deposit']) {
+                result[code]['deposit'] = true;
+            }
+            if (withdrawEnabled && !result[code]['withdraw']) {
+                result[code]['withdraw'] = true;
+            }
+            const networkId = this.safeString (entry, 'chain'); // some networks are null
+            if (networkId !== undefined) {
+                const networkCode = this.networkIdToCode (networkId, code);
+                result[code]['networks'][networkCode] = {
+                    'info': entry,
+                    'id': networkId,
+                    'network': networkCode,
+                    'limits': {
+                        'deposit': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                        'withdraw': {
+                            'min': undefined,
+                            'max': undefined,
+                        },
+                    },
+                    'active': active,
+                    'deposit': depositEnabled,
+                    'withdraw': withdrawEnabled,
+                    'fee': undefined,
+                    'precision': this.options['currencyPrecision'],
+                };
+            }
         }
         return result;
     }
@@ -3330,8 +3585,84 @@ module.exports = class gate extends Exchange {
         return this.parseOrder (response, market);
     }
 
+    async editOrder (id, symbol, type, side, amount, price = undefined, params = {}) {
+        /**
+         * @method
+         * @name gate#editOrder
+         * @description edit a trade order, gate currently only supports the modification of the price or amount fields
+         * @see https://www.gate.io/docs/developers/apiv4/en/#amend-an-order
+         * @param {string} id order id
+         * @param {string} symbol unified symbol of the market to create an order in
+         * @param {string} type 'market' or 'limit'
+         * @param {string} side 'buy' or 'sell'
+         * @param {float} amount how much of the currency you want to trade in units of the base currency
+         * @param {float|undefined} price the price at which the order is to be fullfilled, in units of the base currency, ignored in market orders
+         * @param {object} params extra parameters specific to the gate api endpoint
+         * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        if (!market['spot']) {
+            throw new BadRequest (this.id + ' editOrder() supports only spot markets');
+        }
+        const [ marketType, query ] = this.handleMarketTypeAndParams ('editOrder', market, params);
+        const account = this.convertTypeToAccount (marketType);
+        const isLimitOrder = (type === 'limit');
+        if (account === 'spot') {
+            if (!isLimitOrder) {
+                // exchange doesn't have market orders for spot
+                throw new InvalidOrder (this.id + ' editOrder() does not support ' + type + ' orders for ' + marketType + ' markets');
+            }
+        }
+        const request = {
+            'order_id': id,
+            'currency_pair': market['id'],
+            'account': account,
+        };
+        if (amount !== undefined) {
+            request['amount'] = this.amountToPrecision (symbol, amount);
+        }
+        if (price !== undefined) {
+            request['price'] = this.priceToPrecision (symbol, price);
+        }
+        const response = await this.privateSpotPatchOrdersOrderId (this.extend (request, query));
+        //
+        //     {
+        //         "id": "243233276443",
+        //         "text": "apiv4",
+        //         "create_time": "1670908873",
+        //         "update_time": "1670914102",
+        //         "create_time_ms": 1670908873077,
+        //         "update_time_ms": 1670914102241,
+        //         "status": "open",
+        //         "currency_pair": "ADA_USDT",
+        //         "type": "limit",
+        //         "account": "spot",
+        //         "side": "sell",
+        //         "amount": "10",
+        //         "price": "0.6",
+        //         "time_in_force": "gtc",
+        //         "iceberg": "0",
+        //         "left": "10",
+        //         "fill_price": "0",
+        //         "filled_total": "0",
+        //         "fee": "0",
+        //         "fee_currency": "USDT",
+        //         "point_fee": "0",
+        //         "gt_fee": "0",
+        //         "gt_maker_fee": "0",
+        //         "gt_taker_fee": "0",
+        //         "gt_discount": false,
+        //         "rebated_fee": "0",
+        //         "rebated_fee_currency": "ADA"
+        //     }
+        //
+        return this.parseOrder (response, market);
+    }
+
     parseOrderStatus (status) {
         const statuses = {
+            'open': 'open',
             '_new': 'open',
             'filled': 'closed',
             'cancelled': 'canceled',
@@ -3348,7 +3679,7 @@ module.exports = class gate extends Exchange {
     parseOrder (order, market = undefined) {
         //
         // SPOT
-        // createOrder/cancelOrder/fetchOrder
+        // createOrder/cancelOrder/fetchOrder/editOrder
         //
         //    {
         //        "id": "62364648575",
@@ -4766,10 +5097,13 @@ module.exports = class gate extends Exchange {
                 const secondPart = this.safeString (pathParts, 1, '');
                 requiresURLEncoding = (secondPart.indexOf ('dual') >= 0) || (secondPart.indexOf ('positions') >= 0);
             }
-            if ((method === 'GET') || (method === 'DELETE') || requiresURLEncoding) {
+            if ((method === 'GET') || (method === 'DELETE') || requiresURLEncoding || (method === 'PATCH')) {
                 if (Object.keys (query).length) {
                     queryString = this.urlencode (query);
                     url += '?' + queryString;
+                }
+                if (method === 'PATCH') {
+                    body = this.json (query);
                 }
             } else {
                 const urlQueryParams = this.safeValue (query, 'query', {});

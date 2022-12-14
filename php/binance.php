@@ -768,6 +768,7 @@ class binance extends Exchange {
                     'post' => array(
                         'order/oco' => 1,
                         'order' => 1,
+                        'order/cancelReplace' => 1,
                         'order/test' => 1,
                     ),
                     'delete' => array(
