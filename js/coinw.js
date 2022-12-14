@@ -37,6 +37,7 @@ module.exports = class coinw extends Exchange {
                 'fetchOpenOrders': true, // https://api.coinw.com/api/v1/private?command=returnOpenOrders
                 'fetchOrder': true, // https://api.coinw.com/api/v1/private?command=returnOrderTrades
                 'fetchOrderBook': true,
+                'fetchTicker': 'emulated',
                 'fetchTickers': true,
                 'fetchTrades': true, // https://api.coinw.com/api/v1/public?command=returnTradeHistory&symbol=CWT_CNYT&start=1579238517000&end=1581916917660
                 'fetchWithdrawals': true, // https://api.coinw.com/api/v1/private?command=returnDepositsWithdrawals
@@ -256,12 +257,12 @@ module.exports = class coinw extends Exchange {
                 'active': undefined,
                 'deposit': undefined,
                 'withdraw': (withdraw === '1'),
-                'fee': this.safeString (currency, 'txFee'),
+                'fee': this.safeNumber (currency, 'txFee'),
                 'precision': undefined,
                 'limits': {
                     'amount': {
-                        'min': this.safeString (currency, 'minQty'),
-                        'max': this.safeString (currency, 'maxQty'),
+                        'min': this.safeNumber (currency, 'minQty'),
+                        'max': this.safeNumber (currency, 'maxQty'),
                     },
                     'withdraw': {
                         'min': undefined,
@@ -396,15 +397,11 @@ module.exports = class coinw extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const end = this.safeInteger (params, 'end');
         const request = {
             'symbol': market['id'],
         };
         if (since !== undefined) {
             request['start'] = since;
-        }
-        if (end !== undefined) {
-            request['end'] = end;
         }
         const response = await this.publicGetReturnTradeHistory (this.extend (request, params));
         //
@@ -508,16 +505,12 @@ module.exports = class coinw extends Exchange {
          */
         await this.loadMarkets ();
         const market = this.market (symbol);
-        const end = this.safeInteger (params, 'end');
         const request = {
             'currencyPair': market['id'],
             'period': this.timeframes[timeframe],
         };
         if (since !== undefined) {
             request['start'] = since;
-        }
-        if (end !== undefined) {
-            request['end'] = end;
         }
         const response = await this.publicGetReturnChartData (this.extend (request, params));
         //
@@ -560,24 +553,33 @@ module.exports = class coinw extends Exchange {
         return this.parseOHLCVs (data, market, timeframe, since, limit);
     }
 
-    sign (path, api = 'v1Public', method = 'GET', params = {}, headers = undefined, body = undefined) {
+    async fetchBalance2 (params = {}) {
+        // Test out `sign()` function
+        const request = {};
+        const response = await this.privatePostReturnCompleteBalances (this.extend (request, params));
+        console.log (response);
+    }
+
+    sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         const access = api;
-        const prefix = 'api/v1'; // https://api.coinw.com/api/v1/public?command=returnTicker
+        const prefix = 'api/v1';
         let url = this.implodeHostname (this.urls['api']['rest']) + '/' + prefix + '/' + access + '?command=' + path;
         headers = { 'content-type': 'application/json' };
         if (access === 'public') {
             url += '&' + this.urlencode (params); // TODO: Post - Transfer??
         } else {
             this.checkRequiredCredentials ();
-            let strToSign = '';
+            method = 'POST'; // -> Only POST endpoints
+            body = this.json (params);
+            params['api_key'] = this.apiKey;
             const sortedParams = this.keysort (params);
-            if (method === 'GET') {
-                url += '?' + this.urlencode (sortedParams);
-                strToSign = this.urlencode (sortedParams);
-            }
-            const sign = this.hmac (this.encode (strToSign), this.encode (this.secret), 'sha256');
-            headers['coinw-Api-Key'] = this.apiKey;
-            headers['coinw-Api-Sign'] = sign;
+            url += '&' + this.urlencode (sortedParams) + '&';
+            url += 'secret_key=' + this.secret; // FIXME: secret can't be directly added to the url? Since verbose outputs the url?
+            const signature = this.hash (url, 'md5', 'hash');
+            headers = {
+                'api_key': this.encode (this.apiKey),
+                'signature': signature,
+            };
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
