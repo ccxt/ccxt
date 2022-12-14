@@ -435,27 +435,24 @@ module.exports = class gate extends Exchange {
                 // gate networks and currencies are hardcoded in withdrawal page HTML (i.e. pastebin(dot)com/Lqxv3DV1 and pastebin(dot)com/mRriY4WG)
                 'networks': {
                     'BITCOIN': 'BTC',
-                    'BTC': 'BTC',
                     'TRX': 'TRX',
                     'TRC20': 'TRX',
                     'ETH': 'ETH',
                     'ERC20': 'ETH',
-                    'BEP2': 'BNB', // BNB
-                    'BEP20': 'BSC', // BSC
-                    'HRC20': 'HT', // HECO
-                    'CRC20': 'CRO', // CRONOS
-                    'OKC': 'OKT', // OKX
-                    'LITECOIN': 'LTC', // LTC
-                    'AVALANCHEC': 'AVAX_C', // AVAXC
-                    'DOGECOIN': 'DOGE', // 'DOGE' // DOGEEVM is different
-                    'POLKADOT': 'DOT', // DOT
-                    'COSMOS': 'ATOM', // ATOM
-                    // 'GATECHAIN': 'GTEVM', // tbd ,either GRC20 or 'GT' GateToken
-                    'SOLANA': 'SOL', // SOL
-                    'ETC': 'ETC',
+                    'BEP2': 'BNB',
+                    'BEP20': 'BSC',
+                    'HRC20': 'HT',
+                    'CRC20': 'CRO',
+                    'OKC': 'OKT',
+                    'LITECOIN': 'LTC',
+                    'AVALANCHEC': 'AVAX_C',
+                    'DOGECOIN': 'DOGE', // DOGEEVM is different
+                    'POLKADOT': 'DOT',
+                    'COSMOS': 'ATOM',
+                    'GATECHAIN': 'GT', // GTEVM is different (same as GRC20)
+                    'SOLANA': 'SOL',
+                    'ETHEREUMCLASSIC': 'ETC',
                     'POLYGON': 'MATIC',
-                    'MATIC': 'MATIC',
-                    'TRX': 'TRX',
                     'TERRANEW': 'LUNA',
                     'TERRACLASSIC': 'LUNC',
                     'CHILIZ': 'CHZ',
@@ -482,14 +479,13 @@ module.exports = class gate extends Exchange {
                     'CASPER': 'CSPR',
                     'VECHAIN': 'VET',
                     'ARWEAVE': 'AR',
-                    'ZILLIQA': 'ZIL',
-                    'WAX': 'WAXP',
+                    'ASTAR': 'ASTR', // ASTREVM is different
                     'INJECTIVE': 'INJ',
                     'ACALA': 'ACA',
-                    'THEOPENNETWORK': 'TONCOIN', // TON
-                    'ASTAR': 'ASTR', // ASTREVM is different
+                    'THEOPENNETWORK': 'TONCOIN',
                     'FILECOIN': 'FIL',
-                    // other ones
+                    'WAX': 'WAXP',
+                    'ZILLIQA': 'ZIL',
                     'KUSAMA': 'KSM', // KSMSM is different
                     'KARURA': 'KAR',
                     'KADENA': 'KDA',
@@ -530,7 +526,6 @@ module.exports = class gate extends Exchange {
                     'KAVA': 'KAVA',
                     'DASH': 'DASH',
                     'METIS': 'METIS',
-                    // 'ARBITRUMNOVA': 'ARBNOVA',
                     'FANTOM': 'FTM',
                     'TOMOCHAIN': 'TOMO',
                     'CALAMARI': 'KMA',
@@ -604,7 +599,7 @@ module.exports = class gate extends Exchange {
                     'ICON': 'ICX',
                     'HEDERA': 'HBAR',
                     'INTEGRITEE': 'TEER',
-                    // 'AXELAR': 'WAXL', tbd
+                    'AXELAR': 'WAXL',
                     'FUSE': 'FUSE',
                     'RIZON': 'ATOLO', // ATOLO
                     'EDGEWARE': 'EDG',
@@ -615,7 +610,8 @@ module.exports = class gate extends Exchange {
                     'SEELE': 'SEELE',
                     'VELAS': 'VLX',
                     'REI': 'REI',
-                    // 'ELA': 'ELA', // tbd // ELAEVM is different (ESC - Elastos Smart Chain)
+                    'ELASTOS': 'ELA', // ELAEVM is different
+                    'ELASTOSSMARTCHAIN': 'ESC',
                     'AELF': 'ELF',
                     'STEEM': 'STEEM',
                     'BITSHARESNEW': 'NBS',
@@ -634,8 +630,8 @@ module.exports = class gate extends Exchange {
                     'POLYMESH': 'POLYX',
                     'STRATIS': 'STRAX',
                     'HYDRA': 'HYDRA',
-                    'DECRED': 'DCR', // 'DCRN' is differernt (Decred-Next)
-                    'THORCHAIN': 'RUNE', // RUNE
+                    'DECRED': 'DCR', // DCRN is different
+                    'THORCHAIN': 'RUNE',
                     'POCKET': 'POKT',
                     'FILECASH': 'FIC',
                     'FIO': 'FIO',
