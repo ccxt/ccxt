@@ -673,7 +673,6 @@ module.exports = class okx extends Exchange {
                 'createMarketBuyOrderRequiresPrice': false,
                 'fetchMarkets': [ 'spot', 'future', 'swap', 'option' ], // spot, future, swap, option
                 'defaultType': 'spot', // 'funding', 'spot', 'margin', 'future', 'swap', 'option'
-                'defaultMarginMode': 'cross', // cross, isolated
                 // 'fetchBalance': {
                 //     'type': 'spot', // 'funding', 'trading', 'spot'
                 // },
