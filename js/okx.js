@@ -1650,10 +1650,11 @@ module.exports = class okx extends Exchange {
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
         let method = 'publicGetMarket' + type;
+        const isHistoryCandles = (type === 'HistoryCandles');
         if (price === 'mark') {
-            method = 'publicGetMarketMarkPriceCandles';
+            method = (isHistoryCandles) ? 'publicGetMarketHistoryMarkPriceCandles' : 'publicGetMarketMarkPriceCandles';
         } else if (price === 'index') {
-            method = 'publicGetMarketIndexCandles';
+            method = (isHistoryCandles) ? 'publicGetMarketHistoryIndexCandles' : 'publicGetMarketIndexCandles';
         }
         const response = await this[method] (this.extend (request, params));
         //
