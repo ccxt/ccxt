@@ -807,6 +807,25 @@ module.exports = class Exchange {
                 'TRX': { 'TRC20': 'TRX' },
                 'CRO': { 'CRC20': 'CRONOS' },
             },
+            'networkCodeAliases': {
+                'BEP20': 'BSC',
+                'CRC20': 'CRONOS',
+                'HRC20': 'HECO',
+                'BEP2': 'BNB',
+                'OKC': 'OKX',
+                'LITECOIN': 'LTC',
+                'BITCOIN': 'BTC',
+                'DOGECOIN': 'DOGE',
+                'SOLANA': 'SOL',
+                'POLYGON': 'MATIC',
+                'COSMOS': 'ATOM',
+                'POLKADOT': 'DOT',
+                'TERRANEW': 'LUNA',
+                'TERRACLASSIC': 'LUNC',
+                'THEOPENNETWORK': 'TON',
+                'THORCHAIN': 'RUNE',
+                'ETHEREUMCLASSIC': 'ETC',
+            },
             'hasUniqueNetworkIds': false, // if set to `true` it means that network ID-to-CODE relation defined in `networks|netwroksById` was done by common exchange-specific network-name (i.e. Erc-20) instead of the actual network-id (i.e. usdterc20), becuase in such case each currency has unique exchange-specific network-id (which is impossible to be pre-defined in `options`) and within fetchCurrencies() we set them automatically through `options['networkChainIdsByNames' && 'networkNamesByChainIds'] `. To see examples, check OKX/HUOBI implementations
         };
     }
