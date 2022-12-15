@@ -3547,7 +3547,7 @@ module.exports = class okx extends Exchange {
         let tag = this.safeString2 (depositAddress, 'tag', 'pmtId');
         tag = this.safeString (depositAddress, 'memo', tag);
         const currencyId = this.safeString (depositAddress, 'ccy');
-        // inconsistent naming responses from exchange, i.e. "USDT-Polygon" from address endpoint, while in currencies it was "USDT-Polygon-Bridge". also, in network in currencies might not be present in address-endpoint, and it might even provide new networks not present in currencies response.
+        // inconsistent naming responses from exchange, the provided network id here, might not be present in data obtained from fetchCurrencies
         const networkId = this.safeString (depositAddress, 'chain');
         this.checkAddress (address);
         const currencyCode = this.safeCurrencyCode (currencyId, currency);
