@@ -1668,7 +1668,7 @@ module.exports = class okx extends Exchange {
             const now = this.milliseconds ();
             const difference = now - since;
             // if the since timestamp is more than limit candles back in the past
-            if (difference > limit * duration * 1000) {
+            if (difference > 1440 * duration * 1000) {
                 defaultType = 'HistoryCandles';
             }
             const durationInMilliseconds = duration * 1000;
@@ -1685,10 +1685,11 @@ module.exports = class okx extends Exchange {
         const type = this.safeString (params, 'type', defaultType);
         params = this.omit (params, 'type');
         let method = 'publicGetMarket' + type;
+        const isHistoryCandles = (type === 'HistoryCandles');
         if (price === 'mark') {
-            method = 'publicGetMarketMarkPriceCandles';
+            method = (isHistoryCandles) ? 'publicGetMarketHistoryMarkPriceCandles' : 'publicGetMarketMarkPriceCandles';
         } else if (price === 'index') {
-            method = 'publicGetMarketIndexCandles';
+            method = (isHistoryCandles) ? 'publicGetMarketHistoryIndexCandles' : 'publicGetMarketIndexCandles';
         }
         const response = await this[method] (this.extend (request, params));
         //
