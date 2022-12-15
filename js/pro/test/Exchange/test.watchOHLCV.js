@@ -58,8 +58,10 @@ module.exports = async (exchange, symbol) => {
                 if (i > 0) {
                     const previous = response[i - 1]
                     if (current[0] && previous[0]) {
-                        assert (current[0] >= previous[0],
-                            'OHLCV timestamp ordering is wrong at candle ' + i.toString () + ' ' + current[0].toString () + ' < ' + previous[0].toString ())
+                        assert (
+                            current[0] >= previous[0],
+                            'OHLCV timestamp ordering is wrong at candle ' + i.toString () + ' ' + current[0].toString () + ' < ' + previous[0].toString ()
+                        )
                     }
                 }
             }
