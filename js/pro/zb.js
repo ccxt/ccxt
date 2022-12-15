@@ -3,8 +3,8 @@
 //  ---------------------------------------------------------------------------
 
 const zbRest = require ('../zb.js');
-const { ExchangeError, AuthenticationError } = require ('../base/errors');
-const { ArrayCache } = require ('./base/Cache');
+const { ExchangeError, AuthenticationError, NotSupported } = require ('../base/errors');
+const { ArrayCache, ArrayCacheByTimestamp } = require ('./base/Cache');
 
 //  ---------------------------------------------------------------------------
 
@@ -20,7 +20,10 @@ module.exports = class zb extends zbRest {
             },
             'urls': {
                 'api': {
-                    'ws': 'wss://api.{hostname}/websocket',
+                    'ws': {
+                        'spot': 'wss://api.{hostname}/websocket',
+                        'contract': 'wss://fapi.{hostname}/ws/public/v1',
+                    },
                 },
             },
             'options': {
@@ -303,7 +306,7 @@ module.exports = class zb extends zbRest {
         const market = this.market (symbol);
         const data = this.safeValue (message, 'data');
         const type = this.safeString (message, 'type');
-        let trades = undefined;
+        let trades = [];
         if (type === 'Whole') {
             // contract trades
             for (let i = 0; i < data.length; i++) {
@@ -347,7 +350,7 @@ module.exports = class zb extends zbRest {
             messageHash = market['id'] + '.' + 'Depth';
         }
         const orderbook = await this.watchPublic (url, messageHash, symbol, this.handleOrderBook, limit, params);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     parseWsTrade (trade, market = undefined) {
