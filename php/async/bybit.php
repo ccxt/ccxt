@@ -2072,7 +2072,7 @@ class bybit extends Exchange {
             //     }
             //
             $result = $this->safe_value($response, 'result');
-            $ohlcvs = $this->safe_value($result, 'list');
+            $ohlcvs = $this->safe_value($result, 'list', array());
             return $this->parse_ohlcvs($ohlcvs, $market, $timeframe, $since, $limit);
         }) ();
     }

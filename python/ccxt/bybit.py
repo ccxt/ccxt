@@ -1992,7 +1992,7 @@ class bybit(Exchange):
         #     }
         #
         result = self.safe_value(response, 'result')
-        ohlcvs = self.safe_value(result, 'list')
+        ohlcvs = self.safe_value(result, 'list', [])
         return self.parse_ohlcvs(ohlcvs, market, timeframe, since, limit)
 
     def fetch_ohlcv(self, symbol, timeframe='1m', since=None, limit=None, params={}):
