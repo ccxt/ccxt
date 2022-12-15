@@ -594,7 +594,7 @@ class Exchange {
 
     public static function get_object_value_from_key_array($object, $array) {
         foreach($array as $key) {
-            if (isset($object[$key])) {
+            if (isset($object[$key]) && $object[$key] !== '') {
                 return $object[$key];
             }
         }
