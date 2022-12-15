@@ -47,13 +47,15 @@ class ArrayCache extends BaseCache {
             array_shift($this->deque);
         }
         $this->deque[] = $item;
+        if ($this->clear_all_updates) {
+            $this->clear_all_updates = false;
+            $this->clear_updates_by_symbol = array();
+            $this->all_new_updates = 0;
+            $this->new_updates_by_symbol = array();
+        }
         if ($this->clear_updates_by_symbol[$item['symbol']] ?? false) {
             $this->clear_updates_by_symbol[$item['symbol']] = false;
             $this->new_updates_by_symbol[$item['symbol']] = 0;
-        }
-        if ($this->clear_all_updates) {
-            $this->clear_all_updates = false;
-            $this->all_new_updates = 0;
         }
         $this->new_updates_by_symbol[$item['symbol']] = ($this->new_updates_by_symbol[$item['symbol']] ?? 0) + 1;
         $this->all_new_updates = ($this->all_new_updates ?? 0) + 1;

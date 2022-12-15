@@ -46,8 +46,16 @@ class bitstamp(Exchange, ccxt.async_support.bitstamp):
         })
 
     async def watch_order_book(self, symbol, limit=None, params={}):
+        """
+        watches information on open orders with bid(buy) and ask(sell) prices, volumes and other data
+        :param str symbol: unified symbol of the market to fetch the order book for
+        :param int|None limit: the maximum amount of order book entries to return
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns dict: A dictionary of `order book structures <https://docs.ccxt.com/en/latest/manual.html#order-book-structure>` indexed by market symbols
+        """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         options = self.safe_value(self.options, 'watchOrderBook', {})
         type = self.safe_string(options, 'type', 'order_book')
         messageHash = type + '_' + market['id']
@@ -68,7 +76,7 @@ class bitstamp(Exchange, ccxt.async_support.bitstamp):
         }
         message = self.extend(request, params)
         orderbook = await self.watch(url, messageHash, message, messageHash, subscription)
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     async def fetch_order_book_snapshot(self, client, message, subscription):
         symbol = self.safe_string(subscription, 'symbol')
@@ -173,8 +181,17 @@ class bitstamp(Exchange, ccxt.async_support.bitstamp):
                     client.reject(e, channel)
 
     async def watch_trades(self, symbol, since=None, limit=None, params={}):
+        """
+        get the list of most recent trades for a particular symbol
+        :param str symbol: unified symbol of the market to fetch trades for
+        :param int|None since: timestamp in ms of the earliest trade to fetch
+        :param int|None limit: the maximum amount of trades to fetch
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns [dict]: a list of `trade structures <https://docs.ccxt.com/en/latest/manual.html?#public-trades>`
+        """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         options = self.safe_value(self.options, 'watchTrades', {})
         type = self.safe_string(options, 'type', 'live_trades')
         messageHash = type + '_' + market['id']
@@ -283,10 +300,19 @@ class bitstamp(Exchange, ccxt.async_support.bitstamp):
         client.resolve(tradesArray, channel)
 
     async def watch_orders(self, symbol=None, since=None, limit=None, params={}):
+        """
+        watches information on multiple orders made by the user
+        :param str|None symbol: unified market symbol of the market orders were made in
+        :param int|None since: the earliest time in ms to fetch orders for
+        :param int|None limit: the maximum number of  orde structures to retrieve
+        :param dict params: extra parameters specific to the bitstamp api endpoint
+        :returns [dict]: a list of `order structures <https://docs.ccxt.com/en/latest/manual.html#order-structure>`
+        """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' watchOrders requires a symbol argument')
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         channel = 'private-my_orders'
         messageHash = channel + '_' + market['id']
         subscription = {

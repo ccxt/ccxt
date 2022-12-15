@@ -14,7 +14,7 @@ class wavesexchange extends Exchange {
             'id' => 'wavesexchange',
             'name' => 'Waves.Exchange',
             'countries' => array( 'CH' ), // Switzerland
-            'certified' => true,
+            'certified' => false,
             'pro' => false,
             'has' => array(
                 'CORS' => null,
@@ -62,6 +62,7 @@ class wavesexchange extends Exchange {
                 'fetchPositionsRisk' => false,
                 'fetchPremiumIndexOHLCV' => false,
                 'fetchTicker' => true,
+                'fetchTickers' => true,
                 'fetchTrades' => true,
                 'fetchTransfer' => false,
                 'fetchTransfers' => false,
@@ -341,6 +342,7 @@ class wavesexchange extends Exchange {
                 '106957828' => '\\ccxt\\AuthenticationError',
                 '106960131' => '\\ccxt\\AuthenticationError',
                 '106981137' => '\\ccxt\\AuthenticationError',
+                '9437184' => '\\ccxt\\BadRequest', // array("error":9437184,"message":"The order is invalid => SpendAmount should be > 0","template":"The order is invalid => array({details})","params":array("details":"SpendAmount should be > 0"),"status":"OrderRejected","success":false)
                 '9437193' => '\\ccxt\\OrderNotFound',
                 '1048577' => '\\ccxt\\BadRequest',
                 '1051904' => '\\ccxt\\AuthenticationError',
@@ -1393,10 +1395,10 @@ class wavesexchange extends Exchange {
         $this->check_required_keys();
         $this->sign_in();
         $wavesAddress = $this->get_waves_address();
-        $response = Async\await($this->forwardPostMatcherOrdersWavesAddressCancel (array(
+        $response = $this->forwardPostMatcherOrdersWavesAddressCancel (array(
             'wavesAddress' => $wavesAddress,
             'orderId' => $id,
-        )));
+        ));
         //  {
         //    "success":true,
         //    "message":[[array("orderId":"EBpJeGM36KKFz5gTJAUKDBm89V8wqxKipSFBdU35AN3c","success":true,"status":"OrderCanceled")]],

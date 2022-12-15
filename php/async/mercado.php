@@ -74,17 +74,12 @@ class mercado extends Exchange {
                 'withdraw' => true,
             ),
             'timeframes' => array(
-                '1m' => '1m',
-                '5m' => '5m',
                 '15m' => '15m',
-                '30m' => '30m',
                 '1h' => '1h',
-                '6h' => '6h',
-                '12h' => '12h',
+                '3h' => '3h',
                 '1d' => '1d',
-                '3d' => '3d',
                 '1w' => '1w',
-                '2w' => '2w',
+                '1M' => '1M',
             ),
             'urls' => array(
                 'logo' => 'https://user-images.githubusercontent.com/1294454/27837060-e7c58714-60ea-11e7-9192-f05e86adb83f.jpg',
@@ -92,11 +87,13 @@ class mercado extends Exchange {
                     'public' => 'https://www.mercadobitcoin.net/api',
                     'private' => 'https://www.mercadobitcoin.net/tapi',
                     'v4Public' => 'https://www.mercadobitcoin.com.br/v4',
+                    'v4PublicNet' => 'https://api.mercadobitcoin.net/api/v4',
                 ),
                 'www' => 'https://www.mercadobitcoin.com.br',
                 'doc' => array(
                     'https://www.mercadobitcoin.com.br/api-doc',
                     'https://www.mercadobitcoin.com.br/trade-api',
+                    'https://api.mercadobitcoin.net/api/v4/docs/',
                 ),
             ),
             'api' => array(
@@ -130,6 +127,11 @@ class mercado extends Exchange {
                 'v4Public' => array(
                     'get' => array(
                         '{coin}/candle/',
+                    ),
+                ),
+                'v4PublicNet' => array(
+                    'get' => array(
+                        'candles',
                     ),
                 ),
             ),
@@ -190,7 +192,6 @@ class mercado extends Exchange {
                 $base = $this->safe_currency_code($baseId);
                 $quote = $this->safe_currency_code($quoteId);
                 $id = $quote . $base;
-                $priceLimit = '1e-5';
                 $result[] = array(
                     'id' => $id,
                     'symbol' => $base . '/' . $quote,
@@ -216,8 +217,8 @@ class mercado extends Exchange {
                     'strike' => null,
                     'optionType' => null,
                     'precision' => array(
-                        'amount' => $this->parse_number('0.00000001'),
-                        'price' => $this->parse_number('0.00001'),
+                        'amount' => $this->parse_number('1e-8'),
+                        'price' => $this->parse_number('1e-5'),
                     ),
                     'limits' => array(
                         'leverage' => array(
@@ -229,7 +230,7 @@ class mercado extends Exchange {
                             'max' => null,
                         ),
                         'price' => array(
-                            'min' => $this->parse_number($priceLimit),
+                            'min' => $this->parse_number('1e-5'),
                             'max' => null,
                         ),
                         'cost' => array(
@@ -731,16 +732,16 @@ class mercado extends Exchange {
 
     public function parse_ohlcv($ohlcv, $market = null) {
         return array(
-            $this->safe_timestamp($ohlcv, 'timestamp'),
-            $this->safe_number($ohlcv, 'open'),
-            $this->safe_number($ohlcv, 'high'),
-            $this->safe_number($ohlcv, 'low'),
-            $this->safe_number($ohlcv, 'close'),
-            $this->safe_number($ohlcv, 'volume'),
+            $this->safe_integer($ohlcv, 0),
+            $this->safe_number($ohlcv, 1),
+            $this->safe_number($ohlcv, 2),
+            $this->safe_number($ohlcv, 3),
+            $this->safe_number($ohlcv, 4),
+            $this->safe_number($ohlcv, 5),
         );
     }
 
-    public function fetch_ohlcv($symbol, $timeframe = '5m', $since = null, $limit = null, $params = array ()) {
+    public function fetch_ohlcv($symbol, $timeframe = '15m', $since = null, $limit = null, $params = array ()) {
         return Async\async(function () use ($symbol, $timeframe, $since, $limit, $params) {
             /**
              * fetches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
@@ -754,21 +755,21 @@ class mercado extends Exchange {
             Async\await($this->load_markets());
             $market = $this->market($symbol);
             $request = array(
-                'precision' => $this->timeframes[$timeframe],
-                'coin' => strtolower($market['id']),
+                'resolution' => $this->timeframes[$timeframe],
+                'symbol' => $market['base'] . '-' . $market['quote'], // exceptional endpoint, that needs custom $symbol syntax
             );
-            if ($limit !== null && $since !== null) {
+            if ($limit === null) {
+                $limit = 100; // set some default $limit, as it's required if user doesn't provide it
+            }
+            if ($since !== null) {
                 $request['from'] = intval($since / 1000);
                 $request['to'] = $this->sum($request['from'], $limit * $this->parse_timeframe($timeframe));
-            } elseif ($since !== null) {
-                $request['from'] = intval($since / 1000);
-                $request['to'] = $this->sum($this->seconds(), 1);
-            } elseif ($limit !== null) {
+            } else {
                 $request['to'] = $this->seconds();
                 $request['from'] = $request['to'] - ($limit * $this->parse_timeframe($timeframe));
             }
-            $response = Async\await($this->v4PublicGetCoinCandle (array_merge($request, $params)));
-            $candles = $this->safe_value($response, 'candles', array());
+            $response = Async\await($this->v4PublicNetGetCandles (array_merge($request, $params)));
+            $candles = $this->convert_trading_view_to_ohlcv($response, 't', 'o', 'h', 'l', 'c', 'v');
             return $this->parse_ohlcvs($candles, $market, $timeframe, $since, $limit);
         }) ();
     }
@@ -866,7 +867,7 @@ class mercado extends Exchange {
     public function sign($path, $api = 'public', $method = 'GET', $params = array (), $headers = null, $body = null) {
         $url = $this->urls['api'][$api] . '/';
         $query = $this->omit($params, $this->extract_params($path));
-        if ($api === 'public' || ($api === 'v4Public')) {
+        if (($api === 'public') || ($api === 'v4Public') || ($api === 'v4PublicNet')) {
             $url .= $this->implode_params($path, $params);
             if ($query) {
                 $url .= '?' . $this->urlencode($query);

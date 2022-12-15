@@ -201,6 +201,7 @@ class ascendex extends Exchange {
                             'futures/contract' => 1,
                             'futures/collateral' => 1,
                             'futures/pricing-data' => 1,
+                            'futures/ticker' => 1,
                         ),
                     ),
                     'private' => array(
@@ -734,6 +735,28 @@ class ascendex extends Exchange {
         return $this->safe_balance($result);
     }
 
+    public function parse_margin_balance($response) {
+        $timestamp = $this->milliseconds();
+        $result = array(
+            'info' => $response,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+        );
+        $balances = $this->safe_value($response, 'data', array());
+        for ($i = 0; $i < count($balances); $i++) {
+            $balance = $balances[$i];
+            $code = $this->safe_currency_code($this->safe_string($balance, 'asset'));
+            $account = $this->account();
+            $account['free'] = $this->safe_string($balance, 'availableBalance');
+            $account['total'] = $this->safe_string($balance, 'totalBalance');
+            $debt = $this->safe_string($balance, 'borrowed');
+            $interest = $this->safe_string($balance, 'interest');
+            $account['debt'] = Precise::string_add($debt, $interest);
+            $result[$code] = $account;
+        }
+        return $this->safe_balance($result);
+    }
+
     public function parse_swap_balance($response) {
         $timestamp = $this->milliseconds();
         $result = array(
@@ -762,7 +785,12 @@ class ascendex extends Exchange {
              */
             Async\await($this->load_markets());
             Async\await($this->load_accounts());
+            $query = null;
+            $marketType = null;
             list($marketType, $query) = $this->handle_market_type_and_params('fetchBalance', null, $params);
+            $isMargin = $this->safe_value($params, 'margin', false);
+            $marketType = $isMargin ? 'margin' : $marketType;
+            $params = $this->omit($params, 'margin');
             $options = $this->safe_value($this->options, 'fetchBalance', array());
             $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
             $accountCategory = $this->safe_string($accountsByType, $marketType, 'cash');
@@ -826,6 +854,8 @@ class ascendex extends Exchange {
             //
             if ($marketType === 'swap') {
                 return $this->parse_swap_balance($response);
+            } elseif ($marketType === 'margin') {
+                return $this->parse_margin_balance($response);
             } else {
                 return $this->parse_balance($response);
             }
@@ -964,18 +994,30 @@ class ascendex extends Exchange {
     public function fetch_tickers($symbols = null, $params = array ()) {
         return Async\async(function () use ($symbols, $params) {
             /**
-             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each market
-             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all market tickers are returned if not assigned
+             * fetches price tickers for multiple markets, statistical calculations with the information calculated over the past 24 hours each $market
+             * @see https://ascendex.github.io/ascendex-pro-api/#ticker
+             * @see https://ascendex.github.io/ascendex-futures-pro-api-v2/#ticker
+             * @param {[string]|null} $symbols unified $symbols of the markets to fetch the ticker for, all $market tickers are returned if not assigned
              * @param {array} $params extra parameters specific to the ascendex api endpoint
              * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure ticker structures}
              */
             Async\await($this->load_markets());
             $request = array();
+            $market = null;
             if ($symbols !== null) {
+                $symbol = $this->safe_value($symbols, 0);
+                $market = $this->market($symbol);
                 $marketIds = $this->market_ids($symbols);
                 $request['symbol'] = implode(',', $marketIds);
             }
-            $response = Async\await($this->v1PublicGetTicker (array_merge($request, $params)));
+            $type = null;
+            list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
+            $response = null;
+            if ($type === 'spot') {
+                $response = Async\await($this->v1PublicGetTicker (array_merge($request, $params)));
+            } else {
+                $response = Async\await($this->v2PublicGetFuturesTicker (array_merge($request, $params)));
+            }
             //
             //     {
             //         "code":0,
@@ -995,6 +1037,9 @@ class ascendex extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
+            if (gettype($data) !== 'array' || array_keys($data) !== array_keys(array_keys($data))) {
+                return $this->parse_tickers(array( $data ), $symbols);
+            }
             return $this->parse_tickers($data, $symbols);
         }) ();
     }
@@ -1101,8 +1146,7 @@ class ascendex extends Exchange {
         $priceString = $this->safe_string_2($trade, 'price', 'p');
         $amountString = $this->safe_string($trade, 'q');
         $buyerIsMaker = $this->safe_value($trade, 'bm', false);
-        $makerOrTaker = $buyerIsMaker ? 'maker' : 'taker';
-        $side = $buyerIsMaker ? 'buy' : 'sell';
+        $side = $buyerIsMaker ? 'sell' : 'buy';
         $market = $this->safe_market(null, $market);
         return $this->safe_trade(array(
             'info' => $trade,
@@ -1112,7 +1156,7 @@ class ascendex extends Exchange {
             'id' => null,
             'order' => null,
             'type' => null,
-            'takerOrMaker' => $makerOrTaker,
+            'takerOrMaker' => null,
             'side' => $side,
             'price' => $priceString,
             'amount' => $amountString,
@@ -1125,6 +1169,7 @@ class ascendex extends Exchange {
         return Async\async(function () use ($symbol, $since, $limit, $params) {
             /**
              * get the list of most recent $trades for a particular $symbol
+             * @see https://ascendex.github.io/ascendex-pro-api/#$market-$trades
              * @param {string} $symbol unified $symbol of the $market to fetch $trades for
              * @param {int|null} $since timestamp in ms of the earliest trade to fetch
              * @param {int|null} $limit the maximum amount of $trades to fetch

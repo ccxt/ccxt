@@ -368,8 +368,8 @@ class upbit(Exchange):
             'strike': None,
             'optionType': None,
             'precision': {
-                'amount': self.parse_number('0.00000001'),
-                'price': self.parse_number('0.00000001'),
+                'amount': self.parse_number('1e-8'),
+                'price': self.parse_number('1e-8'),
             },
             'limits': {
                 'leverage': {
@@ -443,8 +443,8 @@ class upbit(Exchange):
                 'strike': None,
                 'optionType': None,
                 'precision': {
-                    'price': self.parse_number('0.00000001'),
-                    'amount': self.parse_number('0.00000001'),
+                    'price': self.parse_number('1e-8'),
+                    'amount': self.parse_number('1e-8'),
                 },
                 'limits': {
                     'leverage': {

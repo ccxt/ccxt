@@ -119,11 +119,6 @@ class coinone extends Exchange {
                     'maker' => 0.002,
                 ),
             ),
-            'precision' => array(
-                'price' => $this->parse_number('0.0001'),
-                'amount' => $this->parse_number('0.0001'),
-                'cost' => $this->parse_number('0.00000001'),
-            ),
             'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 '405' => '\\ccxt\\OnMaintenance', // array("errorCode":"405","status":"maintenance","result":"error")
@@ -205,8 +200,9 @@ class coinone extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => null,
-                    'price' => null,
+                    'amount' => $this->parse_number('1e-4'),
+                    'price' => $this->parse_number('1e-4'),
+                    'cost' => $this->parse_number('1e-8'),
                 ),
                 'limits' => array(
                     'leverage' => array(

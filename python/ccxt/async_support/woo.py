@@ -25,6 +25,7 @@ class woo(Exchange):
             'rateLimit': 100,
             'version': 'v1',
             'certified': False,
+            'pro': True,
             'hostname': 'woo.org',
             'has': {
                 'CORS': None,
@@ -132,12 +133,14 @@ class woo(Exchange):
                     'pub': {
                         'get': {
                             'hist/kline': 10,
+                            'hist/trades': 1,
                         },
                     },
                     'public': {
                         'get': {
                             'info': 1,
                             'info/{symbol}': 1,
+                            'system_info': 1,
                             'market_trades': 1,
                             'token': 1,
                             'token_network': 1,
@@ -160,7 +163,7 @@ class woo(Exchange):
                             'order/{oid}/trades': 1,
                             'client/trades': 1,
                             'client/info': 60,
-                            'asset/deposit': 120,
+                            'asset/deposit': 10,
                             'asset/history': 60,
                             'sub_account/all': 60,
                             'sub_account/assets': 60,
@@ -175,7 +178,7 @@ class woo(Exchange):
                         'post': {
                             'order': 5,  # 2 requests per 1 second per symbol
                             'asset/main_sub_transfer': 30,  # 20 requests per 60 seconds
-                            'asset/withdraw': 120,  # implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
+                            'asset/withdraw': 30,  # implemented in ccxt, disabled on the exchange side https://kronosresearch.github.io/wootrade-documents/#token-withdraw
                             'interest/repay': 60,
                             'client/account_mode': 120,
                             'client/leverage': 120,
@@ -192,6 +195,23 @@ class woo(Exchange):
                     'private': {
                         'get': {
                             'client/holding': 1,
+                        },
+                    },
+                },
+                'v3': {
+                    'private': {
+                        'get': {
+                            'algo/order/{oid}': 1,
+                            'algo/orders': 1,
+                        },
+                        'post': {
+                            'algo/order': 5,
+                        },
+                        'delete': {
+                            'algo/order/{oid}': 1,
+                            'algo/orders/pending': 1,
+                            'algo/orders/pending/{symbol}': 1,
+                            'orders/pending': 1,
                         },
                     },
                 },
@@ -600,6 +620,7 @@ class woo(Exchange):
             networks = networksByCurrencyId[currencyId]
             code = self.safe_currency_code(currencyId)
             name = None
+            minPrecision = None
             resultingNetworks = {}
             for j in range(0, len(networks)):
                 network = networks[j]
@@ -607,7 +628,9 @@ class woo(Exchange):
                 networkId = self.safe_string(network, 'token')
                 splitted = networkId.split('_')
                 unifiedNetwork = splitted[0]
-                precision = self.parse_number(self.parse_precision(self.safe_string(network, 'decimals')))
+                precision = self.parse_precision(self.safe_string(network, 'decimals'))
+                if precision is not None:
+                    minPrecision = precision if (minPrecision is None) else Precise.string_min(precision, minPrecision)
                 resultingNetworks[unifiedNetwork] = {
                     'id': networkId,
                     'network': unifiedNetwork,
@@ -625,17 +648,19 @@ class woo(Exchange):
                     'deposit': None,
                     'withdraw': None,
                     'fee': None,
-                    'precision': precision,  # will be filled down below
+                    'precision': self.parse_number(precision),
                     'info': network,
                 }
             result[code] = {
                 'id': currencyId,
                 'name': name,
                 'code': code,
-                'precision': None,
+                'precision': self.parse_number(minPrecision),
                 'active': None,
                 'fee': None,
                 'networks': resultingNetworks,
+                'deposit': None,
+                'withdraw': None,
                 'limits': {
                     'deposit': {
                         'min': None,
@@ -646,7 +671,7 @@ class woo(Exchange):
                         'max': None,
                     },
                 },
-                'info': networks,  # will be filled down below
+                'info': networks,
             }
         return result
 
@@ -1651,11 +1676,15 @@ class woo(Exchange):
             url += path
             ts = str(self.nonce())
             auth = self.urlencode(params)
-            if method == 'POST' or method == 'DELETE':
+            if version == 'v3' and (method == 'POST'):
                 body = auth
+                auth = ts + method + '/' + version + '/' + path + body
             else:
-                url += '?' + auth
-            auth += '|' + ts
+                if method == 'POST' or method == 'DELETE':
+                    body = auth
+                else:
+                    url += '?' + auth
+                auth += '|' + ts
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha256)
             headers = {
                 'x-api-key': self.apiKey,

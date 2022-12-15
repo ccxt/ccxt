@@ -155,6 +155,7 @@ class kraken extends Exchange {
                 'private' => array(
                     'post' => array(
                         'AddOrder' => 0,
+                        'AddOrderBatch' => 0,
                         'AddExport' => 3,
                         'Balance' => 3,
                         'CancelAll' => 3,
@@ -164,6 +165,7 @@ class kraken extends Exchange {
                         'DepositAddresses' => 3,
                         'DepositMethods' => 3,
                         'DepositStatus' => 3,
+                        'EditOrder' => 0,
                         'ExportStatus' => 3,
                         'GetWebSocketsToken' => 3,
                         'Ledgers' => 6,
@@ -329,6 +331,7 @@ class kraken extends Exchange {
                 'EFunding:Unknown asset' => '\\ccxt\\BadSymbol', // array("error":["EFunding:Unknown asset"])
                 'EService:Market in post_only mode' => '\\ccxt\\OnMaintenance', // array(is_array(post_only mode"]) && array_key_exists("error":["EService:Market, post_only mode"]))
                 'EGeneral:Too many requests' => '\\ccxt\\DDoSProtection', // array("error":["EGeneral:Too many requests"])
+                'ETrade:User Locked' => '\\ccxt\\AccountSuspended', // array("error":["ETrade:User Locked"])
             ),
         ));
     }
@@ -496,8 +499,8 @@ class kraken extends Exchange {
     public function append_inactive_markets($result) {
         // $result should be an array to append to
         $precision = array(
-            'amount' => $this->parse_number('0.00000001'),
-            'price' => $this->parse_number('0.00000001'),
+            'amount' => $this->parse_number('1e-8'),
+            'price' => $this->parse_number('1e-8'),
         );
         $costLimits = array( 'min' => null, 'max' => null );
         $priceLimits = array( 'min' => $precision['price'], 'max' => null );
@@ -755,22 +758,20 @@ class kraken extends Exchange {
          * @param {array} $params extra parameters specific to the kraken api endpoint
          * @return {array} an array of {@link https://docs.ccxt.com/en/latest/manual.html#$ticker-structure $ticker structures}
          */
-        if ($symbols === null) {
-            throw new ArgumentsRequired($this->id . ' fetchTickers() requires a $symbols argument, an array of symbols');
-        }
         $this->load_markets();
-        $symbols = $this->market_symbols($symbols);
-        $marketIds = array();
-        for ($i = 0; $i < count($symbols); $i++) {
-            $symbol = $symbols[$i];
-            $market = $this->markets[$symbol];
-            if ($market['active'] && !$market['darkpool']) {
-                $marketIds[] = $market['id'];
+        $request = array();
+        if ($symbols !== null) {
+            $symbols = $this->market_symbols($symbols);
+            $marketIds = array();
+            for ($i = 0; $i < count($symbols); $i++) {
+                $symbol = $symbols[$i];
+                $market = $this->markets[$symbol];
+                if ($market['active'] && !$market['darkpool']) {
+                    $marketIds[] = $market['id'];
+                }
             }
+            $request['pair'] = implode(',', $marketIds);
         }
-        $request = array(
-            'pair' => implode(',', $marketIds),
-        );
         $response = $this->publicGetTicker (array_merge($request, $params));
         $tickers = $response['result'];
         $ids = is_array($tickers) ? array_keys($tickers) : array();
@@ -1623,10 +1624,10 @@ class kraken extends Exchange {
 
     public function fetch_orders_by_ids($ids, $symbol = null, $params = array ()) {
         $this->load_markets();
-        $response = Async\await($this->privatePostQueryOrders (array_merge(array(
+        $response = $this->privatePostQueryOrders (array_merge(array(
             'trades' => true, // whether or not to include trades in output (optional, default false)
             'txid' => implode(',', $ids), // comma delimited list of transaction $ids to query info about (20 maximum)
-        ), $params)));
+        ), $params));
         $result = $this->safe_value($response, 'result', array());
         $orders = array();
         $orderIds = is_array($result) ? array_keys($result) : array();
