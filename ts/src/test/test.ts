@@ -8,6 +8,7 @@ import { Agent } from 'https';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import ccxt from '../../ccxt.js';
+import HttpsProxyAgent from 'https-proxy-agent'
 
 // ----------------------------------------------------------------------------
 
@@ -118,8 +119,15 @@ if (exchange.alias) {
 
 //-----------------------------------------------------------------------------
 
-async function test (methodName, exchange, ...args) {
-    console.log ('Testing', exchange.id, methodName, '(', ...args, ')');
+if (settings && settings.httpProxy) {
+    const agent = new HttpsProxyAgent (settings.httpProxy)
+    exchange.agent = agent;
+}
+
+//-----------------------------------------------------------------------------
+
+async function test (methodName, exchange, ... args) {
+    console.log ('Testing', exchange.id, methodName, '(', ... args, ')');
     if (exchange.has[methodName]) {
         return await (tests[methodName] (exchange, ...args));
     }
@@ -340,9 +348,16 @@ async function tryAllProxies (exchange, proxies) {
     if (settings && ('proxy' in settings)) {
         currentProxy = proxies.indexOf (settings.proxy);
     }
+
+    const hasHttpProxy = settings && ('httpProxy' in settings);
+
     for (let numRetries = 0; numRetries < maxRetries; numRetries++) {
         try {
-            exchange.proxy = proxies[currentProxy];
+
+            if (!hasHttpProxy) {
+                exchange.proxy = proxies[currentProxy];
+            }
+
             // add random origin for proxies
             if (exchange.proxy.length > 0) {
                 exchange.origin = exchange.uuid ();

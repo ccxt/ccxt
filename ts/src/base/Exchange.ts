@@ -1201,6 +1201,10 @@ export default class Exchange {
         parseBorrowInterest(info, market = undefined) {
             return undefined;
         }
+
+        async fetchFundingRates (symbols = undefined, params = {}) {
+            return undefined;
+        }
         
         findTimeframe (timeframe, timeframes = undefined) {
             timeframes = timeframes || this.timeframes;
@@ -1489,7 +1493,7 @@ export default class Exchange {
             }, this.fees['trading'], marketValues[i]);
             values.push (market);
         }
-        this.markets = this.indexBy (values, 'symbol') as Market[];
+        this.markets = this.indexBy (values, 'symbol') as any;
         this.markets_by_id = this.indexBy (markets, 'id');
         const marketsSortedBySymbol = this.keysort (this.markets);
         const marketsSortedById = this.keysort (this.markets_by_id);
@@ -3680,6 +3684,33 @@ export default class Exchange {
             },
             'networks': {},
         };
+    }
+
+    assignDefaultDepositWithdrawFees (fee, currency = undefined) {
+        /**
+         * @ignore
+         * @method
+         * @description Takes a depositWithdrawFee structure and assigns the default values for withdraw and deposit
+         * @param {object} fee A deposit withdraw fee structure
+         * @param {object} currency A currency structure, the response from this.currency ()
+         * @returns {object} A deposit withdraw fee structure
+         */
+        const networkKeys = Object.keys (fee['networks']);
+        const numNetworks = networkKeys.length;
+        if (numNetworks === 1) {
+            fee['withdraw'] = fee['networks'][networkKeys[0]]['withdraw'];
+            fee['deposit'] = fee['networks'][networkKeys[0]]['deposit'];
+            return fee;
+        }
+        const currencyCode = this.safeString (currency, 'code');
+        for (let i = 0; i < numNetworks; i++) {
+            const network = networkKeys[i];
+            if (network === currencyCode) {
+                fee['withdraw'] = fee['networks'][networkKeys[i]]['withdraw'];
+                fee['deposit'] = fee['networks'][networkKeys[i]]['deposit'];
+            }
+        }
+        return fee;
     }
 }
 

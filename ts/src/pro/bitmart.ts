@@ -29,7 +29,7 @@ export default class bitmart extends bitmartRest {
             'options': {
                 'defaultType': 'spot',
                 'watchOrderBook': {
-                    'depth': 'depth5', // depth5, depth400
+                    'depth': 'depth5', // depth5, depth20, depth50
                 },
                 'ws': {
                     'inflate': true,
@@ -398,7 +398,7 @@ export default class bitmart extends bitmartRest {
          * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
          */
         const options = this.safeValue (this.options, 'watchOrderBook', {});
-        const depth = this.safeString (options, 'depth', 'depth400');
+        const depth = this.safeString (options, 'depth', 'depth50');
         const orderbook = await this.subscribe (depth, symbol, params);
         return orderbook.limit ();
     }
@@ -619,7 +619,8 @@ export default class bitmart extends bitmartRest {
             const methods = {
                 'depth': this.handleOrderBook,
                 'depth5': this.handleOrderBook,
-                'depth400': this.handleOrderBook,
+                'depth20': this.handleOrderBook,
+                'depth50': this.handleOrderBook,
                 'ticker': this.handleTicker,
                 'trade': this.handleTrade,
                 // ...

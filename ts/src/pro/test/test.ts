@@ -2,7 +2,7 @@ import fs from 'fs';
 import log from 'ololog';
 import { dirname } from 'path';
 import { fileURLToPath } from 'url';
-
+import HttpsProxyAgent from 'https-proxy-agent';
 import { Agent } from 'https';
 import ccxt from '../../../ccxt.js';
 
@@ -96,6 +96,13 @@ Object.assign (exchange, settings);
 if (settings && (settings.skip || settings.skipWs)) {
     log.error.bright ('[Skipped]', { exchangeId, symbol });
     process.exit (0);
+}
+
+//-----------------------------------------------------------------------------
+
+if (settings && settings.httpProxy) {
+    const agent = HttpsProxyAgent (settings.httpProxy);
+    exchange.agent = agent;
 }
 
 //-----------------------------------------------------------------------------

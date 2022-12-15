@@ -46,7 +46,6 @@ const version = '2.1.89';
 import alpaca from  './src/alpaca.js'
 import ascendex from  './src/ascendex.js'
 import bequant from  './src/bequant.js'
-import bibox from  './src/bibox.js'
 import bigone from  './src/bigone.js'
 import binance from  './src/binance.js'
 import binancecoinm from  './src/binancecoinm.js'
@@ -207,7 +206,6 @@ const exchanges = {
     'alpaca':                 alpaca,
     'ascendex':               ascendex,
     'bequant':                bequant,
-    'bibox':                  bibox,
     'bigone':                 bigone,
     'binance':                binance,
     'binancecoinm':           binancecoinm,
@@ -390,7 +388,6 @@ export {
     alpaca,
     ascendex,
     bequant,
-    bibox,
     bigone,
     binance,
     binancecoinm,

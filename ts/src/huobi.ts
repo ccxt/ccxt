@@ -5034,7 +5034,7 @@ export default class huobi extends Exchange {
         }
         const [ networkCode, paramsOmited ] = this.handleNetworkCodeAndParams (params);
         if (networkCode !== undefined) {
-            request['chain'] = this.networkCodeToId (code, networkCode);
+            request['chain'] = this.networkCodeToId (networkCode, code);
         }
         const response = await (this as any).spotPrivatePostV1DwWithdrawApiCreate (this.extend (request, paramsOmited));
         //

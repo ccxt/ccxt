@@ -160,6 +160,7 @@ class okx extends Exchange {
                         'market/platform-24-volume' => 10,
                         'market/open-oracle' => 100,
                         'market/index-components' => 1,
+                        'market/option/instrument-family-trades' => 1,
                         // 'market/oracle',
                         'public/instruments' => 1,
                         'public/delivery-exercise-history' => 0.5,
@@ -214,7 +215,11 @@ class okx extends Exchange {
                         'account/max-withdrawal' => 1,
                         'account/risk-state' => 2,
                         'account/borrow-repay-history' => 4,
+                        'account/quick-margin-borrow-repay-history' => 4,
                         'account/interest-limits' => 4,
+                        'account/vip-interest-accrued' => 4,
+                        'account/vip-loan-order-list' => 4,
+                        'account/vip-loan-order-detail' => 4,
                         'asset/asset-valuation' => 1 / 5,
                         'asset/deposit-address' => 5 / 3,
                         'asset/balances' => 5 / 3,
@@ -227,6 +232,7 @@ class okx extends Exchange {
                         'asset/deposit-lightning' => 5,
                         'asset/lending-history' => 5 / 3,
                         'asset/saving-balance' => 5 / 3,
+                        'asset/non-tradable-assets' => 5 / 3,
                         'trade/order' => 1 / 3,
                         'trade/orders-pending' => 1,
                         'trade/orders-history' => 0.5,
@@ -248,6 +254,7 @@ class okx extends Exchange {
                         'broker/nd/rebate-daily' => 1,
                         'broker/nd/subaccount/apikey' => 10,
                         'broker/nd/rebate-per-orders' => 300,
+                        'asset/broker/nd/subaccount-withdrawal-history' => 4,
                         // convert
                         'asset/convert/currencies' => 5 / 3,
                         'asset/convert/currency-pair' => 5 / 3,
@@ -260,6 +267,12 @@ class okx extends Exchange {
                         'finance/staking-defi/offers' => 1,
                         'finance/staking-defi/orders-active' => 1,
                         'finance/staking-defi/orders-history' => 1,
+                        'rfq/counterparties' => 4,
+                        'rfq/maker-instrument-settings' => 4,
+                        'rfq/rfqs' => 10,
+                        'rfq/quotes' => 10,
+                        'rfq/trades' => 4,
+                        'rfq/public-trades' => 4,
                     ),
                     'post' => array(
                         'account/set-position-mode' => 4,
@@ -267,8 +280,10 @@ class okx extends Exchange {
                         'account/position/margin-balance' => 1,
                         'account/set-greeks' => 4,
                         'account/set-isolated-mode' => 4,
+                        'account/set-riskOffset-type' => 2,
                         'account/simulated_margin' => 10,
                         'account/borrow-repay' => 5 / 3,
+                        'account/quick-margin-borrow-repay' => 4,
                         'asset/transfer' => 10,
                         'asset/withdrawal' => 5 / 3,
                         'asset/purchase_redempt' => 5 / 3,
@@ -305,6 +320,17 @@ class okx extends Exchange {
                         'finance/staking-defi/purchase' => 3,
                         'finance/staking-defi/redeem' => 3,
                         'finance/staking-defi/cancel' => 3,
+                        'rfq/create-rfq' => 4,
+                        'rfq/cancel-rfq' => 4,
+                        'rfq/cancel-batch-rfqs' => 10,
+                        'rfq/cancel-all-rfqs' => 10,
+                        'rfq/execute-quote' => 10,
+                        'rfq/maker-instrument-settings' => 4,
+                        'rfq/mmp-reset' => 4,
+                        'rfq/create-quote' => 0.4,
+                        'rfq/cancel-quote' => 0.4,
+                        'rfq/cancel-batch-quotes' => 10,
+                        'rfq/cancel-all-quotes' => 10,
                     ),
                 ),
             ),
@@ -488,6 +514,10 @@ class okx extends Exchange {
                     '51278' => '\\ccxt\\InvalidOrder', // SL trigger price can not be lower than the last price
                     '51279' => '\\ccxt\\InvalidOrder', // TP trigger price can not be lower than the last price
                     '51280' => '\\ccxt\\InvalidOrder', // SL trigger price can not be higher than the last price
+                    '51327' => '\\ccxt\\InvalidOrder', // closeFraction is only available for futures and perpetual swaps
+                    '51328' => '\\ccxt\\InvalidOrder', // closeFraction is only available for reduceOnly orders
+                    '51329' => '\\ccxt\\InvalidOrder', // closeFraction is only available in NET mode
+                    '51330' => '\\ccxt\\InvalidOrder', // closeFraction is only available for stop market orders
                     '51400' => '\\ccxt\\OrderNotFound', // Cancellation failed as the order does not exist
                     '51401' => '\\ccxt\\OrderNotFound', // Cancellation failed as the order is already canceled
                     '51402' => '\\ccxt\\OrderNotFound', // Cancellation failed as the order is already completed
@@ -543,6 +573,8 @@ class okx extends Exchange {
                     '58115' => '\\ccxt\\ExchangeError', // Sub-account does not exist
                     '58116' => '\\ccxt\\ExchangeError', // Transfer amount exceeds the limit
                     '58117' => '\\ccxt\\ExchangeError', // Account assets are abnormal, please deal with negative assets before transferring
+                    '58125' => '\\ccxt\\BadRequest', // Non-tradable assets can only be transferred from sub-accounts to main accounts
+                    '58126' => '\\ccxt\\BadRequest', // Non-tradable assets can only be transferred between funding accounts
                     '58200' => '\\ccxt\\ExchangeError', // Withdrawal from {0} to {1} is unavailable for this currency
                     '58201' => '\\ccxt\\ExchangeError', // Withdrawal amount exceeds the daily limit
                     '58202' => '\\ccxt\\ExchangeError', // The minimum withdrawal amount for NEO is 1, and the amount must be an integer
@@ -560,6 +592,9 @@ class okx extends Exchange {
                     '58221' => '\\ccxt\\BadRequest', // Missing label of withdrawal address.
                     '58222' => '\\ccxt\\BadRequest', // Illegal withdrawal address.
                     '58224' => '\\ccxt\\BadRequest', // This type of crypto does not support on-chain withdrawing to OKX addresses. Please withdraw through internal transfers.
+                    '58227' => '\\ccxt\\BadRequest', // Withdrawal of non-tradable assets can be withdrawn all at once only
+                    '58228' => '\\ccxt\\BadRequest', // Withdrawal of non-tradable assets requires that the API Key must be bound to an IP
+                    '58229' => '\\ccxt\\InsufficientFunds', // Insufficient funding account balance to pay fees {fee} USDT
                     '58300' => '\\ccxt\\ExchangeError', // Deposit-address count exceeds the limit
                     '58350' => '\\ccxt\\InsufficientFunds', // Insufficient balance
                     // Account error codes 59000-59999
@@ -579,6 +614,7 @@ class okx extends Exchange {
                     '59201' => '\\ccxt\\InsufficientFunds', // Negative account balance
                     '59300' => '\\ccxt\\ExchangeError', // Margin call failed. Position does not exist
                     '59301' => '\\ccxt\\ExchangeError', // Margin adjustment failed for exceeding the max limit
+                    '59313' => '\\ccxt\\ExchangeError', // Unable to repay. You haven't borrowed any {ccy} {ccyPair} in Quick margin mode.
                     '59401' => '\\ccxt\\ExchangeError', // Holdings already reached the limit
                     '59500' => '\\ccxt\\ExchangeError', // Only the APIKey of the main account has permission
                     '59501' => '\\ccxt\\ExchangeError', // Only 50 APIKeys can be created per account
@@ -652,7 +688,6 @@ class okx extends Exchange {
                 'createMarketBuyOrderRequiresPrice' => false,
                 'fetchMarkets' => array( 'spot', 'future', 'swap', 'option' ), // spot, future, swap, option
                 'defaultType' => 'spot', // 'funding', 'spot', 'margin', 'future', 'swap', 'option'
-                'defaultMarginMode' => 'cross', // cross, isolated
                 // 'fetchBalance' => array(
                 //     'type' => 'spot', // 'funding', 'trading', 'spot'
                 // ),
@@ -1611,7 +1646,7 @@ class okx extends Exchange {
             $now = $this->milliseconds();
             $difference = $now - $since;
             // if the $since timestamp is more than $limit candles back in the past
-            if ($difference > $limit * $duration * 1000) {
+            if ($difference > 1440 * $duration * 1000) {
                 $defaultType = 'HistoryCandles';
             }
             $durationInMilliseconds = $duration * 1000;
@@ -1628,10 +1663,11 @@ class okx extends Exchange {
         $type = $this->safe_string($params, 'type', $defaultType);
         $params = $this->omit($params, 'type');
         $method = 'publicGetMarket' . $type;
+        $isHistoryCandles = ($type === 'HistoryCandles');
         if ($price === 'mark') {
-            $method = 'publicGetMarketMarkPriceCandles';
+            $method = ($isHistoryCandles) ? 'publicGetMarketHistoryMarkPriceCandles' : 'publicGetMarketMarkPriceCandles';
         } elseif ($price === 'index') {
-            $method = 'publicGetMarketIndexCandles';
+            $method = ($isHistoryCandles) ? 'publicGetMarketHistoryIndexCandles' : 'publicGetMarketIndexCandles';
         }
         $response = $this->$method (array_merge($request, $params));
         //

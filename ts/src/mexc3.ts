@@ -51,6 +51,8 @@ export default class mexc3 extends Exchange {
                 'fetchDepositAddresses': undefined,
                 'fetchDepositAddressesByNetwork': true,
                 'fetchDeposits': true,
+                'fetchDepositWithdrawFee': 'emulated',
+                'fetchDepositWithdrawFees': true,
                 'fetchFundingHistory': true,
                 'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
@@ -401,6 +403,9 @@ export default class mexc3 extends Exchange {
                     'ETH': 'ERC20',
                     'BEP20': 'BEP20(BSC)',
                     'BSC': 'BEP20(BSC)',
+                },
+                'networksById': {
+                    'BEP20(BSC)': 'BSC',
                 },
                 'networkAliases': {
                     'BSC(BEP20)': 'BSC',
@@ -4478,6 +4483,97 @@ export default class mexc3 extends Exchange {
             result[networkCode] = fee;
         }
         return result;
+    }
+
+    async fetchDepositWithdrawFees (codes = undefined, params = {}) {
+        /**
+         * @method
+         * @name mexc3#fetchDepositWithdrawFees
+         * @description fetch deposit and withdrawal fees
+         * @see https://mxcdevelop.github.io/apidocs/spot_v3_en/#query-the-currency-information
+         * @param {[string]|undefined} codes returns fees for all currencies if undefined
+         * @param {object} params extra parameters specific to the mexc3 api endpoint
+         * @returns {[object]} a list of [fee structures]{@link https://docs.ccxt.com/en/latest/manual.html#fee-structure}
+         */
+        await this.loadMarkets ();
+        const response = await (this as any).spotPrivateGetCapitalConfigGetall (params);
+        //
+        //    [
+        //       {
+        //           coin: 'AGLD',
+        //           name: 'Adventure Gold',
+        //           networkList: [
+        //               {
+        //                   coin: 'AGLD',
+        //                   depositDesc: null,
+        //                   depositEnable: true,
+        //                   minConfirm: '0',
+        //                   name: 'Adventure Gold',
+        //                   network: 'ERC20',
+        //                   withdrawEnable: true,
+        //                   withdrawFee: '10.000000000000000000',
+        //                   withdrawIntegerMultiple: null,
+        //                   withdrawMax: '1200000.000000000000000000',
+        //                   withdrawMin: '20.000000000000000000',
+        //                   sameAddress: false,
+        //                   contract: '0x32353a6c91143bfd6c7d363b546e62a9a2489a20',
+        //                   withdrawTips: null,
+        //                   depositTips: null
+        //               }
+        //               ...
+        //           ]
+        //       },
+        //       ...
+        //    ]
+        //
+        return this.parseDepositWithdrawFees (response, codes, 'coin');
+    }
+
+    parseDepositWithdrawFee (fee, currency = undefined) {
+        //
+        //    {
+        //        coin: 'AGLD',
+        //        name: 'Adventure Gold',
+        //        networkList: [
+        //            {
+        //                coin: 'AGLD',
+        //                depositDesc: null,
+        //                depositEnable: true,
+        //                minConfirm: '0',
+        //                name: 'Adventure Gold',
+        //                network: 'ERC20',
+        //                withdrawEnable: true,
+        //                withdrawFee: '10.000000000000000000',
+        //                withdrawIntegerMultiple: null,
+        //                withdrawMax: '1200000.000000000000000000',
+        //                withdrawMin: '20.000000000000000000',
+        //                sameAddress: false,
+        //                contract: '0x32353a6c91143bfd6c7d363b546e62a9a2489a20',
+        //                withdrawTips: null,
+        //                depositTips: null
+        //            }
+        //            ...
+        //        ]
+        //    }
+        //
+        const networkList = this.safeValue (fee, 'networkList', []);
+        const result = this.depositWithdrawFee (fee);
+        for (let j = 0; j < networkList.length; j++) {
+            const networkEntry = networkList[j];
+            const networkId = this.safeString (networkEntry, 'network');
+            const networkCode = this.networkIdToCode (networkId, this.safeString (currency, 'code'));
+            result['networks'][networkCode] = {
+                'withdraw': {
+                    'fee': this.safeNumber (networkEntry, 'withdrawFee'),
+                    'percentage': undefined,
+                },
+                'deposit': {
+                    'fee': undefined,
+                    'percentage': undefined,
+                },
+            };
+        }
+        return this.assignDefaultDepositWithdrawFees (result);
     }
 
     parseMarginLoan (info, currency = undefined) {
