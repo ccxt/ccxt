@@ -924,7 +924,7 @@ module.exports = class bitfinex2 extends Exchange {
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'status': this.parseTransferStatus (status),
-            'amount': this.safeNumber (transfer, 7),
+            'amount': this.safeNumber (info, 7),
             'currency': this.safeCurrencyCode (currencyId, currency),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
@@ -2111,9 +2111,9 @@ module.exports = class bitfinex2 extends Exchange {
             if (currency !== undefined) {
                 code = currency['code'];
             }
-            feeCost = this.safeNumber (data, 8);
+            feeCost = this.safeString (data, 8);
             if (feeCost !== undefined) {
-                feeCost = -feeCost;
+                feeCost = Precise.stringNeg (feeCost);
             }
             amount = this.safeNumber (data, 5);
             id = this.safeValue (data, 0);
@@ -2131,17 +2131,17 @@ module.exports = class bitfinex2 extends Exchange {
             timestamp = this.safeInteger (transaction, 5);
             updated = this.safeInteger (transaction, 6);
             status = this.parseTransactionStatus (this.safeString (transaction, 9));
-            amount = this.safeNumber (transaction, 12);
+            amount = this.safeString (transaction, 12);
             if (amount !== undefined) {
-                if (amount < 0) {
+                if (Precise.stringLt (amount, '0')) {
                     type = 'withdrawal';
                 } else {
                     type = 'deposit';
                 }
             }
-            feeCost = this.safeNumber (transaction, 13);
+            feeCost = this.safeString (transaction, 13);
             if (feeCost !== undefined) {
-                feeCost = -feeCost;
+                feeCost = Precise.stringNeg (feeCost);
             }
             addressTo = this.safeString (transaction, 16);
             txid = this.safeString (transaction, 20);
@@ -2160,13 +2160,13 @@ module.exports = class bitfinex2 extends Exchange {
             'tag': tag, // refix it properly for the tag from description
             'tagTo': tag,
             'type': type,
-            'amount': amount,
+            'amount': this.parseNumber (amount),
             'currency': code,
             'status': status,
             'updated': updated,
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': this.parseNumber (feeCost),
                 'rate': undefined,
             },
         };

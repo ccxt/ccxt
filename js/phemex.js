@@ -401,7 +401,7 @@ module.exports = class phemex extends Exchange {
                 'defaultSubType': 'linear',
                 'accountsByType': {
                     'spot': 'spot',
-                    'future': 'future',
+                    'swap': 'future',
                 },
                 'transfer': {
                     'fillResponseFromRequest': true,
@@ -2005,7 +2005,10 @@ module.exports = class phemex extends Exchange {
                 params = this.omit (params, 'cost');
                 if (this.options['createOrderByQuoteRequiresPrice']) {
                     if (price !== undefined) {
-                        cost = amount * price;
+                        const amountString = this.numberToString (amount);
+                        const priceString = this.numberToString (price);
+                        const quoteAmount = Precise.stringMul (amountString, priceString);
+                        cost = this.parseNumber (quoteAmount);
                     } else if (cost === undefined) {
                         throw new ArgumentsRequired (this.id + ' createOrder() ' + qtyType + ' requires a price argument or a cost parameter');
                     }
@@ -3431,6 +3434,7 @@ module.exports = class phemex extends Exchange {
          * @param {string} fromAccount account to transfer from
          * @param {string} toAccount account to transfer to
          * @param {object} params extra parameters specific to the phemex api endpoint
+         * @param {string|undefined} params.bizType for transferring between main and sub-acounts either 'SPOT' or 'PERPETUAL' default is 'SPOT'
          * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/en/latest/manual.html#transfer-structure}
          */
         await this.loadMarkets ();

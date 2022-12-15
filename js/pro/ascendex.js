@@ -75,8 +75,20 @@ module.exports = class ascendex extends ascendexRest {
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ascendex#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the ascendex api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         if ((limit === undefined) || (limit > 1440)) {
             limit = 100;
         }
@@ -130,8 +142,19 @@ module.exports = class ascendex extends ascendexRest {
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ascendex#watchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {object} params extra parameters specific to the ascendex api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
+        symbol = market['symbol'];
         const channel = 'trades' + ':' + market['id'];
         params = this.extend (params, {
             'ch': channel,
@@ -182,6 +205,15 @@ module.exports = class ascendex extends ascendexRest {
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ascendex#watchOrderBook
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {object} params extra parameters specific to the ascendex api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const channel = 'depth-realtime' + ':' + market['id'];
@@ -189,7 +221,7 @@ module.exports = class ascendex extends ascendexRest {
             'ch': channel,
         });
         const orderbook = await this.watchPublic (channel, params);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     async watchOrderBookSnapshot (symbol, limit = undefined, params = {}) {
@@ -205,7 +237,7 @@ module.exports = class ascendex extends ascendexRest {
             'op': 'req',
         });
         const orderbook = await this.watchPublic (channel, params);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBookSnapshot (client, message) {
@@ -326,6 +358,13 @@ module.exports = class ascendex extends ascendexRest {
     }
 
     async watchBalance (params = {}) {
+        /**
+         * @method
+         * @name ascendex#watchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} params extra parameters specific to the ascendex api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         const [ type, query ] = this.handleMarketTypeAndParams ('watchBalance', undefined, params);
         let channel = undefined;
@@ -441,10 +480,21 @@ module.exports = class ascendex extends ascendexRest {
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ascendex#watchOrders
+         * @description watches information on multiple orders made by the user
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the ascendex api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         let market = undefined;
         if (symbol !== undefined) {
             market = this.market (symbol);
+            symbol = market['symbol'];
         }
         const [ type, query ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
         let messageHash = undefined;

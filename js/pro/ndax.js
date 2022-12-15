@@ -40,6 +40,14 @@ module.exports = class ndax extends ndaxRest {
     }
 
     async watchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name ndax#watchTicker
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the ndax api endpoint
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -99,6 +107,16 @@ module.exports = class ndax extends ndaxRest {
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ndax#watchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {object} params extra parameters specific to the ndax api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -172,6 +190,17 @@ module.exports = class ndax extends ndaxRest {
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ndax#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the ndax api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -293,6 +322,15 @@ module.exports = class ndax extends ndaxRest {
     }
 
     async watchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name ndax#watchOrderBook
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {object} params extra parameters specific to the ndax api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         const omsId = this.safeInteger (this.options, 'omsId', 1);
         await this.loadMarkets ();
         const market = this.market (symbol);
@@ -326,7 +364,7 @@ module.exports = class ndax extends ndaxRest {
         };
         const message = this.extend (request, params);
         const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     handleOrderBook (client, message) {
