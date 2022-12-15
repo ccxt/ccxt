@@ -2049,7 +2049,7 @@ module.exports = class bybit extends Exchange {
         //     }
         //
         const result = this.safeValue (response, 'result');
-        const ohlcvs = this.safeValue (result, 'list');
+        const ohlcvs = this.safeValue (result, 'list', []);
         return this.parseOHLCVs (ohlcvs, market, timeframe, since, limit);
     }
 
