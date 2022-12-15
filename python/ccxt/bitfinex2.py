@@ -903,7 +903,7 @@ class bitfinex2(Exchange):
             'timestamp': timestamp,
             'datetime': self.iso8601(timestamp),
             'status': self.parse_transfer_status(status),
-            'amount': self.safe_number(transfer, 7),
+            'amount': self.safe_number(info, 7),
             'currency': self.safe_currency_code(currencyId, currency),
             'fromAccount': fromAccount,
             'toAccount': toAccount,
@@ -1975,9 +1975,9 @@ class bitfinex2(Exchange):
             timestamp = self.safe_integer(transaction, 0)
             if currency is not None:
                 code = currency['code']
-            feeCost = self.safe_number(data, 8)
+            feeCost = self.safe_string(data, 8)
             if feeCost is not None:
-                feeCost = -feeCost
+                feeCost = Precise.string_neg(feeCost)
             amount = self.safe_number(data, 5)
             id = self.safe_value(data, 0)
             status = 'ok'
@@ -1993,15 +1993,15 @@ class bitfinex2(Exchange):
             timestamp = self.safe_integer(transaction, 5)
             updated = self.safe_integer(transaction, 6)
             status = self.parse_transaction_status(self.safe_string(transaction, 9))
-            amount = self.safe_number(transaction, 12)
+            amount = self.safe_string(transaction, 12)
             if amount is not None:
-                if amount < 0:
+                if Precise.string_lt(amount, '0'):
                     type = 'withdrawal'
                 else:
                     type = 'deposit'
-            feeCost = self.safe_number(transaction, 13)
+            feeCost = self.safe_string(transaction, 13)
             if feeCost is not None:
-                feeCost = -feeCost
+                feeCost = Precise.string_neg(feeCost)
             addressTo = self.safe_string(transaction, 16)
             txid = self.safe_string(transaction, 20)
         return {
@@ -2018,13 +2018,13 @@ class bitfinex2(Exchange):
             'tag': tag,  # refix it properly for the tag from description
             'tagTo': tag,
             'type': type,
-            'amount': amount,
+            'amount': self.parse_number(amount),
             'currency': code,
             'status': status,
             'updated': updated,
             'fee': {
                 'currency': code,
-                'cost': feeCost,
+                'cost': self.parse_number(feeCost),
                 'rate': None,
             },
         }

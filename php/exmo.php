@@ -414,20 +414,12 @@ class exmo extends Exchange {
     public function fetch_transaction_fees($codes = null, $params = array ()) {
         /**
          * fetch transaction fees
+         * @see https://documenter.getpostman.com/view/10287440/SzYXWKPi#4190035d-24b1-453d-833b-37e0a52f88e2
          * @param {[string]|null} $codes list of unified $currency $codes
          * @param {array} $params extra parameters specific to the exmo api endpoint
          * @return {array} a list of {@link https://docs.ccxt.com/en/latest/manual.html#fees-structure transaction fees structures}
          */
         $this->load_markets();
-        $currencyList = $this->publicGetCurrencyListExtended ($params);
-        //
-        //     array(
-        //         array("name":"VLX","description":"Velas"),
-        //         array("name":"RUB","description":"Russian Ruble"),
-        //         array("name":"BTC","description":"Bitcoin"),
-        //         array("name":"USD","description":"US Dollar")
-        //     )
-        //
         $cryptoList = $this->publicGetPaymentsProvidersCryptoList ($params);
         //
         //     {
@@ -463,26 +455,28 @@ class exmo extends Exchange {
         //         ),
         //     }
         //
-        $result = array(
-            'info' => $cryptoList,
-            'withdraw' => array(),
-            'deposit' => array(),
-        );
-        for ($i = 0; $i < count($currencyList); $i++) {
-            $currency = $currencyList[$i];
-            $currencyId = $this->safe_string($currency, 'name');
-            $code = $this->safe_currency_code($currencyId);
+        $result = array();
+        $cryptoListKeys = is_array($cryptoList) ? array_keys($cryptoList) : array();
+        for ($i = 0; $i < count($cryptoListKeys); $i++) {
+            $code = $cryptoListKeys[$i];
+            if ($codes !== null && !$this->in_array($code, $codes)) {
+                continue;
+            }
+            $result[$code] = array(
+                'deposit' => null,
+                'withdraw' => null,
+            );
+            $currency = $this->currency($code);
+            $currencyId = $this->safe_string($currency, 'id');
             $providers = $this->safe_value($cryptoList, $currencyId, array());
             for ($j = 0; $j < count($providers); $j++) {
                 $provider = $providers[$j];
                 $type = $this->safe_string($provider, 'type');
                 $commissionDesc = $this->safe_string($provider, 'commission_desc');
-                $newFee = $this->parse_fixed_float_value($commissionDesc);
-                $previousFee = $this->safe_number($result[$type], $code);
-                if (($previousFee === null) || (($newFee !== null) && ($newFee < $previousFee))) {
-                    $result[$type][$code] = $newFee;
-                }
+                $fee = $this->parse_fixed_float_value($commissionDesc);
+                $result[$code][$type] = $fee;
             }
+            $result[$code]['info'] = $providers;
         }
         // cache them for later use
         $this->options['transactionFees'] = $result;
@@ -600,7 +594,7 @@ class exmo extends Exchange {
                 'deposit' => $depositEnabled,
                 'withdraw' => $withdrawEnabled,
                 'fee' => $fee,
-                'precision' => $this->parse_number('0.00000001'),
+                'precision' => $this->parse_number('1e-8'),
                 'limits' => $limits,
                 'info' => $providers,
             );
@@ -656,7 +650,7 @@ class exmo extends Exchange {
                 'swap' => false,
                 'future' => false,
                 'option' => false,
-                'active' => true,
+                'active' => null,
                 'contract' => false,
                 'linear' => null,
                 'inverse' => null,
@@ -668,7 +662,7 @@ class exmo extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->parse_number('0.00000001'),
+                    'amount' => $this->parse_number('1e-8'),
                     'price' => $this->parse_number($this->parse_precision($this->safe_string($market, 'price_precision'))),
                 ),
                 'limits' => array(
@@ -1646,6 +1640,14 @@ class exmo extends Exchange {
         //             "error" => ""
         //          ),
         //
+        // withdraw
+        //
+        //          array(
+        //              "result":true,
+        //              "error":"",
+        //              "task_id":11775077
+        //          ),
+        //
         $id = $this->safe_string_2($transaction, 'order_id', 'task_id');
         $timestamp = $this->safe_timestamp_2($transaction, 'dt', 'created');
         $updated = $this->safe_timestamp($transaction, 'updated');
@@ -1688,7 +1690,9 @@ class exmo extends Exchange {
             $key = ($type === 'withdrawal') ? 'withdraw' : 'deposit';
             $feeCost = $this->safe_string($transaction, 'commission');
             if ($feeCost === null) {
-                $feeCost = $this->safe_string($this->options['transactionFees'][$key], $code);
+                $transactionFees = $this->safe_value($this->options, 'transactionFees', array());
+                $codeFees = $this->safe_value($transactionFees, $code, array());
+                $feeCost = $this->safe_string($codeFees, $key);
             }
             // users don't pay for cashbacks, no fees for that
             $provider = $this->safe_string($transaction, 'provider');

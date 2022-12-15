@@ -119,6 +119,7 @@ class poloniex extends Exchange {
                         'orders' => 20,
                         'orders/{id}' => 4,
                         'orders/history' => 20,
+                        'orders/killSwitchStatus' => 4,
                         'smartorders' => 20,
                         'smartorders/{id}' => 4,
                         'smartorders/history' => 20,
@@ -130,6 +131,8 @@ class poloniex extends Exchange {
                         'wallets/address' => 20,
                         'wallets/withdraw' => 20,
                         'orders' => 4,
+                        'orders/killSwitch' => 4,
+                        'orders/batch' => 20,
                         'smartorders' => 4,
                     ),
                     'delete' => array(
@@ -218,7 +221,7 @@ class poloniex extends Exchange {
                     'futures' => 'future',
                 ),
             ),
-            'precisionMode' => DECIMAL_PLACES,
+            'precisionMode' => TICK_SIZE,
             'exceptions' => array(
                 'exact' => array(
                     'You may only place orders that reduce your position.' => '\\ccxt\\InvalidOrder',
@@ -409,8 +412,8 @@ class poloniex extends Exchange {
                 'strike' => null,
                 'optionType' => null,
                 'precision' => array(
-                    'amount' => $this->safe_integer($symbolTradeLimit, 'quantityScale'),
-                    'price' => $this->safe_integer($symbolTradeLimit, 'priceScale'),
+                    'amount' => $this->parse_number($this->parse_precision($this->safe_string($symbolTradeLimit, 'quantityScale'))),
+                    'price' => $this->parse_number($this->parse_precision($this->safe_string($symbolTradeLimit, 'priceScale'))),
                 ),
                 'limits' => array(
                     'amount' => array(
@@ -462,7 +465,7 @@ class poloniex extends Exchange {
         //
         $timestamp = $this->safe_integer($ticker, 'ts');
         $marketId = $this->safe_string($ticker, 'symbol');
-        $market = $this->market($marketId);
+        $market = $this->safe_market($marketId);
         $close = $this->safe_string($ticker, 'close');
         $relativeChange = $this->safe_string($ticker, 'percentChange');
         $percentage = Precise::string_mul($relativeChange, '100');

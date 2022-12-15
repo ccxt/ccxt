@@ -85,9 +85,16 @@ if (settings) {
 
 Object.assign (exchange, settings)
 
-if (settings && settings.skipWs) {
+if (settings && (settings.skip || settings.skipWs)) {
     log.error.bright ('[Skipped]', { exchangeId, symbol })
     process.exit ()
+}
+
+//-----------------------------------------------------------------------------
+
+if (settings && settings.httpProxy) {
+    const agent = new HttpsProxyAgent (settings.httpProxy)
+    exchange.agent = agent;
 }
 
 //-----------------------------------------------------------------------------
@@ -232,7 +239,10 @@ async function testExchange (exchange) {
 //-----------------------------------------------------------------------------
 
 async function test () {
-
+    if (exchange.alias) {
+        console.log ('Skipped alias')
+        process.exit ()
+    }
     await exchange.loadMarkets ()
     exchange.verbose = verbose
     await testExchange (exchange, exchangeSymbol)

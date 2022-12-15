@@ -125,7 +125,7 @@ class zb extends Exchange {
                 'doc' => 'https://www.zb.com/i/developer',
                 'fees' => 'https://www.zb.com/i/rate',
                 'referral' => array(
-                    'url' => 'https://www.zbex.club/en/register?ref=4301lera',
+                    'url' => 'https://www.zb.com/en/register?ref=4301lera',
                     'discount' => 0.16,
                 ),
             ),

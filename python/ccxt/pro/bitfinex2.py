@@ -224,7 +224,7 @@ class bitfinex2(Exchange, ccxt.async_support.bitfinex2):
         """
         return await self.subscribe('ticker', symbol, params)
 
-    def handle_my_trade(self, client, message):
+    def handle_my_trade(self, client, message, subscription={}):
         #
         # trade execution
         # [
@@ -510,7 +510,7 @@ class bitfinex2(Exchange, ccxt.async_support.bitfinex2):
         if limit is not None:
             request['len'] = limit  # string, number of price points, '25', '100', default = '25'
         orderbook = await self.subscribe('book', symbol, self.deep_extend(request, params))
-        return orderbook.limit(limit)
+        return orderbook.limit()
 
     def handle_order_book(self, client, message, subscription):
         #

@@ -989,7 +989,7 @@ module.exports = class hitbtc3 extends Exchange {
         // we use clientOrderId as the order id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here: https://github.com/ccxt/ccxt/issues/5674
-        const orderId = this.safeString (trade, 'clientOrderId');
+        const orderId = this.safeString2 (trade, 'clientOrderId', 'client_order_id');
         const priceString = this.safeString (trade, 'price');
         const amountString = this.safeString2 (trade, 'quantity', 'qty');
         const side = this.safeString (trade, 'side');
@@ -2681,7 +2681,7 @@ module.exports = class hitbtc3 extends Exchange {
         return await this.privatePutFuturesAccountIsolatedSymbol (this.extend (request, params));
     }
 
-    handleMarginModeAndParams (methodName, params = {}) {
+    handleMarginModeAndParams (methodName, params = {}, defaultValue = undefined) {
         /**
          * @ignore
          * @method
@@ -2692,7 +2692,7 @@ module.exports = class hitbtc3 extends Exchange {
         const defaultType = this.safeString (this.options, 'defaultType');
         const isMargin = this.safeValue (params, 'margin', false);
         let marginMode = undefined;
-        [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params);
+        [ marginMode, params ] = super.handleMarginModeAndParams (methodName, params, defaultValue);
         if (marginMode !== undefined) {
             if (marginMode !== 'isolated') {
                 throw new NotSupported (this.id + ' only isolated margin is supported');

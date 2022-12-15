@@ -42,6 +42,14 @@ module.exports = class binance extends binanceRest {
                 },
             },
             'options': {
+                'streamLimits': {
+                    'spot': 50, // max 1024
+                    'margin': 50, // max 1024
+                    'future': 50, // max 200
+                    'delivery': 50, // max 200
+                },
+                'streamBySubscriptionsHash': {},
+                'streamIndex': -1,
                 // get updates every 1000ms or 100ms
                 // or every 0ms in real-time for futures
                 'watchOrderBookRate': 100,
@@ -77,7 +85,44 @@ module.exports = class binance extends binanceRest {
         return newValue;
     }
 
+    stream (type, subscriptionHash) {
+        const streamBySubscriptionsHash = this.safeValue (this.options, 'streamBySubscriptionsHash', {});
+        let stream = this.safeString (streamBySubscriptionsHash, subscriptionHash);
+        if (stream === undefined) {
+            let streamIndex = this.safeInteger (this.options, 'streamIndex', -1);
+            const streamLimits = this.safeValue (this.options, 'streamLimits');
+            const streamLimit = this.safeInteger (streamLimits, type);
+            streamIndex = streamIndex + 1;
+            const normalizedIndex = streamIndex % streamLimit;
+            this.options['streamIndex'] = streamIndex;
+            stream = this.numberToString (normalizedIndex);
+            this.options['streamBySubscriptionsHash'][subscriptionHash] = stream;
+        }
+        return stream;
+    }
+
+    onError (client, error) {
+        this.options['streamBySubscriptionsHash'] = {};
+        this.options['streamIndex'] = -1;
+        super.onError (client, error);
+    }
+
+    onClose (client, error) {
+        this.options['streamBySubscriptionsHash'] = {};
+        this.options['streamIndex'] = -1;
+        super.onClose (client, error);
+    }
+
     async watchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#watchOrderBook
+         * @description watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
         //
         // todo add support for <levels>-snapshots (depth)
         // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams        // <symbol>@depth<levels>@100ms or <symbol>@depth<levels> (1000ms)
@@ -128,7 +173,7 @@ module.exports = class binance extends binanceRest {
         //
         const name = 'depth';
         const messageHash = market['lowercaseId'] + '@' + name;
-        const url = this.urls['api']['ws'][type]; // + '/' + messageHash;
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
         const requestId = this.requestId (url);
         const watchOrderBookRate = this.safeString (this.options, 'watchOrderBookRate', '100');
         const request = {
@@ -151,7 +196,7 @@ module.exports = class binance extends binanceRest {
         const message = this.extend (request, query);
         // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
         const orderbook = await this.watch (url, messageHash, message, messageHash, subscription);
-        return orderbook.limit (limit);
+        return orderbook.limit ();
     }
 
     async fetchOrderBookSnapshot (client, message, subscription) {
@@ -348,6 +393,16 @@ module.exports = class binance extends binanceRest {
     }
 
     async watchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#watchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const options = this.safeValue (this.options, 'watchTrades', {});
@@ -357,7 +412,7 @@ module.exports = class binance extends binanceRest {
         const watchTradesType = this.safeString2 (options, 'type', 'defaultType', defaultType);
         const type = this.safeString (params, 'type', watchTradesType);
         const query = this.omit (params, 'type');
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
         const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
@@ -559,6 +614,17 @@ module.exports = class binance extends binanceRest {
     }
 
     async watchOHLCV (symbol, timeframe = '1m', since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#watchOHLCV
+         * @description watches historical candlestick data containing the open, high, low, and close price, and the volume of a market
+         * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+         * @param {string} timeframe the length of time each candle represents
+         * @param {int|undefined} since timestamp in ms of the earliest candle to fetch
+         * @param {int|undefined} limit the maximum amount of candles to fetch
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {[[int]]} A list of candles ordered as timestamp, open, high, low, close, volume
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['lowercaseId'];
@@ -570,7 +636,7 @@ module.exports = class binance extends binanceRest {
         const watchOHLCVType = this.safeString2 (options, 'type', 'defaultType', defaultType);
         const type = this.safeString (params, 'type', watchOHLCVType);
         const query = this.omit (params, 'type');
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
         const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
@@ -645,17 +711,26 @@ module.exports = class binance extends binanceRest {
     }
 
     async watchTicker (symbol, params = {}) {
+        /**
+         * @method
+         * @name binance#watchTicker
+         * @description watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+         * @param {string} symbol unified symbol of the market to fetch the ticker for
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @param {string} params.name stream to use can be ticker or bookTicker
+         * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
+         */
         await this.loadMarkets ();
         const market = this.market (symbol);
         const marketId = market['lowercaseId'];
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchTicker', market, params);
         const options = this.safeValue (this.options, 'watchTicker', {});
-        const name = this.safeString (options, 'name', 'ticker');
+        let name = this.safeString (options, 'name', 'ticker');
+        name = this.safeString (params, 'name', name);
+        params = this.omit (params, 'name');
         const messageHash = marketId + '@' + name;
-        const defaultType = this.safeString2 (this.options, 'defaultType', 'spot');
-        const watchTickerType = this.safeString2 (options, 'type', 'defaultType', defaultType);
-        const type = this.safeString (params, 'type', watchTickerType);
-        const query = this.omit (params, 'type');
-        const url = this.urls['api']['ws'][type];
+        const url = this.urls['api']['ws'][type] + '/' + this.stream (type, messageHash);
         const requestId = this.requestId (url);
         const request = {
             'method': 'SUBSCRIBE',
@@ -667,7 +742,7 @@ module.exports = class binance extends binanceRest {
         const subscribe = {
             'id': requestId,
         };
-        return await this.watch (url, messageHash, this.extend (request, query), messageHash, subscribe);
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscribe);
     }
 
     handleTicker (client, message) {
@@ -849,7 +924,7 @@ module.exports = class binance extends binanceRest {
 
     async loadBalanceSnapshot (client, messageHash, type) {
         const response = await this.fetchBalance ({ 'type': type });
-        this.balance[type] = this.extend (response, this.balance[type]);
+        this.balance[type] = this.extend (response, this.safeValue (this.balance, type, {}));
         // don't remove the future from the .futures cache
         const future = client.futures[messageHash];
         future.resolve ();
@@ -857,6 +932,13 @@ module.exports = class binance extends binanceRest {
     }
 
     async watchBalance (params = {}) {
+        /**
+         * @method
+         * @name binance#watchBalance
+         * @description query for balance and get the amount of funds available for trading or funds locked in orders
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {object} a [balance structure]{@link https://docs.ccxt.com/en/latest/manual.html?#balance-structure}
+         */
         await this.loadMarkets ();
         await this.authenticate (params);
         const defaultType = this.safeString (this.options, 'defaultType', 'spot');
@@ -978,15 +1060,28 @@ module.exports = class binance extends binanceRest {
     }
 
     async watchOrders (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#watchOrders
+         * @description watches information on multiple orders made by the user
+         * @param {string|undefined} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
+         */
         await this.loadMarkets ();
         await this.authenticate (params);
-        const defaultType = this.safeString2 (this.options, 'watchOrders', 'defaultType', 'spot');
-        const type = this.safeString (params, 'type', defaultType);
-        const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         let messageHash = 'orders';
+        let market = undefined;
         if (symbol !== undefined) {
+            market = this.market (symbol);
+            symbol = market['symbol'];
             messageHash += ':' + symbol;
         }
+        let type = undefined;
+        [ type, params ] = this.handleMarketTypeAndParams ('watchOrders', market, params);
+        const url = this.urls['api']['ws'][type] + '/' + this.options[type]['listenKey'];
         const client = this.client (url);
         this.setBalanceCache (client, type);
         const message = undefined;
@@ -1249,6 +1344,16 @@ module.exports = class binance extends binanceRest {
     }
 
     async watchMyTrades (symbol = undefined, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name binance#watchMyTrades
+         * @description watches information on multiple trades made by the user
+         * @param {string} symbol unified market symbol of the market orders were made in
+         * @param {int|undefined} since the earliest time in ms to fetch orders for
+         * @param {int|undefined} limit the maximum number of  orde structures to retrieve
+         * @param {object} params extra parameters specific to the binance api endpoint
+         * @returns {[object]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure
+         */
         await this.loadMarkets ();
         await this.authenticate (params);
         const defaultType = this.safeString2 (this.options, 'watchMyTrades', 'defaultType', 'spot');

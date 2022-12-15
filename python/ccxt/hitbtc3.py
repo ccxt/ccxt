@@ -952,7 +952,7 @@ class hitbtc3(Exchange):
         # we use clientOrderId as the order id with self exchange intentionally
         # because most of their endpoints will require clientOrderId
         # explained here: https://github.com/ccxt/ccxt/issues/5674
-        orderId = self.safe_string(trade, 'clientOrderId')
+        orderId = self.safe_string_2(trade, 'clientOrderId', 'client_order_id')
         priceString = self.safe_string(trade, 'price')
         amountString = self.safe_string_2(trade, 'quantity', 'qty')
         side = self.safe_string(trade, 'side')
@@ -2479,7 +2479,7 @@ class hitbtc3(Exchange):
         }
         return self.privatePutFuturesAccountIsolatedSymbol(self.extend(request, params))
 
-    def handle_margin_mode_and_params(self, methodName, params={}):
+    def handle_margin_mode_and_params(self, methodName, params={}, defaultValue=None):
         """
          * @ignore
         marginMode specified by params["marginMode"], self.options["marginMode"], self.options["defaultMarginMode"], params["margin"] = True or self.options["defaultType"] = 'margin'
@@ -2489,7 +2489,7 @@ class hitbtc3(Exchange):
         defaultType = self.safe_string(self.options, 'defaultType')
         isMargin = self.safe_value(params, 'margin', False)
         marginMode = None
-        marginMode, params = super(hitbtc3, self).handle_margin_mode_and_params(methodName, params)
+        marginMode, params = super(hitbtc3, self).handle_margin_mode_and_params(methodName, params, defaultValue)
         if marginMode is not None:
             if marginMode != 'isolated':
                 raise NotSupported(self.id + ' only isolated margin is supported')
