@@ -68,7 +68,7 @@ class bkex(Exchange):
                 'fetchLedgerEntry': None,
                 'fetchLeverageTiers': None,
                 'fetchMarginMode': False,
-                'fetchMarketLeverageTiers': None,
+                'fetchMarketLeverageTiers': True,
                 'fetchMarkets': True,
                 'fetchMarkOHLCV': None,
                 'fetchMyTrades': None,
@@ -1721,6 +1721,68 @@ class bkex(Exchange):
             })
         sorted = self.sort_by(rates, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, market['symbol'], since, limit)
+
+    async def fetch_market_leverage_tiers(self, symbol, params={}):
+        """
+        see https://bkexapi.github.io/docs/api_en.htm?shell#contract-riskLimit
+        retrieve information on the maximum leverage, for different trade sizes for a single market
+        :param str symbol: unified market symbol
+        :param dict params: extra parameters specific to the bkex api endpoint
+        :returns dict: a `leverage tiers structure <https://docs.ccxt.com/en/latest/manual.html#leverage-tiers-structure>`
+        """
+        await self.load_markets()
+        market = self.market(symbol)
+        if not market['swap']:
+            raise BadRequest(self.id + ' fetchMarketLeverageTiers() supports swap markets only')
+        request = {
+            'symbol': market['id'],
+        }
+        response = await self.publicSwapGetMarketRiskLimit(self.extend(request, params))
+        #
+        #     {
+        #         "code": 0,
+        #         "msg": "success",
+        #         "data": [
+        #             {
+        #                 "symbol": "btc_usdt",
+        #                 "minValue": "0",
+        #                 "maxValue": "500000",
+        #                 "maxLeverage": 100,
+        #                 "maintenanceMarginRate": "0.005"
+        #             },
+        #         ]
+        #     }
+        #
+        data = self.safe_value(response, 'data', [])
+        return self.parse_market_leverage_tiers(data, market)
+
+    def parse_market_leverage_tiers(self, info, market):
+        #
+        #     [
+        #         {
+        #             "symbol": "btc_usdt",
+        #             "minValue": "0",
+        #             "maxValue": "500000",
+        #             "maxLeverage": 100,
+        #             "maintenanceMarginRate": "0.005"
+        #         },
+        #     ]
+        #
+        tiers = []
+        for i in range(0, len(info)):
+            tier = info[i]
+            marketId = self.safe_string(info, 'symbol')
+            market = self.safe_market(marketId, market)
+            tiers.append({
+                'tier': self.sum(i, 1),
+                'currency': market['settle'],
+                'minNotional': self.safe_number(tier, 'minValue'),
+                'maxNotional': self.safe_number(tier, 'maxValue'),
+                'maintenanceMarginRate': self.safe_number(tier, 'maintenanceMarginRate'),
+                'maxLeverage': self.safe_number(tier, 'maxLeverage'),
+                'info': tier,
+            })
+        return tiers
 
     def sign(self, path, api='public', method='GET', params={}, headers=None, body=None):
         signed = api[0] == 'private'
