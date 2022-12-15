@@ -1619,7 +1619,7 @@ class okx(Exchange):
             now = self.milliseconds()
             difference = now - since
             # if the since timestamp is more than limit candles back in the past
-            if difference > limit * duration * 1000:
+            if difference > 1440 * duration * 1000:
                 defaultType = 'HistoryCandles'
             durationInMilliseconds = duration * 1000
             startTime = max(since - 1, 0)
@@ -1633,10 +1633,11 @@ class okx(Exchange):
         type = self.safe_string(params, 'type', defaultType)
         params = self.omit(params, 'type')
         method = 'publicGetMarket' + type
+        isHistoryCandles = (type == 'HistoryCandles')
         if price == 'mark':
-            method = 'publicGetMarketMarkPriceCandles'
+            method = 'publicGetMarketHistoryMarkPriceCandles' if (isHistoryCandles) else 'publicGetMarketMarkPriceCandles'
         elif price == 'index':
-            method = 'publicGetMarketIndexCandles'
+            method = 'publicGetMarketHistoryIndexCandles' if (isHistoryCandles) else 'publicGetMarketIndexCandles'
         response = getattr(self, method)(self.extend(request, params))
         #
         #     {

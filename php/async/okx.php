@@ -1679,7 +1679,7 @@ class okx extends Exchange {
                 $now = $this->milliseconds();
                 $difference = $now - $since;
                 // if the $since timestamp is more than $limit candles back in the past
-                if ($difference > $limit * $duration * 1000) {
+                if ($difference > 1440 * $duration * 1000) {
                     $defaultType = 'HistoryCandles';
                 }
                 $durationInMilliseconds = $duration * 1000;
@@ -1696,10 +1696,11 @@ class okx extends Exchange {
             $type = $this->safe_string($params, 'type', $defaultType);
             $params = $this->omit($params, 'type');
             $method = 'publicGetMarket' . $type;
+            $isHistoryCandles = ($type === 'HistoryCandles');
             if ($price === 'mark') {
-                $method = 'publicGetMarketMarkPriceCandles';
+                $method = ($isHistoryCandles) ? 'publicGetMarketHistoryMarkPriceCandles' : 'publicGetMarketMarkPriceCandles';
             } elseif ($price === 'index') {
-                $method = 'publicGetMarketIndexCandles';
+                $method = ($isHistoryCandles) ? 'publicGetMarketHistoryIndexCandles' : 'publicGetMarketIndexCandles';
             }
             $response = Async\await($this->$method (array_merge($request, $params)));
             //
