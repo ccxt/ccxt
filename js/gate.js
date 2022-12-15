@@ -608,6 +608,7 @@ module.exports = class gate extends Exchange {
                     'CHEQD': 'CHEQ',
                     'IRISNET': 'IRIS',
                     'ABBC': 'ABBC',
+                    'BITCOINX': 'BCX',
                     'SEELE': 'SEELE',
                     'VELAS': 'VLX',
                     'REI': 'REI',

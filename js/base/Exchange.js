@@ -837,11 +837,6 @@ module.exports = class Exchange {
         };
     }
 
-    hasUnifiedNetworkCode (networkCode) {
-        // helper methods for end users
-        return (networkCode in this.options['networkCodesListAuto']);
-    }
-
     safeLedgerEntry (entry, currency = undefined) {
         currency = this.safeCurrency (undefined, currency);
         let direction = this.safeString (entry, 'direction');
@@ -1712,9 +1707,9 @@ module.exports = class Exchange {
     defineNetworkCodesByIds () {
         // auto define 'networksById' in options, by reverting  key<>value from 'networks' entries
         const result = {};
-        const networkCodesListAuto = Object.keys (this.options['networks']);
-        for (let i = 0; i < networkCodesListAuto.length; i++) {
-            const networkCode = networkCodesListAuto[i];
+        const networkCodesSupportedList = Object.keys (this.options['networks']);
+        for (let i = 0; i < networkCodesSupportedList.length; i++) {
+            const networkCode = networkCodesSupportedList[i];
             const networkId = this.options['networks'][networkCode];
             result[networkId] = networkCode;
         }
@@ -1729,7 +1724,7 @@ module.exports = class Exchange {
         const concatenatedFirst = this.arrayConcat (keysOfNetworks, keysOfReplacements);
         const concatenatedSecond = this.arrayConcat (keysOfAliases, concatenatedFirst);
         const concatenatedUnique = this.unique (concatenatedSecond);
-        this.options['networkCodesListAuto'] = concatenatedUnique;
+        this.options['networkCodesSupportedList'] = concatenatedUnique;
     }
 
     networkCodeToId (networkCode, currencyCode = undefined) {

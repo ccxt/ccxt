@@ -916,10 +916,11 @@ module.exports = class huobi extends Exchange {
                 },
                 'hasUniqueNetworkIds': true,
                 'networks': {
+                    // The below list is made up by huobi's common network names, instead of currency-specific chain ids
                     'ACALA': 'ACA',
                     'ACHAIN': 'ACT',
                     'AETERNITY': 'AE',
-                    'ALGORAND': 'ALGO',
+                    'ALGORAND': [ 'ALGO', 'ALGOUSDC' ],
                     'AKASH': 'AKT',
                     'ARBITRUM': 'ARB',
                     'ARWEAVE': 'AR',
@@ -929,15 +930,25 @@ module.exports = class huobi extends Exchange {
                     'AURORY': 'AURY',
                     'ALEPHZERO': 'AZERO',
                     'BAND': 'BAND',
-                    'BEP20': 'BEP20',
+                    'BEP20': [ 'BEP20', 'BEP20BNB' ], // 'BEP20BNB' is exceptionary for BNB
+                    'HRC20': 'HECO',
                     'BITCOIN': 'BTC',
                     'BITCOINCASHSV': 'BSV',
-                    'BITCOINCASH': 'BCC',
+                    'BITCOINCASH': 'BCC', // exception: 'HBCH' for  huobi bch
                     'BITCOINDIAMOND': 'BCD',
                     'BITCOINHD': 'BHD',
                     'BITCOINGOLD': 'BTG',
                     'BITCI': 'BITCI',
                     'BITGERT': 'BRISE',
+                    'TOPNETWORK': 'TOP',
+                    'ROOTSTOCK': 'RBTC',
+                    'QISWAP': 'QI',
+                    'UNIQUENETWORK': 'UNQ',
+                    'DATA': 'DTA',
+                    'WGREENPAY': 'WGP',
+                    'DOUBLEACHAIN': 'AAC',
+                    'AGORIC': 'BLD',
+                    'BITCOINX': 'BCX',
                     'BITSHARES': 'BTS',
                     'BITTORRENT': 'BTT',
                     'BYTOM': 'BTM',
@@ -953,6 +964,8 @@ module.exports = class huobi extends Exchange {
                     'COSMOS': 'ATOM1',
                     'CRC20': 'CRC20',
                     'DASH': 'DASH',
+                    'AVALANCHEC': [ 'AVAXCCHAIN', 'C-CHAIN', 'CCHAIN', 'CCHAINERC20' ], // huobi has too many aliases for avax-c
+                    'AVALANCHEX': 'AVAX',
                     'DOGECOIN': 'DOGE',
                     'DECRED': 'DCR',
                     'DIGIBYTE': 'DGB',
@@ -962,43 +975,39 @@ module.exports = class huobi extends Exchange {
                     'DEFICHAIN': 'DFI',
                     'ELROND': 'EGLD',
                     'ECASH': 'ECASH',
+                    'CARDANO': [ 'CARDANO', 'ADA', 'ADATOKEN' ],
                     'ELASTOS': 'ELA',
                     'AELF': 'ELF',
                     'EMINER': 'EM',
                     'EOS': 'EOS',
-                    'ERC20': 'ERC20',
+                    'CHILIZ': [ 'CHZCHAIN', 'CHZ20', 'CRC20' ], // 'CRC20' is used by houbi only for Chiliz, not CRONOS network
+                    'ERC20': [ 'ERC20', 'ERC20ETH' ], // 'ERC20ETH' is used by houbi only for ETH coin
+                    'CRONOS': 'CRO',
                     'ETHEREUMCLASSIC': 'ETC',
                     'ETHW': 'ETHW',
                     'FILECOIN': 'FIL',
-                    'HRC20': 'HECO',
                     'INTERNETCOMPUTER': 'ICP',
                     'IOTA': 'IOTA',
                     'KLAYTN': 'KLAY',
                     'KUSAMA': 'KSM',
-                    // 'LIGHTNING': 'BTC-Lightning', // not yet well determined for unification
-                    'LITECOIN': 'LTC', // 'LTC'
-                    // 'LUNA': 'LUNA', // tbd, because of vague titles
-                    // 'LUNC': 'LUNC',
+                    'LITECOIN': 'LTC',
                     'MONERO': 'XMR',
                     'NEAR': 'NEAR',
                     'ONTOLOGY': 'ONTOLOGY',
                     'OPTIMISM': 'OP',
                     'POLKADOT': 'DOT',
                     'RIPPLE': 'XRP',
-                    'SOLANA': 'SOL',
                     'STELLAR': 'XLM',
-                    // huobi has incorrect naming for TERRA networks, as TERRA is assigned to Terra classic network, so we avoid setting it
-                    // 'TERRA': '',
-                    // 'TERRACLASSIC': 'TERRA', // USDC & TERRA - both ids
+                    'TERRA': [ 'LUNA' ], // LUNA is used by huobi only for LUNA coin. New Terra network is only for LUNA
+                    'TERRACLASSIC': [ 'USTC', 'LUNC', 'TERRA' ], // Huobi uses 'TERRA' network name for Terra classic
                     'TEZOS': 'XZT',
                     'THEOPENNETWORK': 'TON',
-                    'TRC20': 'TRC20',
-                    'TRON': 'TRC20',
-                    'TRX': 'TRC20', // conflict TRX with TRC20 for ZEC coin
+                    'TRC20': [ 'TRX', 'TRC20' ], // TRX network-name is only used for TRX coin
                     'WAX': 'WAX1',
                     'WAVES': 'WAVES',
                     'ZCASH': 'ZEC',
                     'ZILLIQA': 'ZIL',
+                    'CUBE': [ 'CUBE', 'CUBEDAI', 'CUBECRC20' ], // CUBE is only for mainnet CUBE and others have CUBECRC20 (CUBEDAI is exception)
                     'HORIZEN': 'ZEN',
                     'SYMBOL': 'XYM',
                     'VERGE': 'XVG',
@@ -1034,24 +1043,29 @@ module.exports = class huobi extends Exchange {
                     'HARMONY': 'ONE',
                     'OASYS': 'OAS',
                     'NERVE': 'NVT',
+                    'SOLANA': [ 'SOLANA', 'SOL', 'SOLUSDC' ], // Some tokens has SOLANA as network-names and some has 'SOL' (SOLUSDC is exception)
                     'NULS': 'NULS',
                     'NODLE': 'NODL',
+                    'STEP': 'STEP',
                     'NEWTON': 'NEWTON',
                     'BITSHARESNEW': 'NBS',
-                    'NEBULAS': 'NAS',
+                    'NEBULAS': [ 'NAS', 'NRC20' ], // NAS is for main NAS mainnet coin, NRC20 for other NAS based tokens
                     'NANO': 'NANO',
                     'MOONRIVER': 'MOVR',
+                    'MOONBEAM': [ 'GLMR', 'MOONBEAM' ],
                     'MINA': 'MINA',
+                    'POLYGON': [ 'POLYGON', 'PRC20', 'MATIC' ],
                     'MOVIEBLOC': 'MBL',
                     'MASS': 'MASS',
                     'LISK': 'LSK',
-                    'CHAINLINK': 'LINK',
+                    'LINE': 'LINK', // this is not chainlink, but LINE BLOCKCHAIN for LINK
                     'PLATON': 'LAT',
                     'KOMODO': 'KMD',
                     'CALAMARI': 'KMA',
                     'KAVA': 'KAVA',
                     'IRISNET': 'IRIS',
                     'IOTEX': 'IOTX',
+                    'IOST': [ 'IOST', 'IRC20' ], // IOST is for mainnet IOST token and HUSD, other IOST-blockchain based tokens have IRC20
                     'ICON': 'ICX',
                     'HIVE': 'HIVE',
                     'HYPERCASH': 'HC',
@@ -1063,10 +1077,15 @@ module.exports = class huobi extends Exchange {
                     'FLOW': 'FLOW',
                     'STAFI': 'FIS',
                     'FIO': 'FIO',
+                    'FIRO': 'XZC',
                     'EVMOS': 'EVMOS',
                     'ELECTRONEUM': 'ETN',
                     'ETHEREUMFAIR': 'ETHFAIR',
                     'ERGO': 'ERG',
+                    // dead projects:  "BCV" (BitCapitalVendor ), "PAI" (Project Pai), BIFI (bitcoin file)
+                    // excluded: GBP, EUR BRL
+                    // unknown networks: KIP7, BSCFACE1, OEP4, NEON3, GASN3, EOSS, LUK
+                    // several other coins with network name prefixed HRC20 i.e. "HRC20AAVE", "HRC20AXS" ... but all other chains on heco are just with HECO name. another single exception is that ht coin has "HECOHT" as network name
                 },
                 // https://github.com/ccxt/ccxt/issues/5376
                 'fetchOrdersByStatesMethod': 'spot_private_get_v1_order_orders', // 'spot_private_get_v1_order_history' // https://github.com/ccxt/ccxt/pull/5392
