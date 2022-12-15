@@ -2437,7 +2437,6 @@ module.exports = class bitmex extends Exchange {
     async modifyMarginHelper (symbol, amount, type, params = {}) {
         await this.loadMarkets ();
         const market = this.market (symbol);
-        // amount = this.amountToPrecision (symbol, amount);
         const request = {
             'symbol': market['id'],
             'amount': amount, // positive value for adding margin, negative for reducing
@@ -2562,7 +2561,9 @@ module.exports = class bitmex extends Exchange {
     }
 
     async reduceMargin (symbol, amount, params = {}) {
-        return await this.modifyMarginHelper (symbol, amount, 'reduce', params);
+        amount = amount.toString ();
+        const requestAmount = this.parseNumber (Precise.stringMul ('-1', amount));
+        return await this.modifyMarginHelper (symbol, requestAmount, 'reduce', params);
     }
 
     async setLeverage (leverage, symbol = undefined, params = {}) {
