@@ -407,8 +407,6 @@ module.exports = class mexc3 extends Exchange {
                 },
                 'networksById': {
                     'BEP20(BSC)': 'BSC',
-                    'TRC20': 'TRX',
-                    'ERC20': 'ETH',
                 },
                 'networkAliases': {
                     'BSC(BEP20)': 'BSC',
