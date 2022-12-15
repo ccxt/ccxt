@@ -410,7 +410,6 @@ class kucoin extends Exchange {
                 'version' => 'v1',
                 'symbolSeparator' => '-',
                 'fetchMyTradesMethod' => 'private_get_fills',
-                'fetchBalance' => 'trade',
                 'fetchMarkets' => array(
                     'fetchTickersFees' => true,
                 ),
@@ -475,6 +474,7 @@ class kucoin extends Exchange {
                     'main' => 'main',
                     'funding' => 'main',
                     'future' => 'contract',
+                    'swap' => 'contract',
                     'mining' => 'pool',
                 ),
                 'networks' => array(
