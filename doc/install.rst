@@ -1,0 +1,1 @@
+.. mdinclude:: ../wiki/Install.md

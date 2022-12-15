@@ -4,293 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "15c8e73b00fb5a9a4993e8449a2b3766",
+    "content-hash": "560ff3092ac6c9bf1a172549f402807d",
     "packages": [
-        {
-            "name": "ccxt/ccxt",
-            "version": "1.88.1",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/ccxt/ccxt.git",
-                "reference": "ac2294676feb78a9687d26a3eb6af01e2ffada08"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/ccxt/ccxt/zipball/ac2294676feb78a9687d26a3eb6af01e2ffada08",
-                "reference": "ac2294676feb78a9687d26a3eb6af01e2ffada08",
-                "shasum": ""
-            },
-            "require": {
-                "ext-bcmath": "*",
-                "ext-curl": "*",
-                "ext-gmp": "*",
-                "ext-iconv": "*",
-                "ext-json": "*",
-                "ext-openssl": "*",
-                "ext-pcre": "*",
-                "pear/console_table": "1.3.1",
-                "php": ">=5.5",
-                "symfony/polyfill-mbstring": "^1.7"
-            },
-            "suggest": {
-                "clue/buzz-react": "Required for asynchronous API calls to exchanges with PHP",
-                "clue/http-proxy-react": "Required for using a proxy when doing asynchronous API calls to exchanges with PHP",
-                "react/event-loop": "Required for asynchronous API calls to exchanges with PHP",
-                "react/http": "Required for asynchronous API calls to exchanges with PHP",
-                "recoil/react": "Required for asynchronous API calls to exchanges with PHP",
-                "recoil/recoil": "Required for asynchronous API calls to exchanges with PHP"
-            },
-            "type": "library",
-            "autoload": {
-                "files": [
-                    "ccxt.php"
-                ],
-                "psr-4": {
-                    "ccxt\\": "php/",
-                    "ccxt_async\\": "php/async/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Igor Kroitor",
-                    "email": "igor.kroitor@gmail.com",
-                    "homepage": "https://github.com/kroitor",
-                    "role": "Developer"
-                },
-                {
-                    "name": "Vitaly Gordon",
-                    "email": "rocket.mind@gmail.com",
-                    "homepage": "https://github.com/xpl",
-                    "role": "Developer"
-                },
-                {
-                    "name": "Carlo Revelli",
-                    "email": "carlo.revelli@berkeley.edu",
-                    "homepage": "https://github.com/frosty00",
-                    "role": "Junior Developer"
-                }
-            ],
-            "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for more than 90 bitcoin/altcoin exchanges",
-            "homepage": "https://github.com/ccxt/ccxt",
-            "keywords": [
-                "1BTCXE",
-                "1Broker",
-                "ACX",
-                "ANX",
-                "ANXPro",
-                "BL3P",
-                "BTC Markets",
-                "BTC Trade UA",
-                "BTCC",
-                "BTCChina",
-                "BTCExchange",
-                "BTCTrader",
-                "BTCTurk",
-                "BTCX",
-                "BX.in.th",
-                "Bit2C",
-                "BitBay",
-                "BitBays",
-                "BitMEX",
-                "BitMarket",
-                "Bitcoin.co.id",
-                "Bleutrade",
-                "BlinkTrade",
-                "BtcBox",
-                "Bter.com",
-                "C-CEX",
-                "CEX.IO",
-                "CHBTC",
-                "CNY",
-                "ChileBit",
-                "CoinMate",
-                "CoinSpot",
-                "Coinsecure",
-                "Crypto Capital",
-                "DOGE",
-                "EUR",
-                "EXMO",
-                "FYB-SE",
-                "FYB-SG",
-                "FoxBit",
-                "Gatecoin",
-                "Gemini",
-                "Huobi",
-                "HuobiPRO",
-                "LakeBTC",
-                "Liqui",
-                "LiveCoin",
-                "OKCoin",
-                "OKCoin.cn",
-                "OKCoin.com",
-                "OKEX",
-                "Paymium",
-                "Poloniex",
-                "QUOINE",
-                "Qryptos",
-                "QuadrigaCX",
-                "Southxchange",
-                "SurBitcoin",
-                "TheRockTrading",
-                "Tidex",
-                "USD",
-                "UrduBit",
-                "VBTC",
-                "Vaultoro",
-                "VirWoX",
-                "Wex",
-                "YoBit",
-                "Zaif",
-                "acx.io",
-                "algorithmic",
-                "algotrading",
-                "altcoin",
-                "altcoins",
-                "api",
-                "arbitrage",
-                "backtest",
-                "backtesting",
-                "binance",
-                "binance.com",
-                "bit2c.co.il",
-                "bitcoin",
-                "bitcoincoid",
-                "bitfinex",
-                "bitflyer",
-                "bitflyer.jp",
-                "bithumb",
-                "bithumb.com",
-                "bitlish",
-                "bitso",
-                "bitstamp",
-                "bittrex",
-                "bleutrade.com",
-                "bot",
-                "btc",
-                "btc-e",
-                "btc-trade.com.ua",
-                "btc-x",
-                "btcbox.co.jp",
-                "btce",
-                "btcexchange.ph",
-                "btcmarkets",
-                "btcmarkets.net",
-                "btctrader.com",
-                "btcturk.com",
-                "bter",
-                "ccex",
-                "cex",
-                "chilebit.net",
-                "coin",
-                "coincheck",
-                "coingi",
-                "coingi.com",
-                "coinmarketcap",
-                "coins",
-                "coinspot.com.au",
-                "crypto",
-                "crypto currency",
-                "crypto market",
-                "cryptocapital.co",
-                "cryptocurrency",
-                "currencies",
-                "currency",
-                "darkcoin",
-                "dash",
-                "digital currency",
-                "dogecoin",
-                "dsx",
-                "dsx.uk",
-                "e-commerce",
-                "etc",
-                "eth",
-                "ether",
-                "ethereum",
-                "exchange",
-                "exchanges",
-                "flowBTC",
-                "flowbtc.com",
-                "foxbit.exchange",
-                "framework",
-                "gdax",
-                "hitbtc",
-                "huobi.pro",
-                "independent reserve",
-                "independentreserve.com",
-                "invest",
-                "investing",
-                "investor",
-                "itBit",
-                "jubi.com",
-                "kraken",
-                "lakebtc.com",
-                "library",
-                "light",
-                "liqui.io",
-                "litecoin",
-                "ltc",
-                "luno",
-                "market",
-                "market data",
-                "markets",
-                "mercado",
-                "mercadobitcoin",
-                "mercadobitcoin.br",
-                "merchandise",
-                "merchant",
-                "minimal",
-                "mixcoins",
-                "mixcoins.com",
-                "nova",
-                "novaexchange",
-                "novaexchange.com",
-                "okex.com",
-                "order",
-                "order book",
-                "orderbook",
-                "price",
-                "price data",
-                "pricefeed",
-                "private",
-                "public",
-                "ripple",
-                "strategy",
-                "surbitcoin.com",
-                "tidex.com",
-                "toolkit",
-                "trade",
-                "trader",
-                "trading",
-                "urdubit.com",
-                "vbtc.exchange",
-                "vbtc.vn",
-                "volume",
-                "wex.nz",
-                "xBTCe",
-                "xbt",
-                "xbtce.com",
-                "xrp",
-                "yobit.net",
-                "yunbi",
-                "zec",
-                "zerocoin"
-            ],
-            "support": {
-                "issues": "https://github.com/ccxt/ccxt/issues",
-                "source": "https://github.com/ccxt/ccxt/tree/1.88.1"
-            },
-            "funding": [
-                {
-                    "url": "https://opencollective.com/ccxt",
-                    "type": "open_collective"
-                }
-            ],
-            "time": "2022-06-19T11:16:39+00:00"
-        },
         {
             "name": "evenement/evenement",
             "version": "v3.0.1",
@@ -396,16 +111,16 @@
         },
         {
             "name": "guzzlehttp/psr7",
-            "version": "2.3.0",
+            "version": "2.4.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/guzzle/psr7.git",
-                "reference": "83260bb50b8fc753c72d14dc1621a2dac31877ee"
+                "reference": "69568e4293f4fa993f3b0e51c9723e1e17c41379"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/guzzle/psr7/zipball/83260bb50b8fc753c72d14dc1621a2dac31877ee",
-                "reference": "83260bb50b8fc753c72d14dc1621a2dac31877ee",
+                "url": "https://api.github.com/repos/guzzle/psr7/zipball/69568e4293f4fa993f3b0e51c9723e1e17c41379",
+                "reference": "69568e4293f4fa993f3b0e51c9723e1e17c41379",
                 "shasum": ""
             },
             "require": {
@@ -419,17 +134,21 @@
                 "psr/http-message-implementation": "1.0"
             },
             "require-dev": {
-                "bamarni/composer-bin-plugin": "^1.4.1",
+                "bamarni/composer-bin-plugin": "^1.8.1",
                 "http-interop/http-factory-tests": "^0.9",
-                "phpunit/phpunit": "^8.5.8 || ^9.3.10"
+                "phpunit/phpunit": "^8.5.29 || ^9.5.23"
             },
             "suggest": {
                 "laminas/laminas-httphandlerrunner": "Emit PSR-7 responses"
             },
             "type": "library",
             "extra": {
+                "bamarni-bin": {
+                    "bin-links": true,
+                    "forward-command": false
+                },
                 "branch-alias": {
-                    "dev-master": "2.3-dev"
+                    "dev-master": "2.4-dev"
                 }
             },
             "autoload": {
@@ -491,7 +210,7 @@
             ],
             "support": {
                 "issues": "https://github.com/guzzle/psr7/issues",
-                "source": "https://github.com/guzzle/psr7/tree/2.3.0"
+                "source": "https://github.com/guzzle/psr7/tree/2.4.1"
             },
             "funding": [
                 {
@@ -507,61 +226,7 @@
                     "type": "tidelift"
                 }
             ],
-            "time": "2022-06-09T08:26:02+00:00"
-        },
-        {
-            "name": "icecave/repr",
-            "version": "4.0.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/icecave/repr.git",
-                "reference": "3dad35ee43394404ae0f1926d754e7b7820da8e4"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/icecave/repr/zipball/3dad35ee43394404ae0f1926d754e7b7820da8e4",
-                "reference": "3dad35ee43394404ae0f1926d754e7b7820da8e4",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=7.2"
-            },
-            "require-dev": {
-                "eloquent/phony-phpunit": "^6",
-                "friendsofphp/php-cs-fixer": "^2",
-                "phpunit/phpunit": "^8"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Icecave\\Repr\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "James Harris",
-                    "email": "mailjamesharris@gmail.com",
-                    "homepage": "https://github.com/jmalloc"
-                }
-            ],
-            "description": "A library for generating string representations of any value, inspired by Python's reprlib library.",
-            "homepage": "https://github.com/icecave/repr",
-            "keywords": [
-                "human",
-                "readable",
-                "repr",
-                "representation",
-                "string"
-            ],
-            "support": {
-                "issues": "https://github.com/icecave/repr/issues",
-                "source": "https://github.com/icecave/repr/tree/4.0.0"
-            },
-            "time": "2020-08-25T02:05:11+00:00"
+            "time": "2022-08-28T14:45:39+00:00"
         },
         {
             "name": "pear/console_table",
@@ -886,6 +551,84 @@
             "time": "2021-12-09T23:20:49+00:00"
         },
         {
+            "name": "react/async",
+            "version": "v4.0.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/reactphp/async.git",
+                "reference": "2aa8d89057e1059f59666e4204100636249b7be0"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/reactphp/async/zipball/2aa8d89057e1059f59666e4204100636249b7be0",
+                "reference": "2aa8d89057e1059f59666e4204100636249b7be0",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=8.1",
+                "react/event-loop": "^1.2",
+                "react/promise": "^3.0 || ^2.8 || ^1.2.1"
+            },
+            "require-dev": {
+                "phpunit/phpunit": "^9.3"
+            },
+            "type": "library",
+            "autoload": {
+                "files": [
+                    "src/functions_include.php"
+                ],
+                "psr-4": {
+                    "React\\Async\\": "src/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Christian Lück",
+                    "email": "christian@clue.engineering",
+                    "homepage": "https://clue.engineering/"
+                },
+                {
+                    "name": "Cees-Jan Kiewiet",
+                    "email": "reactphp@ceesjankiewiet.nl",
+                    "homepage": "https://wyrihaximus.net/"
+                },
+                {
+                    "name": "Jan Sorgalla",
+                    "email": "jsorgalla@gmail.com",
+                    "homepage": "https://sorgalla.com/"
+                },
+                {
+                    "name": "Chris Boden",
+                    "email": "cboden@gmail.com",
+                    "homepage": "https://cboden.dev/"
+                }
+            ],
+            "description": "Async utilities and fibers for ReactPHP",
+            "keywords": [
+                "async",
+                "reactphp"
+            ],
+            "support": {
+                "issues": "https://github.com/reactphp/async/issues",
+                "source": "https://github.com/reactphp/async/tree/v4.0.0"
+            },
+            "funding": [
+                {
+                    "url": "https://github.com/WyriHaximus",
+                    "type": "github"
+                },
+                {
+                    "url": "https://github.com/clue",
+                    "type": "github"
+                }
+            ],
+            "time": "2022-07-11T14:21:02+00:00"
+        },
+        {
             "name": "react/cache",
             "version": "v1.1.1",
             "source": {
@@ -963,16 +706,16 @@
         },
         {
             "name": "react/dns",
-            "version": "v1.9.0",
+            "version": "v1.10.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/reactphp/dns.git",
-                "reference": "6d38296756fa644e6cb1bfe95eff0f9a4ed6edcb"
+                "reference": "a5427e7dfa47713e438016905605819d101f238c"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/dns/zipball/6d38296756fa644e6cb1bfe95eff0f9a4ed6edcb",
-                "reference": "6d38296756fa644e6cb1bfe95eff0f9a4ed6edcb",
+                "url": "https://api.github.com/repos/reactphp/dns/zipball/a5427e7dfa47713e438016905605819d101f238c",
+                "reference": "a5427e7dfa47713e438016905605819d101f238c",
                 "shasum": ""
             },
             "require": {
@@ -980,11 +723,11 @@
                 "react/cache": "^1.0 || ^0.6 || ^0.5",
                 "react/event-loop": "^1.2",
                 "react/promise": "^3.0 || ^2.7 || ^1.2.1",
-                "react/promise-timer": "^1.8"
+                "react/promise-timer": "^1.9"
             },
             "require-dev": {
-                "clue/block-react": "^1.2",
-                "phpunit/phpunit": "^9.3 || ^4.8.35"
+                "phpunit/phpunit": "^9.3 || ^4.8.35",
+                "react/async": "^4 || ^3 || ^2"
             },
             "type": "library",
             "autoload": {
@@ -1027,7 +770,7 @@
             ],
             "support": {
                 "issues": "https://github.com/reactphp/dns/issues",
-                "source": "https://github.com/reactphp/dns/tree/v1.9.0"
+                "source": "https://github.com/reactphp/dns/tree/v1.10.0"
             },
             "funding": [
                 {
@@ -1039,7 +782,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2021-12-20T08:46:54+00:00"
+            "time": "2022-09-08T12:22:46+00:00"
         },
         {
             "name": "react/event-loop",
@@ -1121,16 +864,16 @@
         },
         {
             "name": "react/http",
-            "version": "v1.6.0",
+            "version": "v1.7.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/reactphp/http.git",
-                "reference": "59961cc4a5b14481728f07c591546be18fa3a5c7"
+                "reference": "4a1e85382e8c2a9e0fdb8ac04e94585da2083bfa"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/http/zipball/59961cc4a5b14481728f07c591546be18fa3a5c7",
-                "reference": "59961cc4a5b14481728f07c591546be18fa3a5c7",
+                "url": "https://api.github.com/repos/reactphp/http/zipball/4a1e85382e8c2a9e0fdb8ac04e94585da2083bfa",
+                "reference": "4a1e85382e8c2a9e0fdb8ac04e94585da2083bfa",
                 "shasum": ""
             },
             "require": {
@@ -1146,11 +889,12 @@
                 "ringcentral/psr7": "^1.2"
             },
             "require-dev": {
-                "clue/block-react": "^1.5",
                 "clue/http-proxy-react": "^1.7",
                 "clue/reactphp-ssh-proxy": "^1.3",
                 "clue/socks-react": "^1.3",
-                "phpunit/phpunit": "^9.3 || ^5.7 || ^4.8.35"
+                "phpunit/phpunit": "^9.3 || ^5.7 || ^4.8.35",
+                "react/async": "^4 || ^3 || ^2",
+                "react/promise-timer": "^1.9"
             },
             "type": "library",
             "autoload": {
@@ -1200,7 +944,7 @@
             ],
             "support": {
                 "issues": "https://github.com/reactphp/http/issues",
-                "source": "https://github.com/reactphp/http/tree/v1.6.0"
+                "source": "https://github.com/reactphp/http/tree/v1.7.0"
             },
             "funding": [
                 {
@@ -1212,7 +956,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2022-02-03T13:17:37+00:00"
+            "time": "2022-08-23T12:31:28+00:00"
         },
         {
             "name": "react/promise",
@@ -1292,28 +1036,25 @@
         },
         {
             "name": "react/promise-stream",
-            "version": "v1.3.0",
+            "version": "v1.5.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/reactphp/promise-stream.git",
-                "reference": "3ebd94fe0d8edbf44937948af28d02d5437e9949"
+                "reference": "e6d2805e09ad50c4896f65f5e8705fe4ee7731a3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/promise-stream/zipball/3ebd94fe0d8edbf44937948af28d02d5437e9949",
-                "reference": "3ebd94fe0d8edbf44937948af28d02d5437e9949",
+                "url": "https://api.github.com/repos/reactphp/promise-stream/zipball/e6d2805e09ad50c4896f65f5e8705fe4ee7731a3",
+                "reference": "e6d2805e09ad50c4896f65f5e8705fe4ee7731a3",
                 "shasum": ""
             },
             "require": {
                 "php": ">=5.3",
-                "react/promise": "^2.1 || ^1.2",
+                "react/promise": "^3 || ^2.1 || ^1.2",
                 "react/stream": "^1.0 || ^0.7 || ^0.6 || ^0.5 || ^0.4.6"
             },
             "require-dev": {
-                "clue/block-react": "^1.0",
-                "phpunit/phpunit": "^9.3 || ^5.7 || ^4.8.35",
-                "react/event-loop": "^1.0 || ^0.5 || ^0.4 || ^0.3",
-                "react/promise-timer": "^1.0"
+                "phpunit/phpunit": "^9.3 || ^5.7 || ^4.8.35"
             },
             "type": "library",
             "autoload": {
@@ -1362,7 +1103,7 @@
             ],
             "support": {
                 "issues": "https://github.com/reactphp/promise-stream/issues",
-                "source": "https://github.com/reactphp/promise-stream/tree/v1.3.0"
+                "source": "https://github.com/reactphp/promise-stream/tree/v1.5.0"
             },
             "funding": [
                 {
@@ -1374,7 +1115,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2021-10-18T10:47:09+00:00"
+            "time": "2022-09-09T11:42:18+00:00"
         },
         {
             "name": "react/promise-timer",
@@ -1461,16 +1202,16 @@
         },
         {
             "name": "react/socket",
-            "version": "v1.11.0",
+            "version": "v1.12.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/reactphp/socket.git",
-                "reference": "f474156aaab4f09041144fa8b57c7d70aed32a1c"
+                "reference": "81e1b4d7f5450ebd8d2e9a95bb008bb15ca95a7b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/reactphp/socket/zipball/f474156aaab4f09041144fa8b57c7d70aed32a1c",
-                "reference": "f474156aaab4f09041144fa8b57c7d70aed32a1c",
+                "url": "https://api.github.com/repos/reactphp/socket/zipball/81e1b4d7f5450ebd8d2e9a95bb008bb15ca95a7b",
+                "reference": "81e1b4d7f5450ebd8d2e9a95bb008bb15ca95a7b",
                 "shasum": ""
             },
             "require": {
@@ -1478,14 +1219,14 @@
                 "php": ">=5.3.0",
                 "react/dns": "^1.8",
                 "react/event-loop": "^1.2",
-                "react/promise": "^2.6.0 || ^1.2.1",
-                "react/promise-timer": "^1.8",
+                "react/promise": "^3 || ^2.6 || ^1.2.1",
+                "react/promise-timer": "^1.9",
                 "react/stream": "^1.2"
             },
             "require-dev": {
-                "clue/block-react": "^1.5",
                 "phpunit/phpunit": "^9.3 || ^5.7 || ^4.8.35",
-                "react/promise-stream": "^1.2"
+                "react/async": "^4 || ^3 || ^2",
+                "react/promise-stream": "^1.4"
             },
             "type": "library",
             "autoload": {
@@ -1529,7 +1270,7 @@
             ],
             "support": {
                 "issues": "https://github.com/reactphp/socket/issues",
-                "source": "https://github.com/reactphp/socket/tree/v1.11.0"
+                "source": "https://github.com/reactphp/socket/tree/v1.12.0"
             },
             "funding": [
                 {
@@ -1541,7 +1282,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2022-01-14T10:14:32+00:00"
+            "time": "2022-08-25T12:32:25+00:00"
         },
         {
             "name": "react/stream",
@@ -1624,198 +1365,6 @@
                 }
             ],
             "time": "2021-07-11T12:37:55+00:00"
-        },
-        {
-            "name": "recoil/api",
-            "version": "1.0.2",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/recoilphp/api.git",
-                "reference": "4f9b3f2638157e277606fe51718c3a0106da7807"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/recoilphp/api/zipball/4f9b3f2638157e277606fe51718c3a0106da7807",
-                "reference": "4f9b3f2638157e277606fe51718c3a0106da7807",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=7.3"
-            },
-            "require-dev": {
-                "eloquent/phony": "^5",
-                "eloquent/phony-phpunit": "^7",
-                "friendsofphp/php-cs-fixer": "^2",
-                "phpunit/phpunit": "^9"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Recoil\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "James Harris",
-                    "email": "mailjamesharris@gmail.com",
-                    "homepage": "https://github.com/jmalloc"
-                }
-            ],
-            "description": "The public Recoil API, for library and application developers.",
-            "homepage": "https://github.com/recoilphp/api",
-            "keywords": [
-                "Thread",
-                "async",
-                "asynchronous",
-                "continuation",
-                "coroutine",
-                "event",
-                "generator",
-                "green",
-                "multitasking",
-                "react"
-            ],
-            "support": {
-                "issues": "https://github.com/recoilphp/api/issues",
-                "source": "https://github.com/recoilphp/api/tree/1.0.2"
-            },
-            "time": "2020-12-22T00:48:27+00:00"
-        },
-        {
-            "name": "recoil/kernel",
-            "version": "1.0.5",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/recoilphp/kernel.git",
-                "reference": "aa80bf44a25a5be5c1fa7a2bb53def27a81fc188"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/recoilphp/kernel/zipball/aa80bf44a25a5be5c1fa7a2bb53def27a81fc188",
-                "reference": "aa80bf44a25a5be5c1fa7a2bb53def27a81fc188",
-                "shasum": ""
-            },
-            "require": {
-                "icecave/repr": "^4|^3|^2",
-                "php": ">=7.4",
-                "recoil/api": "^1.0.2"
-            },
-            "require-dev": {
-                "eloquent/phony": "^5",
-                "friendsofphp/php-cs-fixer": "^2",
-                "hamcrest/hamcrest-php": "^2",
-                "peridot-php/leo": "dev-php-8 as 1.999.999",
-                "peridot-php/peridot": "dev-php-8 as 1.999.999",
-                "peridot-php/peridot-code-coverage-reporters": "dev-php-8 as 2.999.999"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Recoil\\Kernel\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "James Harris",
-                    "email": "james.harris@icecave.com.au",
-                    "homepage": "https://github.com/jmalloc"
-                }
-            ],
-            "description": "Reusable components for implementing Recoil kernels.",
-            "homepage": "https://github.com/recoilphp/kernel",
-            "keywords": [
-                "Thread",
-                "async",
-                "asynchronous",
-                "continuation",
-                "coroutine",
-                "event",
-                "generator",
-                "green",
-                "multitasking",
-                "react"
-            ],
-            "support": {
-                "issues": "https://github.com/recoilphp/kernel/issues",
-                "source": "https://github.com/recoilphp/kernel/tree/1.0.5"
-            },
-            "time": "2022-03-06T02:46:48+00:00"
-        },
-        {
-            "name": "recoil/react",
-            "version": "1.0.3",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/recoilphp/react.git",
-                "reference": "a928961155f2663a735fb03aa1c4941a3f70ff1a"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/recoilphp/react/zipball/a928961155f2663a735fb03aa1c4941a3f70ff1a",
-                "reference": "a928961155f2663a735fb03aa1c4941a3f70ff1a",
-                "shasum": ""
-            },
-            "require": {
-                "php": ">=7.4",
-                "react/event-loop": "^1.0 || ^0.5 || ^0.4",
-                "react/promise": "^2",
-                "recoil/api": "^1.0.2",
-                "recoil/kernel": "^1"
-            },
-            "require-dev": {
-                "eloquent/phony": "^5",
-                "friendsofphp/php-cs-fixer": "^2",
-                "hamcrest/hamcrest-php": "^2",
-                "peridot-php/leo": "dev-php-8 as 1.999.999",
-                "peridot-php/peridot": "dev-php-8 as 1.999.999",
-                "peridot-php/peridot-code-coverage-reporters": "dev-php-8 as 2.999.999",
-                "recoil/dev": "^0.4"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "Recoil\\React\\": "src"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "James Harris",
-                    "email": "james.harris@icecave.com.au",
-                    "homepage": "https://github.com/jmalloc"
-                }
-            ],
-            "description": "Integrate Recoil with ReactPHP.",
-            "homepage": "https://github.com/recoilphp/react",
-            "keywords": [
-                "Thread",
-                "async",
-                "asynchronous",
-                "continuation",
-                "coroutine",
-                "event",
-                "generator",
-                "green",
-                "multitasking",
-                "promise",
-                "react"
-            ],
-            "support": {
-                "issues": "https://github.com/recoilphp/react/issues",
-                "source": "https://github.com/recoilphp/react/tree/1.0.3"
-            },
-            "time": "2022-03-06T04:17:15+00:00"
         },
         {
             "name": "ringcentral/psr7",
@@ -1969,10 +1518,15 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=7.0",
-        "ext-ds": "*",
-        "ext-json": "*"
+        "php": ">=8.1.0",
+        "ext-bcmath": "*",
+        "ext-curl": "*",
+        "ext-iconv": "*",
+        "ext-pcre": "*",
+        "ext-json": "*",
+        "ext-openssl": "*",
+        "ext-gmp": "*"
     },
     "platform-dev": [],
-    "plugin-api-version": "2.0.0"
+    "plugin-api-version": "2.3.0"
 }

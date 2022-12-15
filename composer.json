@@ -1,45 +1,7 @@
 {
-    "name": "ccxt/ccxtpro",
+    "name": "ccxt/ccxt",
     "type": "library",
-    "description": "A professional tool for algorithmic cryptocurrency trading",
-    "homepage": "https://ccxt.pro",
-    "license": "See LICENSE.txt",
-    "authors": [{
-        "name": "Igor Kroitor",
-        "email": "igor.kroitor@gmail.com",
-        "homepage": "https://github.com/kroitor",
-        "role": "Developer"
-    }, {
-        "name": "Carlo Revelli",
-        "email": "carlo.revelli@berkeley.edu",
-        "homepage": "https://github.com/frosty00",
-        "role": "Junior Developer"
-    }],
-    "autoload": {
-        "psr-4": {
-            "ccxtpro\\" : "php/"
-        },
-        "files": [ "ccxtpro.php", "php/base/functions.php" ]
-    },
-    "require": {
-        "php": ">=7.0",
-        "ccxt/ccxt": ">=1.88.1",
-        "react/http": ">=1.6.0",
-        "recoil/react": ">=1.0.3",
-        "ratchet/pawl": ">=0.4.1",
-        "ext-ds": "*",
-        "ext-json": "*"
-    },
-    "archive": {
-        "exclude": [
-            "/build",
-            "/dist",
-            "/doc",
-            "/js",
-            "/python",
-            "/wiki"
-        ]
-    },
+    "description": "A JavaScript / Python / PHP cryptocurrency trading library with support for more than 90 bitcoin/altcoin exchanges",
     "keywords": [
         "algorithmic",
         "algotrading",
@@ -242,5 +204,64 @@
         "yobit.net",
         "YUNBI",
         "Zaif"
-    ]
+    ],
+    "homepage": "https://github.com/ccxt/ccxt",
+    "license": "MIT",
+    "authors": [{
+        "name": "Igor Kroitor",
+        "email": "igor.kroitor@gmail.com",
+        "homepage": "https://github.com/kroitor",
+        "role": "Developer"
+    }, {
+        "name": "Vitaly Gordon",
+        "email": "rocket.mind@gmail.com",
+        "homepage": "https://github.com/xpl",
+        "role": "Developer"
+    }, {
+        "name": "Carlo Revelli",
+        "email": "carlo.revelli@berkeley.edu",
+        "homepage": "https://github.com/frosty00",
+        "role": "Junior Developer"
+    }],
+    "autoload": {
+        "psr-4": {
+            "ccxt\\" : "php/",
+            "ccxt\\async\\": "php/async/",
+            "ccxt\\pro\\" : "php/pro/"
+        },
+        "files": [ "ccxt.php", "php/pro/base/functions.php" ]
+    },
+    "require": {
+        "php": ">=8.1.0",
+        "ext-bcmath": "*",
+        "ext-curl": "*",
+        "ext-iconv": "*",
+        "ext-pcre": "*",
+        "ext-json": "*",
+        "ext-openssl": "*",
+        "ext-gmp": "*",
+        "symfony/polyfill-mbstring": "^1.7",
+        "pear/console_table": "1.3.1",
+        "ratchet/pawl": ">=0.4.1",
+        "react/http": ">=1.6.0",
+        "react/async": "^4.0.0"
+    },
+    "suggest": {
+        "recoil/recoil": "Required for asynchronous API calls to exchanges with PHP",
+        "recoil/react": "Required for asynchronous API calls to exchanges with PHP",
+        "react/http": "Required for asynchronous API calls to exchanges with PHP",
+        "clue/buzz-react": "Required for asynchronous API calls to exchanges with PHP",
+        "react/event-loop": "Required for asynchronous API calls to exchanges with PHP",
+        "clue/http-proxy-react": "Required for using a proxy when doing asynchronous API calls to exchanges with PHP"
+    },
+    "archive": {
+        "exclude": [
+            "/build",
+            "/dist",
+            "/doc",
+            "/js",
+            "/python",
+            "/wiki"
+        ]
+    }
 }

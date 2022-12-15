@@ -1,47 +1,68 @@
 language: python
-dist: focal
+dist: jammy
 python:
-- '3.8'
-php:
-  - 7.4
+- 3.8.3
+git:
+  depth: 1
 cache:
   directories:
-    - .cache
+  - ".cache"
 before_install:
 - set -e
 - ". $HOME/.nvm/nvm.sh"
-- nvm install 13.7.0
-- nvm use 13.7.0
+- nvm ls
+- nvm ls-remote
+- nvm install v16.13.2
 - rm -rf node_modules
 - npm install
-- sudo -H pip install --upgrade setuptools
-- sudo -H pip install --upgrade pip wheel requests pyopenssl
-- sudo -H pip install --ignore-installed six
-- sudo -H pip install --upgrade tox twine
-- pip install --upgrade setuptools
-- pip install --upgrade aiohttp requests cryptography pyopenssl
-- pip install ccxt
-- pip install requests[security]
-- git fetch --depth=50 --tags --verbose --progress
-# - phpenv global 7.4.2
-- pecl channel-update pecl.php.net
-- pecl install ds
+- git checkout package.json package-lock.json
+- git config pull.rebase false
+- git fetch --depth=1 --tags --verbose --progress
+- pip install requests pyopenssl
+- pip install --ignore-installed six
+- pip install tox twine
+- pip install aiohttp cryptography
 - php -i | grep php.ini
+- php --version
 - composer install
 script:
 - if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
   npm config set git-tag-version=false && NPM_VERSION=$(npm version patch); fi
 - cp package.json README.md LICENSE.txt keys.json python
 - npm run force-build
+- cd python
+- tox -e doc
+- cd ..
+- ls "$VIRTUAL_ENV/lib/python3.8/site-packages/"
 - npm run test-base
-- bash -c 'node run-tests --js --python --php --verbose 5' 2>&1
-- if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./build/push.sh; fi
+- npm run test-base-ws
+- pip list
+- node run-tests --js --python-async --php-async 5 2>&1 &
+- rest_pid=$!
+- node run-tests-ws --js --python-async --php-async 5 2>&1 &
+- ws_pid=$!
+- wait $rest_pid
+- wait $ws_pid
+- git checkout master composer.json
+- if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
+  env COMMIT_MESSAGE=${NPM_VERSION:1} GITHUB_TOKEN=${GITHUB_TOKEN} ./build/push.sh;
+  fi
+- if [ "$TRAVIS_PULL_REQUEST" = "false" ] && [ "$TRAVIS_BRANCH" = "master" ]; then
+  cd python && env PYPI_TOKEN=${PYPI_TOKEN} ./deploy.sh && cd ..; fi
 after_failure:
 - dmesg | grep -i kill
-- sleep 4
-notifications:
-  slack:
-    secure: ktACBU+k1AL0SXKHKNcEkWjx5Tha7OWyO1YeirwDxnQiI1KPfgs0sx8FenzBuH9imob3fU4DSpftIC9Zpa9pRIyKApIOMw3aGG4tY8DYiV7zTaHxs4GKHug2BdUG+U2/h6iaulS7CxiqVf9/6aZFMhYT+Dl3tbof0+Xin9OKXLc2QGSgjzHoxBu1FrHEMIqcoKzKHP7PHWTY7xSDvBHwuf4waAmXxuAw91xOCzYCteTcNS0vlHsP+fBlw7thySsn0T4ZDIjLYnlDacUbYeUXjJ2akzOSfd1+v53gVW5C9+3LoXwdUw35kGG/NSetdvxXt36dtdYRNRoX33hwxIoizP7MoIhQ2x7i9Q6hnT7N05Eu4xuYfIQrTcoD+2LWYtOYRjRJuJnHf9cI/vwSXii+P+ESXpTACjszREA/JvpL/WTUOXkbdgsubVLahCkLF6fab1zs/kNzQY//aw4P60v50hcNawenbMkhKyz5KXCsePyc+6rCgVJWYaontfjPudj4xmdpD9F87steboS6HVkYC/ED+D6XyC+MyDi3MjJ/RJ7OV0f+eZO7UoLFWvQPuv3bkUa8VhQjjiyrdNVOEIgUGhJ/OT//88aIWW2Qr4IaQulqAyUFQJd4NhbJuQbIr4vnJu0MEAVND6zM1fdRyS3LnncmPya/XhnnEQBkqLBfaFg=
+deploy:
+- provider: npm
+  email: igor.kroitor@gmail.com
+  api_key:
+    secure: euGp3OIlxbY+ZqgJYOAE1MH4EyCVIRLxMksHcj+w/V6MEkRchLIUDE68kLdK5ZUFGHnoFQtR1N65i428gvcjy8P/0K0p9maVpZaHuk0Q2GrnIAAe0D6jZu2s2D0JPhWCZ5U4Aiek5ExhTblEYWTwOtpG/JwAa+2/IT+2DvtNf37HBM0tEvI3FLRexTv74vMDH172681UFHz2h0dvfgOzBwCiydsp6eihnV90AetsYT4Y9VpZDjAdmATO1ydLw8SnH2skWssmH8snyDDVOPkdu6mRBHZB6ckSZzyQLiIbn4dlzAt6Zi1/NjSJg4z/+vIK8o8SOHPu3AkCab+E6kBeuCBnphquIa/i3bToxJSa1AScisg+5rQZCsY/L7ey8El/nOvVn7B6xATk7w4Cm/dy5gTyriNqgFoJvDLhlntfPp+7w9GGc7Hi6UL9RWw0CCW9c2I1cyDmNpSv95gspMJAI847ykaHgXl01Cxo2yWGqwxpCR/suqdTySvo3NgqFQrM2aRkPQT+yQlL2hrrqX2l2w7gU+2y9W89WB/75x674RR3fpSID6HGrt52frZDk1mgi6ggHv0ta+hOHQCIhLM7tB/pR9ehF4RGcVjRTEBa0CG2XeXDWDFDjLEzZPmvf6vCL+PDMk91sR6YB+djsaPEwLV6pjWngYSrNdYVe1djdl8=
+after_deploy:
+- cat ~/.npm/_logs/*-debug.log
 env:
   global:
-    secure: bH1hHeIbP6cwEFa3aYOch+sIaBsU+jFVDlVDxwJc4I4KC79OQWqkVqnNKzr+BNFUHi9IytOJ8ytu5+2imoaFCTJ+OpOZT3qX+kL8G0DSLLZrwx9NP8LtINfJM71w3V1t4Maww0PRakVksexZ5y62IjU0bPG9BmhmDsuSFimWlAgoGW0PtmhiX0nSxvF4cWqr1zdfCBg63+rmFzJcZGBU7Z/IE94X/SIoO9BvqzVcPrVaWFNy3+DoxbX2qEyNk0hpuMEgXjGubG0n/UWogIj71/h9K8SyRu561GWTf4OGA8eU/lJNwRFNNwljA2/DFVRK+xp5lIp4eFUK44XAVEcB3Y3z4/r2pSgfW5X9ZRI5/BgC3uawa0k53M3Nd+3HOY2PGe1XAIMoHO2rgZag/+IpXRkaKdrYC5jMwBWg5hoBjjXlaH33i7fmdACFFsHkDBUW0IHu5u0N4HNUBeFkd3AahRR2JyWbIx9fId8Sd8r2IqibiaLS61Y6NhNohQ1oWY+jWvmF5Fky1gDE+3p8xTcxNcsCa+2x32KqqQuN4f9RScCsV9SjDd4rHU/0b4Jyhvjd0nj0L6xXPfhzJPC1KYfJZAXa27dmuhXtC00IInVNL6SCVqICQyiG1KKdVOlkj7UZ/dfX37/mt381TqrWdC7bzOMYdcLRmrIuga3x2qTeudE=
+  # old GITHUB_TOKEN
+  # - secure: CQBKPcipKTvfgBi8KXaJ6KyjJL5GcWPEW7WrKZcTeM2AaNqTX8w3yuqjsezxVnQWLG3TzEI0m1K31Fv9wfZHsMwRIr5py6AeAc4C2JgaKs3FSAFJ3m46a9hK7FIeC0xMdXszPJx7534XiuG8nMJRbwbNNswb35GekysKU87g5Sf6U7UFFeyyyQdchiPF85lYBt/AJSArNsfHMd0RKQY5pHdAHNNB70qFECIBeC6MYiUFBHydw2ist/bSWa9GYEh3LxUNMQ7bbxuzD6+sVMU2PW61gEpa3I9HB7NTQvPp+YbYWqBwS++SKCuqkalXdMPeCIINu64T1UtFGZNWvw9xfg8T8GwGHwZnNZ1o3WCXKo9/+FC70OAb76mblEXllhQs+gBL5g/bqdQBKfGrYIACHBRE3pzNPSRn7oY3hpk7NLoJRbB28OQ5ymJrDc8hctoXwgD3KrIM91+6YqycOifidLFHecg/VA2bjSx/ql69sVhNchaBJ8b7EMMIjo1DrFIv43XJ7DHX+2yZFJD8uv5eCGHkfXv6XfV5312TYzGYsxpfJ9my9tdTGxop2BXzaf1nYqrI+RPKIZrh6FgiXgRaetwRpWl4G+DqxKbKtfzYlZtYU2JeJ7Z5AMwLHyvxxcuOH3MrE+vk5nbU5gE9E3m5o7yH+d7Qj5liCyXk0zxijn0=
+  # PYPI_TOKEN
+  - secure: QCQa8tn40loCqSx9tR7PFAa7h5Gucl9IaEARiskiPF3zlLoZTst6ThnFl1rQDKx2jIJsN1z8Vwd12I4kYGED+Tgd345kE+J/n2hVEpTwSB+oOUWlwgkTQbCQB0XxPJRPila9lt3Ogpbvrp//L7IkFM06gu+N+qwQEOjn7dkLrVAkg5vl9nouuzqHadaQ1oOMG/v3DgPq5NHaCEWK0285Oqs8dqecVRSFGAtRPTDHzO/nv4stsbnmEWO1pu/SYXyxum1CYv9glfFaRNWoQ9EWjl8ogCzBsH3lkFeNhwLOcSyMFmTpXH1soXcLzJTWoUgfx9hiiC8IqOxx4nGurOK6OyY9QO8aVwyRdYlbpdLFuEiGuadfI6Rbz41TewZ+r3OmFn4gy5oRIM0fE+2Osj3btmsdZYktXdErqhRm18bV/oO/IOteKEXdbC7+PJ5obnpbBKKfcSNOAF8F/en+qouAywghq8UBJ9zHtWSsDXOUeCdvXLGKA01pbdaDpmtHBU9u5iX+KnSbBP+iAb7+i/uymxFTJbseYllPa1IFUf4wNf6AFlfgLnZT064KF1oiIGnvpczqD+UV4fDIukKaBaC0gK2nUQUiSNPs1kFJbs7QiQO5I07RgpAACigDWlp6tKLSUoA4wUXIG1APF5Eh001FAQ01lCjsxhMh3OmtgEIaxkI=
+  # new GITHUB_TOKEN
+  - secure: WPl3NjctMsOi6OsiNkpV/TNYJrdZHISTcdA6hewUeLHKTeXDzlOvumUWW4BwHAu4wfkBsUty9NdnMyAKZIIUV60c8+saBCR9AgXIdsO8Hz9IZmFjXixY+IVCmYKbGbEt1l5hnZje87NGKqWEHDYA4FlauiSAxq/8d5FJiTcxpCCnbSpBW7N4ABs0b6Ryjgs+7EJbUIK0Wjo+d7cXxUscE9ArtACWo3h4IRcjYqqYYyhsZH7zEwdzWZzSk8bbRo7SGSbpzOYR6GId5y9Fs9e9BJPB0x/7HReC1rEQi06SkspRnDpJz6KG0/STFbRwIAUhDxTEH0oeV3/24J2M1LXfZz5vQZQn3t1k/+QOruYTCj4jxiYINmY0qI0H5inXXM9tBNZQAhkj2NAZhWMvrQPSl/FYwkxARS5isUFb18oh5v3Du55k/OJvU+BIP80jypADKdqwogZMYGkVS/aUiVpg+3CUIKClVqkxZ6enpNDMim7gbYskDpnKrxRG2B1tW6zuSXqPDlhtuAdSqoaC6cFkiQz8DIDUPzscYyuXt/njj263nbRZ+JTiWH+Md8Svs9e2buFirxOaRUeJpzTRknB2EKjeyioYbOQ1vA6++fS3eBAyJN8IGL96qI70lztFgu7Hjh0OyjkiYBU/IqEXJ9aJnC8aKN3pyl0kQ4FE37EAUrg=

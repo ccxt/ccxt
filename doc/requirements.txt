@@ -1,0 +1,6 @@
+m2r2==0.2.7
+# mistune should remain on 0.8.4 for now
+# https://github.com/CrossNox/m2r2/issues/47
+mistune==0.8.4
+sphinx-rtd-theme==0.5.2
+readthedocs-sphinx-search==0.1.0

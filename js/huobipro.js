@@ -1,6 +1,6 @@
 'use strict';
 
-//  ---------------------------------------------------------------------------
+// ---------------------------------------------------------------------------
 
 const huobi = require ('./huobi.js');
 
@@ -8,9 +8,12 @@ const huobi = require ('./huobi.js');
 
 module.exports = class huobipro extends huobi {
     describe () {
+        // this is an alias for backward-compatibility
+        // to be removed soon
         return this.deepExtend (super.describe (), {
-            'alias': true,
             'id': 'huobipro',
+            'alias': true,
+            'name': 'Huobi Pro',
         });
     }
 };

@@ -1,0 +1,16 @@
+version: '2.1'
+services:
+
+  # Runs a CCXT build & test environment with all the required dependencies installed:
+  #
+  #     docker-compose run --rm ccxt
+  #
+  ccxt:
+    build:
+      context: .
+    volumes:
+      - .:/ccxt
+      - /ccxt/node_modules/ # Prevents exposing container's node_modules to the host filesystem
+    entrypoint: /bin/bash
+    stdin_open: true
+    tty: true

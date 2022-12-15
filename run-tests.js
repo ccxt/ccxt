@@ -1,16 +1,24 @@
 "use strict";
 
-// ----------------------------------------------------------------------------
-// Usage: node run-tests [--php] [--js] [--python] [exchange] [symbol]
+/*  ---------------------------------------------------------------------------
 
-// ----------------------------------------------------------------------------
+    A tests launcher. Runs tests for all languages and all exchanges, in
+    parallel, with a humanized error reporting.
+
+    Usage: node run-tests [--php] [--js] [--python] [--python-async] [exchange] [symbol]
+
+    --------------------------------------------------------------------------- */
 
 const fs = require ('fs')
-    , log = require ('ololog').handleNodeErrors ().unlimited
-    , ansi = require ('ansicolor').nice
-    , { spawn, execSync } = require ('child_process')
+const log = require ('ololog')//.configure ({ indent: { pattern: '  ' }})
+const ansi = require ('ansicolor').nice
 
-// ----------------------------------------------------------------------------
+/*  --------------------------------------------------------------------------- */
+
+process.on ('uncaughtException',  e => { log.bright.red.error (e); process.exit (1) })
+process.on ('unhandledRejection', e => { log.bright.red.error (e); process.exit (1) })
+
+/*  --------------------------------------------------------------------------- */
 
 const [,, ...args] = process.argv
 
@@ -20,6 +28,7 @@ const keys = {
     '--php': false,     // run PHP tests only
     '--python': false,  // run Python 3 tests only
     '--python-async': false, // run Python 3 async tests only
+    '--php-async': false,    // run php async tests only
 }
 
 let exchanges = []
@@ -33,7 +42,7 @@ for (const arg of args) {
     else                                     { exchanges.push (arg) }
 }
 
-// ----------------------------------------------------------------------------
+/*  --------------------------------------------------------------------------- */
 
 if (!exchanges.length) {
 
@@ -46,23 +55,22 @@ if (!exchanges.length) {
     exchanges = require ('./exchanges.json').ids
 }
 
-// ----------------------------------------------------------------------------
+/*  --------------------------------------------------------------------------- */
 
-const sleep = s => new Promise (resolve => setTimeout (resolve, s))
-const timeout = (s, promise) => Promise.race ([ promise, sleep (s).then (() => { throw new Error ('Test execution took longer than ' + maxTimeout.toString () + ' milliseconds, testing timed out.') }) ])
-const maxTimeout = 1200000 // 20 minutes
+const sleep = s => new Promise (resolve => setTimeout (resolve, s*1000))
+const timeout = (s, promise) => Promise.race ([ promise, sleep (s).then (() => { throw new Error ('timed out') }) ])
 
-// ----------------------------------------------------------------------------
+/*  --------------------------------------------------------------------------- */
 
 const exec = (bin, ...args) =>
 
-    // a custom version of child_process.exec that captures both stdout and
-    // stderr,  not separating them into distinct buffers — so that we can show
-    // the same output as if it were running in a terminal.
+/*  A custom version of child_process.exec that captures both stdout and
+    stderr,  not separating them into distinct buffers — so that we can show
+    the same output as if it were running in a terminal.                        */
 
-    timeout (maxTimeout, new Promise (return_ => {
+    timeout (120, new Promise (return_ => {
 
-        const ps = spawn (bin, args)
+        const ps = require ('child_process').spawn (bin, args)
 
         let output = ''
         let stderr = ''
@@ -108,14 +116,23 @@ const exec = (bin, ...args) =>
 
     })).then (x => Object.assign (x, { hasOutput: x.output.length > 0 }))
 
-// ----------------------------------------------------------------------------
+/*  ------------------------------------------------------------------------ */
+
+// const execWithRetry = () => {
+
+//     // Sometimes execution (on a remote CI server) is just fails with no
+//     // apparent reason, leaving an empty stdout/stderr behind. I suspect
+//     // it's related to out-of-memory errors. So in that case we will re-try
+//     // until it eventually finalizes.
+// }
+
+/*  ------------------------------------------------------------------------ */
 
 let numExchangesTested = 0
 
-// tests of different languages for the same exchange should be run
-// sequentially to prevent the interleaving nonces problem.
-
-// ----------------------------------------------------------------------------
+/*  Tests of different languages for the same exchange should be run
+    sequentially to prevent the interleaving nonces problem.
+    ------------------------------------------------------------------------ */
 
 const sequentialMap = async (input, fn) => {
 
@@ -124,18 +141,20 @@ const sequentialMap = async (input, fn) => {
     return result
 }
 
-// ----------------------------------------------------------------------------
+/*  ------------------------------------------------------------------------ */
 
 const testExchange = async (exchange) => {
 
-    // run tests for all/selected languages (in parallel)
+/*  Run tests for all/selected languages (in parallel)     */
 
-    const args = [exchange, ... (symbol === 'all') ? [] : [ symbol ]]
+    const args = [exchange, ...symbol === 'all' ? [] : symbol]
         , allTests = [
+
             { language: 'JavaScript',     key: '--js',           exec: ['node',      'js/test/test.js',           ...args] },
-            { language: 'Python 3',       key: '--python',       exec: ['python3',   'python/ccxtpro/test/test_async.py',       ...args] },
-            { language: 'Python 3 Async', key: '--python-async', exec: ['python3',   'python/ccxtpro/test/test_async.py',       ...args] },
-            { language: 'PHP',            key: '--php',          exec: ['php', '-f', 'php/test/test.php',         ...args] }
+            { language: 'Python 3',       key: '--python',       exec: ['python3',   'python/ccxt/test/test_sync.py',  ...args] },
+            { language: 'Python 3 Async', key: '--python-async', exec: ['python3',   'python/ccxt/test/test_async.py', ...args] },
+            { language: 'PHP',            key: '--php',          exec: ['php', '-f', 'php/test/test_sync.php',         ...args] },
+            { language: 'PHP Async',      key: '--php-async',    exec: ['php', '-f', 'php/test/test_async.php',   ...args] },
         ]
         , selectedTests  = allTests.filter (t => keys[t.key])
         , scheduledTests = selectedTests.length ? selectedTests : allTests
@@ -144,20 +163,17 @@ const testExchange = async (exchange) => {
         , hasWarnings    = completeTests.find (test => test.hasWarnings)
         , warnings       = completeTests.reduce ((total, { warnings }) => total.concat (warnings), [])
 
-    // print interactive log output
+/*  Print interactive log output    */
 
     numExchangesTested++
 
     const percentsDone = ((numExchangesTested / exchanges.length) * 100).toFixed (0) + '%'
 
-    const result = (failed      ? 'FAIL'.red :
-                   (hasWarnings ? (warnings.length ? warnings.join (' ') : 'WARN').yellow
-                                                                         : 'OK'.green))
+    log.bright (('[' + percentsDone + ']').dim, 'Testing', exchange.cyan, (failed      ? 'FAIL'.red :
+                                                                          (hasWarnings ? (warnings.length ? warnings.join (' ') : 'WARN').yellow
+                                                                                       : 'OK'.green)))
 
-    const date = (new Date()).toISOString ()
-    log.bright (date, ('[' + percentsDone + ']').dim, 'Testing', exchange.cyan, result)
-
-    // return collected data to main loop
+/*  Return collected data to main loop     */
 
     return {
 
@@ -181,7 +197,7 @@ const testExchange = async (exchange) => {
     }
 }
 
-// ----------------------------------------------------------------------------
+/*  ------------------------------------------------------------------------ */
 
 function TaskPool (maxConcurrency) {
 
@@ -216,7 +232,7 @@ function TaskPool (maxConcurrency) {
     }
 }
 
-// ----------------------------------------------------------------------------
+/*  ------------------------------------------------------------------------ */
 
 async function testAllExchanges () {
 
@@ -232,7 +248,7 @@ async function testAllExchanges () {
     return results
 }
 
-// ----------------------------------------------------------------------------
+/*  ------------------------------------------------------------------------ */
 
 (async function () {
 
@@ -263,7 +279,7 @@ async function testAllExchanges () {
 
     if (failed.length) {
 
-        await sleep (10000) // to fight TravisCI log truncation issue, see https://github.com/travis-ci/travis-ci/issues/8189
+        await sleep (10) // to fight TravisCI log truncation issue, see https://github.com/travis-ci/travis-ci/issues/8189
         process.exit (1)
 
     } else {
@@ -272,4 +288,4 @@ async function testAllExchanges () {
 
 }) ();
 
-// ----------------------------------------------------------------------------
+/*  ------------------------------------------------------------------------ */

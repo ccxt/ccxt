@@ -3,15 +3,20 @@
 error_reporting(E_ALL | E_STRICT);
 date_default_timezone_set('UTC');
 
+
 $root = dirname(dirname(dirname(__FILE__)));
-require_once $root . '/vendor/autoload.php';
+include $root . '/ccxt.php';;
+
+
+use React\Async;
 
 date_default_timezone_set('UTC');
 
 echo 'PHP v' . PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION . '.' . PHP_RELEASE_VERSION . "\n";
-echo 'CCXT Pro version :' . \ccxtpro\Exchange::VERSION . "\n";
+echo 'CCXT version :' . \ccxt\async\Exchange::VERSION . "\n";
 
-function main($argv) {
+
+$main = function() use ($argv) {
     if (count($argv) > 2) {
         # first we filter the args
         $verbose = count(array_filter($argv, function ($option) { return strstr($option, '--verbose') !== false; })) > 0;
@@ -23,15 +28,12 @@ function main($argv) {
         $debug = count(array_filter($args, function ($option) { return strstr($option, '--debug') !== false; })) > 0;
         $args = array_values(array_filter($args, function ($option) { return strstr($option, '--debug') === false; }));
 
-        $no_poll = count(array_filter($args, function ($option) { return strstr($option, '--no-poll') !== false; })) > 0;
-        $args = array_values(array_filter($args, function ($option) { return strstr($option, '--no-poll') === false; }));
-
         $spot = count(array_filter($args, function ($option) { return strstr($option, '--spot') !== false; })) > 0;
         $args = array_values(array_filter($args, function ($option) { return strstr($option, '--spot') === false; }));
-    
+
         $swap = count(array_filter($args, function ($option) { return strstr($option, '--swap') !== false; })) > 0;
         $args = array_values(array_filter($args, function ($option) { return strstr($option, '--swap') === false; }));
-    
+
         $future = count(array_filter($args, function ($option) { return strstr($option, '--future') !== false; })) > 0;
         $args = array_values(array_filter($args, function ($option) { return strstr($option, '--future') === false; }));
 
@@ -41,7 +43,7 @@ function main($argv) {
         $id = $args[1];
         $member = $args[2];
         $args = array_slice($args, 3);
-        $exchange_found = in_array($id, \ccxt\Exchange::$exchanges);
+        $exchange_found = in_array($id, \ccxt\async\Exchange::$exchanges);
 
         if ($exchange_found) {
 
@@ -56,7 +58,12 @@ function main($argv) {
             ));
 
             // instantiate the exchange by id
-            $exchange = '\\ccxtpro\\' . $id;
+            $exchange = null;
+            if (in_array($id, \ccxt\pro\Exchange::$exchanges)) {
+                $exchange = '\\ccxt\\pro\\' . $id;
+            } else {
+                $exchange = '\\ccxt\\async\\' . $id;
+            }
             $exchange = new $exchange($config);
 
             if ($spot) {
@@ -107,12 +114,18 @@ function main($argv) {
                 $markets = json_decode(file_get_contents($markets_path), true);
                 $exchange->markets = $markets;
             } else {
-                yield $exchange->load_markets();
+                // yield $exchange->load_markets();
             }
 
             $exchange->verbose = $verbose;
-            
+
             echo $exchange->id . '->' . $member . '(' . @implode(', ', $args) . ")\n";
+
+            $is_ws_method = false;
+
+            if (mb_strpos($member, 'watch') !== false) {
+                $is_ws_method = true;
+            }
 
             while (true) {
 
@@ -122,8 +135,9 @@ function main($argv) {
 
                     echo print_r($result, true) . "\n";
 
-                    if ($no_poll) {
-                        exit(1);
+                    if (!$is_ws_method) {
+                        # make sure to exit with exit code zero here
+                        exit(0);
                     }
 
                 } catch (\ccxt\NetworkError $e) {
@@ -158,14 +172,16 @@ function main($argv) {
         }
 
     } else {
-
         print_r('Usage: php -f ' . __FILE__ . " exchange_id member [args...]\n");
         exit(1);
+    }
+};
 
+function teste() {
+    yield 0;
 }
 
-}
-
-\ccxtpro\Exchange::execute_and_run(main($argv));
+$promise = Async\coroutine($main);
+Async\await($promise);
 
 ?>

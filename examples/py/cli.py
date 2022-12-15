@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import asyncio
 import argparse
 import os
 import re
@@ -8,6 +7,7 @@ import sys
 import json
 import platform
 from pprint import pprint
+import asyncio
 
 # ------------------------------------------------------------------------------
 
@@ -15,13 +15,13 @@ root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 sys.path.append(root + '/python')
 
 # ------------------------------------------------------------------------------
-
-import ccxtpro  # noqa: E402
+import ccxt.pro as ccxtpro
+import ccxt.async_support as ccxt  # noqa: E402
 
 # ------------------------------------------------------------------------------
 
 print('Python v' + platform.python_version())
-print('CCXT Pro Version:' + ccxtpro.__version__)
+print('CCXT v' + ccxt.__version__)
 
 # ------------------------------------------------------------------------------
 
@@ -34,10 +34,15 @@ class Argv(object):
     testnet = False
     test = False
     nonce = None
-    exchange_id = None
+    exchange_id = ''
+    debug = False
+    cors = False
     method = None
     symbol = None
-    no_poll = None
+    spot = False
+    swap = False
+    future = False
+    args = []
 
 
 argv = Argv()
@@ -45,7 +50,6 @@ argv = Argv()
 parser = argparse.ArgumentParser()
 
 parser.add_argument('--table', action='store_true', help='output as table')
-parser.add_argument('--no-poll', action='store_true', help='disable polling')
 parser.add_argument('--cors', action='store_true', help='enable CORS proxy')
 parser.add_argument('--verbose', action='store_true', help='enable verbose output')
 parser.add_argument('--debug', action='store_true', help='enable debug output')
@@ -55,7 +59,6 @@ parser.add_argument('--test', action='store_true', help='enable sandbox/testnet'
 parser.add_argument('--spot', action='store_true', help='enable spot markets')
 parser.add_argument('--swap', action='store_true', help='enable swap markets')
 parser.add_argument('--future', action='store_true', help='enable future markets')
-parser.add_argument('--newUpdates', action='store_true', help='enable newUpdates mode')
 parser.add_argument('exchange_id', type=str, help='exchange id in lowercase', nargs='?')
 parser.add_argument('method', type=str, help='method or property', nargs='?')
 parser.add_argument('args', type=str, help='arguments', nargs='*')
@@ -77,7 +80,7 @@ def table(values):
 
 
 def print_supported_exchanges():
-    print('Supported exchanges: ' + ', '.join(ccxtpro.exchanges) + '\n')
+    print('Supported exchanges: ' + ', '.join(ccxt.exchanges) + '\n')
 
 
 # ------------------------------------------------------------------------------
@@ -87,9 +90,9 @@ def print_usage():
     print('Usage:\n')
     print('python ' + sys.argv[0] + ' exchange_id method "param1" param2 "param3" param4 ...\n')
     print('Examples:\n')
-    print('python ' + sys.argv[0] + ' okcoin watch_ohlcv BTC/USD 15m')
-    print('python ' + sys.argv[0] + ' bitfinex watch_balance')
-    print('python ' + sys.argv[0] + ' kraken watch_order_book ETH/BTC\n')
+    print('python ' + sys.argv[0] + ' okcoin fetch_ohlcv BTC/USD 15m')
+    print('python ' + sys.argv[0] + ' bitfinex fetch_balance')
+    print('python ' + sys.argv[0] + ' kraken fetch_order_book ETH/BTC\n')
     print_supported_exchanges()
 
 
@@ -108,7 +111,6 @@ async def main():
     config = {
         # 'verbose': argv.verbose,  # set later, after load_markets
         'timeout': 30000,
-        'enableRateLimit': True,
     }
 
     if not argv.exchange_id:
@@ -117,14 +119,18 @@ async def main():
 
     # ------------------------------------------------------------------------------
 
-    if argv.exchange_id not in ccxtpro.exchanges:
+    if argv.exchange_id not in ccxt.exchanges:
         print_usage()
         raise Exception('Exchange "' + argv.exchange_id + '" not found.')
 
     if argv.exchange_id in keys:
         config.update(keys[argv.exchange_id])
 
-    exchange = getattr(ccxtpro, argv.exchange_id)(config)
+    exchange = None
+    if (argv.exchange_id in ccxtpro.exchanges):
+        exchange = getattr(ccxtpro, argv.exchange_id)(config)
+    else:
+        exchange = getattr(ccxt, argv.exchange_id)(config)
 
     if argv.spot:
         exchange.options['defaultType'] = 'spot'
@@ -133,21 +139,18 @@ async def main():
     elif argv.future:
         exchange.options['defaultType'] = 'future'
 
-    if argv.newUpdates:
-        exchange.newUpdates = True
-
     # check auth keys in env var
     requiredCredentials = exchange.requiredCredentials
     for credential, isRequired in requiredCredentials.items():
         if isRequired and credential and not getattr(exchange, credential, None):
-            credentialEnvName = (argv.exchange_id + '_' + credential).upper() # example: KRAKEN_APIKEY
+            credentialEnvName = (argv.exchange_id + '_' + credential).upper()  # example: KRAKEN_APIKEY
             if credentialEnvName in os.environ:
                 credentialValue = os.environ[credentialEnvName]
                 setattr(exchange, credential, credentialValue)
 
     if argv.cors:
         exchange.proxy = 'https://cors-anywhere.herokuapp.com/'
-        exchange.origin = exchange.uuid ()
+        exchange.origin = exchange.uuid()
 
     # pprint(dir(exchange))
 
@@ -186,10 +189,14 @@ async def main():
 
     exchange.verbose = argv.verbose  # now set verbose mode
 
+    is_ws_method = False
+
     if argv.method:
         method = getattr(exchange, argv.method)
         # if it is a method, call it
         if callable(method):
+            if argv.method.startswith('watch'):
+                is_ws_method = True # handle ws methods
             print(f"{argv.exchange_id}.{argv.method}({','.join(map(str, args))})")
             while True:
                 result = await method(*args)
@@ -198,14 +205,19 @@ async def main():
                     print(table([exchange.omit(v, 'info') for v in result]))
                 else:
                     pprint(result)
-                if argv.no_poll:
-                    break
+                if not is_ws_method:
+                    await exchange.close()
+                    return
+        else:  # otherwise it's a property, print it
+            result = method
+        if argv.table:
+            result = list(result.values()) if isinstance(result, dict) else result
+            print(table([exchange.omit(v, 'info') for v in result]))
         else:
-            pprint(method)
+            pprint(result)
     else:
         pprint(dir(exchange))
 
-if __name__ ==  '__main__':
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(main())
 
+if __name__ ==  '__main__':
+    asyncio.run(main())

@@ -1,21 +1,29 @@
+/* eslint-disable */
 'use strict';
 
-const { inflateRawSync, gunzipSync } = require ('zlib')
+/*  ------------------------------------------------------------------------ */
 
-function inflate (data) {
-    return inflateRawSync (data).toString ()
+const { unCamelCase } = require ('./functions/string')
+
+const unCamelCasePropertyNames = x => {
+    for (const k in x) x[unCamelCase (k)] = x[k] // camel_case_method = camelCaseMethod
+    return x
 }
 
-function inflate64 (data) {
-    return inflate (Buffer.from (data, 'base64'))
-}
+/*  ------------------------------------------------------------------------ */
 
-function gunzip (data) {
-    return gunzipSync (data).toString ()
-}
+module.exports = unCamelCasePropertyNames (Object.assign ({}
 
-module.exports = {
-    inflate,
-    inflate64,
-    gunzip,
-}
+    , require ('./functions/platform')
+    , require ('./functions/generic')
+    , require ('./functions/string')
+    , require ('./functions/type')
+    , require ('./functions/number')
+    , require ('./functions/encode')
+    , require ('./functions/crypto')
+    , require ('./functions/time')
+    , require ('./functions/throttle')
+    , require ('./functions/misc')
+))
+
+/*  ------------------------------------------------------------------------ */

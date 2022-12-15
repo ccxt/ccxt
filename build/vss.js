@@ -7,10 +7,21 @@
 "use strict";
 
 const fs           = require ('fs')
-const log          = require ('ololog')
-const ansi         = require ('ansicolor').nice
-const { copyFile } = require ('ccxt/build/fs.js')
-const { vss } = require ('ccxt/build/vss.js')
+    , log          = require ('ololog')
+    , ansi         = require ('ansicolor').nice
+    , { execSync } = require ('child_process')
+    , { copyFile } = require ('./fs.js')
+
+//-----------------------------------------------------------------------------
+
+function vss (filename, template, version) {
+    log.bright.cyan ('Single-sourcing version', version, './package.json → ' + filename.yellow)
+    const content = fs.readFileSync (filename, 'utf8')
+    const regexp  = new RegExp (template.replace (/[-\/\\^$*+?.()|[\]{}]/g, '\\$&') // escape string for use in regexp
+                                        .replace ('\\{version\\}', '\\d+\\.\\d+\\.\\d+'), 'g')
+    fs.truncateSync  (filename)
+    fs.writeFileSync (filename, content.replace (regexp, template.replace ('{version}', version)))
+}
 
 // ----------------------------------------------------------------------------
 
@@ -20,19 +31,26 @@ function vssEverything () {
 
     log.bright ('New version: '.cyan, version)
 
-    vss ('./ccxt.pro.js',                     "const version = '{version}'", version)
-    vss ('./php/Exchange.php',                "$version = '{version}'",      version)
-    vss ('./php/Exchange.php',                "VERSION = '{version}'",       version)
-    vss ('./python/ccxtpro/__init__.py',      "__version__ = '{version}'",   version)
-    vss ('./python/ccxtpro/base/exchange.py', "__version__ = '{version}'",   version)
+    vss ('./ccxt.js',                                    "const version = '{version}'", version)
+    vss ('./php/Exchange.php',                           "$version = '{version}'",      version)
+    vss ('./php/async/Exchange.php',                     "VERSION = '{version}'",       version)
+    vss ('./php/async/Exchange.php',                     "$version = '{version}'",      version)
+    vss ('./php/Exchange.php',                           "VERSION = '{version}'",       version)
+    vss ('./python/ccxt/__init__.py',                    "__version__ = '{version}'",   version)
+    vss ('./python/ccxt/base/exchange.py',               "__version__ = '{version}'",   version)
+    vss ('./python/ccxt/async_support/__init__.py',      "__version__ = '{version}'",   version)
+    vss ('./python/ccxt/async_support/base/exchange.py', "__version__ = '{version}'",   version)
+    vss ('./python/ccxt/pro/__init__.py',                "__version__ = '{version}'",   version)
+    vss ('./python/ccxt/pro/base/exchange.py',           "__version__ = '{version}'",   version)
 
-    vss ('./README.md',       "ccxt@{version}")
-    // vss ('./wiki/Install.md', "ccxt@{version}")
+    vss ('./README.md',       "ccxt@{version}", version)
+    vss ('./wiki/Install.md', "ccxt@{version}", version)
 
     const pythonFiles = [
         'package.json',
         'LICENSE.txt',
         'keys.json',
+        'README.md',
     ]
 
     pythonFiles.forEach ((fileName) => copyFile ('./' + fileName, './python/' + fileName))
