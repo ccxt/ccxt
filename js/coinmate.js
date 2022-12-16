@@ -482,26 +482,29 @@ module.exports = class coinmate extends Exchange {
         const id = this.safeString2 (transaction, 'transactionId', 'id');
         const network = this.safeString (transaction, 'walletType');
         return {
+            'info': transaction,
             'id': id,
+            'txid': txid,
+            'type': type,
+            'currency': code,
+            'network': network,
+            'amount': amount,
+            'status': status,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'currency': code,
-            'amount': amount,
-            'type': type,
-            'txid': txid,
-            'network': network,
             'address': address,
-            'addressTo': undefined,
             'addressFrom': undefined,
+            'addressTo': undefined,
             'tag': tag,
-            'tagTo': undefined,
             'tagFrom': undefined,
-            'status': status,
+            'tagTo': undefined,
+            'updated': undefined,
+            'comment': undefined,
             'fee': {
                 'cost': fee,
                 'currency': code,
+                'rate': undefined,
             },
-            'info': transaction,
         };
     }
 

@@ -2194,9 +2194,17 @@ module.exports = class tokocrypto extends Exchange {
         const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         const amount = this.safeNumber (transaction, 'amount');
         const feeCost = this.safeNumber2 (transaction, 'transactionFee', 'totalFee');
-        let fee = undefined;
+        let fee = {
+            'currency': undefined,
+            'cost': undefined,
+            'rate': undefined,
+        };
         if (feeCost !== undefined) {
-            fee = { 'currency': code, 'cost': feeCost };
+            fee = {
+                'currency': code,
+                'cost': feeCost,
+                'rate': undefined,
+            };
         }
         const updated = this.safeInteger2 (transaction, 'successTime', 'updateTime');
         let internal = this.safeInteger (transaction, 'transferType');
@@ -2208,20 +2216,21 @@ module.exports = class tokocrypto extends Exchange {
             'info': transaction,
             'id': id,
             'txid': txid,
+            'type': type,
+            'currency': code,
+            'network': network,
+            'amount': amount,
+            'status': status,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': network,
             'address': address,
-            'addressTo': address,
             'addressFrom': undefined,
+            'addressTo': address,
             'tag': tag,
-            'tagTo': tag,
             'tagFrom': undefined,
-            'type': type,
-            'amount': amount,
-            'currency': code,
-            'status': status,
+            'tagTo': tag,
             'updated': updated,
+            'comment': undefined,
             'internal': internal,
             'fee': fee,
         };

@@ -1055,10 +1055,6 @@ module.exports = class bitmex extends Exchange {
         amountString = Precise.stringDiv (Precise.stringAbs (amountString), scale);
         let feeCostString = this.safeString (transaction, 'fee');
         feeCostString = Precise.stringDiv (feeCostString, scale);
-        const fee = {
-            'cost': this.parseNumber (feeCostString),
-            'currency': currency['code'],
-        };
         let status = this.safeString (transaction, 'transactStatus');
         if (status !== undefined) {
             status = this.parseTransactionStatus (status);
@@ -1067,22 +1063,26 @@ module.exports = class bitmex extends Exchange {
             'info': transaction,
             'id': id,
             'txid': undefined,
+            'type': type,
+            'currency': currency['code'],
+            'network': undefined,
+            'amount': this.parseNumber (amountString),
+            'status': status,
             'timestamp': transactTime,
             'datetime': this.iso8601 (transactTime),
-            'network': undefined,
-            'addressFrom': addressFrom,
             'address': address,
+            'addressFrom': addressFrom,
             'addressTo': addressTo,
-            'tagFrom': undefined,
             'tag': undefined,
+            'tagFrom': undefined,
             'tagTo': undefined,
-            'type': type,
-            'amount': this.parseNumber (amountString),
-            'currency': currency['code'],
-            'status': status,
             'updated': timestamp,
             'comment': undefined,
-            'fee': fee,
+            'fee': {
+                'currency': currency['code'],
+                'cost': this.parseNumber (feeCostString),
+                'rate': undefined,
+            },
         };
     }
 

@@ -1360,12 +1360,17 @@ module.exports = class latoken extends Exchange {
         const addressTo = this.safeString (transaction, 'recipientAddress');
         const txid = this.safeString (transaction, 'transactionHash');
         const tagTo = this.safeString (transaction, 'memo');
-        let fee = undefined;
+        let fee = {
+            'currency': undefined,
+            'cost': undefined,
+            'rate': undefined,
+        };
         const feeCost = this.safeNumber (transaction, 'transactionFee');
         if (feeCost !== undefined) {
             fee = {
-                'cost': feeCost,
                 'currency': code,
+                'cost': feeCost,
+                'rate': undefined,
             };
         }
         const type = this.parseTransactionType (this.safeString (transaction, 'type'));
@@ -1373,20 +1378,21 @@ module.exports = class latoken extends Exchange {
             'info': transaction,
             'id': id,
             'txid': txid,
+            'type': type,
+            'currency': code,
+            'network': undefined,
+            'amount': amount,
+            'status': status,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': undefined,
+            'address': addressTo,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
-            'address': addressTo,
+            'tag': tagTo,
             'tagFrom': undefined,
             'tagTo': tagTo,
-            'tag': tagTo,
-            'type': type,
-            'amount': amount,
-            'currency': code,
-            'status': status,
             'updated': undefined,
+            'comment': undefined,
             'fee': fee,
         };
     }

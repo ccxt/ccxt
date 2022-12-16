@@ -1729,7 +1729,11 @@ module.exports = class exmo extends Exchange {
                 }
             }
         }
-        let fee = undefined;
+        let fee = {
+            'currency': undefined,
+            'cost': undefined,
+            'rate': undefined,
+        };
         // fixed funding fees only (for now)
         if (!this.fees['transaction']['percentage']) {
             const key = (type === 'withdrawal') ? 'withdraw' : 'deposit';
@@ -1750,8 +1754,8 @@ module.exports = class exmo extends Exchange {
                     amount = Precise.stringSub (amount, feeCost);
                 }
                 fee = {
-                    'cost': this.parseNumber (feeCost),
                     'currency': code,
+                    'cost': this.parseNumber (feeCost),
                     'rate': undefined,
                 };
             }
@@ -1760,22 +1764,22 @@ module.exports = class exmo extends Exchange {
         return {
             'info': transaction,
             'id': id,
+            'txid': txid,
+            'type': type,
+            'currency': code,
+            'network': network,
+            'amount': amount,
+            'status': status,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'currency': code,
-            'amount': amount,
-            'network': network,
             'address': address,
-            'addressTo': address,
             'addressFrom': undefined,
+            'addressTo': address,
             'tag': tag,
-            'tagTo': tag,
             'tagFrom': undefined,
-            'status': status,
-            'type': type,
+            'tagTo': tag,
             'updated': updated,
             'comment': comment,
-            'txid': txid,
             'fee': fee,
         };
     }

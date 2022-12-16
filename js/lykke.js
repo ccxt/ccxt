@@ -1141,7 +1141,11 @@ module.exports = class lykke extends Exchange {
         let assetId = undefined;
         let code = undefined;
         let amount = undefined;
-        let fee = undefined;
+        let fee = {
+            'currency': undefined,
+            'cost': undefined,
+            'rate': undefined,
+        };
         let type = undefined;
         let timestamp = undefined;
         if (typeof transaction === 'string') {
@@ -1157,26 +1161,28 @@ module.exports = class lykke extends Exchange {
             fee = {
                 'currency': code,
                 'cost': feeCost,
+                'rate': undefined,
             };
         }
         return {
             'info': transaction,
             'id': id,
             'txid': undefined,
+            'type': type,
+            'currency': code,
+            'network': undefined,
+            'amount': amount,
+            'status': undefined,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': undefined,
-            'addressFrom': undefined,
             'address': undefined,
+            'addressFrom': undefined,
             'addressTo': undefined,
-            'tagFrom': undefined,
             'tag': undefined,
+            'tagFrom': undefined,
             'tagTo': undefined,
-            'type': type,
-            'amount': amount,
-            'currency': code,
-            'status': undefined,
             'updated': undefined,
+            'comment': undefined,
             'fee': fee,
         };
     }

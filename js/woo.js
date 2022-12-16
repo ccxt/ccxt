@@ -1570,21 +1570,25 @@ module.exports = class woo extends Exchange {
         const addressFrom = this.safeString (transaction, 'source_address');
         const timestamp = this.safeTimestamp (transaction, 'created_time');
         return {
+            'info': transaction,
             'id': this.safeString (transaction, 'id'),
             'txid': this.safeString (transaction, 'tx_id'),
+            'type': movementDirection,
+            'currency': code,
+            'network': undefined,
+            'amount': this.safeNumber (transaction, 'amount'),
+            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
             'address': undefined,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'tag': this.safeString (transaction, 'extra'),
-            'type': movementDirection,
-            'amount': this.safeNumber (transaction, 'amount'),
-            'currency': code,
-            'status': this.parseTransactionStatus (this.safeString (transaction, 'status')),
+            'tagFrom': undefined,
+            'tagTo': undefined,
             'updated': this.safeTimestamp (transaction, 'updated_time'),
+            'comment': undefined,
             'fee': fee,
-            'info': transaction,
         };
     }
 

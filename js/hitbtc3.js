@@ -1120,33 +1120,39 @@ module.exports = class hitbtc3 extends Exchange {
         const sender = this.safeValue (native, 'senders');
         const addressFrom = this.safeString (sender, 0);
         const amount = this.safeNumber (native, 'amount');
-        let fee = undefined;
+        let fee = {
+            'currency': undefined,
+            'cost': undefined,
+            'rate': undefined,
+        };
         const feeCost = this.safeNumber (native, 'fee');
         if (feeCost !== undefined) {
             fee = {
                 'currency': code,
                 'cost': feeCost,
+                'rate': undefined,
             };
         }
         return {
             'info': transaction,
             'id': id,
             'txid': txhash,
+            'type': type,
             'code': code, // kept here for backward-compatibility, but will be removed soon
             'currency': code,
-            'amount': amount,
             'network': undefined,
+            'amount': amount,
+            'status': status,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'address': address,
             'addressFrom': addressFrom,
             'addressTo': addressTo,
             'tag': tag,
             'tagFrom': undefined,
             'tagTo': tagTo,
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
             'updated': updated,
-            'status': status,
-            'type': type,
+            'comment': undefined,
             'fee': fee,
         };
     }

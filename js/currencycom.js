@@ -1577,30 +1577,38 @@ module.exports = class currencycom extends Exchange {
         const state = this.parseTransactionStatus (this.safeString (transaction, 'state'));
         const type = this.parseTransactionType (this.safeString (transaction, 'type'));
         const feeCost = this.safeString (transaction, 'commission');
-        let fee = undefined;
+        let fee = {
+            'currency': undefined,
+            'cost': undefined,
+            'rate': undefined,
+        };
         if (feeCost !== undefined) {
-            fee = { 'currency': code, 'cost': feeCost };
+            fee = {
+                'currency': code,
+                'cost': feeCost,
+                'rate': undefined,
+            };
         }
         const result = {
+            'info': transaction,
             'id': id,
             'txid': txHash,
+            'type': type,
+            'currency': code,
+            'network': undefined,
+            'amount': amount,
+            'status': state,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': undefined,
-            'addressFrom': undefined,
             'address': undefined,
+            'addressFrom': undefined,
             'addressTo': undefined,
-            'tagFrom': undefined,
             'tag': undefined,
+            'tagFrom': undefined,
             'tagTo': undefined,
-            'type': type,
-            'amount': amount,
-            'currency': code,
-            'status': state,
             'updated': undefined,
             'comment': undefined,
             'fee': fee,
-            'info': transaction,
         };
         return result;
     }

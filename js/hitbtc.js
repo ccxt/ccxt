@@ -901,12 +901,17 @@ module.exports = class hitbtc extends Exchange {
         const amount = this.safeNumber (transaction, 'amount');
         const address = this.safeString (transaction, 'address');
         const txid = this.safeString (transaction, 'hash');
-        let fee = undefined;
+        let fee = {
+            'currency': undefined,
+            'cost': undefined,
+            'rate': undefined,
+        };
         const feeCost = this.safeNumber (transaction, 'fee');
         if (feeCost !== undefined) {
             fee = {
-                'cost': feeCost,
                 'currency': code,
+                'cost': feeCost,
+                'rate': undefined,
             };
         }
         const type = this.parseTransactionType (this.safeString (transaction, 'type'));
@@ -914,20 +919,21 @@ module.exports = class hitbtc extends Exchange {
             'info': transaction,
             'id': id,
             'txid': txid,
+            'type': type,
+            'currency': code,
+            'network': undefined,
+            'amount': amount,
+            'status': status,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': undefined,
             'address': address,
-            'addressTo': undefined,
             'addressFrom': undefined,
+            'addressTo': undefined,
             'tag': undefined,
-            'tagTo': undefined,
             'tagFrom': undefined,
-            'type': type,
-            'amount': amount,
-            'currency': code,
-            'status': status,
+            'tagTo': undefined,
             'updated': updated,
+            'comment': undefined,
             'fee': fee,
         };
     }

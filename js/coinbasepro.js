@@ -1598,7 +1598,11 @@ module.exports = class coinbasepro extends Exchange {
         let address = this.safeString (details, 'crypto_address');
         const tag = this.safeString (details, 'destination_tag');
         address = this.safeString (transaction, 'crypto_address', address);
-        let fee = undefined;
+        let fee = {
+            'currency': undefined,
+            'cost': undefined,
+            'rate': undefined,
+        };
         if (type === 'withdraw') {
             type = 'withdrawal';
             address = this.safeString (details, 'sent_to_address', address);
@@ -1608,8 +1612,9 @@ module.exports = class coinbasepro extends Exchange {
                     amount -= feeCost;
                 }
                 fee = {
-                    'cost': feeCost,
                     'currency': code,
+                    'cost': feeCost,
+                    'rate': undefined,
                 };
             }
         }
@@ -1617,20 +1622,21 @@ module.exports = class coinbasepro extends Exchange {
             'info': transaction,
             'id': id,
             'txid': txid,
+            'type': type,
+            'currency': code,
+            'network': undefined,
+            'amount': amount,
+            'status': status,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': undefined,
             'address': address,
-            'addressTo': undefined,
             'addressFrom': undefined,
+            'addressTo': undefined,
             'tag': tag,
-            'tagTo': undefined,
             'tagFrom': undefined,
-            'type': type,
-            'amount': amount,
-            'currency': code,
-            'status': status,
+            'tagTo': undefined,
             'updated': updated,
+            'comment': undefined,
             'fee': fee,
         };
     }

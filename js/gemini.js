@@ -1369,32 +1369,38 @@ module.exports = class gemini extends Exchange {
         const type = this.safeStringLower (transaction, 'type');
         // if status field is available, then it's complete
         const statusRaw = this.safeString (transaction, 'status');
-        let fee = undefined;
+        let fee = {
+            'currency': undefined,
+            'cost': undefined,
+            'rate': undefined,
+        };
         const feeAmount = this.safeNumber (transaction, 'feeAmount');
         if (feeAmount !== undefined) {
             fee = {
-                'cost': feeAmount,
                 'currency': code,
+                'cost': feeAmount,
+                'rate': undefined,
             };
         }
         return {
             'info': transaction,
             'id': this.safeString2 (transaction, 'eid', 'withdrawalId'),
             'txid': this.safeString (transaction, 'txHash'),
+            'type': type, // direction of the transaction, ('deposit' | 'withdraw')
+            'currency': code,
+            'network': undefined,
+            'amount': this.safeNumber (transaction, 'amount'),
+            'status': this.parseTransactionStatus (statusRaw),
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': undefined,
             'address': address,
-            'addressTo': undefined,
             'addressFrom': undefined,
+            'addressTo': undefined,
             'tag': undefined, // or is it defined?
-            'tagTo': undefined,
             'tagFrom': undefined,
-            'type': type, // direction of the transaction, ('deposit' | 'withdraw')
-            'amount': this.safeNumber (transaction, 'amount'),
-            'currency': code,
-            'status': this.parseTransactionStatus (statusRaw),
+            'tagTo': undefined,
             'updated': undefined,
+            'comment': undefined,
             'fee': fee,
         };
     }

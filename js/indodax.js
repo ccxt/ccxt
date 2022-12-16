@@ -990,38 +990,44 @@ module.exports = class indodax extends Exchange {
         //         "success_time": "1539529208",
         //         "deposit_id": "3602369",
         //         "tx": "c816aeb35a5b42f389970325a32aff69bb6b2126784dcda8f23b9dd9570d6573"
-        //     },
+        //     }
+        //
         const status = this.safeString (transaction, 'status');
         const timestamp = this.safeTimestamp2 (transaction, 'success_time', 'submit_time');
         const depositId = this.safeString (transaction, 'deposit_id');
         const feeCost = this.safeNumber (transaction, 'fee');
-        let fee = undefined;
+        let fee = {
+            'currency': undefined,
+            'cost': undefined,
+            'rate': undefined,
+        };
         if (feeCost !== undefined) {
             fee = {
                 'currency': this.safeCurrencyCode (undefined, currency),
                 'cost': feeCost,
+                'rate': undefined,
             };
         }
         return {
+            'info': transaction,
             'id': this.safeString2 (transaction, 'withdraw_id', 'deposit_id'),
             'txid': this.safeString2 (transaction, 'txid', 'tx'),
-            'timestamp': timestamp,
-            'datetime': this.iso8601 (timestamp),
-            'network': undefined,
-            'addressFrom': undefined,
-            'address': this.safeString (transaction, 'withdraw_address'),
-            'addressTo': undefined,
-            'amount': this.safeNumberN (transaction, [ 'amount', 'withdraw_amount', 'deposit_amount' ]),
             'type': (depositId === undefined) ? 'withdraw' : 'deposit',
             'currency': this.safeCurrencyCode (undefined, currency),
+            'network': undefined,
+            'amount': this.safeNumberN (transaction, [ 'amount', 'withdraw_amount', 'deposit_amount' ]),
             'status': this.parseTransactionStatus (status),
-            'updated': undefined,
-            'tagFrom': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'address': this.safeString (transaction, 'withdraw_address'),
+            'addressFrom': undefined,
+            'addressTo': undefined,
             'tag': undefined,
+            'tagFrom': undefined,
             'tagTo': undefined,
+            'updated': undefined,
             'comment': this.safeString (transaction, 'withdraw_memo'),
             'fee': fee,
-            'info': transaction,
         };
     }
 

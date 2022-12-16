@@ -322,27 +322,29 @@ module.exports = class btcmarkets extends Exchange {
             amount -= fee;
         }
         return {
+            'info': transaction,
             'id': this.safeString (transaction, 'id'),
             'txid': txid,
+            'type': type,
+            'currency': code,
+            'network': undefined,
+            'amount': amount,
+            'status': status,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'network': undefined,
             'address': address,
-            'addressTo': addressTo,
             'addressFrom': addressFrom,
+            'addressTo': addressTo,
             'tag': tag,
-            'tagTo': tagTo,
             'tagFrom': tagFrom,
-            'type': type,
-            'amount': amount,
-            'currency': code,
-            'status': status,
+            'tagTo': tagTo,
             'updated': lastUpdate,
+            'comment': undefined,
             'fee': {
                 'currency': code,
                 'cost': fee,
+                'rate': undefined,
             },
-            'info': transaction,
         };
     }
 
