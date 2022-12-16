@@ -2,6 +2,7 @@
 
 //  ---------------------------------------------------------------------------
 
+const { BadRequest } = require ('./base/errors');
 const Precise = require ('./base/Precise');
 const Exchange = require ('./base/Exchange');
 const { ExchangeError } = require ('./base/errors');
@@ -27,6 +28,11 @@ module.exports = class poloniexfutures extends Exchange {
                 'option': undefined,
                 'fetchCurrencies': false,
                 'fetchMarkets': true,
+                'fetchOrderBook': true,
+                'fetchTicker': true,
+                'fetchTickers': true,
+                'fetchTime': true,
+                'fetchTrades': true,
             },
             'timeframes': {
                 // TODO
@@ -388,7 +394,8 @@ module.exports = class poloniexfutures extends Exchange {
     parseTicker (ticker, market = undefined) {
         const marketId = this.safeString (ticker, 'symbol');
         const symbol = this.safeSymbol (marketId, market);
-        const timestamp = Math.floor (this.safeNumber (ticker, 'ts') / 1000000);
+        let timestamp = this.safeNumber (ticker, 'ts');
+        timestamp = parseInt (timestamp / 1000000);
         const last = this.safeString (ticker, 'price');
         return this.safeTicker ({
             'symbol': symbol,
@@ -464,6 +471,186 @@ module.exports = class poloniexfutures extends Exchange {
         await this.loadMarkets ();
         const response = await this.publicGetTickers (params);
         return this.parseTickers (this.safeValue (response, 'data', []), symbols);
+    }
+
+    async fetchOrderBook (symbol, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name kucoinfutures#fetchOrderBook
+         * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
+         * @see https://futures-docs.poloniex.com/#get-full-order-book-level-2
+         * @see https://futures-docs.poloniex.com/#get-full-order-book-level-3
+         * @param {string} symbol unified symbol of the market to fetch the order book for
+         * @param {int|undefined} limit the maximum amount of order book entries to return
+         * @param {object} params extra parameters specific to the kucoinfutures api endpoint
+         * @returns {object} A dictionary of [order book structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure} indexed by market symbols
+         */
+        await this.loadMarkets ();
+        const level = this.safeNumber (params, 'level');
+        params = this.omit (params, 'level');
+        if (level !== undefined && level !== 2 && level !== 3) {
+            throw new BadRequest (this.id + ' fetchOrderBook() can only return level 2 & 3');
+        }
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        let response = undefined;
+        if (level === 2) {
+            response = await this.publicGetLevel2Snapshot (this.extend (request, params));
+        } else {
+            response = await this.publicGetLevel3Snapshot (this.extend (request, params));
+        }
+        // L2
+        //
+        // {
+        //     "code": "200000",
+        //     "data": {
+        //     "symbol": "BTCUSDTPERP",
+        //     "sequence": 1669149851334,
+        //     "asks": [
+        //         [
+        //             16952,
+        //             12
+        //         ],
+        //     ],
+        //     "bids": [
+        //         [
+        //             16951.9,
+        //             13
+        //         ],
+        //     ],
+        // }
+        //
+        // L3
+        //
+        // {
+        //     "code": "200000",
+        //     "data": {
+        //     "symbol": "BTCUSDTPERP",
+        //     "sequence": 1669149851334,
+        //     "asks": [
+        //         [
+        //             "639c95388cba5100084eabce",
+        //             "16952.0",
+        //             "1",
+        //             1671206200542484700
+        //         ],
+        //     ],
+        //     "bids": [
+        //         [
+        //             "626659d83385c200072e690b",
+        //             "17.0",
+        //             "1000",
+        //             1650874840161291000
+        //         ],
+        //     ],
+        // }
+        //
+        const data = this.safeValue (response, 'data', {});
+        const timestamp = parseInt (this.safeInteger (data, 'ts') / 1000000);
+        let orderbook = undefined;
+        if (level === 2) {
+            orderbook = this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks', 0, 1);
+        } else {
+            orderbook = this.parseOrderBook (data, market['symbol'], timestamp, 'bids', 'asks', 1, 2);
+        }
+        return orderbook;
+    }
+
+    parseTrade (trade, market = undefined) {
+        //
+        // fetchTrades (public)
+        //
+        //     {
+        //         "sequence": 11827985,
+        //         "side": "buy",
+        //         "size": 101,
+        //         "price": "16864.0000000000",
+        //         "takerOrderId": "639c986f0ac2470007be75ee",
+        //         "makerOrderId": "639c986fa69d280007b76111",
+        //         "tradeId": "639c986f9fd7cf0001afd7ee",
+        //         "ts": 1671207023485924400
+        //     }
+        //
+        let timestamp = this.safeInteger (trade, 'ts');
+        timestamp = parseInt (timestamp / 1000000);
+        return this.safeTrade ({
+            'info': trade,
+            'id': this.safeString (trade, 'tradeId'),
+            'order': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'symbol': market['symbol'],
+            'type': undefined,
+            'takerOrMaker': undefined,
+            'side': this.safeString (trade, 'side'),
+            'price': this.safeString (trade, 'price'),
+            'amount': this.safeString (trade, 'size'),
+            'cost': undefined,
+            'fee': undefined,
+        }, market);
+    }
+
+    async fetchTrades (symbol, since = undefined, limit = undefined, params = {}) {
+        /**
+         * @method
+         * @name poloniexfutures#fetchTrades
+         * @description get the list of most recent trades for a particular symbol
+         * @see https://futures-docs.poloniex.com/#historical-data
+         * @param {string} symbol unified symbol of the market to fetch trades for
+         * @param {int|undefined} since timestamp in ms of the earliest trade to fetch
+         * @param {int|undefined} limit the maximum amount of trades to fetch
+         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
+         * @returns {[object]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
+         */
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetTradeHistory (this.extend (request, params));
+        //
+        //    {
+        //        "code": "200000",
+        //        "data": [
+        //        {
+        //          "sequence": 11827985,
+        //          "side": "buy",
+        //          "size": 101,
+        //          "price": "16864.0000000000",
+        //          "takerOrderId": "639c986f0ac2470007be75ee",
+        //          "makerOrderId": "639c986fa69d280007b76111",
+        //          "tradeId": "639c986f9fd7cf0001afd7ee",
+        //          "ts": 1671207023485924400
+        //        },
+        //    }
+        //
+        const trades = this.safeValue (response, 'data', []);
+        return this.parseTrades (trades, market, since, limit);
+    }
+
+    async fetchTime (params = {}) {
+        /**
+         * @method
+         * @name poloniexfutures#fetchTime
+         * @description fetches the current integer timestamp in milliseconds from the poloniexfutures server
+         * @see https://futures-docs.poloniex.com/#time
+         * @param {object} params extra parameters specific to the poloniexfutures api endpoint
+         * @returns {int} the current integer timestamp in milliseconds from the poloniexfutures server
+         */
+        const response = await this.publicGetTimestamp (params);
+        //
+        //    {
+        //        "code": 0,
+        //        "data": {
+        //            "requestTimeEcho": 1656560463601,
+        //            "requestReceiveAt": 1656560464331,
+        //            "latency": 730
+        //        }
+        //    }
+        //
+        return this.safeInteger (response, 'data');
     }
 
     sign (path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
