@@ -10,6 +10,7 @@
     "bitfinex":      { "skipWs": true },
     "cdax":          { "skipWs": true },
     "currencycom":   { "skip": true, "skipWs": true },
+    "cryptocom":     { "skipWs": true },
     "dsx":           { "skipWs": true },
     "ftx":           { "skip": true, "skipWs": true },
     "ftxus":         { "skip": true, "skipWs": true },
