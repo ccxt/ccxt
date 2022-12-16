@@ -59,7 +59,18 @@ class Exchange(BaseExchange):
         return CountedOrderBook(snapshot, depth)
 
     def client(self, url):
-        self.clients = self.clients or {}
+        if not self.clients:
+            # if first client create an rl to throttle all new connections
+            ws_options = self.safe_value(self.options, 'ws', {})
+            # get ws rl config
+            rate_limits = self.safe_value(ws_options, 'rateLimits', {})
+            # we use the default rl config to throttle new connections
+            default_rate_limit_config = self.safe_value(rate_limits, 'default')
+            # if we rateLimit is defined in the WS implementation, we fallback to the ccxt one
+            throtler_config = rate_limit_config if rate_limit_config else self.tokenBucket
+            self.clients = {
+                'throttle': Throttler(throtler_config, self.asyncio_loop),
+            }
         if url not in self.clients:
             on_message = self.handle_message
             on_error = self.on_error
@@ -71,7 +82,7 @@ class Exchange(BaseExchange):
             default_rate_limit_config = self.safe_value(rate_limits, 'default')
             # allowing specify rate limits per url, if not specified use default
             rate_limit_config = self.safe_value(rate_limits, url, default_rate_limit_config)
-            # if we no rateLimit is defined in the WS implementation, we fallback to the ccxt one
+            # if we rateLimit is defined in the WS implementation, we fallback to the ccxt one
             throtler_config = rate_limit_config if rate_limit_config else self.tokenBucket
             # decide client type here: aiohttp ws / websockets / signalr / socketio
             ws_options = self.safe_value(self.options, 'ws', {})
@@ -125,7 +136,7 @@ class Exchange(BaseExchange):
         else:
             async def connect():
                 if self.enableRateLimit:
-                    await self.throttle()
+                    await self.clients.throttle()
                 await client.connect(self.session, backoff_delay)
             connected = asyncio.ensure_future(connect())
 

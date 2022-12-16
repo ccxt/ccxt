@@ -26,18 +26,23 @@ async function pollOHLCV (exchange, symbol, timeframe) {
 
 async function main () {
     const exchange = new ccxt.pro.binance({
-        'tokenBucket': {
-            delay: 2, // delay in seconds
-            capacity: 1,
-            cost: 2,
-            maxCapacity: 50000,
+        'enableRateLimit': true,
+        'options': {
+            'ws': {
+                'rateLimits':{
+                    'default': {
+                        'cost': 5,
+                        'maxCapacity': 10000,
+                    }
+                }
+            }
         }
     })
     await exchange.loadMarkets ()
     // exchange.verbose = true uncomment to debug
     const timeframe = '1m'
 
-    const symbols = exchange.symbols.slice (0, 500)
+    const symbols = exchange.symbols
 
     console.log ('connecting to ', symbols.length, ' symbol')
 
