@@ -1251,7 +1251,7 @@ module.exports = class bitmex extends Exchange {
         if (status !== undefined) {
             status = this.parseTransactionStatus (status);
         }
-        let networkId = this.safeString (transaction, 'network');
+        const networkId = this.safeString (transaction, 'network');
         return {
             'info': transaction,
             'id': id,
