@@ -2710,7 +2710,7 @@ module.exports = class bitmex extends Exchange {
          */
         await this.loadMarkets ();
         const networkCode = this.safeStringUpper (params, 'network');
-        if (networkCode === 'undefined') {
+        if (networkCode === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchDepositAddress requires params["network"]');
         }
         const networks = this.safeValue (this.options, 'networks', {});
