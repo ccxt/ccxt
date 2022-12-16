@@ -1447,8 +1447,8 @@ class Transpiler {
 
     // ========================================================================
 
-    async getTSClassDeclarationsAllFiles (folder, extension = '.js' ) {
-        const files = fs.readdirSync (folder).filter (file => exchangeIds.includes (basename (file, extension)))
+    async getTSClassDeclarationsAllFiles (ids, folder, extension = '.js')  {
+        const files = fs.readdirSync (folder).filter (file => ids.includes (basename (file, extension)))
         const promiseReadFile = promisify (fs.readFile);
         const fileArray = await Promise.all (files.map (file => promiseReadFile (folder + file, 'utf8')));
         const classComponents = await Promise.all (fileArray.map (file => this.getClassDeclarationMatches (file)));
@@ -1488,7 +1488,7 @@ class Transpiler {
 
     async exportTypeScriptDeclarations (file, jsFolder) {
 
-        const classes = await this.getTSClassDeclarationsAllFiles (jsFolder);
+        const classes = await this.getTSClassDeclarationsAllFiles (exchangeIds, jsFolder);
 
         this.exportTypeScriptClassNames (file, classes)
         this.exportTypeScriptExchangeIds (file, classes)
